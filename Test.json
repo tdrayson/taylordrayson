@@ -1,1 +1,1658 @@
-[{"Date":null,"Sleep":null,"Coffee":null,"Calories":null}]
+[
+ {
+   "Date": "24 Sep 2019",
+   "Sleep": 8,
+   "Calories": 1962,
+   "Coffee": 1
+ },
+ {
+   "Date": "25 Sep 2019",
+   "Sleep": 8,
+   "Calories": 2288,
+   "Coffee": 1
+ },
+ {
+   "Date": "26 Sep 2019",
+   "Sleep": 8,
+   "Calories": 1399,
+   "Coffee": 1
+ },
+ {
+   "Date": "27 Sep 2019",
+   "Sleep": 8,
+   "Calories": 2056,
+   "Coffee": 1
+ },
+ {
+   "Date": "28 Sep 2019",
+   "Sleep": 8,
+   "Calories": 2043,
+   "Coffee": 1
+ },
+ {
+   "Date": "29 Sep 2019",
+   "Sleep": 8,
+   "Calories": 1768,
+   "Coffee": 1
+ },
+ {
+   "Date": "30 Sep 2019",
+   "Sleep": 8,
+   "Calories": 2005,
+   "Coffee": 1
+ },
+ {
+   "Date": "01 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1619,
+   "Coffee": 1
+ },
+ {
+   "Date": "02 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1835,
+   "Coffee": 1
+ },
+ {
+   "Date": "03 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1889,
+   "Coffee": 1
+ },
+ {
+   "Date": "04 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2331,
+   "Coffee": 1
+ },
+ {
+   "Date": "05 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2037,
+   "Coffee": 0
+ },
+ {
+   "Date": "06 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2383,
+   "Coffee": 1
+ },
+ {
+   "Date": "07 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1866,
+   "Coffee": 1
+ },
+ {
+   "Date": "08 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2394,
+   "Coffee": 1
+ },
+ {
+   "Date": "09 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2104,
+   "Coffee": 1
+ },
+ {
+   "Date": "10 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1798,
+   "Coffee": 1
+ },
+ {
+   "Date": "11 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1366,
+   "Coffee": 0
+ },
+ {
+   "Date": "12 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2171,
+   "Coffee": 0
+ },
+ {
+   "Date": "13 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1570,
+   "Coffee": 1
+ },
+ {
+   "Date": "14 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1053,
+   "Coffee": 0
+ },
+ {
+   "Date": "15 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1335,
+   "Coffee": 0
+ },
+ {
+   "Date": "16 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1600,
+   "Coffee": 0
+ },
+ {
+   "Date": "17 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1921,
+   "Coffee": 1
+ },
+ {
+   "Date": "18 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1817,
+   "Coffee": 2
+ },
+ {
+   "Date": "19 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2127,
+   "Coffee": 2
+ },
+ {
+   "Date": "20 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1424,
+   "Coffee": 1
+ },
+ {
+   "Date": "21 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1473,
+   "Coffee": 0
+ },
+ {
+   "Date": "22 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1223,
+   "Coffee": 0
+ },
+ {
+   "Date": "23 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1583,
+   "Coffee": 0
+ },
+ {
+   "Date": "24 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1317,
+   "Coffee": 0
+ },
+ {
+   "Date": "25 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1990,
+   "Coffee": 0
+ },
+ {
+   "Date": "26 Oct 2019",
+   "Sleep": 8,
+   "Calories": 2128,
+   "Coffee": 1
+ },
+ {
+   "Date": "27 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1089,
+   "Coffee": 1
+ },
+ {
+   "Date": "28 Oct 2019",
+   "Sleep": 8,
+   "Calories": 999,
+   "Coffee": 0
+ },
+ {
+   "Date": "29 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1096,
+   "Coffee": 0
+ },
+ {
+   "Date": "30 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1583,
+   "Coffee": 0
+ },
+ {
+   "Date": "31 Oct 2019",
+   "Sleep": 8,
+   "Calories": 1169,
+   "Coffee": 1
+ },
+ {
+   "Date": "01 Nov 2019",
+   "Sleep": 8,
+   "Calories": 1760,
+   "Coffee": 0
+ },
+ {
+   "Date": "02 Nov 2019",
+   "Sleep": 8,
+   "Calories": 2032,
+   "Coffee": 1
+ },
+ {
+   "Date": "03 Nov 2019",
+   "Sleep": 8,
+   "Calories": 2286,
+   "Coffee": 1
+ },
+ {
+   "Date": "04 Nov 2019",
+   "Sleep": 8,
+   "Calories": 2113,
+   "Coffee": 1
+ },
+ {
+   "Date": "05 Nov 2019",
+   "Sleep": 8,
+   "Calories": 808,
+   "Coffee": 1
+ },
+ {
+   "Date": "06 Nov 2019",
+   "Sleep": 8,
+   "Calories": 1376,
+   "Coffee": 0
+ },
+ {
+   "Date": "07 Nov 2019",
+   "Sleep": 8,
+   "Calories": 835,
+   "Coffee": 0
+ },
+ {
+   "Date": "08 Nov 2019",
+   "Sleep": 8,
+   "Calories": 1008,
+   "Coffee": 0
+ },
+ {
+   "Date": "09 Nov 2019",
+   "Sleep": 8,
+   "Calories": 2502,
+   "Coffee": 0
+ },
+ {
+   "Date": "10 Nov 2019",
+   "Sleep": 8,
+   "Calories": 2383,
+   "Coffee": 0
+ },
+ {
+   "Date": "11 Nov 2019",
+   "Sleep": 8,
+   "Calories": 1233,
+   "Coffee": 2
+ },
+ {
+   "Date": "12 Nov 2019",
+   "Sleep": 8,
+   "Calories": 477,
+   "Coffee": 0
+ },
+ {
+   "Date": "13 Nov 2019",
+   "Sleep": 8,
+   "Calories": 1734,
+   "Coffee": 0
+ },
+ {
+   "Date": "14 Nov 2019 at 22:01",
+   "Sleep": 8,
+   "Calories": 2312,
+   "Coffee": 2
+ },
+ {
+   "Date": "15 Nov 2019 at 23:08",
+   "Sleep": 9,
+   "Calories": 3109,
+   "Coffee": 3
+ },
+ {
+   "Date": "16 Nov 2019 at 23:00",
+   "Sleep": 9,
+   "Calories": 2515,
+   "Coffee": 0
+ },
+ {
+   "Date": "17 Nov 2019 at 23:00",
+   "Sleep": 8,
+   "Calories": 1794,
+   "Coffee": 0
+ },
+ {
+   "Date": "18 Nov 2019 at 10:13",
+   "Sleep": 11,
+   "Calories": 1217,
+   "Coffee": 0
+ },
+ {
+   "Date": "19 Nov 2019 at 13:45",
+   "Sleep": 9,
+   "Calories": 2639,
+   "Coffee": 0
+ },
+ {
+   "Date": "20 Nov 2019 at 12:22",
+   "Sleep": 8,
+   "Calories": 2654,
+   "Coffee": 2
+ },
+ {
+   "Date": "21 Nov 2019 at 18:26",
+   "Sleep": 9,
+   "Calories": 3221,
+   "Coffee": 0
+ },
+ {
+   "Date": "22 Nov 2019 at 15:13",
+   "Sleep": 10,
+   "Calories": 3640,
+   "Coffee": 1
+ },
+ {
+   "Date": "23 Nov 2019 at 22:59",
+   "Sleep": 7,
+   "Calories": 2910,
+   "Coffee": 1
+ },
+ {
+   "Date": "24 Nov 2019 at 23:01",
+   "Sleep": 10,
+   "Calories": 1978,
+   "Coffee": 1
+ },
+ {
+   "Date": "25 Nov 2019 at 23:01",
+   "Sleep": 10,
+   "Calories": 4285,
+   "Coffee": 2
+ },
+ {
+   "Date": "26 Nov 2019 at 13:10",
+   "Sleep": 9,
+   "Calories": 1911,
+   "Coffee": 1
+ },
+ {
+   "Date": "27 Nov 2019 at 13:11",
+   "Sleep": 8,
+   "Calories": 2643,
+   "Coffee": 3
+ },
+ {
+   "Date": "28 Nov 2019",
+   "Sleep": 7,
+   "Calories": 3392,
+   "Coffee": 1
+ },
+ {
+   "Date": "29 Nov 2019",
+   "Sleep": 8,
+   "Calories": 3012,
+   "Coffee": 1
+ },
+ {
+   "Date": "30 Nov 2019",
+   "Sleep": 9,
+   "Calories": 2622,
+   "Coffee": 4
+ },
+ {
+   "Date": "1 Dec 2019",
+   "Sleep": 8,
+   "Calories": 2628,
+   "Coffee": 3
+ },
+ {
+   "Date": "2 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2958,
+   "Coffee": 4
+ },
+ {
+   "Date": "3 Dec 2019",
+   "Sleep": 9,
+   "Calories": 2353,
+   "Coffee": 0
+ },
+ {
+   "Date": "4 Dec 2019",
+   "Sleep": 6,
+   "Calories": 1911,
+   "Coffee": 1
+ },
+ {
+   "Date": "5 Dec 2019",
+   "Sleep": 6,
+   "Calories": 2621,
+   "Coffee": 2
+ },
+ {
+   "Date": "6 Dec 2019",
+   "Sleep": 9,
+   "Calories": 2089,
+   "Coffee": 1
+ },
+ {
+   "Date": "7 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2360,
+   "Coffee": 1
+ },
+ {
+   "Date": "8 Dec 2019",
+   "Sleep": 9,
+   "Calories": 1032,
+   "Coffee": 1
+ },
+ {
+   "Date": "9 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2117,
+   "Coffee": 1
+ },
+ {
+   "Date": "10 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2517,
+   "Coffee": 1
+ },
+ {
+   "Date": "11 Dec 2019",
+   "Sleep": 12,
+   "Calories": 2080,
+   "Coffee": 1
+ },
+ {
+   "Date": "12 Dec 2019",
+   "Sleep": 4,
+   "Calories": 2651,
+   "Coffee": 1
+ },
+ {
+   "Date": "13 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2856,
+   "Coffee": 0
+ },
+ {
+   "Date": "14 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2205,
+   "Coffee": 1
+ },
+ {
+   "Date": "15 Dec 2019",
+   "Sleep": 9,
+   "Calories": 1129,
+   "Coffee": 2
+ },
+ {
+   "Date": "16 Dec 2019",
+   "Sleep": 5,
+   "Calories": 2060,
+   "Coffee": 2
+ },
+ {
+   "Date": "17 Dec 2019",
+   "Sleep": 10,
+   "Calories": 1671,
+   "Coffee": 2
+ },
+ {
+   "Date": "18 Dec 2019",
+   "Sleep": 4,
+   "Calories": 3057,
+   "Coffee": 0
+ },
+ {
+   "Date": "19 Dec 2019",
+   "Sleep": 5,
+   "Calories": 2461,
+   "Coffee": 1
+ },
+ {
+   "Date": "20 Dec 2019",
+   "Sleep": 12,
+   "Calories": 2314,
+   "Coffee": 0
+ },
+ {
+   "Date": "21 Dec 2019",
+   "Sleep": 9,
+   "Calories": 2870,
+   "Coffee": 1
+ },
+ {
+   "Date": "22 Dec 2019",
+   "Sleep": 7,
+   "Calories": 2919,
+   "Coffee": 2
+ },
+ {
+   "Date": "23 Dec 2019",
+   "Sleep": 11,
+   "Calories": 1554,
+   "Coffee": 1
+ },
+ {
+   "Date": "24 Dec 2019",
+   "Sleep": 8,
+   "Calories": 3518,
+   "Coffee": 0
+ },
+ {
+   "Date": "25 Dec 2019",
+   "Sleep": 11,
+   "Calories": 2090,
+   "Coffee": 1
+ },
+ {
+   "Date": "26 Dec 2019",
+   "Sleep": 9,
+   "Calories": 2160,
+   "Coffee": 0
+ },
+ {
+   "Date": "27 Dec 2019",
+   "Sleep": 9,
+   "Calories": 2712,
+   "Coffee": 0
+ },
+ {
+   "Date": "28 Dec 2019",
+   "Sleep": 9,
+   "Calories": 2145,
+   "Coffee": 0
+ },
+ {
+   "Date": "29 Dec 2019",
+   "Sleep": 12,
+   "Calories": 2235,
+   "Coffee": 1
+ },
+ {
+   "Date": "30 Dec 2019",
+   "Sleep": 12,
+   "Calories": 2531,
+   "Coffee": 1
+ },
+ {
+   "Date": "31 Dec 2019",
+   "Sleep": 12,
+   "Calories": 2046,
+   "Coffee": 0
+ },
+ {
+   "Date": "01 Jan 2020",
+   "Sleep": 7,
+   "Calories": 2204,
+   "Coffee": 1
+ },
+ {
+   "Date": "02 Jan 2020",
+   "Sleep": 8,
+   "Calories": 3130,
+   "Coffee": 0
+ },
+ {
+   "Date": "03 Jan 2020",
+   "Sleep": 5,
+   "Calories": 2324,
+   "Coffee": 0
+ },
+ {
+   "Date": "04 Jan 2020",
+   "Sleep": 7,
+   "Calories": 1651,
+   "Coffee": 2
+ },
+ {
+   "Date": "05 Jan 2020",
+   "Sleep": 10,
+   "Calories": 1014,
+   "Coffee": 0
+ },
+ {
+   "Date": "06 Jan 2020",
+   "Sleep": 7,
+   "Calories": 1838,
+   "Coffee": 0
+ },
+ {
+   "Date": "07 Jan 2020",
+   "Sleep": 7,
+   "Calories": 1967,
+   "Coffee": 0
+ },
+ {
+   "Date": "08 Jan 2020",
+   "Sleep": 10,
+   "Calories": 1729,
+   "Coffee": 1
+ },
+ {
+   "Date": "09 Jan 2020",
+   "Sleep": 7,
+   "Calories": 2006,
+   "Coffee": 1
+ },
+ {
+   "Date": "10 Jan 2020",
+   "Sleep": 13,
+   "Calories": 1089,
+   "Coffee": 0
+ },
+ {
+   "Date": "11 Jan 2020",
+   "Sleep": 16,
+   "Calories": 1757,
+   "Coffee": 0
+ },
+ {
+   "Date": "12 Jan 2020",
+   "Sleep": 9,
+   "Calories": 1599,
+   "Coffee": 0
+ },
+ {
+   "Date": "13 Jan 2020",
+   "Sleep": 12,
+   "Calories": 1550,
+   "Coffee": 2
+ },
+ {
+   "Date": "14 Jan 2020",
+   "Sleep": 10,
+   "Calories": 1051,
+   "Coffee": 0
+ },
+ {
+   "Date": "15 Jan 2020",
+   "Sleep": 10,
+   "Calories": 995,
+   "Coffee": 0
+ },
+ {
+   "Date": "16 Jan 2020",
+   "Sleep": 9,
+   "Calories": 2024,
+   "Coffee": 0
+ },
+ {
+   "Date": "17 Jan 2020",
+   "Sleep": 8,
+   "Calories": 1346,
+   "Coffee": 0
+ },
+ {
+   "Date": "18 Jan 2020",
+   "Sleep": 10,
+   "Calories": 2029,
+   "Coffee": 0
+ },
+ {
+   "Date": "19 Jan 2020",
+   "Sleep": 10,
+   "Calories": 1166,
+   "Coffee": 0
+ },
+ {
+   "Date": "20 Jan 2020",
+   "Sleep": 8,
+   "Calories": 2282,
+   "Coffee": 0
+ },
+ {
+   "Date": "21 Jan 2020",
+   "Sleep": 9,
+   "Calories": 1692,
+   "Coffee": 0
+ },
+ {
+   "Date": "22 Jan 2020",
+   "Sleep": 13,
+   "Calories": 1391,
+   "Coffee": 0
+ },
+ {
+   "Date": "23 Jan 2020",
+   "Sleep": 7,
+   "Calories": 3701,
+   "Coffee": 1
+ },
+ {
+   "Date": "24 Jan 2020",
+   "Sleep": 9,
+   "Calories": 2334,
+   "Coffee": 0
+ },
+ {
+   "Date": "25 Jan 2020",
+   "Sleep": 12,
+   "Calories": 2244,
+   "Coffee": 0
+ },
+ {
+   "Date": "26 Jan 2020",
+   "Sleep": 7,
+   "Calories": 1866,
+   "Coffee": 0
+ },
+ {
+   "Date": "27 Jan 2020",
+   "Sleep": 10,
+   "Calories": 2036,
+   "Coffee": 0
+ },
+ {
+   "Date": "28 Jan 2020",
+   "Sleep": 8,
+   "Calories": 2949,
+   "Coffee": 0
+ },
+ {
+   "Date": "29 Jan 2020",
+   "Sleep": 10,
+   "Calories": 2779,
+   "Coffee": 0
+ },
+ {
+   "Date": "30 Jan 2020",
+   "Sleep": 7,
+   "Calories": 3095,
+   "Coffee": 1
+ },
+ {
+   "Date": "31 Jan 2020",
+   "Sleep": 6,
+   "Calories": 2137,
+   "Coffee": 0
+ },
+ {
+   "Date": "01 Feb 2020",
+   "Sleep": 10,
+   "Calories": 2020,
+   "Coffee": 0
+ },
+ {
+   "Date": "02 Feb 2020",
+   "Sleep": 12,
+   "Calories": 1616,
+   "Coffee": 1
+ },
+ {
+   "Date": "03 Feb 2020",
+   "Sleep": 7,
+   "Calories": 2500,
+   "Coffee": 1
+ },
+ {
+   "Date": "04 Feb 2020",
+   "Sleep": 7,
+   "Calories": 2596,
+   "Coffee": 1
+ },
+ {
+   "Date": "05 Feb 2020",
+   "Sleep": 10,
+   "Calories": 2399,
+   "Coffee": 1
+ },
+ {
+   "Date": "06 Feb 2020",
+   "Sleep": 8,
+   "Calories": 2846,
+   "Coffee": 1
+ },
+ {
+   "Date": "07 Feb 2020",
+   "Sleep": 8,
+   "Calories": 2595,
+   "Coffee": 1
+ },
+ {
+   "Date": "08 Feb 2020",
+   "Sleep": 12,
+   "Calories": 1778,
+   "Coffee": 0
+ },
+ {
+   "Date": "09 Feb 2020",
+   "Sleep": 8,
+   "Calories": 1914,
+   "Coffee": 0
+ },
+ {
+   "Date": "10 Feb 2020",
+   "Sleep": 11,
+   "Calories": 2792,
+   "Coffee": 1
+ },
+ {
+   "Date": "11 Feb 2020",
+   "Sleep": 7,
+   "Calories": 2197,
+   "Coffee": 0
+ },
+ {
+   "Date": "12 Feb 2020",
+   "Sleep": 7,
+   "Calories": 1967,
+   "Coffee": 0
+ },
+ {
+   "Date": "13 Feb 2020",
+   "Sleep": 8,
+   "Calories": 2824,
+   "Coffee": 0
+ },
+ {
+   "Date": "14 Feb 2020",
+   "Sleep": 9,
+   "Calories": 2644,
+   "Coffee": 0
+ },
+ {
+   "Date": "15 Feb 2020",
+   "Sleep": 12,
+   "Calories": 1841,
+   "Coffee": 0
+ },
+ {
+   "Date": "16 Feb 2020",
+   "Sleep": 7,
+   "Calories": 1883,
+   "Coffee": 0
+ },
+ {
+   "Date": "17 Feb 2020",
+   "Sleep": 9,
+   "Calories": 2092,
+   "Coffee": 0
+ },
+ {
+   "Date": "18 Feb 2020",
+   "Sleep": 11,
+   "Calories": 1638,
+   "Coffee": 0
+ },
+ {
+   "Date": "19 Feb 2020",
+   "Sleep": 9,
+   "Calories": 1315,
+   "Coffee": 0
+ },
+ {
+   "Date": "20 Feb 2020",
+   "Sleep": 9,
+   "Calories": 1894,
+   "Coffee": 0
+ },
+ {
+   "Date": "21 Feb 2020",
+   "Sleep": 17,
+   "Calories": 1332,
+   "Coffee": 0
+ },
+ {
+   "Date": "22 Feb 2020",
+   "Sleep": 14,
+   "Calories": 1266,
+   "Coffee": 0
+ },
+ {
+   "Date": "23 Feb 2020",
+   "Sleep": 7,
+   "Calories": 2442,
+   "Coffee": 0
+ },
+ {
+   "Date": "24 Feb 2020",
+   "Sleep": 10,
+   "Calories": 2436,
+   "Coffee": 0
+ },
+ {
+   "Date": "25 Feb 2020",
+   "Sleep": 8,
+   "Calories": 3214,
+   "Coffee": 0
+ },
+ {
+   "Date": "26 Feb 2020",
+   "Sleep": 12,
+   "Calories": 1581,
+   "Coffee": 0
+ },
+ {
+   "Date": "27 Feb 2020",
+   "Sleep": 8,
+   "Calories": 1938,
+   "Coffee": 0
+ },
+ {
+   "Date": "28 Feb 2020",
+   "Sleep": 7,
+   "Calories": 2069,
+   "Coffee": 0
+ },
+ {
+   "Date": "29 Feb 2020",
+   "Sleep": 12,
+   "Calories": 2751,
+   "Coffee": 0
+ },
+ {
+   "Date": "01 Mar 2020",
+   "Sleep": 10,
+   "Calories": 2538,
+   "Coffee": 0
+ },
+ {
+   "Date": "02 Mar 2020",
+   "Sleep": 11,
+   "Calories": 1780,
+   "Coffee": 0
+ },
+ {
+   "Date": "03 Mar 2020",
+   "Sleep": 7,
+   "Calories": 2560,
+   "Coffee": 0
+ },
+ {
+   "Date": "04 Mar 2020",
+   "Sleep": 9,
+   "Calories": 2616,
+   "Coffee": 1
+ },
+ {
+   "Date": "05 Mar 2020",
+   "Sleep": 7,
+   "Calories": 3311,
+   "Coffee": 2
+ },
+ {
+   "Date": "06 Mar 2020",
+   "Sleep": 12,
+   "Calories": 2185,
+   "Coffee": 0
+ },
+ {
+   "Date": "07 Mar 2020",
+   "Sleep": 9,
+   "Calories": 2164,
+   "Coffee": 1
+ },
+ {
+   "Date": "08 Mar 2020",
+   "Sleep": 9,
+   "Calories": 3241,
+   "Coffee": 0
+ },
+ {
+   "Date": "09 Mar 2020",
+   "Sleep": 6,
+   "Calories": 2497,
+   "Coffee": 0
+ },
+ {
+   "Date": "10 Mar 2020",
+   "Sleep": 8,
+   "Calories": 3457,
+   "Coffee": 1
+ },
+ {
+   "Date": "11 Mar 2020",
+   "Sleep": 12,
+   "Calories": 3248,
+   "Coffee": 0
+ },
+ {
+   "Date": "12 Mar 2020",
+   "Sleep": 8,
+   "Calories": 3739,
+   "Coffee": 1
+ },
+ {
+   "Date": "13 Mar 2020",
+   "Sleep": 10,
+   "Calories": 1800,
+   "Coffee": 0
+ },
+ {
+   "Date": "14 Mar 2020",
+   "Sleep": 7,
+   "Calories": 2357,
+   "Coffee": 0
+ },
+ {
+   "Date": "15 Mar 2020",
+   "Sleep": 9,
+   "Calories": 2056,
+   "Coffee": 1
+ },
+ {
+   "Date": "16 Mar 2020",
+   "Sleep": 9,
+   "Calories": 2531,
+   "Coffee": 0
+ },
+ {
+   "Date": "17 Mar 2020",
+   "Sleep": 7,
+   "Calories": 4092,
+   "Coffee": 0
+ },
+ {
+   "Date": "18 Mar 2020",
+   "Sleep": 6,
+   "Calories": 3555,
+   "Coffee": 1
+ },
+ {
+   "Date": "19 Mar 2020",
+   "Sleep": 7,
+   "Calories": 3282,
+   "Coffee": 3
+ },
+ {
+   "Date": "20 Mar 2020",
+   "Sleep": 6,
+   "Calories": 3177,
+   "Coffee": 3
+ },
+ {
+   "Date": "21 Mar 2020",
+   "Sleep": 15,
+   "Calories": 2337,
+   "Coffee": 2
+ },
+ {
+   "Date": "22 Mar 2020",
+   "Sleep": 9,
+   "Calories": 3483,
+   "Coffee": 1
+ },
+ {
+   "Date": "23 Mar 2020",
+   "Sleep": 9,
+   "Calories": 2634,
+   "Coffee": 1
+ },
+ {
+   "Date": "24 Mar 2020",
+   "Sleep": 8,
+   "Calories": 3878,
+   "Coffee": 2
+ },
+ {
+   "Date": "25 Mar 2020",
+   "Sleep": 8,
+   "Calories": 2609,
+   "Coffee": 0
+ },
+ {
+   "Date": "26 Mar 2020",
+   "Sleep": 6,
+   "Calories": 2472,
+   "Coffee": 2
+ },
+ {
+   "Date": "27 Mar 2020",
+   "Sleep": 5,
+   "Calories": 2619,
+   "Coffee": 2
+ },
+ {
+   "Date": "28 Mar 2020",
+   "Sleep": 7,
+   "Calories": 3184,
+   "Coffee": 2
+ },
+ {
+   "Date": "29 Mar 2020",
+   "Sleep": 7,
+   "Calories": 2670,
+   "Coffee": 0
+ },
+ {
+   "Date": "30 Mar 2020",
+   "Sleep": 6,
+   "Calories": 1868,
+   "Coffee": 0
+ },
+ {
+   "Date": "31 Mar 2020",
+   "Sleep": 9,
+   "Calories": 2480,
+   "Coffee": 1
+ },
+ {
+   "Date": "01 Apr 2020",
+   "Sleep": 6,
+   "Calories": 2731,
+   "Coffee": 2
+ },
+ {
+   "Date": "02 Apr 2020",
+   "Sleep": 6,
+   "Calories": 2194,
+   "Coffee": 2
+ },
+ {
+   "Date": "03 Apr 2020",
+   "Sleep": 9,
+   "Calories": 3084,
+   "Coffee": 1
+ },
+ {
+   "Date": "04 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2873,
+   "Coffee": 1
+ },
+ {
+   "Date": "05 Apr 2020",
+   "Sleep": 9,
+   "Calories": 2524,
+   "Coffee": 3
+ },
+ {
+   "Date": "06 Apr 2020",
+   "Sleep": 10,
+   "Calories": 2227,
+   "Coffee": 3
+ },
+ {
+   "Date": "07 Apr 2020",
+   "Sleep": 10,
+   "Calories": 2141,
+   "Coffee": 1
+ },
+ {
+   "Date": "08 Apr 2020",
+   "Sleep": 10,
+   "Calories": 2366,
+   "Coffee": 2
+ },
+ {
+   "Date": "09 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2764,
+   "Coffee": 3
+ },
+ {
+   "Date": "10 Apr 2020",
+   "Sleep": 11,
+   "Calories": 1903,
+   "Coffee": 2
+ },
+ {
+   "Date": "11 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2446,
+   "Coffee": 1
+ },
+ {
+   "Date": "12 Apr 2020",
+   "Sleep": 9,
+   "Calories": 3659,
+   "Coffee": 2
+ },
+ {
+   "Date": "13 Apr 2020",
+   "Sleep": 10,
+   "Calories": 2232,
+   "Coffee": 2
+ },
+ {
+   "Date": "14 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2096,
+   "Coffee": 0
+ },
+ {
+   "Date": "15 Apr 2020",
+   "Sleep": 12,
+   "Calories": 1759,
+   "Coffee": 2
+ },
+ {
+   "Date": "16 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2346,
+   "Coffee": 1
+ },
+ {
+   "Date": "17 Apr 2020",
+   "Sleep": 11,
+   "Calories": 2233,
+   "Coffee": 1
+ },
+ {
+   "Date": "18 Apr 2020",
+   "Sleep": 15,
+   "Calories": 2020,
+   "Coffee": 2
+ },
+ {
+   "Date": "19 Apr 2020",
+   "Sleep": 5,
+   "Calories": 1983,
+   "Coffee": 1
+ },
+ {
+   "Date": "20 Apr 2020",
+   "Sleep": 13,
+   "Calories": 1539,
+   "Coffee": 0
+ },
+ {
+   "Date": "21 Apr 2020",
+   "Sleep": 5,
+   "Calories": 2109,
+   "Coffee": 2
+ },
+ {
+   "Date": "22 Apr 2020",
+   "Sleep": 8,
+   "Calories": 2177,
+   "Coffee": 2
+ },
+ {
+   "Date": "23 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2496,
+   "Coffee": 3
+ },
+ {
+   "Date": "24 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2177,
+   "Coffee": 3
+ },
+ {
+   "Date": "25 Apr 2020",
+   "Sleep": 14,
+   "Calories": 2100,
+   "Coffee": 3
+ },
+ {
+   "Date": "26 Apr 2020",
+   "Sleep": 6,
+   "Calories": 2274,
+   "Coffee": 1
+ },
+ {
+   "Date": "27 Apr 2020",
+   "Sleep": 7,
+   "Calories": 2527,
+   "Coffee": 3
+ },
+ {
+   "Date": "28 Apr 2020",
+   "Sleep": 10,
+   "Calories": 1835,
+   "Coffee": 2
+ },
+ {
+   "Date": "29 Apr 2020",
+   "Sleep": 10,
+   "Calories": 2178,
+   "Coffee": 2
+ },
+ {
+   "Date": "30 Apr 2020",
+   "Sleep": 8,
+   "Calories": 2545,
+   "Coffee": 3
+ },
+ {
+   "Date": "01 May 2020",
+   "Sleep": 10,
+   "Calories": 3328,
+   "Coffee": 2
+ },
+ {
+   "Date": "02 May 2020",
+   "Sleep": 15,
+   "Calories": 1868,
+   "Coffee": 0
+ },
+ {
+   "Date": "03 May 2020",
+   "Sleep": 12,
+   "Calories": 2676,
+   "Coffee": 0
+ },
+ {
+   "Date": "04 May 2020",
+   "Sleep": 9,
+   "Calories": 2275,
+   "Coffee": 3
+ },
+ {
+   "Date": "05 May 2020",
+   "Sleep": 11,
+   "Calories": 2361,
+   "Coffee": 2
+ },
+ {
+   "Date": "06 May 2020",
+   "Sleep": 11,
+   "Calories": 3051,
+   "Coffee": 2
+ },
+ {
+   "Date": "07 May 2020",
+   "Sleep": 9,
+   "Calories": 1882,
+   "Coffee": 2
+ },
+ {
+   "Date": "08 May 2020",
+   "Sleep": 9,
+   "Calories": 1950,
+   "Coffee": 1
+ },
+ {
+   "Date": "09 May 2020",
+   "Sleep": 6,
+   "Calories": 2400,
+   "Coffee": 1
+ },
+ {
+   "Date": "10 May 2020",
+   "Sleep": 5,
+   "Calories": 910,
+   "Coffee": 1
+ },
+ {
+   "Date": "11 May 2020",
+   "Sleep": 11,
+   "Calories": 1055,
+   "Coffee": 1
+ },
+ {
+   "Date": "12 May 2020",
+   "Sleep": 10,
+   "Calories": 2271,
+   "Coffee": 2
+ },
+ {
+   "Date": "13 May 2020",
+   "Sleep": 11,
+   "Calories": 1364,
+   "Coffee": 0
+ },
+ {
+   "Date": "14 May 2020",
+   "Sleep": 4,
+   "Calories": 2756,
+   "Coffee": 2
+ },
+ {
+   "Date": "15 May 2020",
+   "Sleep": 7,
+   "Calories": 2479,
+   "Coffee": 1
+ },
+ {
+   "Date": "16 May 2020",
+   "Sleep": 8,
+   "Calories": 1868,
+   "Coffee": 2
+ },
+ {
+   "Date": "17 May 2020",
+   "Sleep": 13,
+   "Calories": 2479,
+   "Coffee": 2
+ },
+ {
+   "Date": "18 May 2020",
+   "Sleep": 10,
+   "Calories": 2676,
+   "Coffee": 2
+ },
+ {
+   "Date": "19 May 2020",
+   "Sleep": 10,
+   "Calories": 2038,
+   "Coffee": 2
+ },
+ {
+   "Date": "20 May 2020",
+   "Sleep": 13,
+   "Calories": 2207,
+   "Coffee": 1
+ },
+ {
+   "Date": "21 May 2020",
+   "Sleep": 9,
+   "Calories": 2201,
+   "Coffee": 0
+ },
+ {
+   "Date": "22 May 2020",
+   "Sleep": 10,
+   "Calories": 2622,
+   "Coffee": 2
+ },
+ {
+   "Date": "23 May 2020",
+   "Sleep": 9,
+   "Calories": 2427,
+   "Coffee": 2
+ },
+ {
+   "Date": "24 May 2020",
+   "Sleep": 5,
+   "Calories": 3045,
+   "Coffee": 1
+ },
+ {
+   "Date": "25 May 2020",
+   "Sleep": 8,
+   "Calories": 1943,
+   "Coffee": 2
+ },
+ {
+   "Date": "26 May 2020",
+   "Sleep": 3,
+   "Calories": 2475,
+   "Coffee": 1
+ },
+ {
+   "Date": "27 May 2020",
+   "Sleep": 11,
+   "Calories": 2472,
+   "Coffee": 2
+ },
+ {
+   "Date": "28 May 2020",
+   "Sleep": 0,
+   "Calories": 2154,
+   "Coffee": 2
+ },
+ {
+   "Date": "29 May 2020",
+   "Sleep": 8,
+   "Calories": 1602,
+   "Coffee": 1
+ },
+ {
+   "Date": "30 May 2020",
+   "Sleep": null,
+   "Calories": 2127,
+   "Coffee": 1
+ },
+ {
+   "Date": "31 May 2020",
+   "Sleep": null,
+   "Calories": 1545,
+   "Coffee": 1
+ },
+ {
+   "Date": "01 Jun 2020",
+   "Sleep": null,
+   "Calories": 2279,
+   "Coffee": 0
+ },
+ {
+   "Date": "02 Jun 2020",
+   "Sleep": null,
+   "Calories": 2374,
+   "Coffee": 2
+ },
+ {
+   "Date": "03 Jun 2020",
+   "Sleep": null,
+   "Calories": 2513,
+   "Coffee": 1
+ },
+ {
+   "Date": "04 Jun 2020",
+   "Sleep": null,
+   "Calories": 1525,
+   "Coffee": 0
+ },
+ {
+   "Date": "05 Jun 2020",
+   "Sleep": null,
+   "Calories": 1931,
+   "Coffee": 1
+ },
+ {
+   "Date": "06 Jun 2020",
+   "Sleep": null,
+   "Calories": 1968,
+   "Coffee": 0
+ },
+ {
+   "Date": "07 Jun 2020",
+   "Sleep": null,
+   "Calories": 1882,
+   "Coffee": 1
+ },
+ {
+   "Date": "08 Jun 2020",
+   "Sleep": null,
+   "Calories": 2204,
+   "Coffee": 1
+ },
+ {
+   "Date": "09 Jun 2020",
+   "Sleep": null,
+   "Calories": 2548,
+   "Coffee": 1
+ },
+ {
+   "Date": "10 Jun 2020",
+   "Sleep": null,
+   "Calories": 3393,
+   "Coffee": 2
+ },
+ {
+   "Date": "11 Jun 2020",
+   "Sleep": null,
+   "Calories": 2894,
+   "Coffee": 1
+ },
+ {
+   "Date": "12 Jun 2020",
+   "Sleep": null,
+   "Calories": 1715,
+   "Coffee": 1
+ },
+ {
+   "Date": "13 Jun 2020",
+   "Sleep": null,
+   "Calories": 3038,
+   "Coffee": 1
+ },
+ {
+   "Date": "14 Jun 2020",
+   "Sleep": null,
+   "Calories": 1985,
+   "Coffee": 1
+ },
+ {
+   "Date": "15 Jun 2020",
+   "Sleep": null,
+   "Calories": 1936,
+   "Coffee": 3
+ },
+ {
+   "Date": "16 Jun 2020",
+   "Sleep": null,
+   "Calories": 2379,
+   "Coffee": 1
+ },
+ {
+   "Date": "17 Jun 2020",
+   "Sleep": null,
+   "Calories": 2795,
+   "Coffee": 1
+ },
+ {
+   "Date": "18 Jun 2020",
+   "Sleep": null,
+   "Calories": 1956,
+   "Coffee": 1
+ },
+ {
+   "Date": "19 Jun 2020",
+   "Sleep": null,
+   "Calories": 2474,
+   "Coffee": 1
+ },
+ {
+   "Date": "20 Jun 2020",
+   "Sleep": null,
+   "Calories": 2529,
+   "Coffee": 1
+ },
+ {
+   "Date": "21 Jun 2020",
+   "Sleep": null,
+   "Calories": 1888,
+   "Coffee": 1
+ },
+ {
+   "Date": "22 Jun 2020",
+   "Sleep": null,
+   "Calories": 1708,
+   "Coffee": 1
+ },
+ {
+   "Date": "23 Jun 2020",
+   "Sleep": null,
+   "Calories": 1768,
+   "Coffee": 2
+ },
+ {
+   "Date": "24 Jun 2020",
+   "Sleep": null,
+   "Calories": 2375,
+   "Coffee": 1
+ },
+ {
+   "Date": "25 Jun 2020",
+   "Sleep": null,
+   "Calories": 1872,
+   "Coffee": 1
+ }
+]
