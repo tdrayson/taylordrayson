@@ -1,12 +1,63 @@
 @props(['data' => []])
 
 @php
-    $defaults = [
-        ['label' => 'Running', 'value' => '5.2 km avg', 'icon' => 'footprints', 'color' => 'text-data-activity', 'points' => '0,21.999999999999996 7.6923076923076925,13.000000000000004 15.384615384615385,26 23.076923076923077,9 30.76923076923077,14.999999999999996 38.46153846153847,2 46.15384615384615,6 53.84615384615385,14 61.53846153846154,19 69.23076923076923,3.0000000000000036 76.92307692307693,11.000000000000004 84.61538461538461,12 92.3076923076923,16 100,4.9999999999999964'],
-        ['label' => 'Calories', 'value' => '2,172 avg', 'icon' => 'utensils', 'color' => 'text-data-food', 'points' => '0,19.142857142857142 7.6923076923076925,10.57142857142857 15.384615384615385,26 23.076923076923077,7.714285714285715 30.76923076923077,16.285714285714285 38.46153846153847,2 46.15384615384615,22 53.84615384615385,14.571428571428573 61.53846153846154,6.571428571428569 69.23076923076923,19.142857142857142 76.92307692307693,10.57142857142857 84.61538461538461,20.285714285714285 92.3076923076923,13.428571428571427 100,4.857142857142858'],
-        ['label' => 'Sleep', 'value' => '7.2h avg', 'icon' => 'bed', 'color' => 'text-data-sleep', 'points' => '0,13.076923076923073 7.6923076923076925,20.461538461538463 15.384615384615385,7.538461538461533 23.076923076923077,26 30.76923076923077,2 38.46153846153847,16.769230769230766 46.15384615384615,18.615384615384606 53.84615384615385,11.230769230769234 61.53846153846154,14.923076923076927 69.23076923076923,22.307692307692303 76.92307692307693,9.384615384615376 84.61538461538461,5.692307692307693 92.3076923076923,16.769230769230766 100,7.538461538461533'],
-    ];
-    $rows = !empty($data) ? $data : $defaults;
+    function sparklinePoints(array $values): string
+    {
+        if (empty($values) || max($values) === 0) {
+            return '';
+        }
+        $max = max($values);
+        $min = min($values);
+        $range = $max - $min ?: 1;
+        $count = count($values);
+        $points = [];
+        foreach ($values as $i => $v) {
+            $x = $count > 1 ? round($i / ($count - 1) * 100, 2) : 50;
+            $y = round(26 - (($v - $min) / $range) * 24 + 2, 2);
+            $points[] = "$x,$y";
+        }
+        return implode(' ', $points);
+    }
+
+    $rows = [];
+
+    if (!empty($data)) {
+        if (isset($data['running'])) {
+            $rows[] = [
+                'label' => 'Running',
+                'value' => $data['running']['avg'] . ' km avg',
+                'icon' => 'footprints',
+                'color' => 'text-data-activity',
+                'points' => sparklinePoints($data['running']['values']),
+            ];
+        }
+        if (isset($data['calories'])) {
+            $rows[] = [
+                'label' => 'Calories',
+                'value' => number_format($data['calories']['avg']) . ' avg',
+                'icon' => 'utensils',
+                'color' => 'text-data-food',
+                'points' => sparklinePoints($data['calories']['values']),
+            ];
+        }
+        if (isset($data['sleep'])) {
+            $rows[] = [
+                'label' => 'Sleep',
+                'value' => $data['sleep']['avg'] . 'h avg',
+                'icon' => 'bed',
+                'color' => 'text-data-sleep',
+                'points' => sparklinePoints($data['sleep']['values']),
+            ];
+        }
+    }
+
+    if (empty($rows)) {
+        $rows = [
+            ['label' => 'Running', 'value' => '0 km avg', 'icon' => 'footprints', 'color' => 'text-data-activity', 'points' => ''],
+            ['label' => 'Calories', 'value' => '0 avg', 'icon' => 'utensils', 'color' => 'text-data-food', 'points' => ''],
+            ['label' => 'Sleep', 'value' => '0h avg', 'icon' => 'bed', 'color' => 'text-data-sleep', 'points' => ''],
+        ];
+    }
 @endphp
 
 <div>

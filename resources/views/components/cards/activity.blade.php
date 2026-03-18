@@ -65,9 +65,9 @@
                     <span class="text-sm text-muted-foreground">time</span>
                 </div>
             @endif
-            @if($entry->meta['elevation'] ?? null)
+            @if($entry->meta['elevation_gain'] ?? null)
                 <div class="flex items-baseline gap-1.5">
-                    <span class="text-base font-bold tabular-nums text-foreground">{{ $entry->meta['elevation'] }}m</span>
+                    <span class="text-base font-bold tabular-nums text-foreground">{{ $entry->meta['elevation_gain'] }}m</span>
                     <span class="text-sm text-muted-foreground">elev</span>
                 </div>
             @endif
@@ -84,8 +84,12 @@
         <div class="mt-4 space-y-2.5">
             @foreach($entry->meta['exercises'] as $exercise)
                 <div class="flex items-baseline gap-2">
-                    <span class="text-sm font-medium text-foreground">{{ $exercise['name'] }}</span>
-                    <span class="text-muted-foreground text-xs">{{ $exercise['sets'] ?? '' }}</span>
+                    @if(is_array($exercise))
+                        <span class="text-sm font-medium text-foreground">{{ $exercise['name'] }}</span>
+                        <span class="text-muted-foreground text-xs">{{ $exercise['sets'] ?? '' }}</span>
+                    @else
+                        <span class="text-sm font-medium text-foreground">{{ $exercise }}</span>
+                    @endif
                 </div>
             @endforeach
         </div>
