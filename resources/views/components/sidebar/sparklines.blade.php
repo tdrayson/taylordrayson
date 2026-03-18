@@ -1,6 +1,7 @@
 @props(['data' => []])
 
 @php
+    if (!function_exists('sparklinePoints')) {
     function sparklinePoints(array $values): string
     {
         if (empty($values) || max($values) === 0) {
@@ -17,6 +18,7 @@
             $points[] = "$x,$y";
         }
         return implode(' ', $points);
+    }
     }
 
     $rows = [];
