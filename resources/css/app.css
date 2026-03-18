@@ -1,0 +1,244 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@layer base {
+    :root {
+        --background: 36 25% 97%;
+        --foreground: 220 16% 12%;
+        --card: 0 0% 100%;
+        --card-foreground: 220 16% 12%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 220 16% 12%;
+        --primary: 220 55% 42%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 36 15% 92%;
+        --secondary-foreground: 220 16% 22%;
+        --muted: 36 12% 93%;
+        --muted-foreground: 220 10% 46%;
+        --accent: 36 15% 92%;
+        --accent-foreground: 220 16% 22%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 36 15% 90%;
+        --input: 36 15% 90%;
+        --ring: 220 55% 42%;
+        --radius: 1rem;
+
+        /* 13 data-type accent colours (one per table) */
+        --color-activity: 152 55% 40%;
+        --color-sleep: 245 50% 58%;
+        --color-food: 25 90% 52%;
+        --color-media: 340 60% 52%;
+        --color-event: 270 55% 52%;
+        --color-appearance: 320 55% 50%;
+        --color-podcast: 210 65% 48%;
+        --color-flight: 200 75% 50%;
+        --color-checkin: 170 55% 40%;
+        --color-fuel: 45 85% 48%;
+        --color-project: 185 60% 42%;
+        --color-article: 215 18% 48%;
+        --color-note: 36 40% 50%;
+
+        /* Sleep stage colors */
+        --sleep-awake: 0 70% 72%;
+        --sleep-rem: 210 60% 58%;
+        --sleep-light: 210 50% 75%;
+        --sleep-deep: 245 50% 52%;
+
+        /* Widget styling */
+        --widget-bg: 0 0% 100%;
+        --widget-shadow: 0 1px 3px 0 hsl(220 16% 12% / 0.04), 0 4px 12px 0 hsl(220 16% 12% / 0.03);
+
+        /* Sidebar */
+        --sidebar-background: 0 0% 100%;
+        --sidebar-foreground: 220 16% 22%;
+        --sidebar-primary: 220 55% 42%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 36 15% 95%;
+        --sidebar-accent-foreground: 220 16% 22%;
+        --sidebar-border: 36 15% 92%;
+        --sidebar-ring: 220 55% 42%;
+    }
+
+    .dark {
+        --background: 220 16% 8%;
+        --foreground: 36 15% 92%;
+        --card: 220 14% 12%;
+        --card-foreground: 36 15% 92%;
+        --popover: 220 14% 12%;
+        --popover-foreground: 36 15% 92%;
+        --primary: 215 60% 58%;
+        --primary-foreground: 220 16% 8%;
+        --secondary: 220 12% 16%;
+        --secondary-foreground: 36 15% 88%;
+        --muted: 220 12% 16%;
+        --muted-foreground: 220 10% 55%;
+        --accent: 220 12% 16%;
+        --accent-foreground: 36 15% 88%;
+        --destructive: 0 62% 30%;
+        --destructive-foreground: 36 15% 92%;
+        --border: 220 12% 18%;
+        --input: 220 12% 18%;
+        --ring: 215 60% 58%;
+        --widget-bg: 220 14% 14%;
+        --widget-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 4px 12px 0 hsl(0 0% 0% / 0.15);
+        --sidebar-background: 220 14% 10%;
+        --sidebar-foreground: 36 15% 88%;
+        --sidebar-primary: 215 60% 58%;
+        --sidebar-primary-foreground: 220 16% 8%;
+        --sidebar-accent: 220 12% 14%;
+        --sidebar-accent-foreground: 36 15% 88%;
+        --sidebar-border: 220 12% 16%;
+        --sidebar-ring: 215 60% 58%;
+    }
+
+    * {
+        border-color: hsl(var(--border));
+    }
+
+    body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: var(--font-body);
+        background-image:
+            radial-gradient(ellipse at 50% 0%, transparent 0%, hsl(var(--background)) 70%),
+            linear-gradient(hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(var(--foreground) / 0.035) 1px, transparent 1px);
+        background-size: 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-display);
+    }
+}
+
+@theme {
+    /* Font families */
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+
+    /* Colors */
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+    --color-card: hsl(var(--card));
+    --color-card-foreground: hsl(var(--card-foreground));
+    --color-popover: hsl(var(--popover));
+    --color-popover-foreground: hsl(var(--popover-foreground));
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+    --color-secondary: hsl(var(--secondary));
+    --color-secondary-foreground: hsl(var(--secondary-foreground));
+    --color-muted: hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent: hsl(var(--accent));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
+    --color-border: hsl(var(--border));
+    --color-input: hsl(var(--input));
+    --color-ring: hsl(var(--ring));
+
+    /* Sidebar colors */
+    --color-sidebar-background: hsl(var(--sidebar-background));
+    --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+    --color-sidebar-primary: hsl(var(--sidebar-primary));
+    --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+    --color-sidebar-accent: hsl(var(--sidebar-accent));
+    --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+    --color-sidebar-border: hsl(var(--sidebar-border));
+    --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+    /* Data-type accent colors */
+    --color-data-activity: hsl(var(--color-activity));
+    --color-data-sleep: hsl(var(--color-sleep));
+    --color-data-food: hsl(var(--color-food));
+    --color-data-media: hsl(var(--color-media));
+    --color-data-event: hsl(var(--color-event));
+    --color-data-appearance: hsl(var(--color-appearance));
+    --color-data-podcast: hsl(var(--color-podcast));
+    --color-data-flight: hsl(var(--color-flight));
+    --color-data-checkin: hsl(var(--color-checkin));
+    --color-data-fuel: hsl(var(--color-fuel));
+    --color-data-project: hsl(var(--color-project));
+    --color-data-article: hsl(var(--color-article));
+    --color-data-note: hsl(var(--color-note));
+
+    /* Border radius */
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    /* Animations */
+    --animate-fade-in: fade-in 0.4s ease-out;
+    --animate-slide-in: slide-in 0.3s ease-out;
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slide-in {
+        from {
+            opacity: 0;
+            transform: translateX(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+}
+
+@layer utilities {
+    .font-display {
+        font-family: var(--font-display);
+    }
+
+    .font-body {
+        font-family: var(--font-body);
+    }
+
+    .widget-card {
+        background: hsl(var(--widget-bg));
+        box-shadow: var(--widget-shadow);
+        border-radius: var(--radius);
+    }
+
+    .data-accent-activity { color: hsl(var(--color-activity)); }
+    .data-accent-sleep { color: hsl(var(--color-sleep)); }
+    .data-accent-food { color: hsl(var(--color-food)); }
+    .data-accent-media { color: hsl(var(--color-media)); }
+    .data-accent-event { color: hsl(var(--color-event)); }
+    .data-accent-appearance { color: hsl(var(--color-appearance)); }
+    .data-accent-podcast { color: hsl(var(--color-podcast)); }
+    .data-accent-flight { color: hsl(var(--color-flight)); }
+    .data-accent-checkin { color: hsl(var(--color-checkin)); }
+    .data-accent-fuel { color: hsl(var(--color-fuel)); }
+    .data-accent-project { color: hsl(var(--color-project)); }
+    .data-accent-article { color: hsl(var(--color-article)); }
+    .data-accent-note { color: hsl(var(--color-note)); }
+
+    .data-bg-activity { background-color: hsl(var(--color-activity) / 0.1); }
+    .data-bg-sleep { background-color: hsl(var(--color-sleep) / 0.1); }
+    .data-bg-food { background-color: hsl(var(--color-food) / 0.1); }
+    .data-bg-media { background-color: hsl(var(--color-media) / 0.1); }
+    .data-bg-event { background-color: hsl(var(--color-event) / 0.1); }
+    .data-bg-appearance { background-color: hsl(var(--color-appearance) / 0.1); }
+    .data-bg-podcast { background-color: hsl(var(--color-podcast) / 0.1); }
+    .data-bg-flight { background-color: hsl(var(--color-flight) / 0.1); }
+    .data-bg-checkin { background-color: hsl(var(--color-checkin) / 0.1); }
+    .data-bg-fuel { background-color: hsl(var(--color-fuel) / 0.1); }
+    .data-bg-project { background-color: hsl(var(--color-project) / 0.1); }
+    .data-bg-article { background-color: hsl(var(--color-article) / 0.1); }
+    .data-bg-note { background-color: hsl(var(--color-note) / 0.1); }
+}
