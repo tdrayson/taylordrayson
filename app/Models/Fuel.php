@@ -27,6 +27,8 @@ class Fuel extends Model implements Timelineable
 {
     use HasAssets, HasFactory, HasTimelineEntry;
 
+    protected $table = 'fuel';
+
     /**
      * @return array<string, string>
      */

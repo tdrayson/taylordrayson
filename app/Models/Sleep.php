@@ -29,6 +29,8 @@ class Sleep extends Model implements Timelineable
 {
     use HasAssets, HasFactory, HasTimelineEntry;
 
+    protected $table = 'sleep';
+
     /**
      * @return array<string, string>
      */
