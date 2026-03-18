@@ -58,9 +58,8 @@ $table->integer('awake_minutes')->nullable();
 $table->integer('rem_minutes')->nullable();
 $table->integer('core_minutes')->nullable();
 $table->integer('deep_minutes')->nullable();
-$table->json('stages')->nullable();      // Raw Apple Watch segments (nullable for manual entries)
-$table->string('platform_type')->nullable();
-$table->string('platform_id')->nullable();
+$table->json('stages')->nullable();      // Raw sleep stage segments (nullable for manual entries)
+$table->string('source')->nullable();    // e.g. 'apple_watch', 'manual'
 ```
 
 **`calories`** — one row per food item
@@ -85,23 +84,19 @@ $table->decimal('sodium', 8, 2)->nullable();
 **`media`** — uses meta JSON for type-specific fields
 
 ```php
-$table->timestamp('occurred_at')->nullable(); // Watched/finished date. Null = in progress.
+$table->timestamp('occurred_at');        // Watched/read/finished date
 $table->string('type');                  // film, tv_episode, book
 $table->string('title');
-$table->string('status')->default('finished'); // finished, reading, watching, abandoned
 $table->integer('rating')->nullable();   // 1-10
 $table->string('platform_type')->nullable();
 $table->string('platform_id')->nullable();
-$table->string('imdb_id')->nullable();
 $table->json('meta')->nullable();
 // meta: {
-//   film: { year, runtime, genres },
-//   tv: { show_title, season_number, episode_number, episode_title, runtime },
+//   film: { year, runtime, genres, imdb_id },
+//   tv: { show_title, season_number, episode_number, episode_title, runtime, imdb_id },
 //   book: { author, isbn }
 // }
 ```
-
-**Note:** `occurred_at` is nullable on `media` to support "currently reading/watching" state. When `status` is `reading` or `watching`, `occurred_at` is null and no timeline entry is created. The sidebar "currently reading" widget queries `Media::where('type', 'book')->where('status', 'reading')->latest('created_at')->first()`.
 
 **`events`**
 
@@ -137,7 +132,7 @@ $table->integer('duration_seconds')->nullable();
 $table->timestamp('occurred_at');        // published_at
 $table->integer('season_number');
 $table->integer('episode_number');
-$table->json('topics')->nullable();      // ["Business", "Side Projects", "AI"]
+$table->string('topic')->nullable();     // e.g. "Business, Side Projects, AI"
 $table->text('show_notes')->nullable();
 $table->text('transcript')->nullable();
 $table->integer('duration_seconds')->nullable();
@@ -173,7 +168,7 @@ $table->json('meta')->nullable();
 ```php
 $table->timestamp('occurred_at');
 $table->string('venue_name');
-$table->string('venue_category')->nullable();
+$table->string('category')->nullable();
 $table->string('address')->nullable();
 $table->string('city')->nullable();
 $table->string('county')->nullable();
@@ -194,11 +189,8 @@ $table->decimal('litres', 8, 3);
 $table->decimal('cost', 8, 2);
 $table->decimal('price_per_litre', 8, 3)->nullable();
 $table->integer('odometer')->nullable();
-$table->boolean('full_tank')->default(true);
 $table->string('station')->nullable();
 $table->string('city')->nullable();
-$table->decimal('latitude', 10, 7)->nullable();
-$table->decimal('longitude', 10, 7)->nullable();
 ```
 
 **`projects`**
@@ -327,7 +319,7 @@ All four relationships are defined on the trait. Unused relationships simply ret
 - `timelineEntry()` — morphOne to TimelineEntry
 - Registers a model observer that creates/updates/deletes the TimelineEntry row on save/delete
 - Syncs `occurred_at` from the parent model
-- For Media: observer skips timeline entry creation when `status` is not `finished` (i.e., `occurred_at` is null)
+- No special cases — all 13 models follow the same observer pattern
 
 ### `Timelineable` Interface
 
@@ -383,7 +375,7 @@ $component = $componentMap[get_class($entry)];
 
 All models:
 - Cast `occurred_at` to `datetime`
-- Cast JSON columns (`meta`, `tags`, `topics`, `stages`, `heart_rate`) to `array`
+- Cast JSON columns (`meta`, `tags`, `stages`, `heart_rate`) to `array`
 - Define `$fillable` for mass assignment
 
 Platform-linked models:
@@ -427,7 +419,6 @@ Conditionally renders sidebar when `$fullWidth` is false.
 - `sidebar.nav.blade.php` — navigation links with active state (Timeline, Stats, Map, About, Writing)
 - `sidebar.streak.blade.php` — calorie streak counter with flame icon
 - `sidebar.sparklines.blade.php` — last 14 days averages (running, calories, sleep) with sparkline SVGs
-- `sidebar.reading.blade.php` — currently reading book cover + title + author
 
 ### Timeline Card Components
 
@@ -488,7 +479,6 @@ Route::get('/', [TimelineController::class, 'index']);
 - Computes sidebar widget data:
   - Calorie streak (consecutive days with logged calories, queried from `calories` table directly)
   - 14-day averages (running distance, calories, sleep hours — queried from source tables directly)
-  - Currently reading book (`Media::where('type', 'book')->where('status', 'reading')->latest('created_at')->first()`)
   - Episode count (`Podcast::count()`)
 - Returns `pages/home` view
 
@@ -521,7 +511,7 @@ One per timeline model, generating realistic data:
   - Activities: 3-4 per week
   - Sleep: daily
   - Calories: daily (multiple items per day, grouped by meal)
-  - Media: 2-3 films per week, TV episodes in clusters, 1 book per month, 1 book with `status = 'reading'` and null `occurred_at` (for sidebar widget)
+  - Media: 2-3 films per week, TV episodes in clusters, 1 book per month
   - Checkins: 1-2 per day
   - Flights: 1-2 per month
   - Fuel: 1-2 per month
@@ -576,24 +566,20 @@ All values from the mockup's `:root` block, with the following consolidation:
 - `--widget-bg`, `--widget-shadow`
 - `--sleep-awake`, `--sleep-rem`, `--sleep-light`, `--sleep-deep`
 
-**Three themes:**
+**Two themes:**
 - Light (`:root`) — warm cream background
 - Dark (`.dark` class) — full dark mode overrides
-- Cinematic bento (`.theme-b` class) — Space Grotesk + JetBrains Mono, dark with brighter accents
 
 ### Fonts
 
 Loaded via Google Fonts CDN in the layout:
 - `font-display`: Instrument Serif, Georgia, serif (headings)
 - `font-body`: DM Sans, system-ui, sans-serif (body)
-- `font-mono`: JetBrains Mono, monospace (theme-b)
-- Space Grotesk (theme-b headings)
 
 ### Custom Utilities
 
 - `.font-display`, `.font-body` — font family helpers
 - `.widget-card` — widget background + shadow + border-radius
-- `.glass-card` — frosted glass effect (theme-b)
 - `.data-accent-{table}` — text colour per data type (13 utilities)
 - `.data-bg-{table}` — background colour at 10% opacity per data type (13 utilities)
 
