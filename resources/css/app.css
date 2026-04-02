@@ -111,7 +111,12 @@
         background-size: 100% 100%, 40px 40px, 40px 40px;
     }
 
-    h1, h2, h3, h4, h5, h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         font-family: var(--font-display);
     }
 }
@@ -181,6 +186,7 @@
             opacity: 0;
             transform: translateY(8px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -192,6 +198,7 @@
             opacity: 0;
             transform: translateX(-8px);
         }
+
         to {
             opacity: 1;
             transform: translateX(0);
@@ -214,31 +221,107 @@
         border-radius: var(--radius);
     }
 
-    .data-accent-activity { color: hsl(var(--color-activity)); }
-    .data-accent-sleep { color: hsl(var(--color-sleep)); }
-    .data-accent-food { color: hsl(var(--color-food)); }
-    .data-accent-media { color: hsl(var(--color-media)); }
-    .data-accent-event { color: hsl(var(--color-event)); }
-    .data-accent-appearance { color: hsl(var(--color-appearance)); }
-    .data-accent-podcast { color: hsl(var(--color-podcast)); }
-    .data-accent-flight { color: hsl(var(--color-flight)); }
-    .data-accent-checkin { color: hsl(var(--color-checkin)); }
-    .data-accent-fuel { color: hsl(var(--color-fuel)); }
-    .data-accent-project { color: hsl(var(--color-project)); }
-    .data-accent-article { color: hsl(var(--color-article)); }
-    .data-accent-note { color: hsl(var(--color-note)); }
+    .data-accent-activity {
+        color: hsl(var(--color-activity));
+    }
 
-    .data-bg-activity { background-color: hsl(var(--color-activity) / 0.1); }
-    .data-bg-sleep { background-color: hsl(var(--color-sleep) / 0.1); }
-    .data-bg-food { background-color: hsl(var(--color-food) / 0.1); }
-    .data-bg-media { background-color: hsl(var(--color-media) / 0.1); }
-    .data-bg-event { background-color: hsl(var(--color-event) / 0.1); }
-    .data-bg-appearance { background-color: hsl(var(--color-appearance) / 0.1); }
-    .data-bg-podcast { background-color: hsl(var(--color-podcast) / 0.1); }
-    .data-bg-flight { background-color: hsl(var(--color-flight) / 0.1); }
-    .data-bg-checkin { background-color: hsl(var(--color-checkin) / 0.1); }
-    .data-bg-fuel { background-color: hsl(var(--color-fuel) / 0.1); }
-    .data-bg-project { background-color: hsl(var(--color-project) / 0.1); }
-    .data-bg-article { background-color: hsl(var(--color-article) / 0.1); }
-    .data-bg-note { background-color: hsl(var(--color-note) / 0.1); }
+    .data-accent-sleep {
+        color: hsl(var(--color-sleep));
+    }
+
+    .data-accent-food {
+        color: hsl(var(--color-food));
+    }
+
+    .data-accent-media {
+        color: hsl(var(--color-media));
+    }
+
+    .data-accent-event {
+        color: hsl(var(--color-event));
+    }
+
+    .data-accent-appearance {
+        color: hsl(var(--color-appearance));
+    }
+
+    .data-accent-podcast {
+        color: hsl(var(--color-podcast));
+    }
+
+    .data-accent-flight {
+        color: hsl(var(--color-flight));
+    }
+
+    .data-accent-checkin {
+        color: hsl(var(--color-checkin));
+    }
+
+    .data-accent-fuel {
+        color: hsl(var(--color-fuel));
+    }
+
+    .data-accent-project {
+        color: hsl(var(--color-project));
+    }
+
+    .data-accent-article {
+        color: hsl(var(--color-article));
+    }
+
+    .data-accent-note {
+        color: hsl(var(--color-note));
+    }
+
+    .data-bg-activity {
+        background-color: hsl(var(--color-activity) / 0.1);
+    }
+
+    .data-bg-sleep {
+        background-color: hsl(var(--color-sleep) / 0.1);
+    }
+
+    .data-bg-food {
+        background-color: hsl(var(--color-food) / 0.1);
+    }
+
+    .data-bg-media {
+        background-color: hsl(var(--color-media) / 0.1);
+    }
+
+    .data-bg-event {
+        background-color: hsl(var(--color-event) / 0.1);
+    }
+
+    .data-bg-appearance {
+        background-color: hsl(var(--color-appearance) / 0.1);
+    }
+
+    .data-bg-podcast {
+        background-color: hsl(var(--color-podcast) / 0.1);
+    }
+
+    .data-bg-flight {
+        background-color: hsl(var(--color-flight) / 0.1);
+    }
+
+    .data-bg-checkin {
+        background-color: hsl(var(--color-checkin) / 0.1);
+    }
+
+    .data-bg-fuel {
+        background-color: hsl(var(--color-fuel) / 0.1);
+    }
+
+    .data-bg-project {
+        background-color: hsl(var(--color-project) / 0.1);
+    }
+
+    .data-bg-article {
+        background-color: hsl(var(--color-article) / 0.1);
+    }
+
+    .data-bg-note {
+        background-color: hsl(var(--color-note) / 0.1);
+    }
 }

@@ -12,12 +12,11 @@ it('returns 200 for the homepage', function () {
     $response->assertOk();
 });
 
-it('displays the bio intro text', function () {
+it('displays the timeline heading', function () {
     $response = $this->get('/');
 
     $response->assertOk();
-    $response->assertSee("Hey! I'm Taylor", false);
-    $response->assertSee('web developer in London');
+    $response->assertSee('Timeline');
 });
 
 it('shows timeline entries in reverse chronological order', function () {
@@ -46,27 +45,19 @@ it('shows timeline entries in reverse chronological order', function () {
     ]);
 });
 
-it('displays the calorie streak count', function () {
-    Calorie::factory()->create(['occurred_at' => now()]);
-    Calorie::factory()->create(['occurred_at' => now()->subDay()]);
-    Calorie::factory()->create(['occurred_at' => now()->subDays(2)]);
+it('shows calorie entries in the timeline', function () {
+    Calorie::factory()->create([
+        'occurred_at' => now(),
+    ]);
 
     $response = $this->get('/');
 
     $response->assertOk();
-    $response->assertSee('3 days straight');
-});
-
-it('shows sidebar sparklines section', function () {
-    $response = $this->get('/');
-
-    $response->assertOk();
-    $response->assertSee('Last');
-    $response->assertSee('14');
+    $response->assertSee('calorie');
 });
 
 it('paginates timeline entries', function () {
-    Activity::factory()->count(25)->create([
+    Activity::factory()->count(55)->create([
         'occurred_at' => fn () => fake()->dateTimeBetween('-6 months'),
     ]);
 
