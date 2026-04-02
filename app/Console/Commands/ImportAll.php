@@ -15,6 +15,10 @@ class ImportAll extends Command
         ['file' => 'data/airports.csv', 'type' => 'airport'],
         ['file' => 'data/airlines.csv', 'type' => 'airline'],
         ['file' => 'data/calories.csv', 'type' => 'calorie'],
+        ['file' => 'data/appearances.csv', 'type' => 'appearance'],
+        ['file' => 'data/sleep.csv', 'type' => 'sleep'],
+        ['file' => 'data/activities.csv', 'type' => 'activity'],
+        ['file' => 'data/podcasts.csv', 'type' => 'podcast'],
         ['file' => 'data/flights.csv', 'type' => 'flight'],
         ['file' => 'data/fuel.csv', 'type' => 'fuel'],
     ];

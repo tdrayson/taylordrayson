@@ -80,6 +80,9 @@ class ImportCsv extends Command
         $imported = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) !== count($headers)) {
+                continue;
+            }
             $data = array_combine($headers, $row);
 
             $mapped = [];
