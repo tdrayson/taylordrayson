@@ -1,5 +1,4 @@
 occurred_at,name,icon,meal,quantity,units,calories,fat,protein,carbs,saturated_fat,sugars,fibre,cholesterol,sodium
-2000-12-31,Chips,FrenchFries,dinner,1.0,Serving,590,35.60,10.20,104,10.80,0.60,7.40,,1632
 2019-09-24,"Hot Dog with Bun",Hotdog,lunch,1.0,Serving,260,7.50,9,22,2,2,1,35,560
 2019-09-24,Chips,Default,lunch,1.0,Serving,180,,,,,,,,
 2019-09-24,"Sugar Ring Donut",Donut,lunch,1.0,Serving,221,13,3.10,23,5.90,8.30,,,
