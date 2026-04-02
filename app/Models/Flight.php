@@ -6,7 +6,6 @@ use App\Models\Concerns\HasAssets;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -57,16 +56,18 @@ class Flight extends Model implements Timelineable
         return $this->belongsTo(Airport::class, 'destination_iata', 'iata_code');
     }
 
-    /**
-     * @return array{type: string, icon: string, title: string, subtitle: ?string, occurred_at: Carbon, accent: string, meta: array}
-     */
-    public function toTimelineCard(): array
+    public function slug(): string
+    {
+        return strtolower("{$this->origin_iata}-{$this->destination_iata}");
+    }
+
+    public function card(): array
     {
         return [
             'type' => 'flight',
             'icon' => 'plane',
             'title' => "{$this->origin_iata} → {$this->destination_iata}",
-            'subtitle' => $this->distance_miles ? sprintf("%s mi · %s", number_format($this->distance_miles), $this->cabin_class) : null,
+            'subtitle' => $this->distance_miles ? sprintf('%s mi · %s', number_format($this->distance_miles), $this->cabin_class) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
             'meta' => [],

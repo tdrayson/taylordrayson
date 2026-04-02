@@ -6,7 +6,6 @@ use App\Models\Concerns\HasAssets;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -38,10 +37,12 @@ class Article extends Model implements Timelineable
         ];
     }
 
-    /**
-     * @return array{type: string, icon: string, title: string, subtitle: ?string, occurred_at: Carbon, accent: string, meta: array}
-     */
-    public function toTimelineCard(): array
+    public function slug(): string
+    {
+        return $this->getAttribute('slug');
+    }
+
+    public function card(): array
     {
         return [
             'type' => 'article',

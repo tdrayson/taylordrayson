@@ -17,5 +17,9 @@ interface Timelineable
      *     meta: array,
      * }
      */
-    public function toTimelineCard(): array;
+    public function card(): array;
+
+    public function slug(): string;
+
+    public function permalink(): string;
 }

@@ -6,7 +6,6 @@ use App\Models\Concerns\HasAssets;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,15 +46,17 @@ class Fuel extends Model implements Timelineable
         return config("vehicles.{$this->vehicle_id}");
     }
 
-    /**
-     * @return array{type: string, icon: string, title: string, subtitle: ?string, occurred_at: Carbon, accent: string, meta: array}
-     */
-    public function toTimelineCard(): array
+    public function slug(): string
+    {
+        return 'fuel';
+    }
+
+    public function card(): array
     {
         return [
             'type' => 'fuel',
             'icon' => 'fuel',
-            'title' => sprintf("%sL · £%.2f", $this->litres, $this->cost),
+            'title' => sprintf('%sL · £%.2f', $this->litres, $this->cost),
             'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',

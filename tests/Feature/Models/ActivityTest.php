@@ -66,14 +66,14 @@ it('deleting an activity deletes its timeline entry', function () {
     expect(TimelineEntry::count())->toBe(0);
 });
 
-it('toTimelineCard returns expected array shape', function () {
+it('card returns expected array shape', function () {
     $activity = Activity::create([
         'occurred_at' => now(),
         'type' => 'run',
         'duration' => 1800,
     ]);
 
-    $card = $activity->toTimelineCard();
+    $card = $activity->card();
 
     expect($card)->toHaveKeys([
         'type',
