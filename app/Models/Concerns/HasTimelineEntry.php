@@ -12,7 +12,7 @@ trait HasTimelineEntry
         return $this->morphOne(TimelineEntry::class, 'timelineable');
     }
 
-    public function permalink(): string
+    public function url(): string
     {
         return '/'.$this->occurred_at->format('Y/m/d').'/'.$this->slug();
     }

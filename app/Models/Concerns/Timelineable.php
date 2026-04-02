@@ -21,5 +21,5 @@ interface Timelineable
 
     public function slug(): string;
 
-    public function permalink(): string;
+    public function url(): string;
 }

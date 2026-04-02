@@ -19,7 +19,7 @@
             @endif
 
             <li>
-                <a href="{{ $entry->timelineable->permalink() }}">
+                <a href="{{ $entry->timelineable->url() }}">
                     <strong>{{ $card['title'] }}</strong>
                 </a>
                 @if ($card['subtitle'])
