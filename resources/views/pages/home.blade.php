@@ -6,7 +6,7 @@
         @if ($entry->timelineable)
             @php
                 $currentDate = $entry->occurred_at->format('Y-m-d');
-                $card = $entry->timelineable->toTimelineCard();
+                $card = $entry->timelineable->card();
             @endphp
 
             @if ($currentDate !== $lastDate)
@@ -19,7 +19,9 @@
             @endif
 
             <li>
-                <strong>{{ $card['title'] }}</strong>
+                <a href="{{ $entry->timelineable->permalink() }}">
+                    <strong>{{ $card['title'] }}</strong>
+                </a>
                 @if ($card['subtitle'])
                     &mdash; {{ $card['subtitle'] }}
                 @endif
