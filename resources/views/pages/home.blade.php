@@ -34,14 +34,48 @@
     <hr>
     @if ($entries->hasPages())
         <p>
-            @if ($entries->previousPageUrl())
+            Page {{ $entries->currentPage() }} of {{ $entries->lastPage() }}
+            <br>
+            @if ($entries->onFirstPage())
+                <span>Previous</span>
+            @else
                 <a href="{{ $entries->previousPageUrl() }}">Previous</a>
             @endif
-            @if ($entries->previousPageUrl() && $entries->nextPageUrl())
-                |
+
+            @php
+                $start = max(1, $entries->currentPage() - 3);
+                $end = min($entries->lastPage(), $entries->currentPage() + 3);
+            @endphp
+
+            @if ($start > 1)
+                <a href="{{ $entries->url(1) }}">1</a>
+                @if ($start > 2)
+                    ...
+                @endif
             @endif
-            @if ($entries->nextPageUrl())
+
+            @for ($i = $start; $i <= $end; $i++)
+                @if ($i == $entries->currentPage())
+                    <strong>{{ $i }}</strong>
+                @else
+                    <a href="{{ $entries->url($i) }}">{{ $i }}</a>
+                @endif
+                @if ($i < $end)
+                    &nbsp;
+                @endif
+            @endfor
+
+            @if ($end < $entries->lastPage())
+                @if ($end < $entries->lastPage() - 1)
+                    ...
+                @endif
+                <a href="{{ $entries->url($entries->lastPage()) }}">{{ $entries->lastPage() }}</a>
+            @endif
+
+            @if ($entries->hasMorePages())
                 <a href="{{ $entries->nextPageUrl() }}">Next</a>
+            @else
+                <span>Next</span>
             @endif
         </p>
     @endif

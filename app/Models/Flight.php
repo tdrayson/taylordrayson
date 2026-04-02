@@ -27,7 +27,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Flight extends Model implements Timelineable
 {
-    use HasAssets, HasFactory, HasTimelineEntry;
+    use HasAssets;
+    use HasFactory;
+    use HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -64,7 +66,7 @@ class Flight extends Model implements Timelineable
             'type' => 'flight',
             'icon' => 'plane',
             'title' => "{$this->origin_iata} → {$this->destination_iata}",
-            'subtitle' => $this->flight_number,
+            'subtitle' => $this->distance_miles ? sprintf("%s mi · %s", number_format($this->distance_miles), $this->cabin_class) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
             'meta' => [],
