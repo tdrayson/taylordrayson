@@ -20,13 +20,17 @@ use Illuminate\Database\Eloquent\Model;
     'topic',
     'show_notes',
     'transcript',
-    'duration_seconds',
+    'duration',
     'audio_url',
     'youtube_url',
+    'thumbnail',
+    'cover_image',
 ])]
 class Podcast extends Model implements Timelineable
 {
-    use HasAssets, HasFactory, HasTimelineEntry;
+    use HasAssets;
+    use HasFactory;
+    use HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -52,7 +56,7 @@ class Podcast extends Model implements Timelineable
             'type' => 'podcast',
             'icon' => 'headphones',
             'title' => $this->title,
-            'subtitle' => $this->topic,
+            'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'podcast',
             'meta' => [],

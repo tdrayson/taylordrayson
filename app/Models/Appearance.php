@@ -19,8 +19,9 @@ use Illuminate\Database\Eloquent\Model;
     'title',
     'show_name',
     'url',
+    'video_url',
     'description',
-    'duration_seconds',
+    'duration',
 ])]
 class Appearance extends Model implements Timelineable
 {

@@ -14,10 +14,9 @@ return new class extends Migration
             $table->index('occurred_at');
             $table->string('type');
             $table->string('name')->nullable();
-            $table->integer('duration_seconds');
+            $table->integer('duration');
             $table->integer('calories')->nullable();
             $table->decimal('distance_km', 8, 3)->nullable();
-            $table->text('polyline')->nullable();
             $table->json('heart_rate')->nullable();
             $table->string('platform_type')->nullable();
             $table->string('platform_id')->nullable();
@@ -32,13 +31,13 @@ return new class extends Migration
             $table->index('occurred_at');
             $table->timestamp('bedtime');
             $table->timestamp('wake_time');
-            $table->integer('duration_minutes');
-            $table->integer('awake_minutes')->nullable();
-            $table->integer('rem_minutes')->nullable();
-            $table->integer('core_minutes')->nullable();
-            $table->integer('deep_minutes')->nullable();
-            $table->json('stages')->nullable();
+            $table->integer('duration');
+            $table->integer('awake')->nullable();
+            $table->integer('rem')->nullable();
+            $table->integer('core')->nullable();
+            $table->integer('deep')->nullable();
             $table->string('source')->nullable();
+            $table->json('stages')->nullable();
             $table->timestamps();
         });
 
@@ -102,8 +101,9 @@ return new class extends Migration
             $table->string('title');
             $table->string('show_name');
             $table->string('url')->nullable();
+            $table->string('video_url')->nullable();
             $table->text('description')->nullable();
-            $table->integer('duration_seconds')->nullable();
+            $table->integer('duration')->nullable();
             $table->timestamps();
         });
 
@@ -116,9 +116,11 @@ return new class extends Migration
             $table->string('topic')->nullable();
             $table->text('show_notes')->nullable();
             $table->text('transcript')->nullable();
-            $table->integer('duration_seconds')->nullable();
+            $table->integer('duration')->nullable();
             $table->string('audio_url')->nullable();
             $table->string('youtube_url')->nullable();
+            $table->string('thumbnail')->nullable();
+            $table->string('cover_image')->nullable();
             $table->timestamps();
         });
 

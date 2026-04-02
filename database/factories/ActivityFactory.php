@@ -47,7 +47,7 @@ class ActivityFactory extends Factory
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
             'type' => $type,
             'name' => fake()->randomElement($config['names']),
-            'duration_seconds' => $durationSeconds,
+            'duration' => $durationSeconds,
             'calories' => fake()->numberBetween(100, 800),
             'distance_km' => $distanceKm,
             'meta' => $meta,

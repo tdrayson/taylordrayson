@@ -36,7 +36,7 @@ class PodcastFactory extends Factory
             'season_number' => fake()->numberBetween(1, 7),
             'episode_number' => fake()->numberBetween(1, 50),
             'topic' => implode(', ', $topics),
-            'duration_seconds' => fake()->numberBetween(1800, 5400),
+            'duration' => fake()->numberBetween(1800, 5400),
             'show_notes' => fake()->paragraphs(3, true),
             'audio_url' => null,
             'youtube_url' => null,

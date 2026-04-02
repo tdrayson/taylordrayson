@@ -34,7 +34,7 @@ class AppearanceFactory extends Factory
             'type' => fake()->randomElement(['podcast', 'livestream', 'interview', 'talk']),
             'title' => fake()->sentence(fake()->numberBetween(3, 8)),
             'show_name' => fake()->randomElement(self::SHOW_NAMES),
-            'duration_seconds' => fake()->numberBetween(1800, 5400),
+            'duration' => fake()->numberBetween(1800, 5400),
             'url' => fake()->optional(0.7)->url(),
         ];
     }

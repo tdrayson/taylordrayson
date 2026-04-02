@@ -17,13 +17,13 @@ use Illuminate\Database\Eloquent\Model;
     'occurred_at',
     'bedtime',
     'wake_time',
-    'duration_minutes',
-    'awake_minutes',
-    'rem_minutes',
-    'core_minutes',
-    'deep_minutes',
-    'stages',
+    'duration',
+    'awake',
+    'rem',
+    'core',
+    'deep',
     'source',
+    'stages',
 ])]
 class Sleep extends Model implements Timelineable
 {
@@ -49,8 +49,9 @@ class Sleep extends Model implements Timelineable
      */
     public function toTimelineCard(): array
     {
-        $hours = intdiv($this->duration_minutes, 60);
-        $minutes = $this->duration_minutes % 60;
+        $totalMinutes = intdiv($this->duration, 60);
+        $hours = intdiv($totalMinutes, 60);
+        $minutes = $totalMinutes % 60;
         $formatted = $minutes > 0 ? "{$hours}h {$minutes}m" : "{$hours}h";
 
         return [

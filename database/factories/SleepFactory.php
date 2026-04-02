@@ -30,36 +30,17 @@ class SleepFactory extends Factory
         $wakeMinute = fake()->randomElement([0, 15, 30, 45]);
         $wakeTime = Carbon::parse($occurredAt)->setTime($wakeHour, $wakeMinute);
 
-        $durationMinutes = (int) $bedtime->diffInMinutes($wakeTime);
-        $durationMinutes = max($durationMinutes, 300);
-        $durationMinutes = min($durationMinutes, 600);
-
-        $awakeMinutes = fake()->numberBetween(10, 40);
-        $remaining = $durationMinutes - $awakeMinutes;
-        $remMinutes = (int) round($remaining * fake()->randomFloat(2, 0.18, 0.25));
-        $deepMinutes = (int) round($remaining * fake()->randomFloat(2, 0.12, 0.20));
-        $coreMinutes = $remaining - $remMinutes - $deepMinutes;
-
-        $stages = [
-            ['stage' => 'awake', 'minutes' => $awakeMinutes],
-            ['stage' => 'core', 'minutes' => (int) round($coreMinutes * 0.4)],
-            ['stage' => 'deep', 'minutes' => $deepMinutes],
-            ['stage' => 'core', 'minutes' => (int) round($coreMinutes * 0.3)],
-            ['stage' => 'rem', 'minutes' => $remMinutes],
-            ['stage' => 'core', 'minutes' => $coreMinutes - (int) round($coreMinutes * 0.4) - (int) round($coreMinutes * 0.3)],
-        ];
+        $durationSeconds = (int) $bedtime->diffInSeconds($wakeTime);
+        $durationSeconds = max($durationSeconds, 18000);
+        $durationSeconds = min($durationSeconds, 36000);
 
         return [
             'occurred_at' => $occurredAt,
             'bedtime' => $bedtime,
             'wake_time' => $wakeTime,
-            'duration_minutes' => $durationMinutes,
-            'awake_minutes' => $awakeMinutes,
-            'rem_minutes' => $remMinutes,
-            'core_minutes' => $coreMinutes,
-            'deep_minutes' => $deepMinutes,
-            'stages' => $stages,
-            'source' => fake()->randomElement(['apple_watch', 'manual']),
+            'duration' => $durationSeconds,
+            'source' => fake()->randomElement(['oura', 'apple_watch', 'clock']),
+            'meta' => null,
         ];
     }
 }

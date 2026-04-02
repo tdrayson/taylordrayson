@@ -17,10 +17,9 @@ use Illuminate\Database\Eloquent\Model;
     'occurred_at',
     'type',
     'name',
-    'duration_seconds',
+    'duration',
     'calories',
     'distance_km',
-    'polyline',
     'heart_rate',
     'platform_type',
     'platform_id',
@@ -60,10 +59,10 @@ class Activity extends Model implements Timelineable
 
         if ($isCardio && $this->distance_km) {
             $distance = round($this->distance_km, 2).' km';
-            $duration = gmdate('H:i:s', $this->duration_seconds);
+            $duration = gmdate('H:i:s', $this->duration);
             $subtitle = "{$distance} · {$duration}";
-        } elseif ($this->duration_seconds) {
-            $duration = gmdate('H:i:s', $this->duration_seconds);
+        } elseif ($this->duration) {
+            $duration = gmdate('H:i:s', $this->duration);
             $subtitle = $duration;
         } else {
             $subtitle = null;
