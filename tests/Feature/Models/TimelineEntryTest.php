@@ -10,7 +10,7 @@ it('creating a Flight creates a timeline entry', function () {
     $flight = Flight::create([
         'occurred_at' => now(),
         'flight_number' => 'BA123',
-        'airline_iata' => 'BA',
+        'airline_icao' => 'BAW',
         'origin_iata' => 'LHR',
         'destination_iata' => 'JFK',
     ]);
@@ -54,7 +54,7 @@ it('deleting a model deletes its timeline entry', function () {
     $flight = Flight::create([
         'occurred_at' => now(),
         'flight_number' => 'BA456',
-        'airline_iata' => 'BA',
+        'airline_icao' => 'BAW',
         'origin_iata' => 'MAN',
         'destination_iata' => 'CDG',
     ]);

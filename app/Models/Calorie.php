@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'occurred_at',
     'name',
+    'icon',
     'meal',
     'quantity',
     'units',
@@ -48,10 +49,13 @@ class Calorie extends Model implements Timelineable
      */
     public function toTimelineCard(): array
     {
+        $dailyTotal = self::whereDate('occurred_at', $this->occurred_at->toDateString())
+            ->sum('calories');
+
         return [
             'type' => 'calorie',
             'icon' => 'utensils',
-            'title' => $this->calories.' kcal',
+            'title' => number_format($dailyTotal).' kcal',
             'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'food',

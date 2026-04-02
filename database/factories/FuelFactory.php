@@ -21,7 +21,7 @@ class FuelFactory extends Factory
 
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
-            'vehicle_id' => 1,
+            'vehicle_id' => 'hn14wxp',
             'litres' => $litres,
             'cost' => $cost,
             'price_per_litre' => $pricePerLitre,

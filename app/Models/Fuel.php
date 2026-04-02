@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
     'vehicle_id',
     'litres',
     'cost',
+    'fuel_card_cost',
     'price_per_litre',
     'odometer',
     'station',
@@ -25,7 +26,9 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Fuel extends Model implements Timelineable
 {
-    use HasAssets, HasFactory, HasTimelineEntry;
+    use HasAssets;
+    use HasFactory;
+    use HasTimelineEntry;
 
     protected $table = 'fuel';
 
@@ -52,7 +55,7 @@ class Fuel extends Model implements Timelineable
         return [
             'type' => 'fuel',
             'icon' => 'fuel',
-            'title' => "{$this->litres}L · £{$this->cost}",
+            'title' => sprintf("%sL · £%.2f", $this->litres, $this->cost),
             'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',

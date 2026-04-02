@@ -11,18 +11,15 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
     'flight_number',
-    'airline_iata',
+    'airline_icao',
     'origin_iata',
     'destination_iata',
-    'origin_latitude',
-    'origin_longitude',
-    'destination_latitude',
-    'destination_longitude',
     'distance_miles',
     'cabin_class',
     'reason',
@@ -43,6 +40,21 @@ class Flight extends Model implements Timelineable
         ];
     }
 
+    public function airline(): BelongsTo
+    {
+        return $this->belongsTo(Airline::class, 'airline_icao', 'icao_code');
+    }
+
+    public function origin(): BelongsTo
+    {
+        return $this->belongsTo(Airport::class, 'origin_iata', 'iata_code');
+    }
+
+    public function destination(): BelongsTo
+    {
+        return $this->belongsTo(Airport::class, 'destination_iata', 'iata_code');
+    }
+
     /**
      * @return array{type: string, icon: string, title: string, subtitle: ?string, occurred_at: Carbon, accent: string, meta: array}
      */
@@ -52,7 +64,7 @@ class Flight extends Model implements Timelineable
             'type' => 'flight',
             'icon' => 'plane',
             'title' => "{$this->origin_iata} → {$this->destination_iata}",
-            'subtitle' => null,
+            'subtitle' => $this->flight_number,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
             'meta' => [],

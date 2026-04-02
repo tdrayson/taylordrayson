@@ -1,7 +1,7 @@
 <?php
 
 return [
-    1 => [
+    'hn14wxp' => [
         'name' => 'Golf',
         'make' => 'Volkswagen',
         'model' => 'Golf',

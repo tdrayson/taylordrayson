@@ -30,13 +30,13 @@ class FlightFactory extends Factory
      * @var array<string, string>
      */
     private const AIRLINES = [
-        'BA' => 'British Airways',
-        'EK' => 'Emirates',
-        'KL' => 'KLM',
-        'AF' => 'Air France',
-        'LH' => 'Lufthansa',
-        'IB' => 'Iberia',
-        'SQ' => 'Singapore Airlines',
+        'BAW' => 'British Airways',
+        'UAE' => 'Emirates',
+        'KLM' => 'KLM',
+        'AFR' => 'Air France',
+        'DLH' => 'Lufthansa',
+        'IBE' => 'Iberia',
+        'SIA' => 'Singapore Airlines',
     ];
 
     /**
@@ -53,8 +53,8 @@ class FlightFactory extends Factory
         $origin = self::AIRPORTS[$originIata];
         $destination = self::AIRPORTS[$destinationIata];
 
-        $airlineIata = fake()->randomElement(array_keys(self::AIRLINES));
-        $flightNumber = $airlineIata.fake()->numberBetween(100, 9999);
+        $airlineIcao = fake()->randomElement(array_keys(self::AIRLINES));
+        $flightNumber = $airlineIcao.fake()->numberBetween(100, 9999);
 
         $distanceMiles = $this->calculateDistance(
             $origin['lat'], $origin['lon'],
@@ -64,24 +64,14 @@ class FlightFactory extends Factory
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
             'flight_number' => $flightNumber,
-            'airline_iata' => $airlineIata,
+            'airline_icao' => $airlineIcao,
             'origin_iata' => $originIata,
             'destination_iata' => $destinationIata,
-            'origin_latitude' => $origin['lat'],
-            'origin_longitude' => $origin['lon'],
-            'destination_latitude' => $destination['lat'],
-            'destination_longitude' => $destination['lon'],
             'distance_miles' => $distanceMiles,
             'cabin_class' => fake()->randomElement(['economy', 'business', null]),
             'reason' => fake()->randomElement(['personal', 'business']),
             'meta' => [
-                'airline_name' => self::AIRLINES[$airlineIata],
-                'origin_name' => $origin['name'],
-                'origin_city' => $origin['city'],
-                'origin_country' => $origin['country'],
-                'destination_name' => $destination['name'],
-                'destination_city' => $destination['city'],
-                'destination_country' => $destination['country'],
+                'aircraft' => fake()->randomElement(['Boeing 737-800', 'Airbus A320', 'Boeing 777-300ER']),
             ],
         ];
     }
