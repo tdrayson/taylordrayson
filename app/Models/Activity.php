@@ -20,6 +20,8 @@ use Illuminate\Support\Str;
     'duration',
     'calories',
     'distance_km',
+    'average_heart_rate',
+    'max_heart_rate',
     'heart_rate',
     'platform_type',
     'platform_id',

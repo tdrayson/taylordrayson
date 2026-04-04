@@ -17,6 +17,8 @@ return new class extends Migration
             $table->integer('duration');
             $table->integer('calories')->nullable();
             $table->decimal('distance_km', 8, 3)->nullable();
+            $table->integer('average_heart_rate')->nullable();
+            $table->integer('max_heart_rate')->nullable();
             $table->json('heart_rate')->nullable();
             $table->string('platform_type')->nullable();
             $table->string('platform_id')->nullable();
