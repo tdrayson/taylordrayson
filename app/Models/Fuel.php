@@ -53,11 +53,16 @@ class Fuel extends Model implements Timelineable
 
     public function card(): array
     {
+        $parts = array_filter([
+            sprintf('%sL · £%.2f', $this->litres, $this->cost),
+            $this->price_per_litre ? '£'.number_format($this->price_per_litre, 3).' / L' : null,
+        ]);
+
         return [
             'type' => 'fuel',
             'icon' => 'fuel',
-            'title' => sprintf('%sL · £%.2f', $this->litres, $this->cost),
-            'subtitle' => null,
+            'title' => $this->station ?? 'Fuel',
+            'subtitle' => implode(' · ', $parts),
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',
             'meta' => [],

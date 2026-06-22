@@ -175,6 +175,7 @@ return new class extends Migration
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->text('description')->nullable();
+            $table->boolean('is_mayor')->default(false);
             $table->string('platform_type')->nullable();
             $table->string('platform_id')->nullable();
             $table->timestamps();

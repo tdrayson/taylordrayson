@@ -92,6 +92,9 @@ class ImportCsv extends Command
                     $mapped[$header] = null;
                 } elseif (isset($casts[$header]) && in_array($casts[$header], ['array', 'json', 'collection'])) {
                     $mapped[$header] = json_decode($value, true);
+                } elseif (preg_match('/^-?\d{1,3}(,\d{3})+(\.\d+)?$/', $value)) {
+                    // Strip thousands separators from numbers like "1,088" so they stay numeric.
+                    $mapped[$header] = str_replace(',', '', $value);
                 } else {
                     $mapped[$header] = $value;
                 }

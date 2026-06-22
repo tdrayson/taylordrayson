@@ -41,7 +41,14 @@ class ActivityFactory extends Factory
 
         $meta = $isCardio
             ? ['elevation_gain' => fake()->numberBetween(10, 300)]
-            : ['exercises' => fake()->randomElements(['Bench Press', 'Squat', 'Deadlift', 'Pull Up', 'Shoulder Press', 'Rows', 'Lunges', 'Plank'], fake()->numberBetween(3, 6))];
+            : ['sets' => collect(fake()->randomElements(['Bench Press', 'Squat', 'Deadlift', 'Shoulder Press', 'Rows'], fake()->numberBetween(2, 4)))
+                ->flatMap(fn (string $exercise): array => array_fill(0, 3, [
+                    'exercise' => $exercise,
+                    'reps' => fake()->numberBetween(6, 12),
+                    'weight' => fake()->randomFloat(1, 10, 80),
+                ]))
+                ->values()
+                ->all()];
 
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),

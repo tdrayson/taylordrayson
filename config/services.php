@@ -28,6 +28,30 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'foursquare' => [
+        'access_token' => env('FOURSQUARE_ACCESS_TOKEN'),
+    ],
+
+    'mapbox' => [
+        'token' => env('MAPBOX_TOKEN'),
+    ],
+
+    'logostream' => [
+        'key' => env('LOGOSTREAM_KEY'),
+        'url' => env('LOGOSTREAM_URL', 'https://airlines-api.logostream.dev'),
+        'aviation_url' => env('LOGOSTREAM_AVIATION_URL', 'https://aviation-api.logostream.dev'),
+    ],
+
+    'timeapi' => [
+        'url' => env('TIMEAPI_URL', 'https://timeapi.io'),
+    ],
+
+    'strava' => [
+        'client_id' => env('STRAVA_CLIENT_ID'),
+        'client_secret' => env('STRAVA_CLIENT_SECRET'),
+        'refresh_token' => env('STRAVA_REFRESH_TOKEN'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

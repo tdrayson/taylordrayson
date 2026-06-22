@@ -57,10 +57,33 @@ class Calorie extends Model implements Timelineable
             'type' => 'calorie',
             'icon' => 'utensils',
             'title' => number_format($dailyTotal).' kcal',
-            'subtitle' => null,
+            'subtitle' => $this->cardSubtitle(),
             'occurred_at' => $this->occurred_at,
             'accent' => 'food',
             'meta' => [],
         ];
+    }
+
+    private function cardSubtitle(): ?string
+    {
+        $totals = self::whereDate('occurred_at', $this->occurred_at->toDateString())
+            ->selectRaw('SUM(protein) as protein, SUM(carbs) as carbs, SUM(fat) as fat')
+            ->first();
+
+        $parts = [];
+
+        if ($totals->protein) {
+            $parts[] = round($totals->protein).'g protein';
+        }
+
+        if ($totals->carbs) {
+            $parts[] = round($totals->carbs).'g carbs';
+        }
+
+        if ($totals->fat) {
+            $parts[] = round($totals->fat).'g fat';
+        }
+
+        return $parts ? implode(' · ', $parts) : null;
     }
 }

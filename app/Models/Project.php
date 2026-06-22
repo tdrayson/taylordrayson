@@ -53,7 +53,7 @@ class Project extends Model implements Timelineable
             'type' => 'project',
             'icon' => 'rocket',
             'title' => $this->title,
-            'subtitle' => null,
+            'subtitle' => $this->description,
             'occurred_at' => $this->occurred_at,
             'accent' => 'project',
             'meta' => [],

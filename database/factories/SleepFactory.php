@@ -40,7 +40,7 @@ class SleepFactory extends Factory
             'wake_time' => $wakeTime,
             'duration' => $durationSeconds,
             'source' => fake()->randomElement(['oura', 'apple_watch', 'clock']),
-            'meta' => null,
+            'stages' => null,
         ];
     }
 }

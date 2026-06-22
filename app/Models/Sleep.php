@@ -59,10 +59,25 @@ class Sleep extends Model implements Timelineable
             'type' => 'sleep',
             'icon' => 'bed',
             'title' => "{$formatted} sleep",
-            'subtitle' => null,
+            'subtitle' => $this->bedtime->format('g:ia').' → '.$this->wake_time->format('g:ia'),
             'occurred_at' => $this->occurred_at,
             'accent' => 'sleep',
-            'meta' => [],
+            'meta' => ['segments' => $this->stageSegments()],
         ];
+    }
+
+    /**
+     * Per-stage durations (seconds) for the timeline breakdown bar.
+     *
+     * @return array<int, array{label: string, stage: string, seconds: int}>
+     */
+    private function stageSegments(): array
+    {
+        return collect([
+            ['label' => 'Awake', 'stage' => 'awake', 'seconds' => (int) $this->awake],
+            ['label' => 'REM', 'stage' => 'rem', 'seconds' => (int) $this->rem],
+            ['label' => 'Light', 'stage' => 'light', 'seconds' => (int) $this->core],
+            ['label' => 'Deep', 'stage' => 'deep', 'seconds' => (int) $this->deep],
+        ])->filter(fn (array $segment): bool => $segment['seconds'] > 0)->values()->all();
     }
 }

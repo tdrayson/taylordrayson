@@ -38,6 +38,7 @@ class Podcast extends Model implements Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'duration' => 'integer',
         ];
     }
 
@@ -48,7 +49,7 @@ class Podcast extends Model implements Timelineable
 
     public function slug(): string
     {
-        return "episode-{$this->episode_number}";
+        return "tww-s{$this->season_number}-e{$this->episode_number}";
     }
 
     public function card(): array
@@ -57,10 +58,20 @@ class Podcast extends Model implements Timelineable
             'type' => 'podcast',
             'icon' => 'headphones',
             'title' => $this->title,
-            'subtitle' => null,
+            'subtitle' => $this->topic,
             'occurred_at' => $this->occurred_at,
             'accent' => 'podcast',
-            'meta' => [],
+            'meta' => [
+                'media' => [
+                    'id' => $this->id,
+                    'title' => $this->title,
+                    'audioUrl' => $this->audio_url,
+                    'youtubeUrl' => $this->youtube_url,
+                    'thumbnail' => $this->thumbnail,
+                    'duration' => $this->duration,
+                    'url' => $this->url(),
+                ],
+            ],
         ];
     }
 }

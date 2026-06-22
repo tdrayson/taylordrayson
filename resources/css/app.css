@@ -4,111 +4,179 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../**/*.vue';
+
+@theme {
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Bricolage Grotesque', 'Inter', sans-serif;
+
+    /* Type scale — each token bakes size + line-height + weight + tracking.
+       Display tokens render in Bricolage; pair with `font-display`. */
+    --text-eyebrow: 0.656rem;
+    --text-eyebrow--line-height: 1.2;
+    --text-eyebrow--font-weight: 700;
+    --text-eyebrow--letter-spacing: 0.1em;
+
+    --text-label: 0.6875rem;
+    --text-label--line-height: 1.3;
+    --text-label--font-weight: 600;
+    --text-label--letter-spacing: 0.07em;
+
+    --text-caption: 0.8125rem;
+    --text-caption--line-height: 1.3;
+
+    --text-meta: 0.875rem;
+    --text-meta--line-height: 1.45;
+
+    --text-nav: 0.906rem;
+    --text-nav--line-height: 1.25;
+    --text-nav--font-weight: 500;
+
+    --text-body: 0.9375rem;
+    --text-body--line-height: 1.55;
+
+    --text-section: 1.125rem;
+    --text-section--line-height: 1.2;
+    --text-section--font-weight: 700;
+    --text-section--letter-spacing: -0.02em;
+
+    --text-item-title: 1.4375rem;
+    --text-item-title--line-height: 1.12;
+    --text-item-title--font-weight: 700;
+    --text-item-title--letter-spacing: -0.025em;
+
+    --text-name: 1.5rem;
+    --text-name--line-height: 1.04;
+    --text-name--font-weight: 800;
+    --text-name--letter-spacing: -0.03em;
+
+    --text-stat: 1.9375rem;
+    --text-stat--line-height: 1;
+    --text-stat--font-weight: 800;
+    --text-stat--letter-spacing: -0.03em;
+
+    --text-stat-lg: 2.875rem;
+    --text-stat-lg--line-height: 1;
+    --text-stat-lg--font-weight: 800;
+    --text-stat-lg--letter-spacing: -0.03em;
+
+    --text-display: 2.75rem;
+    --text-display--line-height: 0.98;
+    --text-display--font-weight: 800;
+    --text-display--letter-spacing: -0.035em;
+
+    --text-display-xl: clamp(3.625rem, 9vw, 5.25rem);
+    --text-display-xl--line-height: 0.92;
+    --text-display-xl--font-weight: 800;
+    --text-display-xl--letter-spacing: -0.035em;
+
+    /* Surfaces */
+    --color-canvas: #ffffff;
+    --color-surface: #f7f7f7;
+
+    /* Ink (text) scale */
+    --color-ink: #222222;
+    --color-ink-2: #3f3f3f;
+    --color-ink-3: #6a6a6a;
+
+    /* Hairlines */
+    --color-line: #dddddd;
+    --color-line-2: #ebebeb;
+
+    /* Accent (Rausch) */
+    --color-accent: #ff385c;
+    --color-accent-active: #e00b41;
+    --color-accent-soft: #ffd1da;
+
+    /* Heatmap ramp (quiet → busy) */
+    --color-heat-1: #ffd7df;
+    --color-heat-2: #ff9db1;
+    --color-heat-3: #ff6383;
+    --color-heat-4: #ff385c;
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 11px;
+    --radius-lg: 14px;
+
+    /* Elevation — the single shadow tier */
+    --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
+
+    /* Motion */
+    --animate-fade-in: fade-in 0.25s ease;
+    --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* Playful spin-and-jump for the avatar on hover */
+    @keyframes avatar-boop {
+        0% {
+            transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        35% {
+            transform: translateY(-22%) rotate(-12deg) scale(1.06);
+        }
+
+        70% {
+            transform: translateY(0) rotate(372deg) scale(0.95);
+        }
+
+        100% {
+            transform: translateY(0) rotate(360deg) scale(1);
+        }
+    }
+
+    /* 13 data-type accent colours — one per timeline data type */
+    --color-activity: hsl(152 55% 40%);
+    --color-sleep: hsl(245 50% 58%);
+    --color-food: hsl(25 90% 52%);
+    --color-media: hsl(340 60% 52%);
+    --color-event: hsl(270 55% 52%);
+    --color-appearance: hsl(320 55% 50%);
+    --color-podcast: hsl(210 65% 48%);
+    --color-flight: hsl(200 75% 50%);
+    --color-checkin: hsl(170 55% 40%);
+    --color-fuel: hsl(45 85% 48%);
+    --color-project: hsl(185 60% 42%);
+    --color-article: hsl(215 18% 48%);
+    --color-note: hsl(36 40% 50%);
+
+    /* Sleep stage colours */
+    --color-sleep-awake: hsl(0 70% 72%);
+    --color-sleep-rem: hsl(210 60% 58%);
+    --color-sleep-light: hsl(210 50% 75%);
+    --color-sleep-deep: hsl(245 50% 52%);
+
+    /* Macro colours */
+    --color-macro-protein: hsl(200 70% 48%);
+    --color-macro-carbs: hsl(35 85% 52%);
+    --color-macro-fat: hsl(340 60% 55%);
+}
 
 @layer base {
-    :root {
-        --background: 36 25% 97%;
-        --foreground: 220 16% 12%;
-        --card: 0 0% 100%;
-        --card-foreground: 220 16% 12%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 220 16% 12%;
-        --primary: 220 55% 42%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 36 15% 92%;
-        --secondary-foreground: 220 16% 22%;
-        --muted: 36 12% 93%;
-        --muted-foreground: 220 10% 46%;
-        --accent: 36 15% 92%;
-        --accent-foreground: 220 16% 22%;
-        --destructive: 0 84% 60%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 36 15% 90%;
-        --input: 36 15% 90%;
-        --ring: 220 55% 42%;
-        --radius: 1rem;
-
-        /* 13 data-type accent colours (one per table) */
-        --color-activity: 152 55% 40%;
-        --color-sleep: 245 50% 58%;
-        --color-food: 25 90% 52%;
-        --color-media: 340 60% 52%;
-        --color-event: 270 55% 52%;
-        --color-appearance: 320 55% 50%;
-        --color-podcast: 210 65% 48%;
-        --color-flight: 200 75% 50%;
-        --color-checkin: 170 55% 40%;
-        --color-fuel: 45 85% 48%;
-        --color-project: 185 60% 42%;
-        --color-article: 215 18% 48%;
-        --color-note: 36 40% 50%;
-
-        /* Sleep stage colors */
-        --sleep-awake: 0 70% 72%;
-        --sleep-rem: 210 60% 58%;
-        --sleep-light: 210 50% 75%;
-        --sleep-deep: 245 50% 52%;
-
-        /* Widget styling */
-        --widget-bg: 0 0% 100%;
-        --widget-shadow: 0 1px 3px 0 hsl(220 16% 12% / 0.04), 0 4px 12px 0 hsl(220 16% 12% / 0.03);
-
-        /* Sidebar */
-        --sidebar-background: 0 0% 100%;
-        --sidebar-foreground: 220 16% 22%;
-        --sidebar-primary: 220 55% 42%;
-        --sidebar-primary-foreground: 0 0% 100%;
-        --sidebar-accent: 36 15% 95%;
-        --sidebar-accent-foreground: 220 16% 22%;
-        --sidebar-border: 36 15% 92%;
-        --sidebar-ring: 220 55% 42%;
-    }
-
-    .dark {
-        --background: 220 16% 8%;
-        --foreground: 36 15% 92%;
-        --card: 220 14% 12%;
-        --card-foreground: 36 15% 92%;
-        --popover: 220 14% 12%;
-        --popover-foreground: 36 15% 92%;
-        --primary: 215 60% 58%;
-        --primary-foreground: 220 16% 8%;
-        --secondary: 220 12% 16%;
-        --secondary-foreground: 36 15% 88%;
-        --muted: 220 12% 16%;
-        --muted-foreground: 220 10% 55%;
-        --accent: 220 12% 16%;
-        --accent-foreground: 36 15% 88%;
-        --destructive: 0 62% 30%;
-        --destructive-foreground: 36 15% 92%;
-        --border: 220 12% 18%;
-        --input: 220 12% 18%;
-        --ring: 215 60% 58%;
-        --widget-bg: 220 14% 14%;
-        --widget-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 4px 12px 0 hsl(0 0% 0% / 0.15);
-        --sidebar-background: 220 14% 10%;
-        --sidebar-foreground: 36 15% 88%;
-        --sidebar-primary: 215 60% 58%;
-        --sidebar-primary-foreground: 220 16% 8%;
-        --sidebar-accent: 220 12% 14%;
-        --sidebar-accent-foreground: 36 15% 88%;
-        --sidebar-border: 220 12% 16%;
-        --sidebar-ring: 215 60% 58%;
-    }
-
-    * {
-        border-color: hsl(var(--border));
+    html {
+        scroll-behavior: smooth;
     }
 
     body {
-        background-color: hsl(var(--background));
-        color: hsl(var(--foreground));
-        font-family: var(--font-body);
-        background-image:
-            radial-gradient(ellipse at 50% 0%, transparent 0%, hsl(var(--background)) 70%),
-            linear-gradient(hsl(var(--foreground) / 0.035) 1px, transparent 1px),
-            linear-gradient(90deg, hsl(var(--foreground) / 0.035) 1px, transparent 1px);
-        background-size: 100% 100%, 40px 40px, 40px 40px;
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+        font-family: var(--font-sans);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
     }
 
     h1,
@@ -118,91 +186,7 @@
     h5,
     h6 {
         font-family: var(--font-display);
-    }
-}
-
-@theme {
-    /* Font families */
-    --font-display: 'Instrument Serif', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
-
-    /* Colors */
-    --color-background: hsl(var(--background));
-    --color-foreground: hsl(var(--foreground));
-    --color-card: hsl(var(--card));
-    --color-card-foreground: hsl(var(--card-foreground));
-    --color-popover: hsl(var(--popover));
-    --color-popover-foreground: hsl(var(--popover-foreground));
-    --color-primary: hsl(var(--primary));
-    --color-primary-foreground: hsl(var(--primary-foreground));
-    --color-secondary: hsl(var(--secondary));
-    --color-secondary-foreground: hsl(var(--secondary-foreground));
-    --color-muted: hsl(var(--muted));
-    --color-muted-foreground: hsl(var(--muted-foreground));
-    --color-accent: hsl(var(--accent));
-    --color-accent-foreground: hsl(var(--accent-foreground));
-    --color-destructive: hsl(var(--destructive));
-    --color-destructive-foreground: hsl(var(--destructive-foreground));
-    --color-border: hsl(var(--border));
-    --color-input: hsl(var(--input));
-    --color-ring: hsl(var(--ring));
-
-    /* Sidebar colors */
-    --color-sidebar-background: hsl(var(--sidebar-background));
-    --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-    --color-sidebar-primary: hsl(var(--sidebar-primary));
-    --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-    --color-sidebar-accent: hsl(var(--sidebar-accent));
-    --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
-    --color-sidebar-border: hsl(var(--sidebar-border));
-    --color-sidebar-ring: hsl(var(--sidebar-ring));
-
-    /* Data-type accent colors */
-    --color-data-activity: hsl(var(--color-activity));
-    --color-data-sleep: hsl(var(--color-sleep));
-    --color-data-food: hsl(var(--color-food));
-    --color-data-media: hsl(var(--color-media));
-    --color-data-event: hsl(var(--color-event));
-    --color-data-appearance: hsl(var(--color-appearance));
-    --color-data-podcast: hsl(var(--color-podcast));
-    --color-data-flight: hsl(var(--color-flight));
-    --color-data-checkin: hsl(var(--color-checkin));
-    --color-data-fuel: hsl(var(--color-fuel));
-    --color-data-project: hsl(var(--color-project));
-    --color-data-article: hsl(var(--color-article));
-    --color-data-note: hsl(var(--color-note));
-
-    /* Border radius */
-    --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-sm: calc(var(--radius) - 4px);
-
-    /* Animations */
-    --animate-fade-in: fade-in 0.4s ease-out;
-    --animate-slide-in: slide-in 0.3s ease-out;
-
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes slide-in {
-        from {
-            opacity: 0;
-            transform: translateX(-8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        letter-spacing: -0.025em;
     }
 }
 
@@ -211,117 +195,87 @@
         font-family: var(--font-display);
     }
 
-    .font-body {
-        font-family: var(--font-body);
+    .tnum {
+        font-variant-numeric: tabular-nums;
     }
+}
 
-    .widget-card {
-        background: hsl(var(--widget-bg));
-        box-shadow: var(--widget-shadow);
-        border-radius: var(--radius);
-    }
+/* Content grid — children sit in a centered `content` column; `.breakout` and
+   `.full-width` opt into wider columns, so full-bleed elements need no negative
+   margins. See https://docs.automaticcss.com/3.0/grids/content-grid */
+.content-grid {
+    --content-max-width: 56rem;
+    --breakout-max-width: 72rem;
+    --padding-inline: 1.25rem;
+    --breakout-size: calc((var(--breakout-max-width) - var(--content-max-width)) / 2);
 
-    .data-accent-activity {
-        color: hsl(var(--color-activity));
-    }
+    display: grid;
+    grid-template-columns:
+        [full-width-start] minmax(var(--padding-inline), 1fr)
+        [breakout-start] minmax(0, var(--breakout-size))
+        [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-width)) [content-end]
+        minmax(0, var(--breakout-size)) [breakout-end]
+        minmax(var(--padding-inline), 1fr) [full-width-end];
+}
 
-    .data-accent-sleep {
-        color: hsl(var(--color-sleep));
+@media (min-width: 768px) {
+    .content-grid {
+        --padding-inline: 2.5rem;
     }
+}
 
-    .data-accent-food {
-        color: hsl(var(--color-food));
+@layer components {
+    /* Children default to the content column; the utilities below opt out. */
+    .content-grid > * {
+        grid-column: content;
     }
+}
 
-    .data-accent-media {
-        color: hsl(var(--color-media));
-    }
+/* Column-placement utilities — defined with @utility so responsive variants
+   (e.g. md:breakout, lg:full-width) and other modifiers work. */
+@utility content-width {
+    grid-column: content;
+}
 
-    .data-accent-event {
-        color: hsl(var(--color-event));
-    }
+@utility breakout {
+    grid-column: breakout;
+}
 
-    .data-accent-appearance {
-        color: hsl(var(--color-appearance));
-    }
+@utility full-width {
+    grid-column: full-width;
+}
 
-    .data-accent-podcast {
-        color: hsl(var(--color-podcast));
-    }
+/* Full bleed, but inset by the gutter (a rounded box that never touches the edge). */
+@utility full-width-inset {
+    grid-column: full-width;
+    margin-inline: var(--padding-inline);
+}
 
-    .data-accent-flight {
-        color: hsl(var(--color-flight));
-    }
+/* Full bleed box whose inner content respects the gutter (ACSS "full width safe"). */
+@utility full-width-safe {
+    grid-column: full-width;
+    padding-inline: var(--padding-inline);
+}
 
-    .data-accent-checkin {
-        color: hsl(var(--color-checkin));
-    }
+/* Plyr media player — themed to the accent and made to fill its (docking) box. */
+:root {
+    --plyr-color-main: var(--color-accent);
+    --plyr-border-radius: var(--radius-lg);
+}
 
-    .data-accent-fuel {
-        color: hsl(var(--color-fuel));
-    }
+.plyr,
+.plyr--video,
+.plyr--video .plyr__video-wrapper {
+    height: 100%;
+}
 
-    .data-accent-project {
-        color: hsl(var(--color-project));
-    }
+.plyr--video .plyr__video-wrapper {
+    padding-bottom: 0 !important;
+}
 
-    .data-accent-article {
-        color: hsl(var(--color-article));
-    }
-
-    .data-accent-note {
-        color: hsl(var(--color-note));
-    }
-
-    .data-bg-activity {
-        background-color: hsl(var(--color-activity) / 0.1);
-    }
-
-    .data-bg-sleep {
-        background-color: hsl(var(--color-sleep) / 0.1);
-    }
-
-    .data-bg-food {
-        background-color: hsl(var(--color-food) / 0.1);
-    }
-
-    .data-bg-media {
-        background-color: hsl(var(--color-media) / 0.1);
-    }
-
-    .data-bg-event {
-        background-color: hsl(var(--color-event) / 0.1);
-    }
-
-    .data-bg-appearance {
-        background-color: hsl(var(--color-appearance) / 0.1);
-    }
-
-    .data-bg-podcast {
-        background-color: hsl(var(--color-podcast) / 0.1);
-    }
-
-    .data-bg-flight {
-        background-color: hsl(var(--color-flight) / 0.1);
-    }
-
-    .data-bg-checkin {
-        background-color: hsl(var(--color-checkin) / 0.1);
-    }
-
-    .data-bg-fuel {
-        background-color: hsl(var(--color-fuel) / 0.1);
-    }
-
-    .data-bg-project {
-        background-color: hsl(var(--color-project) / 0.1);
-    }
-
-    .data-bg-article {
-        background-color: hsl(var(--color-article) / 0.1);
-    }
-
-    .data-bg-note {
-        background-color: hsl(var(--color-note) / 0.1);
-    }
+.plyr--video iframe {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
 }

@@ -59,27 +59,71 @@ class Activity extends Model implements Timelineable
 
     public function card(): array
     {
-        $isCardio = in_array($this->type, ['run', 'cycle', 'swim', 'walk', 'hike']);
-
-        if ($isCardio && $this->distance_km) {
-            $distance = round($this->distance_km, 2).' km';
-            $duration = gmdate('H:i:s', $this->duration);
-            $subtitle = "{$distance} · {$duration}";
-        } elseif ($this->duration) {
-            $duration = gmdate('H:i:s', $this->duration);
-            $subtitle = $duration;
-        } else {
-            $subtitle = null;
-        }
-
         return [
             'type' => 'activity',
             'icon' => 'footprints',
             'title' => $this->name ?? ucfirst($this->type),
-            'subtitle' => $subtitle,
+            'subtitle' => $this->cardSubtitle(),
             'occurred_at' => $this->occurred_at,
             'accent' => 'activity',
             'meta' => [],
         ];
+    }
+
+    private function cardSubtitle(): ?string
+    {
+        $isCardio = in_array($this->type, ['run', 'cycle', 'ride', 'swim', 'walk', 'hike']);
+
+        if (! $isCardio && is_array($this->meta['sets'] ?? null)) {
+            return $this->strengthSubtitle($this->meta['sets']);
+        }
+
+        $parts = [];
+
+        if ($isCardio && $this->distance_km) {
+            $parts[] = round($this->distance_km, 2).' km';
+        }
+
+        if ($this->duration) {
+            $parts[] = $this->durationForHumans($this->duration);
+        }
+
+        if ($this->calories) {
+            $parts[] = number_format($this->calories).' kcal';
+        }
+
+        return $parts ? implode(' · ', $parts) : null;
+    }
+
+    /**
+     * @param  array<int, array{exercise: string, reps: int, weight: float}>  $sets
+     */
+    private function strengthSubtitle(array $sets): string
+    {
+        $exercises = count(array_unique(array_column($sets, 'exercise')));
+        $volume = array_sum(array_map(fn (array $set): float => ($set['reps'] ?? 0) * ($set['weight_kg'] ?? $set['weight'] ?? 0), $sets));
+
+        $parts = [
+            $exercises.' '.Str::plural('exercise', $exercises),
+            count($sets).' '.Str::plural('set', count($sets)),
+        ];
+
+        if ($volume > 0) {
+            $parts[] = number_format($volume).' kg';
+        }
+
+        return implode(' · ', $parts);
+    }
+
+    private function durationForHumans(int $seconds): string
+    {
+        $minutes = intdiv($seconds, 60);
+        $hours = intdiv($minutes, 60);
+
+        if ($hours > 0) {
+            return sprintf('%dh %02dm', $hours, $minutes % 60);
+        }
+
+        return "{$minutes}m";
     }
 }

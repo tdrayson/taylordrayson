@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Calorie;
+use App\Models\Flight;
 use App\Models\TimelineEntry;
-use Illuminate\View\View;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
-    public function show(int $year, int $month, int $day, string $slug): View
+    public function show(int $year, int $month, int $day, string $slug): Response
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
@@ -25,12 +30,82 @@ class EntryController extends Controller
             throw new NotFoundHttpException;
         }
 
-        $card = $entry->timelineable->card();
+        $model = $entry->timelineable;
 
-        return view('pages.entry', [
-            'entry' => $entry->timelineable,
-            'card' => $card,
-            'date' => $entry->occurred_at,
+        if ($model instanceof Flight) {
+            $model->load('airline', 'origin', 'destination');
+        }
+
+        $card = $model->card();
+
+        return Inertia::render('Entry', [
+            'type' => $card['type'],
+            'accent' => $card['accent'],
+            'title' => $card['title'],
+            'occurredAt' => $entry->occurred_at->toIso8601String(),
+            'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
+            'entry' => $model instanceof Calorie
+                ? $this->calorieDay($model)
+                : Arr::except($model->toArray(), ['created_at', 'updated_at']),
+            'polyline' => data_get($model, 'meta.polyline'),
+            'source' => $this->source($model),
         ]);
+    }
+
+    /**
+     * A food entry represents a whole day's eating, so aggregate every calorie
+     * row for the date into day totals plus a per-meal breakdown.
+     *
+     * @return array{totals: array<string, float|int>, meals: array<int, array<string, mixed>>}
+     */
+    private function calorieDay(Calorie $model): array
+    {
+        $items = Calorie::query()
+            ->whereDate('occurred_at', $model->occurred_at->toDateString())
+            ->orderBy('occurred_at')
+            ->get();
+
+        return [
+            'totals' => [
+                'calories' => (int) $items->sum('calories'),
+                'protein' => round((float) $items->sum('protein'), 1),
+                'carbs' => round((float) $items->sum('carbs'), 1),
+                'fat' => round((float) $items->sum('fat'), 1),
+                'saturated_fat' => round((float) $items->sum('saturated_fat'), 1),
+                'sugars' => round((float) $items->sum('sugars'), 1),
+                'fibre' => round((float) $items->sum('fibre'), 1),
+                'sodium' => (int) round((float) $items->sum('sodium')),
+            ],
+            'meals' => $items->groupBy('meal')
+                ->map(fn ($group, string $meal): array => [
+                    'meal' => $meal,
+                    'calories' => (int) $group->sum('calories'),
+                    'items' => $group->map(fn (Calorie $item): array => [
+                        'name' => $item->name,
+                        'calories' => (int) $item->calories,
+                        'quantity' => (float) $item->quantity,
+                        'units' => $item->units,
+                    ])->values()->all(),
+                ])->values()->all(),
+        ];
+    }
+
+    /**
+     * Where this entry's data came from, with a link back to the original when available.
+     *
+     * @return array{platform: string, url: ?string}|null
+     */
+    private function source(Model $model): ?array
+    {
+        $platform = $model->platform_type ?? $model->source ?? null;
+
+        if (! $platform) {
+            return null;
+        }
+
+        return [
+            'platform' => $platform,
+            'url' => $model->platform_url,
+        ];
     }
 }

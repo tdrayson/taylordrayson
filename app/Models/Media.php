@@ -53,7 +53,7 @@ class Media extends Model implements Timelineable
 
     public function card(): array
     {
-        $subtitle = match ($this->type) {
+        $detail = match ($this->type) {
             'film' => $this->meta['year'] ?? null,
             'tv' => isset($this->meta['season'], $this->meta['episode'])
                 ? sprintf('S%02dE%02d', $this->meta['season'], $this->meta['episode'])
@@ -62,11 +62,16 @@ class Media extends Model implements Timelineable
             default => null,
         };
 
+        $parts = array_filter([
+            $this->rating ? "★ {$this->rating} / 10" : null,
+            $detail,
+        ]);
+
         return [
             'type' => 'media',
             'icon' => 'film',
             'title' => $this->title,
-            'subtitle' => $subtitle,
+            'subtitle' => $parts ? implode(' · ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'media',
             'meta' => [],

@@ -1,0 +1,29 @@
+<script setup>
+import InlineBadge from './InlineBadge.vue';
+
+defineProps({
+    streakDays: { type: [Number, String], default: '2,145' },
+    agencyUrl: { type: String, default: 'https://thecreativetinker.com' },
+    pluginUrl: { type: String, default: 'https://wpextended.io' },
+    podcastUrl: { type: String, default: 'https://www.thisweekwith.co.uk' },
+});
+
+const linkClass =
+    'font-medium text-ink underline decoration-line underline-offset-2 transition-colors hover:text-accent hover:decoration-accent';
+</script>
+
+<template>
+    <div class="max-w-2xl text-xl leading-relaxed text-ink-2">
+        <p>
+            Hey! I'm Taylor<InlineBadge src="/headshot-taylor.jpg" alt="Taylor Drayson" />, a web developer in
+            London who tracks everything including every calorie for
+            <span class="tnum">{{ streakDays }}</span> days straight (and counting).
+        </p>
+        <p class="mt-6">
+            I run a <a :href="agencyUrl" target="_blank" rel="noopener noreferrer" :class="linkClass"><InlineBadge src="/logos/the-creative-tinker.png" alt="The Creative Tinker" />small web agency</a>
+            I started at 19, develop a <a :href="pluginUrl" target="_blank" rel="noopener noreferrer" :class="linkClass"><InlineBadge src="/logos/wp-extended.png" alt="WP Extended" />WordPress plugin</a>,
+            and co-host a <a :href="podcastUrl" target="_blank" rel="noopener noreferrer" :class="linkClass"><InlineBadge src="/logos/this-week-with.jpg" alt="This Week With" />weekly podcast</a>
+            with my dad with over 230 episodes. When I touch grass, I'm probably playing a racket sport or making another coffee.
+        </p>
+    </div>
+</template>

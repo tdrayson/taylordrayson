@@ -20,6 +20,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'origin_iata',
     'destination_iata',
     'distance_miles',
+    'duration_min',
+    'departure_timezone',
+    'arrival_timezone',
+    'co2_kg',
     'cabin_class',
     'reason',
     'meta',
@@ -38,6 +42,8 @@ class Flight extends Model implements Timelineable
         return [
             'occurred_at' => 'datetime',
             'meta' => 'array',
+            'duration_min' => 'integer',
+            'co2_kg' => 'integer',
         ];
     }
 
@@ -61,16 +67,36 @@ class Flight extends Model implements Timelineable
         return strtolower("{$this->origin_iata}-{$this->destination_iata}");
     }
 
+    /**
+     * Route title using city names when the airport relations are loaded
+     * (the entry page), falling back to IATA codes otherwise (the feed).
+     */
+    private function routeTitle(): string
+    {
+        $origin = ($this->relationLoaded('origin') ? $this->origin?->place : null) ?? $this->origin_iata;
+        $destination = ($this->relationLoaded('destination') ? $this->destination?->place : null) ?? $this->destination_iata;
+
+        return "{$origin} → {$destination}";
+    }
+
     public function card(): array
     {
         return [
             'type' => 'flight',
             'icon' => 'plane',
-            'title' => "{$this->origin_iata} → {$this->destination_iata}",
+            'title' => $this->routeTitle(),
             'subtitle' => $this->distance_miles ? sprintf('%s mi · %s', number_format($this->distance_miles), $this->cabin_class) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
-            'meta' => [],
+            'meta' => [
+                'route' => [
+                    'origin' => ['iata' => $this->origin_iata, 'place' => $this->relationLoaded('origin') ? $this->origin?->place : null, 'name' => $this->relationLoaded('origin') ? $this->origin?->name : null],
+                    'destination' => ['iata' => $this->destination_iata, 'place' => $this->relationLoaded('destination') ? $this->destination?->place : null, 'name' => $this->relationLoaded('destination') ? $this->destination?->name : null],
+                    'depart' => data_get($this->meta, 'departed_actual') ?? data_get($this->meta, 'departed_scheduled'),
+                    'arrive' => data_get($this->meta, 'arrived_actual'),
+                    'distance' => $this->distance_miles,
+                ],
+            ],
         ];
     }
 }

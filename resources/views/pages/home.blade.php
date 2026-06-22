@@ -13,7 +13,7 @@
                 @if ($lastDate !== null)
                     </ul>
                 @endif
-                <h2>{{ $entry->occurred_at->format('l j F Y') }}</h2>
+                <h2><a href="/{{ $entry->occurred_at->format('Y/m/d') }}">{{ $entry->occurred_at->format('l j F Y') }}</a></h2>
                 <ul>
                 @php $lastDate = $currentDate; @endphp
             @endif

@@ -24,6 +24,7 @@ use Illuminate\Support\Str;
     'latitude',
     'longitude',
     'description',
+    'is_mayor',
     'platform_type',
     'platform_id',
 ])]
@@ -38,6 +39,7 @@ class Checkin extends Model implements Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'is_mayor' => 'boolean',
         ];
     }
 
@@ -57,11 +59,13 @@ class Checkin extends Model implements Timelineable
 
     public function card(): array
     {
+        $parts = array_filter([$this->category, $this->city]);
+
         return [
             'type' => 'checkin',
             'icon' => 'map-pin',
             'title' => $this->venue_name,
-            'subtitle' => $this->category,
+            'subtitle' => $parts ? implode(' · ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'checkin',
             'meta' => [],

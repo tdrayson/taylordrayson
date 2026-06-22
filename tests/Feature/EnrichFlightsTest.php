@@ -1,0 +1,88 @@
+<?php
+
+use App\Models\Airport;
+use App\Models\Flight;
+use Illuminate\Support\Facades\Http;
+
+beforeEach(function () {
+    config([
+        'services.logostream.key' => 'test-key',
+        'services.logostream.aviation_url' => 'https://aviation-api.logostream.dev',
+        'services.timeapi.url' => 'https://timeapi.io',
+    ]);
+});
+
+it('enriches a flight from the aviation api and updates the csv and database', function () {
+    Airport::create(['iata_code' => 'AAA', 'icao_code' => 'AAAA', 'name' => 'Alpha', 'city' => 'Alpha', 'country' => 'AA', 'latitude' => 1, 'longitude' => 1]);
+    Airport::create(['iata_code' => 'BBB', 'icao_code' => 'BBBB', 'name' => 'Bravo', 'city' => 'Bravo', 'country' => 'BB', 'latitude' => 2, 'longitude' => 2]);
+
+    $flight = Flight::factory()->create([
+        'occurred_at' => '2020-01-01T10:00',
+        'flight_number' => '999',
+        'origin_iata' => 'AAA',
+        'destination_iata' => 'BBB',
+        'distance_miles' => 1000,
+        'duration_min' => null,
+        'departure_timezone' => null,
+        'arrival_timezone' => null,
+        'co2_kg' => null,
+    ]);
+
+    Http::fake([
+        '*aviation-api*' => Http::response([
+            'data' => [[
+                'duration_min' => 120,
+                'departure_timezone' => 'Europe/London',
+                'arrival_timezone' => 'Europe/Paris',
+                'co2_kg' => 200,
+            ]],
+        ]),
+    ]);
+
+    $csv = tempnam(sys_get_temp_dir(), 'flights').'.csv';
+    file_put_contents($csv, "occurred_at,flight_number,airline_icao,origin_iata,destination_iata,distance_miles,cabin_class,reason,meta\n2020-01-01T10:00,999,XXX,AAA,BBB,1000,economy,,{}\n");
+
+    $this->artisan('flights:enrich', ['--file' => $csv])->assertExitCode(0);
+
+    $flight->refresh();
+    expect($flight->duration_min)->toBe(120);
+    expect($flight->departure_timezone)->toBe('Europe/London');
+    expect($flight->arrival_timezone)->toBe('Europe/Paris');
+    expect($flight->co2_kg)->toBe(200);
+
+    expect(file_get_contents($csv))->toContain('duration_min')->toContain('Europe/London');
+
+    @unlink($csv);
+});
+
+it('falls back to the timezone api when the route is unknown', function () {
+    Airport::create(['iata_code' => 'CCC', 'icao_code' => 'CCCC', 'name' => 'Charlie', 'city' => 'Charlie', 'country' => 'CC', 'latitude' => 10, 'longitude' => 10]);
+    Airport::create(['iata_code' => 'DDD', 'icao_code' => 'DDDD', 'name' => 'Delta', 'city' => 'Delta', 'country' => 'DD', 'latitude' => 20, 'longitude' => 20]);
+
+    $flight = Flight::factory()->create([
+        'occurred_at' => '2021-05-05T08:00',
+        'flight_number' => '111',
+        'origin_iata' => 'CCC',
+        'destination_iata' => 'DDD',
+        'distance_miles' => 500,
+        'departure_timezone' => null,
+    ]);
+
+    Http::fake([
+        '*aviation-api*' => Http::response(['data' => []]),
+        '*timeapi.io*' => Http::response(['timeZone' => 'Asia/Tokyo']),
+    ]);
+
+    $csv = tempnam(sys_get_temp_dir(), 'flights').'.csv';
+    file_put_contents($csv, "occurred_at,flight_number,airline_icao,origin_iata,destination_iata,distance_miles,cabin_class,reason,meta\n2021-05-05T08:00,111,XXX,CCC,DDD,500,economy,,{}\n");
+
+    $this->artisan('flights:enrich', ['--file' => $csv])->assertExitCode(0);
+
+    $flight->refresh();
+    expect($flight->departure_timezone)->toBe('Asia/Tokyo');
+    expect($flight->arrival_timezone)->toBe('Asia/Tokyo');
+    expect($flight->duration_min)->not->toBeNull(); // distance estimate
+    expect($flight->co2_kg)->toBeNull();
+
+    @unlink($csv);
+});

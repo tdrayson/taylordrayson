@@ -1,0 +1,94 @@
+<script setup>
+import { computed } from 'vue';
+import DetailList from '../DetailList.vue';
+import SectionHead from '../SectionHead.vue';
+import { number, titleCase } from '../../format.js';
+
+const props = defineProps({
+    entry: { type: Object, required: true },
+});
+
+const totals = computed(() => props.entry.totals ?? {});
+const meals = computed(() => props.entry.meals ?? []);
+
+const MACROS = [
+    { key: 'protein', label: 'Protein', kcalPerGram: 4, color: 'var(--color-macro-protein)' },
+    { key: 'carbs', label: 'Carbs', kcalPerGram: 4, color: 'var(--color-macro-carbs)' },
+    { key: 'fat', label: 'Fat', kcalPerGram: 9, color: 'var(--color-macro-fat)' },
+];
+
+// Macro split by calorie contribution (protein/carbs 4 kcal/g, fat 9 kcal/g).
+const macros = computed(() => {
+    const entries = MACROS.map((macro) => ({
+        ...macro,
+        grams: totals.value[macro.key] || 0,
+        energy: (totals.value[macro.key] || 0) * macro.kcalPerGram,
+    })).filter((macro) => macro.grams > 0);
+
+    const energyTotal = entries.reduce((sum, macro) => sum + macro.energy, 0) || 1;
+
+    return entries.map((macro) => ({ ...macro, percent: (macro.energy / energyTotal) * 100 }));
+});
+
+const micros = computed(() =>
+    [
+        { label: 'Saturated fat', value: totals.value.saturated_fat ? `${number(totals.value.saturated_fat, 1)} g` : null },
+        { label: 'Sugars', value: totals.value.sugars ? `${number(totals.value.sugars, 1)} g` : null },
+        { label: 'Fibre', value: totals.value.fibre ? `${number(totals.value.fibre, 1)} g` : null },
+        { label: 'Sodium', value: totals.value.sodium ? `${number(totals.value.sodium)} mg` : null },
+    ].filter((row) => row.value),
+);
+
+function quantity(item) {
+    if (!item.quantity) {
+        return item.units || '';
+    }
+
+    return `${number(item.quantity, item.quantity % 1 ? 1 : 0)} ${item.units || ''}`.trim();
+}
+</script>
+
+<template>
+    <div class="space-y-10">
+        <div v-if="macros.length">
+            <div class="flex h-2.5 overflow-hidden rounded-full">
+                <div v-for="macro in macros" :key="macro.key" :style="{ width: `${macro.percent}%`, background: macro.color }" />
+            </div>
+            <div class="mt-4 flex flex-wrap gap-x-10 gap-y-4">
+                <div v-for="macro in macros" :key="macro.key" class="flex items-center gap-2.5">
+                    <span class="size-2.5 rounded-full" :style="{ background: macro.color }" />
+                    <div>
+                        <div class="font-display text-stat leading-none tnum">{{ number(macro.grams) }}<span class="ml-0.5 text-base font-semibold text-ink-3">g</span></div>
+                        <div class="mt-1 text-label uppercase text-ink-3">{{ macro.label }} · {{ Math.round(macro.percent) }}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="meals.length">
+            <SectionHead title="Meals" />
+            <div class="space-y-3">
+                <div v-for="meal in meals" :key="meal.meal" class="overflow-hidden rounded-lg border border-line-2">
+                    <div class="flex items-baseline justify-between bg-surface px-4 py-2.5">
+                        <span class="font-display text-section">{{ titleCase(meal.meal) }}</span>
+                        <span class="text-meta font-semibold text-ink-2 tnum">{{ number(meal.calories) }} kcal</span>
+                    </div>
+                    <div class="divide-y divide-line-2">
+                        <div v-for="(item, index) in meal.items" :key="index" class="flex items-center justify-between gap-4 px-4 py-2.5">
+                            <div class="min-w-0">
+                                <div class="text-meta text-ink">{{ item.name }}</div>
+                                <div class="text-caption text-ink-3">{{ quantity(item) }}</div>
+                            </div>
+                            <div class="shrink-0 text-meta font-semibold text-ink tnum">{{ number(item.calories) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="micros.length">
+            <SectionHead title="Nutrition" />
+            <DetailList :rows="micros" />
+        </div>
+    </div>
+</template>
