@@ -10,14 +10,24 @@ defineProps({
 </script>
 
 <template>
-    <span class="mx-1 inline-flex size-8 items-center justify-center p-1 align-middle">
+    <span
+        class="inline-badge inline-block size-7 overflow-hidden bg-surface"
+        :class="circle ? 'rounded-full' : 'rounded-sm'"
+        aria-hidden="true"
+    >
         <img
             v-if="src"
             :src="src"
             :alt="alt"
-            class="size-full object-contain"
-            :class="circle ? 'rounded-full' : 'rounded-xs'"
+            class="block size-full object-contain"
         >
-        <Icon v-else-if="icon" :icon="icon" class="size-4" />
+        <Icon v-else-if="icon" :icon="icon" class="size-full" />
     </span>
 </template>
+
+<style scoped>
+/* Seat the badge just below the text baseline (à la inline avatars/FA icons). */
+.inline-badge {
+    vertical-align: -0.25em;
+}
+</style>

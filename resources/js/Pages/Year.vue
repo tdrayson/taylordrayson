@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import {
     WorkoutRunIcon,
@@ -14,12 +15,15 @@ import NumberStrip from '../Components/NumberStrip.vue';
 import SectionHead from '../Components/SectionHead.vue';
 import Heatmap from '../Components/Heatmap.vue';
 import BarList from '../Components/BarList.vue';
+import FutureNote from '../Components/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     year: { type: Number, required: true },
 });
+
+const isFuture = computed(() => props.year > new Date().getFullYear());
 
 setLayoutProps({
     breadcrumb: [{ label: String(props.year) }],
@@ -74,6 +78,9 @@ const highlights = [
 <template>
     <Head :title="String(year)" />
 
+    <FutureNote v-if="isFuture" unit="year" />
+
+    <template v-else>
     <ViewHeader
         eyebrow="Year in numbers"
         :title="String(year)"
@@ -124,4 +131,5 @@ const highlights = [
             </span>
         </div>
     </div>
+    </template>
 </template>

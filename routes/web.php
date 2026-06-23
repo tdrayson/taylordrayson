@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\TimelineController;
+use App\Models\LeaderboardEntry;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -11,6 +13,17 @@ Route::feeds();
 
 Route::get('/now', fn () => Inertia::render('Now'))->name('now');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem'))->name('design-system');
+
+// 404 snake leaderboard: a fresh single-use token per game, then the score post.
+Route::post('/snake/token', [SnakeScoreController::class, 'token'])
+    ->middleware('throttle:30,1')->name('snake.token');
+Route::post('/snake/score', [SnakeScoreController::class, 'store'])
+    ->middleware('throttle:10,1')->name('snake.score');
+Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
+    ->middleware('throttle:10,1')->name('snake.rename');
+Route::get('/leaderboard', fn () => Inertia::render('Leaderboard', [
+    'entries' => LeaderboardEntry::topEntries(null),
+]))->name('leaderboard');
 
 // Per-type archive pages and their taxonomy sub-routes. Slugs are literal segments,
 // so they never collide with the digit-constrained /{year}/... routes below.

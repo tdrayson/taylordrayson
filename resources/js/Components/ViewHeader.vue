@@ -13,10 +13,10 @@ defineProps({
 </script>
 
 <template>
-    <div class="flex items-end justify-between gap-4">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <div v-if="eyebrow" class="text-eyebrow uppercase text-ink-3">{{ eyebrow }}</div>
-            <h2 class="font-display text-display" v-html="title" />
+            <h1 class="font-display text-display" v-html="title" />
             <p v-if="subtitle" class="mt-2 text-meta text-ink-3">{{ subtitle }}</p>
         </div>
         <div class="flex gap-4 text-sm font-semibold text-ink-3">

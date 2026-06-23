@@ -35,7 +35,7 @@ const items = computed(() =>
 </script>
 
 <template>
-    <nav aria-label="Primary" class="flex flex-col gap-1">
+    <nav aria-label="Primary" class="flex flex-col gap-1.5 md:gap-1">
         <SidebarNavItem
             v-for="item in items"
             :key="item.href"

@@ -6,6 +6,7 @@ import ViewHeader from '../Components/ViewHeader.vue';
 import StatRow from '../Components/StatRow.vue';
 import ActivityRings from '../Components/ActivityRings.vue';
 import TimelineFeed from '../Components/TimelineFeed.vue';
+import FutureNote from '../Components/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -27,11 +28,17 @@ const summaryStats = computed(() => [
 
 const pad = (value) => String(value).padStart(2, '0');
 const date = computed(() => new Date(props.year, props.month - 1, props.day));
+const isFuture = computed(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return date.value.getTime() > today.getTime();
+});
 const monthName = computed(() => date.value.toLocaleDateString('en-GB', { month: 'long' }));
 const weekday = computed(() => date.value.toLocaleDateString('en-GB', { weekday: 'long' }));
 
 const title = computed(() => `${weekday.value}<br>${props.day} ${monthName.value} ${props.year}`);
-const subtitle = computed(() => `${props.items.length} ${props.items.length === 1 ? 'entry' : 'entries'} logged`);
+const subtitle = computed(() => (isFuture.value ? '' : `${props.items.length} ${props.items.length === 1 ? 'entry' : 'entries'} logged`));
 
 function dayUrl(value) {
     return `/${value.getFullYear()}/${pad(value.getMonth() + 1)}/${pad(value.getDate())}`;
@@ -65,24 +72,28 @@ setLayoutProps({
 <template>
     <Head :title="`${day} ${monthName} ${year}`" />
 
-    <ViewHeader
-        :title="title"
-        :subtitle="subtitle"
-        :prev="{ label: shortLabel(prevDate), href: dayUrl(prevDate) }"
-        :next="{ label: shortLabel(nextDate), href: dayUrl(nextDate) }"
-    />
+    <FutureNote v-if="isFuture" unit="day" />
 
-    <div v-if="rings" class="mt-8 flex items-center gap-5">
-        <ActivityRings large :move="rings.move" :exercise="rings.exercise" :stand="rings.stand" />
-        <div class="space-y-1.5 text-sm text-ink-3">
-            <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.moveKcal }}</span> kcal move</div>
-            <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.exerciseMins }}</span> min exercise</div>
-            <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.standHrs }}</span> hr stand</div>
+    <template v-else>
+        <ViewHeader
+            :title="title"
+            :subtitle="subtitle"
+            :prev="{ label: shortLabel(prevDate), href: dayUrl(prevDate) }"
+            :next="{ label: shortLabel(nextDate), href: dayUrl(nextDate) }"
+        />
+
+        <div v-if="rings" class="mt-8 flex items-center gap-5">
+            <ActivityRings large animate :move="rings.move" :exercise="rings.exercise" :stand="rings.stand" />
+            <div class="space-y-1.5 text-sm text-ink-3">
+                <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.moveKcal }}</span> kcal move</div>
+                <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.exerciseMins }}</span> min exercise</div>
+                <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.standHrs }}</span> hr stand</div>
+            </div>
         </div>
-    </div>
 
-    <StatRow v-if="summaryStats.length" :stats="summaryStats" class="mt-8" />
+        <StatRow v-if="summaryStats.length" :stats="summaryStats" class="mt-8" />
 
-    <TimelineFeed v-if="items.length" :items="items" class="mt-10" />
-    <p v-else class="mt-10 text-meta text-ink-3">No entries for this day.</p>
+        <TimelineFeed v-if="items.length" :items="items" class="mt-10" />
+        <p v-else class="mt-10 text-meta text-ink-3">No entries for this day.</p>
+    </template>
 </template>

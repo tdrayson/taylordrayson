@@ -5,6 +5,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/ViewHeader.vue';
 import NumberStrip from '../Components/NumberStrip.vue';
 import CalendarMonth from '../Components/CalendarMonth.vue';
+import FutureNote from '../Components/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -18,8 +19,13 @@ const props = defineProps({
 
 const pad = (value) => String(value).padStart(2, '0');
 const date = computed(() => new Date(props.year, props.month - 1, 1));
+const isFuture = computed(() => {
+    const now = new Date();
+
+    return date.value.getTime() > new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+});
 const monthName = computed(() => date.value.toLocaleDateString('en-GB', { month: 'long' }));
-const subtitle = computed(() => `${props.entriesCount} ${props.entriesCount === 1 ? 'entry' : 'entries'} this month`);
+const subtitle = computed(() => (isFuture.value ? '' : `${props.entriesCount} ${props.entriesCount === 1 ? 'entry' : 'entries'} this month`));
 
 function monthUrl(value) {
     return `/${value.getFullYear()}/${pad(value.getMonth() + 1)}`;
@@ -43,14 +49,17 @@ setLayoutProps({
 <template>
     <Head :title="`${monthName} ${year}`" />
 
-    <ViewHeader
-        :title="`${monthName} ${year}`"
-        :subtitle="subtitle"
-        :prev="{ label: monthLabel(prevMonth), href: monthUrl(prevMonth) }"
-        :next="{ label: monthLabel(nextMonth), href: monthUrl(nextMonth) }"
-    />
+    <FutureNote v-if="isFuture" unit="month" />
+    <template v-else>
+        <ViewHeader
+            :title="`${monthName} ${year}`"
+            :subtitle="subtitle"
+            :prev="{ label: monthLabel(prevMonth), href: monthUrl(prevMonth) }"
+            :next="{ label: monthLabel(nextMonth), href: monthUrl(nextMonth) }"
+        />
 
-    <NumberStrip v-if="stats.length" :stats="stats" class="mt-8" />
+        <NumberStrip v-if="stats.length" :stats="stats" class="mt-8" />
 
-    <CalendarMonth :year="year" :month="month" :days="days" />
+        <CalendarMonth :year="year" :month="month" :days="days" />
+    </template>
 </template>

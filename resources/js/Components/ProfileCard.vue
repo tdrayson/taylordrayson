@@ -19,9 +19,9 @@ defineProps({
                 <img v-if="avatar" :src="avatar" :alt="name" class="u-photo size-full object-cover" >
             </div>
         </Link>
-        <h1 class="mb-2 font-display text-name">
+        <p class="mb-2 font-display text-name">
             <Link href="/" class="p-name u-url">{{ name }}</Link>
-        </h1>
+        </p>
         <p class="mb-4 max-w-50 p-note text-caption text-ink-3">{{ bio }}</p>
         <SocialLinks />
     </div>

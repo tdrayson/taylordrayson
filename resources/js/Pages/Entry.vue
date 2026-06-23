@@ -78,7 +78,7 @@ setLayoutProps({
     <Head :title="title" />
 
     <header class="flex items-start gap-4">
-        <span class="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface" :style="accentStyle">
+        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-surface sm:flex" :style="accentStyle">
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">

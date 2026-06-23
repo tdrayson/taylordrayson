@@ -5,8 +5,11 @@ import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 import StageBar from './StageBar.vue';
 import FlightRoute from './FlightRoute.vue';
+import RouteThumb from './RouteThumb.vue';
 import { entryType } from '../entryTypes.js';
 import { clock, flightDurationLabel, number } from '../format.js';
+import { greatCircle } from '../maplibre.js';
+import { decodePolyline } from '../geo.js';
 import { player, playAudio, togglePlay, isCurrent } from '../player.js';
 
 const props = defineProps({
@@ -20,6 +23,7 @@ const props = defineProps({
     segments: { type: Array, default: null },
     route: { type: Object, default: null },
     media: { type: Object, default: null },
+    polyline: { type: String, default: null },
     pb: { type: Boolean, default: false },
     url: { type: String, default: null },
 });
@@ -65,6 +69,44 @@ const routeView = computed(() => {
         duration: flightDurationLabel(props.route.distance),
         note: props.route.distance ? `${number(props.route.distance)} mi` : null,
     };
+});
+
+const airline = computed(() => props.route?.airline ?? null);
+
+const bannerColor = computed(() => `var(--color-${props.iconKey})`);
+
+// A full-width map banner: the flight's great-circle arc, or an activity's route.
+const flightArc = computed(() => {
+    const origin = props.route?.origin;
+    const destination = props.route?.destination;
+
+    if (origin?.lat == null || destination?.lat == null) {
+        return null;
+    }
+
+    return greatCircle(
+        { lat: Number(origin.lat), lng: Number(origin.lng) },
+        { lat: Number(destination.lat), lng: Number(destination.lng) },
+        64,
+    );
+});
+
+const routePath = computed(() => {
+    const points = props.polyline ? decodePolyline(props.polyline) : [];
+
+    return points.length > 1 ? points : null;
+});
+
+const banner = computed(() => {
+    if (flightArc.value) {
+        return { points: flightArc.value, endpoints: true };
+    }
+
+    if (routePath.value) {
+        return { points: routePath.value, endpoints: false };
+    }
+
+    return null;
 });
 
 const fullTimestamp = computed(() => {
@@ -114,6 +156,10 @@ const fullTimestamp = computed(() => {
                 :class="url ? 'u-url transition-colors hover:text-accent' : ''"
             >{{ title }}</component>
         </div>
+        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-ink-3">
+            <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
+            {{ airline.name }}
+        </div>
         <FlightRoute
             v-if="routeView"
             compact
@@ -125,7 +171,8 @@ const fullTimestamp = computed(() => {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <div v-else-if="meta" class="p-summary mt-2 text-meta" :class="pb ? 'font-semibold text-accent' : 'text-ink-2'">{{ meta }}</div>
+        <div v-else-if="meta" class="p-summary mt-2 line-clamp-2 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent' : 'text-ink-2'">{{ meta }}</div>
+        <RouteThumb v-if="banner" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
         <button
             v-if="media?.audioUrl"
             type="button"

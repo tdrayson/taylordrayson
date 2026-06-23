@@ -66,7 +66,9 @@ class Activity extends Model implements Timelineable
             'subtitle' => $this->cardSubtitle(),
             'occurred_at' => $this->occurred_at,
             'accent' => 'activity',
-            'meta' => [],
+            'meta' => [
+                'polyline' => data_get($this->meta, 'polyline'),
+            ],
         ];
     }
 

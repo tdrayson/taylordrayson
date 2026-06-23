@@ -32,11 +32,12 @@ const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(pro
     <IntroBlock v-if="currentPage === 1" class="mb-14" />
 
     <div v-if="groups.length" class="h-feed flex flex-col gap-14">
-        <h2 class="p-name sr-only">Taylor Drayson timeline</h2>
+        <h1 class="p-name sr-only">Taylor Drayson timeline</h1>
         <DateGroup
             v-for="group in groups"
             :key="group.label"
             :label="group.label"
+            :date="group.date"
             :href="group.href"
             :items="group.items"
         />

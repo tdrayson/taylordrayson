@@ -57,7 +57,7 @@ onUnmounted(() => {
 
         <Transition name="overlay">
             <div v-if="open" id="mobile-menu" class="fixed inset-0 z-50 flex flex-col bg-canvas">
-                <header class="flex items-center justify-between px-5 py-3">
+                <header class="flex items-center justify-between border-b border-line-2 px-5 py-3">
                     <Link href="/" class="flex items-center gap-2.5">
                         <img src="/headshot-taylor.jpg" alt="" class="size-8 rounded-full object-cover" >
                         <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
@@ -73,7 +73,7 @@ onUnmounted(() => {
                 </header>
 
                 <div class="flex flex-1 flex-col overflow-y-auto px-5 py-6">
-                    <SidebarNav />
+                    <SidebarNav class="-mx-3" />
                     <div class="mt-auto space-y-5 border-t border-line-2 pt-6">
                         <StatusBar />
                         <SocialLinks />

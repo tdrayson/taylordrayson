@@ -32,18 +32,18 @@ class TypeRegistry
     public static function all(): array
     {
         return [
-            'activity' => self::type(Activity::class, 'activities', 'Activities', self::column('type', 'Type')),
+            'activity' => self::type(Activity::class, 'activities', 'Activities', self::column('type', 'Type', fn (string $label): string => "{$label} activities")),
             'sleep' => self::type(Sleep::class, 'sleep', 'Sleep'),
             'calorie' => self::type(Calorie::class, 'food', 'Food'),
             'media' => self::type(Media::class, 'media', 'Media', self::media()),
-            'event' => self::type(Event::class, 'events', 'Events', self::column('type', 'Type')),
-            'appearance' => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type')),
+            'event' => self::type(Event::class, 'events', 'Events', self::column('type', 'Type', fn (string $label): string => "{$label} events")),
+            'appearance' => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
             'podcast' => self::type(Podcast::class, 'this-week-with', 'This Week With', null, 'episode'),
             'flight' => self::type(Flight::class, 'flights', 'Flights', self::airline()),
-            'checkin' => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category')),
+            'checkin' => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
             'fuel' => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
-            'project' => self::type(Project::class, 'projects', 'Projects', self::tags()),
-            'article' => self::type(Article::class, 'articles', 'Articles', self::tags()),
+            'project' => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
+            'article' => self::type(Article::class, 'articles', 'Articles', self::tags(fn (string $label): string => "Articles tagged {$label}")),
             'note' => self::type(Note::class, 'notes', 'Notes'),
         ];
     }
@@ -76,7 +76,7 @@ class TypeRegistry
      * Slugs are matched back with `whereIn` so divergent encodings of the same thing
      * (e.g. "weight training" and "weight_training" → weight-training) both resolve.
      */
-    private static function column(string $column, string $label): callable
+    private static function column(string $column, string $label, ?callable $title = null): callable
     {
         $distinct = fn (string $model): Collection => $model::query()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column);
 
@@ -84,6 +84,7 @@ class TypeRegistry
             'base' => $slug,
             'param' => $column,
             'label' => $label,
+            'title' => $title,
             'filter' => fn (Builder $query, string $value) => $query->whereIn($column, self::resolveSlugs($distinct($model), $value) ?: [$value]),
             'labelFor' => fn (string $value): string => Str::headline(self::resolveSlugs($distinct($model), $value)[0] ?? $value),
             'values' => fn (): Collection => $distinct($model)
@@ -95,7 +96,7 @@ class TypeRegistry
     /**
      * A taxonomy over a JSON `tags` array, addressed by tag slug.
      */
-    private static function tags(): callable
+    private static function tags(?callable $title = null): callable
     {
         $distinct = fn (string $model): Collection => $model::query()->pluck('tags')->flatten()->filter()->unique()->sort()->values();
 
@@ -103,6 +104,7 @@ class TypeRegistry
             'base' => $slug,
             'param' => 'tag',
             'label' => 'Tag',
+            'title' => $title,
             'filter' => fn (Builder $query, string $value) => $query->whereJsonContains('tags', self::resolveSlug($distinct($model), $value) ?? $value),
             'labelFor' => fn (string $value): string => self::resolveSlug($distinct($model), $value) ?? Str::headline($value),
             'values' => fn (): Collection => $distinct($model)->map(fn ($tag): array => ['value' => Str::slug($tag), 'label' => $tag]),
@@ -139,6 +141,7 @@ class TypeRegistry
             'base' => $slug,
             'param' => 'airline',
             'label' => 'Airline',
+            'title' => fn (string $label): string => "Flights with {$label}",
             'filter' => fn (Builder $query, string $value) => $query->whereIn(
                 'airline_icao',
                 $forSlug($airlines($model), $value)->pluck('icao_code')->map('strtoupper')->all() ?: ['__none__'],
@@ -160,6 +163,7 @@ class TypeRegistry
             'base' => 'vehicles',
             'param' => 'vehicle',
             'label' => 'Vehicle',
+            'title' => fn (string $label): string => "Fuel for {$label}",
             'filter' => fn (Builder $query, string $value) => $query->where('vehicle_id', $value),
             'labelFor' => fn (string $value): string => config("vehicles.{$value}.name", $value),
             'values' => fn (): Collection => collect(config('vehicles', []))

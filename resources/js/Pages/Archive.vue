@@ -14,6 +14,7 @@ const props = defineProps({
     type: { type: String, required: true },
     accent: { type: String, required: true },
     title: { type: String, required: true },
+    crumb: { type: String, default: '' },
     subtitle: { type: String, default: '' },
     groups: { type: Array, default: () => [] },
     currentPage: { type: Number, default: 1 },
@@ -33,8 +34,8 @@ const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(pro
 
 setLayoutProps({
     breadcrumb: props.parent
-        ? [{ label: props.parent.label, href: props.parent.href }, { label: props.title }]
-        : [{ label: props.title }],
+        ? [{ label: props.parent.label, href: props.parent.href }, { label: props.crumb || props.title }]
+        : [{ label: props.crumb || props.title }],
 });
 </script>
 
@@ -42,7 +43,7 @@ setLayoutProps({
     <Head :title="title" />
 
     <header class="flex items-start gap-4">
-        <span class="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface" :style="accentStyle">
+        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-surface sm:flex" :style="accentStyle">
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
@@ -71,6 +72,7 @@ setLayoutProps({
             v-for="group in groups"
             :key="group.label"
             :label="group.label"
+            :date="group.date"
             :href="group.href"
             :items="group.items"
         />

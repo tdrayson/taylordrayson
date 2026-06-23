@@ -61,31 +61,57 @@ class ArchiveController extends Controller
             ->paginate(self::PER_PAGE);
 
         $noun = $definition['noun'];
+        $taxonomyLabel = $value !== null ? ($taxonomy['labelFor'])($value) : null;
 
         return Inertia::render('Archive', [
             'type' => $type,
             'accent' => $type === 'calorie' ? 'food' : $type,
-            'title' => $value !== null ? ($taxonomy['labelFor'])($value) : $definition['label'],
+            'title' => $this->title($definition, $taxonomy, $taxonomyLabel),
+            'crumb' => $taxonomyLabel ?? $definition['label'],
             'subtitle' => $page->total().' '.Str::plural($noun, $page->total()),
             'groups' => $this->feed->groupByDay(collect($page->items())),
             'currentPage' => $page->currentPage(),
             'lastPage' => $page->lastPage(),
             'chips' => $value === null ? $this->chips($definition) : [],
             'parent' => $parent,
-            'map' => $type === 'flight' && $page->currentPage() === 1 ? $this->flightRoutes() : [],
+            'map' => $type === 'flight' && $page->currentPage() === 1 ? $this->flightRoutes($taxonomy, $value) : [],
         ]);
     }
 
     /**
-     * Every flight's great-circle endpoints, for the overview map on the flights archive.
+     * The page heading: the type label for an index, or a context-aware phrase
+     * for a taxonomy (e.g. "Flights with EasyJet"), falling back to the value label.
      *
+     * @param  array<string, mixed>  $definition
+     * @param  array<string, mixed>|null  $taxonomy
+     */
+    private function title(array $definition, ?array $taxonomy, ?string $taxonomyLabel): string
+    {
+        if ($taxonomyLabel === null) {
+            return $definition['label'];
+        }
+
+        $template = $taxonomy['title'] ?? null;
+
+        return $template !== null ? $template($taxonomyLabel) : $taxonomyLabel;
+    }
+
+    /**
+     * Flight great-circle endpoints for the overview map, filtered to match the
+     * active taxonomy (e.g. a single airline) when one is applied.
+     *
+     * @param  array<string, mixed>|null  $taxonomy
      * @return list<array{origin: array{lat: float, lng: float, iata: string}, destination: array{lat: float, lng: float, iata: string}}>
      */
-    private function flightRoutes(): array
+    private function flightRoutes(?array $taxonomy, ?string $value): array
     {
-        return Flight::query()
-            ->with(['origin', 'destination'])
-            ->get()
+        $query = Flight::query()->with(['origin', 'destination']);
+
+        if ($value !== null && $taxonomy !== null) {
+            ($taxonomy['filter'])($query, $value);
+        }
+
+        return $query->get()
             ->filter(fn (Flight $flight): bool => $flight->origin?->latitude !== null && $flight->destination?->latitude !== null)
             ->map(fn (Flight $flight): array => [
                 'origin' => ['lat' => $flight->origin->latitude, 'lng' => $flight->origin->longitude, 'iata' => $flight->origin_iata],

@@ -91,11 +91,26 @@ function decodePolyline(value) {
 
 onMounted(async () => {
     loadStylesheet(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`);
-    await loadScript(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`);
+
+    try {
+        await loadScript(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`);
+    } catch (error) {
+        console.error('[EntryMap] failed to load MapLibre script', error);
+
+        return;
+    }
 
     const coords = decodePolyline(props.polyline);
 
-    if (coords.length === 0 || !window.maplibregl) {
+    if (!window.maplibregl) {
+        console.error('[EntryMap] window.maplibregl is undefined after script load');
+
+        return;
+    }
+
+    if (coords.length === 0) {
+        console.warn('[EntryMap] polyline decoded to 0 coordinates', props.polyline?.slice(0, 30));
+
         return;
     }
 
@@ -115,6 +130,8 @@ onMounted(async () => {
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+    map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
     map.on('load', () => {
         map.addSource('route', {
