@@ -31,4 +31,15 @@ defineProps({
     background: var(--color-line-2);
     border-radius: 2px;
 }
+
+.timeline-feed::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    bottom: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-line-2);
+}
 </style>

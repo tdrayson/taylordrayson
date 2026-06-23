@@ -3,7 +3,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 
 const props = defineProps({
     polyline: { type: String, required: true },
-    color: { type: String, default: '#ff385c' },
+    color: { type: String, default: '#3858e9' },
 });
 
 const MAPLIBRE_VERSION = '4.7.1';
@@ -53,7 +53,7 @@ function resolveColor(value) {
         return value;
     }
 
-    return getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim() || '#ff385c';
+    return getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim() || '#3858e9';
 }
 
 function decodePolyline(value) {

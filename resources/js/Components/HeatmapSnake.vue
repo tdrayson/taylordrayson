@@ -2,8 +2,8 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 /**
- * Snake played on a contribution-heatmap grid. The dark snake leaves Rausch
- * "contributions" behind: each pellet (Rausch) it eats stays lit in the same
+ * Snake played on a contribution-heatmap grid. The dark snake leaves accent
+ * "contributions" behind: each pellet (accent) it eats stays lit in the same
  * colour, so the board fills in like a busy week. One point per square.
  *
  * Pure game component. It owns play state and emits `start`, `score` (live)

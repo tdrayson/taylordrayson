@@ -4,6 +4,9 @@ import { Link } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
 import { entryType } from '../entryTypes.js';
 
+const sleepIcon = entryType('sleep').icon;
+const foodIcon = entryType('calorie').icon;
+
 const props = defineProps({
     year: { type: Number, required: true },
     month: { type: Number, required: true },
@@ -57,7 +60,14 @@ function dayUrl(day) {
                 :class="isCurrentMonth && cell === today.getDate() ? 'outline outline-2 outline-accent' : ''"
             >
                 <span class="text-sm font-semibold" :class="isCurrentMonth && cell === today.getDate() ? 'text-accent' : 'text-ink'">{{ cell }}</span>
-                <span v-if="days[cell]?.sleep" class="mt-0.5 text-xs text-ink-3 tnum">{{ sleepHours(days[cell].sleep) }}</span>
+                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-3 tnum">
+                    <span v-if="days[cell]?.sleep" class="inline-flex items-center gap-1">
+                        <Icon :icon="sleepIcon" class="size-3" />{{ sleepHours(days[cell].sleep) }}
+                    </span>
+                    <span v-if="days[cell]?.calories" class="inline-flex items-center gap-1">
+                        <Icon :icon="foodIcon" class="size-3" />{{ days[cell].calories.toLocaleString() }}
+                    </span>
+                </div>
 
                 <div v-if="days[cell]?.types?.length" class="mt-auto flex flex-wrap items-center gap-1 pt-1.5 text-ink-3">
                     <Icon

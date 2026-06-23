@@ -48,7 +48,7 @@ export async function loadMaplibre() {
 }
 
 /** Resolve a CSS custom property reference like `var(--color-flight)` to its value. */
-export function resolveColor(value, fallback = '#ff385c') {
+export function resolveColor(value, fallback = '#3858e9') {
     const match = /^var\((--[\w-]+)\)$/.exec(value);
 
     if (!match) {

@@ -34,16 +34,16 @@ const lines = [
 ];
 
 const accent = [
-    { name: 'accent', hex: '#ff385c', role: 'The single brand voltage — PBs, active icons, links, charts.' },
-    { name: 'accent-active', hex: '#e00b41', role: 'Pressed state.' },
-    { name: 'accent-soft', hex: '#ffd1da', role: 'Disabled / tint.' },
+    { name: 'accent', hex: '#3858e9', role: 'The single brand voltage — PBs, active icons, links, charts.' },
+    { name: 'accent-active', hex: '#213fd4', role: 'Pressed state.' },
+    { name: 'accent-soft', hex: '#c7d1ff', role: 'Disabled / tint.' },
 ];
 
 const heat = [
-    { name: 'heat-1', hex: '#ffd7df' },
-    { name: 'heat-2', hex: '#ff9db1' },
-    { name: 'heat-3', hex: '#ff6383' },
-    { name: 'heat-4', hex: '#ff385c' },
+    { name: 'heat-1', hex: '#e3e8ff' },
+    { name: 'heat-2', hex: '#9fb1ff' },
+    { name: 'heat-3', hex: '#6c84f2' },
+    { name: 'heat-4', hex: '#3858e9' },
 ];
 
 const dataTypes = [
@@ -156,7 +156,7 @@ function heatColor(level) {
             <h1 class="mt-2 font-display text-display-xl">Taylor Drayson</h1>
             <p class="mt-4 max-w-xl text-ink-2">
                 A flat, borderless lifelog. Pure white canvas, near-black ink, and a single voltage of
-                <span class="font-semibold text-accent">Rausch (#ff385c)</span>. Bricolage Grotesque carries the
+                <span class="font-semibold text-accent">Blueberry (#3858e9)</span>. Bricolage Grotesque carries the
                 display weights; Inter runs the body. Depth comes from one shadow tier and 14px corner clipping — never borders.
             </p>
         </header>
@@ -405,7 +405,7 @@ function heatColor(level) {
         </section>
 
         <footer class="mt-16 border-t border-line-2 pt-5 text-xs text-ink-3">
-            Living design reference · Inter + Bricolage Grotesque · single Rausch accent · generated from personal-site-views.html
+            Living design reference · Inter + Bricolage Grotesque · single Blueberry accent · generated from personal-site-views.html
         </footer>
     </div>
 </template>

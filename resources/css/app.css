@@ -84,16 +84,17 @@
     --color-line: #dddddd;
     --color-line-2: #ebebeb;
 
-    /* Accent (Rausch) */
-    --color-accent: #ff385c;
-    --color-accent-active: #e00b41;
-    --color-accent-soft: #ffd1da;
+    /* Accent (Blueberry) */
+    --color-accent: #3858e9;
+    --color-accent-active: #213fd4;
+    --color-accent-soft: #c7d1ff;
+    --color-accent-tint: #eef1ff;
 
     /* Heatmap ramp (quiet → busy) */
-    --color-heat-1: #ffd7df;
-    --color-heat-2: #ff9db1;
-    --color-heat-3: #ff6383;
-    --color-heat-4: #ff385c;
+    --color-heat-1: #e3e8ff;
+    --color-heat-2: #9fb1ff;
+    --color-heat-3: #6c84f2;
+    --color-heat-4: #3858e9;
 
     /* Radius */
     --radius-sm: 8px;
@@ -187,6 +188,30 @@
     h6 {
         font-family: var(--font-display);
         letter-spacing: -0.025em;
+    }
+
+    /* Colour changes on interactive elements always ease rather than snap. */
+    a,
+    button,
+    select,
+    input,
+    textarea,
+    summary,
+    [role='button'] {
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+            text-decoration-color 0.15s ease, fill 0.15s ease, stroke 0.15s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        a,
+        button,
+        select,
+        input,
+        textarea,
+        summary,
+        [role='button'] {
+            transition: none;
+        }
     }
 }
 

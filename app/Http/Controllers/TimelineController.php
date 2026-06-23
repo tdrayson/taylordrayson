@@ -94,18 +94,20 @@ class TimelineController extends Controller
     }
 
     /**
-     * Per-day data for the calendar: sleep duration (the everyday sub-stat) plus the
-     * type of each notable entry for icons — sleep and food are excluded since they
-     * happen daily and would just clutter every cell.
+     * Per-day data for the calendar: sleep duration and the day's calorie total
+     * (the everyday sub-stats) plus the type of each notable entry for icons —
+     * sleep and food are kept out of the icon row since they happen daily and
+     * would just clutter every cell.
      *
      * @param  Collection<int, TimelineEntry>  $entries
-     * @return array<int, array{sleep: ?int, types: array<int, string>}>
+     * @return array<int, array{sleep: ?int, calories: ?int, types: array<int, string>}>
      */
     private function monthDays(Collection $entries): array
     {
         return $entries->groupBy(fn (TimelineEntry $entry): int => (int) $entry->occurred_at->format('j'))
             ->map(function (Collection $group): array {
                 $sleep = null;
+                $calories = 0;
                 $types = [];
 
                 foreach ($group as $entry) {
@@ -118,13 +120,15 @@ class TimelineController extends Controller
                     }
 
                     if ($model instanceof Calorie) {
+                        $calories += $model->calories;
+
                         continue;
                     }
 
                     $types[] = $model->card()['type'];
                 }
 
-                return ['sleep' => $sleep, 'types' => $types];
+                return ['sleep' => $sleep, 'calories' => $calories ?: null, 'types' => $types];
             })->all();
     }
 

@@ -1,0 +1,27 @@
+<script setup>
+import { ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import Icon from '../Icon.vue';
+
+defineProps({
+    modelValue: { type: [String, Number], default: '' },
+    options: { type: Array, required: true }, // [{ value, label }]
+    placeholder: { type: String, default: null },
+});
+
+const emit = defineEmits(['update:modelValue']);
+</script>
+
+<template>
+    <div class="relative">
+        <select
+            :value="modelValue"
+            class="w-full appearance-none rounded-md border border-line bg-canvas py-2.5 pl-3 pr-9 text-meta transition-colors focus:border-accent focus:outline-none"
+            :class="modelValue === '' ? 'text-ink-3' : 'text-ink'"
+            @change="emit('update:modelValue', $event.target.value)"
+        >
+            <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
+            <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
+        </select>
+        <Icon :icon="ArrowDown01Icon" class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-3" />
+    </div>
+</template>

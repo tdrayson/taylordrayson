@@ -43,6 +43,16 @@ it('filters a taxonomy sub-route and sets the parent link', function () {
     );
 });
 
+it('keeps the chips on a taxonomy page and flags the active one', function () {
+    Activity::factory()->create(['type' => 'run', 'occurred_at' => now()->subDay()]);
+    Activity::factory()->create(['type' => 'walk', 'occurred_at' => now()->subDays(2)]);
+
+    get('/activities/walk')->assertInertia(fn ($page) => $page
+        ->where('chips', fn ($chips) => collect($chips)->firstWhere('href', '/activities/walk')['active'] === true
+            && collect($chips)->firstWhere('href', '/activities/run')['active'] === false)
+    );
+});
+
 it('filters checkins by category slug', function () {
     Checkin::factory()->create(['venue_name' => 'Blue Bottle', 'category' => 'Coffee Shop', 'occurred_at' => now()->subDay()]);
     Checkin::factory()->create(['venue_name' => 'City Gym', 'category' => 'Gym', 'occurred_at' => now()->subDays(2)]);

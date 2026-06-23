@@ -8,6 +8,7 @@ const props = defineProps({
     mono: { type: Boolean, default: false },
     compact: { type: Boolean, default: false },
     large: { type: Boolean, default: false },
+    huge: { type: Boolean, default: false },
     animate: { type: Boolean, default: false },
 });
 
@@ -17,7 +18,7 @@ const colors = computed(() =>
 </script>
 
 <template>
-    <svg viewBox="0 0 37 37" :class="[large ? 'size-28' : compact ? 'size-5' : 'size-6', { animate }]" aria-hidden="true">
+    <svg viewBox="0 0 37 37" :class="[huge ? 'size-44' : large ? 'size-28' : compact ? 'size-5' : 'size-6', { animate }]" aria-hidden="true">
         <g class="ring ring1">
             <circle class="ring-bg" :stroke="colors[0]" stroke-width="3" r="15.915" cx="50%" cy="50%" />
             <circle class="ring-fg" :stroke="colors[0]" stroke-width="3" r="15.915" cx="50%" cy="50%" :stroke-dasharray="`${move}, 100`" :style="{ '--len': move }" />

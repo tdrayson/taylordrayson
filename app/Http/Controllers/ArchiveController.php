@@ -72,7 +72,7 @@ class ArchiveController extends Controller
             'groups' => $this->feed->groupByDay(collect($page->items())),
             'currentPage' => $page->currentPage(),
             'lastPage' => $page->lastPage(),
-            'chips' => $value === null ? $this->chips($definition) : [],
+            'chips' => $this->chips($definition, $value),
             'parent' => $parent,
             'map' => $type === 'flight' && $page->currentPage() === 1 ? $this->flightRoutes($taxonomy, $value) : [],
         ]);
@@ -122,12 +122,13 @@ class ArchiveController extends Controller
     }
 
     /**
-     * Taxonomy values as navigable pills for the index page.
+     * Taxonomy values as navigable pills, with the currently applied value
+     * flagged so it can render as the selected chip on taxonomy pages.
      *
      * @param  array<string, mixed>  $definition
-     * @return array<int, array{label: string, href: string, icon: string|null}>
+     * @return array<int, array{label: string, href: string, icon: string|null, active: bool}>
      */
-    private function chips(array $definition): array
+    private function chips(array $definition, ?string $activeValue = null): array
     {
         $taxonomy = $definition['taxonomy'];
 
@@ -140,6 +141,7 @@ class ArchiveController extends Controller
                 'label' => $value['label'],
                 'href' => '/'.$taxonomy['base'].'/'.$value['value'],
                 'icon' => $value['icon'] ?? null,
+                'active' => $value['value'] === $activeValue,
             ])
             ->all();
     }

@@ -60,7 +60,10 @@ setLayoutProps({
             v-for="chip in chips"
             :key="chip.href"
             :href="chip.href"
-            class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-caption font-medium text-ink-2 transition-colors hover:bg-accent-soft hover:text-accent-active"
+            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-caption font-medium transition-colors"
+            :class="chip.active
+                ? 'bg-accent text-canvas'
+                : 'bg-surface text-ink-2 hover:bg-accent-tint hover:text-accent-active'"
         >
             <img v-if="chip.icon" :src="chip.icon" alt="" class="size-4 shrink-0 object-contain">
             {{ chip.label }}

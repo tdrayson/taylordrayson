@@ -5,7 +5,7 @@ import { loadMaplibre, resolveColor, greatCircle, iataLabel, OPENFREEMAP_POSITRO
 const props = defineProps({
     origin: { type: Object, required: true }, // { lat, lng }
     destination: { type: Object, required: true }, // { lat, lng }
-    color: { type: String, default: '#ff385c' },
+    color: { type: String, default: '#3858e9' },
 });
 
 const container = ref(null);

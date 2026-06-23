@@ -9,11 +9,11 @@ defineProps({
 });
 
 const linkClass =
-    'whitespace-nowrap font-medium text-ink underline decoration-line underline-offset-2 transition-colors hover:text-accent hover:decoration-accent';
+    'whitespace-nowrap rounded-md bg-surface px-1.5 py-0.5 underline decoration-line underline-offset-2 transition-colors hover:text-accent hover:decoration-accent focus-visible:text-accent focus-visible:decoration-accent';
 </script>
 
 <template>
-    <div class="max-w-2xl text-xl leading-relaxed text-ink-2">
+    <div class="max-w-2xl text-xl leading-relaxed tracking-tight text-ink-2">
         <p>
             Hey! I'm Taylor<InlineBadge src="/headshot-taylor.jpg" alt="Taylor Drayson" class="ml-2" />, a web developer in
             London who tracks everything including every calorie for

@@ -5,6 +5,7 @@ import AppTopbar from '../Components/AppTopbar.vue';
 import MobileNav from '../Components/MobileNav.vue';
 import MediaPlayer from '../Components/MediaPlayer.vue';
 import Breadcrumb from '../Components/Breadcrumb.vue';
+import CommandPalette from '../Components/CommandPalette.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: undefined },
@@ -27,5 +28,6 @@ const page = usePage();
             </div>
         </main>
         <MediaPlayer />
+        <CommandPalette />
     </div>
 </template>

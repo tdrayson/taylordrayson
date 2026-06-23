@@ -15,6 +15,7 @@ import { player, playAudio, togglePlay, isCurrent } from '../player.js';
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
     iconKey: { type: String, default: null },
+    accent: { type: String, default: null },
     type: { type: String, default: '' },
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
@@ -73,7 +74,9 @@ const routeView = computed(() => {
 
 const airline = computed(() => props.route?.airline ?? null);
 
-const bannerColor = computed(() => `var(--color-${props.iconKey})`);
+// The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
+const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
+const bannerColor = typeColor;
 
 // A full-width map banner: the flight's great-circle arc, or an activity's route.
 const flightArc = computed(() => {
@@ -136,8 +139,8 @@ const fullTimestamp = computed(() => {
 </script>
 
 <template>
-    <div class="relative block h-entry">
-        <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-surface text-ink-2">
+    <div class="relative block h-entry" :style="{ '--type-color': typeColor }">
+        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-surface">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
         <time v-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published float-right text-xs text-ink-3 tnum">{{ time }}</time>
@@ -145,15 +148,14 @@ const fullTimestamp = computed(() => {
         <component
             :is="typeHref ? Link : 'div'"
             :href="typeHref || undefined"
-            class="p-category text-label uppercase text-ink-3"
-            :class="typeHref ? 'transition-colors hover:text-accent' : ''"
+            class="type-color p-category text-label uppercase"
         >{{ displayType }}</component>
         <div class="mt-1 font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
                 :href="url || undefined"
                 class="p-name"
-                :class="url ? 'u-url transition-colors hover:text-accent' : ''"
+                :class="url ? 'type-link u-url transition-colors' : ''"
             >{{ title }}</component>
         </div>
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-ink-3">
@@ -185,3 +187,14 @@ const fullTimestamp = computed(() => {
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
     </div>
 </template>
+
+<style scoped>
+.type-color {
+    color: var(--type-color);
+}
+
+.type-link:hover,
+.type-link:focus-visible {
+    color: var(--type-color);
+}
+</style>

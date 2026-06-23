@@ -30,6 +30,7 @@ it('wires month roll-up stats and per-day calendar data', function () {
         ->where('days.10.types', fn ($types) => collect($types)->contains('activity'))
         ->where('days.10.types', fn ($types) => ! collect($types)->contains('calorie'))
         ->where('days.10.sleep', 25920)
+        ->where('days.10.calories', 600)
         ->where('stats', fn ($stats) => collect($stats)->pluck('label')->contains('Activities'))
     );
 });
