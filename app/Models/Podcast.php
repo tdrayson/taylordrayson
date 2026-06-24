@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasAssets;
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -21,13 +22,13 @@ use Illuminate\Database\Eloquent\Model;
     'transcript',
     'duration',
     'audio_url',
-    'youtube_url',
+    'video_url',
     'thumbnail',
     'cover_image',
 ])]
-class Podcast extends Model implements Timelineable
+class Podcast extends Model implements HasMedia, Timelineable
 {
-    use HasAssets;
+    use HasAttachments;
     use HasFactory;
     use HasTimelineEntry;
 
@@ -66,8 +67,8 @@ class Podcast extends Model implements Timelineable
                     'id' => $this->id,
                     'title' => $this->title,
                     'audioUrl' => $this->audio_url,
-                    'youtubeUrl' => $this->youtube_url,
-                    'thumbnail' => $this->thumbnail,
+                    'videoUrl' => $this->video_url,
+                    'thumbnail' => $this->cover_image ?? $this->thumbnail,
                     'duration' => $this->duration,
                     'url' => $this->url(),
                 ],

@@ -1,4 +1,4 @@
-occurred_at,season_number,episode_number,topic,show_notes,transcript,duration,audio_url,youtube_url,thumbnail,cover_image
+occurred_at,season_number,episode_number,topic,show_notes,transcript,duration,audio_url,video_url,thumbnail,cover_image
 "2026-06-19 13:00:00",7,249,"News - Apple WWDC - New Skills, 3D Modelling in Fusion - Creating a new bathroom holder for bottles - Calibrating a photo in Fusion - Learning how to extrude it correctly - Adding fillets - Small successes push you forward - Building a new form application for current and future forms - Split Testing - Vue.js on the frontend","News - Apple WWDC happened, which means new software beta's and an insight on new AI features
 
 Learning a New Skill - 3D Modelling

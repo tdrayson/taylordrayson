@@ -63,7 +63,7 @@ it('filters checkins by category slug', function () {
 });
 
 it('filters fuel by vehicle at its own base route', function () {
-    Fuel::factory()->create(['vehicle_id' => 'hn14wxp', 'station' => 'Shell M60', 'occurred_at' => now()]);
+    Fuel::factory()->create(['vehicle_id' => 'hn14wxp', 'occurred_at' => now()]);
 
     get('/vehicles/hn14wxp')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Archive')

@@ -4,12 +4,10 @@ namespace App\Console\Commands;
 
 use App\Actions\GenerateStaticMap;
 use App\Models\Activity;
-use App\Models\Asset;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[Signature('strava:sync {--days=7 : How many days back to check for new activities}')]
@@ -236,22 +234,9 @@ class StravaSync extends Command
                 continue;
             }
 
-            $date = now()->parse($data['start_date']);
-            $filename = Str::uuid().'.jpg';
-            $path = $date->format('Y/m/d').'/'.$filename;
-
-            Storage::disk('public')->put($path, $imageResponse->body());
-
-            Asset::create([
-                'assetable_type' => $activity->getMorphClass(),
-                'assetable_id' => $activity->getKey(),
-                'type' => $index === 0 ? 'cover' : 'photo',
-                'path' => $path,
-                'original_filename' => $photo['unique_id'] ?? $filename,
-                'mime_type' => 'image/jpeg',
-                'size_bytes' => strlen($imageResponse->body()),
-                'order' => $index,
-            ]);
+            $activity->addMediaFromString($imageResponse->body())
+                ->usingFileName(($photo['unique_id'] ?? Str::uuid()).'.jpg')
+                ->toMediaCollection($index === 0 ? 'cover' : 'photos');
         }
 
         $this->info("  → Downloaded {$photoCount} photo(s)");

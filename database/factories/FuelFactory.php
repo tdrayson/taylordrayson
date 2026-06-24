@@ -26,8 +26,7 @@ class FuelFactory extends Factory
             'cost' => $cost,
             'price_per_litre' => $pricePerLitre,
             'odometer' => fake()->numberBetween(20000, 80000),
-            'station' => fake()->randomElement(['Shell', 'BP', 'Esso', 'Tesco', "Sainsbury's"]),
-            'city' => fake()->randomElement(['London', 'Croydon', 'Brighton', 'Manchester', 'Bristol', 'Reading', 'Guildford']),
+            'fuel_station_id' => null,
         ];
     }
 }

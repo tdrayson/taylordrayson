@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
@@ -10,7 +10,7 @@ import { entryType } from '../entryTypes.js';
 import { clock, flightDurationLabel, number } from '../format.js';
 import { greatCircle } from '../maplibre.js';
 import { decodePolyline } from '../geo.js';
-import { player, playAudio, togglePlay, isCurrent } from '../player.js';
+import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../player.js';
 
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
@@ -29,7 +29,41 @@ const props = defineProps({
     url: { type: String, default: null },
 });
 
+const videoSlot = ref(null);
+
+// This card is currently showing the video docked inline (vs popped to the corner).
+const playingInline = computed(() => isCurrent(props.media, 'video') && player.dockEl === videoSlot.value);
+const videoPlaying = computed(() => props.media && isCurrent(props.media, 'video') && player.playing);
 const mediaPlaying = computed(() => props.media && isCurrent(props.media, 'audio') && player.playing);
+
+// Play the video docked inside this card. It only pops to the corner when the
+// page unmounts; returning to the feed does NOT re-dock (there is no onMounted
+// hook), so once popped out it stays in the corner.
+function playInline() {
+    if (!props.media) {
+        return;
+    }
+
+    if (!isCurrent(props.media, 'video')) {
+        playVideo(props.media);
+    }
+
+    dockVideo(videoSlot.value);
+}
+
+// A video with no inline thumbnail has nowhere to dock, so it plays straight in
+// the corner mini-player.
+function watch() {
+    if (!props.media) {
+        return;
+    }
+
+    if (isCurrent(props.media, 'video')) {
+        togglePlay();
+    } else {
+        playVideo(props.media);
+    }
+}
 
 function listen() {
     if (!props.media) {
@@ -42,6 +76,9 @@ function listen() {
         playAudio(props.media);
     }
 }
+
+// Leaving the page releases the inline dock, popping the video to the corner.
+onBeforeUnmount(() => undockVideo(videoSlot.value));
 
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
@@ -175,8 +212,43 @@ const fullTimestamp = computed(() => {
         />
         <div v-else-if="meta" class="p-summary mt-2 line-clamp-2 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent' : 'text-ink-2'">{{ meta }}</div>
         <RouteThumb v-if="banner" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
+        <div
+            v-if="media?.thumbnail && media?.videoUrl"
+            ref="videoSlot"
+            class="relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-line-2 bg-surface"
+        >
+            <button
+                v-if="!playingInline"
+                type="button"
+                class="group absolute inset-0"
+                aria-label="Watch video"
+                @click="playInline"
+            >
+                <img
+                    :src="media.thumbnail"
+                    :srcset="media.srcset || undefined"
+                    sizes="(min-width: 768px) 512px, 100vw"
+                    alt=""
+                    class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                >
+                <span class="absolute inset-0 flex items-center justify-center bg-ink/20 transition-colors group-hover:bg-ink/30">
+                    <span class="flex size-12 items-center justify-center rounded-full bg-canvas/90 text-ink shadow-card transition-transform group-hover:scale-110">
+                        <Icon :icon="PlayIcon" class="size-5" />
+                    </span>
+                </span>
+            </button>
+        </div>
         <button
-            v-if="media?.audioUrl"
+            v-if="media?.videoUrl && !media?.thumbnail"
+            type="button"
+            class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-label uppercase text-ink-2 transition-colors hover:bg-accent-soft hover:text-accent-active"
+            @click="watch"
+        >
+            <Icon :icon="videoPlaying ? PauseIcon : PlayIcon" class="size-3.5" />
+            {{ videoPlaying ? 'Pause' : 'Watch' }}
+        </button>
+        <button
+            v-if="media?.audioUrl && !media?.videoUrl"
             type="button"
             class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-label uppercase text-ink-2 transition-colors hover:bg-accent-soft hover:text-accent-active"
             @click="listen"

@@ -4,7 +4,7 @@ import { reactive } from 'vue';
  * Global media-player state. Lives outside the page tree (consumed by the
  * persistent MediaPlayer in AppLayout) so playback survives Inertia visits.
  *
- * track shape: { id, title, audioUrl, youtubeUrl, thumbnail }
+ * track shape: { id, title, audioUrl, videoUrl, thumbnail }
  * dockEl: the inline slot element the video should overlay; null = corner mini.
  */
 export const player = reactive({

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appearance;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
@@ -36,6 +37,10 @@ class EntryController extends Controller
             $model->load('airline', 'origin', 'destination');
         }
 
+        if ($model instanceof Appearance) {
+            $model->load('media');
+        }
+
         $card = $model->card();
 
         return Inertia::render('Entry', [
@@ -46,10 +51,28 @@ class EntryController extends Controller
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
                 ? $this->calorieDay($model)
-                : Arr::except($model->toArray(), ['created_at', 'updated_at']),
+                : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
         ]);
+    }
+
+    /**
+     * Serialise a timeline model for its detail page, dropping audit timestamps
+     * and adding the resolved thumbnail URL for media appearances.
+     *
+     * @return array<string, mixed>
+     */
+    private function entryPayload(Model $model): array
+    {
+        $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
+
+        if ($model instanceof Appearance) {
+            $data['thumbnail'] = $model->thumbnailUrl();
+            $data['thumbnailSrcset'] = $model->thumbnailSrcset();
+        }
+
+        return $data;
     }
 
     /**

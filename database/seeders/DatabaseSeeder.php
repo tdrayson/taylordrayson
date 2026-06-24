@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Asset;
 use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
@@ -20,6 +19,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
+use Spatie\MediaLibrary\HasMedia;
 
 class DatabaseSeeder extends Seeder
 {
@@ -120,11 +120,10 @@ class DatabaseSeeder extends Seeder
         $appearanceCount = fake()->numberBetween(2, 3);
 
         for ($i = 0; $i < $appearanceCount; $i++) {
-            $appearance = Appearance::factory()->create([
+            // No cover asset: appearance thumbnails derive from the YouTube video.
+            Appearance::factory()->create([
                 'occurred_at' => now()->subDays(fake()->numberBetween(10, 170)),
             ]);
-
-            $this->attachCover($appearance);
         }
     }
 
@@ -374,36 +373,52 @@ class DatabaseSeeder extends Seeder
         $this->attachCover($book);
     }
 
-    private function attachCover(Model $model): void
+    private function attachCover(HasMedia $model): void
     {
-        Asset::factory()->create([
-            'assetable_type' => $model->getMorphClass(),
-            'assetable_id' => $model->getKey(),
-            'type' => 'cover',
-        ]);
+        $model->addMediaFromString($this->placeholderJpeg(1200, 800))
+            ->usingFileName('cover.jpg')
+            ->toMediaCollection('cover');
     }
 
     /**
      * @param  int  $count  Number of photos to attach.
      */
-    private function attachPhotos(Model $model, int $count): void
+    private function attachPhotos(HasMedia $model, int $count): void
     {
         for ($i = 0; $i < $count; $i++) {
-            Asset::factory()->create([
-                'assetable_type' => $model->getMorphClass(),
-                'assetable_id' => $model->getKey(),
-                'type' => 'photo',
-                'order' => $i,
-            ]);
+            $model->addMediaFromString($this->placeholderJpeg(1200, 900))
+                ->usingFileName("photo-{$i}.jpg")
+                ->toMediaCollection('photos');
         }
     }
 
-    private function attachMap(Model $model): void
+    private function attachMap(HasMedia $model): void
     {
-        Asset::factory()->create([
-            'assetable_type' => $model->getMorphClass(),
-            'assetable_id' => $model->getKey(),
-            'type' => 'map',
-        ]);
+        $model->addMediaFromString($this->placeholderJpeg(1200, 800))
+            ->usingFileName('map.jpg')
+            ->toMediaCollection('map');
+    }
+
+    /**
+     * Generate a solid-colour JPEG placeholder so seeded media has real,
+     * displayable files without bundling fixture images in the repo.
+     */
+    private function placeholderJpeg(int $width, int $height): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        $colour = imagecolorallocate(
+            $image,
+            fake()->numberBetween(60, 200),
+            fake()->numberBetween(60, 200),
+            fake()->numberBetween(60, 200),
+        );
+        imagefill($image, 0, 0, $colour);
+
+        ob_start();
+        imagejpeg($image, null, 80);
+        $bytes = (string) ob_get_clean();
+        imagedestroy($image);
+
+        return $bytes;
     }
 }

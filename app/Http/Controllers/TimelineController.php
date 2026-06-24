@@ -9,7 +9,6 @@ use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -51,9 +50,7 @@ class TimelineController extends Controller
     private function groupsForDates(string $newest, string $oldest): array
     {
         $entries = TimelineEntry::query()
-            ->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith([
-                Flight::class => ['origin', 'destination', 'airline'],
-            ])])
+            ->withCardRelations()
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
             ->orderByDesc('occurred_at')
@@ -75,9 +72,7 @@ class TimelineController extends Controller
         $end = (clone $start)->endOfMonth()->endOfDay();
 
         $entries = TimelineEntry::query()
-            ->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith([
-                Flight::class => ['origin', 'destination', 'airline'],
-            ])])
+            ->withCardRelations()
             ->whereBetween('occurred_at', [$start, $end])
             ->orderBy('occurred_at')
             ->get()
@@ -186,9 +181,7 @@ class TimelineController extends Controller
         // Day (and other non-timeline views) read chronologically, earliest first —
         // the inverse of the home timeline, which leads with the latest entry.
         $entries = TimelineEntry::query()
-            ->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith([
-                Flight::class => ['origin', 'destination', 'airline'],
-            ])])
+            ->withCardRelations()
             ->whereDate('occurred_at', $date->toDateString())
             ->orderBy('occurred_at', 'asc')
             ->get()

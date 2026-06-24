@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasAssets;
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -11,15 +11,16 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
     'content',
 ])]
-class Note extends Model implements Timelineable
+class Note extends Model implements HasMedia, Timelineable
 {
-    use HasAssets, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasTimelineEntry;
 
     /**
      * @return array<string, string>

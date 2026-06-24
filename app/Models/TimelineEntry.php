@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,6 +35,29 @@ class TimelineEntry extends Model implements Feedable
         return $this->morphTo();
     }
 
+    /**
+     * Relations each timelineable's card() reads, so feeds can eager-load them
+     * and avoid N+1 queries (flight endpoints/airline, appearance cover thumbnail).
+     *
+     * @return array<class-string, array<int, string>>
+     */
+    public static function cardRelations(): array
+    {
+        return [
+            Flight::class => ['origin', 'destination', 'airline'],
+            Appearance::class => ['media'],
+        ];
+    }
+
+    /**
+     * Eager-load the polymorphic timelineable together with every relation its
+     * card() needs.
+     */
+    public function scopeWithCardRelations(Builder $query): Builder
+    {
+        return $query->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith(self::cardRelations())]);
+    }
+
     public function toFeedItem(): FeedItem
     {
         $card = $this->timelineable->card();
@@ -57,7 +81,7 @@ class TimelineEntry extends Model implements Feedable
     public static function getFeedItems(): Collection
     {
         return self::query()
-            ->with('timelineable')
+            ->withCardRelations()
             ->orderByDesc('occurred_at')
             ->limit(50)
             ->get()

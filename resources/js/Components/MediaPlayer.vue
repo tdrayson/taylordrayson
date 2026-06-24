@@ -6,7 +6,7 @@ import 'plyr/dist/plyr.css';
 import { PlayIcon, PauseIcon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 import { player, togglePlay, closePlayer } from '../player.js';
-import { youtubeId } from '../youtube.js';
+import { videoSource } from '../video.js';
 
 const audioEl = ref(null);
 const plyrTarget = ref(null);
@@ -19,7 +19,6 @@ let plyr = null;
 
 const isAudio = computed(() => player.mode === 'audio' && player.track);
 const isVideo = computed(() => player.mode === 'video' && player.track);
-const videoId = computed(() => (isVideo.value ? youtubeId(player.track.youtubeUrl) : null));
 const progress = computed(() => (duration.value ? (currentTime.value / duration.value) * 100 : 0));
 
 // ---- video geometry --------------------------------------------------------
@@ -44,9 +43,13 @@ function applyInline() {
     };
 }
 
+// Solid title/close bar above the corner video, so our chrome stays readable
+// over YouTube's own overlay. Added to the corner box height (not the inline dock).
+const HEADER_HEIGHT = 40;
+
 function cornerBox() {
     const width = Math.min(400, window.innerWidth - 32);
-    const height = width * (9 / 16);
+    const height = width * (9 / 16) + HEADER_HEIGHT;
 
     return { width, height, top: window.innerHeight - height - 16, left: window.innerWidth - width - 16 };
 }
@@ -111,11 +114,13 @@ function onResize() {
 }
 
 // ---- video (Plyr) ----------------------------------------------------------
-function loadVideo(id) {
+// Build the right embed for the source: a YouTube/Vimeo provider div, or a
+// native <video> element for a direct file (mp4/webm/...).
+function loadVideo(source) {
     nextTick(() => {
         const target = plyrTarget.value;
 
-        if (!target) {
+        if (!target || !source) {
             return;
         }
 
@@ -128,7 +133,9 @@ function loadVideo(id) {
             plyr = null;
         }
 
-        target.innerHTML = `<div data-plyr-provider="youtube" data-plyr-embed-id="${id}"></div>`;
+        target.innerHTML = source.provider === 'html5'
+            ? `<video playsinline><source src="${source.src}" type="${source.mime}"></video>`
+            : `<div data-plyr-provider="${source.provider}" data-plyr-embed-id="${source.id}"></div>`;
 
         plyr = new Plyr(target.firstElementChild, {
             youtube: { noCookie: true, rel: 0, modestbranding: 1, playsinline: 1 },
@@ -139,11 +146,14 @@ function loadVideo(id) {
     });
 }
 
-watch(videoId, (id) => {
-    if (id) {
-        loadVideo(id);
-    }
-});
+watch(
+    () => (isVideo.value ? player.track.videoUrl : null),
+    (url) => {
+        if (url) {
+            loadVideo(videoSource(url));
+        }
+    },
+);
 
 // ---- audio (native element) ------------------------------------------------
 watch(
@@ -278,25 +288,25 @@ onBeforeUnmount(() => {
             <div
                 v-show="isVideo"
                 ref="videoWrap"
-                class="group z-50 overflow-hidden bg-black"
+                class="z-50 flex flex-col overflow-hidden bg-black"
                 :style="geom"
                 :class="player.dockEl ? 'rounded-lg' : 'rounded-lg border border-line-2 shadow-card'"
             >
-                <div ref="plyrTarget" class="size-full"></div>
                 <div
                     v-if="isVideo && !player.dockEl"
-                    class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 bg-linear-to-b from-black/70 to-transparent px-3 py-2 opacity-0 transition-opacity group-hover:opacity-100"
+                    class="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-line-2 bg-canvas px-3"
                 >
                     <component
                         :is="player.track.url ? Link : 'span'"
                         :href="player.track.url || undefined"
-                        class="truncate text-caption font-semibold text-white"
-                        :class="player.track.url ? 'hover:underline' : ''"
+                        class="truncate text-caption font-semibold text-ink"
+                        :class="player.track.url ? 'transition-colors hover:text-accent' : ''"
                     >{{ player.track.title }}</component>
-                    <button type="button" class="shrink-0 text-white/80 transition-colors hover:text-white" aria-label="Close player" @click="closePlayer">
+                    <button type="button" class="shrink-0 text-ink-3 transition-colors hover:text-ink" aria-label="Close player" @click="closePlayer">
                         <Icon :icon="Cancel01Icon" class="size-4" />
                     </button>
                 </div>
+                <div ref="plyrTarget" class="min-h-0 w-full flex-1"></div>
             </div>
         </Teleport>
     </div>

@@ -1,33 +1,121 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
+import Icon from '../Icon.vue';
 import DetailList from '../DetailList.vue';
 import SectionHead from '../SectionHead.vue';
 import ExternalLink from '../ExternalLink.vue';
 import { duration, titleCase } from '../../format.js';
+import { youtubeId } from '../../youtube.js';
+import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../player.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
+
+const slot = ref(null);
+const entryUrl = usePage().url.split('?')[0];
+
+const thumbnail = computed(() => {
+    if (props.entry.thumbnail) {
+        return props.entry.thumbnail;
+    }
+
+    const id = youtubeId(props.entry.video_url);
+
+    return id ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : null;
+});
+
+const srcset = computed(() => props.entry.thumbnailSrcset || undefined);
+
+const track = computed(() => ({
+    id: `appearance-${props.entry.id}`,
+    title: props.entry.title,
+    audioUrl: props.entry.audio_url,
+    videoUrl: props.entry.video_url,
+    thumbnail: thumbnail.value,
+    url: entryUrl,
+}));
 
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
     { label: 'Show', value: props.entry.show_name },
     { label: 'Duration', value: duration(props.entry.duration) },
 ]);
+
+const audioPlaying = computed(() => isCurrent(track.value, 'audio') && player.playing);
+const playingInline = computed(() => isCurrent(track.value, 'video'));
+
+function listen() {
+    if (isCurrent(track.value, 'audio')) {
+        togglePlay();
+    } else {
+        playAudio(track.value);
+    }
+}
+
+function watchVideo() {
+    playVideo(track.value);
+    dockVideo(slot.value);
+}
+
+onMounted(() => {
+    // Returning to this appearance while its video plays in the corner re-docks it inline.
+    if (isCurrent(track.value, 'video')) {
+        dockVideo(slot.value);
+    }
+});
+
+onBeforeUnmount(() => {
+    undockVideo(slot.value);
+});
 </script>
 
 <template>
     <div class="space-y-8">
+        <div
+            v-if="entry.video_url"
+            ref="slot"
+            class="relative aspect-video w-full overflow-hidden rounded-lg border border-line-2 bg-surface"
+        >
+            <button
+                v-if="!playingInline"
+                type="button"
+                class="group absolute inset-0"
+                aria-label="Watch video"
+                @click="watchVideo"
+            >
+                <img v-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
+                <span class="absolute inset-0 flex items-center justify-center bg-ink/20 transition-colors group-hover:bg-ink/30">
+                    <span class="flex size-16 items-center justify-center rounded-full bg-canvas/90 text-ink shadow-card transition-transform group-hover:scale-110">
+                        <Icon :icon="PlayIcon" class="size-7" />
+                    </span>
+                </span>
+            </button>
+        </div>
+        <img v-else-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="aspect-video w-full rounded-lg border border-line-2 object-cover">
+
         <DetailList :rows="rows" />
+
+        <div v-if="entry.audio_url" class="flex flex-wrap items-center gap-4">
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-meta font-semibold text-white transition-colors hover:bg-accent-active"
+                @click="listen"
+            >
+                <Icon :icon="audioPlaying ? PauseIcon : PlayIcon" class="size-5" />
+                {{ audioPlaying ? 'Pause' : 'Listen' }}
+            </button>
+        </div>
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p class="text-body text-ink-2">{{ entry.description }}</p>
+            <p class="max-w-prose whitespace-pre-line text-body text-ink-2">{{ entry.description }}</p>
         </div>
 
-        <div v-if="entry.url || entry.video_url" class="flex flex-wrap gap-x-6 gap-y-3">
-            <ExternalLink v-if="entry.url" :href="entry.url" label="Show page" />
-            <ExternalLink v-if="entry.video_url" :href="entry.video_url" label="Watch video" />
+        <div v-if="entry.url" class="flex flex-wrap gap-x-6 gap-y-3">
+            <ExternalLink :href="entry.url" label="Show page" />
         </div>
     </div>
 </template>

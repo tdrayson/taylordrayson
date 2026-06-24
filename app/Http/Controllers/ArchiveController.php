@@ -7,7 +7,6 @@ use App\Models\Flight;
 use App\Models\TimelineEntry;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -54,9 +53,7 @@ class ArchiveController extends Controller
                     ($taxonomy['filter'])($query, $value);
                 }
             })
-            ->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith([
-                Flight::class => ['origin', 'destination', 'airline'],
-            ])])
+            ->withCardRelations()
             ->orderByDesc('occurred_at')
             ->paginate(self::PER_PAGE);
 

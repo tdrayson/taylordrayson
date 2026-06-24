@@ -3,14 +3,13 @@
 namespace App\Actions;
 
 use App\Models\Activity;
-use App\Models\Asset;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class GenerateStaticMap
 {
-    public function __invoke(Activity $activity): ?Asset
+    public function __invoke(Activity $activity): ?Media
     {
         $polyline = $activity->meta['polyline'] ?? null;
 
@@ -18,8 +17,8 @@ class GenerateStaticMap
             return null;
         }
 
-        if ($activity->map) {
-            return $activity->map;
+        if ($existing = $activity->getFirstMedia('map')) {
+            return $existing;
         }
 
         $token = config('services.mapbox.token');
@@ -36,23 +35,8 @@ class GenerateStaticMap
             return null;
         }
 
-        $date = $activity->occurred_at;
-        $filename = Str::uuid().'.png';
-        $path = $date->format('Y/m/d').'/'.$filename;
-
-        Storage::disk('public')->put($path, $response->body());
-
-        return Asset::create([
-            'assetable_type' => $activity->getMorphClass(),
-            'assetable_id' => $activity->getKey(),
-            'type' => 'map',
-            'path' => $path,
-            'original_filename' => $filename,
-            'width' => 1600,
-            'height' => 1000,
-            'mime_type' => 'image/png',
-            'size_bytes' => strlen($response->body()),
-            'order' => 0,
-        ]);
+        return $activity->addMediaFromString($response->body())
+            ->usingFileName(Str::uuid().'.png')
+            ->toMediaCollection('map');
     }
 }

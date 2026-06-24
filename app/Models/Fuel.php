@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasAssets;
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -20,12 +22,11 @@ use Illuminate\Database\Eloquent\Model;
     'fuel_card_cost',
     'price_per_litre',
     'odometer',
-    'station',
-    'city',
+    'fuel_station_id',
 ])]
-class Fuel extends Model implements Timelineable
+class Fuel extends Model implements HasMedia, Timelineable
 {
-    use HasAssets;
+    use HasAttachments;
     use HasFactory;
     use HasTimelineEntry;
 
@@ -39,6 +40,11 @@ class Fuel extends Model implements Timelineable
         return [
             'occurred_at' => 'datetime',
         ];
+    }
+
+    public function fuelStation(): BelongsTo
+    {
+        return $this->belongsTo(FuelStation::class);
     }
 
     public function getVehicleAttribute(): mixed
@@ -55,13 +61,13 @@ class Fuel extends Model implements Timelineable
     {
         $parts = array_filter([
             sprintf('%sL · £%.2f', $this->litres, $this->cost),
-            $this->price_per_litre ? '£'.number_format($this->price_per_litre, 3).' / L' : null,
+            $this->price_per_litre ? sprintf('£%s / L', number_format($this->price_per_litre, 3)) : null,
         ]);
 
         return [
             'type' => 'fuel',
             'icon' => 'fuel',
-            'title' => $this->station ?? 'Fuel',
+            'title' => ($this->relationLoaded('fuelStation') ? $this->fuelStation?->name : null) ?? 'Fuel',
             'subtitle' => implode(' · ', $parts),
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',

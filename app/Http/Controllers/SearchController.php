@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
-use App\Models\Flight;
 use App\Models\TimelineEntry;
 use App\Search\SearchCompiler;
 use App\Search\SearchSchema;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -91,9 +89,7 @@ class SearchController extends Controller
         }
 
         $query = TimelineEntry::query()
-            ->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith([
-                Flight::class => ['origin', 'destination', 'airline'],
-            ])]);
+            ->withCardRelations();
 
         $this->compiler->apply($query, $groups);
 

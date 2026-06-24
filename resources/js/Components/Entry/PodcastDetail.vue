@@ -19,7 +19,7 @@ const track = computed(() => ({
     id: props.entry.id,
     title: `Season ${props.entry.season_number}, Episode ${props.entry.episode_number}`,
     audioUrl: props.entry.audio_url,
-    youtubeUrl: props.entry.youtube_url,
+    videoUrl: props.entry.video_url,
     thumbnail: props.entry.thumbnail,
     url: episodeUrl,
 }));
@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
 <template>
     <div class="space-y-8">
         <div
-            v-if="entry.youtube_url"
+            v-if="entry.video_url"
             ref="slot"
             class="relative aspect-video w-full overflow-hidden rounded-lg border border-line-2 bg-surface"
         >
