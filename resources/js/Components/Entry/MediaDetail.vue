@@ -1,10 +1,10 @@
 <script setup>
 import { computed } from 'vue';
 import { StarIcon } from '@hugeicons-pro/core-stroke-rounded';
-import Icon from '../Icon.vue';
-import DetailList from '../DetailList.vue';
-import Pill from '../Pill.vue';
-import { number, titleCase } from '../../format.js';
+import Icon from '../Ui/Icon.vue';
+import DetailList from '../Ui/DetailList.vue';
+import Pill from '../Ui/Pill.vue';
+import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

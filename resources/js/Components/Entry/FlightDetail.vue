@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from 'vue';
-import FlightRoute from '../FlightRoute.vue';
-import FlightMap from '../FlightMap.vue';
-import StatRow from '../StatRow.vue';
-import { number, titleCase, time, flightDurationLabel } from '../../format.js';
+import FlightRoute from '../Maps/FlightRoute.vue';
+import FlightMap from '../Maps/FlightMap.vue';
+import StatRow from '../Stats/StatRow.vue';
+import { number, titleCase, time, flightDurationLabel } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

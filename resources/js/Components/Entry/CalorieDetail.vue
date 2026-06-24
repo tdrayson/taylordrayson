@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue';
-import DetailList from '../DetailList.vue';
-import SectionHead from '../SectionHead.vue';
-import { number, titleCase } from '../../format.js';
+import DetailList from '../Ui/DetailList.vue';
+import SectionHead from '../Ui/SectionHead.vue';
+import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

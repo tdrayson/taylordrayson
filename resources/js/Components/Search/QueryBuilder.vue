@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Delete02Icon, PlusSignIcon } from '@hugeicons-pro/core-stroke-rounded';
-import Icon from '../Icon.vue';
+import Icon from '../Ui/Icon.vue';
 import FilterValue from './FilterValue.vue';
 import FieldPicker from './FieldPicker.vue';
 import StyledSelect from './StyledSelect.vue';

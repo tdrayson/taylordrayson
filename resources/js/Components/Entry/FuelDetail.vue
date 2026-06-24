@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue';
-import StatRow from '../StatRow.vue';
-import DetailList from '../DetailList.vue';
-import { number } from '../../format.js';
+import StatRow from '../Stats/StatRow.vue';
+import DetailList from '../Ui/DetailList.vue';
+import { number } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue';
-import DetailList from '../DetailList.vue';
-import SectionHead from '../SectionHead.vue';
-import Pill from '../Pill.vue';
+import DetailList from '../Ui/DetailList.vue';
+import SectionHead from '../Ui/SectionHead.vue';
+import Pill from '../Ui/Pill.vue';
 
 const props = defineProps({
     entry: { type: Object, required: true },

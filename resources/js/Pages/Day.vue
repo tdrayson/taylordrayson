@@ -2,11 +2,11 @@
 import { computed } from 'vue';
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import ViewHeader from '../Components/ViewHeader.vue';
-import StatRow from '../Components/StatRow.vue';
-import ActivityRings from '../Components/ActivityRings.vue';
-import TimelineFeed from '../Components/TimelineFeed.vue';
-import FutureNote from '../Components/FutureNote.vue';
+import ViewHeader from '../Components/Layout/ViewHeader.vue';
+import StatRow from '../Components/Stats/StatRow.vue';
+import ActivityRings from '../Components/Stats/ActivityRings.vue';
+import TimelineFeed from '../Components/Timeline/TimelineFeed.vue';
+import FutureNote from '../Components/Timeline/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 

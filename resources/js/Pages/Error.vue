@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Snake404 from '../Components/Snake404.vue';
+import Snake404 from '../Components/Snake/Snake404.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 

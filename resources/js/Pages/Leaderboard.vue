@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Leaderboard from '../Components/Leaderboard.vue';
+import Leaderboard from '../Components/Snake/Leaderboard.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 

@@ -2,10 +2,10 @@
 import { computed } from 'vue';
 import { Head, Link, setLayoutProps, usePage } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Icon from '../Components/Icon.vue';
-import DateGroup from '../Components/DateGroup.vue';
-import Pagination from '../Components/Pagination.vue';
-import FlightsMap from '../Components/FlightsMap.vue';
+import Icon from '../Components/Ui/Icon.vue';
+import DateGroup from '../Components/Timeline/DateGroup.vue';
+import Pagination from '../Components/Ui/Pagination.vue';
+import FlightsMap from '../Components/Maps/FlightsMap.vue';
 import { entryType } from '../entryTypes.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });

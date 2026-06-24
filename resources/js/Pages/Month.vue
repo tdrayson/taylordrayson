@@ -2,10 +2,10 @@
 import { computed } from 'vue';
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import ViewHeader from '../Components/ViewHeader.vue';
-import NumberStrip from '../Components/NumberStrip.vue';
-import CalendarMonth from '../Components/CalendarMonth.vue';
-import FutureNote from '../Components/FutureNote.vue';
+import ViewHeader from '../Components/Layout/ViewHeader.vue';
+import NumberStrip from '../Components/Stats/NumberStrip.vue';
+import CalendarMonth from '../Components/Stats/CalendarMonth.vue';
+import FutureNote from '../Components/Timeline/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 

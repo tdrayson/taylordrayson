@@ -2,11 +2,11 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
-import Icon from '../Icon.vue';
-import SectionHead from '../SectionHead.vue';
-import ExternalLink from '../ExternalLink.vue';
-import Accordion from '../Accordion.vue';
-import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../player.js';
+import Icon from '../Ui/Icon.vue';
+import SectionHead from '../Ui/SectionHead.vue';
+import ExternalLink from '../Ui/ExternalLink.vue';
+import Accordion from '../Ui/Accordion.vue';
+import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

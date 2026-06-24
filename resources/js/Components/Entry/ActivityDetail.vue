@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from 'vue';
-import StatRow from '../StatRow.vue';
-import SectionHead from '../SectionHead.vue';
-import HeartRateChart from '../HeartRateChart.vue';
-import { number, titleCase } from '../../format.js';
+import StatRow from '../Stats/StatRow.vue';
+import SectionHead from '../Ui/SectionHead.vue';
+import HeartRateChart from '../Stats/HeartRateChart.vue';
+import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

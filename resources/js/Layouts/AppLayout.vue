@@ -1,11 +1,11 @@
 <script setup>
 import { usePage } from '@inertiajs/vue3';
-import AppSidebar from '../Components/AppSidebar.vue';
-import AppTopbar from '../Components/AppTopbar.vue';
-import MobileNav from '../Components/MobileNav.vue';
-import MediaPlayer from '../Components/MediaPlayer.vue';
-import Breadcrumb from '../Components/Breadcrumb.vue';
-import CommandPalette from '../Components/CommandPalette.vue';
+import AppSidebar from '../Components/Layout/AppSidebar.vue';
+import AppTopbar from '../Components/Layout/AppTopbar.vue';
+import MobileNav from '../Components/Layout/MobileNav.vue';
+import MediaPlayer from '../Components/Overlays/MediaPlayer.vue';
+import Breadcrumb from '../Components/Layout/Breadcrumb.vue';
+import CommandPalette from '../Components/Overlays/CommandPalette.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: undefined },

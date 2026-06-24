@@ -1,10 +1,10 @@
 <script setup>
 import { computed } from 'vue';
-import StatRow from '../StatRow.vue';
-import SectionHead from '../SectionHead.vue';
-import SleepStages from '../SleepStages.vue';
-import StageBar from '../StageBar.vue';
-import { time } from '../../format.js';
+import StatRow from '../Stats/StatRow.vue';
+import SectionHead from '../Ui/SectionHead.vue';
+import SleepStages from '../Stats/SleepStages.vue';
+import StageBar from '../Stats/StageBar.vue';
+import { time } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

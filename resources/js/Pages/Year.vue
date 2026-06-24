@@ -9,13 +9,13 @@ import {
     Rocket01Icon,
 } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Icon from '../Components/Icon.vue';
-import ViewHeader from '../Components/ViewHeader.vue';
-import NumberStrip from '../Components/NumberStrip.vue';
-import SectionHead from '../Components/SectionHead.vue';
-import Heatmap from '../Components/Heatmap.vue';
-import BarList from '../Components/BarList.vue';
-import FutureNote from '../Components/FutureNote.vue';
+import Icon from '../Components/Ui/Icon.vue';
+import ViewHeader from '../Components/Layout/ViewHeader.vue';
+import NumberStrip from '../Components/Stats/NumberStrip.vue';
+import SectionHead from '../Components/Ui/SectionHead.vue';
+import Heatmap from '../Components/Stats/Heatmap.vue';
+import BarList from '../Components/Stats/BarList.vue';
+import FutureNote from '../Components/Timeline/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 

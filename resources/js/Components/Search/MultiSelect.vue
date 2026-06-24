@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { ArrowDown01Icon, Search01Icon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
-import Icon from '../Icon.vue';
+import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },

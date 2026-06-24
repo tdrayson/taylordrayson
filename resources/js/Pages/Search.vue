@@ -2,8 +2,8 @@
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
 import QueryBuilder from '../Components/Search/QueryBuilder.vue';
-import DateGroup from '../Components/DateGroup.vue';
-import Pagination from '../Components/Pagination.vue';
+import DateGroup from '../Components/Timeline/DateGroup.vue';
+import Pagination from '../Components/Ui/Pagination.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import DatePicker from '../DatePicker.vue';
+import DatePicker from '../Overlays/DatePicker.vue';
 import UnitInput from './UnitInput.vue';
 import DurationInput from './DurationInput.vue';
 import MultiSelect from './MultiSelect.vue';

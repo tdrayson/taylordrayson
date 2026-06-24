@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from 'vue';
-import SectionHead from '../SectionHead.vue';
-import ExternalLink from '../ExternalLink.vue';
-import Pill from '../Pill.vue';
-import { titleCase } from '../../format.js';
+import SectionHead from '../Ui/SectionHead.vue';
+import ExternalLink from '../Ui/ExternalLink.vue';
+import Pill from '../Ui/Pill.vue';
+import { titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },

@@ -13,7 +13,7 @@ import {
     ArrowLeft01Icon,
     ArrowRight01Icon,
 } from '@hugeicons-pro/core-stroke-rounded';
-import Icon from '../Components/Icon.vue';
+import Icon from '../Components/Ui/Icon.vue';
 
 defineOptions({ inheritAttrs: false });
 

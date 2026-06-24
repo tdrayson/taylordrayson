@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RenameSnakePlayerRequest;
-use App\Http\Requests\StoreSnakeScoreRequest;
+use App\Http\Requests\Game\RenameSnakePlayerRequest;
+use App\Http\Requests\Game\StoreSnakeScoreRequest;
 use App\Models\LeaderboardEntry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;

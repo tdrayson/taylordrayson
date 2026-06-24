@@ -2,11 +2,11 @@
 import { computed } from 'vue';
 import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Icon from '../Components/Icon.vue';
-import EntryMap from '../Components/EntryMap.vue';
-import Source from '../Components/Source.vue';
+import Icon from '../Components/Ui/Icon.vue';
+import EntryMap from '../Components/Maps/EntryMap.vue';
+import Source from '../Components/Profile/Source.vue';
 import { entryType } from '../entryTypes.js';
-import { dateLong } from '../format.js';
+import { dateLong } from '../lib/format.js';
 
 import ActivityDetail from '../Components/Entry/ActivityDetail.vue';
 import SleepDetail from '../Components/Entry/SleepDetail.vue';

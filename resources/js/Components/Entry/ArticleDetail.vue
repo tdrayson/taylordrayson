@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import Pill from '../Pill.vue';
+import Pill from '../Ui/Pill.vue';
 
 const props = defineProps({
     entry: { type: Object, required: true },

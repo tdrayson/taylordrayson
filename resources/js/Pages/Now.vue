@@ -2,11 +2,11 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Icon from '../Components/Icon.vue';
-import ActivityRings from '../Components/ActivityRings.vue';
-import AnalogueClock from '../Components/AnalogueClock.vue';
-import BigBattery from '../Components/BigBattery.vue';
-import WeatherScene from '../Components/WeatherScene.vue';
+import Icon from '../Components/Ui/Icon.vue';
+import ActivityRings from '../Components/Stats/ActivityRings.vue';
+import AnalogueClock from '../Components/Now/AnalogueClock.vue';
+import BigBattery from '../Components/Now/BigBattery.vue';
+import WeatherScene from '../Components/Now/WeatherScene.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
