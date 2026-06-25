@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\NowController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\TimelineController;
@@ -16,7 +17,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 
-Route::get('/now', fn () => Inertia::render('Now'))->name('now');
+Route::get('/now', [NowController::class, 'index'])->name('now');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem'))->name('design-system');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.

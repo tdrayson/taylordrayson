@@ -4,45 +4,48 @@ import { computed } from 'vue';
 const props = defineProps({
     level: { type: Number, default: 0.69 },
     charging: { type: Boolean, default: false },
-    mono: { type: Boolean, default: false },
+    lowPower: { type: Boolean, default: false },
     compact: { type: Boolean, default: false },
 });
 
 const clamped = computed(() => Math.max(0, Math.min(1, props.level)));
-const fillWidth = computed(() => (clamped.value * 13).toFixed(1));
+const isLow = computed(() => clamped.value <= 0.2);
+
+// Fill spans x2..23 (21 units) inside the body; keep a sliver visible near empty.
+const fillWidth = computed(() => Math.max(2.5, clamped.value * 21).toFixed(1));
+
+// iOS state colours: Low Power → yellow, low → red, charging → green, otherwise
+// the foreground colour (inherits the surrounding text colour).
 const fillColor = computed(() => {
-    if (props.mono) {
-        return 'currentColor';
+    if (props.lowPower) {
+        return '#FDC633';
     }
 
-    return clamped.value <= 0.2 ? '#ff3b30' : '#34c759';
+    if (isLow.value) {
+        return '#FA3532';
+    }
+
+    if (props.charging) {
+        return '#37C058';
+    }
+
+    return 'currentColor';
 });
 </script>
 
 <template>
-    <svg
-        viewBox="0 0 24 24"
-        :class="compact ? 'size-6' : 'size-7'"
-        aria-hidden="true"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-    >
+    <svg viewBox="0 0 27 13" :class="compact ? 'h-3 w-auto' : 'h-3.5 w-auto'" fill="none" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="24" height="12" rx="3.5" stroke="currentColor" stroke-opacity="0.4" />
+        <rect x="2" y="2" :width="fillWidth" height="9" rx="2" :fill="fillColor" />
         <path
-            d="M14 6H8C5.17157 6 3.75736 6 2.87868 6.87868C2 7.75736 2 9.17157 2 12C2 14.8284 2 16.2426 2.87868 17.1213C3.75736 18 5.17157 18 8 18H14C16.8284 18 18.2426 18 19.1213 17.1213C20 16.2426 20 14.8284 20 12C20 9.17157 20 7.75736 19.1213 6.87868C18.2426 6 16.8284 6 14 6Z"
+            d="M25.5 4.5C25.8978 4.5 26.2794 4.71071 26.5607 5.08579C26.842 5.46086 27 5.96957 27 6.5C27 7.03043 26.842 7.53914 26.5607 7.91421C26.2794 8.28929 25.8978 8.5 25.5 8.5L25.5 6.5V4.5Z"
+            fill="currentColor"
+            fill-opacity="0.4"
         />
-        <path d="M20 10H21C21.5523 10 22 10.4477 22 11V13C22 13.5523 21.5523 14 21 14H20M21 10.5V13.5" />
-        <rect x="4" y="8.5" :width="fillWidth" height="7" rx="1.5" :fill="fillColor" stroke="none" />
         <path
             v-if="charging"
-            d="M6.19351 11.3965L12.192 3.31186C12.6611 2.67957 13.5405 3.07311 13.5405 3.91536V10.1729C13.5405 10.6775 13.8853 11.0865 14.3107 11.0865H17.2283C17.891 11.0865 18.2443 12.0134 17.8065 12.6035L11.808 20.6881C11.3389 21.3204 10.4595 20.9269 10.4595 20.0846V13.8271C10.4595 13.3225 10.1147 12.9135 9.68931 12.9135H6.77173C6.10895 12.9135 5.75566 11.9866 6.19351 11.3965Z"
-            transform="translate(5.9 6.9) scale(0.42)"
-            fill="var(--color-neutral-0)"
-            stroke="currentColor"
-            stroke-width="1.3"
-            vector-effect="non-scaling-stroke"
+            d="M9 7.21604C9 7.33959 9.04111 7.44255 9.12332 7.52492C9.20554 7.60354 9.30742 7.64285 9.42895 7.64285H12.5979L10.9357 12.2817C10.8785 12.4427 10.8677 12.5812 10.9035 12.6972C10.9428 12.8133 11.0089 12.8976 11.1019 12.95C11.1948 13.0024 11.2985 13.0136 11.4129 12.9837C11.5308 12.9537 11.6399 12.8732 11.7399 12.7422L16.8499 6.17146C16.95 6.04042 17 5.90938 17 5.77835C17 5.65479 16.9589 5.55371 16.8767 5.47508C16.798 5.39271 16.6962 5.35153 16.571 5.35153H13.4075L15.0643 0.71272C15.1251 0.551729 15.1358 0.415073 15.0965 0.302753C15.0608 0.186689 14.9964 0.102449 14.9035 0.0500334C14.8105 -0.00238254 14.7051 -0.0136145 14.5871 0.0163374C14.4727 0.0462894 14.3655 0.124913 14.2654 0.252209L9.1555 6.82854C9.05183 6.95958 9 7.08874 9 7.21604Z"
+            fill="currentColor"
         />
     </svg>
 </template>

@@ -206,6 +206,16 @@
         letter-spacing: -0.025em;
     }
 
+    /* Clickable elements show a pointer cursor (Tailwind v4 no longer sets it
+       on buttons). Disabled controls keep the default cursor. */
+    button:not(:disabled),
+    label,
+    select,
+    summary,
+    [role='button']:not([aria-disabled='true']) {
+        cursor: pointer;
+    }
+
     /* Colour changes on interactive elements always ease rather than snap. */
     a,
     button,

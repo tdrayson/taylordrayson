@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
 import { PlayIcon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
@@ -18,6 +18,10 @@ import SocialLinks from '../Components/Profile/SocialLinks.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
+
+setLayoutProps({
+    breadcrumb: [{ label: 'Design system' }],
+});
 
 const note = ref('');
 const checked = ref(true);
@@ -196,7 +200,7 @@ function swatchInk(step) {
                 <Input placeholder="Search entries…" />
                 <Textarea v-model="note" :rows="2" placeholder="A quick note…" />
                 <div class="flex items-center gap-6 pt-1">
-                    <label class="flex cursor-pointer items-center gap-2 text-meta"><Checkbox v-model="checked" /> Checkbox</label>
+                    <label class="flex items-center gap-2 text-meta"><Checkbox v-model="checked" /> Checkbox</label>
                     <label class="flex items-center gap-2 text-meta"><Switch v-model="toggled" /> Switch</label>
                 </div>
             </div>
