@@ -6,7 +6,7 @@
 @source '../**/*.js';
 @source '../**/*.vue';
 
-@theme {
+@theme static {
     /* Typography */
     --font-sans: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
     --font-display: 'Bricolage Grotesque', 'Inter', sans-serif;
