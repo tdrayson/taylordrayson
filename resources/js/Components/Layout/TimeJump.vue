@@ -52,29 +52,32 @@ onUnmounted(() => {
 
 <template>
     <div ref="root" class="relative">
-        <div class="inline-flex items-center rounded-md border border-line">
-            <Button :href="todayUrl" variant="ghost" size="sm">Today</Button>
-            <button
-                type="button"
-                class="flex items-center border-l border-line px-2 py-1.5 text-ink-3 transition-colors hover:text-accent"
+        <div class="inline-flex">
+            <Button :href="todayUrl" variant="secondary" size="sm" class="rounded-r-none border-r-0">
+                Today
+            </Button>
+            <Button
+                variant="secondary"
+                size="sm"
+                class="rounded-l-none px-2"
                 :aria-label="open ? 'Close time navigation' : 'Open time navigation'"
                 aria-haspopup="true"
                 :aria-expanded="open"
                 @click="open = !open"
             >
                 <Icon :icon="ArrowDown01Icon" class="size-3.5 transition-transform" :class="open ? 'rotate-180' : ''" />
-            </button>
+            </Button>
         </div>
 
         <div
             v-if="open"
-            class="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-md border border-line bg-canvas py-1 shadow-card"
+            class="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-md border border-neutral-100 bg-neutral-0 py-1 shadow-card"
         >
             <Link
                 v-for="item in items"
                 :key="item.label"
                 :href="item.href"
-                class="block px-4 py-2 text-sm text-ink-2 transition-colors hover:bg-surface hover:text-ink"
+                class="block px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900"
                 @click="close"
             >
                 {{ item.label }}
