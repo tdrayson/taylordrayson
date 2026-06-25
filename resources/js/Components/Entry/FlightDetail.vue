@@ -49,12 +49,12 @@ const stats = computed(() => [
             >
             <span v-else-if="airline" class="font-display text-section">{{ airline.name }}</span>
             <div v-if="flightNumber" class="ml-auto text-right">
-                <div class="text-label uppercase text-ink-3">Flight</div>
-                <div class="text-section text-ink-2 tnum">{{ flightNumber }}</div>
+                <div class="text-label uppercase text-neutral-500">Flight</div>
+                <div class="text-section text-neutral-700 tnum">{{ flightNumber }}</div>
             </div>
         </div>
 
-        <div class="rounded-lg border border-line-2 px-6 py-6">
+        <div class="rounded-lg border border-neutral-50 px-6 py-6">
             <FlightRoute
                 :origin="{ iata: entry.origin_iata, city: origin.place, name: origin.name }"
                 :destination="{ iata: entry.destination_iata, city: destination.place, name: destination.name }"

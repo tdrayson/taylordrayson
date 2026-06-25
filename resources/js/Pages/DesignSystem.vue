@@ -136,7 +136,7 @@ const heatCells = Array.from({ length: 119 }, (_, i) => {
     return a < 0.18 ? 0 : a < 0.42 ? 1 : a < 0.68 ? 2 : a < 0.88 ? 3 : 4;
 });
 function heatColor(level) {
-    return ['var(--color-surface)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)'][level];
+    return ['var(--color-neutral-25)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)'][level];
 }
 
 const toc = [
@@ -153,13 +153,13 @@ const toc = [
         <!-- sticky nav -->
         <aside class="hidden shrink-0 lg:block lg:w-52">
             <div class="sticky top-16">
-                <div class="text-eyebrow uppercase text-ink-3">Design system</div>
+                <div class="text-eyebrow uppercase text-neutral-500">Design system</div>
                 <nav class="mt-4 space-y-5">
                     <div v-for="block in toc" :key="block.group">
-                        <div class="text-label uppercase text-ink-3">{{ block.group }}</div>
+                        <div class="text-label uppercase text-neutral-500">{{ block.group }}</div>
                         <ul class="mt-2 space-y-1">
                             <li v-for="[id, label] in block.items" :key="id">
-                                <a :href="`#${id}`" class="block text-meta text-ink-2 transition-colors hover:text-accent">{{ label }}</a>
+                                <a :href="`#${id}`" class="block text-meta text-neutral-700 transition-colors hover:text-accent-500">{{ label }}</a>
                             </li>
                         </ul>
                     </div>
@@ -170,9 +170,9 @@ const toc = [
         <main class="min-w-0 flex-1">
             <header class="mb-14">
                 <h1 class="font-display text-display">Design system</h1>
-                <p class="mt-4 max-w-2xl text-body text-ink-2">
+                <p class="mt-4 max-w-2xl text-body text-neutral-700">
                     A flat, borderless lifelog. Pure white canvas, near-black ink, and a single voltage of
-                    <span class="font-semibold text-accent">Blueberry (#3858e9)</span>. Bricolage Grotesque carries the
+                    <span class="font-semibold text-accent-500">Blueberry (#3858e9)</span>. Bricolage Grotesque carries the
                     display weights; Inter runs the body. Every example below renders the real component.
                 </p>
             </header>
@@ -185,17 +185,17 @@ const toc = [
                 <p class="ds-lead">Canvas, ink, hairlines and one accent. Data types each carry a fixed hue used only for their icon and eyebrow.</p>
                 <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                     <div v-for="c in [...surfaces, ...ink, ...accent, ...lines]" :key="c.name" class="overflow-hidden rounded-lg shadow-card">
-                        <div class="h-16" :class="c.border ? 'border-b border-line' : ''" :style="{ background: c.hex }" />
+                        <div class="h-16" :class="c.border ? 'border-b border-neutral-100' : ''" :style="{ background: c.hex }" />
                         <div class="p-3">
                             <div class="text-caption font-semibold">{{ c.name }}</div>
-                            <div class="text-xs text-ink-3 tnum">{{ c.hex }}</div>
-                            <div class="mt-1 text-xs text-ink-3">{{ c.role }}</div>
+                            <div class="text-xs text-neutral-500 tnum">{{ c.hex }}</div>
+                            <div class="mt-1 text-xs text-neutral-500">{{ c.role }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="mt-6 flex items-center gap-2 text-xs text-ink-3">
+                <div class="mt-6 flex items-center gap-2 text-xs text-neutral-500">
                     Quieter
-                    <i class="inline-block size-4 rounded" style="background: var(--color-surface)" />
+                    <i class="inline-block size-4 rounded" style="background: var(--color-neutral-25)" />
                     <i v-for="c in heat" :key="c.name" class="inline-block size-4 rounded" :style="{ background: c.hex }" />
                     Busier · heatmap ramp
                 </div>
@@ -209,12 +209,12 @@ const toc = [
 
             <section id="typography" class="ds-section">
                 <h3 class="ds-h3">Typography</h3>
-                <p class="ds-lead">Each row renders its own <code class="text-accent">text-*</code> token, the living type scale. Numbers use tabular figures everywhere.</p>
+                <p class="ds-lead">Each row renders its own <code class="text-accent-500">text-*</code> token, the living type scale. Numbers use tabular figures everywhere.</p>
                 <div class="mt-5 flex flex-col">
-                    <div v-for="t in typeScale" :key="t.cls" class="flex flex-col gap-1 border-b border-line-2 py-4 sm:flex-row sm:items-baseline sm:gap-8">
+                    <div v-for="t in typeScale" :key="t.cls" class="flex flex-col gap-1 border-b border-neutral-50 py-4 sm:flex-row sm:items-baseline sm:gap-8">
                         <div class="w-52 flex-none">
                             <div class="text-caption font-semibold">{{ t.cls }}</div>
-                            <div class="text-xs text-ink-3">{{ t.spec }}</div>
+                            <div class="text-xs text-neutral-500">{{ t.spec }}</div>
                         </div>
                         <div :class="[t.cls, t.display ? 'font-display' : '', t.upper ? 'uppercase' : '']">{{ t.sample }}</div>
                     </div>
@@ -225,28 +225,28 @@ const toc = [
                 <h3 class="ds-h3">Spacing &amp; radius</h3>
                 <div class="mt-5 flex flex-col gap-2">
                     <div v-for="s in spacingScale" :key="s.cls" class="flex items-center gap-3">
-                        <div class="h-3 bg-accent" :class="s.cls" />
-                        <span class="text-xs text-ink-3 tnum">{{ s.label }}</span>
+                        <div class="h-3 bg-accent-500" :class="s.cls" />
+                        <span class="text-xs text-neutral-500 tnum">{{ s.label }}</span>
                     </div>
                 </div>
                 <div class="mt-6 flex flex-wrap gap-4">
-                    <div v-for="r in radii" :key="r.cls" class="flex size-20 items-center justify-center bg-surface text-center text-xs text-ink-3" :class="r.cls">{{ r.label }}</div>
+                    <div v-for="r in radii" :key="r.cls" class="flex size-20 items-center justify-center bg-neutral-25 text-center text-xs text-neutral-500" :class="r.cls">{{ r.label }}</div>
                 </div>
             </section>
 
             <section id="elevation" class="ds-section">
                 <h3 class="ds-h3">Elevation</h3>
-                <p class="ds-lead">One tier. Depth comes from 14px corner clipping, not borders. <code class="text-accent">shadow-card</code> is the only float.</p>
+                <p class="ds-lead">One tier. Depth comes from 14px corner clipping, not borders. <code class="text-accent-500">shadow-card</code> is the only float.</p>
                 <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    <div class="rounded-lg bg-canvas p-5"><div class="text-caption font-semibold">Flat</div><p class="mt-1 text-xs text-ink-3">95% of surfaces.</p></div>
-                    <div class="rounded-lg bg-canvas p-5 shadow-card"><div class="text-caption font-semibold">shadow-card</div><p class="mt-1 text-xs text-ink-3">Hover-float on cards.</p></div>
+                    <div class="rounded-lg bg-neutral-0 p-5"><div class="text-caption font-semibold">Flat</div><p class="mt-1 text-xs text-neutral-500">95% of surfaces.</p></div>
+                    <div class="rounded-lg bg-neutral-0 p-5 shadow-card"><div class="text-caption font-semibold">shadow-card</div><p class="mt-1 text-xs text-neutral-500">Hover-float on cards.</p></div>
                 </div>
             </section>
 
             <section id="icons" class="ds-section">
                 <h3 class="ds-h3">Icons</h3>
-                <p class="ds-lead">Hugeicons Pro, stroke-rounded, always via the <code class="text-accent">Icon</code> wrapper.</p>
-                <div class="ds-eg mt-5 flex flex-wrap gap-5 text-ink-2">
+                <p class="ds-lead">Hugeicons Pro, stroke-rounded, always via the <code class="text-accent-500">Icon</code> wrapper.</p>
+                <div class="ds-eg mt-5 flex flex-wrap gap-5 text-neutral-700">
                     <Icon v-for="(ic, i) in iconSet" :key="i" :icon="ic" class="size-6" />
                 </div>
             </section>
@@ -256,16 +256,16 @@ const toc = [
 
             <section id="button" class="ds-section">
                 <h3 class="ds-h3">Button</h3>
-                <p class="ds-lead">One component, six variants × four sizes. Use <b>primary</b> for the main action on a view, <b>chip</b> for inline media toggles, <b>ghost</b> for low-emphasis actions. A <code class="text-accent">href</code> renders an Inertia link.</p>
+                <p class="ds-lead">One component, six variants × four sizes. Use <b>primary</b> for the main action on a view, <b>chip</b> for inline media toggles, <b>ghost</b> for low-emphasis actions. A <code class="text-accent-500">href</code> renders an Inertia link.</p>
                 <div class="ds-eg mt-5 space-y-6">
                     <div>
-                        <div class="mb-2.5 text-label uppercase text-ink-3">Variants</div>
+                        <div class="mb-2.5 text-label uppercase text-neutral-500">Variants</div>
                         <div class="flex flex-wrap items-center gap-3">
                             <Button v-for="v in buttonVariants" :key="v" :variant="v">{{ v }}</Button>
                         </div>
                     </div>
                     <div>
-                        <div class="mb-2.5 text-label uppercase text-ink-3">Sizes</div>
+                        <div class="mb-2.5 text-label uppercase text-neutral-500">Sizes</div>
                         <div class="flex flex-wrap items-center gap-3">
                             <Button variant="primary" size="sm">Small</Button>
                             <Button variant="primary" size="md">Medium</Button>
@@ -274,7 +274,7 @@ const toc = [
                         </div>
                     </div>
                     <div>
-                        <div class="mb-2.5 text-label uppercase text-ink-3">Modifiers &amp; states</div>
+                        <div class="mb-2.5 text-label uppercase text-neutral-500">Modifiers &amp; states</div>
                         <div class="flex flex-wrap items-center gap-3">
                             <Button variant="primary" pill>Pill (rounded-full)</Button>
                             <Button variant="primary" disabled>Disabled</Button>
@@ -285,7 +285,7 @@ const toc = [
 
             <section id="tag" class="ds-section">
                 <h3 class="ds-h3">Tag</h3>
-                <p class="ds-lead">Compact status / metadata label (our <code class="text-accent">Pill</code>). Use sparingly, one or two per row.</p>
+                <p class="ds-lead">Compact status / metadata label (our <code class="text-accent-500">Pill</code>). Use sparingly, one or two per row.</p>
                 <div class="ds-eg mt-5 flex flex-wrap items-center gap-2">
                     <Pill label="Default" />
                     <Pill label="Active" variant="accent" />
@@ -295,7 +295,7 @@ const toc = [
 
             <section id="input" class="ds-section">
                 <h3 class="ds-h3">Text input</h3>
-                <p class="ds-lead">Single-line entry. Pair with a visible label. Use the <code class="text-accent">invalid</code> state for validation errors.</p>
+                <p class="ds-lead">Single-neutral-100 entry. Pair with a visible label. Use the <code class="text-accent-500">invalid</code> state for validation errors.</p>
                 <div class="ds-eg mt-5 max-w-sm space-y-3">
                     <Input v-model="text" placeholder="Search entries…" />
                     <Input model-value="not-an-email" invalid />
@@ -305,7 +305,7 @@ const toc = [
 
             <section id="textarea" class="ds-section">
                 <h3 class="ds-h3">Textarea</h3>
-                <p class="ds-lead">Multi-line entry for short free text. For rich content use the Editor.js block editor instead.</p>
+                <p class="ds-lead">Multi-neutral-100 entry for short free text. For rich content use the Editor.js block editor instead.</p>
                 <div class="ds-eg mt-5 max-w-sm">
                     <Textarea v-model="note" placeholder="A quick note…" :rows="3" />
                 </div>
@@ -316,7 +316,7 @@ const toc = [
                 <p class="ds-lead">A binary choice in a set. Always sits beside a clickable label.</p>
                 <div class="ds-eg mt-5 space-y-3">
                     <label class="flex cursor-pointer items-center gap-3 text-meta"><Checkbox v-model="checked" /> Include drafts</label>
-                    <label class="flex items-center gap-3 text-meta text-ink-3"><Checkbox :model-value="false" disabled /> Unavailable</label>
+                    <label class="flex items-center gap-3 text-meta text-neutral-500"><Checkbox :model-value="false" disabled /> Unavailable</label>
                 </div>
             </section>
 
@@ -332,9 +332,9 @@ const toc = [
                 <h3 class="ds-h3">Card</h3>
                 <p class="ds-lead">A grouped surface. <b>flat</b> for inline panels, <b>elevated</b> for hover-float, <b>outline</b> when on a tinted background.</p>
                 <div class="ds-eg mt-5 grid gap-4 sm:grid-cols-3">
-                    <Card variant="flat"><div class="text-caption font-semibold">Flat</div><p class="mt-1 text-xs text-ink-3">Surface fill.</p></Card>
-                    <Card variant="elevated"><div class="text-caption font-semibold">Elevated</div><p class="mt-1 text-xs text-ink-3">shadow-card.</p></Card>
-                    <Card variant="outline"><div class="text-caption font-semibold">Outline</div><p class="mt-1 text-xs text-ink-3">Hairline border.</p></Card>
+                    <Card variant="flat"><div class="text-caption font-semibold">Flat</div><p class="mt-1 text-xs text-neutral-500">Surface fill.</p></Card>
+                    <Card variant="elevated"><div class="text-caption font-semibold">Elevated</div><p class="mt-1 text-xs text-neutral-500">shadow-card.</p></Card>
+                    <Card variant="outline"><div class="text-caption font-semibold">Outline</div><p class="mt-1 text-xs text-neutral-500">Hairline border.</p></Card>
                 </div>
             </section>
 
@@ -354,7 +354,7 @@ const toc = [
                 <p class="ds-lead">Hides secondary detail behind a toggle. Good for show notes and long transcripts.</p>
                 <div class="ds-eg mt-5 max-w-lg">
                     <Accordion title="Show notes">
-                        <p class="text-body text-ink-2">Collapsible content lives here, the panel expands and collapses in place.</p>
+                        <p class="text-body text-neutral-700">Collapsible content lives here, the panel expands and collapses in place.</p>
                     </Accordion>
                 </div>
             </section>
@@ -371,7 +371,7 @@ const toc = [
 
             <section id="pagination" class="ds-section">
                 <h3 class="ds-h3">Pagination</h3>
-                <p class="ds-lead">Moves through paged feeds. Works with URLs or a <code class="text-accent">navigate</code> event.</p>
+                <p class="ds-lead">Moves through paged feeds. Works with URLs or a <code class="text-accent-500">navigate</code> event.</p>
                 <div class="ds-eg mt-5">
                     <Pagination :current-page="page" :last-page="5" @navigate="page = $event" />
                 </div>
@@ -379,7 +379,7 @@ const toc = [
 
             <section id="summary" class="ds-section">
                 <h3 class="ds-h3">Summary list</h3>
-                <p class="ds-lead">Key/value rows for entry detail facts (our <code class="text-accent">DetailList</code>). Blank values are dropped.</p>
+                <p class="ds-lead">Key/value rows for entry detail facts (our <code class="text-accent-500">DetailList</code>). Blank values are dropped.</p>
                 <div class="ds-eg mt-5 max-w-md">
                     <DetailList :rows="detailRows" />
                 </div>
@@ -397,14 +397,14 @@ const toc = [
             <section id="badge" class="ds-section">
                 <h3 class="ds-h3">Inline badge</h3>
                 <p class="ds-lead">A small avatar/logo that sits on the text baseline inside running copy.</p>
-                <div class="ds-eg mt-5 text-body text-ink-2">
+                <div class="ds-eg mt-5 text-body text-neutral-700">
                     Built with <InlineBadge :icon="SparklesIcon" /> and a square <InlineBadge :icon="WorkoutRunIcon" circle /> circle variant.
                 </div>
             </section>
 
             <section id="statgrid" class="ds-section">
                 <h3 class="ds-h3">Stat grid</h3>
-                <p class="ds-lead">A row of headline numbers. <code class="text-accent">size="lg"</code> for hero stats on year/month views.</p>
+                <p class="ds-lead">A row of headline numbers. <code class="text-accent-500">size="lg"</code> for hero stats on year/month views.</p>
                 <div class="ds-eg mt-5 space-y-6">
                     <StatGrid :stats="stats" />
                     <StatGrid :stats="stats" size="lg" />
@@ -426,8 +426,8 @@ const toc = [
                 <h3 class="ds-h3">Sidebar nav</h3>
                 <p class="ds-lead">Primary navigation with the active item filled and its icon in accent.</p>
                 <nav class="ds-eg mt-5 max-w-60">
-                    <a v-for="n in navItems" :key="n.label" href="#" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium" :class="n.active ? 'bg-surface font-semibold text-ink' : 'text-ink-2 hover:bg-surface'">
-                        <Icon :icon="n.icon" class="size-5 flex-none" :class="n.active ? 'text-accent' : 'text-ink-3'" />
+                    <a v-for="n in navItems" :key="n.label" href="#" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium" :class="n.active ? 'bg-neutral-25 font-semibold text-neutral-900' : 'text-neutral-700 hover:bg-neutral-25'">
+                        <Icon :icon="n.icon" class="size-5 flex-none" :class="n.active ? 'text-accent-500' : 'text-neutral-500'" />
                         {{ n.label }}
                     </a>
                 </nav>
@@ -445,13 +445,13 @@ const toc = [
                 <div class="ds-eg mt-5">
                     <div class="ds-feed flex flex-col gap-9 pl-14">
                         <div v-for="item in feed" :key="item.title" class="relative">
-                            <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-surface text-ink-2">
+                            <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 text-neutral-700">
                                 <Icon :icon="item.icon" class="size-5" />
                             </span>
-                            <span class="float-right text-xs text-ink-3 tnum">{{ item.date }}</span>
-                            <div class="text-label uppercase text-ink-3">{{ item.type }}</div>
+                            <span class="float-right text-xs text-neutral-500 tnum">{{ item.date }}</span>
+                            <div class="text-label uppercase text-neutral-500">{{ item.type }}</div>
                             <div class="mt-1 font-display text-item-title">{{ item.title }}</div>
-                            <div class="mt-2 text-meta" :class="item.pb ? 'font-semibold text-accent' : 'text-ink-2'">{{ item.meta }}</div>
+                            <div class="mt-2 text-meta" :class="item.pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ item.meta }}</div>
                         </div>
                     </div>
                 </div>
@@ -462,9 +462,9 @@ const toc = [
                 <p class="ds-lead">Numbered rows with a trailing figure, e.g. most-visited places or top tracks.</p>
                 <div class="ds-eg mt-5 max-w-md">
                     <div class="flex flex-col">
-                        <div v-for="p in places" :key="p.r" class="flex items-center gap-3 border-b border-line-2 py-3 last:border-0">
-                            <span class="w-6 text-xs text-ink-3 tnum">{{ p.r }}</span>
-                            <div class="flex-1"><div class="text-meta font-semibold">{{ p.n }}</div><div class="text-xs text-ink-3">{{ p.s }}</div></div>
+                        <div v-for="p in places" :key="p.r" class="flex items-center gap-3 border-b border-neutral-50 py-3 last:border-0">
+                            <span class="w-6 text-xs text-neutral-500 tnum">{{ p.r }}</span>
+                            <div class="flex-1"><div class="text-meta font-semibold">{{ p.n }}</div><div class="text-xs text-neutral-500">{{ p.s }}</div></div>
                             <span class="font-display text-base font-bold tnum">{{ p.v }}</span>
                         </div>
                     </div>
@@ -481,7 +481,7 @@ const toc = [
                 </div>
             </section>
 
-            <footer class="mt-20 border-t border-line-2 pt-5 text-xs text-ink-3">
+            <footer class="mt-20 border-t border-neutral-50 pt-5 text-xs text-neutral-500">
                 Living design reference · Inter + Bricolage Grotesque · single Blueberry accent · every component example renders the real component.
             </footer>
         </main>
@@ -495,7 +495,7 @@ const toc = [
     font-weight: 800;
     letter-spacing: -0.02em;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--color-ink);
+    border-bottom: 2px solid var(--color-neutral-900);
 }
 
 .ds-section {
@@ -512,13 +512,13 @@ const toc = [
 .ds-lead {
     margin-top: 0.5rem;
     max-width: 42rem;
-    color: var(--color-ink-3);
+    color: var(--color-neutral-500);
     font-size: var(--text-meta);
     line-height: 1.5;
 }
 
 .ds-eg {
-    border: 1px solid var(--color-line-2);
+    border: 1px solid var(--color-neutral-50);
     border-radius: 14px;
     padding: 1.5rem;
 }
@@ -534,7 +534,7 @@ const toc = [
     top: 14px;
     bottom: 10px;
     width: 2px;
-    background: var(--color-line-2);
+    background: var(--color-neutral-50);
     border-radius: 2px;
 }
 </style>

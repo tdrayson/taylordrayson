@@ -266,20 +266,20 @@ onMounted(() => {
             <div>
                 <div class="flex items-start gap-9">
                     <div>
-                        <p class="text-label uppercase text-ink-3">Score</p>
-                        <p class="tnum mt-1 font-display text-stat-lg text-accent">{{ currentScore }}</p>
+                        <p class="text-label uppercase text-neutral-500">Score</p>
+                        <p class="tnum mt-1 font-display text-stat-lg text-accent-500">{{ currentScore }}</p>
                     </div>
                     <div v-if="showBest">
-                        <p class="text-label uppercase text-ink-3">Your best</p>
-                        <p class="tnum mt-1 font-display text-stat-lg text-ink-2">{{ bestScore }}</p>
+                        <p class="text-label uppercase text-neutral-500">Your best</p>
+                        <p class="tnum mt-1 font-display text-stat-lg text-neutral-700">{{ bestScore }}</p>
                     </div>
                 </div>
 
                 <!-- Identity line: who you're playing as, with an opt-in rename. -->
                 <div v-if="nameLocked" class="mt-4">
-                    <p v-if="!renameOpen" class="text-meta text-ink-3">
-                        Playing as <strong class="text-ink">{{ playerName }}</strong>.
-                        <button type="button" class="ml-1 underline decoration-line underline-offset-4 hover:text-ink" @click="openRename">Rename</button>
+                    <p v-if="!renameOpen" class="text-meta text-neutral-500">
+                        Playing as <strong class="text-neutral-900">{{ playerName }}</strong>.
+                        <button type="button" class="ml-1 underline decoration-neutral-100 underline-offset-4 hover:text-neutral-900" @click="openRename">Rename</button>
                     </p>
                     <form v-else class="flex w-full flex-col gap-2 sm:max-w-sm sm:flex-row" @submit.prevent="renamePlayer">
                         <input
@@ -287,21 +287,21 @@ onMounted(() => {
                             v-model="renameName"
                             type="text"
                             maxlength="20"
-                            class="w-full min-w-0 rounded-md bg-surface px-3 py-2 text-base text-ink outline-none ring-accent/40 focus:ring-2 sm:flex-1"
+                            class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-2 text-base text-neutral-900 outline-none ring-accent-500/40 focus:ring-2 sm:flex-1"
                         />
                         <div class="flex gap-2">
-                            <button type="submit" :disabled="!canRename" class="rounded-md bg-accent px-4 py-2 text-base font-semibold text-white hover:bg-accent-active disabled:opacity-50">Save</button>
-                            <button type="button" class="rounded-md bg-surface px-4 py-2 text-base text-ink-3 hover:text-ink" @click="renameOpen = false">Cancel</button>
+                            <button type="submit" :disabled="!canRename" class="rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white hover:bg-accent-700 disabled:opacity-50">Save</button>
+                            <button type="button" class="rounded-md bg-neutral-25 px-4 py-2 text-base text-neutral-500 hover:text-neutral-900" @click="renameOpen = false">Cancel</button>
                         </div>
                     </form>
-                    <p v-if="renameError" class="mt-2 text-meta text-accent">{{ renameError }}</p>
+                    <p v-if="renameError" class="mt-2 text-meta text-accent-500">{{ renameError }}</p>
                 </div>
 
                 <!-- First time only: physically enter a name, or skip (we won't nag again). -->
                 <div v-if="showForm" class="mt-6 w-full sm:max-w-sm">
                     <form @submit.prevent="submitScore">
-                        <label class="block text-section font-display text-ink" for="snake-name">Who's the legend behind that score?</label>
-                        <p class="mt-1 text-meta text-ink-3">Add your name once and every future best saves itself.</p>
+                        <label class="block text-section font-display text-neutral-900" for="snake-name">Who's the legend behind that score?</label>
+                        <p class="mt-1 text-meta text-neutral-500">Add your name once and every future best saves itself.</p>
                         <div class="mt-2 flex flex-col gap-2 sm:flex-row">
                             <input
                                 id="snake-name"
@@ -310,49 +310,49 @@ onMounted(() => {
                                 type="text"
                                 maxlength="20"
                                 placeholder="Your name"
-                                class="w-full min-w-0 rounded-md bg-surface px-3 py-3 text-base text-ink outline-none ring-accent/40 focus:ring-2 sm:flex-1"
+                                class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-3 text-base text-neutral-900 outline-none ring-accent-500/40 focus:ring-2 sm:flex-1"
                             />
                             <button
                                 type="submit"
                                 :disabled="!canSubmit"
-                                class="w-full rounded-md bg-accent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-active disabled:opacity-50 sm:w-auto"
+                                class="w-full rounded-md bg-accent-500 px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-700 disabled:opacity-50 sm:w-auto"
                             >
                                 Add
                             </button>
                         </div>
-                        <button type="button" class="mt-2 text-meta text-ink-3 underline decoration-line underline-offset-4 hover:text-ink" @click="cancelPrompt">
+                        <button type="button" class="mt-2 text-meta text-neutral-500 underline decoration-neutral-100 underline-offset-4 hover:text-neutral-900" @click="cancelPrompt">
                             No thanks
                         </button>
                     </form>
-                    <p v-if="errorMessage" class="mt-2 text-meta text-accent">{{ errorMessage }}</p>
+                    <p v-if="errorMessage" class="mt-2 text-meta text-accent-500">{{ errorMessage }}</p>
                 </div>
 
-                <p v-else-if="showSaving" class="mt-6 text-body text-ink-3">Saving your new best...</p>
+                <p v-else-if="showSaving" class="mt-6 text-body text-neutral-500">Saving your new best...</p>
 
-                <p v-else-if="submitted" class="mt-6 text-body text-ink-2">
-                    Saved as <strong class="text-ink">{{ playerName }}</strong>.<span v-if="rank"> You're <strong class="text-accent">#{{ rank }}</strong> on the board.</span>
+                <p v-else-if="submitted" class="mt-6 text-body text-neutral-700">
+                    Saved as <strong class="text-neutral-900">{{ playerName }}</strong>.<span v-if="rank"> You're <strong class="text-accent-500">#{{ rank }}</strong> on the board.</span>
                 </p>
 
                 <div v-else-if="showRetry" class="mt-6">
-                    <p class="text-meta text-accent">{{ errorMessage }}</p>
-                    <button type="button" :disabled="scoreHttp.processing" class="mt-2 rounded-md bg-accent px-4 py-2 text-base font-semibold text-white hover:bg-accent-active disabled:opacity-50" @click="submitScore">
+                    <p class="text-meta text-accent-500">{{ errorMessage }}</p>
+                    <button type="button" :disabled="scoreHttp.processing" class="mt-2 rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white hover:bg-accent-700 disabled:opacity-50" @click="submitScore">
                         Try again
                     </button>
                 </div>
 
                 <div v-else-if="showAddTrigger" class="mt-6">
-                    <p class="text-body text-ink-2">{{ feedback }}</p>
-                    <button type="button" class="mt-2 text-meta font-medium text-ink underline decoration-line underline-offset-4 hover:text-ink-3" @click="openPrompt">
+                    <p class="text-body text-neutral-700">{{ feedback }}</p>
+                    <button type="button" class="mt-2 text-meta font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 hover:text-neutral-500" @click="openPrompt">
                         Add your name to the board
                     </button>
                 </div>
 
-                <p v-else-if="showBeatHint" class="mt-6 text-body text-ink-3">{{ feedback }}</p>
+                <p v-else-if="showBeatHint" class="mt-6 text-body text-neutral-500">{{ feedback }}</p>
             </div>
 
             <div>
                 <Leaderboard :entries="board" :highlight-fp="myFingerprint" />
-                <Link href="/leaderboard" class="mt-4 inline-block text-meta font-medium text-ink underline decoration-line underline-offset-4 transition-colors hover:text-ink-3">
+                <Link href="/leaderboard" class="mt-4 inline-block text-meta font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
                     See the full leaderboard
                 </Link>
             </div>

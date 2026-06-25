@@ -28,7 +28,7 @@ const items = computed(() =>
         .filter((segment) => segment.seconds > 0)
         .map((segment) => ({
             label: segment.label,
-            color: STAGE_COLORS[segment.stage] ?? 'var(--color-ink-3)',
+            color: STAGE_COLORS[segment.stage] ?? 'var(--color-neutral-500)',
             percent: total.value ? (segment.seconds / total.value) * 100 : 0,
             duration: formatDuration(segment.seconds),
         })),
@@ -40,10 +40,10 @@ const items = computed(() =>
         <div class="flex h-2.5 overflow-hidden rounded-full">
             <div v-for="(item, index) in items" :key="index" :style="{ width: `${item.percent}%`, background: item.color }" />
         </div>
-        <div class="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-caption text-ink-2">
+        <div class="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-caption text-neutral-700">
             <div v-for="(item, index) in items" :key="index" class="flex items-center gap-1.5">
                 <span class="size-2 rounded-full" :style="{ background: item.color }" />
-                {{ item.label }} <span class="text-ink-3 tnum">{{ item.duration }}</span>
+                {{ item.label }} <span class="text-neutral-500 tnum">{{ item.duration }}</span>
             </div>
         </div>
     </div>

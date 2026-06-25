@@ -17,7 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const inputClass =
-    'w-full rounded-md border border-line bg-canvas px-3 py-2.5 text-meta text-ink transition-colors placeholder:text-ink-3 focus:border-accent focus:outline-none';
+    'w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none';
 
 const isWhen = computed(() => ['day', 'month', 'year'].includes(props.dataType));
 const isBetween = computed(() => props.operator === 'between' || props.operator === 'not_between');

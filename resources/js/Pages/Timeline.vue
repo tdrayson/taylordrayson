@@ -43,7 +43,7 @@ const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(pro
         />
     </div>
 
-    <p v-else class="text-meta text-ink-3">No entries yet.</p>
+    <p v-else class="text-meta text-neutral-500">No entries yet.</p>
 
     <Pagination
         v-if="lastPage > 1"

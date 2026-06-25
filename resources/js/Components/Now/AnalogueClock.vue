@@ -67,7 +67,7 @@ const ticks = Array.from({ length: 12 }, (_, index) => {
 }
 
 .face {
-    fill: var(--color-canvas);
+    fill: var(--color-neutral-0);
     stroke: currentColor;
     stroke-width: 2;
     stroke-opacity: 0.18;
@@ -101,11 +101,11 @@ const ticks = Array.from({ length: 12 }, (_, index) => {
 }
 
 .hand.second {
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-500);
     stroke-width: 1.8;
 }
 
 .pin {
-    fill: var(--color-accent);
+    fill: var(--color-accent-500);
 }
 </style>

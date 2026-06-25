@@ -43,13 +43,13 @@ setLayoutProps({
     <Head :title="title" />
 
     <header class="flex items-start gap-4">
-        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-surface sm:flex" :style="accentStyle">
+        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
-            <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent" :style="accentStyle">{{ parent.label }}</Link>
+            <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
-            <p v-if="subtitle" class="mt-2 text-meta text-ink-3">{{ subtitle }}</p>
+            <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>
     </header>
 
@@ -62,8 +62,8 @@ setLayoutProps({
             :href="chip.href"
             class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-caption font-medium transition-colors"
             :class="chip.active
-                ? 'bg-accent text-canvas'
-                : 'bg-surface text-ink-2 hover:bg-accent-tint hover:text-accent-active'"
+                ? 'bg-accent-500 text-neutral-0'
+                : 'bg-neutral-25 text-neutral-700 hover:bg-accent-50 hover:text-accent-700'"
         >
             <img v-if="chip.icon" :src="chip.icon" alt="" class="size-4 shrink-0 object-contain">
             {{ chip.label }}
@@ -81,7 +81,7 @@ setLayoutProps({
         />
     </div>
 
-    <p v-else class="mt-10 text-meta text-ink-3">Nothing here yet.</p>
+    <p v-else class="mt-10 text-meta text-neutral-500">Nothing here yet.</p>
 
     <Pagination
         v-if="lastPage > 1"

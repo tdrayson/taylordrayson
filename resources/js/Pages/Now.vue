@@ -45,7 +45,7 @@ const activityStats = [
     <div class="breakout">
         <header>
             <h1 class="font-display text-display">Now</h1>
-            <p class="mt-2 text-meta text-ink-3">A live snapshot of my world, ticking away right this second.</p>
+            <p class="mt-2 text-meta text-neutral-500">A live snapshot of my world, ticking away right this second.</p>
         </header>
 
         <div class="bento mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -104,7 +104,7 @@ const activityStats = [
             </Link>
         </div>
 
-        <p class="mt-6 text-caption text-ink-3">Last updated: {{ now.updatedAt }}</p>
+        <p class="mt-6 text-caption text-neutral-500">Last updated: {{ now.updatedAt }}</p>
     </div>
 </template>
 
@@ -132,8 +132,8 @@ const activityStats = [
 }
 
 .tile-time {
-    background: var(--color-accent-tint);
-    color: var(--color-accent-active);
+    background: var(--color-accent-50);
+    color: var(--color-accent-700);
 }
 
 .tile-weather {
@@ -147,13 +147,13 @@ const activityStats = [
 }
 
 .tile-cta {
-    background: var(--color-accent);
-    color: var(--color-canvas);
+    background: var(--color-accent-500);
+    color: var(--color-neutral-0);
     transition: background-color 0.15s ease;
 }
 
 .tile-cta:hover {
-    background: var(--color-accent-active);
+    background: var(--color-accent-700);
 }
 
 /* Pop-outs — nudge, tilt and shadow key elements so they break the box. */

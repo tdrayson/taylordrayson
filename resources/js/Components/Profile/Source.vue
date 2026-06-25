@@ -24,15 +24,15 @@ const label = computed(() => PLATFORMS[props.platform] ?? titleCase(props.platfo
 </script>
 
 <template>
-    <p class="border-t border-line-2 pt-4 text-caption text-ink-3">
+    <p class="border-t border-neutral-50 pt-4 text-caption text-neutral-500">
         Source:
         <a
             v-if="url"
             :href="url"
             target="_blank"
             rel="noopener noreferrer"
-            class="font-medium text-ink-2 underline decoration-line underline-offset-2 transition-colors hover:text-accent"
+            class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500"
         >{{ label }}</a>
-        <span v-else class="font-medium text-ink-2">{{ label }}</span>
+        <span v-else class="font-medium text-neutral-700">{{ label }}</span>
     </p>
 </template>

@@ -6,7 +6,7 @@ const cells = Array.from({ length: 364 }, (_, i) => {
     return value < 0.18 ? 0 : value < 0.42 ? 1 : value < 0.68 ? 2 : value < 0.88 ? 3 : 4;
 });
 
-const ramp = ['var(--color-surface)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)'];
+const ramp = ['var(--color-neutral-25)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)'];
 
 function color(level) {
     return ramp[level];
@@ -34,7 +34,7 @@ function color(level) {
         <div class="heatmap-grid">
             <span v-for="(level, index) in cells" :key="index" class="rounded" :style="{ background: color(level) }" />
         </div>
-        <div class="mt-3 flex items-center gap-1.5 text-xs text-ink-3">
+        <div class="mt-3 flex items-center gap-1.5 text-xs text-neutral-500">
             Quieter
             <span v-for="(swatch, index) in ramp" :key="index" class="inline-block size-3 rounded" :style="{ background: swatch }" />
             Busier

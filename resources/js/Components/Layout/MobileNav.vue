@@ -38,14 +38,14 @@ onUnmounted(() => {
 
 <template>
     <div class="md:hidden">
-        <header class="flex items-center justify-between border-b border-line-2 px-5 py-3">
+        <header class="flex items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <img src="/headshot-taylor.jpg" alt="" class="size-8 rounded-full object-cover" >
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
             </Link>
             <button
                 type="button"
-                class="flex text-ink-2 transition-colors hover:text-accent"
+                class="flex text-neutral-700 transition-colors hover:text-accent-500"
                 :aria-expanded="open"
                 aria-controls="mobile-menu"
                 aria-label="Open menu"
@@ -56,15 +56,15 @@ onUnmounted(() => {
         </header>
 
         <Transition name="overlay">
-            <div v-if="open" id="mobile-menu" class="fixed inset-0 z-50 flex flex-col bg-canvas">
-                <header class="flex items-center justify-between border-b border-line-2 px-5 py-3">
+            <div v-if="open" id="mobile-menu" class="fixed inset-0 z-50 flex flex-col bg-neutral-0">
+                <header class="flex items-center justify-between border-b border-neutral-50 px-5 py-3">
                     <Link href="/" class="flex items-center gap-2.5">
                         <img src="/headshot-taylor.jpg" alt="" class="size-8 rounded-full object-cover" >
                         <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
                     </Link>
                     <button
                         type="button"
-                        class="flex text-ink-2 transition-colors hover:text-accent"
+                        class="flex text-neutral-700 transition-colors hover:text-accent-500"
                         aria-label="Close menu"
                         @click="open = false"
                     >
@@ -74,7 +74,7 @@ onUnmounted(() => {
 
                 <div class="flex flex-1 flex-col overflow-y-auto px-5 py-6">
                     <SidebarNav class="-mx-3" />
-                    <div class="mt-auto space-y-5 border-t border-line-2 pt-6">
+                    <div class="mt-auto space-y-5 border-t border-neutral-50 pt-6">
                         <StatusBar />
                         <SocialLinks />
                         <StreakBadge />

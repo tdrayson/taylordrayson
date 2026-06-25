@@ -14,7 +14,7 @@ defineProps({
         target="_blank"
         rel="noopener noreferrer"
         :aria-label="`${label}, opens in a new tab`"
-        class="inline-flex items-center gap-1.5 text-meta font-semibold text-ink-2 transition-colors hover:text-accent"
+        class="inline-flex items-center gap-1.5 text-meta font-semibold text-neutral-700 transition-colors hover:text-accent-500"
     >
         {{ label }}
         <Icon :icon="ArrowUpRight01Icon" class="size-4" />

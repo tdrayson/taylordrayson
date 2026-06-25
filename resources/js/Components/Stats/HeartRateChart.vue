@@ -80,20 +80,20 @@ function onMove(event) {
                 </linearGradient>
             </defs>
 
-            <line x1="0" :y1="averageY" x2="100" :y2="averageY" stroke="var(--color-ink-3)" stroke-width="1" stroke-dasharray="3 3" stroke-opacity="0.5" vector-effect="non-scaling-stroke" />
+            <line x1="0" :y1="averageY" x2="100" :y2="averageY" stroke="var(--color-neutral-500)" stroke-width="1" stroke-dasharray="3 3" stroke-opacity="0.5" vector-effect="non-scaling-stroke" />
             <path :d="areaPath" :fill="`url(#hr-fill)`" />
             <path :d="linePath" fill="none" :stroke="color" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
 
-            <line v-if="hovered" :x1="hovered.left" y1="0" :x2="hovered.left" y2="100" stroke="var(--color-ink-3)" stroke-width="1" stroke-opacity="0.4" vector-effect="non-scaling-stroke" />
+            <line v-if="hovered" :x1="hovered.left" y1="0" :x2="hovered.left" y2="100" stroke="var(--color-neutral-500)" stroke-width="1" stroke-opacity="0.4" vector-effect="non-scaling-stroke" />
         </svg>
 
-        <div class="pointer-events-none absolute left-0 top-0 text-label uppercase text-ink-3 tnum">{{ peak }} peak</div>
-        <div class="pointer-events-none absolute right-0 text-label uppercase text-ink-3 tnum" :style="{ top: `${averageY}%` }">avg {{ average }}</div>
+        <div class="pointer-events-none absolute left-0 top-0 text-label uppercase text-neutral-500 tnum">{{ peak }} peak</div>
+        <div class="pointer-events-none absolute right-0 text-label uppercase text-neutral-500 tnum" :style="{ top: `${averageY}%` }">avg {{ average }}</div>
 
         <template v-if="hovered">
-            <div class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-canvas" :style="{ left: `${hovered.left}%`, top: `${hovered.top}%`, background: color }" />
+            <div class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-0" :style="{ left: `${hovered.left}%`, top: `${hovered.top}%`, background: color }" />
             <div
-                class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-3 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs font-medium text-canvas shadow-card tnum"
+                class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-3 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card tnum"
                 :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%`, top: `${hovered.top}%` }"
             >
                 {{ hovered.bpm }} bpm<template v-if="hovered.time"> · {{ hovered.time }}</template>

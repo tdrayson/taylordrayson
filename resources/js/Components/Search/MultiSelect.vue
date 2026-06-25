@@ -51,43 +51,43 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
     <div ref="root" class="relative">
         <button
             type="button"
-            class="flex w-full items-center gap-2 rounded-md border border-line bg-canvas px-3 py-2.5 text-left text-meta transition-colors hover:border-accent"
-            :class="summary ? 'text-ink' : 'text-ink-3'"
+            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500"
+            :class="summary ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
             <span class="flex-1 truncate">{{ summary ?? placeholder }}</span>
-            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-tint px-1.5 text-label text-accent-active tnum">{{ modelValue.length }}</span>
-            <Icon :icon="ArrowDown01Icon" class="size-3.5 shrink-0 text-ink-3" />
+            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-label text-accent-700 tnum">{{ modelValue.length }}</span>
+            <Icon :icon="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
         </button>
 
-        <div v-if="open" class="absolute left-0 z-50 mt-2 w-full min-w-56 rounded-lg border border-line-2 bg-canvas shadow-card">
-            <div class="flex items-center gap-2 border-b border-line-2 px-3">
-                <Icon :icon="Search01Icon" class="size-3.5 shrink-0 text-ink-3" />
+        <div v-if="open" class="absolute left-0 z-50 mt-2 w-full min-w-56 rounded-lg border border-neutral-50 bg-neutral-0 shadow-card">
+            <div class="flex items-center gap-2 border-b border-neutral-50 px-3">
+                <Icon :icon="Search01Icon" class="size-3.5 shrink-0 text-neutral-500" />
                 <input
                     v-model="query"
                     type="text"
                     placeholder="Search…"
-                    class="w-full bg-transparent py-2.5 text-meta text-ink placeholder:text-ink-3 focus:outline-none"
+                    class="w-full bg-transparent py-2.5 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 >
             </div>
             <ul class="max-h-56 overflow-y-auto py-1">
                 <li v-for="option in filtered" :key="option">
                     <button
                         type="button"
-                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-surface"
-                        :class="isSelected(option) ? 'text-ink' : 'text-ink-2'"
+                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-neutral-25"
+                        :class="isSelected(option) ? 'text-neutral-900' : 'text-neutral-700'"
                         @click="toggleOption(option)"
                     >
                         <span
                             class="flex size-4 shrink-0 items-center justify-center rounded border transition-colors"
-                            :class="isSelected(option) ? 'border-accent bg-accent text-canvas' : 'border-line'"
+                            :class="isSelected(option) ? 'border-accent-500 bg-accent-500 text-neutral-0' : 'border-neutral-100'"
                         >
                             <Icon v-if="isSelected(option)" :icon="Tick02Icon" class="size-3" :stroke-width="2.5" />
                         </span>
                         <span class="flex-1 truncate">{{ option }}</span>
                     </button>
                 </li>
-                <li v-if="!filtered.length" class="px-3 py-3 text-center text-caption text-ink-3">No matches</li>
+                <li v-if="!filtered.length" class="px-3 py-3 text-center text-caption text-neutral-500">No matches</li>
             </ul>
         </div>
     </div>

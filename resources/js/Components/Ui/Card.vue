@@ -8,9 +8,9 @@ const props = defineProps({
 });
 
 const VARIANTS = {
-    flat: 'bg-surface',
-    elevated: 'bg-canvas shadow-card',
-    outline: 'bg-canvas border border-line-2',
+    flat: 'bg-neutral-25',
+    elevated: 'bg-neutral-0 shadow-card',
+    outline: 'bg-neutral-0 border border-neutral-50',
 };
 
 const classes = computed(() => cn('rounded-lg p-5', VARIANTS[props.variant] ?? VARIANTS.flat, props.class));

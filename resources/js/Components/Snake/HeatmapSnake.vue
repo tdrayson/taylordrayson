@@ -58,18 +58,18 @@ function cellBackground(x, y) {
     const key = cellKey(x, y);
 
     if (headKey.value === key) {
-        return 'var(--color-ink)';
+        return 'var(--color-neutral-900)';
     }
 
     if (snakeBody.value.has(key)) {
-        return 'var(--color-ink-2)';
+        return 'var(--color-neutral-700)';
     }
 
     if (filled.value[key]) {
         return 'var(--color-heat-2)';
     }
 
-    return 'var(--color-surface)';
+    return 'var(--color-neutral-25)';
 }
 
 function isPellet(x, y) {
@@ -308,15 +308,15 @@ onBeforeUnmount(() => {
         >
             <span v-if="state === 'idle'" class="snake-prompt">
                 <span class="font-display text-section">Fill in your day</span>
-                <span class="text-meta text-ink-3">Arrow keys, WASD, or tap to play</span>
+                <span class="text-meta text-neutral-500">Arrow keys, WASD, or tap to play</span>
             </span>
             <span v-else-if="state === 'over'" class="snake-prompt">
                 <span class="font-display text-section">Game over</span>
-                <span class="text-meta text-ink-3">You logged {{ score }} {{ score === 1 ? 'day' : 'days' }} · tap to retry</span>
+                <span class="text-meta text-neutral-500">You logged {{ score }} {{ score === 1 ? 'day' : 'days' }} · tap to retry</span>
             </span>
             <span v-else class="snake-prompt">
                 <span class="font-display text-section">Full house! 🎉</span>
-                <span class="text-meta text-ink-3">You filled the entire log · tap to play again</span>
+                <span class="text-meta text-neutral-500">You filled the entire log · tap to play again</span>
             </span>
         </button>
     </div>
@@ -355,7 +355,7 @@ onBeforeUnmount(() => {
 }
 
 .snake-grid > span.pellet {
-    background: var(--color-accent) !important;
+    background: var(--color-accent-500) !important;
     animation: pellet-pulse 0.9s ease-in-out infinite;
 }
 

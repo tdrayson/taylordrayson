@@ -43,10 +43,10 @@ const displayLabel = computed(() => relative.value ?? props.label);
     <section>
         <h2 class="mb-6 flex items-center gap-2.5 font-display text-item-title">
             <span v-if="isToday" class="relative flex size-2.5 shrink-0" aria-hidden="true">
-                <span class="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-75" />
-                <span class="relative inline-flex size-2.5 rounded-full bg-accent" />
+                <span class="absolute inline-flex size-full animate-ping rounded-full bg-accent-500 opacity-75" />
+                <span class="relative inline-flex size-2.5 rounded-full bg-accent-500" />
             </span>
-            <component :is="href ? Link : 'span'" :href="href || undefined" class="transition-colors" :class="href ? 'hover:text-accent' : ''">
+            <component :is="href ? Link : 'span'" :href="href || undefined" class="transition-colors" :class="href ? 'hover:text-accent-500' : ''">
                 <time v-if="date" :datetime="date">{{ displayLabel }}</time>
                 <template v-else>{{ displayLabel }}</template>
             </component>

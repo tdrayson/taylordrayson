@@ -15,14 +15,14 @@ defineProps({
 <template>
     <div class="h-card">
         <Link href="/" aria-label="Home" class="group mb-3 block w-fit">
-            <div class="size-13 overflow-hidden rounded-full bg-linear-to-br from-accent to-orange-300 group-hover:animate-avatar-boop">
+            <div class="size-13 overflow-hidden rounded-full bg-linear-to-br from-accent-500 to-orange-300 group-hover:animate-avatar-boop">
                 <img v-if="avatar" :src="avatar" :alt="name" class="u-photo size-full object-cover" >
             </div>
         </Link>
         <p class="mb-2 font-display text-name">
             <Link href="/" class="p-name u-url">{{ name }}</Link>
         </p>
-        <p class="mb-4 max-w-50 p-note text-caption text-ink-3">{{ bio }}</p>
+        <p class="mb-4 max-w-50 p-note text-caption text-neutral-500">{{ bio }}</p>
         <SocialLinks />
     </div>
 </template>

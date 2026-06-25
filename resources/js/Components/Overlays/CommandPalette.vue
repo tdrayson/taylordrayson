@@ -298,23 +298,23 @@ onUnmounted(() => {
                 class="overlay fixed inset-0 flex items-start justify-center px-4"
                 @click.self="close"
             >
-                <div class="backdrop absolute inset-0 bg-ink/45" @click="close" />
+                <div class="backdrop absolute inset-0 bg-neutral-900/45" @click="close" />
 
                 <div
-                    class="panel relative flex w-full max-w-xl flex-col overflow-hidden rounded-lg border border-line-2 bg-canvas shadow-card"
+                    class="panel relative flex w-full max-w-xl flex-col overflow-hidden rounded-lg border border-neutral-50 bg-neutral-0 shadow-card"
                     role="dialog"
                     aria-modal="true"
                     aria-label="Search and navigate"
                     @keydown="onPanelKeydown"
                 >
-                    <div class="flex items-center gap-3 border-b border-line-2 px-4">
-                        <Icon :icon="Search01Icon" class="size-4 shrink-0 text-ink-3" />
+                    <div class="flex items-center gap-3 border-b border-neutral-50 px-4">
+                        <Icon :icon="Search01Icon" class="size-4 shrink-0 text-neutral-500" />
                         <input
                             ref="input"
                             v-model="query"
                             type="text"
                             placeholder="Search pages, archives, dates…"
-                            class="w-full bg-transparent py-4 text-nav text-ink placeholder:text-ink-3 focus:outline-none"
+                            class="w-full bg-transparent py-4 text-nav text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                             autocomplete="off"
                             spellcheck="false"
                             @keydown="onInputKeydown"
@@ -323,30 +323,30 @@ onUnmounted(() => {
 
                     <div ref="listEl" class="max-h-80 overflow-y-auto py-2">
                         <template v-for="section in sections" :key="section.heading">
-                            <div class="px-4 pb-1 pt-2 text-label uppercase text-ink-3">{{ section.heading }}</div>
+                            <div class="px-4 pb-1 pt-2 text-label uppercase text-neutral-500">{{ section.heading }}</div>
                             <button
                                 v-for="item in section.items"
                                 :key="item.href"
                                 type="button"
                                 :data-active="item.index === activeIndex"
                                 class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-nav transition-colors"
-                                :class="item.index === activeIndex ? 'bg-surface text-ink' : 'text-ink-2'"
+                                :class="item.index === activeIndex ? 'bg-neutral-25 text-neutral-900' : 'text-neutral-700'"
                                 @click="select(item)"
                                 @mousemove="activeIndex = item.index"
                             >
-                                <Icon :icon="item.icon" class="size-4 shrink-0 text-ink-3" />
+                                <Icon :icon="item.icon" class="size-4 shrink-0 text-neutral-500" />
                                 <span class="flex-1 truncate">{{ item.label }}</span>
-                                <span v-if="item.meta" class="shrink-0 text-label text-ink-3">{{ item.meta }}</span>
-                                <span class="w-3 shrink-0 text-right text-label text-ink-3">{{ item.index === activeIndex ? '↵' : '' }}</span>
+                                <span v-if="item.meta" class="shrink-0 text-label text-neutral-500">{{ item.meta }}</span>
+                                <span class="w-3 shrink-0 text-right text-label text-neutral-500">{{ item.index === activeIndex ? '↵' : '' }}</span>
                             </button>
                         </template>
 
-                        <p v-if="flatItems.length === 0" class="px-4 py-6 text-center text-meta text-ink-3">
+                        <p v-if="flatItems.length === 0" class="px-4 py-6 text-center text-meta text-neutral-500">
                             No matches for &ldquo;{{ query }}&rdquo;
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-4 border-t border-line-2 px-4 py-2.5 text-label text-ink-3">
+                    <div class="flex items-center gap-4 border-t border-neutral-50 px-4 py-2.5 text-label text-neutral-500">
                         <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
                         <span><kbd>↵</kbd> open</span>
                         <span><kbd>esc</kbd> close</span>
@@ -369,9 +369,9 @@ kbd {
     padding: 0 0.25rem;
     margin-right: 0.15rem;
     text-align: center;
-    border: 1px solid var(--color-line-2);
+    border: 1px solid var(--color-neutral-50);
     border-radius: 4px;
-    background: var(--color-surface);
+    background: var(--color-neutral-25);
 }
 
 /* Root anchors Vue's transition timing (and fades opacity). */

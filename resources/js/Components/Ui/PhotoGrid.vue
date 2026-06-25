@@ -9,7 +9,7 @@ defineProps({
         <div
             v-for="(photo, index) in photos"
             :key="index"
-            class="aspect-square overflow-hidden rounded-lg bg-surface"
+            class="aspect-square overflow-hidden rounded-lg bg-neutral-25"
             :style="photo.gradient ? { background: photo.gradient } : {}"
         >
             <img v-if="photo.src" :src="photo.src" alt="" class="size-full object-cover" >

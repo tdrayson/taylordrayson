@@ -23,10 +23,10 @@ const big = computed(() => props.size === 'lg');
             <div class="font-display font-extrabold leading-none tracking-tight tnum" :class="big ? 'text-stat-lg' : 'text-stat'">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />
                 <template v-else>
-                    {{ stat.value }}<span v-if="stat.unit" class="ml-1 font-semibold text-ink-3" :class="big ? 'text-lg' : 'text-base'">{{ stat.unit }}</span>
+                    {{ stat.value }}<span v-if="stat.unit" class="ml-1 font-semibold text-neutral-500" :class="big ? 'text-lg' : 'text-base'">{{ stat.unit }}</span>
                 </template>
             </div>
-            <div class="mt-1.5 text-label uppercase text-ink-3">{{ stat.label }}</div>
+            <div class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</div>
         </div>
     </div>
 </template>

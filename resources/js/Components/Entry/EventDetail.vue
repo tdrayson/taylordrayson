@@ -24,7 +24,7 @@ const rows = computed(() => [
 
         <div v-if="entry.notes">
             <SectionHead title="Notes" />
-            <p class="text-body text-ink-2">{{ entry.notes }}</p>
+            <p class="text-body text-neutral-700">{{ entry.notes }}</p>
         </div>
     </div>
 </template>

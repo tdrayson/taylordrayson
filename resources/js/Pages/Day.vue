@@ -84,16 +84,16 @@ setLayoutProps({
 
         <div v-if="rings" class="mt-8 flex items-center gap-5">
             <ActivityRings large animate :move="rings.move" :exercise="rings.exercise" :stand="rings.stand" />
-            <div class="space-y-1.5 text-sm text-ink-3">
-                <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.moveKcal }}</span> kcal move</div>
-                <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.exerciseMins }}</span> min exercise</div>
-                <div><span class="font-display text-base font-bold text-ink tnum">{{ rings.standHrs }}</span> hr stand</div>
+            <div class="space-y-1.5 text-sm text-neutral-500">
+                <div><span class="font-display text-base font-bold text-neutral-900 tnum">{{ rings.moveKcal }}</span> kcal move</div>
+                <div><span class="font-display text-base font-bold text-neutral-900 tnum">{{ rings.exerciseMins }}</span> min exercise</div>
+                <div><span class="font-display text-base font-bold text-neutral-900 tnum">{{ rings.standHrs }}</span> hr stand</div>
             </div>
         </div>
 
         <StatGrid v-if="summaryStats.length" :stats="summaryStats" class="mt-8" />
 
         <TimelineFeed v-if="items.length" :items="items" class="mt-10" />
-        <p v-else class="mt-10 text-meta text-ink-3">No entries for this day.</p>
+        <p v-else class="mt-10 text-meta text-neutral-500">No entries for this day.</p>
     </template>
 </template>

@@ -14,12 +14,12 @@ const props = defineProps({
 });
 
 const VARIANTS = {
-    primary: 'bg-accent text-white hover:bg-accent-active',
-    secondary: 'border border-line text-ink hover:bg-surface',
-    ghost: 'text-ink hover:text-accent',
-    chip: 'bg-surface uppercase text-ink-2 hover:bg-accent-tint hover:text-accent-active',
+    primary: 'bg-accent-500 text-white hover:bg-accent-700',
+    secondary: 'border border-neutral-100 text-neutral-900 hover:bg-neutral-25',
+    ghost: 'text-neutral-900 hover:text-accent-500',
+    chip: 'bg-neutral-25 uppercase text-neutral-700 hover:bg-accent-50 hover:text-accent-700',
     destructive: 'bg-red-600 text-white hover:bg-red-700',
-    link: 'text-accent underline underline-offset-2 hover:text-accent-active',
+    link: 'text-accent-500 underline underline-offset-2 hover:text-accent-700',
 };
 
 const SIZES = {

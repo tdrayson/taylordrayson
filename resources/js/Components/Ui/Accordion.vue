@@ -18,7 +18,7 @@ function toggle() {
 </script>
 
 <template>
-    <div class="border-t border-line-2">
+    <div class="border-t border-neutral-50">
         <h2 class="m-0">
             <button
                 :id="headerId"
@@ -31,7 +31,7 @@ function toggle() {
                 {{ title }}
                 <Icon
                     :icon="ArrowDown01Icon"
-                    class="size-5 shrink-0 text-ink-3 transition-transform"
+                    class="size-5 shrink-0 text-neutral-500 transition-transform"
                     :class="{ 'rotate-180': expanded }"
                     aria-hidden="true"
                 />

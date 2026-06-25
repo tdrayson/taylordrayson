@@ -10,11 +10,11 @@ defineProps({
 
 <template>
     <div>
-        <div class="text-eyebrow uppercase text-ink-3">Streak</div>
+        <div class="text-eyebrow uppercase text-neutral-500">Streak</div>
         <div class="mt-1 flex items-baseline gap-2">
-            <Icon :icon="FireIcon" class="size-4 self-center text-accent" />
+            <Icon :icon="FireIcon" class="size-4 self-center text-accent-500" />
             <span class="font-display text-name tnum">{{ count }}</span>
-            <span class="text-caption text-ink-3">{{ label }}</span>
+            <span class="text-caption text-neutral-500">{{ label }}</span>
         </div>
     </div>
 </template>

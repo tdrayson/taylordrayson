@@ -82,7 +82,7 @@ onMounted(() => {
             preload="auto"
             width="498"
             height="269"
-            class="w-full max-w-2xl cursor-pointer rounded-lg border border-line-2"
+            class="w-full max-w-2xl cursor-pointer rounded-lg border border-neutral-50"
             @ended="onEnded"
             @mouseenter="onEnter"
             @mouseleave="onLeave"
@@ -90,14 +90,14 @@ onMounted(() => {
         />
         <div class="max-w-xl space-y-4">
             <p class="font-display text-stat">Hold your horses — I'm not a time traveller.</p>
-            <p class="text-lg text-ink-3">
+            <p class="text-lg text-neutral-500">
                 This {{ unit }} hasn't happened yet, and my flux capacitor's on the fritz. I only log life as
                 it actually happens, so there's genuinely nothing here. Come back once we've hit 88&nbsp;mph.
             </p>
         </div>
         <Link
             href="/"
-            class="inline-flex items-center gap-1.5 text-meta font-semibold text-accent transition-colors hover:text-accent-active"
+            class="inline-flex items-center gap-1.5 text-meta font-semibold text-accent-500 transition-colors hover:text-accent-700"
         >
             <Icon :icon="ArrowLeft01Icon" class="size-4" />
             Back to the present

@@ -23,7 +23,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
 </script>
 
 <template>
-    <nav aria-label="Pagination" class="flex items-center justify-between border-t border-line-2 pt-6 text-sm font-medium">
+    <nav aria-label="Pagination" class="flex items-center justify-between border-t border-neutral-50 pt-6 text-sm font-medium">
         <component
             :is="prevTag"
             :href="prevUrl || undefined"
@@ -31,14 +31,14 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             aria-label="Previous page"
             :aria-disabled="prevUrl || hasPrev ? undefined : 'true'"
             class="inline-flex items-center gap-1.5"
-            :class="prevUrl || hasPrev ? 'text-ink-2 transition-colors hover:text-accent' : 'cursor-default text-ink-3/40'"
+            :class="prevUrl || hasPrev ? 'text-neutral-700 transition-colors hover:text-accent-500' : 'cursor-default text-neutral-500/40'"
             @click="!prevUrl && hasPrev && emit('navigate', currentPage - 1)"
         >
             <Icon :icon="ArrowLeft01Icon" class="size-4" />
             Previous
         </component>
 
-        <span class="text-ink-3 tnum" aria-current="page">Page {{ currentPage }} of {{ lastPage }}</span>
+        <span class="text-neutral-500 tnum" aria-current="page">Page {{ currentPage }} of {{ lastPage }}</span>
 
         <component
             :is="nextTag"
@@ -47,7 +47,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             aria-label="Next page"
             :aria-disabled="nextUrl || hasNext ? undefined : 'true'"
             class="inline-flex items-center gap-1.5"
-            :class="nextUrl || hasNext ? 'text-ink-2 transition-colors hover:text-accent' : 'cursor-default text-ink-3/40'"
+            :class="nextUrl || hasNext ? 'text-neutral-700 transition-colors hover:text-accent-500' : 'cursor-default text-neutral-500/40'"
             @click="!nextUrl && hasNext && emit('navigate', currentPage + 1)"
         >
             Next

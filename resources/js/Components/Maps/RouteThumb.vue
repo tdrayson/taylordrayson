@@ -4,7 +4,7 @@ import { projectPoints } from '../../lib/geo.js';
 
 const props = defineProps({
     points: { type: Array, required: true }, // [[lng, lat], ...]
-    color: { type: String, default: 'var(--color-accent)' },
+    color: { type: String, default: 'var(--color-accent-500)' },
     endpoints: { type: Boolean, default: false },
 });
 
@@ -27,7 +27,7 @@ onBeforeUnmount(() => observer?.disconnect());
 </script>
 
 <template>
-    <div ref="container" class="relative h-40 w-full overflow-hidden rounded-lg border border-line-2 bg-surface">
+    <div ref="container" class="relative h-40 w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
         <svg v-if="size.width && projected.length" class="size-full" :viewBox="`0 0 ${size.width} ${size.height}`" fill="none">
             <polyline
                 :points="path"

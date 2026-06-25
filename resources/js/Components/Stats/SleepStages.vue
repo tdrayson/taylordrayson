@@ -25,7 +25,7 @@ function formatDuration(seconds) {
 const segments = computed(() => {
     const parsed = props.stages
         .map((segment) => ({
-            meta: STAGE_META[segment.stage] ?? { lane: 2, label: segment.stage, color: 'var(--color-ink-3)' },
+            meta: STAGE_META[segment.stage] ?? { lane: 2, label: segment.stage, color: 'var(--color-neutral-500)' },
             start: new Date(segment.start).getTime(),
             end: new Date(segment.end).getTime(),
         }))
@@ -80,7 +80,7 @@ const hovered = ref(null);
             <span
                 v-for="lane in LANE_COUNT"
                 :key="`lane-${lane}`"
-                class="absolute inset-x-0 h-px bg-line-2"
+                class="absolute inset-x-0 h-px bg-neutral-50"
                 :style="{ top: `${(lane - 0.5) * (100 / LANE_COUNT)}%` }"
             />
 
@@ -105,7 +105,7 @@ const hovered = ref(null);
 
             <div
                 v-if="hovered !== null"
-                class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs font-medium text-canvas shadow-card"
+                class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card"
                 :style="{
                     left: `${Math.min(92, Math.max(8, segments[hovered].left + segments[hovered].width / 2))}%`,
                     top: `${segments[hovered].lane * (100 / LANE_COUNT)}%`,
@@ -116,9 +116,9 @@ const hovered = ref(null);
         </div>
 
         <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
-            <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-meta text-ink-2">
+            <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-meta text-neutral-700">
                 <span class="size-2.5 rounded-full" :style="{ background: total.color }" />
-                {{ total.label }} <span class="text-ink-3 tnum">{{ total.duration }}</span>
+                {{ total.label }} <span class="text-neutral-500 tnum">{{ total.duration }}</span>
             </div>
         </div>
     </div>

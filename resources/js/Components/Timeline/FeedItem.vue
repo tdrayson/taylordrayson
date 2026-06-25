@@ -178,11 +178,11 @@ const fullTimestamp = computed(() => {
 
 <template>
     <div class="relative block h-entry" :style="{ '--type-color': typeColor }">
-        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-surface">
+        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
-        <time v-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published float-right text-xs text-ink-3 tnum">{{ time }}</time>
-        <span v-else-if="time" class="float-right text-xs text-ink-3 tnum">{{ time }}</span>
+        <time v-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published float-right text-xs text-neutral-500 tnum">{{ time }}</time>
+        <span v-else-if="time" class="float-right text-xs text-neutral-500 tnum">{{ time }}</span>
         <component
             :is="typeHref ? Link : 'div'"
             :href="typeHref || undefined"
@@ -196,7 +196,7 @@ const fullTimestamp = computed(() => {
                 :class="url ? 'type-link u-url transition-colors' : ''"
             >{{ title }}</component>
         </div>
-        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-ink-3">
+        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             {{ airline.name }}
         </div>
@@ -211,12 +211,12 @@ const fullTimestamp = computed(() => {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <div v-else-if="meta" class="p-summary mt-2 line-clamp-2 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent' : 'text-ink-2'">{{ meta }}</div>
+        <div v-else-if="meta" class="p-summary mt-2 line-clamp-2 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</div>
         <RouteThumb v-if="banner" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
         <div
             v-if="media?.thumbnail && media?.videoUrl"
             ref="videoSlot"
-            class="relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-line-2 bg-surface"
+            class="relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
@@ -232,8 +232,8 @@ const fullTimestamp = computed(() => {
                     alt=""
                     class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                 >
-                <span class="absolute inset-0 flex items-center justify-center bg-ink/20 transition-colors group-hover:bg-ink/30">
-                    <span class="flex size-12 items-center justify-center rounded-full bg-canvas/90 text-ink shadow-card transition-transform group-hover:scale-110">
+                <span class="absolute inset-0 flex items-center justify-center bg-neutral-900/20 transition-colors group-hover:bg-neutral-900/30">
+                    <span class="flex size-12 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon :icon="PlayIcon" class="size-5" />
                     </span>
                 </span>

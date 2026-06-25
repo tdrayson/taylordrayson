@@ -26,9 +26,9 @@ onMounted(() => {
     <Head title="Leaderboard" />
 
     <div class="mx-auto max-w-lg">
-        <p class="text-eyebrow uppercase text-ink-3">404 Snake</p>
+        <p class="text-eyebrow uppercase text-neutral-500">404 Snake</p>
         <h1 class="mt-3 font-display text-display">Leaderboard</h1>
-        <p class="mt-4 text-body text-ink-3">
+        <p class="mt-4 text-body text-neutral-500">
             Every player who found the gap and logged a streak. {{ entries.length }} {{ entries.length === 1 ? 'name' : 'names' }} so far.
         </p>
 
@@ -38,10 +38,10 @@ onMounted(() => {
 
         <div class="mt-9 flex gap-6">
             <!-- Full load so the 404 status page (the game) renders reliably. -->
-            <a href="/404" class="text-meta font-medium text-ink underline decoration-line underline-offset-4 transition-colors hover:text-ink-3">
+            <a href="/404" class="text-meta font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
                 Back to the game
             </a>
-            <Link href="/" class="text-meta font-medium text-ink underline decoration-line underline-offset-4 transition-colors hover:text-ink-3">
+            <Link href="/" class="text-meta font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
                 Back to the timeline
             </Link>
         </div>

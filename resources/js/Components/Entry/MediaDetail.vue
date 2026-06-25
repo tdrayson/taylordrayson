@@ -29,9 +29,9 @@ const rows = computed(() => [
 <template>
     <div class="space-y-8">
         <div v-if="entry.rating" class="flex items-center gap-2">
-            <Icon :icon="StarIcon" class="size-5 text-accent" />
+            <Icon :icon="StarIcon" class="size-5 text-accent-500" />
             <span class="font-display text-stat tnum">{{ entry.rating }}</span>
-            <span class="text-meta text-ink-3">/ 10</span>
+            <span class="text-meta text-neutral-500">/ 10</span>
         </div>
 
         <div v-if="genres.length" class="flex flex-wrap gap-2">

@@ -96,5 +96,5 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-line-2 sm:h-96" />
+    <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-neutral-50 sm:h-96" />
 </template>

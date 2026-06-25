@@ -78,7 +78,7 @@ const icon = computed(() => {
 
 <template>
     <span class="inline-flex items-center gap-1.5">
-        <Icon :icon="icon" :class="['text-ink-3', compact ? 'size-3.5' : 'size-4']" />
+        <Icon :icon="icon" :class="['text-neutral-500', compact ? 'size-3.5' : 'size-4']" />
         <span class="tnum">{{ temp }}</span>
     </span>
 </template>

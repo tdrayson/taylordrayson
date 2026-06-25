@@ -253,7 +253,7 @@ onBeforeUnmount(() => {
     <div>
         <audio ref="audioEl" @timeupdate="onTimeUpdate" @loadedmetadata="onLoaded" @ended="onEnded" />
 
-        <div v-if="isAudio" class="fixed inset-x-0 bottom-0 z-50 border-t border-line-2 bg-canvas md:pl-66">
+        <div v-if="isAudio" class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-50 bg-neutral-0 md:pl-66">
             <div class="mx-auto flex max-w-4xl items-center gap-4 px-5 py-3 md:px-10">
                 <img v-if="player.track.thumbnail" :src="player.track.thumbnail" alt="" class="size-11 shrink-0 rounded-md object-cover">
                 <Button
@@ -270,18 +270,18 @@ onBeforeUnmount(() => {
                     <component
                         :is="player.track.url ? Link : 'div'"
                         :href="player.track.url || undefined"
-                        class="block truncate text-meta font-semibold text-ink"
-                        :class="player.track.url ? 'transition-colors hover:text-accent' : ''"
+                        class="block truncate text-meta font-semibold text-neutral-900"
+                        :class="player.track.url ? 'transition-colors hover:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
                     <div class="mt-1 flex items-center gap-2">
-                        <span class="text-label text-ink-3 tnum">{{ clock(currentTime) }}</span>
-                        <div class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-line" @click="seek">
-                            <div class="absolute inset-y-0 left-0 rounded-full bg-accent" :style="{ width: progress + '%' }" />
+                        <span class="text-label text-neutral-500 tnum">{{ clock(currentTime) }}</span>
+                        <div class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100" @click="seek">
+                            <div class="absolute inset-y-0 left-0 rounded-full bg-accent-500" :style="{ width: progress + '%' }" />
                         </div>
-                        <span class="text-label text-ink-3 tnum">{{ clock(duration) }}</span>
+                        <span class="text-label text-neutral-500 tnum">{{ clock(duration) }}</span>
                     </div>
                 </div>
-                <button type="button" class="shrink-0 text-ink-3 transition-colors hover:text-ink" aria-label="Close player" @click="closePlayer">
+                <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close player" @click="closePlayer">
                     <Icon :icon="Cancel01Icon" class="size-5" />
                 </button>
             </div>
@@ -293,19 +293,19 @@ onBeforeUnmount(() => {
                 ref="videoWrap"
                 class="z-50 flex flex-col overflow-hidden bg-black"
                 :style="geom"
-                :class="player.dockEl ? 'rounded-lg' : 'rounded-lg border border-line-2 shadow-card'"
+                :class="player.dockEl ? 'rounded-lg' : 'rounded-lg border border-neutral-50 shadow-card'"
             >
                 <div
                     v-if="isVideo && !player.dockEl"
-                    class="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-line-2 bg-canvas px-3"
+                    class="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-neutral-50 bg-neutral-0 px-3"
                 >
                     <component
                         :is="player.track.url ? Link : 'span'"
                         :href="player.track.url || undefined"
-                        class="truncate text-caption font-semibold text-ink"
-                        :class="player.track.url ? 'transition-colors hover:text-accent' : ''"
+                        class="truncate text-caption font-semibold text-neutral-900"
+                        :class="player.track.url ? 'transition-colors hover:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
-                    <button type="button" class="shrink-0 text-ink-3 transition-colors hover:text-ink" aria-label="Close player" @click="closePlayer">
+                    <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close player" @click="closePlayer">
                         <Icon :icon="Cancel01Icon" class="size-4" />
                     </button>
                 </div>

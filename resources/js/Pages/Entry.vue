@@ -78,13 +78,13 @@ setLayoutProps({
     <Head :title="title" />
 
     <header class="flex items-start gap-4">
-        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-surface sm:flex" :style="accentStyle">
+        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
             <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline" :style="accentStyle">{{ meta.label }}</Link>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
-            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-ink-2 transition-colors hover:text-accent">{{ occurredLabel }}</Link>
+            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">{{ occurredLabel }}</Link>
         </div>
     </header>
 

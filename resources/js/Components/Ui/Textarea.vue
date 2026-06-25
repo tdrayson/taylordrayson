@@ -15,8 +15,8 @@ defineEmits(['update:modelValue']);
 
 const classes = computed(() =>
     cn(
-        'w-full resize-y rounded-md border bg-canvas px-3 py-2 text-meta text-ink transition-colors placeholder:text-ink-3 focus:outline-none',
-        props.invalid ? 'border-red-500 focus:border-red-500' : 'border-line focus:border-accent',
+        'w-full resize-y rounded-md border bg-neutral-0 px-3 py-2 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:outline-none',
+        props.invalid ? 'border-red-500 focus:border-red-500' : 'border-neutral-100 focus:border-accent-500',
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
     ),

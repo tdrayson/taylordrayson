@@ -97,22 +97,22 @@ const highlights = [
     <SectionHead title="Movement" meta="212 activities · 1,840 km" />
     <div class="grid gap-10 sm:grid-cols-2">
         <div>
-            <div class="mb-3 text-caption font-semibold text-ink-2">Distance by week</div>
+            <div class="mb-3 text-caption font-semibold text-neutral-700">Distance by week</div>
             <BarList :bars="distance" />
         </div>
         <div>
-            <div class="mb-3 text-caption font-semibold text-ink-2">Activity mix</div>
+            <div class="mb-3 text-caption font-semibold text-neutral-700">Activity mix</div>
             <BarList :bars="activityMix" />
         </div>
     </div>
 
     <SectionHead title="Places" meta="312 check-ins · 31 unique" />
     <div class="flex flex-col">
-        <div v-for="place in places" :key="place.rank" class="flex items-center gap-3 border-b border-line-2 py-3 last:border-0">
-            <span class="w-6 flex-none text-xs text-ink-3 tnum">{{ place.rank }}</span>
+        <div v-for="place in places" :key="place.rank" class="flex items-center gap-3 border-b border-neutral-50 py-3 last:border-0">
+            <span class="w-6 flex-none text-xs text-neutral-500 tnum">{{ place.rank }}</span>
             <div class="flex-1">
                 <div class="text-meta font-semibold">{{ place.name }}</div>
-                <div class="text-xs text-ink-3">{{ place.sub }}</div>
+                <div class="text-xs text-neutral-500">{{ place.sub }}</div>
             </div>
             <span class="font-display text-base font-bold tnum">{{ place.value }}</span>
         </div>
@@ -120,14 +120,14 @@ const highlights = [
 
     <SectionHead title="Highlights" meta="of the year so far" />
     <div class="flex flex-col">
-        <div v-for="item in highlights" :key="item.label" class="flex items-baseline justify-between gap-4 border-b border-line-2 py-3 last:border-0">
-            <span class="flex items-center gap-3 text-meta text-ink-3">
+        <div v-for="item in highlights" :key="item.label" class="flex items-baseline justify-between gap-4 border-b border-neutral-50 py-3 last:border-0">
+            <span class="flex items-center gap-3 text-meta text-neutral-500">
                 <Icon :icon="item.icon" class="size-4 flex-none" />
                 {{ item.label }}
             </span>
             <span class="text-right font-display text-base font-bold">
                 {{ item.value }}
-                <span class="block font-sans text-xs font-normal text-ink-3">{{ item.sub }}</span>
+                <span class="block font-sans text-xs font-normal text-neutral-500">{{ item.sub }}</span>
             </span>
         </div>
     </div>

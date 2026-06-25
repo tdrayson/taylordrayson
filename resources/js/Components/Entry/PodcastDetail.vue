@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
         <div
             v-if="entry.video_url"
             ref="slot"
-            class="relative aspect-video w-full overflow-hidden rounded-lg border border-line-2 bg-surface"
+            class="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
@@ -87,17 +87,17 @@ onBeforeUnmount(() => {
                 @click="watchVideo"
             >
                 <img v-if="cover" :src="cover" alt="" class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
-                <span class="absolute inset-0 flex items-center justify-center bg-ink/20 transition-colors group-hover:bg-ink/30">
-                    <span class="flex size-16 items-center justify-center rounded-full bg-canvas/90 text-ink shadow-card transition-transform group-hover:scale-110">
+                <span class="absolute inset-0 flex items-center justify-center bg-neutral-900/20 transition-colors group-hover:bg-neutral-900/30">
+                    <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon :icon="PlayIcon" class="size-7" />
                     </span>
                 </span>
             </button>
         </div>
-        <img v-else-if="cover" :src="cover" alt="" class="aspect-video w-full rounded-lg border border-line-2 object-cover">
+        <img v-else-if="cover" :src="cover" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
-        <p v-if="durationLabel" class="text-meta text-ink-3">
-            Duration: <span class="tnum text-ink-2">{{ durationLabel }}</span>
+        <p v-if="durationLabel" class="text-meta text-neutral-500">
+            Duration: <span class="tnum text-neutral-700">{{ durationLabel }}</span>
         </p>
 
         <div class="flex flex-wrap items-center gap-4">
@@ -110,24 +110,24 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.topic">
             <SectionHead title="This Week's Topics" />
-            <p class="max-w-prose text-body text-ink-2">{{ entry.topic }}</p>
+            <p class="max-w-prose text-body text-neutral-700">{{ entry.topic }}</p>
         </div>
 
         <Accordion v-if="entry.show_notes" title="Show Notes">
-            <div class="show-notes max-w-prose whitespace-pre-line text-body text-ink-2" v-html="entry.show_notes"></div>
+            <div class="show-notes max-w-prose whitespace-pre-neutral-100 text-body text-neutral-700" v-html="entry.show_notes"></div>
         </Accordion>
     </div>
 </template>
 
 <style scoped>
 .show-notes :deep(a) {
-    color: var(--color-accent);
+    color: var(--color-accent-500);
     text-decoration: underline;
     text-underline-offset: 2px;
     overflow-wrap: anywhere;
 }
 
 .show-notes :deep(a:hover) {
-    color: var(--color-accent-active);
+    color: var(--color-accent-700);
 }
 </style>

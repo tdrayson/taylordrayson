@@ -16,15 +16,15 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
 </script>
 
 <template>
-    <nav aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-ink-3">
-        <Link href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent">
+    <nav aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-neutral-500">
+        <Link href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent-500">
             <Icon :icon="Home01Icon" class="size-4" />
         </Link>
 
         <!-- Ancestors: shown inline on every breakpoint (these are the real navigation). -->
         <template v-for="(item, index) in ancestors" :key="index">
-            <span class="mx-2 shrink-0 text-line" aria-hidden="true">/</span>
-            <Link v-if="item.href" :href="item.href" class="shrink-0 transition-colors hover:text-accent">{{ item.label }}</Link>
+            <span class="mx-2 shrink-0 text-neutral-100" aria-hidden="true">/</span>
+            <Link v-if="item.href" :href="item.href" class="shrink-0 transition-colors hover:text-accent-500">{{ item.label }}</Link>
             <span v-else class="shrink-0">{{ item.label }}</span>
         </template>
 
@@ -35,7 +35,7 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
             class="min-w-0 items-center"
             :class="ancestors.length ? 'hidden md:flex' : 'flex'"
         >
-            <span class="mx-2 shrink-0 text-line" aria-hidden="true">/</span>
+            <span class="mx-2 shrink-0 text-neutral-100" aria-hidden="true">/</span>
             <span class="min-w-0 truncate" aria-current="page">{{ current.label }}</span>
         </div>
     </nav>

@@ -17,7 +17,7 @@ defineEmits(['update:modelValue']);
         :aria-checked="modelValue"
         :disabled="disabled"
         class="flex size-5 shrink-0 items-center justify-center rounded border transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        :class="modelValue ? 'border-accent bg-accent text-canvas' : 'border-line bg-canvas text-transparent hover:border-accent'"
+        :class="modelValue ? 'border-accent-500 bg-accent-500 text-neutral-0' : 'border-neutral-100 bg-neutral-0 text-transparent hover:border-accent-500'"
         @click="$emit('update:modelValue', !modelValue)"
     >
         <Icon :icon="Tick02Icon" class="size-3.5" />

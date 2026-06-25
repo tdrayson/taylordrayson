@@ -150,12 +150,12 @@ function clearFilter() {
 <template>
     <div class="flex flex-col gap-5">
         <template v-for="(group, groupIndex) in groups" :key="groupIndex">
-            <div class="rounded-lg border border-line-2">
+            <div class="rounded-lg border border-neutral-50">
                 <div
-                    class="flex items-center gap-3 bg-surface px-5 py-4"
-                    :class="group.type ? 'rounded-t-lg border-b border-line-2' : 'rounded-lg'"
+                    class="flex items-center gap-3 bg-neutral-25 px-5 py-4"
+                    :class="group.type ? 'rounded-t-lg border-b border-neutral-50' : 'rounded-lg'"
                 >
-                    <span class="shrink-0 whitespace-nowrap text-label uppercase text-ink-3">Show me</span>
+                    <span class="shrink-0 whitespace-nowrap text-label uppercase text-neutral-500">Show me</span>
                     <div class="w-56">
                         <StyledSelect
                             :model-value="group.type"
@@ -166,10 +166,10 @@ function clearFilter() {
                     </div>
                 </div>
 
-                <div v-if="group.type" class="rounded-b-lg bg-canvas px-5 py-5">
+                <div v-if="group.type" class="rounded-b-lg bg-neutral-0 px-5 py-5">
                 <div class="flex flex-col gap-3">
                     <div v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex" class="flex items-center gap-3">
-                        <span class="w-16 shrink-0 text-label uppercase text-ink-3">{{ conditionIndex === 0 ? 'Where' : 'And' }}</span>
+                        <span class="w-16 shrink-0 text-label uppercase text-neutral-500">{{ conditionIndex === 0 ? 'Where' : 'And' }}</span>
 
                         <div class="w-56 shrink-0">
                             <FieldPicker
@@ -200,7 +200,7 @@ function clearFilter() {
 
                         <button
                             type="button"
-                            class="shrink-0 rounded-md p-2 text-ink-3 transition-colors hover:text-accent"
+                            class="shrink-0 rounded-md p-2 text-neutral-500 transition-colors hover:text-accent-500"
                             aria-label="Remove condition"
                             @click="removeCondition(group, conditionIndex)"
                         >
@@ -211,7 +211,7 @@ function clearFilter() {
 
                 <button
                     type="button"
-                    class="mt-4 inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-label uppercase text-ink-2 transition-colors hover:border-accent hover:text-accent"
+                    class="mt-4 inline-flex items-center gap-1.5 rounded-md border border-neutral-100 px-3 py-1.5 text-label uppercase text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-500"
                     @click="addCondition(group)"
                 >
                     <Icon :icon="PlusSignIcon" class="size-3.5" /> Add
@@ -221,21 +221,21 @@ function clearFilter() {
 
             <!-- Insert another OR group at this position. -->
             <div class="flex items-center gap-3">
-                <span class="or-line flex-1" />
+                <span class="or-neutral-100 flex-1" />
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-label uppercase text-accent transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
+                    class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-label uppercase text-accent-500 transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
                     @click="addGroupAt(groupIndex + 1)"
                 >
                     <Icon :icon="PlusSignIcon" class="size-3.5" /> Or
                 </button>
-                <span class="or-line flex-1" />
+                <span class="or-neutral-100 flex-1" />
             </div>
         </template>
 
         <div class="mt-2 flex items-center gap-4">
             <Button variant="primary" size="lg" :disabled="!canFilter" @click="applyFilter">Filter</Button>
-            <button type="button" class="text-meta text-ink-3 transition-colors hover:text-ink" @click="clearFilter">
+            <button type="button" class="text-meta text-neutral-500 transition-colors hover:text-neutral-900" @click="clearFilter">
                 Clear filters
             </button>
         </div>
@@ -244,8 +244,8 @@ function clearFilter() {
 
 <style scoped>
 /* Dashed divider with a larger dash + gap than CSS dotted/dashed borders allow. */
-.or-line {
+.or-neutral-100 {
     height: 2px;
-    background: repeating-linear-gradient(to right, var(--color-line) 0 8px, transparent 8px 16px);
+    background: repeating-linear-gradient(to right, var(--color-neutral-100) 0 8px, transparent 8px 16px);
 }
 </style>

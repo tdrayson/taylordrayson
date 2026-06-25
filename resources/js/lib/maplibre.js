@@ -116,7 +116,7 @@ export function greatCircle(a, b, segments = 128) {
 export function iataLabel(maplibregl, point) {
     const element = document.createElement('div');
     element.textContent = point.iata;
-    element.className = 'pointer-events-none rounded-md border border-line bg-canvas px-1.5 py-0.5 text-label font-bold text-ink-2 shadow-card';
+    element.className = 'pointer-events-none rounded-md border border-neutral-100 bg-neutral-0 px-1.5 py-0.5 text-label font-bold text-neutral-700 shadow-card';
 
     return new maplibregl.Marker({ element, anchor: 'bottom', offset: [0, -9] }).setLngLat([point.lng, point.lat]);
 }

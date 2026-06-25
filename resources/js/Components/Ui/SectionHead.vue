@@ -8,6 +8,6 @@ defineProps({
 <template>
     <div class="mb-4 mt-12 flex items-baseline justify-between gap-4">
         <h2 class="font-display text-section">{{ title }}</h2>
-        <span v-if="meta" class="whitespace-nowrap text-xs text-ink-3">{{ meta }}</span>
+        <span v-if="meta" class="whitespace-nowrap text-xs text-neutral-500">{{ meta }}</span>
     </div>
 </template>

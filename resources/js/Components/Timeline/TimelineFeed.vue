@@ -28,7 +28,7 @@ defineProps({
     top: 14px;
     bottom: 10px;
     width: 2px;
-    background: var(--color-line-2);
+    background: var(--color-neutral-50);
     border-radius: 2px;
 }
 
@@ -40,6 +40,6 @@ defineProps({
     width: 8px;
     height: 8px;
     border-radius: 9999px;
-    background: var(--color-line-2);
+    background: var(--color-neutral-50);
 }
 </style>

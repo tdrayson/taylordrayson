@@ -127,11 +127,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="flights-map full-width relative overflow-hidden border-y border-line-2 md:full-width-inset md:rounded-lg md:border-x">
+    <div class="flights-map full-width relative overflow-hidden border-y border-neutral-50 md:full-width-inset md:rounded-lg md:border-x">
         <div ref="container" class="size-full" />
         <button
             type="button"
-            class="absolute left-3 top-3 z-10 rounded-md border border-line bg-canvas/95 px-2.5 py-1.5 text-label font-semibold text-ink-2 shadow-card transition-colors hover:text-accent"
+            class="absolute left-3 top-3 z-10 rounded-md border border-neutral-100 bg-neutral-0/95 px-2.5 py-1.5 text-label font-semibold text-neutral-700 shadow-card transition-colors hover:text-accent-500"
             :aria-pressed="showLabels"
             @click="showLabels = !showLabels"
         >

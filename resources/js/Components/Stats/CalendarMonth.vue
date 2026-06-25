@@ -48,7 +48,7 @@ function dayUrl(day) {
 
 <template>
     <div class="mt-6 grid grid-cols-7 gap-2">
-        <div v-for="weekday in weekdays" :key="weekday" class="px-1 pb-1 text-label uppercase text-ink-3">
+        <div v-for="weekday in weekdays" :key="weekday" class="px-1 pb-1 text-label uppercase text-neutral-500">
             {{ weekday }}
         </div>
 
@@ -56,11 +56,11 @@ function dayUrl(day) {
             <Link
                 v-if="cell"
                 :href="dayUrl(cell)"
-                class="flex min-h-24 flex-col rounded-md border-2 border-transparent bg-surface p-2 transition-colors hover:border-accent focus-visible:border-accent focus-visible:outline-none"
-                :class="isCurrentMonth && cell === today.getDate() ? 'outline outline-2 outline-accent' : ''"
+                class="flex min-h-24 flex-col rounded-md border-2 border-transparent bg-neutral-25 p-2 transition-colors hover:border-accent-500 focus-visible:border-accent-500 focus-visible:outline-none"
+                :class="isCurrentMonth && cell === today.getDate() ? 'outline outline-2 outline-accent-500' : ''"
             >
-                <span class="text-sm font-semibold" :class="isCurrentMonth && cell === today.getDate() ? 'text-accent' : 'text-ink'">{{ cell }}</span>
-                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-3 tnum">
+                <span class="text-sm font-semibold" :class="isCurrentMonth && cell === today.getDate() ? 'text-accent-500' : 'text-neutral-900'">{{ cell }}</span>
+                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-neutral-500 tnum">
                     <span v-if="days[cell]?.sleep" class="inline-flex items-center gap-1">
                         <Icon :icon="sleepIcon" class="size-3" />{{ sleepHours(days[cell].sleep) }}
                     </span>
@@ -69,7 +69,7 @@ function dayUrl(day) {
                     </span>
                 </div>
 
-                <div v-if="days[cell]?.types?.length" class="mt-auto flex flex-wrap items-center gap-1 pt-1.5 text-ink-3">
+                <div v-if="days[cell]?.types?.length" class="mt-auto flex flex-wrap items-center gap-1 pt-1.5 text-neutral-500">
                     <Icon
                         v-for="(type, i) in days[cell].types.slice(0, ICON_LIMIT)"
                         :key="i"

@@ -78,7 +78,7 @@ onBeforeUnmount(() => {
         <div
             v-if="entry.video_url"
             ref="slot"
-            class="relative aspect-video w-full overflow-hidden rounded-lg border border-line-2 bg-surface"
+            class="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
@@ -88,14 +88,14 @@ onBeforeUnmount(() => {
                 @click="watchVideo"
             >
                 <img v-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
-                <span class="absolute inset-0 flex items-center justify-center bg-ink/20 transition-colors group-hover:bg-ink/30">
-                    <span class="flex size-16 items-center justify-center rounded-full bg-canvas/90 text-ink shadow-card transition-transform group-hover:scale-110">
+                <span class="absolute inset-0 flex items-center justify-center bg-neutral-900/20 transition-colors group-hover:bg-neutral-900/30">
+                    <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon :icon="PlayIcon" class="size-7" />
                     </span>
                 </span>
             </button>
         </div>
-        <img v-else-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="aspect-video w-full rounded-lg border border-line-2 object-cover">
+        <img v-else-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
         <DetailList :rows="rows" />
 
@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p class="max-w-prose whitespace-pre-line text-body text-ink-2">{{ entry.description }}</p>
+            <p class="max-w-prose whitespace-pre-neutral-100 text-body text-neutral-700">{{ entry.description }}</p>
         </div>
 
         <div v-if="entry.url" class="flex flex-wrap gap-x-6 gap-y-3">

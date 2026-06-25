@@ -11,7 +11,7 @@ defineProps({
 
 <template>
     <span
-        class="inline-badge inline-block size-7 overflow-hidden bg-surface"
+        class="inline-badge inline-block size-7 overflow-hidden bg-neutral-25"
         :class="circle ? 'rounded-full' : 'rounded-sm'"
         aria-hidden="true"
     >

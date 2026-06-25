@@ -9,9 +9,9 @@ const props = defineProps({
 });
 
 const VARIANTS = {
-    default: 'bg-surface text-ink-2',
-    accent: 'bg-accent-tint text-accent-active',
-    outline: 'border border-line text-ink-2',
+    default: 'bg-neutral-25 text-neutral-700',
+    accent: 'bg-accent-50 text-accent-700',
+    outline: 'border border-neutral-100 text-neutral-700',
 };
 
 const classes = computed(() =>

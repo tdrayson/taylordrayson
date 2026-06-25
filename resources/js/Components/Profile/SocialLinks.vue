@@ -22,7 +22,7 @@ defineProps({
             :href="link.href"
             :rel="link.rel"
             :aria-label="link.label"
-            class="text-ink-3 transition-colors hover:text-accent"
+            class="text-neutral-500 transition-colors hover:text-accent-500"
         >
             <Icon :icon="link.icon" class="size-4" />
         </a>

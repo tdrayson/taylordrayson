@@ -77,7 +77,7 @@ watch(
             type="number"
             min="0"
             placeholder="0"
-            class="w-20 shrink-0 rounded-md border border-line bg-canvas px-3 py-2.5 text-meta text-ink transition-colors placeholder:text-ink-3 focus:border-accent focus:outline-none"
+            class="w-20 shrink-0 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none"
             @input="onAmount($event.target.value)"
         >
         <div class="flex-1">

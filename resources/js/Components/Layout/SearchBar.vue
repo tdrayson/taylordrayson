@@ -14,11 +14,11 @@ const shortcut = computed(() => (isApple ? '⌘K' : 'Ctrl K'));
 <template>
     <button
         type="button"
-        class="flex w-full items-center gap-2.5 rounded-full border border-line-2 bg-surface px-4 py-2 text-ink-3 transition-colors hover:border-line focus-visible:border-accent focus-visible:outline-none"
+        class="flex w-full items-center gap-2.5 rounded-full border border-neutral-50 bg-neutral-25 px-4 py-2 text-neutral-500 transition-colors hover:border-neutral-100 focus-visible:border-accent-500 focus-visible:outline-none"
         @click="open"
     >
         <Icon :icon="Search01Icon" class="size-4 shrink-0" />
-        <span class="text-nav text-ink-2">Search</span>
-        <kbd class="ml-auto rounded border border-line-2 bg-canvas px-1.5 py-0.5 text-label text-ink-3">{{ shortcut }}</kbd>
+        <span class="text-nav text-neutral-700">Search</span>
+        <kbd class="ml-auto rounded border border-neutral-50 bg-neutral-0 px-1.5 py-0.5 text-label text-neutral-500">{{ shortcut }}</kbd>
     </button>
 </template>

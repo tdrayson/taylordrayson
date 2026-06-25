@@ -152,36 +152,36 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
     <div ref="root" class="relative">
         <button
             type="button"
-            class="flex w-full items-center gap-2 rounded-md border border-line bg-canvas px-3 py-2.5 text-left text-meta transition-colors hover:border-accent"
-            :class="display ? 'text-ink' : 'text-ink-3'"
+            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500"
+            :class="display ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
-            <Icon :icon="Calendar03Icon" class="size-4 shrink-0 text-ink-3" />
+            <Icon :icon="Calendar03Icon" class="size-4 shrink-0 text-neutral-500" />
             <span class="flex-1 truncate">{{ display ?? defaultPlaceholder }}</span>
         </button>
 
-        <div v-if="open" class="absolute left-0 z-50 mt-2 w-64 rounded-lg border border-line-2 bg-canvas p-3 shadow-card">
+        <div v-if="open" class="absolute left-0 z-50 mt-2 w-64 rounded-lg border border-neutral-50 bg-neutral-0 p-3 shadow-card">
             <!-- Days view -->
             <template v-if="pickerView === 'days'">
                 <div class="flex items-center justify-between">
-                    <button type="button" class="rounded p-1 text-ink-3 transition-colors hover:text-accent" @click="stepMonth(-1)">
+                    <button type="button" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500" @click="stepMonth(-1)">
                         <Icon :icon="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-ink transition-colors hover:text-accent" @click="pickerView = 'months'">
+                    <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-neutral-900 transition-colors hover:text-accent-500" @click="pickerView = 'months'">
                         {{ monthNames[view.month] }} {{ view.year }}
                     </button>
-                    <button type="button" class="rounded p-1 text-ink-3 transition-colors hover:text-accent" @click="stepMonth(1)">
+                    <button type="button" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500" @click="stepMonth(1)">
                         <Icon :icon="ArrowRight01Icon" class="size-4" />
                     </button>
                 </div>
                 <div class="mt-3 grid grid-cols-7 gap-1 text-center">
-                    <span v-for="(weekday, index) in weekdays" :key="index" class="text-label text-ink-3">{{ weekday }}</span>
+                    <span v-for="(weekday, index) in weekdays" :key="index" class="text-label text-neutral-500">{{ weekday }}</span>
                     <template v-for="(cell, index) in days" :key="index">
                         <button
                             v-if="cell"
                             type="button"
-                            class="rounded border-2 border-transparent py-1 text-caption tnum transition-colors focus-visible:border-accent focus-visible:outline-none"
-                            :class="isSelectedDay(cell) ? 'bg-accent text-canvas' : isToday(cell) ? 'font-semibold text-accent hover:border-accent' : 'text-ink-2 hover:border-accent'"
+                            class="rounded border-2 border-transparent py-1 text-caption tnum transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                            :class="isSelectedDay(cell) ? 'bg-accent-500 text-neutral-0' : isToday(cell) ? 'font-semibold text-accent-500 hover:border-accent-500' : 'text-neutral-700 hover:border-accent-500'"
                             @click="pickDay(cell)"
                         >
                             {{ cell }}
@@ -194,13 +194,13 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <!-- Months view -->
             <template v-else-if="pickerView === 'months'">
                 <div class="flex items-center justify-between">
-                    <button type="button" class="rounded p-1 text-ink-3 transition-colors hover:text-accent" @click="stepYear(-1)">
+                    <button type="button" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500" @click="stepYear(-1)">
                         <Icon :icon="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-ink transition-colors hover:text-accent" @click="pickerView = 'years'">
+                    <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-neutral-900 transition-colors hover:text-accent-500" @click="pickerView = 'years'">
                         {{ view.year }}
                     </button>
-                    <button type="button" class="rounded p-1 text-ink-3 transition-colors hover:text-accent" @click="stepYear(1)">
+                    <button type="button" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500" @click="stepYear(1)">
                         <Icon :icon="ArrowRight01Icon" class="size-4" />
                     </button>
                 </div>
@@ -209,8 +209,8 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         v-for="(month, index) in monthsShort"
                         :key="index"
                         type="button"
-                        class="rounded border-2 border-transparent py-2 text-caption transition-colors focus-visible:border-accent focus-visible:outline-none"
-                        :class="isSelectedMonth(index) ? 'bg-accent text-canvas' : 'text-ink-2 hover:border-accent'"
+                        class="rounded border-2 border-transparent py-2 text-caption transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                        :class="isSelectedMonth(index) ? 'bg-accent-500 text-neutral-0' : 'text-neutral-700 hover:border-accent-500'"
                         @click="pickMonth(index)"
                     >
                         {{ month }}
@@ -221,11 +221,11 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <!-- Years view -->
             <template v-else>
                 <div class="flex items-center justify-between">
-                    <button type="button" class="rounded p-1 text-ink-3 transition-colors hover:text-accent" @click="stepDecade(-1)">
+                    <button type="button" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500" @click="stepDecade(-1)">
                         <Icon :icon="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <span class="text-meta font-semibold text-ink tnum">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
-                    <button type="button" class="rounded p-1 text-ink-3 transition-colors hover:text-accent" @click="stepDecade(1)">
+                    <span class="text-meta font-semibold text-neutral-900 tnum">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
+                    <button type="button" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500" @click="stepDecade(1)">
                         <Icon :icon="ArrowRight01Icon" class="size-4" />
                     </button>
                 </div>
@@ -234,8 +234,8 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         v-for="year in yearRange"
                         :key="year"
                         type="button"
-                        class="rounded border-2 border-transparent py-2 text-caption tnum transition-colors focus-visible:border-accent focus-visible:outline-none"
-                        :class="isSelectedYear(year) ? 'bg-accent text-canvas' : 'text-ink-2 hover:border-accent'"
+                        class="rounded border-2 border-transparent py-2 text-caption tnum transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                        :class="isSelectedYear(year) ? 'bg-accent-500 text-neutral-0' : 'text-neutral-700 hover:border-accent-500'"
                         @click="pickYear(year)"
                     >
                         {{ year }}

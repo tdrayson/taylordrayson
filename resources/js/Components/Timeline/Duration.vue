@@ -63,7 +63,7 @@ const fullLabel = computed(() => {
     margin-left: 0.05em;
     font-size: 0.7em;
     font-weight: 600;
-    color: var(--color-ink-3);
+    color: var(--color-neutral-500);
     text-decoration: none;
 }
 </style>

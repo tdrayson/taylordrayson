@@ -15,13 +15,13 @@ const emit = defineEmits(['update:modelValue']);
     <div class="relative">
         <select
             :value="modelValue"
-            class="w-full appearance-none rounded-md border border-line bg-canvas py-2.5 pl-3 pr-9 text-meta transition-colors focus:border-accent focus:outline-none"
-            :class="modelValue === '' ? 'text-ink-3' : 'text-ink'"
+            class="w-full appearance-none rounded-md border border-neutral-100 bg-neutral-0 py-2.5 pl-3 pr-9 text-meta transition-colors focus:border-accent-500 focus:outline-none"
+            :class="modelValue === '' ? 'text-neutral-500' : 'text-neutral-900'"
             @change="emit('update:modelValue', $event.target.value)"
         >
             <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
             <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
         </select>
-        <Icon :icon="ArrowDown01Icon" class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-3" />
+        <Icon :icon="ArrowDown01Icon" class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-neutral-500" />
     </div>
 </template>
