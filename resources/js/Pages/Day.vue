@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
-import StatRow from '../Components/Stats/StatRow.vue';
+import StatGrid from '../Components/Stats/StatGrid.vue';
 import ActivityRings from '../Components/Stats/ActivityRings.vue';
 import TimelineFeed from '../Components/Timeline/TimelineFeed.vue';
 import FutureNote from '../Components/Timeline/FutureNote.vue';
@@ -91,7 +91,7 @@ setLayoutProps({
             </div>
         </div>
 
-        <StatRow v-if="summaryStats.length" :stats="summaryStats" class="mt-8" />
+        <StatGrid v-if="summaryStats.length" :stats="summaryStats" class="mt-8" />
 
         <TimelineFeed v-if="items.length" :items="items" class="mt-10" />
         <p v-else class="mt-10 text-meta text-ink-3">No entries for this day.</p>

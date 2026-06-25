@@ -3,6 +3,7 @@ import { ref, computed, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import Button from '../Ui/Button.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import RouteThumb from '../Maps/RouteThumb.vue';
@@ -238,24 +239,28 @@ const fullTimestamp = computed(() => {
                 </span>
             </button>
         </div>
-        <button
+        <Button
             v-if="media?.videoUrl && !media?.thumbnail"
-            type="button"
-            class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-label uppercase text-ink-2 transition-colors hover:bg-accent-soft hover:text-accent-active"
+            variant="chip"
+            size="sm"
+            pill
+            class="mt-3"
             @click="watch"
         >
             <Icon :icon="videoPlaying ? PauseIcon : PlayIcon" class="size-3.5" />
             {{ videoPlaying ? 'Pause' : 'Watch' }}
-        </button>
-        <button
+        </Button>
+        <Button
             v-if="media?.audioUrl && !media?.videoUrl"
-            type="button"
-            class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-label uppercase text-ink-2 transition-colors hover:bg-accent-soft hover:text-accent-active"
+            variant="chip"
+            size="sm"
+            pill
+            class="mt-3"
             @click="listen"
         >
             <Icon :icon="mediaPlaying ? PauseIcon : PlayIcon" class="size-3.5" />
             {{ mediaPlaying ? 'Pause' : 'Listen' }}
-        </button>
+        </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
     </div>
 </template>

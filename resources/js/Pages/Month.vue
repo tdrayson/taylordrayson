@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
-import NumberStrip from '../Components/Stats/NumberStrip.vue';
+import StatGrid from '../Components/Stats/StatGrid.vue';
 import CalendarMonth from '../Components/Stats/CalendarMonth.vue';
 import FutureNote from '../Components/Timeline/FutureNote.vue';
 
@@ -58,7 +58,7 @@ setLayoutProps({
             :next="{ label: monthLabel(nextMonth), href: monthUrl(nextMonth) }"
         />
 
-        <NumberStrip v-if="stats.length" :stats="stats" class="mt-8" />
+        <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
 
         <CalendarMonth :year="year" :month="month" :days="days" />
     </template>

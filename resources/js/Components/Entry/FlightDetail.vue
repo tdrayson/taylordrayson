@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import FlightMap from '../Maps/FlightMap.vue';
-import StatRow from '../Stats/StatRow.vue';
+import StatGrid from '../Stats/StatGrid.vue';
 import { number, titleCase, time, flightDurationLabel } from '../../lib/format.js';
 
 const props = defineProps({
@@ -72,6 +72,6 @@ const stats = computed(() => [
             color="var(--color-flight)"
         />
 
-        <StatRow :stats="stats" />
+        <StatGrid :stats="stats" />
     </div>
 </template>

@@ -33,6 +33,7 @@ class Article extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'content' => 'array',
             'tags' => 'array',
             'draft' => 'boolean',
         ];

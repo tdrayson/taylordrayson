@@ -15,7 +15,7 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
 <template>
     <div class="space-y-8">
         <div class="flex flex-wrap items-center gap-2">
-            <Pill v-if="entry.status" :label="titleCase(entry.status)" :accent="entry.status === 'active'" />
+            <Pill v-if="entry.status" :label="titleCase(entry.status)" :variant="entry.status === 'active' ? 'accent' : 'default'" />
             <Pill v-if="entry.featured" label="Featured" />
         </div>
 

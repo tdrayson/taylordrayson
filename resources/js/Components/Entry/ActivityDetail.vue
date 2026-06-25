@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import StatRow from '../Stats/StatRow.vue';
+import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import HeartRateChart from '../Stats/HeartRateChart.vue';
 import { number, titleCase } from '../../lib/format.js';
@@ -81,7 +81,7 @@ function weightLabel(value) {
 
 <template>
     <div class="space-y-8">
-        <StatRow :stats="stats" />
+        <StatGrid :stats="stats" />
 
         <div v-if="!exercises.length">
             <SectionHead title="Heart rate" meta="bpm over the activity" />

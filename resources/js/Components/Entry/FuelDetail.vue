@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import StatRow from '../Stats/StatRow.vue';
+import StatGrid from '../Stats/StatGrid.vue';
 import DetailList from '../Ui/DetailList.vue';
 import { number } from '../../lib/format.js';
 
@@ -23,7 +23,7 @@ const rows = computed(() => [
 
 <template>
     <div class="space-y-8">
-        <StatRow :stats="stats" />
+        <StatGrid :stats="stats" />
         <DetailList :rows="rows" />
     </div>
 </template>

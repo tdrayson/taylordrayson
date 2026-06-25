@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Delete02Icon, PlusSignIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import Button from '../Ui/Button.vue';
 import FilterValue from './FilterValue.vue';
 import FieldPicker from './FieldPicker.vue';
 import StyledSelect from './StyledSelect.vue';
@@ -233,14 +234,7 @@ function clearFilter() {
         </template>
 
         <div class="mt-2 flex items-center gap-4">
-            <button
-                type="button"
-                class="rounded-md bg-accent px-5 py-2.5 text-meta font-medium text-canvas transition-colors hover:bg-accent-active disabled:opacity-40"
-                :disabled="!canFilter"
-                @click="applyFilter"
-            >
-                Filter
-            </button>
+            <Button variant="primary" size="lg" :disabled="!canFilter" @click="applyFilter">Filter</Button>
             <button type="button" class="text-meta text-ink-3 transition-colors hover:text-ink" @click="clearFilter">
                 Clear filters
             </button>

@@ -53,7 +53,7 @@ onUnmounted(() => {
 <template>
     <div ref="root" class="relative">
         <div class="inline-flex items-center rounded-md border border-line">
-            <Button :href="todayUrl" variant="plain">Today</Button>
+            <Button :href="todayUrl" variant="ghost" size="sm">Today</Button>
             <button
                 type="button"
                 class="flex items-center border-l border-line px-2 py-1.5 text-ink-3 transition-colors hover:text-accent"

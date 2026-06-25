@@ -5,6 +5,7 @@ import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
 import { PlayIcon, PauseIcon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import Button from '../Ui/Button.vue';
 import { player, togglePlay, closePlayer } from '../../lib/player.js';
 import { videoSource } from '../../lib/video.js';
 
@@ -255,14 +256,16 @@ onBeforeUnmount(() => {
         <div v-if="isAudio" class="fixed inset-x-0 bottom-0 z-50 border-t border-line-2 bg-canvas md:pl-66">
             <div class="mx-auto flex max-w-4xl items-center gap-4 px-5 py-3 md:px-10">
                 <img v-if="player.track.thumbnail" :src="player.track.thumbnail" alt="" class="size-11 shrink-0 rounded-md object-cover">
-                <button
-                    type="button"
-                    class="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-active"
+                <Button
+                    variant="primary"
+                    size="icon"
+                    pill
+                    class="size-10 shrink-0"
                     :aria-label="player.playing ? 'Pause' : 'Play'"
                     @click="togglePlay"
                 >
                     <Icon :icon="player.playing ? PauseIcon : PlayIcon" class="size-5" />
-                </button>
+                </Button>
                 <div class="min-w-0 flex-1">
                     <component
                         :is="player.track.url ? Link : 'div'"

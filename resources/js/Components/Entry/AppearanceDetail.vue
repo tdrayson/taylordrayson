@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import Button from '../Ui/Button.vue';
 import DetailList from '../Ui/DetailList.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
@@ -99,14 +100,10 @@ onBeforeUnmount(() => {
         <DetailList :rows="rows" />
 
         <div v-if="entry.audio_url" class="flex flex-wrap items-center gap-4">
-            <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-meta font-semibold text-white transition-colors hover:bg-accent-active"
-                @click="listen"
-            >
+            <Button variant="primary" size="lg" pill @click="listen">
                 <Icon :icon="audioPlaying ? PauseIcon : PlayIcon" class="size-5" />
                 {{ audioPlaying ? 'Pause' : 'Listen' }}
-            </button>
+            </Button>
         </div>
 
         <div v-if="entry.description">

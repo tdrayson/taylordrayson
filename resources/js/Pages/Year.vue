@@ -11,7 +11,7 @@ import {
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
-import NumberStrip from '../Components/Stats/NumberStrip.vue';
+import StatGrid from '../Components/Stats/StatGrid.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
 import Heatmap from '../Components/Stats/Heatmap.vue';
 import BarList from '../Components/Stats/BarList.vue';
@@ -89,7 +89,7 @@ const highlights = [
         :next="{ label: String(year + 1), href: `/${year + 1}` }"
     />
 
-    <NumberStrip :stats="numbers" big class="mt-8" />
+    <StatGrid :stats="numbers" size="lg" class="mt-8" />
 
     <SectionHead title="Every day this year" meta="2,118 entries" />
     <Heatmap />

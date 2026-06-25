@@ -20,7 +20,7 @@ const rows = computed(() => [
 <template>
     <div class="space-y-8">
         <div v-if="entry.is_mayor">
-            <Pill label="Mayor" accent />
+            <Pill label="Mayor" variant="accent" />
         </div>
 
         <DetailList :rows="rows" />

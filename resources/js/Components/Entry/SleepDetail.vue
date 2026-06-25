@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import StatRow from '../Stats/StatRow.vue';
+import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import SleepStages from '../Stats/SleepStages.vue';
 import StageBar from '../Stats/StageBar.vue';
@@ -34,7 +34,7 @@ const fallbackSegments = computed(() =>
 
 <template>
     <div class="space-y-8">
-        <StatRow :stats="stats" />
+        <StatGrid :stats="stats" />
 
         <div v-if="entry.stages?.length || fallbackSegments.length">
             <SectionHead title="Stages" />

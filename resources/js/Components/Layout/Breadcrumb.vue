@@ -16,7 +16,7 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
 </script>
 
 <template>
-    <nav v-if="items.length" aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-ink-3">
+    <nav aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-ink-3">
         <Link href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent">
             <Icon :icon="Home01Icon" class="size-4" />
         </Link>
