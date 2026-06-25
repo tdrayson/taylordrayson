@@ -52,7 +52,7 @@ const typeScale = [
     { cls: 'text-eyebrow', display: false, upper: true, label: 'eyebrow', sample: 'Streak' },
 ];
 
-const buttonVariants = ['primary', 'secondary', 'outline', 'ghost', 'chip', 'destructive', 'link'];
+const buttonVariants = ['primary', 'secondary', 'ghost', 'chip', 'destructive', 'link'];
 
 const detailRows = [
     { label: 'Distance', value: '5.42 km' },
