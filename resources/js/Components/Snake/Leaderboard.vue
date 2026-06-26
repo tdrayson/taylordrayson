@@ -1,30 +1,14 @@
 <script setup>
-import { computed } from 'vue';
-
 const props = defineProps({
     entries: { type: Array, default: () => [] },
     highlightFp: { type: String, default: '' },
     showHeading: { type: Boolean, default: true },
 });
 
-// Names that appear more than once need their fingerprint shown to tell them apart.
-const duplicateNames = computed(() => {
-    const counts = {};
-
-    for (const entry of props.entries) {
-        const key = entry.name.trim().toLowerCase();
-        counts[key] = (counts[key] ?? 0) + 1;
-    }
-
-    return counts;
-});
-
+// The fingerprint is backend-only: it never renders, it just lets a player spot
+// their own row. Duplicate names are left as-is (two Jakes are simply two Jakes).
 function isYou(entry) {
     return props.highlightFp !== '' && entry.fp === props.highlightFp;
-}
-
-function isDuplicate(entry) {
-    return (duplicateNames.value[entry.name.trim().toLowerCase()] ?? 0) > 1;
 }
 </script>
 
@@ -40,7 +24,7 @@ function isDuplicate(entry) {
             >
                 <span class="tnum w-6 text-meta" :class="isYou(entry) ? 'text-accent-500' : 'text-neutral-500'">{{ index + 1 }}</span>
                 <span class="min-w-0 flex-1 truncate text-body" :class="isYou(entry) ? 'font-semibold text-accent-500' : 'text-neutral-900'">
-                    {{ entry.name }}<span v-if="isDuplicate(entry)" class="ml-1 text-meta text-neutral-500">#{{ entry.fp }}</span>
+                    {{ entry.name }}
                     <span v-if="isYou(entry)" class="ml-2 inline-block rounded bg-neutral-25 px-1.5 py-0.5 align-middle text-label uppercase text-neutral-500">you</span>
                 </span>
                 <span v-if="entry.date" class="hidden text-meta text-neutral-500 sm:block">{{ entry.date }}</span>

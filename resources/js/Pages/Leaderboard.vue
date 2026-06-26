@@ -26,8 +26,7 @@ onMounted(() => {
     <Head title="Leaderboard" />
 
     <div class="mx-auto max-w-lg">
-        <p class="text-eyebrow uppercase text-neutral-500">404 Snake</p>
-        <h1 class="mt-3 font-display text-display">Leaderboard</h1>
+        <h1 class="font-display text-display">Leaderboard</h1>
         <p class="mt-4 text-body text-neutral-500">
             Every player who found the gap and logged a streak. {{ entries.length }} {{ entries.length === 1 ? 'name' : 'names' }} so far.
         </p>
