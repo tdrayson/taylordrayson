@@ -8,7 +8,7 @@ defineProps({
         default: () => [
             { icon: GithubIcon, href: 'https://github.com/tdrayson', label: 'GitHub', rel: 'me' },
             { icon: NewTwitterIcon, href: '#', label: 'X', rel: 'me' },
-            { icon: RssIcon, href: '/feed/rss', label: 'RSS feed', rel: 'alternate' },
+            { icon: RssIcon, href: '/feeds', label: 'Feeds', rel: null },
         ],
     },
 });

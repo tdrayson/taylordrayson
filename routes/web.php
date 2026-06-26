@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::feeds();
+Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
