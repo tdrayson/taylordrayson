@@ -15,7 +15,7 @@ const page = usePage();
 </script>
 
 <template>
-    <div class="flex min-h-screen flex-col md:flex-row">
+    <div class="flex min-h-dvh flex-col md:flex-row">
         <AppSidebar />
         <main class="flex min-w-0 flex-1 flex-col">
             <MobileNav />
