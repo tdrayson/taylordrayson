@@ -3,6 +3,7 @@
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\LeaderboardEntry;
 use App\Models\TimelineEntry;
+use App\Support\OgMeta;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->count());
 
                 return Inertia::render('Error', [
+                    'og' => OgMeta::error(404),
                     'status' => 404,
                     'entries' => $entries,
                     'days' => $days,

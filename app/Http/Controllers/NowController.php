@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Podcast;
+use App\Support\OgMeta;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,6 +15,7 @@ class NowController extends Controller
     public function index(): Response
     {
         return Inertia::render('Now', [
+            'og' => OgMeta::now(),
             'episode' => $this->latestEpisode(),
         ]);
     }

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link, setLayoutProps, usePage } from '@inertiajs/vue3';
+import { Link, setLayoutProps, usePage } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
@@ -13,6 +14,7 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 const props = defineProps({
     type: { type: String, required: true },
     accent: { type: String, required: true },
+    og: { type: Object, default: () => ({}) },
     title: { type: String, required: true },
     crumb: { type: String, default: '' },
     subtitle: { type: String, default: '' },
@@ -40,7 +42,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <Head :title="title" />
+    <AppHead :og="og" />
 
     <header class="flex items-start gap-4">
         <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">

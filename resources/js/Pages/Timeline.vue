@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import IntroBlock from '../Components/Timeline/IntroBlock.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
@@ -9,6 +10,7 @@ import Pagination from '../Components/Ui/Pagination.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
+    og: { type: Object, default: () => ({}) },
     groups: { type: Array, default: () => [] },
     currentPage: { type: Number, default: 1 },
     lastPage: { type: Number, default: 1 },
@@ -27,7 +29,7 @@ const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(pro
 </script>
 
 <template>
-    <Head title="Timeline" />
+    <AppHead :og="og" />
 
     <IntroBlock v-if="currentPage === 1" class="mb-14" />
 

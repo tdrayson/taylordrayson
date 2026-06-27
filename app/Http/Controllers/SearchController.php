@@ -6,6 +6,7 @@ use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
 use App\Search\SearchCompiler;
 use App\Search\SearchSchema;
+use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -66,6 +67,7 @@ class SearchController extends Controller
         $results = $this->runSearch($groups, $page);
 
         return Inertia::render('Search', [
+            'og' => OgMeta::search(),
             'schema' => SearchSchema::forClient(),
             'filter' => $groups,
             'groups' => $results['groups'],

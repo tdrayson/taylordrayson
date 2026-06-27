@@ -42,6 +42,38 @@ export function decodePolyline(encoded) {
 }
 
 /**
+ * Encode [lat, lng] pairs into a Google-encoded polyline (precision 1e5), the
+ * inverse of decodePolyline. Note the pair order: lat first, then lng.
+ */
+export function encodePolyline(points) {
+    const encodeValue = (value) => {
+        let v = value < 0 ? ~(value << 1) : value << 1;
+        let chunk = '';
+
+        while (v >= 0x20) {
+            chunk += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
+            v >>= 5;
+        }
+
+        return chunk + String.fromCharCode(v + 63);
+    };
+
+    let lastLat = 0;
+    let lastLng = 0;
+    let result = '';
+
+    for (const [lat, lng] of points) {
+        const latE5 = Math.round(lat * 1e5);
+        const lngE5 = Math.round(lng * 1e5);
+        result += encodeValue(latE5 - lastLat) + encodeValue(lngE5 - lastLng);
+        lastLat = latE5;
+        lastLng = lngE5;
+    }
+
+    return result;
+}
+
+/**
  * Project [lng, lat] points into SVG coordinates that fit a width×height box,
  * preserving aspect ratio (with a rough longitude correction) and centring the
  * shape. Returns [x, y] pairs with north pointing up.

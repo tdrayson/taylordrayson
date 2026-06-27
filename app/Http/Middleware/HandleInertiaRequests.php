@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+            'appUrl' => rtrim((string) config('app.url'), '/'),
         ];
     }
 }

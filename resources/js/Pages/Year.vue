@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import {
     WorkoutRunIcon,
     Airplane01Icon,
@@ -21,6 +22,7 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     year: { type: Number, required: true },
+    og: { type: Object, default: () => ({}) },
 });
 
 const isFuture = computed(() => props.year > new Date().getFullYear());
@@ -76,7 +78,7 @@ const highlights = [
 </script>
 
 <template>
-    <Head :title="String(year)" />
+    <AppHead :og="og" />
 
     <FutureNote v-if="isFuture" unit="year" />
 

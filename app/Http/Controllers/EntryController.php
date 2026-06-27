@@ -6,6 +6,7 @@ use App\Models\Appearance;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
+use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
@@ -48,6 +49,7 @@ class EntryController extends Controller
             'accent' => $card['accent'],
             'title' => $card['title'],
             'occurredAt' => $entry->occurred_at->toIso8601String(),
+            'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
                 ? $this->calorieDay($model)

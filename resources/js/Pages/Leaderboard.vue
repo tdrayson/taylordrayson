@@ -1,12 +1,14 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Leaderboard from '../Components/Snake/Leaderboard.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
+    og: { type: Object, default: () => ({}) },
     entries: { type: Array, default: () => [] },
 });
 
@@ -23,7 +25,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Leaderboard" />
+    <AppHead :og="og" />
 
     <div class="mx-auto max-w-lg">
         <h1 class="font-display text-display">Leaderboard</h1>

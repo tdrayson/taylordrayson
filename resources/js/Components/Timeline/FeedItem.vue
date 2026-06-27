@@ -12,6 +12,7 @@ import { clock, flightDurationLabel, number } from '../../lib/format.js';
 import { greatCircle } from '../../lib/maplibre.js';
 import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
+import { staticRouteMap, staticArcMap } from '../../lib/staticMap.js';
 
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
@@ -138,6 +139,24 @@ const routePath = computed(() => {
     return points.length > 1 ? points : null;
 });
 
+// Generated static map image: an activity's GPS trace, or a flight's great-circle
+// arc. INTERIM: rendered live from Mapbox; will move to a stored
+// (Cloudflare-hosted) URL. See lib/staticMap.js.
+const routeImageUrl = computed(() => {
+    if (props.polyline) {
+        return staticRouteMap(props.polyline);
+    }
+
+    const origin = props.route?.origin;
+    const destination = props.route?.destination;
+
+    if (origin?.lat != null && destination?.lat != null) {
+        return staticArcMap(origin, destination);
+    }
+
+    return null;
+});
+
 const banner = computed(() => {
     if (flightArc.value) {
         return { points: flightArc.value, endpoints: true };
@@ -212,7 +231,9 @@ const fullTimestamp = computed(() => {
             class="mt-3 max-w-sm"
         />
         <div v-else-if="meta" class="p-summary mt-2 line-clamp-2 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</div>
-        <RouteThumb v-if="banner" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
+        <!-- SVG banner only as a fallback when no generated image is available. -->
+        <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
+        <img v-if="routeImageUrl" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" >
         <div
             v-if="media?.thumbnail && media?.videoUrl"
             ref="videoSlot"

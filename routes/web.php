@@ -4,23 +4,34 @@ use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\NowController;
+use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\TimelineController;
 use App\Models\LeaderboardEntry;
+use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
+Route::get('/og.png', [OgImageController::class, 'show'])->middleware('throttle:60,1')->name('og');
+Route::get('/og/entry/{entry}.png', [OgImageController::class, 'entry'])
+    ->where('entry', '[0-9]+')->middleware('throttle:120,1')->name('og.entry');
+// TEMP: per-type OG card preview gallery.
+Route::get('/og-gallery', [OgImageController::class, 'gallery']);
+Route::get('/og/preview/{type}.png', [OgImageController::class, 'preview'])
+    ->where('type', '[a-z]+')->middleware('throttle:120,1');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 
 Route::get('/now', [NowController::class, 'index'])->name('now');
-Route::get('/design-system', fn () => Inertia::render('DesignSystem'))->name('design-system');
+Route::get('/design-system', fn () => Inertia::render('DesignSystem', [
+    'og' => OgMeta::designSystem(),
+]))->name('design-system');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
@@ -30,6 +41,7 @@ Route::post('/snake/score', [SnakeScoreController::class, 'store'])
 Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
     ->middleware('throttle:10,1')->name('snake.rename');
 Route::get('/leaderboard', fn () => Inertia::render('Leaderboard', [
+    'og' => OgMeta::leaderboard(),
     'entries' => LeaderboardEntry::topEntries(null),
 ]))->name('leaderboard');
 

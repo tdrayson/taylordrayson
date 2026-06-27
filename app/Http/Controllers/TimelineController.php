@@ -9,6 +9,7 @@ use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -36,6 +37,7 @@ class TimelineController extends Controller
             : $this->groupsForDates($dates->first(), $dates->last());
 
         return Inertia::render('Timeline', [
+            'og' => OgMeta::timeline(),
             'groups' => $groups,
             'currentPage' => $days->currentPage(),
             'lastPage' => $days->lastPage(),
@@ -63,6 +65,7 @@ class TimelineController extends Controller
     {
         return Inertia::render('Year', [
             'year' => $year,
+            'og' => OgMeta::year($year),
         ]);
     }
 
@@ -82,6 +85,7 @@ class TimelineController extends Controller
         return Inertia::render('Month', [
             'year' => $year,
             'month' => $month,
+            'og' => OgMeta::month($year, $month),
             'entriesCount' => $entries->count(),
             'days' => $this->monthDays($entries),
             'stats' => $this->monthStats($entries, $start, $end),
@@ -192,6 +196,7 @@ class TimelineController extends Controller
             'year' => $year,
             'month' => $month,
             'day' => $day,
+            'og' => OgMeta::day($date),
             'items' => $entries->map(fn (TimelineEntry $entry): array => $this->feed->cardItem($entry))->all(),
             'stats' => $this->dayStats($entries, $date),
             // Placeholder Apple-Health summary — replace with real data once the health schema lands.

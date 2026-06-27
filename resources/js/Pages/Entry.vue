@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Link, setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
@@ -33,6 +34,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
+    og: { type: Object, default: () => ({}) },
 });
 
 const DETAIL_COMPONENTS = {
@@ -75,7 +77,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <Head :title="title" />
+    <AppHead :og="og" />
 
     <header class="flex items-start gap-4">
         <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">

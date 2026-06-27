@@ -1,5 +1,6 @@
 <script setup>
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { router, setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import QueryBuilder from '../Components/Search/QueryBuilder.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
@@ -8,6 +9,7 @@ import Pagination from '../Components/Ui/Pagination.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
+    og: { type: Object, default: () => ({}) },
     schema: { type: Array, default: () => [] },
     filter: { type: Array, default: () => [] },
     groups: { type: Array, default: () => [] },
@@ -29,7 +31,7 @@ function goToPage(page) {
 </script>
 
 <template>
-    <Head title="Search" />
+    <AppHead :og="og" />
 
     <header>
         <h1 class="font-display text-display">Search</h1>

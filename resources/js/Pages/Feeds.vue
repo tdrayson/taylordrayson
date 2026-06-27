@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Head, setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import { RssIcon, SourceCodeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
@@ -11,6 +12,7 @@ import FeedUrlField from '../Components/Feeds/FeedUrlField.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
+    og: { type: Object, default: () => ({}) },
     types: { type: Array, default: () => [] },
     presets: { type: Array, default: () => [] },
 });
@@ -71,7 +73,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
 
 <template>
     <div class="mx-auto max-w-2xl">
-        <Head title="Feeds" />
+        <AppHead :og="og" />
 
         <header class="mb-10 flex items-start gap-4">
             <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 sm:flex">

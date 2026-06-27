@@ -1,12 +1,13 @@
 <script setup>
 import { computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Snake404 from '../Components/Snake/Snake404.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
+    og: { type: Object, default: () => ({}) },
     status: { type: Number, default: 404 },
     entries: { type: Number, default: 0 },
     days: { type: Number, default: 0 },
@@ -29,7 +30,7 @@ const copy = computed(() => {
 </script>
 
 <template>
-    <Head :title="`${status} Not Found`" />
+    <AppHead :og="og" />
 
     <p class="text-eyebrow uppercase text-neutral-500">Error {{ status }}</p>
 

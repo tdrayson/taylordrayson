@@ -1,5 +1,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue';
+import Icon from '../Ui/Icon.vue';
+import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
 
 const props = defineProps({
     polyline: { type: String, required: true },
@@ -9,8 +11,19 @@ const props = defineProps({
 const MAPLIBRE_VERSION = '4.7.1';
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
+const FIT_OPTIONS = { padding: 48 };
+
 const container = ref(null);
+const ready = ref(false);
 let map = null;
+let savedBounds = null;
+
+// Re-fit the view to the route's bounds after the visitor has panned or zoomed.
+function recenter() {
+    if (map && savedBounds) {
+        map.fitBounds(savedBounds, FIT_OPTIONS);
+    }
+}
 
 function loadStylesheet(href) {
     if (document.querySelector(`link[href="${href}"]`)) {
@@ -125,9 +138,12 @@ onMounted(async () => {
         container: container.value,
         style: STYLE_URL,
         bounds,
-        fitBoundsOptions: { padding: 48 },
+        fitBoundsOptions: FIT_OPTIONS,
         attributionControl: false,
     });
+
+    savedBounds = bounds;
+    ready.value = true;
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
@@ -158,5 +174,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-neutral-50 sm:h-96" />
+    <div class="relative">
+        <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-neutral-50 sm:h-96" />
+        <button
+            v-if="ready"
+            type="button"
+            class="absolute left-2.5 top-2.5 z-10 flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-white text-neutral-700 shadow-sm transition-colors hover:text-accent-500"
+            aria-label="Re-center map"
+            @click="recenter"
+        >
+            <Icon :icon="CenterFocusIcon" class="size-4" />
+        </button>
+    </div>
 </template>

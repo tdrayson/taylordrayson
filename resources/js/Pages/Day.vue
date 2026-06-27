@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import StatGrid from '../Components/Stats/StatGrid.vue';
@@ -14,6 +15,7 @@ const props = defineProps({
     year: { type: Number, required: true },
     month: { type: Number, required: true },
     day: { type: Number, required: true },
+    og: { type: Object, default: () => ({}) },
     items: { type: Array, default: () => [] },
     stats: { type: Array, default: () => [] },
     rings: { type: Object, default: null },
@@ -70,7 +72,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <Head :title="`${day} ${monthName} ${year}`" />
+    <AppHead :og="og" />
 
     <FutureNote v-if="isFuture" unit="day" />
 

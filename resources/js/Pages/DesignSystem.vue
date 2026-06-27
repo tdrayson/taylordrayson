@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Link, setLayoutProps } from '@inertiajs/vue3';
+import AppHead from '../Components/AppHead.vue';
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
 import { PlayIcon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
@@ -18,6 +19,10 @@ import SocialLinks from '../Components/Profile/SocialLinks.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
+
+defineProps({
+    og: { type: Object, default: () => ({}) },
+});
 
 setLayoutProps({
     breadcrumb: [{ label: 'Design system' }],
@@ -83,7 +88,7 @@ function swatchInk(step) {
 </script>
 
 <template>
-    <Head title="Design system" />
+    <AppHead :og="og" />
 
     <article class="ds space-y-16 pb-12">
         <header>

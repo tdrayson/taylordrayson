@@ -1,5 +1,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue';
+import Icon from '../Ui/Icon.vue';
+import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { loadMaplibre, resolveColor, greatCircle, iataLabel, OPENFREEMAP_POSITRON } from '../../lib/maplibre.js';
 
 const props = defineProps({
@@ -8,9 +10,20 @@ const props = defineProps({
     color: { type: String, default: '#3858e9' },
 });
 
+const FIT_OPTIONS = { padding: 56, maxZoom: 7 };
+
 const container = ref(null);
+const ready = ref(false);
 let map = null;
 let markers = [];
+let savedBounds = null;
+
+// Re-fit the view to the flight arc's bounds after the visitor has panned or zoomed.
+function recenter() {
+    if (map && savedBounds) {
+        map.fitBounds(savedBounds, FIT_OPTIONS);
+    }
+}
 
 onMounted(async () => {
     const maplibregl = await loadMaplibre();
@@ -38,9 +51,12 @@ onMounted(async () => {
         container: container.value,
         style: OPENFREEMAP_POSITRON,
         bounds,
-        fitBoundsOptions: { padding: 56, maxZoom: 7 },
+        fitBoundsOptions: FIT_OPTIONS,
         attributionControl: false,
     });
+
+    savedBounds = bounds;
+    ready.value = true;
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
@@ -96,5 +112,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-neutral-50 sm:h-96" />
+    <div class="relative">
+        <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-neutral-50 sm:h-96" />
+        <button
+            v-if="ready"
+            type="button"
+            class="absolute left-2.5 top-2.5 z-10 flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-white text-neutral-700 shadow-sm transition-colors hover:text-accent-500"
+            aria-label="Re-center map"
+            @click="recenter"
+        >
+            <Icon :icon="CenterFocusIcon" class="size-4" />
+        </button>
+    </div>
 </template>

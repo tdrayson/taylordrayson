@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\BuildTimelineFeed;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
+use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -59,13 +60,17 @@ class ArchiveController extends Controller
 
         $noun = $definition['noun'];
         $taxonomyLabel = $value !== null ? ($taxonomy['labelFor'])($value) : null;
+        $accentToken = $type === 'calorie' ? 'food' : $type;
+        $title = $this->title($definition, $taxonomy, $taxonomyLabel);
+        $subtitle = $page->total().' '.Str::plural($noun, $page->total());
 
         return Inertia::render('Archive', [
             'type' => $type,
-            'accent' => $type === 'calorie' ? 'food' : $type,
-            'title' => $this->title($definition, $taxonomy, $taxonomyLabel),
+            'accent' => $accentToken,
+            'og' => OgMeta::archive($type, $definition['label'], $title, $accentToken, $value !== null, $subtitle),
+            'title' => $title,
             'crumb' => $taxonomyLabel ?? $definition['label'],
-            'subtitle' => $page->total().' '.Str::plural($noun, $page->total()),
+            'subtitle' => $subtitle,
             'groups' => $this->feed->groupByDay(collect($page->items())),
             'currentPage' => $page->currentPage(),
             'lastPage' => $page->lastPage(),
