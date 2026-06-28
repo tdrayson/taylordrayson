@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
+import fuzzysort from 'fuzzysort';
 import { Search01Icon, Calendar03Icon, SparklesIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
@@ -15,8 +16,10 @@ const activeIndex = ref(0);
 const input = ref(null);
 const listEl = ref(null);
 
-// Async free-text matches against actual timeline entries (debounced fetch).
+// Async matches from the server (debounced fetch): timeline entries, plus
+// taxonomy destination pages drawn live from the registry.
 const entryResults = ref([]);
+const destinationResults = ref([]);
 let searchTimer = null;
 let searchController = null;
 
@@ -36,7 +39,13 @@ const baseSections = [
     { heading: 'Jump to', items: jumpCommands },
 ];
 
-const allItems = baseSections.flatMap((section) => section.items);
+// Category weight breaks ties so primary pages outrank archives, which outrank
+// jump shortcuts, when match quality is otherwise equal.
+const sectionWeight = { Pages: 3, Archives: 2, 'Jump to': 1 };
+
+const allItems = baseSections.flatMap((section) =>
+    section.items.map((item) => ({ ...item, weight: sectionWeight[section.heading] ?? 0 })),
+);
 
 const dayLabel = (date) => date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
 const monthLabel = (date) => date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
@@ -83,34 +92,27 @@ function parseDates(text) {
     return [{ label: String(year), href: `/${year}`, icon: Calendar03Icon }];
 }
 
-// Subsequence fuzzy score: rewards consecutive matches and start-of-word hits.
-function fuzzyScore(queryText, text) {
-    const queryChars = queryText.toLowerCase();
-    const target = text.toLowerCase();
-    let queryIndex = 0;
-    let streak = 0;
-    let score = 0;
-
-    for (let i = 0; i < target.length && queryIndex < queryChars.length; i++) {
-        if (target[i] === queryChars[queryIndex]) {
-            streak += 1;
-            score += streak;
-
-            if (i === 0 || target[i - 1] === ' ') {
-                score += 4;
-            }
-
-            queryIndex += 1;
-        } else {
-            streak = 0;
-        }
-    }
-
-    return queryIndex === queryChars.length ? score : -1;
-}
-
-function bestScore(queryText, item) {
-    return Math.max(fuzzyScore(queryText, item.label), fuzzyScore(queryText, item.keywords ?? ''));
+// fuzzysort ranks the static destinations (pages + archive indexes) over both
+// the label and a discounted keyword field, so exact and prefix hits float to
+// the top while synonyms still match. Category weight breaks near-ties so a
+// primary page edges out an archive of comparable score.
+function rankItems(text) {
+    return fuzzysort
+        .go(text, allItems, {
+            keys: ['label', 'keywords'],
+            scoreFn: (keysResult) => Math.max(
+                keysResult[0] ? keysResult[0].score : 0,
+                keysResult[1] ? keysResult[1].score * 0.5 : 0,
+            ),
+            limit: 30,
+        })
+        .map((result) => ({ item: result.obj, score: result.score }))
+        .sort((a, b) =>
+            b.score - a.score
+            || b.item.weight - a.item.weight
+            || a.item.label.length - b.item.label.length,
+        )
+        .map((entry) => entry.item);
 }
 
 const sections = computed(() => {
@@ -128,6 +130,24 @@ const sections = computed(() => {
         raw.push({ heading: 'Date', items: dates });
     }
 
+    const ranked = rankItems(trimmed);
+
+    if (ranked.length) {
+        raw.push({ heading: 'Results', items: ranked });
+    }
+
+    if (destinationResults.value.length) {
+        raw.push({
+            heading: 'Jump to',
+            items: destinationResults.value.map((destination) => ({
+                label: destination.label,
+                meta: destination.section,
+                href: destination.url,
+                icon: entryType(destination.type).icon,
+            })),
+        });
+    }
+
     if (entryResults.value.length) {
         raw.push({
             heading: 'Entries',
@@ -138,16 +158,6 @@ const sections = computed(() => {
                 icon: entryType(entry.type).icon,
             })),
         });
-    }
-
-    const ranked = allItems
-        .map((item) => ({ item, score: bestScore(trimmed, item) }))
-        .filter((entry) => entry.score >= 0)
-        .sort((a, b) => b.score - a.score)
-        .map((entry) => entry.item);
-
-    if (ranked.length) {
-        raw.push({ heading: 'Results', items: ranked });
     }
 
     return withIndices(raw);
@@ -181,6 +191,7 @@ watch(query, (value) => {
 
     if (term.length < 2) {
         entryResults.value = [];
+        destinationResults.value = [];
 
         return;
     }
@@ -194,10 +205,13 @@ watch(query, (value) => {
                 signal: searchController.signal,
             });
 
-            entryResults.value = response.ok ? (await response.json()).results ?? [] : [];
+            const payload = response.ok ? await response.json() : {};
+            entryResults.value = payload.results ?? [];
+            destinationResults.value = payload.destinations ?? [];
         } catch (error) {
             if (error.name !== 'AbortError') {
                 entryResults.value = [];
+                destinationResults.value = [];
             }
         }
     }, 180);
@@ -218,6 +232,7 @@ watch(isOpen, (open) => {
         searchController?.abort();
         searchController = null;
         entryResults.value = [];
+        destinationResults.value = [];
     }
 });
 

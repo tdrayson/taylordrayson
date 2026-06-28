@@ -12,12 +12,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SearchController extends Controller
 {
     private const LIMIT = 8;
+
+    private const DESTINATION_LIMIT = 6;
 
     private const PER_TYPE = 5;
 
@@ -185,37 +188,28 @@ class SearchController extends Controller
     }
 
     /**
-     * Free-text search across timeline entries for the command palette, optionally
-     * narrowed to a single type and/or a date range, ordered by recency.
+     * Free-text search across timeline entries for the command palette, plus the
+     * matching taxonomy destination pages, ordered by recency.
      *
-     * @param  Request  $request  Carries `q`, and optional `type`, `from`, `to`.
-     * @return JsonResponse The matching entries as { results: [...] }.
+     * @param  Request  $request  Carries the `q` query term.
+     * @return JsonResponse The matches as { results: [...], destinations: [...] }.
      */
     public function suggest(Request $request): JsonResponse
     {
         $term = trim((string) $request->query('q', ''));
-        $typeParam = $request->query('type');
-        $from = $request->query('from');
-        $to = $request->query('to');
 
-        $registry = TypeRegistry::all();
-        $type = is_string($typeParam) && isset($registry[$typeParam]) ? $typeParam : null;
-        $hasText = mb_strlen($term) >= 2;
-        $hasRange = is_string($from) && is_string($to);
-
-        if (! $hasText && ! $hasRange && $type === null) {
-            return response()->json(['results' => []]);
+        if (mb_strlen($term) < 2) {
+            return response()->json(['results' => [], 'destinations' => []]);
         }
 
-        $targets = $type !== null ? [$type] : array_keys(self::SEARCHABLE);
+        $registry = TypeRegistry::all();
 
-        $results = collect($targets)
+        $results = collect(array_keys(self::SEARCHABLE))
             ->flatMap(fn (string $key): array => $this->searchType(
                 $registry[$key]['model'],
                 $key,
-                self::SEARCHABLE[$key] ?? [],
-                $hasText ? $term : '',
-                $hasRange ? [$from, $to] : null,
+                self::SEARCHABLE[$key],
+                $term,
             ))
             ->sortByDesc(fn (array $result): int => $result['occurred_at']->getTimestamp())
             ->take(self::LIMIT)
@@ -228,39 +222,72 @@ class SearchController extends Controller
             ])
             ->values();
 
-        return response()->json(['results' => $results]);
+        return response()->json([
+            'results' => $results,
+            'destinations' => $this->matchDestinations($term),
+        ]);
     }
 
     /**
-     * Match a single type's text columns (and optional date range) and shape each
-     * hit for the palette.
+     * Taxonomy pages (e.g. /activities/run, /places/london) whose label matches
+     * the term, drawn live from the registry so newly logged values appear with
+     * no code change. Prefix hits rank above mid-word hits, then shorter labels.
+     *
+     * @param  string  $term  The free-text query.
+     * @return array<int, array{label: string, section: string, type: string, url: string}>
+     */
+    private function matchDestinations(string $term): array
+    {
+        $needle = Str::lower($term);
+
+        return collect(TypeRegistry::all())
+            ->flatMap(function (array $definition, string $type) use ($needle): array {
+                $taxonomy = $definition['taxonomy'];
+
+                if ($taxonomy === null) {
+                    return [];
+                }
+
+                return $taxonomy['values']()
+                    ->filter(fn (array $value): bool => str_contains(Str::lower($value['label']), $needle))
+                    ->map(fn (array $value): array => [
+                        'label' => $value['label'],
+                        'section' => $definition['label'],
+                        'type' => $type,
+                        'url' => '/'.$taxonomy['base'].'/'.$value['value'],
+                        'rank' => str_starts_with(Str::lower($value['label']), $needle) ? 0 : 1,
+                    ])
+                    ->all();
+            })
+            ->sortBy(fn (array $destination): string => sprintf('%d %03d %s', $destination['rank'], mb_strlen($destination['label']), Str::lower($destination['label'])))
+            ->take(self::DESTINATION_LIMIT)
+            ->map(fn (array $destination): array => [
+                'label' => $destination['label'],
+                'section' => $destination['section'],
+                'type' => $destination['type'],
+                'url' => $destination['url'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Match a single type's text columns and shape each hit for the palette.
      *
      * @param  class-string  $model
      * @param  array<int, string>  $columns
-     * @param  array{0: string, 1: string}|null  $range
      * @return array<int, array{title: string, subtitle: ?string, type: string, url: string, occurred_at: Carbon}>
      */
-    private function searchType(string $model, string $type, array $columns, string $term, ?array $range): array
+    private function searchType(string $model, string $type, array $columns, string $term): array
     {
-        if ($term !== '' && $columns === []) {
-            return [];
-        }
-
-        $query = $model::query();
-
-        if ($term !== '' && $columns !== []) {
-            $query->where(function (Builder $builder) use ($columns, $term): void {
+        $query = $model::query()
+            ->where(function (Builder $builder) use ($columns, $term): void {
                 foreach ($columns as $column) {
                     $builder->orWhere($column, 'like', "%{$term}%");
                 }
-            });
-        }
-
-        if ($range !== null) {
-            $query->whereBetween('occurred_at', $range);
-        }
-
-        $query->orderByDesc('occurred_at')->limit(self::PER_TYPE);
+            })
+            ->orderByDesc('occurred_at')
+            ->limit(self::PER_TYPE);
 
         if ($type === 'flight') {
             $query->with(['origin', 'destination', 'airline']);

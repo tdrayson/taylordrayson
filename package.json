@@ -21,6 +21,7 @@
         "@vitejs/plugin-vue": "^6.0.7",
         "chrono-node": "^2.9.1",
         "clsx": "^2.1.1",
+        "fuzzysort": "^3.1.0",
         "gridstack": "^12.6.0",
         "maplibre-gl": "^5.24.0",
         "plyr": "^3.8.4",
