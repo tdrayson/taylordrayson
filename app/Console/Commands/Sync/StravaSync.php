@@ -193,7 +193,8 @@ class StravaSync extends Command
         $localDate = $data['start_date_local'] ?? $data['start_date'];
 
         return Activity::create([
-            'occurred_at' => Carbon::parse($localDate)->format('Y-m-d H:i:s'),
+            // Strava's start_date_local carries a Z; parse as UTC so the wall-clock digits are kept verbatim.
+            'occurred_at' => Carbon::parse($localDate, 'UTC')->format('Y-m-d H:i:s'),
             'type' => $type,
             'name' => $data['name'],
             'duration' => $data['moving_time'],

@@ -64,8 +64,9 @@ class BackfillStravaTimezones extends Command
                 $localDate = $summary['start_date_local'] ?? $summary['start_date'];
                 $ianaTimezone = Str::afterLast((string) ($summary['timezone'] ?? ''), ' ') ?: null;
 
+                // Strava's start_date_local carries a Z; parse as UTC so the wall-clock digits are kept verbatim.
                 $activity->update([
-                    'occurred_at' => Carbon::parse($localDate)->format('Y-m-d H:i:s'),
+                    'occurred_at' => Carbon::parse($localDate, 'UTC')->format('Y-m-d H:i:s'),
                     'timezone' => $ianaTimezone,
                 ]);
 
