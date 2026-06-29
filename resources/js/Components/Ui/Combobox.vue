@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { ArrowDown01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 import { cn } from '../../lib/cn.js';
@@ -64,6 +64,10 @@ watch(open, (value) => {
         window.removeEventListener('mousedown', onClickOutside);
     }
 });
+
+// The watcher only detaches on an open -> closed transition; a component that
+// unmounts while still open would otherwise leak its window listener.
+onUnmounted(() => window.removeEventListener('mousedown', onClickOutside));
 
 const triggerClasses = computed(() =>
     cn(
