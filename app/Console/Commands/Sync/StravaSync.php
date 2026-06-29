@@ -308,14 +308,6 @@ class StravaSync extends Command
     }
 
     /**
-     * Public accessor for the Strava access token, used by companion commands.
-     */
-    public function accessTokenForBackfill(): ?string
-    {
-        return $this->getAccessToken();
-    }
-
-    /**
      * Extract the IANA timezone name from Strava's "(GMT+00:00) Europe/London" format.
      */
     private function ianaTimezone(?string $stravaTimezone): ?string
