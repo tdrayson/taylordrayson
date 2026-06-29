@@ -28,8 +28,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Taylor Drayson')
+            ->darkMode(false)
+            ->font('Inter')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#3858e9'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
