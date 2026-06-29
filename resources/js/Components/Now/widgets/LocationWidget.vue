@@ -5,7 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 const props = defineProps({
     name: { type: String, default: 'Taylor' },
     city: { type: String, default: 'London, UK' },
-    avatar: { type: String, default: '/headshot-taylor.jpg' },
+    avatar: { type: String, default: '/taylor-cutout.png' },
     // Coarsened, privacy-safe coordinates sent to the page. The real location
     // stays server-side; only this rounded pair and a zoomed-out map are shown.
     latitude: { type: Number, default: 51 },
@@ -174,13 +174,14 @@ onBeforeUnmount(() => {
     overflow: hidden;
     border: 1.29cqw solid #fff;
     box-shadow: 0 3cqw 7.76cqw rgba(20, 22, 30, 0.32);
-    background: var(--color-accent-500);
+    background: var(--color-accent-100);
 }
 
 .location__avatar-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: top;
 }
 
 .location__label {

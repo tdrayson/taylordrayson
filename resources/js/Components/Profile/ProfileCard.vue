@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import Avatar from './Avatar.vue';
 import SocialLinks from './SocialLinks.vue';
 
 defineProps({
@@ -9,7 +10,7 @@ defineProps({
         type: String,
         default: 'I build stuff on the internet, track everything, and drink too much coffee.',
     },
-    avatar: { type: String, default: '/headshot-taylor.jpg' },
+    avatar: { type: String, default: '/taylor-cutout.png' },
 });
 
 const avatarEl = ref(null);
@@ -28,7 +29,7 @@ function launchAvatar() {
         return;
     }
 
-    const rect = avatarEl.value.getBoundingClientRect();
+    const rect = avatarEl.value.$el.getBoundingClientRect();
     const floor = window.innerHeight - rect.bottom + 6; // bottom edge meets the viewport floor
     const offBottom = window.innerHeight - rect.top + 80; // fully below the viewport
     const offTop = -(rect.bottom + 80); // fully above the viewport
@@ -51,13 +52,13 @@ function launchAvatar() {
 <template>
     <div class="h-card">
         <button type="button" aria-label="Boing" class="group mb-3 block w-fit" @click="launchAvatar">
-            <div
+            <Avatar
                 ref="avatarEl"
-                class="size-13 overflow-hidden rounded-full bg-linear-to-br from-accent-500 to-orange-300 group-hover:animate-avatar-boop"
-                :class="{ 'opacity-0': flying }"
-            >
-                <img v-if="avatar" :src="avatar" :alt="name" class="u-photo size-full object-cover" >
-            </div>
+                :src="avatar"
+                :alt="name"
+                img-class="u-photo"
+                :class="['group-hover:animate-avatar-boop', { 'opacity-0': flying }]"
+            />
         </button>
         <p class="mb-2 font-display text-name">
             <Link href="/" class="p-name u-url u-uid">{{ name }}</Link>
@@ -66,14 +67,14 @@ function launchAvatar() {
         <SocialLinks />
 
         <Teleport to="body">
-            <div
+            <Avatar
                 v-if="flying"
-                class="avatar-ball overflow-hidden rounded-full bg-linear-to-br from-accent-500 to-orange-300"
+                :src="avatar"
+                alt=""
+                class="avatar-ball"
                 :style="ballStyle"
                 @animationend="flying = false"
-            >
-                <img :src="avatar" alt="" class="size-full object-cover" >
-            </div>
+            />
         </Teleport>
     </div>
 </template>

@@ -6,6 +6,7 @@ import Icon from '../Ui/Icon.vue';
 import StatusBar from './StatusBar.vue';
 import SidebarNav from './SidebarNav.vue';
 import SocialLinks from '../Profile/SocialLinks.vue';
+import Avatar from '../Profile/Avatar.vue';
 import StreakBadge from '../Now/StreakBadge.vue';
 
 const open = ref(false);
@@ -40,7 +41,7 @@ onUnmounted(() => {
     <div class="md:hidden">
         <header class="flex items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
-                <img src="/headshot-taylor.jpg" alt="" class="size-8 rounded-full object-cover" >
+                <Avatar size="size-8" alt="" />
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
             </Link>
             <button
