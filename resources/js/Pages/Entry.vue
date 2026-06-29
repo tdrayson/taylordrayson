@@ -83,12 +83,14 @@ setLayoutProps({
 <template>
     <AppHead :og="og" />
 
-    <header class="flex items-start gap-4">
-        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
-            <Icon :icon="meta.icon" class="size-6" />
-        </span>
-        <div class="min-w-0">
-            <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline" :style="accentStyle">{{ meta.label }}</Link>
+    <header class="relative">
+        <div class="min-w-0 sm:pl-16 lg:pl-0">
+            <div class="relative">
+                <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
+                    <Icon :icon="meta.icon" class="size-6" />
+                </span>
+                <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline" :style="accentStyle">{{ meta.label }}</Link>
+            </div>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>

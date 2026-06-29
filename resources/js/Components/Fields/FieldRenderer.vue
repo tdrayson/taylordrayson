@@ -13,6 +13,7 @@ import RelationField from './RelationField.vue';
 import TagsField from './TagsField.vue';
 import GroupField from './GroupField.vue';
 import KeyValueField from './KeyValueField.vue';
+import TimezoneField from './TimezoneField.vue';
 
 const props = defineProps({
     field: { type: Object, required: true },
@@ -37,6 +38,7 @@ const COMPONENTS = {
     tags: TagsField,
     group: GroupField,
     keyvalue: KeyValueField,
+    timezone: TimezoneField,
 };
 
 const component = computed(() => COMPONENTS[props.field.type] ?? TextField);

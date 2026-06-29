@@ -6,6 +6,7 @@ import { GridStack } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
 import { DragDropVerticalIcon, Tick02Icon, RefreshIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
+import { setupWidgetTilt } from '../lib/widgetTilt.js';
 import Button from '../Components/Ui/Button.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import ChargingWidget from '../Components/Now/widgets/ChargingWidget.vue';
@@ -78,6 +79,7 @@ const gridEl = ref(null);
 const editing = ref(false);
 let grid = null;
 let mobileQuery = null;
+let teardownTilt = null;
 
 // 4 columns on desktop, 2 on narrow screens (matching the old bento breakpoint).
 // Handled manually rather than via Gridstack's columnOpts, whose non-matching
@@ -142,6 +144,7 @@ onMounted(() => {
             column: columnsForViewport(),
             cellHeight: 'auto', // square cells, matching the bento tiles
             margin: 8,
+            animate: true, // smoothly reflow the other widgets as one is dragged
             float: false,
             disableResize: true, // reorder only for now
             staticGrid: true, // no dragging until edit mode is on
@@ -151,11 +154,13 @@ onMounted(() => {
     );
 
     grid.on('change', saveLayout);
+    teardownTilt = setupWidgetTilt(grid);
     mobileQuery.addEventListener('change', applyColumns);
 });
 
 onBeforeUnmount(() => {
     mobileQuery?.removeEventListener('change', applyColumns);
+    teardownTilt?.();
     grid?.destroy(false);
     grid = null;
 });
@@ -215,6 +220,28 @@ onBeforeUnmount(() => {
    no intrinsic height in fill mode, e.g. the reading card) still get a height. */
 .now-grid.grid-stack .grid-stack-item-content > * {
     height: 100%;
+}
+
+/* Smooth, eased reflow as widgets shuffle to new cells during a drag. Overrides
+   Gridstack's flat 0.3s linear (its own `.grid-stack-animate` rule). The dragged
+   tile and the drop placeholder stay instant so they track the pointer/target. */
+.now-grid.grid-stack-animate > .grid-stack-item {
+    transition:
+        left 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        top 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.now-grid.grid-stack-animate > .grid-stack-item.ui-draggable-dragging,
+.now-grid.grid-stack-animate > .grid-stack-item.grid-stack-placeholder {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .now-grid.grid-stack-animate > .grid-stack-item {
+        transition: none;
+    }
 }
 
 /* Drag placeholder: a rounded, light-grey dashed outline matching the cards. */

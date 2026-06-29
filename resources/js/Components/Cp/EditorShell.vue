@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 
 const props = defineProps({
     tabs: { type: Array, default: () => ['Main'] },
+    hasSidebar: { type: Boolean, default: false },
 });
 
 const active = ref(props.tabs[0] ?? 'Main');
@@ -38,13 +39,16 @@ defineExpose({ active });
             </button>
         </nav>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div v-if="hasSidebar" class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div class="flex flex-col gap-6 lg:col-span-2">
                 <slot name="main" :active="active" />
             </div>
             <aside class="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
                 <slot name="sidebar" :active="active" />
             </aside>
+        </div>
+        <div v-else class="flex max-w-3xl flex-col gap-6">
+            <slot name="main" :active="active" />
         </div>
     </div>
 </template>

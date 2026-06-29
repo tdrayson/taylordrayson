@@ -8,6 +8,7 @@ import Button from '../../../Components/Ui/Button.vue';
 import Input from '../../../Components/Ui/Input.vue';
 import Card from '../../../Components/Ui/Card.vue';
 import Icon from '../../../Components/Ui/Icon.vue';
+import { duration } from '../../../lib/format.js';
 
 defineOptions({ layout: AppLayout });
 
@@ -31,10 +32,43 @@ watch(search, (value) => {
 
 const hasDraft = computed(() => (props.resource.fields ?? []).some((field) => field.key === 'draft'));
 
+// Field type per column, so a cell can be formatted (dates, durations) rather
+// than dumping the raw stored value.
+const fieldType = computed(() => Object.fromEntries((props.resource.fields ?? []).map((field) => [field.key, field.type])));
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Format the stored wall-clock string by slicing its parts, never via new Date()
+// (which would re-interpret it in the viewer's browser timezone).
+function formatDate(value) {
+    const [y, m, d] = String(value).slice(0, 10).split('-');
+
+    return `${Number(d)} ${MONTHS[Number(m) - 1] ?? ''} ${y}`;
+}
+
+function formatDateTime(value) {
+    return `${formatDate(value)}, ${String(value).slice(11, 16)}`;
+}
+
 function cell(record, key) {
     const value = record[key];
 
-    return value === null || value === undefined || value === '' ? 'Not set' : value;
+    if (value === null || value === undefined || value === '') {
+        return 'Not set';
+    }
+
+    if (key === 'duration') {
+        return duration(Number(value));
+    }
+
+    switch (fieldType.value[key]) {
+        case 'datetime':
+            return formatDateTime(value);
+        case 'date':
+            return formatDate(value);
+        default:
+            return value;
+    }
 }
 
 function sortBy(key) {

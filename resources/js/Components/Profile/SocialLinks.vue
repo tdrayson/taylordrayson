@@ -35,7 +35,7 @@ function isIdentityUrl(link) {
             :aria-label="link.label"
             :class="['text-neutral-500 transition-colors hover:text-accent-500', { 'u-url': isIdentityUrl(link) }]"
         >
-            <Icon :icon="link.icon" class="size-4" />
+            <Icon :icon="link.icon" class="size-5" />
         </a>
     </div>
 </template>

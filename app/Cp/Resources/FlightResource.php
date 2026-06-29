@@ -80,6 +80,8 @@ class FlightResource extends TimelineCpResource
                 ['value' => 'business', 'label' => 'Business'],
                 ['value' => 'first', 'label' => 'First'],
             ]],
+            'departure_timezone' => ['type' => 'timezone', 'label' => 'Departure timezone'],
+            'arrival_timezone' => ['type' => 'timezone', 'label' => 'Arrival timezone'],
         ];
     }
 
@@ -108,7 +110,7 @@ class FlightResource extends TimelineCpResource
             ['area' => 'main', 'title' => 'Route', 'fields' => ['origin_iata', 'destination_iata', 'distance_miles', 'duration']],
             ['area' => 'main', 'title' => 'Scheduling', 'fields' => ['scheduling']],
             ['area' => 'main', 'title' => 'Other data', 'fields' => ['meta_extra']],
-            ['area' => 'sidebar', 'title' => 'Flight', 'fields' => ['occurred_at', 'airline_icao', 'flight_number', 'cabin_class', 'reason']],
+            ['area' => 'sidebar', 'title' => 'Flight', 'fields' => ['occurred_at', 'airline_icao', 'flight_number', 'cabin_class', 'departure_timezone', 'arrival_timezone', 'reason']],
         ];
     }
 }

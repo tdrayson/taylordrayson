@@ -176,16 +176,18 @@ const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offs
 
 <template>
     <div class="relative block h-entry" :style="{ '--type-color': typeColor }">
-        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25">
+        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 lg:-left-12">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
-        <time v-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published float-right text-xs text-neutral-500 tnum">{{ time }}</time>
-        <span v-else-if="time" class="float-right text-xs text-neutral-500 tnum">{{ time }}</span>
-        <component
-            :is="typeHref ? Link : 'div'"
-            :href="typeHref || undefined"
-            class="type-color p-category text-label uppercase"
-        >{{ displayType }}</component>
+        <div class="flex min-h-9 items-center gap-2.5">
+            <component
+                :is="typeHref ? Link : 'div'"
+                :href="typeHref || undefined"
+                class="type-color p-category text-label uppercase"
+            >{{ displayType }}</component>
+            <time v-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
+            <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
+        </div>
         <div class="mt-1 font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"

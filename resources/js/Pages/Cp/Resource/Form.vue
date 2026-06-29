@@ -6,6 +6,7 @@ import AppHead from '../../../Components/AppHead.vue';
 import EditorShell from '../../../Components/Cp/EditorShell.vue';
 import FieldSection from '../../../Components/Cp/FieldSection.vue';
 import Button from '../../../Components/Ui/Button.vue';
+import Card from '../../../Components/Ui/Card.vue';
 
 defineOptions({ layout: AppLayout });
 
@@ -24,6 +25,7 @@ const heading = computed(() => (isEdit.value ? props.values.title || props.value
 
 const tabs = computed(() => props.resource.layout?.tabs ?? ['Main']);
 const sections = computed(() => props.resource.layout?.sections ?? []);
+const hasSidebar = computed(() => sections.value.some((section) => section.area === 'sidebar'));
 
 function sectionsFor(area, active) {
     return sections.value.filter((section) => section.area === area && (section.tab ?? 'Main') === active);
@@ -52,7 +54,7 @@ function submit() {
     <AppHead :og="{ title: heading }" />
 
     <form @submit.prevent="submit">
-        <EditorShell :tabs="tabs">
+        <EditorShell :tabs="tabs" :has-sidebar="hasSidebar">
             <template #status>
                 <span class="size-2.5 shrink-0 rounded-full" :class="statusClass" />
             </template>
@@ -63,21 +65,26 @@ function submit() {
             </template>
 
             <template #main="{ active }">
-                <FieldSection
-                    v-for="(section, index) in sectionsFor('main', active)"
-                    :key="`main-${index}`"
-                    :section="section"
-                    :form="form"
-                />
+                <Card variant="elevated" class="flex flex-col gap-6 p-6 sm:p-8">
+                    <FieldSection
+                        v-for="(section, index) in sectionsFor('main', active)"
+                        :key="`main-${index}`"
+                        :section="section"
+                        :form="form"
+                        :divided="index > 0"
+                    />
+                </Card>
             </template>
 
             <template #sidebar="{ active }">
-                <FieldSection
+                <Card
                     v-for="(section, index) in sectionsFor('sidebar', active)"
                     :key="`sidebar-${index}`"
-                    :section="section"
-                    :form="form"
-                />
+                    variant="elevated"
+                    class="p-5"
+                >
+                    <FieldSection :section="section" :form="form" />
+                </Card>
             </template>
         </EditorShell>
     </form>

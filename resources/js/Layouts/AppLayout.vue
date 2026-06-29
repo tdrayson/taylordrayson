@@ -24,7 +24,11 @@ const page = usePage();
                 <Breadcrumb :items="breadcrumb" />
             </div>
             <AppTopbar :breadcrumb="breadcrumb" :mode="mode" />
-            <div :key="page.url" class="content-grid w-full animate-fade-in pb-28 pt-8">
+            <div
+                :key="page.url"
+                class="w-full animate-fade-in pb-28 pt-8"
+                :class="mode === 'cp' ? 'mx-auto max-w-7xl px-6 md:px-10' : 'content-grid'"
+            >
                 <slot />
             </div>
         </main>

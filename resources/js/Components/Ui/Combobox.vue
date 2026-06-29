@@ -11,6 +11,9 @@ const props = defineProps({
     loading: { type: Boolean, default: false },
     invalid: { type: Boolean, default: false },
     clearable: { type: Boolean, default: true },
+    // Filter options locally by the typed query. Off for async sources
+    // (e.g. relations) whose parent already returns server-filtered options.
+    filter: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(['update:modelValue', 'search']);
@@ -22,6 +25,15 @@ const root = ref(null);
 
 const selected = computed(() => props.options.find((option) => option.value === props.modelValue) ?? null);
 const buttonLabel = computed(() => selected.value?.label ?? '');
+
+const visible = computed(() => {
+    const term = query.value.trim().toLowerCase();
+    if (!props.filter || term === '') {
+        return props.options;
+    }
+
+    return props.options.filter((option) => String(option.label).toLowerCase().includes(term));
+});
 
 watch(query, (value) => emit('search', value));
 
@@ -45,10 +57,11 @@ function toggle() {
 }
 
 function move(step) {
-    if (!props.options.length) {
+    const count = visible.value.length;
+    if (!count) {
         return;
     }
-    active.value = (active.value + step + props.options.length) % props.options.length;
+    active.value = (active.value + step + count) % count;
 }
 
 function onClickOutside(event) {
@@ -109,15 +122,15 @@ const triggerClasses = computed(() =>
                     class="w-full rounded-md border border-neutral-100 px-2.5 py-1.5 text-meta text-neutral-900 placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none"
                     @keydown.down.prevent="move(1)"
                     @keydown.up.prevent="move(-1)"
-                    @keydown.enter.prevent="options[active] && choose(options[active])"
+                    @keydown.enter.prevent="visible[active] && choose(visible[active])"
                     @keydown.esc.prevent="open = false"
                 >
             </div>
             <ul class="max-h-60 overflow-y-auto py-1">
                 <li v-if="loading" class="px-3 py-2 text-meta text-neutral-500">Loading</li>
-                <li v-else-if="!options.length" class="px-3 py-2 text-meta text-neutral-500">No matches</li>
+                <li v-else-if="!visible.length" class="px-3 py-2 text-meta text-neutral-500">No matches</li>
                 <li
-                    v-for="(option, index) in options"
+                    v-for="(option, index) in visible"
                     v-else
                     :key="option.value"
                     class="cursor-pointer px-3 py-2 text-meta"

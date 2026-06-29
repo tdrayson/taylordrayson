@@ -44,11 +44,11 @@ setLayoutProps({
 <template>
     <AppHead :og="og" />
 
-    <header class="flex items-start gap-4">
-        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
+    <header class="relative">
+        <span class="absolute left-0 top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex lg:-left-16" :style="accentStyle">
             <Icon :icon="meta.icon" class="size-6" />
         </span>
-        <div class="min-w-0">
+        <div class="min-w-0 sm:pl-16 lg:pl-0">
             <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>

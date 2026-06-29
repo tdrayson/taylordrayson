@@ -53,6 +53,7 @@ onMounted(() => load());
             :options="options"
             :loading="loading"
             :invalid="!!error"
+            :filter="false"
             :placeholder="`Select ${field.label.toLowerCase()}`"
             @update:model-value="$emit('update:modelValue', $event)"
             @search="search"

@@ -53,13 +53,13 @@ onUnmounted(() => {
 <template>
     <div ref="root" class="relative">
         <div class="inline-flex">
-            <Button :href="todayUrl" variant="secondary" size="sm" class="rounded-r-none border-r-0">
+            <Button :href="todayUrl" variant="secondary" size="sm" class="h-9 rounded-r-none border-r-0">
                 Today
             </Button>
             <Button
                 variant="secondary"
                 size="sm"
-                class="rounded-l-none px-2"
+                class="h-9 rounded-l-none px-2"
                 :aria-label="open ? 'Close time navigation' : 'Open time navigation'"
                 aria-haspopup="true"
                 :aria-expanded="open"
