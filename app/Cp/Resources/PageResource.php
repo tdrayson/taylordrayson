@@ -53,4 +53,13 @@ class PageResource extends CpResource
             ['key' => 'draft', 'label' => 'Draft'],
         ];
     }
+
+    /** @return array<int, array{area: string, tab?: string, title?: string, fields: array<int, string>}> */
+    public function sections(): array
+    {
+        return [
+            ['area' => 'main', 'fields' => ['title', 'content']],
+            ['area' => 'sidebar', 'title' => 'Publish', 'fields' => ['draft', 'slug']],
+        ];
+    }
 }

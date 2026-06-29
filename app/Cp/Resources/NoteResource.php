@@ -26,4 +26,13 @@ class NoteResource extends TimelineCpResource
     {
         return 'Notes';
     }
+
+    /** @return array<int, array{area: string, tab?: string, title?: string, fields: array<int, string>}> */
+    public function sections(): array
+    {
+        return [
+            ['area' => 'main', 'fields' => ['content']],
+            ['area' => 'sidebar', 'title' => 'Details', 'fields' => ['occurred_at']],
+        ];
+    }
 }

@@ -1,6 +1,8 @@
 <?php
 
 use App\Cp\CpResource;
+use App\Cp\Resources\ArticleResource;
+use App\Cp\Resources\NoteResource;
 use App\Models\Article;
 
 /** A minimal in-test resource with no declared sections. */
@@ -110,4 +112,26 @@ it('includes the resolved layout in meta', function () {
 
     expect($meta)->toHaveKey('layout');
     expect($meta['layout']['tabs'])->toBe(['Main', 'SEO']);
+});
+
+it('gives the article a main editor section and a publish sidebar', function () {
+    $layout = (new ArticleResource)->layout();
+
+    $sidebar = collect($layout['sections'])->firstWhere('area', 'sidebar');
+    expect($sidebar)->not->toBeNull();
+
+    $sidebarKeys = collect($sidebar['fields'])->pluck('key');
+    expect($sidebarKeys)->toContain('draft');
+    expect($sidebarKeys)->toContain('occurred_at');
+
+    $mainKeys = collect($layout['sections'])
+        ->where('area', 'main')
+        ->flatMap(fn ($s) => collect($s['fields'])->pluck('key'));
+    expect($mainKeys)->toContain('content');
+});
+
+it('gives the note a main + sidebar split without a draft field', function () {
+    $layout = (new NoteResource)->layout();
+
+    expect(collect($layout['sections'])->firstWhere('area', 'sidebar'))->not->toBeNull();
 });
