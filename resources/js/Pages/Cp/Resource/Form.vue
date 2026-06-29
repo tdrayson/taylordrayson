@@ -65,13 +65,14 @@ function submit() {
             </template>
 
             <template #main="{ active }">
-                <Card variant="elevated" class="flex flex-col gap-6 p-6 sm:p-8">
+                <Card variant="elevated" class="flex flex-col gap-6 p-6 sm:p-7">
                     <FieldSection
                         v-for="(section, index) in sectionsFor('main', active)"
                         :key="`main-${index}`"
                         :section="section"
                         :form="form"
                         :divided="index > 0"
+                        grid
                     />
                 </Card>
             </template>

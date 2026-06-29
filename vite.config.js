@@ -20,6 +20,9 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        // Allow Herd's *.test domain to reach the dev server (Vite 6 blocks
+        // unknown hosts by default).
+        allowedHosts: [".test"],
         watch: {
             ignored: ["**/storage/framework/views/**"],
         },

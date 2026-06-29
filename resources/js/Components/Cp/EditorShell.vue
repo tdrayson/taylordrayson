@@ -47,7 +47,7 @@ defineExpose({ active });
                 <slot name="sidebar" :active="active" />
             </aside>
         </div>
-        <div v-else class="flex max-w-3xl flex-col gap-6">
+        <div v-else class="flex max-w-4xl flex-col gap-6">
             <slot name="main" :active="active" />
         </div>
     </div>
