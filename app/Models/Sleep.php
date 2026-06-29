@@ -24,6 +24,10 @@ use Spatie\MediaLibrary\HasMedia;
     'deep',
     'source',
     'stages',
+    'score',
+    'duration_score',
+    'bedtime_score',
+    'interruption_score',
 ])]
 class Sleep extends Model implements HasMedia, Timelineable
 {

@@ -52,6 +52,15 @@ return [
         'refresh_token' => env('STRAVA_REFRESH_TOKEN'),
     ],
 
+    'health_export' => [
+        'token' => env('HEALTH_EXPORT_TOKEN'),
+    ],
+
+    'pocketcasts' => [
+        'email' => env('POCKETCASTS_EMAIL'),
+        'password' => env('POCKETCASTS_PASSWORD'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
