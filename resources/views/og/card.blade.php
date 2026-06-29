@@ -92,6 +92,37 @@
 
         .date svg { display: block; }
 
+        /* Sleep stage breakdown: a stacked bar of the night's stages. */
+        .stages { margin-top: 46px; }
+
+        .stage-bar {
+            display: flex;
+            width: 100%;
+            height: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .stage-seg { height: 100%; }
+
+        .stage-legend {
+            margin-top: 22px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 28px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .legend-dot { width: 18px; height: 18px; border-radius: 50%; }
+
         /* The home card's standfirst, set beneath the wordmark. */
         .tagline {
             margin-top: 28px;
@@ -127,6 +158,7 @@
     @php($date = $date ?? null)
     @php($image = $image ?? null)
     @php($subtitle = $subtitle ?? null)
+    @php($stages = $stages ?? null)
     <div class="inner">
         @if ($layout === 'cover')
             <img class="bg bg--blur" src="{{ $image }}" alt="">
@@ -155,6 +187,20 @@
                     <div class="date">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9298a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                         {{ $date }}
+                    </div>
+                @endif
+                @if ($stages)
+                    <div class="stages">
+                        <div class="stage-bar">
+                            @foreach ($stages as $segment)
+                                <span class="stage-seg" style="width: {{ $segment['percent'] }}%; background: {{ $segment['color'] }};"></span>
+                            @endforeach
+                        </div>
+                        <div class="stage-legend">
+                            @foreach ($stages as $segment)
+                                <span class="legend-item"><span class="legend-dot" style="background: {{ $segment['color'] }};"></span>{{ $segment['label'] }}</span>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </div>
