@@ -22,4 +22,6 @@ interface Timelineable
     public function slug(): string;
 
     public function url(): string;
+
+    public function timezone(): ?string;
 }

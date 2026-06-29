@@ -103,6 +103,11 @@ class Flight extends Model implements HasMedia, Timelineable
         return $this->belongsTo(Airport::class, 'destination_iata', 'iata_code');
     }
 
+    public function timezone(): ?string
+    {
+        return $this->departure_timezone;
+    }
+
     public function slug(): string
     {
         return strtolower("{$this->origin_iata}-{$this->destination_iata}");
