@@ -43,6 +43,18 @@ abstract class CpResource
     }
 
     /**
+     * Declared layout sections. Empty by default, so the resource renders every
+     * field in a single main section. Each entry: an area (main|sidebar), an
+     * optional tab name, an optional section title, and the field keys it holds.
+     *
+     * @return array<int, array{area: string, tab?: string, title?: string, fields: array<int, string>}>
+     */
+    public function sections(): array
+    {
+        return [];
+    }
+
+    /**
      * The resolved field definitions: guessed from the model, then overridden.
      *
      * @return array<int, array<string, mixed>>
@@ -56,6 +68,51 @@ abstract class CpResource
         }
 
         return array_values($guessed);
+    }
+
+    /**
+     * Resolve the declared sections against the resolved fields. Fields not named
+     * in any section fall through to a trailing main section so nothing is
+     * dropped. Tabs are the distinct tab names in declared order.
+     *
+     * @return array{tabs: array<int, string>, sections: array<int, array{area: string, tab: string, title: ?string, fields: array<int, array<string, mixed>>}>}
+     */
+    public function layout(): array
+    {
+        $fields = collect($this->fields())->keyBy('key');
+        $placed = [];
+        $sections = [];
+
+        foreach ($this->sections() as $section) {
+            $resolved = [];
+
+            foreach ($section['fields'] as $key) {
+                if ($fields->has($key)) {
+                    $resolved[] = $fields->get($key);
+                    $placed[$key] = true;
+                }
+            }
+
+            $sections[] = [
+                'area' => $section['area'] ?? 'main',
+                'tab' => $section['tab'] ?? 'Main',
+                'title' => $section['title'] ?? null,
+                'fields' => $resolved,
+            ];
+        }
+
+        $unplaced = $fields
+            ->reject(fn (array $field, string $key): bool => isset($placed[$key]))
+            ->values()
+            ->all();
+
+        if ($unplaced !== []) {
+            $sections[] = ['area' => 'main', 'tab' => 'Main', 'title' => null, 'fields' => $unplaced];
+        }
+
+        $tabs = collect($sections)->pluck('tab')->unique()->values()->all();
+
+        return ['tabs' => $tabs, 'sections' => $sections];
     }
 
     /**
@@ -104,6 +161,7 @@ abstract class CpResource
             'group' => $this->group(),
             'columns' => $this->columns(),
             'fields' => $this->fields(),
+            'layout' => $this->layout(),
             'searchable' => $this->searchable(),
         ];
     }
