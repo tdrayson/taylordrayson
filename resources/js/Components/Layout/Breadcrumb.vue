@@ -23,7 +23,7 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
 
 <template>
     <nav aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-neutral-500">
-        <span v-if="isHome" class="flex shrink-0 items-center gap-1.5 text-neutral-700" aria-current="page">
+        <span v-if="isHome" class="flex shrink-0 items-center gap-2 text-neutral-700" aria-current="page">
             <Icon :icon="Home01Icon" class="size-4" />
             Home
         </span>
