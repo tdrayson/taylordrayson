@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArchiveController;
+use App\Http\Controllers\Cp\LoginController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\NowController;
@@ -66,3 +67,11 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('day');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
+
+Route::get('/cp/login', [LoginController::class, 'create'])->name('cp.login');
+Route::post('/cp/login', [LoginController::class, 'store'])->name('cp.login.store');
+Route::post('/cp/logout', [LoginController::class, 'destroy'])->name('cp.logout');
+
+Route::middleware('auth')->prefix('cp')->name('cp.')->group(function () {
+    Route::get('/', fn () => Inertia::render('Cp/Dashboard', ['collections' => []]))->name('dashboard');
+});
