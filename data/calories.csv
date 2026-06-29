@@ -24605,3 +24605,765 @@ occurred_at,name,icon,meal,quantity,units,calories,fat,protein,carbs,saturated_f
 2026-04-01,"Starbucks Barista Gingerbread Cookie",CookieChristmas,dinner,1.0,Serving,182,3.70,2.70,34,1.60,14,1,,350
 2026-04-01,"Venti Caramel latte (Semi Skimmed)",Latte,dinner,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
 2026-04-01,"Mini Caramel Waffles",Waffles,dinner,160.0,Grams,725,33.60,5.60,99.20,19.20,,,,
+2026-04-02,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-02,"Spanish Potato & Onion Omelette",Potato,lunch,2.0,Slices,300,,,,,,,,
+2026-04-02,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-02,"Mini Snack Sausage Rolls",Roll,lunch,2.0,Pieces,100,17.40,3.80,17.80,6.80,0.80,1.20,,
+2026-04-02,"Caramel Latte, Full Fat, In, Med",Coffee,dinner,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-02,"Biscoff Cream Biscuits",Biscuit,dinner,150.0,Grams,780,40.50,0.75,99,18,52.50,0.75,,
+2026-04-02,"Pizza Pocket",Pizza,dinner,2.0,Servings,696,28,27.60,85.80,11.20,11.60,,,3600
+2026-04-02,"Rainbow Strips",Candy,dinner,130.0,Grams,459,1.17,,106.60,1.17,72.80,,,
+2026-04-02,"Split pots crunch vanilla flavour choco balls",Yogurt,lunch,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-03,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-03,"Biscoff Creme Egg",Chocolate,lunch,2.0,Servings,352,20,3,38,11.40,30,1,,
+2026-04-03,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-03,"Penne pasta with tomato and basil sauce",Pasta,dinner,2.0,Servings,560,11.20,26.20,115.20,6.20,,,,
+2026-04-03,"Cadburys Biscoff Chocolate",Chocolate,dinner,5.0,Pieces,173,9.25,1.25,20,5.25,17.50,0.63,,112.50
+2026-04-03,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-04,"BBQ chicken wrap frozen",Wrap,lunch,1.0,Serving,284,8.20,11,39,3.40,1.10,4.61,,
+2026-04-04,"_Lightly Salted Tortilla Chips (Nachos)",TortillaChip,lunch,25.0,Grams,119,4.90,1.60,16.40,0.50,0.40,1.30,,
+2026-04-04,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-04,"Biscoff Creme Egg",Chocolate,snacks,2.0,Servings,352,20,3,38,11.40,30,1,,
+2026-04-04,"Chocolate, Biscoff Egg",Chocolate,snacks,1.0,Serving,176,10,1.50,19,5.70,15,0.50,,
+2026-04-04,"Pizza Pocket",Pizza,lunch,2.0,Servings,696,28,27.60,85.80,11.20,11.60,,,3600
+2026-04-04,"Milk Skim",Milk,breakfast,1.0,Serving,80,0,13,6,,,,,
+2026-04-04,"Cereal, Cinnamon Toast Crunch",Cereal,breakfast,1.0,"Dry Cup",173,4,1.33,33.33,0.67,12,2.67,0,240
+2026-04-04,"3 Egg Ham and Cheese Omelette",Omelette,dinner,1.0,Serving,400,,,,,,,,
+2026-04-04,"Biscoff Creme Egg",Chocolate,dinner,2.0,Servings,352,20,3,38,11.40,30,1,,
+2026-04-05,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-05,"Venti Caramel latte (Semi Skimmed)",Latte,lunch,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-04-05,"Onion Rings",Onion,lunch,1.0,Serving,126,6.20,,,0.60,,,,
+2026-04-05,"BBQ Chicken, original, medium",Pizza,dinner,6.0,Slices,"1,680",,,,,,,,
+2026-04-05,"Cookie Dough",Cookie,dinner,2.0,Servings,400,20,,54,,,,,
+2026-04-06,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-06,"Smoke Shack Single",Default,lunch,1.0,Serving,610,,,,,,,,
+2026-04-06,"Chocolate Churro Shake",MilkShake,lunch,1.0,Serving,950,46,20,116,28,93,,,870
+2026-04-06,"Summer Fruits",Juice,snacks,500.0,Milliliters,86,0,0,20,0,20,0,,0.40
+2026-04-06,"Rainbow Strips",Candy,snacks,130.0,Grams,459,1.17,,106.60,1.17,72.80,,,
+2026-04-06,"Peri Salted Chips",Potato,dinner,1.0,Serving,381,,,,,,,,
+2026-04-06,"Grilled Chicken, Burger",Chicken,dinner,1.0,Serving,368,6.30,35.10,41.50,1.10,4.70,3.10,,0.95
+2026-04-06,"Side, Spicy Rice, Regular",Rice,dinner,1.0,Serving,273,5.40,4.50,49.20,0.60,7.40,5.10,,1
+2026-04-07,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-04-07,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-07,"Beans, Green, Boiled in Unsalted Water",SnapBean,dinner,1.0,"Dry Cup",33,0,2.50,5,0,3.75,5,0,0
+2026-04-07,"Chips, Oven, Baked",FrenchFries,dinner,100.0,Grams,162,3.60,2.50,28.50,0.50,0.60,2.60,,
+2026-04-07,"3 Egg Ham and Cheese Omelette",Omelette,lunch,1.0,Serving,400,,,,,,,,
+2026-04-07,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-07,Cottagepie,Default,dinner,1.0,Serving,443,12,33.70,44,5.50,4.70,,,
+2026-04-07,"Orange Juice",OrangeJuice,breakfast,1.0,Serving,45,,,,,,,,
+2026-04-07,"Latte, Grande, Skimmed Milk",Coffee,breakfast,2.0,Servings,262,0.60,25.20,39,0.40,35,0,,0.40
+2026-04-07,"Bacon Rashers, Back, Grilled",Bacon,breakfast,1.0,Piece,77,5.94,6.21,0,2.16,0,0,20.25,375.30
+2026-04-07,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-04-07,"Pork Sausages",Sausage,breakfast,1.0,Each,125,7.80,5.70,7.80,4,,,,
+2026-04-07,Twirl,Chocolate,dinner,1.0,Stick,115,6.60,1.50,12,4.10,12,0.20,0,0.50
+2026-04-07,"Toffee crisp bar",Chocolate,dinner,1.0,Serving,198,10.20,1.40,26.30,6.50,19.40,0.50,,
+2026-04-07,"Cadburys Biscoff Chocolate",Chocolate,lunch,5.0,Pieces,173,9.25,1.25,20,5.25,17.50,0.63,,112.50
+2026-04-07,"Biscuit, Rich Tea",BiscuitCracker,snacks,4.0,Pieces,152,5.20,2.40,23.60,0.40,6.80,0.80,,
+2026-04-08,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-08,"Split pots crunch vanilla flavour choco balls",Yogurt,lunch,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-08,"Salt And Vinegar Crunchy Sticks",PotatoChip,lunch,1.0,Serving,88,4.50,1.10,10.70,0.40,0.30,0.40,,0.36
+2026-04-08,"Bacon Sizzlers",PotatoChip,lunch,1.0,Package,91,4.80,1,10.60,0.40,0.50,,,
+2026-04-08,"Fries, Medium",FrenchFries,dinner,1.0,Serving,338,17.9,7.12,41.30,1.57,0.57,3.70,,0.63
+2026-04-08,"Double Big Mac With Bacon",Hamburger,dinner,1.0,Serving,740,41,47,44,16,9.30,3.60,,
+2026-04-08,"Strawberry Medium Milkshake",Milk,dinner,1.0,Serving,379,7.60,9.20,68,5.10,57,0.60,,0.43
+2026-04-09,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,2.0,Servings,478,21.40,20,52,13.40,51.20,0,0,600
+2026-04-09,"Cookie, Vanilla Wafer",Cookie,breakfast,45.0,Grams,236,11.88,1.89,30.19,10.76,13.68,0,,
+2026-04-09,"Wrap, Southern Fried BBQ Chicken with Mac and Cheese",Wrap,lunch,1.0,Package,481,16.20,19.60,62.30,6.50,11.10,3.50,,744
+2026-04-09,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-09,"Omelette (3 Medium Eggs)",Omelette,dinner,1.0,Serving,305,,,,,,,,
+2026-04-09,"Split pots crunch vanilla flavour choco balls",Yogurt,dinner,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-09,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-09,"Biscoff Creme Egg",Chocolate,dinner,2.0,Servings,352,20,3,38,11.40,30,1,,
+2026-04-10,"Omelette (3 Medium Eggs)",Omelette,breakfast,1.0,Serving,305,,,,,,,,
+2026-04-10,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-10,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-10,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-10,"Butter cookies",Cookie,lunch,1.0,Piece,171,8.67,18,211.67,4.67,8.33,0.67,,
+2026-04-10,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-10,"Pizza Pocket",Pizza,snacks,2.0,Servings,696,28,27.60,85.80,11.20,11.60,,,3600
+2026-04-10,"Tesco Sausage And Ham Tortellini",Sausage,dinner,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-04-10,"Chocolate, Minstrels",Chocolate,dinner,90.0,Grams,447,19.80,5.22,61.20,11.70,60.30,0.90,76.50,189
+2026-04-11,"Wrap, Southern Fried BBQ Chicken with Mac and Cheese",Wrap,lunch,1.0,Package,481,16.20,19.60,62.30,6.50,11.10,3.50,,744
+2026-04-11,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-11,"UK Aero Mint Chocolate Bar",Chocolate,snacks,36.0,Grams,194,6.60,1.90,21.60,,21.50,0.40,,
+2026-04-11,"Tesco Sausage And Ham Tortellini",Sausage,dinner,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-04-11,"Split pots crunch vanilla flavour choco balls",Yogurt,dinner,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-12,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-12,"Hot Dog with Bun",Hotdog,lunch,1.0,Serving,260,7.50,9,22,2,2,1,35,560
+2026-04-12,"Beer battered Onion Rings & Sweet Chilli Sauce",FrenchFries,snacks,1.0,Serving,830,40,12,98,,,,,
+2026-04-12,"Cinnamon Roll Latte",Latte,snacks,1.0,Serving,150,,,,,,,,
+2026-04-12,"Munchy Bars",Bar,breakfast,1.0,Serving,132,3.80,,,2,11,,,
+2026-04-12,"Orange, Mango and Passionfruit Smoothie",Smoothie,lunch,200.0,Milliliters,113,0.28,1.22,25.74,0.2,,0.60,,
+2026-04-12,"Pizza Pocket",Pizza,dinner,2.0,Servings,696,28,27.60,85.80,11.20,11.60,,,3600
+2026-04-12,"Split pots crunch vanilla flavour choco balls",Yogurt,dinner,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-13,"Latte Large",Latte,breakfast,1.0,Serving,259,,,,,,,,
+2026-04-13,Omelette,Omelette,breakfast,1.0,Serving,168,13.10,11.40,2.40,6.40,1.70,0,199.70,612.90
+2026-04-13,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-13,"Caramel Latte, Full Fat, In, Med",Coffee,snacks,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-13,"Biscoff On Toast",Toast,lunch,2.0,Servings,540,,,,,,,,
+2026-04-13,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-13,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-13,"Bbq Fillet Tower Burger",Hamburger,dinner,1.0,Serving,610,28.10,33.30,59.60,4,11,,,
+2026-04-13,"Dirty Loaded Fries",FrenchFries,dinner,1.0,Serving,450,23,8,50,4,1.50,4,,80
+2026-04-13,"Mini Chicken Breast Fillet",Chicken,dinner,1.0,Serving,125,,,,,,,,
+2026-04-13,"Regular Cajun Rice",Rice,dinner,68.0,Grams,215,2,4.30,45.70,,,,,
+2026-04-13,"Krushems, Milky Bar",MilkShake,dinner,1.0,Serving,435,17.10,8.70,60,12.20,59.90,,,160
+2026-04-14,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-04-14,"Latte, Grande, Skimmed Milk",Coffee,breakfast,2.0,Servings,262,0.60,25.20,39,0.40,35,0,,0.40
+2026-04-14,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-04-14,"Pork Sausages",Sausage,breakfast,1.0,Each,125,7.80,5.70,7.80,4,,,,
+2026-04-14,"Orange Juice",OrangeJuice,breakfast,1.0,Serving,45,,,,,,,,
+2026-04-14,"Bacon Rashers, Back, Grilled",Bacon,breakfast,1.0,Piece,77,5.94,6.21,0,2.16,0,0,20.25,375.30
+2026-04-14,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-14,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-14,"Biscoff Creme Egg",Chocolate,lunch,2.0,Servings,352,20,3,38,11.40,30,1,,
+2026-04-14,"Biscuit, Rich Tea",BiscuitCracker,lunch,4.0,Pieces,152,5.20,2.40,23.60,0.40,6.80,0.80,,
+2026-04-14,"Big 5 Smoothie",Smoothie,lunch,1.0,Serving,155,,,,,,,,
+2026-04-14,"Omelette (3 Medium Eggs)",Omelette,dinner,1.0,Serving,305,,,,,,,,
+2026-04-14,"Split pots crunch vanilla flavour choco balls",Yogurt,dinner,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-14,"Onion Rings",Onion,dinner,1.0,Serving,126,6.20,,,0.60,,,,
+2026-04-14,"Bacon Sizzlers",PotatoChip,dinner,1.0,Package,91,4.80,1,10.60,0.40,0.50,,,
+2026-04-14,"Mango Loco Monster",Mango,snacks,1.0,Serving,239,,,60,,56,,,
+2026-04-15,"Southern fried chicken wrap",Wrap,lunch,1.0,Serving,455,,,,,,,,
+2026-04-15,"Crisp, Cool Original",PotatoChip,lunch,10.0,Grams,50,2.63,0.70,5.47,0.27,0.40,0.67,,0.19
+2026-04-15,"Mango Loco Monster",Mango,lunch,1.0,Serving,239,,,60,,56,,,
+2026-04-15,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-15,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-04-15,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-04-15,"Large Banana Milkshake",MilkShake,dinner,1.0,Serving,495,9.70,12,90,6.50,76,0.80,,
+2026-04-16,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-16,"4 Egg Omlette",Egg,lunch,1.0,Serving,372,,,,,,,,
+2026-04-16,"Split pots crunch vanilla flavour choco balls",Yogurt,lunch,1.0,Serving,197,7.80,4.80,26.30,5,21.50,0.80,,
+2026-04-16,"Big 5 Smoothie",Smoothie,snacks,1.0,Serving,155,,,,,,,,
+2026-04-16,"Caramel Latte, Full Fat, In, Med",Coffee,dinner,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-16,"Biscoff Creme Egg",Chocolate,snacks,1.0,Serving,176,10,1.50,19,5.70,15,0.50,,
+2026-04-16,"Biscuit, Rich Tea",BiscuitCracker,snacks,4.0,Pieces,152,5.20,2.40,23.60,0.40,6.80,0.80,,
+2026-04-17,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-17,"Pizza Pocket",Pizza,snacks,2.0,Servings,696,28,27.60,85.80,11.20,11.60,,,3600
+2026-04-17,"Venti Caramel latte (Semi Skimmed)",Latte,snacks,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-04-17,"Slim Chicken Chips",Chicken,lunch,1.0,Serving,450,,,,,,,,
+2026-04-17,"Slims Honey Bbq Burger",Hamburger,lunch,1.0,Serving,550,,,,,,,,
+2026-04-17,"Biscoff Shake",MilkShake,lunch,1.0,Serving,805,34.30,14.10,89.30,15.10,77.60,,,1.10
+2026-04-17,"20 Nuggets",Default,dinner,20.0,Pieces,863,45,53,61,5.80,1.90,2.20,,
+2026-04-17,"Cadbury Creme Egg McFlurry®  Mini",Chocolate,dinner,1.0,Serving,168,5.60,2.80,26,3.80,22,0.70,,
+2026-04-17,"Biscuit, Rich Tea",BiscuitCracker,snacks,4.0,Pieces,152,5.20,2.40,23.60,0.40,6.80,0.80,,
+2026-04-17,"Big 5 Smoothie",Smoothie,snacks,1.0,Serving,155,,,,,,,,
+2026-04-18,"Cinnamon Roll Latte",Latte,breakfast,1.0,Serving,150,,,,,,,,
+2026-04-18,"Caffe Latte, Skimmed, In, Med",Coffee,lunch,1.0,Serving,109,0.50,10.70,16,0.30,15.60,0,0,300
+2026-04-18,"Omelette, Spanish (Tortilla Espanola)",Omelette,breakfast,1.0,Slice,168,11.40,8.40,8.90,1.80,4.80,0,180,83
+2026-04-18,"Tesco Sausage And Ham Tortellini",Sausage,lunch,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-04-18,"Caramel Latte, Full Fat, In, Med",Coffee,dinner,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-18,"Mango Loco Monster",Mango,lunch,1.0,Serving,239,,,60,,56,,,
+2026-04-18,"Biscuit, Rich Tea",BiscuitCracker,snacks,4.0,Pieces,152,5.20,2.40,23.60,0.40,6.80,0.80,,
+2026-04-19,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-19,"Munchy Bars",Bar,breakfast,1.0,Serving,132,3.80,,,2,11,,,
+2026-04-19,"Twix Mini",Chocolate,lunch,1.0,Piece,99,4.70,0.90,13,2.70,9.80,0,,0.8
+2026-04-19,"BBQ Crispy chicken Burger",Chicken,lunch,1.0,Serving,"1,190",53,48,121,,,,,
+2026-04-19,"Rustic fries",Default,lunch,1.0,Serving,276,,,,,,,,
+2026-04-19,"Gingerbread Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,244,10.70,10,27,6.70,26.60,0,0,300
+2026-04-19,"Tesco Sausage And Ham Tortellini",Sausage,dinner,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-04-19,"Mango Loco Monster",Mango,dinner,1.0,Serving,239,,,60,,56,,,
+2026-04-20,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-20,"3 Egg Ham and Cheese Omelette",Omelette,lunch,1.0,Serving,400,,,,,,,,
+2026-04-20,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-20,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-04-20,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-04-20,"Donut Cumble Latte Large",Latte,dinner,1.0,Serving,244,7.20,10,34,4.60,33,0.10,,0.34
+2026-04-20,"Mango Loco Monster",Mango,lunch,1.0,Serving,239,,,60,,56,,,
+2026-04-21,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-04-21,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-04-21,"Pork Sausages",Sausage,breakfast,1.0,Each,125,7.80,5.70,7.80,4,,,,
+2026-04-21,"Bacon Rashers, Back, Grilled",Bacon,breakfast,1.0,Piece,77,5.94,6.21,0,2.16,0,0,20.25,375.30
+2026-04-21,"Caramel Latte, Full Fat, In, large",Latte,breakfast,1.0,Serving,221,7,,,5,,,,
+2026-04-21,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-21,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-21,"Choco Break Bar",Bar,lunch,1.0,Serving,115,,,,,,,,
+2026-04-21,"Homestyle Straight Cut Chips",FrenchFries,dinner,100.0,Grams,192,5.70,3.30,29.40,0.50,0.20,4.90,,224.80
+2026-04-21,"Mac & Cheese And Pulled Pork Parcels",MacAndCheese,dinner,1.0,Serving,509,27.40,14.70,49.20,14.30,4.70,,,
+2026-04-21,"Breaded Chicken Nuggets",Default,dinner,5.0,Servings,240,14,11,16,2.40,0.50,1,,
+2026-04-21,"Apple Juice",Juice,dinner,1.0,Serving,11,0.8,0.8,2.83,0.2,2.83,0.8,,
+2026-04-22,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-22,"3 Egg Ham and Cheese Omelette",Omelette,lunch,1.0,Serving,400,,,,,,,,
+2026-04-22,"Big 5 Smoothie",Smoothie,lunch,1.0,Serving,155,,,,,,,,
+2026-04-22,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-22,"Classic Superstack Sandwich",Default,dinner,1.0,Serving,867,52.50,40.70,59.30,15.50,,,,2.90
+2026-04-22,"Lotus Biscoff Milkshake",MilkShake,dinner,1.0,Serving,548,14.40,16.60,65.50,6.30,56.60,1.90,,0.50
+2026-04-22,"Loaded fries",FrenchFries,dinner,1.0,Serving,300,,,,,,,,
+2026-04-22,"Venti Caramel latte (Semi Skimmed)",Latte,dinner,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-04-23,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-23,"Wrap, Southern Fried BBQ Chicken with Mac and Cheese",Wrap,lunch,1.0,Package,481,16.20,19.60,62.30,6.50,11.10,3.50,,744
+2026-04-23,"KitKat Chunky Duo Salted Caramel",Chocolate,lunch,2.0,Pieces,354,19.20,4.80,39.80,10.60,32,1.20,,240
+2026-04-23,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-23,"Millionaires Shortbread",Cake,snacks,1.0,Serving,280,16,2.60,32,9.20,22,1.10,,800
+2026-04-23,"Chocolate Donut",Donut,snacks,1.0,Serving,150,,,,,,,,
+2026-04-23,"Munchy Bars",Bar,snacks,1.0,Serving,132,3.80,,,2,11,,,
+2026-04-23,"Bacon Roll",Bacon,breakfast,1.0,Serving,368,,,,,,,,
+2026-04-23,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-04-23,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-04-23,"Donut Cumble Latte Large",Latte,dinner,1.0,Serving,244,7.20,10,34,4.60,33,0.10,,0.34
+2026-04-23,"Chicken Nuggets (9 Pieces)",ChickenTenders,dinner,9.0,Pieces,388,20,24,28,2.60,0.80,1,,0.77
+2026-04-23,"Mcflurry Smarties",IceCream,dinner,1.0,Serving,375,12,7,59,0,0,0,,
+2026-04-24,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-24,"3 Egg Ham and Cheese Omelette",Omelette,lunch,1.0,Serving,400,,,,,,,,
+2026-04-24,"Strawberry Protein Yoghurt",Yogurt,lunch,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-24,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-24,Brownie,Brownie,dinner,2.0,Each,454,18.26,5.38,71.57,4.74,41,2.35,19.4,349.44
+2026-04-24,Coleslaw.,Coleslaw,dinner,1.0,Tablespoon,91,,,,,,,,
+2026-04-24,"Orange Juice, Chilled",OrangeJuice,dinner,2.0,Pints,341,0,9.46,85.17,0,85.17,0,0,9.46
+2026-04-24,"Chicken Curry",Chicken,dinner,1.0,Serving,200,595,5168,0,1683,,,,
+2026-04-25,"Gingerbread Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,244,10.70,10,27,6.70,26.60,0,0,300
+2026-04-25,"Beer battered Onion Rings & Sweet Chilli Sauce",FrenchFries,lunch,1.0,Serving,830,40,12,98,,,,,
+2026-04-25,"Grilled Halloumi",Default,lunch,1.0,Serving,773,,,,,,,,
+2026-04-25,"Protein Shake - Strawberry Passion",MilkShake,lunch,1.0,Serving,345,8,27,45,,,,,
+2026-04-25,"Chocolate Brownie Crunch Bar",Bar,snacks,1.0,Serving,213,6.70,20,16,5.30,1.80,13,0,750
+2026-04-25,"Crispy sweet and sour chicken with egg fried rice",Rice,dinner,1.0,Serving,767,,,,,,,,
+2026-04-25,"Chocolate Donut",Donut,dinner,1.0,Serving,150,,,,,,,,
+2026-04-25,"Mango Loco",Mango,dinner,500.0,Milliliters,245,,,62,,58,,,
+2026-04-26,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-26,"Gingerbread Latte, Full Fat, In, Med",Coffee,snacks,1.0,Serving,244,10.70,10,27,6.70,26.60,0,0,300
+2026-04-26,"Crisp, Texas Bbq",PotatoChip,lunch,82.0,Grams,416,25.42,4.37,43.73,2.73,3.55,2.19,,1.78
+2026-04-26,"Breakfast Burrito, Sausage, Flour Tortilla",Burrito,lunch,1.0,Each,740,95,79,42,,2,4,,
+2026-04-26,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-26,"Macaroni Cheese",Cheese,dinner,1.0,Serving,613,25.40,29,64.40,13.60,6.20,5.30,,
+2026-04-26,"Cereal, Cinnamon Toast Crunch",Cereal,breakfast,1.0,"Dry Cup",173,4,1.33,33.33,0.67,12,2.67,0,240
+2026-04-26,"Milk Skim",Milk,breakfast,1.0,Serving,80,0,13,6,,,,,
+2026-04-26,Truffle,Chocolate,dinner,2.0,Servings,106,,,,,,,,
+2026-04-26,"Fizzy Strawberry Flavour Lances",Snack,dinner,16.0,Each,364,2,2.80,83.20,1.20,52,1.60,0,0
+2026-04-26,"Galaxy Minstrels",Chocolate,dinner,75.0,Pieces,932,41.25,10.88,127.50,24.37,125.63,1.88,,195
+2026-04-27,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-27,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-04-27,"Strawberry Protein Yoghurt",Yogurt,breakfast,1.0,Pouch,166,0.80,25,15,0.40,10.60,,,
+2026-04-27,"3 Egg Ham and Cheese Omelette",Omelette,lunch,1.0,Serving,400,,,,,,,,
+2026-04-27,"Mango And Passion Fruit Smoothie 750ml",Mango,snacks,250.0,Milliliters,134,0.10,0.60,12.20,,12.20,1.10,,
+2026-04-27,"Peri Salted Chips",Potato,dinner,1.0,Serving,381,,,,,,,,
+2026-04-27,"Grilled Chicken, Burger",Chicken,dinner,1.0,Serving,368,6.30,35.10,41.50,1.10,4.70,3.10,,0.95
+2026-04-27,"Peri Mac And Cheese",Pasta,dinner,1.0,Serving,297,16.30,12,25.70,8.60,,1.60,,
+2026-04-27,"Chocolate twist",Default,breakfast,1.0,Each,335,17.80,6.30,42,10.90,19.60,2.50,,
+2026-04-28,"Chocolate twist",Default,breakfast,1.0,Each,335,17.80,6.30,42,10.90,19.60,2.50,,
+2026-04-28,"Latte, Grande, Skimmed Milk",Coffee,breakfast,2.0,Servings,262,0.60,25.20,39,0.40,35,0,,0.40
+2026-04-28,"Crisp, Texas Bbq",PotatoChip,lunch,82.0,Grams,416,25.42,4.37,43.73,2.73,3.55,2.19,,1.78
+2026-04-28,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-04-28,"Salt And Vinegar Crunchy Sticks",PotatoChip,lunch,1.0,Serving,88,4.50,1.10,10.70,0.40,0.30,0.40,,0.36
+2026-04-28,"Onion Rings",Onion,lunch,1.0,Serving,126,6.20,,,0.60,,,,
+2026-04-28,"Penne pasta with tomato and basil sauce",Pasta,dinner,2.0,Servings,560,11.20,26.20,115.20,6.20,,,,
+2026-04-28,"Mango Loco",Mango,dinner,500.0,Milliliters,245,,,62,,58,,,
+2026-04-29,"Chocolate twist",Default,breakfast,1.0,Each,335,17.80,6.30,42,10.90,19.60,2.50,,
+2026-04-29,"Caramel Latte, Full Fat, In, large",Latte,breakfast,1.0,Serving,221,7,,,5,,,,
+2026-04-29,"Caramel Latte, Full Fat, In, large",Latte,lunch,1.0,Serving,221,7,,,5,,,,
+2026-04-29,"Caramel Latte, Full Fat, In, large",Latte,snacks,1.0,Serving,221,7,,,5,,,,
+2026-04-29,"Penne pasta with tomato and basil sauce",Pasta,lunch,2.0,Servings,560,11.20,26.20,115.20,6.20,,,,
+2026-04-29,"Donut Cumble Latte Large",Latte,dinner,1.0,Serving,244,7.20,10,34,4.60,33,0.10,,0.34
+2026-04-29,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-04-29,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-04-29,"Biscuit, Rich Tea",BiscuitCracker,lunch,4.0,Pieces,152,5.20,2.40,23.60,0.40,6.80,0.80,,
+2026-04-29,"McFlurry Lotus Biscoff Mini",IceCream,snacks,1.0,Serving,175,5.60,2.80,28,,,1.60,,
+2026-04-29,"Medium Oasis Zero",CocaCola,snacks,1.0,Serving,1,0,0,2,0,2,0,,320
+2026-04-30,"Pizza Bbq Chicken",Pizza,dinner,1.75,Servings,782,20.65,39.3,105.88,7.53,17.85,8.58,,
+2026-04-30,"Apple Juice",Juice,dinner,1.0,Serving,11,0.8,0.8,2.83,0.2,2.83,0.8,,
+2026-04-30,"3 Egg Ham and Cheese Omelette",Omelette,lunch,1.0,Serving,400,,,,,,,,
+2026-04-30,"KitKat Chunky",CandyBar,lunch,1.0,Serving,203,11,3,28,7,22,,5,30
+2026-05-01,"Milk Chocolate Shortbread Rings",Chocolate,breakfast,1.0,Serving,93,5.50,,,3.40,6.20,,,
+2026-05-01,"Munchy Bars",Bar,breakfast,1.0,Serving,132,3.80,,,2,11,,,
+2026-05-01,"Wrap, Southern Fried BBQ Chicken with Mac and Cheese",Wrap,lunch,1.0,Package,481,16.20,19.60,62.30,6.50,11.10,3.50,,744
+2026-05-01,"Yorkie Bar Duo",Bar,lunch,2.0,Servings,390,22,5,41.80,13,41,1.40,,160
+2026-05-01,"Chocolatey Milk Chocolate Rounds",Chocolate,snacks,7.0,Each,602,30.75,6.99,73.39,17.47,59.41,2.10,,212.49
+2026-05-01,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-01,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-05-01,"Itsu Crispy Seaweed Thins",Seaweed,dinner,2.0,Servings,48,3.20,2.80,0.80,0.40,0,1.80,0,0.3
+2026-05-01,"Rice, Egg Fried, Takeaway",Rice,dinner,3.0,Servings,"1,395",37.50,30,247.50,7.50,0,7.50,142.50,3127.50
+2026-05-01,"Chow Mein, Chicken, Takeaway",StirFryNoodles,dinner,3.0,Servings,"1,103",52.50,67.50,97.50,7.50,0,15,97.50,3495
+2026-05-02,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-02,"Fries, Large",FrenchFries,lunch,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-05-02,"Double Quarter Pounder With Cheese",Hamburger,lunch,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-05-02,"Large Oasis Zero",Juice,lunch,1.0,Serving,2,,0.10,21,,0,,,41
+2026-05-02,"Galaxy Minstrels",Chocolate,snacks,40.0,Pieces,497,22,5.80,68,13,67,1,,104
+2026-05-02,"Soda, Pepsi, Max",CocaCola,snacks,500.0,Milliliters,2,0,0,1,0,,,,
+2026-05-02,"Bourbon Creams",BiscuitCracker,snacks,6.0,Pieces,378,14.4,4.68,53.82,7.60,19.89,,,17.55
+2026-05-02,"Gingerbread Latte (Large)",Coffee,snacks,1.0,Serving,212,10.70,10,27,6.70,26.60,0,0,300
+2026-05-03,"Latte, Grande, Skimmed Milk",Coffee,breakfast,1.0,Serving,131,0.30,12.60,19.50,0.20,17.50,0,,0.20
+2026-05-03,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-03,"Cajun Chicken Wrap",Wrap,lunch,1.0,Serving,447,16,22,53,6.80,3,2.60,,560
+2026-05-03,"Bourbon Creams",BiscuitCracker,snacks,6.0,Pieces,378,14.4,4.68,53.82,7.60,19.89,,,17.55
+2026-05-03,"Blackcurrant 500ml",Juice,lunch,500.0,Milliliters,26,0,0.20,3,0,2.60,0,,
+2026-05-03,"Chow Mein, Chicken, Takeaway",StirFryNoodles,dinner,2.0,Servings,735,35,45,65,5,0,10,65,2330
+2026-05-03,"Rice, Egg Fried, Takeaway",Rice,dinner,1.0,Serving,465,12.50,10,82.50,2.50,0,2.50,47.50,1042.50
+2026-05-03,"Itsu Crispy Seaweed Thins",Seaweed,dinner,2.0,Servings,48,3.20,2.80,0.80,0.40,0,1.80,0,0.3
+2026-05-03,"Prawn Crackers, Takeaway",Snack,dinner,4.0,Pieces,91,6.24,0,9.28,0.64,0.32,0.16,0,122.72
+2026-05-03,"Caramel Latte, Full Fat, In, Med",Coffee,dinner,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-04,"Gingerbread Latte (Large)",Coffee,breakfast,1.0,Serving,212,10.70,10,27,6.70,26.60,0,0,300
+2026-05-04,"Wrap, Southern Fried BBQ Chicken with Mac and Cheese",Wrap,lunch,1.0,Package,481,16.20,19.60,62.30,6.50,11.10,3.50,,744
+2026-05-04,"Yorkie Bar Duo",Bar,lunch,2.0,Servings,390,22,5,41.80,13,41,1.40,,160
+2026-05-04,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-05-04,"Biscoff Cream Biscuits",Biscuit,snacks,150.0,Grams,780,40.50,0.75,99,18,52.50,0.75,,
+2026-05-04,"Tesco Sausage And Ham Tortellini",Sausage,dinner,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-05-05,"Pork Sausages",Sausage,breakfast,2.0,Each,250,15.60,11.40,15.60,8,,,,
+2026-05-05,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-05-05,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-05-05,"Latte, Grande, Skimmed Milk",Coffee,breakfast,2.0,Servings,262,0.60,25.20,39,0.40,35,0,,0.40
+2026-05-05,"Venti Caramel latte (Semi Skimmed)",Latte,snacks,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-05-05,"Latte, Grande, Skimmed Milk",Coffee,lunch,1.0,Serving,131,0.30,12.60,19.50,0.20,17.50,0,,0.20
+2026-05-05,"Orange Juice, Chilled",OrangeJuice,breakfast,300.0,Milliliters,108,0,3,27,0,27,0,0,3
+2026-05-05,"Milk Skim",Milk,lunch,1.0,Serving,80,0,13,6,,,,,
+2026-05-05,"Cereal, Cinnamon Toast Crunch",Cereal,lunch,1.0,"Dry Cup",173,4,1.33,33.33,0.67,12,2.67,0,240
+2026-05-05,"Steak & Gravy Pie",PotPie,dinner,1.0,Serving,378,22.20,10,28.40,8.50,2,3.80,,332
+2026-05-05,"Chips, Oven, Baked",FrenchFries,dinner,100.0,Grams,162,3.60,2.50,28.50,0.50,0.60,2.60,,
+2026-05-05,"Apple Juice",Juice,dinner,1.0,Serving,11,0.8,0.8,2.83,0.2,2.83,0.8,,
+2026-05-05,"Onion Rings",Onion,dinner,1.0,Serving,126,6.20,,,0.60,,,,
+2026-05-06,"Biscoff On Toast",Toast,lunch,2.0,Servings,540,,,,,,,,
+2026-05-06,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-06,"Latte Large",Latte,breakfast,1.0,Serving,259,,,,,,,,
+2026-05-06,"Chocolate Donut",Donut,lunch,2.0,Servings,300,,,,,,,,
+2026-05-06,"Caramel Latte, Full Fat, In, Med",Coffee,snacks,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-06,"Edamame, With Salt",Salt,dinner,1.0,Serving,179,6.20,13.40,7.40,0.90,0.2,20,,0.80
+2026-05-06,"Chicken yakisoba",Chicken,dinner,1.0,Serving,717,,,,,,,,
+2026-05-06,"Venti Caramel latte (Semi Skimmed)",Latte,dinner,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-05-06,"Mini Caramel Waffles",Waffles,dinner,160.0,Grams,725,33.60,5.60,99.20,19.20,,,,
+2026-05-07,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-07,"Bacon Roll",Bacon,breakfast,1.0,Serving,368,,,,,,,,
+2026-05-07,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-07,"Chocolate Donut",Donut,lunch,1.0,Serving,150,,,,,,,,
+2026-05-07,"Millionaires Shortbread",Cake,lunch,1.0,Serving,280,16,2.60,32,9.20,22,1.10,,800
+2026-05-07,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-05-07,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-05-07,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-05-07,"Toffee Latte Large",Latte,dinner,1.0,Serving,227,,,,,,,,
+2026-05-07,"4pc McDonalds Chicken Nuggets",Chicken,dinner,4.0,Pieces,174,8.70,10,14,1,0.40,0.90,,380
+2026-05-07,"McFlurry Lotus Biscoff Mini",IceCream,dinner,1.0,Serving,175,5.60,2.80,28,,,1.60,,
+2026-05-07,"Galaxy Minstrels [Chocolate]",Chocolate,snacks,40.0,Pieces,497,22,5.70,69,13,67,,,
+2026-05-08,"Mega Party Mix ",Candy,snacks,40.0,Grams,137,0.20,2.68,31.20,0.4,18.80,,6.40,0.1
+2026-05-08,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-08,"Burger King Bacon Double Cheese XL",PotatoChip,snacks,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-05-08,"Bbq Fillet Tower Burger",Hamburger,lunch,1.0,Serving,610,28.10,33.30,59.60,4,11,,,
+2026-05-08,"Fries, Large",FrenchFries,lunch,1.0,Serving,450,21.30,6.10,60.80,3,0.60,,,0.10
+2026-05-08,"Chicken, Popcorn, Medium",Chicken,lunch,1.0,Serving,285,16,21.20,15.40,2.70,0.60,,,1.60
+2026-05-08,"Blonde Toasted Vanilla Latte, Venti",Latte,lunch,20.0,Ounces,320,9,15,46,4,44,,35,200
+2026-05-08,"Chocolate Chip Cookie Costco",Cookie,dinner,1.0,Serving,150,3.50,0.50,8,2,4.50,0.50,5,45
+2026-05-08,"Chili Con Carne, Homemade",TomatoSoup,dinner,1.0,Serving,387,17,36,25,6,1,6,,2.32
+2026-05-08,"koppaburg mixed fruits alcohol free",Cider,dinner,1.0,Serving,92,2,2,24.27,,24.53,,,
+2026-05-08,"Double Chocolate Cake Bites",Cake,snacks,2.0,Servings,170,9.20,1.80,19.40,5,15.40,0.10,,
+2026-05-08,"Tequila rose",Default,dinner,1.0,Serving,69,,,,,,,,
+2026-05-09,"Latte, Grande, Skimmed Milk",Coffee,breakfast,1.0,Serving,131,0.30,12.60,19.50,0.20,17.50,0,,0.20
+2026-05-09,"Pizza, Pepperoni, 12""",Pizza,lunch,2.0,Slices,250,,,,,,,,
+2026-05-09,"Macaroni cheese",MacAndCheese,lunch,0.5,Serving,180,6,,,,,,,
+2026-05-09,"Alcohol Free Strawberry And Lime Cider",Alcohol,lunch,330.0,Milliliters,135,1.65,1.65,33,0.33,33,,,12.87
+2026-05-09,"Alcohol Free Strawberry And Lime Cider",Alcohol,lunch,330.0,Milliliters,135,1.65,1.65,33,0.33,33,,,12.87
+2026-05-09,"Strawberry And Lime Cider",Cider,lunch,1.0,Serving,200,,,,,,,,
+2026-05-09,"Chocolate Chip Cookie Costco",Cookie,snacks,1.0,Serving,150,3.50,0.50,8,2,4.50,0.50,5,45
+2026-05-09,"Crisp, Cool Original",PotatoChip,snacks,40.0,Grams,199,10.53,2.80,21.87,1.7,1.60,2.67,,0.76
+2026-05-09,"Meatballs And Pasta",Pasta,dinner,1.0,Serving,420,,,,,,,,
+2026-05-09,"Lucozade Sport Orange Still 500ml Bottle",Orange,dinner,1.0,Liter,280,0,0.20,12.80,,7.20,0,,0.10
+2026-05-09,"Chicken Thighs Bbq",Chicken,dinner,1.0,Serving,110,,,,,,,,
+2026-05-09,Cucumber,Cucumber,dinner,3.0,Slices,10,,,,,,,,
+2026-05-09,"Lemon Drizzle cake",Cake,dinner,1.0,Slice,100,15.30,4.70,55,,,0.60,,
+2026-05-09,"Brownies, Chocolate, Homemade",Brownie,dinner,2.0,Pieces,243,14.88,2.88,25.92,7.68,22.8,,53.76,89.76
+2026-05-09,"Chocolate Bar",Chocolate,dinner,3.0,Pieces,90,6.50,1.50,12.50,4,11.50,0.50,5,15
+2026-05-09,"Moam Stripes",Candy,dinner,10.0,Pieces,280,4,1,59,,,,,
+2026-05-10,"Venti skinny vanilla latte",Latte,breakfast,1.0,Serving,226,7.90,16.90,24.10,4.80,21.10,0,,
+2026-05-10,"All day breakfast wrap",Wrap,breakfast,1.0,Serving,465,22,22,55,8.90,4.20,3.80,,2000
+2026-05-10,"Summer Fruits",Juice,lunch,500.0,Milliliters,86,0,0,20,0,20,0,,0.40
+2026-05-10,"Tesco Sausage And Ham Tortellini",Sausage,lunch,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-05-10,"Burger King Bacon Double Cheese XL",PotatoChip,lunch,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-05-10,"Chocolate Donut",Donut,dinner,1.0,Serving,150,,,,,,,,
+2026-05-10,"Millionaires Shortbread",Cake,dinner,1.0,Serving,280,16,2.60,32,9.20,22,1.10,,800
+2026-05-10,"Latte, Grande, Skimmed Milk",Coffee,dinner,1.0,Serving,131,0.30,12.60,19.50,0.20,17.50,0,,0.20
+2026-05-11,"Latte, Grande, Skimmed Milk",Coffee,breakfast,1.0,Serving,131,0.30,12.60,19.50,0.20,17.50,0,,0.20
+2026-05-11,"Southern Fried Chicken Wrap",Wrap,lunch,1.0,Serving,437,16.50,14.30,56.20,3.90,7.50,3.20,,113
+2026-05-11,"KitKat Chunky Salted Caramel Duo",Chocolate,lunch,2.0,Pieces,354,19.20,4.80,39.80,10.60,32,1.20,0,240
+2026-05-11,"Mango Loco Monster",Mango,lunch,1.0,Serving,239,,,60,,56,,,
+2026-05-11,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-05-11,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-05-11,"Regular Lotus Biscoff Mcflurry",IceCream,dinner,1.0,Serving,350,11,5.70,56,7.10,42,1.60,,380
+2026-05-11,"Large Banana Milkshake",MilkShake,dinner,1.0,Serving,495,9.70,12,90,6.50,76,0.80,,
+2026-05-11,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-11,"Macaroni Cheese",Cheese,snacks,200.0,Grams,338,15,15.80,33.40,8.40,3,2.60,,0.98
+2026-05-12,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-05-12,"Latte, Grande, Skimmed Milk",Coffee,breakfast,2.0,Servings,262,0.60,25.20,39,0.40,35,0,,0.40
+2026-05-12,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-05-12,"Orange Juice, Chilled",OrangeJuice,breakfast,300.0,Milliliters,108,0,3,27,0,27,0,0,3
+2026-05-12,"Pork Sausages",Sausage,breakfast,2.0,Each,250,15.60,11.40,15.60,8,,,,
+2026-05-12,"Gingerbread Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,244,10.70,10,27,6.70,26.60,0,0,300
+2026-05-12,"Venti skinny vanilla latte",Latte,snacks,1.0,Serving,226,7.90,16.90,24.10,4.80,21.10,0,,
+2026-05-12,"Salted Caramel Brownie",Brownie,lunch,1.0,Serving,473,21.40,3.90,42.20,13.10,40.80,,,300
+2026-05-12,Knoppers,Chocolate,snacks,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-12,"Macaroni Cheese",Cheese,dinner,1.0,Serving,613,25.40,29,64.40,13.60,6.20,5.30,,
+2026-05-12,"Mango Loco Monster",Mango,dinner,1.0,Serving,239,,,60,,56,,,
+2026-05-13,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-13,"Latte, Grande, Skimmed Milk",Coffee,breakfast,1.0,Serving,131,0.30,12.60,19.50,0.20,17.50,0,,0.20
+2026-05-13,"Egg Omelette (4 Eggs) with Cheese",Omelette,lunch,1.0,Serving,430,33,31,1,12,,0,760,560
+2026-05-13,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-13,"Mini Wispa",Default,lunch,1.0,Serving,141,,,,,,,,
+2026-05-13,"Chocolate Donut",Donut,snacks,1.0,Serving,150,,,,,,,,
+2026-05-13,"Millionaires Shortbread",Cake,snacks,1.0,Serving,280,16,2.60,32,9.20,22,1.10,,800
+2026-05-13,"Homemade lasagna",Lasagna,dinner,1.0,Slice,339,,,,,,,,
+2026-05-13,"Lucozade Sport Orange Still 500ml Bottle",Orange,dinner,1.0,Liter,280,0,0.20,12.80,,7.20,0,,0.10
+2026-05-14,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-14,"Cheese Leek and Potato Pie",Pie,lunch,1.0,Serving,680,47,15,49,24,,3.50,,
+2026-05-14,"Mixed Vegetables",Vegetable,lunch,2.0,Servings,400,,,,,,,,
+2026-05-14,"Aldi Stonebaked Pizza Meat Feast Cooked (Leon)",Pizza,dinner,335.0,Grams,814,27.80,40.20,94.47,13.6,15.7,12.39,,3.65
+2026-05-14,"Drumstick Squashies",Candy,dinner,140.0,Grams,498,0.28,4.76,117.60,0,88.20,,,0.10
+2026-05-14,"Chocolate, Minstrels",Chocolate,dinner,192.0,Grams,954,42.24,11.14,130.56,24.96,128.64,1.92,163.20,403.20
+2026-05-14,"Mango Loco Monster",Mango,dinner,1.0,Serving,239,,,60,,56,,,
+2026-05-14,"Orange Squash",OrangeJuice,lunch,300.0,Milliliters,4,0,,0.72,0,0.72,,,
+2026-05-15,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-15,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-15,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-15,"Maple Bacon Burger",Hamburger,dinner,1.0,Serving,479,19,44,36,6,5,5,105,470
+2026-05-15,"Fries, Pub Chips",FrenchFries,dinner,0.5,Serving,200,19,6,51,2,0,5,0,1040
+2026-05-15,"Oreo Milkshake",MilkShake,dinner,1.0,Serving,458,,,,,,,,
+2026-05-15,Minstrels,ChocolateChip,dinner,1.0,Serving,209,9.20,2.40,29,,,,,
+2026-05-16,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-16,"Gingerbread Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,244,10.70,10,27,6.70,26.60,0,0,300
+2026-05-16,"Moam Stripes",Candy,lunch,4.0,Pieces,112,1.60,0.40,23.60,,,,,
+2026-05-16,"Hamburger, Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,518,27,31,37,13,10,25,,2.50
+2026-05-16,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-05-16,"Mcdonalds 6 Piece Chicken Nuggets",Chicken,dinner,1.0,Serving,259,13,16,18,1.70,0.60,0.70,,
+2026-05-16,"Regular Lotus Biscoff Mcflurry",IceCream,dinner,1.0,Serving,350,11,5.70,56,7.10,42,1.60,,380
+2026-05-16,"Summer Fruits",Juice,dinner,500.0,Milliliters,86,0,0,20,0,20,0,,0.40
+2026-05-17,"Caramel Oat Latte",Latte,lunch,2.0,Servings,392,7.80,3.20,75.20,3,24.40,,,0.80
+2026-05-17,"Wrap, Southern Fried BBQ Chicken with Mac and Cheese",Wrap,lunch,1.0,Package,481,16.20,19.60,62.30,6.50,11.10,3.50,,744
+2026-05-17,"Chicken & Bacon Tortelloni",Chicken,dinner,2.0,Servings,816,22,34.60,117,7,8.80,5.80,,2040
+2026-05-17,"Mixed Fruit Cider",Cider,dinner,500.0,Milliliters,320,,1.52,72.73,,,,,
+2026-05-17,"Milk Skim",Milk,breakfast,1.0,Serving,80,0,13,6,,,,,
+2026-05-17,"Cereal, Cinnamon Toast Crunch",Cereal,breakfast,1.0,"Dry Cup",173,4,1.33,33.33,0.67,12,2.67,0,240
+2026-05-17,Knoppers,Chocolate,dinner,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-18,"Egg Omelette (4 Eggs) with Cheese",Omelette,breakfast,1.0,Serving,430,33,31,1,12,,0,760,560
+2026-05-18,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-18,"Caramel Oat Latte",Latte,lunch,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-05-18,Biscuits,Biscuit,lunch,16.0,Servings,608,24,6.40,91.20,9.60,48,1.60,,1120
+2026-05-18,"Bacon Double Cheeseburger XL Meal",Hamburger,dinner,1.0,Serving,"1,250",,,,,,,,
+2026-05-18,"Diet Dr. Pepper",CocaCola,dinner,1.0,Serving,0,0,0,0,0,0,0,0,100
+2026-05-18,"Fries, Regular",FrenchFries,dinner,1.0,Serving,277,12.40,0,36.40,3.80,0.20,2.60,,571
+2026-05-18,"6 Onion Rings",Onion,dinner,1.0,Serving,225,3.50,3.80,41,0.10,0,4.40,,
+2026-05-19,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-19,"Orange Juice, Chilled",OrangeJuice,breakfast,300.0,Milliliters,108,0,3,27,0,27,0,0,3
+2026-05-19,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-05-19,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-05-19,"Caramel Oat Latte",Latte,lunch,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-05-19,Biscuits,Biscuit,lunch,16.0,Servings,608,24,6.40,91.20,9.60,48,1.60,,1120
+2026-05-19,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-05-20,"Caramel Latte, Full Fat, In, large",Latte,breakfast,1.0,Serving,221,7,,,5,,,,
+2026-05-20,"Onion Rings",Onion,lunch,1.0,Serving,126,6.20,,,0.60,,,,
+2026-05-20,"Bacon Sizzlers",PotatoChip,snacks,1.0,Package,91,4.80,1,10.60,0.40,0.50,,,
+2026-05-20,Knoppers,Chocolate,snacks,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-20,"Ham Wrap",Wrap,lunch,1.0,Each,150,,,,,,,,
+2026-05-21,"Caramel Latte, Full Fat, In, large",Latte,breakfast,1.0,Serving,221,7,,,5,,,,
+2026-05-21,"All Day Breakfast wrap",Wrap,breakfast,1.0,Serving,538,,,,,,,,
+2026-05-21,"Caramel Latte, Full Fat, In, large",Latte,lunch,1.0,Serving,221,7,,,5,,,,
+2026-05-21,"Caramel Latte, Full Fat, In, large",Latte,snacks,1.0,Serving,221,7,,,5,,,,
+2026-05-21,"Vegetable Sushi Snack Pack",Sushi,lunch,1.0,Serving,89,1.10,,,0.40,2.90,,,
+2026-05-21,"Classic Napolitaner",Biscuit,lunch,45.0,Grams,233,12.15,3.87,26.10,8.55,11.25,1.67,2.25,66.15
+2026-05-21,"Mango Loco",Mango,snacks,500.0,Milliliters,245,,,62,,58,,,
+2026-05-21,"Chicken & Bacon Tortelloni",Chicken,dinner,2.0,Servings,816,22,34.60,117,7,8.80,5.80,,2040
+2026-05-22,"Caramel Latte, Full Fat, In, large",Latte,breakfast,1.0,Serving,221,7,,,5,,,,
+2026-05-22,"Egg Omelette (4 Eggs) with Cheese",Omelette,breakfast,1.0,Serving,430,33,31,1,12,,0,760,560
+2026-05-22,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-22,"Penne pasta with tomato and basil sauce",Pasta,dinner,1.0,Serving,280,5.60,13.10,57.60,3.10,,,,
+2026-05-22,Coleslaw.,Coleslaw,dinner,1.0,Tablespoon,91,,,,,,,,
+2026-05-22,"Juice, Orange Pint",OrangeJuice,dinner,1.0,Serving,110,0,1,29,0,25,0,0,0
+2026-05-22,"Mcdonalds 6 Piece Chicken Nuggets",Chicken,snacks,1.0,Serving,259,13,16,18,1.70,0.60,0.70,,
+2026-05-23,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-23,"Crispy Wafers Chocolate",Chocolate,breakfast,2.0,Slices,195,9,15,13,6,5.50,1,,
+2026-05-23,"Bacon Roll",Bacon,breakfast,1.0,Serving,368,,,,,,,,
+2026-05-23,"20 Nuggets",Default,lunch,20.0,Pieces,863,45,53,61,5.80,1.90,2.20,,
+2026-05-23,"Large Oasis Zero",Juice,lunch,1.0,Serving,2,,0.10,21,,0,,,41
+2026-05-23,"Regular Lotus Biscoff Mcflurry",IceCream,lunch,1.0,Serving,350,11,5.70,56,7.10,42,1.60,,380
+2026-05-23,Knoppers,Chocolate,snacks,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-23,"J20 Orange And Passion Fruit",Orange,snacks,275.0,Milliliters,88,0,0,3.96,0,3.96,,,0
+2026-05-23,"Egg Omelette (4 Eggs) with Cheese",Omelette,dinner,1.0,Serving,430,33,31,1,12,,0,760,560
+2026-05-23,"Caramel Latte, Full Fat, In, Med",Coffee,dinner,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-23,"Chocolate Donut",Donut,dinner,1.0,Serving,150,,,,,,,,
+2026-05-23,"Millionaires Shortbread",Cake,dinner,1.0,Serving,280,16,2.60,32,9.20,22,1.10,,800
+2026-05-24,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-24,"Salted Caramel Iced Latte",Latte,lunch,1.0,Serving,250,3.10,7.50,45.90,,,,,
+2026-05-24,"Sandwich, Panini, Bbq Chicken, Bacon & Cheese",Sandwich,lunch,1.0,Serving,183,16,6.60,3.50,,3.40,,,
+2026-05-24,"pork Bites",PotatoChip,snacks,30.0,Grams,190,14.64,12.63,0.90,5.10,0.6,0.81,,0.90
+2026-05-24,"Fizzy Strawberry Flavour Lances",Snack,snacks,16.0,Each,364,2,2.80,83.20,1.20,52,1.60,0,0
+2026-05-24,"Soda, Pepsi, Max",CocaCola,dinner,330.0,Milliliters,2,0,0,0,0,0,,,0
+2026-05-24,"Mango Loco",Mango,dinner,500.0,Milliliters,245,,,62,,58,,,
+2026-05-24,Starmix,Candy,dinner,30.0,Grams,103,0.15,1.98,23.10,0.3,14.10,,,0.90
+2026-05-24,"Chow Mein, Chicken, Takeaway",StirFryNoodles,dinner,1.0,Serving,368,17.50,22.50,32.50,2.50,0,5,32.50,1165
+2026-05-24,"Itsu Crispy Seaweed Thins",Seaweed,dinner,2.0,Servings,48,3.20,2.80,0.80,0.40,0,1.80,0,0.3
+2026-05-24,"Rice, Egg Fried, Takeaway",Rice,dinner,1.0,Serving,465,12.50,10,82.50,2.50,0,2.50,47.50,1042.50
+2026-05-24,"Cake, Chocolate, Iced",Cake,dinner,1.0,Slice,203,8.40,3,29.40,2.40,19.80,9.60,14.40,174
+2026-05-24,"Soda, Pepsi, Max",CocaCola,dinner,330.0,Milliliters,2,0,0,0,0,0,,,0
+2026-05-24,"Berries and Cherries Cider",Cider,snacks,500.0,Milliliters,235,,,58.75,,,,,
+2026-05-25,"Chicken Ceaser Wrap",Wrap,lunch,1.0,Serving,476,24.70,17.40,44.50,4.40,6.40,,,170
+2026-05-25,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-25,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-25,"Burger, Double Chicken",Hamburger,dinner,1.0,Serving,581,11.50,63.30,55.20,2.60,4.70,3.80,,2.70
+2026-05-25,"Peri Mac And Cheese",Pasta,dinner,1.0,Serving,297,16.30,12,25.70,8.60,,1.60,,
+2026-05-25,"Peri Salted Chips",Potato,dinner,1.0,Serving,381,,,,,,,,
+2026-05-26,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-05-26,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-05-26,"Orange Juice, Chilled",OrangeJuice,breakfast,300.0,Milliliters,108,0,3,27,0,27,0,0,3
+2026-05-26,"Pork Sausages",Sausage,breakfast,1.0,Each,125,7.80,5.70,7.80,4,,,,
+2026-05-26,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-26,"Salted Caramel Iced Latte",Latte,snacks,1.0,Serving,250,3.10,7.50,45.90,,,,,
+2026-05-26,"Chow Mein, Chicken, Takeaway",StirFryNoodles,lunch,1.0,Serving,368,17.50,22.50,32.50,2.50,0,5,32.50,1165
+2026-05-26,"Itsu Crispy Seaweed Thins",Seaweed,lunch,1.0,Serving,24,1.60,1.40,0.40,0.20,0,0.90,0,0.1
+2026-05-26,"Rice, Egg Fried, Takeaway",Rice,lunch,1.0,Serving,465,12.50,10,82.50,2.50,0,2.50,47.50,1042.50
+2026-05-26,"Itsu Crispy Seaweed Thins",Seaweed,dinner,1.0,Serving,24,1.60,1.40,0.40,0.20,0,0.90,0,0.1
+2026-05-26,"Chow Mein, Chicken, Takeaway",StirFryNoodles,dinner,1.0,Serving,368,17.50,22.50,32.50,2.50,0,5,32.50,1165
+2026-05-26,"Millionaires Shortbread",Cake,dinner,1.0,Serving,280,16,2.60,32,9.20,22,1.10,,800
+2026-05-26,"Berries and Cherries Cider",Cider,dinner,500.0,Milliliters,235,,,58.75,,,,,
+2026-05-26,"Chocolate, Minstrels",Chocolate,snacks,192.0,Grams,954,42.24,11.14,130.56,24.96,128.64,1.92,163.20,403.20
+2026-05-26,"Fizzy Strawberry Flavour Lances",Snack,snacks,16.0,Each,364,2,2.80,83.20,1.20,52,1.60,0,0
+2026-05-26,"4 Egg Omlette",Egg,dinner,1.0,Serving,372,,,,,,,,
+2026-05-27,"Venti Caramel latte (Semi Skimmed)",Latte,dinner,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-05-27,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-05-27,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-05-27,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-05-27,"Oat milk latte medium",Latte,lunch,1.0,Serving,171,4.80,1.50,29.20,1.80,14.10,,,0.30
+2026-05-27,"Large Banana Milkshake",MilkShake,dinner,1.0,Serving,495,9.70,12,90,6.50,76,0.80,,
+2026-05-27,"Croissant With Ham And Cheese",Croissant,lunch,1.0,Serving,445,,,,,,,,
+2026-05-27,"Oat milk latte medium",Latte,breakfast,1.0,Serving,171,4.80,1.50,29.20,1.80,14.10,,,0.30
+2026-05-27,Knoppers,Chocolate,snacks,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-05-28,"Fruit Pastilles",Candy,lunch,200.0,Grams,762,2.40,1,184.40,2.20,105.40,1,,1
+2026-05-28,"Bacon Roll",Bacon,breakfast,1.0,Serving,368,,,,,,,,
+2026-05-28,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-28,"Burger King Bacon Double Cheese XL",PotatoChip,lunch,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-05-28,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-28,"Straight Cut Chips",FrenchFries,dinner,100.0,Grams,164,4.50,3.20,26,0.60,0.40,3.70,,9
+2026-05-28,"Pie, Double Cheeseburger",Pie,dinner,1.0,Each,670,42.80,21.40,48.10,19.60,3.50,3.50,,412
+2026-05-28,"Chicken Nuggets.",Chicken,dinner,8.0,Pieces,402,,,,,,,,
+2026-05-29,"Medium Chocolate Milkshake",MilkShakeChocolate,lunch,1.0,Serving,380,8,10,66,5,47,2,0,760
+2026-05-29,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-29,"Chicken Nuggets (9 Pieces)",ChickenTenders,lunch,9.0,Pieces,388,20,24,28,2.60,0.80,1,,0.77
+2026-05-29,"Regular Lotus Biscoff Mcflurry",IceCream,lunch,1.0,Serving,350,11,5.70,56,7.10,42,1.60,,380
+2026-05-29,"Old Mout Cider Alcohol Free",WineRed,dinner,500.0,Milliliters,170,0,0,41,0,40,,,
+2026-05-29,"Slice Of Bbq Chicken Pizza",Pizza,dinner,3.0,Servings,626,,,,,,,,
+2026-05-29,"Orange Juice",OrangeJuice,dinner,1.0,Serving,45,,,,,,,,
+2026-05-30,"Slice Of Bbq Chicken Pizza",Pizza,lunch,3.0,Servings,626,,,,,,,,
+2026-05-30,"Elderflower Lemonade",Lemonade,dinner,100.0,Milliliters,21,0.10,0.10,4.70,0,4.40,,,0
+2026-05-30,"Elderflower Lemonade",Lemonade,dinner,100.0,Milliliters,21,0.10,0.10,4.70,0,4.40,,,0
+2026-05-30,"Garlic Bread Slices",Default,dinner,1.0,Slice,42,1.87,0.97,5.20,1.30,0.27,0.27,,0.10
+2026-05-30,"_Lightly Salted Tortilla Chips (Nachos)",TortillaChip,dinner,25.0,Grams,119,4.90,1.60,16.40,0.50,0.40,1.30,,
+2026-05-31,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-05-31,"Gingerbread Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,244,10.70,10,27,6.70,26.60,0,0,300
+2026-05-31,"Croissant With Ham And Cheese",Croissant,lunch,1.0,Serving,445,,,,,,,,
+2026-05-31,"Lucozade Sport Orange Still 500ml Bottle",Orange,lunch,1.0,Liter,280,0,0.20,12.80,,7.20,0,,0.10
+2026-05-31,"Monster Ultra Rosá",Liquid,snacks,1.0,Serving,14,,,7,,0,,,1000
+2026-05-31,"Burger King Bacon Double Cheese XL",PotatoChip,snacks,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-05-31,"20 Nuggets",Default,dinner,10.0,Pieces,432,22.50,26.50,30.50,2.90,0.95,1.10,,
+2026-05-31,"Cheeseburger, Double",Hamburger,dinner,1.0,Serving,445,23,26,32,12,8.10,2.40,,2.40
+2026-05-31,"Venti Caramel latte (Semi Skimmed)",Latte,dinner,1.0,Serving,392,9.20,16.30,45.20,4.60,41.70,0.10,,220
+2026-06-01,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-06-01,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-06-01,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-01,"20 Nuggets",Default,lunch,10.0,Pieces,432,22.50,26.50,30.50,2.90,0.95,1.10,,
+2026-06-01,"Burger King Bacon Double Cheese XL",PotatoChip,lunch,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-06-01,"Bbq Fillet Tower Burger",Hamburger,dinner,1.0,Serving,610,28.10,33.30,59.60,4,11,,,
+2026-06-01,"Fries, Large",FrenchFries,dinner,1.0,Serving,450,21.30,6.10,60.80,3,0.60,,,0.10
+2026-06-01,"Kfc Bbq Mini Wrap",Wrap,dinner,1.0,Serving,300,11.20,19.20,31.40,2.40,4.70,,,
+2026-06-01,"Robinson Apple & Blackcurrent Juice Large",Juice,dinner,1.0,Serving,10,,,,,,,,
+2026-06-02,"Pork Sausages",Sausage,breakfast,1.0,Each,125,7.80,5.70,7.80,4,,,,
+2026-06-02,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-06-02,"Latte, Grande, Skimmed Milk",Coffee,breakfast,2.0,Servings,262,0.60,25.20,39,0.40,35,0,,0.40
+2026-06-02,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-06-02,"Flat White",Coffee,lunch,2.0,Cups,90,,12.40,17.60,,,,,
+2026-06-02,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-02,"4 Egg Omlette",Egg,dinner,1.0,Serving,372,,,,,,,,
+2026-06-02,"Burger King Bacon Double Cheese XL",PotatoChip,lunch,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-06-02,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-06-02,"Fruit Pastilles",Candy,dinner,200.0,Grams,762,2.40,1,184.40,2.20,105.40,1,,1
+2026-06-02,"Ice Cream, Half Baked",IceCream,dinner,0.5,Cup,270,28,8,66,16,54,2,120,130
+2026-06-03,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-06-03,"Caramel Latte, Full Fat, In, Med",Coffee,breakfast,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-06-03,"Lotus Biscoff Donut",Donut,lunch,1.0,Serving,392,20.80,5.60,46.90,8.50,16.60,2.40,,470
+2026-06-03,"Venti Caramel Latte, Oat Milk",Latte,lunch,1.0,Serving,250,9,16,24,,23,,,
+2026-06-03,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-06-03,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-06-03,"Strawberry Milkshake Large",MilkshakeStrawberry,dinner,1.0,Serving,494,,,,,,,,
+2026-06-03,"Shades Sweets",Candy,snacks,150.0,Grams,524,0.30,0.90,127.50,0.15,91.50,,,
+2026-06-04,"Flat White",Coffee,breakfast,4.0,Cups,180,,24.80,35.20,,,,,
+2026-06-04,"Oatmeal Cookie",Cookie,lunch,2.0,Servings,220,10,4,28,7,14,4,0,80
+2026-06-04,"Oshee Isotonic Drink",CocaCola,breakfast,1.0,Each,156,0.13,0.39,37.5,,,,,0.29
+2026-06-04,Alcohol,Alcohol,dinner,1.0,Serving,56,0,0,0,0,0,0,0,0
+2026-06-04,"Pint of Aspalls Cider",Cider,dinner,1.0,Pint,273,,,,,,,,
+2026-06-04,"Vodka, 25ml Single Measure/Shot",AlcoholWhite,dinner,2.0,Each,110,,,,,,,,
+2026-06-04,"Beer 330ml",Beer,dinner,330.0,Milliliters,148,,1,11,,,,,
+2026-06-04,"Pizza with parma ham and rocket",Pizza,dinner,1.0,Each,720,12,30,65,,,,,
+2026-06-04,"Orange Juice",OrangeJuice,dinner,1.0,Serving,45,,,,,,,,
+2026-06-04,"Vodka Cherry",Cherry,dinner,1.0,Serving,150,,,,,,,,
+2026-06-05,"Flat White",Coffee,breakfast,4.0,Cups,180,,24.80,35.20,,,,,
+2026-06-05,"Oshee Isotonic Drink",CocaCola,breakfast,1.0,Each,156,0.13,0.39,37.5,,,,,0.29
+2026-06-05,"Oatmeal Cookie",Cookie,lunch,2.0,Servings,220,10,4,28,7,14,4,0,80
+2026-06-05,"Chicken, Breast, Grilled",Chicken,lunch,100.0,Grams,167,5,31,0,2,0,0,112,65
+2026-06-05,"New Boiled Potatoes",Potato,lunch,1.0,Cup,136,0.20,3,32,0,1.40,2.80,0,6
+2026-06-05,"Flat White",Coffee,snacks,1.0,Cup,45,,6.20,8.80,,,,,
+2026-06-05,"Mangoes, Passion Fruits & Apples Smoothie",Smoothie,snacks,250.0,Milliliters,127,,1.25,30,,27.50,3.50,,
+2026-06-05,"Pint of Aspalls Cider",Cider,dinner,1.0,Pint,273,,,,,,,,
+2026-06-05,"Espresso Martini",MixedDrink,dinner,1.0,Serving,285,,,,,,,,
+2026-06-05,"Gin And Tonic",Default,dinner,1.0,Serving,120,,,,,,,,
+2026-06-05,Zero,CocaCola,dinner,330.0,Milliliters,1,0,0,0,0,0,0,,28
+2026-06-05,"Rum And Coke",Alcohol,dinner,1.0,Serving,195,,,,,,,,
+2026-06-05,"Vodka Cherry",Cherry,dinner,1.0,Serving,150,,,,,,,,
+2026-06-05,Jagermeister,Liquid,dinner,2.0,Servings,149,,,7.60,,7.60,,,
+2026-06-06,"Pretzel Bread w/butter",Pretzel,breakfast,2.0,Servings,360,10,12,64,,,,,
+2026-06-06,"Orange Juice",OrangeJuice,breakfast,1.0,Serving,45,,,,,,,,
+2026-06-06,"Vanilla Ice Cream Tub",Default,lunch,1.0,Serving,235,,,,,,,,
+2026-06-06,"Mangoes, Passion Fruits & Apples Smoothie",Smoothie,lunch,250.0,Milliliters,127,,1.25,30,,27.50,3.50,,
+2026-06-06,"Mixed Berry Smoothie",Smoothie,lunch,1.0,Serving,280,0.30,1.10,40.10,,,,,
+2026-06-06,"Smashed Double Cheeseburger Sliders",Hamburger,dinner,1.0,Serving,738,42,44,45,19,9.30,4.80,,4100
+2026-06-06,"Chips, Oven, Baked",FrenchFries,dinner,100.0,Grams,162,3.60,2.50,28.50,0.50,0.60,2.60,,
+2026-06-06,Coke,CocaCola,dinner,330.0,Milliliters,139,0,0,35.64,0,35.64,0,0,0
+2026-06-06,Perogies,Dumpling,dinner,2.0,Pieces,20,1.33,1,,0.33,0.33,0.33,0,56.67
+2026-06-06,Coke,CocaCola,dinner,330.0,Milliliters,139,0,0,35.64,0,35.64,0,0,0
+2026-06-06,"Margarita Pizza Slice",Pizza,dinner,1.0,Slice,133,4,6,16,2,1,0,0,263
+2026-06-07,"Latte, Regular",Coffee,breakfast,1.0,Serving,69,2.60,5.30,7.10,1.70,7.10,0,,0.10
+2026-06-07,"Chocolate Bar, Twix Xtra / 2x37.5 g",CandyBar,lunch,2.0,Each,370,18,3.40,48.80,10.60,36,,,300
+2026-06-07,"All Butter Croissant",Croissant,lunch,1.0,Piece,180,,,,,,,,
+2026-06-07,"Lidl Chocolate Hazelnut Croissant",Croissant,snacks,1.0,Serving,313,18.56,,42.16,4.96,,,,
+2026-06-07,"Pepsi Cream Soda",CocaCola,snacks,1.0,Serving,2,,0.20,0.20,,,,,28
+2026-06-07,"Double Quarter Pounder With Cheese",Hamburger,dinner,1.0,Serving,770,45,51,42,21,10,3,175,1290
+2026-06-07,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-06-07,"Mcflurry, Kit Kat Caramel",IceCream,dinner,1.0,Serving,431,12,6.80,73,7.80,54,0.50,,
+2026-06-07,"Strawberry Milkshake Large",MilkshakeStrawberry,dinner,1.0,Serving,494,,,,,,,,
+2026-06-08,"Cherry Liqueur",Cherry,lunch,1.0,"Fluid ounce",80,,,,,,,,
+2026-06-08,"Waffle with nutella",Waffles,snacks,1.0,Each,150,,,,,,,,
+2026-06-08,"Oshee Isotonic Drink",CocaCola,breakfast,1.0,Each,156,0.13,0.39,37.5,,,,,0.29
+2026-06-08,"Coke Zero (can 330ml)",CocaCola,lunch,1.0,Serving,1,0,0,0,0,0,0,,28
+2026-06-08,"Potato And Cottage Cheese Perogies",Dumpling,lunch,8.0,Each,424,6,14,78,1,4,12,,800
+2026-06-08,"Vanilla Ice Cream Tub",Default,lunch,1.0,Serving,235,,,,,,,,
+2026-06-08,"Pizza with parma ham and rocket",Pizza,dinner,1.0,Each,720,12,30,65,,,,,
+2026-06-08,"Coke Zero 500ml",CocaCola,dinner,1.0,Serving,2,0,0,0,0,0,0,,
+2026-06-08,"Venti Caramel Latte, Oat Milk",Latte,snacks,1.0,Serving,250,9,16,24,,23,,,
+2026-06-09,"Pork Sausages",Sausage,breakfast,1.0,Each,125,7.80,5.70,7.80,4,,,,
+2026-06-09,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-06-09,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-06-09,"Orange Juice, Chilled",OrangeJuice,breakfast,300.0,Milliliters,108,0,3,27,0,27,0,0,3
+2026-06-09,"Latte, Regular",Coffee,breakfast,2.0,Servings,138,5.20,10.60,14.20,3.40,14.20,0,,0.20
+2026-06-09,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-06-09,"Venti Caramel Latte, Oat Milk",Latte,lunch,1.0,Serving,250,9,16,24,,23,,,
+2026-06-09,Oreos,Cookie,lunch,10.0,Pieces,520,,2,50,,,,,
+2026-06-09,"Tesco Sausage And Ham Tortellini",Sausage,dinner,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-06-10,"Venti Caramel Latte, Oat Milk",Latte,breakfast,1.0,Serving,250,9,16,24,,23,,,
+2026-06-10,"Pub Cheese Burger",Hamburger,lunch,1.0,Serving,720,43,53,47,21,10,3,215,790
+2026-06-10,"Fried Halloumi",Default,lunch,4.0,Pieces,260,,,,,,,,
+2026-06-10,"Bread Rolls, White, Soft",DinnerRoll,lunch,2.0,Each,152,1.80,5.40,31.20,0.60,1.80,1.80,0,240
+2026-06-10,"Ultra Fiesta Mango",Juice,dinner,500.0,Milliliters,13,0,0,6.70,0,0,0,0,360
+2026-06-10,"Venti Caramel Latte, Oat Milk",Latte,dinner,1.0,Serving,250,9,16,24,,23,,,
+2026-06-10,Knoppers,Chocolate,dinner,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-10,"Chips In Pub",FrenchFries,lunch,1.0,Serving,400,,,,,,,,
+2026-06-11,"Milk Skim",Milk,breakfast,1.0,Serving,80,0,13,6,,,,,
+2026-06-11,"Cereal, Cinnamon Toast Crunch",Cereal,breakfast,1.0,"Dry Cup",173,4,1.33,33.33,0.67,12,2.67,0,240
+2026-06-11,"Venti Caramel Latte, Oat Milk",Latte,breakfast,1.0,Serving,250,9,16,24,,23,,,
+2026-06-11,"Cottage Pie",PotPie,lunch,1.0,Serving,357,11.20,16.10,45.40,4.60,7.60,5.30,,1410
+2026-06-11,"Venti Caramel Latte, Oat Milk",Latte,lunch,1.0,Serving,250,9,16,24,,23,,,
+2026-06-11,"Chicken Tikka Wrap (No Mayo)",Wrap,dinner,1.0,Package,395,11.60,26,45,3.70,6.50,3.70,,380
+2026-06-11,"Mango Loco",Mango,dinner,500.0,Milliliters,245,,,62,,58,,,
+2026-06-11,"Bbq Chicken",Chicken,dinner,80.0,Grams,105,1.60,19.40,2.70,0.50,2.70,1,,
+2026-06-11,"Bbq Chicken",Chicken,dinner,80.0,Grams,105,1.60,19.40,2.70,0.50,2.70,1,,
+2026-06-11,"Soy Yogurt,  Vanilla",Yogurt,dinner,500.0,Grams,330,11,18.50,37.50,2,37.50,4.50,,1000
+2026-06-12,"Venti Caramel Latte, Oat Milk",Latte,breakfast,1.0,Serving,250,9,16,24,,23,,,
+2026-06-12,"Breakfast Burrito (Kip)",Burrito,lunch,1.0,Serving,308,9.60,15.30,37.30,2.40,3.40,1.50,,1269
+2026-06-12,"Oat Milk Flat White (short)",Coffee,lunch,1.0,Serving,71,2.10,1.40,9.40,,,,,
+2026-06-12,Knoppers,Chocolate,dinner,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-13,"Venti Caramel Latte, Oat Milk",Latte,breakfast,1.0,Serving,250,9,16,24,,23,,,
+2026-06-13,"Berries and Cherries Cider",Cider,lunch,500.0,Milliliters,235,,,58.75,,,,,
+2026-06-13,"Vegetable Sushi Snack Pack",Sushi,breakfast,1.0,Serving,89,1.10,,,0.40,2.90,,,
+2026-06-13,"Classic Vanilla",Biscuit,lunch,45.0,Grams,235,12.15,3.46,27.45,10.35,13.50,,,198
+2026-06-13,"Breakfast Burrito (Kip)",Burrito,lunch,1.0,Serving,308,9.60,15.30,37.30,2.40,3.40,1.50,,1269
+2026-06-13,"Tesco Sausage And Ham Tortellini",Sausage,dinner,300.0,Grams,618,20.77,25.23,78,6.62,3.54,9.54,0,0
+2026-06-13,"Flat White",Coffee,lunch,1.0,Cup,45,,6.20,8.80,,,,,
+2026-06-14,"Vegetable Sushi Snack Pack",Sushi,lunch,1.0,Serving,89,1.10,,,0.40,2.90,,,
+2026-06-14,"Salted Caramel Iced Latte",Latte,lunch,1.0,Serving,250,3.10,7.50,45.90,,,,,
+2026-06-14,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-06-14,"Orange Squash",OrangeJuice,dinner,300.0,Milliliters,4,0,,0.72,0,0.72,,,
+2026-06-14,"Roast Dinner",Default,dinner,1.0,Serving,972,,,,,,,,
+2026-06-15,"Venti Caramel Latte, Oat Milk",Latte,lunch,1.0,Serving,250,9,16,24,,23,,,
+2026-06-15,"Egg Omelette (4 Eggs) with Cheese",Omelette,dinner,1.0,Serving,430,33,31,1,12,,0,760,560
+2026-06-15,"Venti Caramel Latte, Oat Milk",Latte,snacks,1.0,Serving,250,9,16,24,,23,,,
+2026-06-15,"Mango Loco",Mango,dinner,500.0,Milliliters,245,,,62,,58,,,
+2026-06-15,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-15,"Burger King Bacon Double Cheese XL",PotatoChip,snacks,40.0,Grams,210,12,2.48,22,1.16,1,1.76,,
+2026-06-16,"Hash Brown",Hash,breakfast,2.0,Servings,272,16.40,2,28,1.60,0.60,2.60,,1.36
+2026-06-16,"Pork Sausages",Sausage,breakfast,2.0,Each,250,15.60,11.40,15.60,8,,,,
+2026-06-16,"Latte, Regular",Coffee,breakfast,1.0,Serving,69,2.60,5.30,7.10,1.70,7.10,0,,0.10
+2026-06-16,"Baked Beans",BakedBeans,breakfast,1.0,Serving,184,0.90,9.70,29,0.30,12,9.60,,830
+2026-06-16,"Chicken Tikka Wrap (No Mayo)",Wrap,lunch,1.0,Package,395,11.60,26,45,3.70,6.50,3.70,,380
+2026-06-16,"Yorkie Bar Duo",Bar,lunch,2.0,Servings,390,22,5,41.80,13,41,1.40,,160
+2026-06-16,"Venti Caramel Latte, Oat Milk",Latte,lunch,1.0,Serving,250,9,16,24,,23,,,
+2026-06-16,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-16,"Biscoff On Toast",Toast,dinner,2.0,Servings,540,,,,,,,,
+2026-06-16,"Ice Cream, Half Baked",IceCream,dinner,0.5,Cup,270,28,8,66,16,54,2,120,130
+2026-06-17,"Bacon Roll",Bacon,breakfast,1.0,Serving,368,,,,,,,,
+2026-06-17,"Caramel Oat Latte",Latte,breakfast,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-17,"Oat latte venti",Latte,lunch,1.0,Serving,146,4.69,,15.48,,,,,
+2026-06-17,"Belgian Triple Chocolate Shortbread",Cookie,lunch,1.0,Serving,316,18.40,3.30,34,12.10,13.80,0.80,,310
+2026-06-17,"Chicken yakisoba",Chicken,dinner,1.0,Serving,717,,,,,,,,
+2026-06-17,"Mini Caramel Waffles",Waffles,dinner,160.0,Grams,725,33.60,5.60,99.20,19.20,,,,
+2026-06-17,"Edamame, With Salt",Salt,dinner,1.0,Serving,179,6.20,13.40,7.40,0.90,0.2,20,,0.80
+2026-06-17,"Venti Caramel Latte, Oat Milk",Latte,dinner,1.0,Serving,250,9,16,24,,23,,,
+2026-06-18,"Venti Caramel Latte, Oat Milk",Latte,breakfast,1.0,Serving,250,9,16,24,,23,,,
+2026-06-18,"Milk Skim",Milk,breakfast,1.0,Serving,80,0,13,6,,,,,
+2026-06-18,"Cereal, Cinnamon Toast Crunch",Cereal,breakfast,1.0,"Dry Cup",173,4,1.33,33.33,0.67,12,2.67,0,240
+2026-06-18,"Oat latte venti",Latte,lunch,1.0,Serving,146,4.69,,15.48,,,,,
+2026-06-18,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-18,"Double BBQ Quarter Pounder with Cheese",DoubleCheeseburger,dinner,1.0,Serving,741,43,51,39,20,11,2.30,,2700
+2026-06-18,"Fries, Large",FrenchFries,dinner,1.0,Serving,444,22.48,9.37,54.34,2.6,0.75,4.87,,0.82
+2026-06-18,"4pc McDonalds Chicken Nuggets",Chicken,dinner,4.0,Pieces,174,8.70,10,14,1,0.40,0.90,,380
+2026-06-18,"Large Oasis Zero",Juice,dinner,1.0,Serving,2,,0.10,21,,0,,,41
+2026-06-18,"Chocolate Galaxy Mcflurry",IceCream,dinner,1.0,Serving,359,14,6.20,50,9.40,47,1.80,,0.24
+2026-06-19,"Biscoff On Toast",Toast,lunch,2.0,Servings,540,,,,,,,,
+2026-06-19,Knoppers,Chocolate,lunch,1.0,Serving,136,8,2.30,12.90,4.60,8.70,,,0.9
+2026-06-20,"Pash N Shoot Smoothie",Smoothie,breakfast,1.0,Serving,157,1,,45,,,,,
+2026-06-20,"Protein Shake - Strawberry Passion",MilkShake,lunch,1.0,Serving,345,8,27,45,,,,,
+2026-06-20,"Breakfast Burrito (Kip)",Burrito,lunch,1.0,Serving,308,9.60,15.30,37.30,2.40,3.40,1.50,,1269
+2026-06-20,"Large Oasis Zero",Juice,lunch,1.0,Serving,2,,0.10,21,,0,,,41
+2026-06-20,"J20 Orange And Passion Fruit",Orange,dinner,275.0,Milliliters,88,0,0,3.96,0,3.96,,,0
+2026-06-20,"Crunch Banana Chocolate Flakes 135g",Yogurt,dinner,1.0,Container,139,4.90,3.70,19.30,3.10,16.40,,,0.20
+2026-06-21,"Biscoff Crunch Latte Oatmilk",Latte,breakfast,1.0,Serving,350,18,5,45,,,,,
+2026-06-21,"Croissant, Ham And Cheese",Sandwich,breakfast,1.0,Serving,493,25,22.30,43.70,15.30,7,2.30,,0.90
+2026-06-21,"Lucozade Sport Orange Still 500ml Bottle",Orange,lunch,1.0,Liter,280,0,0.20,12.80,,7.20,0,,0.10
+2026-06-21,"Salted Caramel Iced Latte",Latte,lunch,1.0,Serving,143,5,6.90,18.70,3,16.90,,,0.20
+2026-06-21,"Fruit Pastilles Lolly",Popsicle,lunch,1.0,Serving,61,0,0.10,13.30,0,12.30,0.10,,0
+2026-06-21,"Lasagna, Beef",Lasagna,dinner,1.0,Serving,598,28,39,46,,,,,
+2026-06-21,"Crunch Banana Chocolate Flakes 135g",Yogurt,dinner,1.0,Container,139,4.90,3.70,19.30,3.10,16.40,,,0.20
+2026-06-21,"All Butter Shortbread Biscuits",Butter,dinner,1.0,Each,43,2.20,0.50,5,1.40,1.30,0.50,,0.4
+2026-06-22,"Caramel Oat Latte",Latte,breakfast,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-22,"Caramel Oat Latte",Latte,snacks,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-22,"Caramel Oat Latte",Latte,lunch,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-22,"Spaghetti Bolognese, Homemade",Pasta,lunch,1.0,Serving,378,15,20,42.50,5,5,2.50,42.50,230
+2026-06-22,"Peri Salted Chips",Potato,dinner,1.0,Serving,381,,,,,,,,
+2026-06-22,"Grilled Chicken, Burger",Chicken,dinner,1.0,Serving,368,6.30,35.10,41.50,1.10,4.70,3.10,,0.95
+2026-06-22,"Peri Mac And Cheese",Pasta,dinner,1.0,Serving,297,16.30,12,25.70,8.60,,1.60,,
+2026-06-22,"Orange And Mango Juice",OrangeJuice,breakfast,200.0,Milliliters,100,0,1.40,23.20,0,19.40,0.40,,
+2026-06-23,"Pain Au Chocolat",Croissant,breakfast,2.0,Each,514,20.80,,,13.80,11.60,,,0.56
+2026-06-23,"Caramel Oat Latte",Latte,breakfast,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-23,"KitKat Chunky Salted Caramel Duo",Chocolate,lunch,2.0,Pieces,354,19.20,4.80,39.80,10.60,32,1.20,0,240
+2026-06-23,"Wrap, Fajita Halloumi",Wrap,lunch,1.0,Package,361,11.40,21.60,41.40,5.50,5.30,3.10,,200
+2026-06-23,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-06-23,"Caramel Oat Latte",Latte,snacks,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-23,"Chicken And Bacon Tortelloni",Bacon,dinner,300.0,Grams,706,13,30.20,114.20,3.60,7.80,5.80,3.60,
+2026-06-23,"Crunch Banana Chocolate Flakes 135g",Yogurt,dinner,1.0,Container,139,4.90,3.70,19.30,3.10,16.40,,,0.20
+2026-06-23,"Biscuits, Cookies, Chocolate Chip, Standard",Cookie,snacks,2.0,Each,236,12.50,2.50,30,6,15,1.50,1.50,149
+2026-06-24,"Caramel Oat Latte",Latte,breakfast,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-24,"Chicken Tikka Triple Wrap",Wrap,lunch,1.0,Package,564,14.80,28.60,76.50,2.90,9.10,5.40,,1.60
+2026-06-24,Apple,Apple,lunch,1.0,Each,95,0.30,0.50,25,0.10,19,4.40,0,2
+2026-06-24,"Mixed Berry Smoothie",Smoothie,breakfast,1.0,Serving,280,0.30,1.10,40.10,,,,,
+2026-06-24,"Puff pastry Cheese And Onion Roll",Roll,snacks,1.0,Serving,180,,,,,,,,
+2026-06-24,"Cola Bottle Ice Lolly Cherry Cola Flavour",Cherry,snacks,1.0,Each,54,0.10,0.20,12.90,0.10,7.20,0.20,,0.6
+2026-06-24,"Biscuits, Cookies, Chocolate Chip, Standard",Cookie,snacks,2.0,Each,236,12.50,2.50,30,6,15,1.50,1.50,149
+2026-06-24,"Crunch Banana Chocolate Flakes 135g",Yogurt,dinner,1.0,Container,139,4.90,3.70,19.30,3.10,16.40,,,0.20
+2026-06-25,"Mixed Berry Smoothie",Smoothie,breakfast,1.0,Serving,280,0.30,1.10,40.10,,,,,
+2026-06-25,"Caramel Oat Latte",Latte,breakfast,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-25,"Puff pastry Cheese And Onion Roll",Roll,lunch,1.0,Serving,180,,,,,,,,
+2026-06-25,"Chicken And Bacon Tortelloni",Bacon,dinner,300.0,Grams,706,13,30.20,114.20,3.60,7.80,5.80,3.60,
+2026-06-25,"Crunch Banana Chocolate Flakes 135g",Yogurt,dinner,1.0,Container,139,4.90,3.70,19.30,3.10,16.40,,,0.20
+2026-06-25,"Caramel Latte, Full Fat, In, Med",Coffee,lunch,1.0,Serving,239,10.70,10,26,6.70,25.60,0,0,300
+2026-06-26,"Caramel Oat Latte",Latte,breakfast,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40
+2026-06-26,"Puff pastry Cheese And Onion Roll",Roll,lunch,1.0,Serving,180,,,,,,,,
+2026-06-26,"Mango Loco",Mango,lunch,500.0,Milliliters,245,,,62,,58,,,
+2026-06-26,"Biscuit, Bourbon Creams",Biscuit,lunch,8.0,Each,560,24,6.40,74.40,14.40,33.60,4,320,0.32
+2026-06-26,"Cola Bottle Ice Lolly Cherry Cola Flavour",Cherry,dinner,1.0,Each,54,0.10,0.20,12.90,0.10,7.20,0.20,,0.6
+2026-06-26,"Bacon and Cheese Wrap",Pastry,dinner,2.0,Each,688,48.80,24.60,35.20,24.60,2,4.60,,1112
+2026-06-27,"Amino Energy",Juice,breakfast,1.0,Serving,30,,,,,,,,
+2026-06-27,"Vit-Hit, Dragonfruit + Yuzu",MixedDrink,lunch,500.0,Milliliters,35,2.50,0,7,0.50,6.50,2.50,0,0
+2026-06-27,"Berries and Cherries Cider",Cider,lunch,500.0,Milliliters,235,,,58.75,,,,,
+2026-06-27,"Bacon Roll",Bacon,lunch,1.0,Serving,368,,,,,,,,
+2026-06-27,"Fried Halloumi",Default,lunch,3.0,Pieces,195,,,,,,,,
+2026-06-27,"Orange and Mango",OrangeJuice,dinner,250.0,Milliliters,8,0,,1.25,0,1.25,,,250
+2026-06-27,"Cookies And Cream",IceCream,dinner,60.0,Grams,333,19.80,,34.80,,32.40,,,
+2026-06-27,Apple,Apple,breakfast,1.0,Each,95,0.30,0.50,25,0.10,19,4.40,0,2
+2026-06-27,"Caramel Oat Latte",Latte,snacks,1.0,Serving,196,3.90,1.60,37.60,1.50,12.20,,,0.40

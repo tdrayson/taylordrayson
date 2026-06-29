@@ -73,7 +73,7 @@ it('filters fuel by vehicle at its own base route', function () {
 });
 
 it('uses dashed slugs for multi-word taxonomy values', function () {
-    Activity::factory()->create(['name' => 'Push Day', 'type' => 'weight_training', 'occurred_at' => now()]);
+    Activity::factory()->create(['name' => 'Push Day', 'type' => 'weight-training', 'occurred_at' => now()]);
 
     get('/activities')->assertInertia(fn ($page) => $page
         ->where('chips', fn ($chips) => collect($chips)->pluck('href')->contains('/activities/weight-training'))

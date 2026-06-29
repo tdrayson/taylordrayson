@@ -16,7 +16,7 @@ class StravaPolylines extends Command
 
     private const RATE_WINDOW = 900;
 
-    private const POLYLINE_TYPES = ['run', 'walk', 'ride', 'e-bike ride'];
+    private const POLYLINE_TYPES = ['run', 'walk', 'ride', 'e-bike-ride'];
 
     public function handle(): int
     {

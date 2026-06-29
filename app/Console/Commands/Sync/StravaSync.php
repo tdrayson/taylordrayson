@@ -25,13 +25,13 @@ class StravaSync extends Command
         'VirtualRide' => 'ride',
         'GravelRide' => 'ride',
         'MountainBikeRide' => 'ride',
-        'EBikeRide' => 'e-bike ride',
-        'EMountainBikeRide' => 'e-bike ride',
+        'EBikeRide' => 'e-bike-ride',
+        'EMountainBikeRide' => 'e-bike-ride',
         'Swim' => 'swim',
         'Workout' => 'workout',
-        'WeightTraining' => 'weight training',
+        'WeightTraining' => 'weight-training',
         'Yoga' => 'yoga',
-        'IceSkate' => 'ice skate',
+        'IceSkate' => 'ice-skate',
         'Squash' => 'workout',
         'Tennis' => 'workout',
         'Badminton' => 'workout',
@@ -76,7 +76,7 @@ class StravaSync extends Command
             return self::SUCCESS;
         }
 
-        $synced = 0;
+        $created = [];
 
         foreach ($newActivities as $stravaActivity) {
             $detail = $this->fetchDetail($accessToken, $stravaActivity['id']);
@@ -88,11 +88,17 @@ class StravaSync extends Command
             $this->downloadPhotos($accessToken, $detail, $activity);
             app(GenerateStaticMap::class)($activity);
 
-            $synced++;
-            $this->info("[{$synced}] {$activity->name}");
+            $created[] = $activity;
+            $this->info('['.count($created).'] '.$activity->name);
         }
 
-        $this->info("Done. Synced {$synced} activities.");
+        $appended = $this->appendActivitiesToCsv($created);
+
+        if ($appended > 0) {
+            $this->info("Appended {$appended} row(s) to data/activities.csv.");
+        }
+
+        $this->info('Done. Synced '.count($created).' activities.');
 
         return self::SUCCESS;
     }
@@ -165,9 +171,7 @@ class StravaSync extends Command
     private function createActivity(array $data): Activity
     {
         $sportType = $data['sport_type'] ?? $data['type'] ?? 'Workout';
-        $type = self::TYPE_MAP[$sportType] ?? strtolower(
-            Str::snake($sportType, ' ')
-        );
+        $type = self::TYPE_MAP[$sportType] ?? Str::kebab($sportType);
 
         $meta = array_filter([
             'elapsed_time' => $data['elapsed_time'] ?? null,
@@ -240,6 +244,63 @@ class StravaSync extends Command
         }
 
         $this->info("  → Downloaded {$photoCount} photo(s)");
+    }
+
+    /**
+     * Append newly-synced activities to data/activities.csv (the seed used to
+     * populate production via import:all), matching its header order and the
+     * json_encode + fputcsv encoding the rest of the pipeline uses.
+     *
+     * @param  array<int, Activity>  $activities
+     * @param  string|null  $path  Target CSV path; defaults to data/activities.csv.
+     * @return int The number of rows appended.
+     */
+    public function appendActivitiesToCsv(array $activities, ?string $path = null): int
+    {
+        if ($activities === []) {
+            return 0;
+        }
+
+        $path ??= base_path('data/activities.csv');
+
+        if (! is_file($path)) {
+            return 0;
+        }
+
+        $readHandle = fopen($path, 'r');
+        $headers = fgetcsv($readHandle);
+        fclose($readHandle);
+
+        if (! is_array($headers)) {
+            return 0;
+        }
+
+        usort($activities, fn (Activity $first, Activity $second): int => $first->occurred_at <=> $second->occurred_at);
+
+        $writeHandle = fopen($path, 'a');
+
+        foreach ($activities as $activity) {
+            fputcsv($writeHandle, $this->csvRow($activity, $headers));
+        }
+
+        fclose($writeHandle);
+
+        return count($activities);
+    }
+
+    /**
+     * Map an activity to a CSV row in the given header order.
+     *
+     * @param  array<int, string>  $headers
+     * @return array<int, string>
+     */
+    public function csvRow(Activity $activity, array $headers): array
+    {
+        return array_map(fn (string $column): string => match ($column) {
+            'occurred_at' => $activity->occurred_at?->format('Y-m-d H:i:s') ?? '',
+            'meta' => $activity->meta ? (string) json_encode($activity->meta) : '',
+            default => (string) ($activity->getAttribute($column) ?? ''),
+        }, $headers);
     }
 
     private function getAccessToken(): ?string
