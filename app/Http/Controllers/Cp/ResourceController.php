@@ -24,6 +24,12 @@ class ResourceController extends Controller
         [$sortColumn, $sortDirection] = $definition->defaultSort();
         $sortColumn = (string) $request->string('sort', $sortColumn);
         $sortDirection = $request->string('direction', $sortDirection) === 'asc' ? 'asc' : 'desc';
+
+        $allowed = collect($definition->columns())->pluck('key')->push('id')->push($definition->defaultSort()[0])->unique()->all();
+        if (! in_array($sortColumn, $allowed, true)) {
+            $sortColumn = $definition->defaultSort()[0];
+        }
+
         $search = trim((string) $request->string('search'));
 
         $query = $definition->query();

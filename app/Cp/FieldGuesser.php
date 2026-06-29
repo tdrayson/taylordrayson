@@ -3,6 +3,7 @@
 namespace App\Cp;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -17,6 +18,11 @@ class FieldGuesser
     /**
      * Derive a field definition for every fillable column on a model.
      *
+     * Required versus nullable is derived from the database schema: a column is
+     * required when it exists in the schema, is NOT NULL, and has no default
+     * value. Columns absent from the schema, nullable, or carrying a default are
+     * treated as optional. Booleans are always optional because false is valid.
+     *
      * @param  class-string<Model>  $model
      * @return array<string, array{key: string, label: string, type: string, options: array<int, mixed>, rules: array<int, string>, locked: bool, help: ?string}>
      */
@@ -26,17 +32,25 @@ class FieldGuesser
         $casts = $instance->getCasts();
         $table = $instance->getTable();
 
+        /** @var Collection<string, array{name: string, nullable: bool, default: mixed}> $columns */
+        $columns = collect(Schema::getColumns($table))->keyBy('name');
+
         $fields = [];
 
         foreach ($instance->getFillable() as $column) {
             $type = $this->typeFor($column, $casts[$column] ?? null, $table);
+            $meta = $columns->get($column);
+            $required = $meta !== null
+                && $meta['nullable'] === false
+                && $meta['default'] === null
+                && $type !== 'boolean';
 
             $fields[$column] = [
                 'key' => $column,
                 'label' => Str::headline($column),
                 'type' => $type,
                 'options' => [],
-                'rules' => $this->rulesFor($column, $type),
+                'rules' => $this->rulesFor($column, $type, $required),
                 'locked' => false,
                 'help' => null,
             ];
@@ -70,20 +84,28 @@ class FieldGuesser
     }
 
     /**
+     * Build validation rules for a single column.
+     *
+     * @param  bool  $required  Whether the column is NOT NULL with no default.
      * @return array<int, string>
      */
-    private function rulesFor(string $column, string $type): array
+    private function rulesFor(string $column, string $type, bool $required): array
     {
         if ($column === 'occurred_at') {
             return ['required', 'date'];
         }
 
+        if ($type === 'boolean') {
+            return ['boolean'];
+        }
+
+        $presence = $required ? 'required' : 'nullable';
+
         return match ($type) {
-            'datetime', 'date' => ['nullable', 'date'],
-            'boolean' => ['boolean'],
-            'number' => ['nullable', 'numeric'],
-            'json' => ['nullable', 'json'],
-            default => ['nullable', 'string'],
+            'datetime', 'date' => [$presence, 'date'],
+            'number' => [$presence, 'numeric'],
+            'json' => [$presence, 'json'],
+            default => [$presence, 'string'],
         };
     }
 }

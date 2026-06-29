@@ -44,6 +44,9 @@ it('updates a record', function () {
     $this->put("/cp/flights/{$flight->id}", [
         'occurred_at' => $flight->occurred_at->format('Y-m-d\TH:i'),
         'flight_number' => 'NEW123',
+        'airline_icao' => $flight->airline_icao,
+        'origin_iata' => $flight->origin_iata,
+        'destination_iata' => $flight->destination_iata,
     ])->assertRedirect('/cp/flights');
 
     expect($flight->fresh()->flight_number)->toBe('NEW123');
@@ -55,6 +58,12 @@ it('deletes a record', function () {
     $this->delete("/cp/flights/{$flight->id}")->assertRedirect('/cp/flights');
 
     expect(Flight::find($flight->id))->toBeNull();
+});
+
+it('falls back to the default sort when given an unknown sort column', function () {
+    Flight::factory()->count(2)->create();
+
+    $this->get('/cp/flights?sort=bogus_column')->assertSuccessful();
 });
 
 it('returns 404 for an unknown resource', function () {

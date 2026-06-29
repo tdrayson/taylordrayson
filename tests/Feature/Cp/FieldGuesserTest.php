@@ -14,12 +14,20 @@ it('guesses field types from a model', function () {
     expect($fields['meta']['type'])->toBe('json');
 });
 
-it('marks occurred_at required and other fields nullable', function () {
+it('derives required rules from NOT NULL columns and nullable rules from nullable columns', function () {
     $fields = app(FieldGuesser::class)->guess(Flight::class);
 
+    // occurred_at is always required
     expect($fields['occurred_at']['rules'])->toBe(['required', 'date']);
-    expect($fields['flight_number']['rules'])->toBe(['nullable', 'string']);
-    expect($fields['duration']['rules'])->toBe(['nullable', 'numeric']);
+
+    // flight_number is NOT NULL with no default: required
+    expect($fields['flight_number']['rules'])->toBe(['required', 'string']);
+
+    // cabin_class is nullable in the schema: nullable
+    expect($fields['cabin_class']['rules'])->toBe(['nullable', 'string']);
+
+    // distance_miles is nullable in the schema: nullable
+    expect($fields['distance_miles']['rules'])->toBe(['nullable', 'numeric']);
 });
 
 it('labels columns as headline text', function () {
