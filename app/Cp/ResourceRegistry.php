@@ -45,6 +45,22 @@ class ResourceRegistry
     }
 
     /**
+     * Find the resource whose model class matches the given FQCN, or null when none is registered.
+     *
+     * @param  class-string  $model
+     */
+    public function findByModel(string $model): ?CpResource
+    {
+        foreach ($this->all() as $resource) {
+            if ($resource->model() === $model) {
+                return $resource;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Grouped navigation for the control panel sidebar.
      *
      * @return array<int, array{group: string, items: array<int, array{label: string, slug: string}>}>
