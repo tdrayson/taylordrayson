@@ -82,4 +82,33 @@ class FlightResource extends TimelineCpResource
             ]],
         ];
     }
+
+    /** @return array<int, array<string, mixed>> */
+    public function composites(): array
+    {
+        return [
+            [
+                'key' => 'scheduling',
+                'label' => 'Scheduling',
+                'type' => 'group',
+                'column' => 'meta',
+                'fields' => [
+                    ['key' => 'departed_scheduled', 'label' => 'Scheduled departure', 'type' => 'datetime'],
+                    ['key' => 'arrived_scheduled', 'label' => 'Scheduled arrival', 'type' => 'datetime'],
+                ],
+            ],
+            ['key' => 'meta_extra', 'label' => 'Other data', 'type' => 'keyvalue', 'column' => 'meta'],
+        ];
+    }
+
+    /** @return array<int, array{area: string, tab?: string, title?: string, fields: array<int, string>}> */
+    public function sections(): array
+    {
+        return [
+            ['area' => 'main', 'title' => 'Route', 'fields' => ['origin_iata', 'destination_iata', 'distance_miles', 'duration']],
+            ['area' => 'main', 'title' => 'Scheduling', 'fields' => ['scheduling']],
+            ['area' => 'main', 'title' => 'Other data', 'fields' => ['meta_extra']],
+            ['area' => 'sidebar', 'title' => 'Flight', 'fields' => ['occurred_at', 'airline_icao', 'flight_number', 'cabin_class', 'reason']],
+        ];
+    }
 }

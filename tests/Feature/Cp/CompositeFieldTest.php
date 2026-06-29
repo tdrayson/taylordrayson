@@ -2,6 +2,7 @@
 
 use App\Cp\CpResource;
 use App\Cp\ResourceRegistry;
+use App\Cp\Resources\FlightResource;
 use App\Http\Controllers\Cp\ResourceController;
 use App\Models\Flight;
 use Illuminate\Database\Eloquent\Model;
@@ -111,4 +112,21 @@ it('merges group values and key/value rows back into the column on save', functi
         'departed_scheduled' => '2026-06-03T17:20',
         'gate' => 'B12',
     ]);
+});
+
+it('exposes a scheduling group and hides raw meta on the real flight resource', function () {
+    $keys = collect((new FlightResource)->fields())->pluck('key');
+
+    expect($keys)->toContain('scheduling');
+    expect($keys)->not->toContain('meta');
+});
+
+it('places the flight scheduling group in a main section', function () {
+    $layout = (new FlightResource)->layout();
+
+    $mainKeys = collect($layout['sections'])
+        ->where('area', 'main')
+        ->flatMap(fn ($s) => collect($s['fields'])->pluck('key'));
+
+    expect($mainKeys)->toContain('scheduling');
 });

@@ -32,4 +32,14 @@ class PodcastResource extends TimelineCpResource
     {
         return ['topic'];
     }
+
+    /** @return array<int, array{area: string, tab?: string, title?: string, fields: array<int, string>}> */
+    public function sections(): array
+    {
+        return [
+            ['area' => 'main', 'fields' => ['topic', 'show_notes', 'transcript']],
+            ['area' => 'sidebar', 'title' => 'Episode', 'fields' => ['occurred_at', 'season_number', 'episode_number', 'duration', 'audio_url', 'video_url']],
+            ['area' => 'sidebar', 'title' => 'Media', 'fields' => ['thumbnail', 'cover_image']],
+        ];
+    }
 }
