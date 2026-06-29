@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArchiveController;
+use App\Http\Controllers\Cp\DashboardController;
 use App\Http\Controllers\Cp\LoginController;
 use App\Http\Controllers\Cp\ResourceController;
 use App\Http\Controllers\EntryController;
@@ -74,7 +75,7 @@ Route::post('/cp/login', [LoginController::class, 'store'])->name('cp.login.stor
 Route::post('/cp/logout', [LoginController::class, 'destroy'])->name('cp.logout');
 
 Route::middleware('auth')->prefix('cp')->name('cp.')->group(function () {
-    Route::get('/', fn () => Inertia::render('Cp/Dashboard', ['collections' => []]))->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/{resource}/create', [ResourceController::class, 'create'])->name('resource.create');
     Route::get('/{resource}', [ResourceController::class, 'index'])->name('resource.index');
     Route::post('/{resource}', [ResourceController::class, 'store'])->name('resource.store');
