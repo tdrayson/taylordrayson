@@ -1,11 +1,13 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { router, Link, setLayoutProps } from '@inertiajs/vue3';
+import { ArrowUp01Icon, ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../../../Layouts/AppLayout.vue';
 import AppHead from '../../../Components/AppHead.vue';
 import Button from '../../../Components/Ui/Button.vue';
 import Input from '../../../Components/Ui/Input.vue';
 import Card from '../../../Components/Ui/Card.vue';
+import Icon from '../../../Components/Ui/Icon.vue';
 
 defineOptions({ layout: AppLayout });
 
@@ -27,10 +29,17 @@ watch(search, (value) => {
     }, 250);
 });
 
+const hasDraft = computed(() => (props.resource.fields ?? []).some((field) => field.key === 'draft'));
+
 function cell(record, key) {
     const value = record[key];
 
     return value === null || value === undefined || value === '' ? 'Not set' : value;
+}
+
+function sortBy(key) {
+    const direction = props.filters.sort === key && props.filters.direction === 'asc' ? 'desc' : 'asc';
+    router.get(`/cp/${props.resource.slug}`, { search: search.value, sort: key, direction }, { preserveState: true, replace: true });
 }
 
 function remove(id) {
@@ -45,7 +54,7 @@ function remove(id) {
 
     <div class="flex items-center justify-between gap-4">
         <h1 class="font-display text-display">{{ resource.pluralLabel }}</h1>
-        <Button :href="`/cp/${resource.slug}/create`" variant="primary">New</Button>
+        <Button :href="`/cp/${resource.slug}/create`" variant="primary">Create entry</Button>
     </div>
 
     <div v-if="resource.searchable.length" class="mt-6 max-w-sm">
@@ -55,15 +64,31 @@ function remove(id) {
     <Card variant="outline" class="mt-6 overflow-x-auto p-0">
         <table class="w-full text-meta">
             <thead>
-                <tr class="border-b border-neutral-50 text-left text-label text-neutral-500">
-                    <th v-for="column in resource.columns" :key="column.key" class="px-4 py-3 font-medium">{{ column.label }}</th>
+                <tr class="border-b border-neutral-50 bg-neutral-25 text-left text-label text-neutral-500">
+                    <th v-for="column in resource.columns" :key="column.key" class="px-4 py-3 font-medium">
+                        <button type="button" class="flex items-center gap-1 hover:text-neutral-900" @click="sortBy(column.key)">
+                            {{ column.label }}
+                            <Icon
+                                v-if="filters.sort === column.key"
+                                :icon="filters.direction === 'asc' ? ArrowUp01Icon : ArrowDown01Icon"
+                                class="size-3"
+                            />
+                        </button>
+                    </th>
                     <th class="px-4 py-3" />
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="record in records.data" :key="record.id" class="border-b border-neutral-25 last:border-0 hover:bg-neutral-25">
-                    <td v-for="column in resource.columns" :key="column.key" class="px-4 py-3 text-neutral-900">
-                        <Link :href="`/cp/${resource.slug}/${record.id}/edit`" class="block">{{ cell(record, column.key) }}</Link>
+                    <td v-for="(column, index) in resource.columns" :key="column.key" class="px-4 py-3 text-neutral-900">
+                        <Link :href="`/cp/${resource.slug}/${record.id}/edit`" class="flex items-center gap-2">
+                            <span
+                                v-if="index === 0 && hasDraft"
+                                class="size-2 shrink-0 rounded-full"
+                                :class="record.draft ? 'bg-amber-400' : 'bg-green-500'"
+                            />
+                            <span>{{ cell(record, column.key) }}</span>
+                        </Link>
                     </td>
                     <td class="px-4 py-3 text-right">
                         <button type="button" class="text-label text-red-600 hover:text-red-700" @click="remove(record.id)">Delete</button>
@@ -76,14 +101,17 @@ function remove(id) {
         </table>
     </Card>
 
-    <div v-if="records.links" class="mt-6 flex flex-wrap gap-1">
-        <Link
-            v-for="link in records.links"
-            :key="link.label"
-            :href="link.url ?? ''"
-            class="rounded-md px-3 py-1.5 text-label"
-            :class="[link.active ? 'bg-accent-500 text-white' : 'text-neutral-700 hover:bg-neutral-25', !link.url && 'pointer-events-none opacity-40']"
-            v-html="link.label"
-        />
+    <div class="mt-4 flex items-center justify-between gap-4">
+        <p v-if="records.total" class="text-caption text-neutral-500">{{ records.from }}-{{ records.to }} of {{ records.total }}</p>
+        <div v-if="records.links" class="flex flex-wrap gap-1">
+            <Link
+                v-for="link in records.links"
+                :key="link.label"
+                :href="link.url ?? ''"
+                class="rounded-md px-3 py-1.5 text-label"
+                :class="[link.active ? 'bg-accent-500 text-neutral-0' : 'text-neutral-700 hover:bg-neutral-25', !link.url && 'pointer-events-none opacity-40']"
+                v-html="link.label"
+            />
+        </div>
     </div>
 </template>
