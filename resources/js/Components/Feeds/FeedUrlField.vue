@@ -9,18 +9,22 @@ const props = defineProps({
     url: { type: String, required: true },
 });
 
+const input = ref(null);
 const copied = ref(false);
 let timer = null;
 
 async function copy() {
     try {
         await navigator.clipboard.writeText(props.url);
-        copied.value = true;
-        clearTimeout(timer);
-        timer = setTimeout(() => (copied.value = false), 2000);
     } catch {
-        copied.value = false;
+        // Non-secure context (e.g. http://*.test): fall back to selecting the input.
+        input.value?.select();
+        document.execCommand('copy');
     }
+
+    copied.value = true;
+    clearTimeout(timer);
+    timer = setTimeout(() => (copied.value = false), 2000);
 }
 
 onBeforeUnmount(() => clearTimeout(timer));
@@ -33,10 +37,15 @@ onBeforeUnmount(() => clearTimeout(timer));
             {{ label }}
         </div>
         <div class="flex items-stretch gap-2">
-            <code
-                class="min-w-0 flex-1 truncate rounded-md border border-neutral-50 bg-neutral-25 px-3 py-2.5 text-meta text-neutral-700"
+            <input
+                ref="input"
+                :value="url"
+                type="text"
+                readonly
                 :title="url"
-            >{{ url }}</code>
+                class="min-w-0 flex-1 rounded-md border border-neutral-50 bg-neutral-25 px-3 py-2.5 font-mono text-meta text-neutral-700 focus:outline-none"
+                @focus="$event.target.select()"
+            />
             <button
                 type="button"
                 class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-neutral-100 px-3 text-meta font-semibold text-neutral-700 transition-colors hover:bg-neutral-25"
