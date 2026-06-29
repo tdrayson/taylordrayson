@@ -29,6 +29,8 @@ async function load(term = '') {
         });
         const data = await response.json();
         options.value = data.options ?? [];
+    } catch {
+        options.value = [];
     } finally {
         loading.value = false;
     }

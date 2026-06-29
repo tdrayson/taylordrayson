@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { ref } from 'vue';
 import { Add01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Input from '../Ui/Input.vue';
@@ -13,15 +13,16 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-/** Render the object as ordered rows; emit back as an object. */
-const rows = computed(() =>
-    Object.entries(props.modelValue && typeof props.modelValue === 'object' ? props.modelValue : {})
-        .map(([key, value]) => ({ key, value })),
-);
+/** Local rows are the source of truth so a blank in-flight row survives editing. */
+function toRows(value) {
+    return Object.entries(value && typeof value === 'object' ? value : {}).map(([key, val]) => ({ key, value: val }));
+}
 
-function emitRows(next) {
+const rows = ref(toRows(props.modelValue));
+
+function emitObject() {
     const object = {};
-    for (const row of next) {
+    for (const row of rows.value) {
         if (row.key !== '') {
             object[row.key] = row.value;
         }
@@ -30,16 +31,17 @@ function emitRows(next) {
 }
 
 function update(index, patch) {
-    const next = rows.value.map((row, i) => (i === index ? { ...row, ...patch } : row));
-    emitRows(next);
+    rows.value = rows.value.map((row, i) => (i === index ? { ...row, ...patch } : row));
+    emitObject();
 }
 
 function add() {
-    emitRows([...rows.value, { key: '', value: '' }]);
+    rows.value = [...rows.value, { key: '', value: '' }];
 }
 
 function remove(index) {
-    emitRows(rows.value.filter((_, i) => i !== index));
+    rows.value = rows.value.filter((_, i) => i !== index);
+    emitObject();
 }
 </script>
 
