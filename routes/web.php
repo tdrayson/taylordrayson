@@ -82,6 +82,7 @@ Route::post('/cp/logout', [LoginController::class, 'destroy'])->name('cp.logout'
 Route::middleware('auth')->prefix('cp')->name('cp.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/{resource}/create', [ResourceController::class, 'create'])->name('resource.create');
+    Route::get('/{resource}/options', [ResourceController::class, 'options'])->name('resource.options');
     Route::get('/{resource}', [ResourceController::class, 'index'])->name('resource.index');
     Route::post('/{resource}', [ResourceController::class, 'store'])->name('resource.store');
     Route::get('/{resource}/{id}/edit', [ResourceController::class, 'edit'])->where('id', '[0-9]+')->name('resource.edit');

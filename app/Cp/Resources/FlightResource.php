@@ -3,6 +3,8 @@
 namespace App\Cp\Resources;
 
 use App\Cp\TimelineCpResource;
+use App\Models\Airline;
+use App\Models\Airport;
 use App\Models\Flight;
 
 class FlightResource extends TimelineCpResource
@@ -48,6 +50,30 @@ class FlightResource extends TimelineCpResource
     public function fieldOverrides(): array
     {
         return [
+            'airline_icao' => [
+                'type' => 'relation',
+                'label' => 'Airline',
+                'source' => Airline::class,
+                'valueKey' => 'icao_code',
+                'labelKey' => 'name',
+                'searchable' => ['name', 'icao_code', 'iata_code'],
+            ],
+            'origin_iata' => [
+                'type' => 'relation',
+                'label' => 'From',
+                'source' => Airport::class,
+                'valueKey' => 'iata_code',
+                'labelKey' => 'name',
+                'searchable' => ['name', 'iata_code', 'city'],
+            ],
+            'destination_iata' => [
+                'type' => 'relation',
+                'label' => 'To',
+                'source' => Airport::class,
+                'valueKey' => 'iata_code',
+                'labelKey' => 'name',
+                'searchable' => ['name', 'iata_code', 'city'],
+            ],
             'cabin_class' => ['type' => 'select', 'options' => [
                 ['value' => 'economy', 'label' => 'Economy'],
                 ['value' => 'premium-economy', 'label' => 'Premium economy'],

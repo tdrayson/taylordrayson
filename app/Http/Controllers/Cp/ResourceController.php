@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\ResourceRequest;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -101,6 +102,54 @@ class ResourceController extends Controller
         $definition->query()->findOrFail($id)->delete();
 
         return redirect()->route('cp.resource.index', $resource);
+    }
+
+    public function options(Request $request, string $resource): JsonResponse
+    {
+        $definition = $this->resolve($resource);
+        $key = (string) $request->string('field');
+
+        $field = collect($definition->fields())->firstWhere('key', $key);
+
+        abort_unless($field !== null && ($field['type'] ?? null) === 'relation', 422, 'Not a relation field.');
+
+        /** @var class-string<Model> $source */
+        $source = $field['source'];
+        $valueKey = $field['valueKey'];
+        $labelKey = $field['labelKey'];
+        $term = trim((string) $request->string('q'));
+        $current = $request->has('value') ? (string) $request->string('value') : null;
+
+        $query = $source::query();
+
+        if ($term !== '' && ($field['searchable'] ?? []) !== []) {
+            $query->where(function (Builder $builder) use ($field, $term): void {
+                foreach ($field['searchable'] as $column) {
+                    $builder->orWhere($column, 'like', "%{$term}%");
+                }
+            });
+        }
+
+        $options = $query->orderBy($labelKey)
+            ->limit(50)
+            ->get()
+            ->map(fn (Model $model): array => [
+                'value' => $model->getAttribute($valueKey),
+                'label' => (string) $model->getAttribute($labelKey),
+            ]);
+
+        if ($current !== null && ! $options->contains(fn (array $option): bool => (string) $option['value'] === $current)) {
+            $record = $source::query()->where($valueKey, $current)->first();
+
+            if ($record !== null) {
+                $options->prepend([
+                    'value' => $record->getAttribute($valueKey),
+                    'label' => (string) $record->getAttribute($labelKey),
+                ]);
+            }
+        }
+
+        return response()->json(['options' => $options->values()]);
     }
 
     private function resolve(string $resource): CpResource
