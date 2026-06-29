@@ -19,6 +19,7 @@ class ResourceRegistry
         Resources\ProjectResource::class,
         Resources\ArticleResource::class,
         Resources\NoteResource::class,
+        Resources\PageResource::class,
         Resources\AirlineResource::class,
         Resources\AirportResource::class,
         Resources\FuelStationResource::class,

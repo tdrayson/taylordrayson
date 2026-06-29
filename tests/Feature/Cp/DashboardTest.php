@@ -7,8 +7,9 @@ it('renders the dashboard with grouped collection counts', function () {
 
     $this->get('/cp')->assertSuccessful()->assertInertia(fn ($page) => $page
         ->component('Cp/Dashboard')
-        ->has('collections', 2)
+        ->has('collections', 3)
         ->where('collections.0.group', 'Timeline')
-        ->where('collections.1.group', 'Reference')
+        ->where('collections.1.group', 'Content')
+        ->where('collections.2.group', 'Reference')
         ->has('collections.0.items.0.count'));
 });

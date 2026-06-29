@@ -8,6 +8,7 @@ import DateTimeField from './DateTimeField.vue';
 import BooleanField from './BooleanField.vue';
 import SelectField from './SelectField.vue';
 import JsonField from './JsonField.vue';
+import EditorField from './EditorField.vue';
 
 const props = defineProps({
     field: { type: Object, required: true },
@@ -27,6 +28,7 @@ const COMPONENTS = {
     boolean: BooleanField,
     select: SelectField,
     json: JsonField,
+    editor: EditorField,
 };
 
 const component = computed(() => COMPONENTS[props.field.type] ?? TextField);

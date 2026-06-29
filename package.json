@@ -15,6 +15,16 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@editorjs/checklist": "^1.6.0",
+        "@editorjs/code": "^2.9.4",
+        "@editorjs/delimiter": "^1.4.2",
+        "@editorjs/editorjs": "^2.31.6",
+        "@editorjs/header": "^2.8.9",
+        "@editorjs/inline-code": "^1.5.2",
+        "@editorjs/list": "^2.0.9",
+        "@editorjs/marker": "^1.4.0",
+        "@editorjs/quote": "^2.7.6",
+        "@editorjs/simple-image": "^1.6.0",
         "@hugeicons-pro/core-stroke-rounded": "^4.2.1",
         "@hugeicons/vue": "^1.0.6",
         "@inertiajs/vue3": "^3.4.0",

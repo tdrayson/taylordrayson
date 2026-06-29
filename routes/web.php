@@ -8,6 +8,7 @@ use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\TimelineController;
@@ -35,6 +36,10 @@ Route::get('/now', [NowController::class, 'index'])->name('now');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem', [
     'og' => OgMeta::designSystem(),
 ]))->name('design-system');
+
+Route::get('/sleep-score', fn () => Inertia::render('SleepScore', [
+    'og' => ['title' => 'How the sleep score works'],
+]))->name('sleep-score');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
@@ -83,3 +88,8 @@ Route::middleware('auth')->prefix('cp')->name('cp.')->group(function () {
     Route::put('/{resource}/{id}', [ResourceController::class, 'update'])->where('id', '[0-9]+')->name('resource.update');
     Route::delete('/{resource}/{id}', [ResourceController::class, 'destroy'])->where('id', '[0-9]+')->name('resource.destroy');
 });
+
+// CP-managed content pages, matched last so every real route wins. Letter-first
+// so the digit-constrained /{year} routes are never shadowed.
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->where('slug', '[a-z][a-z0-9-]*')->name('page');

@@ -10,8 +10,8 @@ it('resolves resources by slug', function () {
     expect($registry->find('nope'))->toBeNull();
 });
 
-it('registers all sixteen resources', function () {
-    expect(app(ResourceRegistry::class)->all())->toHaveCount(16);
+it('registers all seventeen resources', function () {
+    expect(app(ResourceRegistry::class)->all())->toHaveCount(17);
 });
 
 it('builds grouped navigation', function () {
@@ -21,6 +21,7 @@ it('builds grouped navigation', function () {
 
     expect($groups)->toContain('Timeline');
     expect($groups)->toContain('Reference');
+    expect($groups)->toContain('Content');
 });
 
 it('applies the cabin class select override on flights', function () {

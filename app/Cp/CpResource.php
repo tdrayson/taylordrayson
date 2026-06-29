@@ -66,7 +66,7 @@ abstract class CpResource
     public function columns(): array
     {
         return collect($this->fields())
-            ->reject(fn (array $field): bool => in_array($field['type'], ['textarea', 'json'], true))
+            ->reject(fn (array $field): bool => in_array($field['type'], ['textarea', 'json', 'editor'], true))
             ->take(4)
             ->map(fn (array $field): array => ['key' => $field['key'], 'label' => $field['label']])
             ->values()

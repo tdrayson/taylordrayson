@@ -67,6 +67,7 @@ class FieldGuesser
             $column === 'occurred_at', $cast === 'datetime', in_array($schemaType, ['datetime', 'timestamp'], true) => 'datetime',
             $schemaType === 'date' => 'date',
             $cast === 'boolean', $schemaType === 'boolean' => 'boolean',
+            $column === 'content' && ($cast === 'array' || $schemaType === 'json') => 'editor',
             $cast === 'array', $schemaType === 'json' => 'json',
             $this->isNumeric($cast, $schemaType) => 'number',
             in_array($column, self::LONG_TEXT, true), $schemaType === 'text' => 'textarea',
@@ -105,6 +106,7 @@ class FieldGuesser
             'datetime', 'date' => [$presence, 'date'],
             'number' => [$presence, 'numeric'],
             'json' => [$presence, 'json'],
+            'editor' => [$presence, 'array'],
             default => [$presence, 'string'],
         };
     }
