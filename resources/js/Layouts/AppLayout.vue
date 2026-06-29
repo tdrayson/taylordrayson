@@ -9,6 +9,7 @@ import CommandPalette from '../Components/Overlays/CommandPalette.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: () => [] },
+    mode: { type: String, default: 'public' },
 });
 
 const page = usePage();
@@ -16,18 +17,18 @@ const page = usePage();
 
 <template>
     <div class="flex min-h-dvh flex-col md:flex-row">
-        <AppSidebar />
+        <AppSidebar :mode="mode" />
         <main class="flex min-w-0 flex-1 flex-col">
             <MobileNav />
             <div class="px-5 py-3 md:hidden">
                 <Breadcrumb :items="breadcrumb" />
             </div>
-            <AppTopbar :breadcrumb="breadcrumb" />
+            <AppTopbar :breadcrumb="breadcrumb" :mode="mode" />
             <div :key="page.url" class="content-grid w-full animate-fade-in pb-28 pt-8">
                 <slot />
             </div>
         </main>
-        <MediaPlayer />
-        <CommandPalette />
+        <MediaPlayer v-if="mode !== 'cp'" />
+        <CommandPalette v-if="mode !== 'cp'" />
     </div>
 </template>

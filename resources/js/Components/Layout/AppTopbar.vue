@@ -3,9 +3,11 @@ import Breadcrumb from './Breadcrumb.vue';
 import TimeJump from './TimeJump.vue';
 import StatusBar from './StatusBar.vue';
 import SearchBar from './SearchBar.vue';
+import AccountMenu from './AccountMenu.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: undefined },
+    mode: { type: String, default: 'public' },
 });
 </script>
 
@@ -14,16 +16,23 @@ defineProps({
         <div class="flex min-w-0 flex-1 items-center">
             <Breadcrumb :items="breadcrumb" />
         </div>
-        <div class="hidden flex-1 justify-center lg:flex">
-            <div class="w-full max-w-sm">
-                <SearchBar />
+        <template v-if="mode === 'cp'">
+            <div class="flex flex-1 items-center justify-end">
+                <AccountMenu />
             </div>
-        </div>
-        <div class="flex flex-1 items-center justify-end gap-4">
-            <div class="hidden sm:block">
-                <StatusBar />
+        </template>
+        <template v-else>
+            <div class="hidden flex-1 justify-center lg:flex">
+                <div class="w-full max-w-sm">
+                    <SearchBar />
+                </div>
             </div>
-            <TimeJump />
-        </div>
+            <div class="flex flex-1 items-center justify-end gap-4">
+                <div class="hidden sm:block">
+                    <StatusBar />
+                </div>
+                <TimeJump />
+            </div>
+        </template>
     </header>
 </template>
