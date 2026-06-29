@@ -7,7 +7,9 @@ use App\Models\Appearance;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
+use App\Support\LocalTime;
 use App\Support\OgMeta;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
@@ -51,7 +53,7 @@ class EntryController extends Controller
             'type' => $card['type'],
             'accent' => $card['accent'],
             'title' => $card['title'],
-            'occurredAt' => $entry->occurred_at->toIso8601String(),
+            ...$this->occurredFields($entry->occurred_at, $model->timezone()),
             'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
@@ -61,6 +63,22 @@ class EntryController extends Controller
             'source' => $this->source($model),
             'editUrl' => $this->editUrlFor($model),
         ]);
+    }
+
+    /**
+     * Local-time display fields for the entry header.
+     *
+     * @return array{occurredAt: string, occurredLabel: string, occurredOffset: string}
+     */
+    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone): array
+    {
+        $local = LocalTime::for($occurredAt, $timezone);
+
+        return [
+            'occurredAt' => $local['iso'],
+            'occurredLabel' => $local['label'],
+            'occurredOffset' => $local['offset'],
+        ];
     }
 
     /**
