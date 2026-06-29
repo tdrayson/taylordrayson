@@ -12,9 +12,8 @@ defineEmits(['update:modelValue']);
 </script>
 
 <template>
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex items-center justify-between gap-3">
         <label class="text-label font-medium text-neutral-700">{{ field.label }}</label>
-        <p v-if="mode === 'display'" class="text-meta text-neutral-900">{{ modelValue ? 'Yes' : 'No' }}</p>
-        <Switch v-else :model-value="!!modelValue" @update:model-value="$emit('update:modelValue', $event)" />
+        <Switch :model-value="!!modelValue" @update:model-value="$emit('update:modelValue', $event)" />
     </div>
 </template>

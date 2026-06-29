@@ -1,5 +1,5 @@
 <script setup>
-import Input from '../Ui/Input.vue';
+import DatePicker from '../Ui/DatePicker.vue';
 
 defineProps({
     field: { type: Object, required: true },
@@ -19,7 +19,7 @@ defineEmits(['update:modelValue']);
             <span v-else class="text-neutral-500">Not set</span>
         </p>
         <template v-else>
-            <Input type="date" :model-value="modelValue ?? ''" :invalid="!!error" @update:model-value="$emit('update:modelValue', $event)" />
+            <DatePicker :model-value="modelValue ?? ''" :invalid="!!error" @update:model-value="$emit('update:modelValue', $event)" />
             <p v-if="error" class="text-caption text-red-600">{{ error }}</p>
         </template>
     </div>

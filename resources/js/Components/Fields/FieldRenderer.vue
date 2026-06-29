@@ -9,6 +9,10 @@ import BooleanField from './BooleanField.vue';
 import SelectField from './SelectField.vue';
 import JsonField from './JsonField.vue';
 import EditorField from './EditorField.vue';
+import RelationField from './RelationField.vue';
+import TagsField from './TagsField.vue';
+import GroupField from './GroupField.vue';
+import KeyValueField from './KeyValueField.vue';
 
 const props = defineProps({
     field: { type: Object, required: true },
@@ -29,6 +33,10 @@ const COMPONENTS = {
     select: SelectField,
     json: JsonField,
     editor: EditorField,
+    relation: RelationField,
+    tags: TagsField,
+    group: GroupField,
+    keyvalue: KeyValueField,
 };
 
 const component = computed(() => COMPONENTS[props.field.type] ?? TextField);
