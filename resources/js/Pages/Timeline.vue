@@ -14,6 +14,7 @@ const props = defineProps({
     groups: { type: Array, default: () => [] },
     currentPage: { type: Number, default: 1 },
     lastPage: { type: Number, default: 1 },
+    podcastEpisodes: { type: Number, default: 0 },
 });
 
 setLayoutProps({
@@ -31,7 +32,7 @@ const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(pro
 <template>
     <AppHead :og="og" />
 
-    <IntroBlock v-if="currentPage === 1" class="mb-14" />
+    <IntroBlock v-if="currentPage === 1" :podcast-episodes="podcastEpisodes" class="mb-14" />
 
     <div v-if="groups.length" class="h-feed flex flex-col gap-14">
         <h1 class="p-name sr-only">Taylor Drayson timeline</h1>

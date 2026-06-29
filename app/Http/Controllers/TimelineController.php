@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Media;
+use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
@@ -41,6 +42,7 @@ class TimelineController extends Controller
             'groups' => $groups,
             'currentPage' => $days->currentPage(),
             'lastPage' => $days->lastPage(),
+            'podcastEpisodes' => Podcast::query()->count(),
         ]);
     }
 

@@ -39,7 +39,7 @@ class PodcastFactory extends Factory
             'duration' => fake()->numberBetween(1800, 5400),
             'show_notes' => fake()->paragraphs(3, true),
             'audio_url' => null,
-            'youtube_url' => null,
+            'video_url' => null,
         ];
     }
 }
