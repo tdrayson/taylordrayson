@@ -152,21 +152,21 @@ class ResourceController extends Controller
         return response()->json(['options' => $options->values()]);
     }
 
-    private function resolve(string $resource): CpResource
-    {
-        return $this->registry->find($resource) ?? abort(404);
-    }
-
     /**
      * Cast submitted values for storage (decode JSON fields, coerce booleans).
+     * Composite fields (group/keyvalue) are merged back into their parent column.
      *
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
-    private function prepare(CpResource $definition, array $validated): array
+    protected function prepare(CpResource $definition, array $validated): array
     {
         foreach ($definition->fields() as $field) {
             $key = $field['key'];
+
+            if (in_array($field['type'], ['group', 'keyvalue'], true)) {
+                continue;
+            }
 
             if (! array_key_exists($key, $validated)) {
                 if ($field['type'] === 'boolean') {
@@ -187,6 +187,35 @@ class ResourceController extends Controller
             }
         }
 
+        foreach ($this->compositesByColumn($definition) as $column => $composites) {
+            $merged = [];
+
+            foreach ($composites as $composite) {
+                $submitted = $validated[$composite['key']] ?? [];
+                unset($validated[$composite['key']]);
+
+                if ($composite['type'] === 'group') {
+                    foreach ($composite['fields'] as $sub) {
+                        $value = $submitted[$sub['key']] ?? null;
+
+                        if ($value !== null && $value !== '') {
+                            $merged[$sub['key']] = $value;
+                        }
+                    }
+                }
+
+                if ($composite['type'] === 'keyvalue') {
+                    foreach ((array) $submitted as $k => $value) {
+                        if ($k !== '' && $k !== null) {
+                            $merged[$k] = $value;
+                        }
+                    }
+                }
+            }
+
+            $validated[$column] = $merged === [] ? null : $merged;
+        }
+
         return $validated;
     }
 
@@ -200,7 +229,12 @@ class ResourceController extends Controller
         $values = [];
 
         foreach ($definition->fields() as $field) {
-            $values[$field['key']] = $field['type'] === 'boolean' ? false : '';
+            $values[$field['key']] = match ($field['type']) {
+                'boolean' => false,
+                'group' => collect($field['fields'])->mapWithKeys(fn (array $sub): array => [$sub['key'] => ''])->all(),
+                'keyvalue' => [],
+                default => '',
+            };
         }
 
         return $values;
@@ -208,15 +242,36 @@ class ResourceController extends Controller
 
     /**
      * Form values for an existing record, with datetimes and JSON serialized for editing.
+     * Composite columns are split into their group sub-values and a key/value remainder.
      *
      * @return array<string, mixed>
      */
-    private function recordValues(CpResource $definition, Model $record): array
+    protected function recordValues(CpResource $definition, Model $record): array
     {
         $values = [];
 
         foreach ($definition->fields() as $field) {
             $key = $field['key'];
+
+            if ($field['type'] === 'group') {
+                $stored = (array) ($record->getAttribute($field['column']) ?? []);
+                $values[$key] = collect($field['fields'])
+                    ->mapWithKeys(fn (array $sub): array => [$sub['key'] => $stored[$sub['key']] ?? ''])
+                    ->all();
+
+                continue;
+            }
+
+            if ($field['type'] === 'keyvalue') {
+                $stored = (array) ($record->getAttribute($field['column']) ?? []);
+                $claimed = $this->claimedKeys($definition, $field['column']);
+                $values[$key] = collect($stored)
+                    ->reject(fn (mixed $value, string $k): bool => in_array($k, $claimed, true))
+                    ->all();
+
+                continue;
+            }
+
             $value = $record->getAttribute($key);
 
             $values[$key] = match ($field['type']) {
@@ -229,5 +284,46 @@ class ResourceController extends Controller
         }
 
         return $values;
+    }
+
+    /**
+     * Composite field defs (group/keyvalue) keyed by the JSON column they own.
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private function compositesByColumn(CpResource $definition): array
+    {
+        $byColumn = [];
+
+        foreach ($definition->composites() as $composite) {
+            $byColumn[$composite['column']][] = $composite;
+        }
+
+        return $byColumn;
+    }
+
+    /**
+     * Sub-keys owned by group composites on the given column.
+     *
+     * @return array<int, string>
+     */
+    private function claimedKeys(CpResource $definition, string $column): array
+    {
+        $keys = [];
+
+        foreach ($this->compositesByColumn($definition)[$column] ?? [] as $composite) {
+            if (($composite['type'] ?? null) === 'group') {
+                foreach ($composite['fields'] as $sub) {
+                    $keys[] = $sub['key'];
+                }
+            }
+        }
+
+        return $keys;
+    }
+
+    private function resolve(string $resource): CpResource
+    {
+        return $this->registry->find($resource) ?? abort(404);
     }
 }

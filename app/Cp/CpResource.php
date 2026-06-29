@@ -55,7 +55,19 @@ abstract class CpResource
     }
 
     /**
-     * The resolved field definitions: guessed from the model, then overridden.
+     * Synthetic fields composed from a JSON column: typed groups of known
+     * sub-keys, and a key/value remainder for the rest. Default none.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function composites(): array
+    {
+        return [];
+    }
+
+    /**
+     * The resolved field definitions: guessed from the model, then overridden,
+     * with composite defs appended and consumed raw columns removed.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -67,7 +79,13 @@ abstract class CpResource
             $guessed[$column] = array_merge($guessed[$column] ?? ['key' => $column, 'label' => $column], $override);
         }
 
-        return array_values($guessed);
+        $composites = $this->composites();
+
+        foreach ($composites as $composite) {
+            unset($guessed[$composite['column']]);
+        }
+
+        return array_merge(array_values($guessed), $composites);
     }
 
     /**
@@ -123,7 +141,7 @@ abstract class CpResource
     public function columns(): array
     {
         return collect($this->fields())
-            ->reject(fn (array $field): bool => in_array($field['type'], ['textarea', 'json', 'editor'], true))
+            ->reject(fn (array $field): bool => in_array($field['type'], ['textarea', 'json', 'editor', 'group', 'keyvalue'], true))
             ->take(4)
             ->map(fn (array $field): array => ['key' => $field['key'], 'label' => $field['label']])
             ->values()
@@ -132,13 +150,16 @@ abstract class CpResource
 
     /**
      * Validation rules keyed by column, derived from the resolved fields.
+     * Composite fields (group/keyvalue) default to ['nullable', 'array'].
      *
      * @return array<string, array<int, string>>
      */
     public function rules(): array
     {
         return collect($this->fields())
-            ->mapWithKeys(fn (array $field): array => [$field['key'] => $field['rules']])
+            ->mapWithKeys(fn (array $field): array => [
+                $field['key'] => $field['rules'] ?? ['nullable', 'array'],
+            ])
             ->all();
     }
 
