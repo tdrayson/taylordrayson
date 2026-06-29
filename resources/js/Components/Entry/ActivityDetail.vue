@@ -9,27 +9,15 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-// Hardcoded sample trace for previewing the chart — real heart_rate wiring deferred.
-const SAMPLE_HEART_RATE = Array.from({ length: 90 }, (_, i) => {
-    const t = i / 89;
-    let bpm = 96 + 58 * Math.min(1, t * 3);
-    bpm += Math.sin(t * Math.PI * 9) * 7;
-
-    if (t > 0.45 && t < 0.62) {
-        bpm += 16;
-    }
-
-    if (t > 0.9) {
-        bpm -= (t - 0.9) * 220;
-    }
-
-    return Math.round(Math.max(92, bpm));
-});
-
+// Stored series is a list of { time, bpm } points; the chart wants bare BPM values.
 const heartRate = computed(() => {
     const series = props.entry.heart_rate;
 
-    return Array.isArray(series) && series.length ? series : SAMPLE_HEART_RATE;
+    if (!Array.isArray(series) || series.length === 0) {
+        return [];
+    }
+
+    return series.map((point) => (typeof point === 'number' ? point : point.bpm));
 });
 
 /** Real data uses weight_kg; the factory/parser use weight. Support both. */
@@ -83,7 +71,7 @@ function weightLabel(value) {
     <div class="space-y-8">
         <StatGrid :stats="stats" />
 
-        <div v-if="!exercises.length">
+        <div v-if="!exercises.length && heartRate.length">
             <SectionHead title="Heart rate" meta="bpm over the activity" />
             <HeartRateChart :data="heartRate" :duration="entry.duration" />
         </div>
