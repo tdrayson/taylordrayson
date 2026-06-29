@@ -13,6 +13,10 @@ const hoverIndex = ref(null);
 
 const count = computed(() => props.data.length);
 
+// Headroom (viewBox units) kept clear at the top so the peak point never sits
+// behind the floating hover label.
+const TOP = 20;
+
 // Padded BPM domain so the trace never touches the top/bottom edges.
 const domain = computed(() => {
     const lo = Math.max(40, Math.min(...props.data) - 8);
@@ -29,7 +33,7 @@ function x(index) {
 }
 
 function y(bpm) {
-    return 95 - ((bpm - domain.value.lo) / domain.value.span) * 90;
+    return 95 - ((bpm - domain.value.lo) / domain.value.span) * (95 - TOP);
 }
 
 const linePath = computed(() => props.data.map((bpm, index) => `${index === 0 ? 'M' : 'L'} ${x(index).toFixed(2)} ${y(bpm).toFixed(2)}`).join(' '));
@@ -93,8 +97,8 @@ function onMove(event) {
         <template v-if="hovered">
             <div class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-0" :style="{ left: `${hovered.left}%`, top: `${hovered.top}%`, background: color }" />
             <div
-                class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-3 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card tnum"
-                :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%`, top: `${hovered.top}%` }"
+                class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card tnum"
+                :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%` }"
             >
                 {{ hovered.bpm }} bpm<template v-if="hovered.time"> · {{ hovered.time }}</template>
             </div>
