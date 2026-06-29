@@ -29,6 +29,8 @@ const props = defineProps({
     polyline: { type: String, default: null },
     pb: { type: Boolean, default: false },
     url: { type: String, default: null },
+    label: { type: String, default: '' },
+    offset: { type: String, default: '' },
 });
 
 const videoSlot = ref(null);
@@ -169,30 +171,7 @@ const banner = computed(() => {
     return null;
 });
 
-const fullTimestamp = computed(() => {
-    if (!props.datetime) {
-        return null;
-    }
-
-    const date = new Date(props.datetime);
-
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-
-    const day = date.toLocaleDateString('en-GB', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
-
-    if (!props.time.includes(':')) {
-        return day;
-    }
-
-    return `${day}, ${clock(date)}`;
-});
+const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
 </script>
 
 <template>

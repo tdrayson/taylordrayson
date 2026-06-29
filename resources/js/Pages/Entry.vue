@@ -8,7 +8,6 @@ import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
 import Source from '../Components/Profile/Source.vue';
 import { entryType } from '../entryTypes.js';
-import { dateLong } from '../lib/format.js';
 
 import ActivityDetail from '../Components/Entry/ActivityDetail.vue';
 import SleepDetail from '../Components/Entry/SleepDetail.vue';
@@ -37,6 +36,8 @@ const props = defineProps({
     source: { type: Object, default: null },
     og: { type: Object, default: () => ({}) },
     editUrl: { type: String, default: null },
+    occurredLabel: { type: String, default: '' },
+    occurredOffset: { type: String, default: '' },
 });
 
 const pageProps = usePage();
@@ -61,8 +62,6 @@ const DETAIL_COMPONENTS = {
 const meta = computed(() => entryType(props.type));
 const detailComponent = computed(() => DETAIL_COMPONENTS[props.type] ?? null);
 const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
-const occurredLabel = computed(() => dateLong(props.occurredAt));
-
 const [, year, month, day] = props.dayUrl.split('/');
 const monthName = computed(() => new Date(props.occurredAt).toLocaleDateString('en-GB', { month: 'long' }));
 
@@ -91,7 +90,9 @@ setLayoutProps({
         <div class="min-w-0">
             <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline" :style="accentStyle">{{ meta.label }}</Link>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
-            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">{{ occurredLabel }}</Link>
+            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">
+                <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
+            </Link>
             <Button v-if="canEdit" :href="editUrl" variant="secondary" size="sm" class="mt-3">Edit</Button>
         </div>
     </header>
