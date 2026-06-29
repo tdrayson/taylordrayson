@@ -99,18 +99,30 @@ function onClickOutside(event) {
     }
 }
 
+function onKeydown(event) {
+    if (event.key === 'Escape') {
+        open.value = false;
+    }
+}
+
+function detach() {
+    window.removeEventListener('mousedown', onClickOutside);
+    window.removeEventListener('keydown', onKeydown);
+}
+
 watch(open, (value) => {
     if (value) {
         cursor.value = initialCursor();
         window.addEventListener('mousedown', onClickOutside);
+        window.addEventListener('keydown', onKeydown);
     } else {
-        window.removeEventListener('mousedown', onClickOutside);
+        detach();
     }
 });
 
 // The watcher only detaches on an open -> closed transition; unmounting while
-// the popover is open would otherwise leak the window listener.
-onUnmounted(() => window.removeEventListener('mousedown', onClickOutside));
+// the popover is open would otherwise leak the window listeners.
+onUnmounted(detach);
 
 const triggerClasses = computed(() =>
     cn(
