@@ -26,6 +26,7 @@ use Spatie\MediaLibrary\HasMedia;
     'heart_rate',
     'platform_type',
     'platform_id',
+    'timezone',
     'meta',
 ])]
 class Activity extends Model implements HasMedia, Timelineable
@@ -56,6 +57,11 @@ class Activity extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return Str::slug($this->name ?? $this->type);
+    }
+
+    public function timezone(): ?string
+    {
+        return $this->timezone;
     }
 
     public function card(): array
