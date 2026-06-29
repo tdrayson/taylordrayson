@@ -4,6 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Actions\GenerateStaticMap;
 use App\Models\Activity;
+use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -189,8 +190,10 @@ class StravaSync extends Command
             $meta['polyline'] = $polyline;
         }
 
+        $localDate = $data['start_date_local'] ?? $data['start_date'];
+
         return Activity::create([
-            'occurred_at' => $data['start_date'],
+            'occurred_at' => Carbon::parse($localDate)->format('Y-m-d H:i:s'),
             'type' => $type,
             'name' => $data['name'],
             'duration' => $data['moving_time'],
@@ -200,6 +203,7 @@ class StravaSync extends Command
             'max_heart_rate' => $data['max_heartrate'] ?? null,
             'platform_type' => 'strava',
             'platform_id' => (string) $data['id'],
+            'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
             'meta' => $meta ?: null,
         ]);
     }
@@ -301,6 +305,26 @@ class StravaSync extends Command
             'meta' => $activity->meta ? (string) json_encode($activity->meta) : '',
             default => (string) ($activity->getAttribute($column) ?? ''),
         }, $headers);
+    }
+
+    /**
+     * Public accessor for the Strava access token, used by companion commands.
+     */
+    public function accessTokenForBackfill(): ?string
+    {
+        return $this->getAccessToken();
+    }
+
+    /**
+     * Extract the IANA timezone name from Strava's "(GMT+00:00) Europe/London" format.
+     */
+    private function ianaTimezone(?string $stravaTimezone): ?string
+    {
+        if (! $stravaTimezone) {
+            return null;
+        }
+
+        return Str::afterLast($stravaTimezone, ' ') ?: null;
     }
 
     private function getAccessToken(): ?string
