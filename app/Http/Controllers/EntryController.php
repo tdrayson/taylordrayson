@@ -53,7 +53,7 @@ class EntryController extends Controller
             'type' => $card['type'],
             'accent' => $card['accent'],
             'title' => $card['title'],
-            ...$this->occurredFields($entry->occurred_at, $model->timezone()),
+            ...$this->occurredFields($entry->occurred_at, $model->timezone(), LocalTime::isDayLevel($card['type'])),
             'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
@@ -70,9 +70,9 @@ class EntryController extends Controller
      *
      * @return array{occurredAt: string, occurredLabel: string, occurredOffset: string}
      */
-    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone): array
+    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone, bool $dateOnly): array
     {
-        $local = LocalTime::for($occurredAt, $timezone);
+        $local = LocalTime::for($occurredAt, $timezone, $dateOnly);
 
         return [
             'occurredAt' => $local['iso'],

@@ -196,7 +196,8 @@ const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offs
         </div>
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
-            {{ airline.name }}
+            <span>{{ airline.name }}</span>
+            <span v-if="airline.number" class="text-neutral-400 tnum">· {{ airline.number }}</span>
         </div>
         <FlightRoute
             v-if="routeView"

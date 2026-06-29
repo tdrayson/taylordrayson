@@ -39,7 +39,7 @@ class BuildTimelineFeed
     public function cardItem(TimelineEntry $entry): array
     {
         $card = $entry->timelineable->card();
-        $local = LocalTime::for($entry->occurred_at, $entry->timelineable->timezone());
+        $local = LocalTime::for($entry->occurred_at, $entry->timelineable->timezone(), LocalTime::isDayLevel($card['type']));
 
         return [
             'iconKey' => $card['type'],
