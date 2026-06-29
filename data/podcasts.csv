@@ -59,7 +59,106 @@ The Creative Tinker Website – <a href=""https://www.thecreativetinker.com"">ht
 Facebook: <a href=""https://www.thisweekwith.co.uk/facebook"">https://www.thisweekwith.co.uk/facebook</a>
 Youtube: <a href=""https://www.thisweekwith.co.uk/youtube"">https://www.thisweekwith.co.uk/youtube</a>
 
-* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.",,1232,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-249.mp3,https://www.youtube.com/live/ABKJ23_Fhgs,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-249.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-249.jpg
+* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.","<p>[00:00:09.05] - Gordon<br />
+Hello.</p>
+<p>[00:00:09.27] - Taylor<br />
+Hello.</p>
+<p>[00:00:10.10] - Gordon<br />
+My name's Gordon from Drayson Design.</p>
+<p>[00:00:12.02] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:00:14.02] - Gordon<br />
+And welcome to ""This Week with Taylor and Gordon,"" a weekly podcast and vidcast where we talk about things that have affected our businesses over the last 7 days and thank you for joining us.</p>
+<p>[00:00:24.07] - Taylor<br />
+Welcome back.</p>
+<p>[00:00:24.29] - Gordon<br />
+It's been an interesting week for me. How's your week been?</p>
+<p>[00:00:29.13] - Taylor<br />
+It's been good.</p>
+<p>[00:00:29.26] - Gordon<br />
+Any news from your side?</p>
+<p>[00:00:32.15] - Taylor<br />
+I don't think so.</p>
+<p>[00:00:33.10] - Gordon<br />
+We had WWDC, which happened, I think, 2 Mondays ago now. So lots of new software announcements for the upcoming iOS and macOS 27, which is all very exciting. Looks like Apple are finally starting to get serious with AI, which is very good because they've been a little bit behind up to now, haven't they? So we shall see how that happens. If you are a developer, you can get the betas now. And if you are wanting to test by public, they are coming, I think, next month. So you'll be able to download those. They always recommend not to use it on a production device. So don't use it on your main computer or your main phone. Let's get straight into our topics. Would you like to go first or shall I?</p>
+<p>[00:01:25.05] - Taylor<br />
+You can go first this week.</p>
+<p>[00:01:26.12] - Gordon<br />
+So, today I would like to talk about learning a new skill. Now, my new skill for this week was something I've been wanting to do for quite a while now, and I've been quite fearful about starting it. It's funny, it's one of those, it's one of those tasks where you look at it and you think, oh my goodness, ""it's such a huge thing to learn. Where do I start? I don't know, so I'm not going to start."" Do you get that every now and then?</p>
+<p>[00:01:56.25] - Taylor<br />
+Yeah.</p>
+<p>[00:01:57.13] - Gordon<br />
+So this was 3D modelling in respect of making models for 3D printing. So I've had a 3D printer now for several years and been making lots of amazing 3D prints and using them and giving them to friends and family and making really useful things. In fact, you've got quite a few here in your kitchen in particular that I can see from where I'm sitting. And they sort of, they make your life a little better. And you know that if anything happens to them, you can just 3D print a new one. And sometimes you can print things that you just can't buy because they're just not available.</p>
+<p>[00:02:40.15] - Gordon<br />
+But one of the things that I've always wanted to do is to make my own models and be able to print what I want to print. So I get to design it as well. But that requires me to learn 3D printing and 3D— sorry, 3D modelling. And that is a huge subject. I did try once before and I loaded up the personal licence version of Fusion, which is completely free. You can download it for personal use. And I thought, ""I'll have a go with that."" And it's such a huge program. Have you ever tried?</p>
+<p>[00:03:11.23] - Taylor<br />
+Yeah.</p>
+<p>[00:03:12.20] - Gordon<br />
+Okay. There's so much going on with that that I just— I got completely overwhelmed and just stopped. But my partner's father brought home a metal bathroom holder. It's like a rectangle with semicircle ends, like a pill-shaped sort of box, if you like, made out of metal. And the idea is it holds two bottles, hence the round circly bits at the ends. Which will be soap or shampoo or something like that. I don't know what it was because I didn't have the bottles. I was just given the metal object and said, ""can you make this in 3D printing? We'd like it to be blue."" And it's like, ""Ummmm maybe."" So I sort of, I sat down and thought, ""right, I'm going to give it 3 hours, see if I can do it in that time, see if I can learn enough,"" because it was quite a simple model. It was just like a base and then sides that came up, so you could just then put things into it. But I knew there were going to be several things that were going to trip me up. So, for example, the original was made of metal, so I knew that the walls of the box, if you like, were going to be quite thin.</p>
+<p>[00:04:40.16] - Gordon<br />
+And with a 3D printer, they need to be thicker because it's plastic and it's not metal. It also had like a lip at the top, which I— the only reason I could see that being there is to help you lift it, but I'm guessing if you're putting bottles into it, it's just to keep the bottles together. So that I didn't see as being a major issue. I wasn't going to try and figure that bit out, but I wanted to make sure it was going to be the right size, and that's where everything was quite crucial for me. So, uh, what I did is I took an overhead photo of the existing metal container, and I opened up Fusion, and I looked up some instructions and some YouTube tutorials to find out how I bring a picture into Fusion. And that was quite easy to do. The one important step if you're going to do this is you have to— and I can't remember the exact word— um, you have to... What is the word, Taylor? It begins with C when you are calibrate. Thank you. Thank you.</p>
+<p>[00:05:48.24] - Gordon<br />
+Calibrating the image. So basically, you have to measure in the physical world a measurement. So I did the, I think I did the width of it. And then what you do in Fusion is you measure the width of where the photo is, and you put in a  figure that is the exact width you need it to be, and it will scale the picture to make sure that that is correct. And then what you can effectively do is you can sort of trace around the figure, and I did it by having two circles for each end and then joining them up with two straight lines, making a sketch, getting rid of all the lines I didn't need, and then extruding it. So I extruded it upwards, and then I realised that there was— it was just a block. There was no actual, you know, innards that— it was just one solid block. Someone's speeding down the A22 there. Yeah, okay. Anyway, so I had to look at it again, and what I realised is that you can do an offset, and you can do an offset of however much. I put 2mm, and then you can extrude the offset, and then I ended up with just the walls.</p>
+<p>[00:07:04.21] - Taylor<br />
+And not the base.</p>
+<p>[00:07:05.29] - Gordon<br />
+So, I then had to extrude the base up by however much it was. I think again, it was 2mm, and then I realised that that was going into the internal side. I had to take the sides up another 2mm, added some fillets, which is basically like a rounding off at the top, and then on the bottom where it touches the table, and looked at it and sort of did some more measurements and hoped that I'd got it right, and then sent it to the printer. And again, when you send something to the printer that's your own model, you have to set up all the settings. You have to figure out all of the 3D print settings, whereas when you download a model, it comes with all those settings for you depending on what printer you have. So that was something that I had to figure out as well. Does it need supports? Does it need a brim to stop it moving when it's printing, etc., etc.? And I I'm very pleased to say my first print came out exactly how I wanted it, and I sort of put it up against the metal one to see if the size was about right, and it appeared to be just about right, and so I was happy with that.</p>
+<p>[00:08:18.00] - Gordon<br />
+I didn't know if anything was going to fit in it, so I sent it off to, you know, where it needed to go, and got a picture that was sent to me with the two bottles in, saying ""they fit perfectly, I love it."" And I was over the moon, I was.</p>
+<p>[00:08:35.24] - Taylor<br />
+Well done.</p>
+<p>[00:08:36.10] - Gordon<br />
+I was really chuffed with how it worked out. And it's a very simple model, but it is the first step into learning how to 3D model. And I think if you have a success like that, it spurs you on to do more, doesn't it?</p>
+<p>[00:08:53.09] - Taylor<br />
+Yeah.</p>
+<p>[00:08:53.18] - Gordon<br />
+There's nothing worse than sort of hitting a brick wall or not understanding why something hasn't worked and then getting really despondent about it. And you sort of, instead of going forward, you end up going backwards from zero, and you end up losing your confidence with learning this new skill. So I'm nowhere near being a good 3D modeller, but I am one step further forward than I was, you know, last week. So I'm going to take that as a win, and I'm going to keep going and learn more about 3D modelling. So that I can in the future build and print my own models, because then I can make whatever I want, really.</p>
+<p>[00:09:36.11] - Gordon<br />
+So I think the moral of my little adventure and experience here was, if there's something that's really big and scary, just take a small step, see how you get on. You'll very quickly find out if it's for you or not, because, you know, not everything is for you. You don't want to spend time on something you really don't enjoy. And if you find you like it, you can then take another step and another step, and soon you'll have a brand new skill. And it's always good to add to your skills. I think learning something new all the time, you know, pushing yourself to learn something new is always worthwhile. I try and do it as much as I can. So when I feel like I've sort of got to a point when I'm happy with a skill, then, you know, I'll look around for a new skill, something I've possibly had in the back of my head that I've wanted to do and see if that works for me as well. Because you end up with a tonne of skills and it allows you to do so much more with your life, and your business.</p>
+<p>[00:10:41.05] - Gordon<br />
+What would you like to talk about?</p>
+<p>[00:10:43.09] - Taylor<br />
+So this week I have been building a form.</p>
+<p>[00:10:46.18] - Gordon<br />
+Okay.</p>
+<p>[00:10:47.14] - Taylor<br />
+Now, not just any form. We have been in the process of starting a new project, with one of my clients, and it's basically rebuilding the entire website. They're migrating it to a new system, and the forms, and the main inquiry form that is pretty much critical to the business and is where they get all their leads, currently uses just a WordPress plug-in. But we basically use the WordPress plug-in but don't use the WordPress plug-in because it's heavily optimised for conversions, which is, you know, really good. But it means that we've basically hacked away at the form and basically don't really use any of the features other than basically collecting the form fields and having a place to see them. We have custom scripts that send all of the code or all of the data to CRMs and third-party tools and software that we use internally at the company. And yeah, we kind of just have hacked away at it. And with this new, you know, moving of the website, they've decided they want to basically move the form and, you know, potentially all the other forms that they have on the website to their own subdomain and to their own separate app.</p>
+<p>[00:12:05.12] - Taylor<br />
+So what I've been doing, I've been working on Laravel building out a completely separate, standalone app that is just for taking inquiries, just for taking contact form submissions, or any other form that they kind of need on the website. And the idea being is that everything is standardised, everything is kind of pluggable, so we can easily add new features, easily add new hooks. So if we want to send it to a new system after submission, we can do that. We can also build in whatever we want. So if we want to do split testing, if we want to do tracking, having partial saving, being able to do like advanced filtering, analytics with how long it takes people to fill in the form, or, you know, tracking if they submit the form multiple times, for example. All of these things that kind of aren't either in the form, or in other solutions, we can kind of just roll into our own. And it's, it's not something that— I don't think you should build everything yourself because you do reinvent the wheel, but when you know, the company, they are always changing, always, you know, testing things.</p>
+<p>[00:13:17.04] - Taylor<br />
+I think when you're just using a contact form and you kind of leave it and you don't really touch it ever again, that's fine. But when you're doing so many things that are heavily modifying it, heavily changing things, you need something that can kind of grow with you, something that you can set the foundations for but then are easily adjustable, easily changeable, and grow with the business. And so that's kind of what the next step is, to build this system that is completely separate, but, you know, it's fully customised, fully styled to the business and the brand. And yeah, and works for them, and gives them more opportunities for doing more advanced things, you know, having nicer inputs and having more personalised inputs and being able to tailor questions based on things that they've browsed on the website, for example, and passing that data across as well. So that's where I've been spending most of my time, and it's really interesting because you have to kind of think a lot about how you set things up and how that may affect things in the future. You know, the, the original scope for this was just for the inquiry form, and that was the only thing they wanted to do was move over the inquiry form. However, I know the marketing team, and I know that they love to change stuff. I know they like to tinker, and they like to change labels, they like to adjust things and do stuff that's outside of the norm or how normal forms work because they're structured in a certain way. So, when I've been building this, I've been building it in a way that if they want to do these wild funky things, we can, but it doesn't change or break anything under the hood.</p>
+<p>[00:14:55.05] - Gordon<br />
+That's really good. Is this something that— I'm sorry, you were saying earlier to me that you're also building in A/B testing as well. Which is something that I think most people who run a sort of an e-commerce type site should be doing. Do you want to just briefly explain A/B testing for those who don't know what it is?</p>
+<p>[00:15:17.29] - Taylor<br />
+Yeah, so split testing is essentially randomly selecting one of many different variations of something. So you only ever really want to split test one thing at a time, otherwise you don't know what what was the cause or what was causing you to create, get more conversions, for example, which is the main reason people do it. But it would be something along the lines of changing the order of the steps or changing the label for the question. So rewording it, making it easier to understand or making it, you know, different, or giving different options for the answers, for example. And all of these basically are ways that you can test to see what works the best, what increases conversions. You know, are people getting stuck and dropping off at a certain question because they don't understand or they don't have that answer? You know, if you're asking for people's flight details at the inquiry form, well, they may not have their flight details. Things like that. So it's looking at what, you know, how can we make it easier to convert. On a website, it's usually things like headlines, buttons, colours, images.</p>
+<p>[00:16:37.15] - Taylor<br />
+All of those things can basically influence the conversion essentially. You could show a whole section or hide a whole section, or you could show a whole section and show a completely different section. And when the user visits the website, they will get one of the variations. So usually—</p>
+<p>[00:17:00.06] - Taylor<br />
+There we go. Uh, yeah, you'll get one of either— if there's two, you'll get one of two. Or if you've got multiple going, then you get one of three, four, five. You don't want too many because it makes it hard to actually find a winner, because the way that you do it, you do it over a period of time and you do it with a certain number of people and you'll get a certain result.</p>
+<p>[00:17:22.01] - Gordon<br />
+And then once you've found a winner, you start using that as your default. And then you could do A/B testing to, you know, change something different and see if that gets more response or not. Depends what your goal is, isn't it? If it's to get inquiries or, you know, bookings or whatever it is, whatever you need to do to get that, you keep testing to find out what works best because we don't know. You know, and it's very difficult for someone else to know unless you actually test it. So yeah, split testing is really good. There's also a testing system called multivariate, which is very good as well. But that's a bit more advanced and probably outside of the scope of this conversation. So let's leave it at that for the moment. But something for you to go and look up if you're interested. Anything else you'd like to say?</p>
+<p>[00:18:14.22] - Taylor<br />
+I mean, the front end of the app that is built with Vue.js. So, Vue.js is just kind of a single page application, and the reason why I decided to choose that, you know, other than, you know, the actual tech stack doesn't really matter, it's using PHP in the backend with Laravel and then using Vue.js on the front end. Usually you wouldn't want to use a single page application on the front end because it can affect things like your SEO and things like that. Because when people view the source, you don't have any content there 'cause everything is loaded on page load. However, because all this is used for is inquiries and submitting forms and stuff, it doesn't really matter. You know, for us, I think the biggest thing is making sure it's smooth and doing lots of conditional hiding and showing of things, steps, animations between steps and pages and things like that. Having that interactivity, I think, is a lot more important and beneficial than having it static.</p>
+<p>[00:19:24.28] - Gordon<br />
+Yeah, user experience always.</p>
+<p>[00:19:26.29] - Taylor<br />
+And also because if we're gonna be changing and updating things, it doesn't really matter, it's never gonna be cached. You know, it's all gonna be rendered on the fly. So yeah,</p>
+<p>[00:19:36.19] - Gordon<br />
+Very good. Excellent. So that's it for me.</p>
+<p>[00:19:41.19] - Taylor<br />
+And me as well.</p>
+<p>[00:19:42.27] - Gordon<br />
+Thank you so much for joining us. As always, if you're on YouTube, please like, share, and subscribe.</p>
+<p>[00:19:49.05] - Taylor<br />
+You can also go to our website thisweekwith.co.uk to find all of our past episodes.</p>
+<p>[00:19:53.22] - Gordon<br />
+And if you would prefer to listen to us instead of watch us, we're on all the major podcast platforms. And you can also ask your smart speaker, just search for ""This Week with Taylor and Gordon."" All being well, we'll be back with you next Friday at 1pm. Until then, my name is Gordon and I'm from Drayson Design.</p>
+<p>[00:20:13.14] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:20:15.29] - Gordon<br />
+Goodbye.</p>
+<p>[00:20:17.08] - Taylor<br />
+Bye.</p>",1232,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-249.mp3,https://www.youtube.com/live/ABKJ23_Fhgs,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-249.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-249.jpg
 "2026-06-12 13:00:00",7,248,"Wordcamp Europe in Krakow, Poland - Networking, Socialising and Learning - Theme was AI - All sorts of AI Applications - Huge Convention Centre - Lots of Food Available All The Time - Visits To The Salt Mine and Auschwitz - Next Year Wordcamp is in Malaga","New location, Gordon's Office
 
 We went to Wordcamp Europe in Poland, Krakow
@@ -112,7 +211,172 @@ The Creative Tinker Website – <a href=""https://www.thecreativetinker.com"">ht
 Facebook: <a href=""https://www.thisweekwith.co.uk/facebook"">https://www.thisweekwith.co.uk/facebook</a>
 Youtube: <a href=""https://www.thisweekwith.co.uk/youtube"">https://www.thisweekwith.co.uk/youtube</a>
 
-* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.",,1186,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-248.mp3,https://youtube.com/live/z09tWJPWpbg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-248.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-248.jpg
+* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.","<p>[00:00:09.06] - Gordon<br />
+Hello.</p>
+<p>[00:00:09.28] - Taylor<br />
+Hello.</p>
+<p>[00:00:10.13] - Gordon<br />
+My name's Gordon from Drayson Design.</p>
+<p>[00:00:12.08] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:00:13.29] - Gordon<br />
+And welcome to ""This Week with Taylor and Gordon,"" a weekly podcast and vidcast where we talk about things that have affected our businesses over the last 7 days. And thank you for joining us. It's been a week of visiting Poland for us. And in fact, I think that's probably what our whole episode is going to be about today. But before we get to that, new surroundings.</p>
+<p>[00:00:40.10] - Taylor<br />
+Yeah.</p>
+<p>[00:00:40.12] - Gordon<br />
+Yeah. We are here. This is my office. I don't think we've recorded an episode in my office before.</p>
+<p>[00:00:46.13] - Taylor<br />
+I don't think we have.</p>
+<p>[00:00:47.09] - Gordon<br />
+No. So the reason for this is because we don't have the normal tripod that we normally have for the camera. So we've sort of had to make do at the moment. So hopefully it's going to look just as good as it normally does, maybe even better. And for those of you who are watching this, you get a different background to see for a change. Okay, let's get straight into our topic. Right, well, let's start with you, Taylor. Tell everyone what we've been doing over the last 7 days.</p>
+<p>[00:01:18.19] - Taylor<br />
+So we went to WordCamp Europe, and this year it was in Poland. In Kraków, and it was really fun.</p>
+<p>[00:01:28.29] - Gordon<br />
+Yeah, so I've never been to Poland before, so Kraków was quite an interesting trip for me in that respect. But also the whole fact that we were going to WordCamp was good because this is my third year and your...</p>
+<p>[00:01:43.23] - Taylor<br />
+Fifth.</p>
+<p>[00:01:44.20] - Gordon<br />
+Fifth year. Okay, so let's explain what WordCamp is for those who don't know. There is a software that runs over half of the websites on the internet called WordPress. And WordCamp, WordCamp Europe in particular, is one of the conventions that's held every year. This one's in Europe. There's one in Asia. There's one in America.</p>
+<p>[00:02:11.23] - Taylor<br />
+And there's lots of smaller ones.</p>
+<p>[00:02:13.06] - Gordon<br />
+And there's lots of small sort of city/town-based ones as well. But the European one is the biggest. So I think there were 2,600 people there this year.</p>
+<p>[00:02:27.06] - Taylor<br />
+Something like that, yeah.</p>
+<p>[00:02:28.08] - Gordon<br />
+So huge numbers, all descending on Kraków to talk about WordPress and find out what's new, see how people are doing other things. Lots of plug-ins and extensions that go along with WordPress. Lots of people to talk to. Pretty much everyone had a laptop with them. You could just see people everywhere just sitting down with laptops. What's the reason for you going to WordCamp, Taylor?</p>
+<p>[00:03:01.04] - Taylor<br />
+I like to see friends. I have a lot of friends around the world that kind of all come to WordCamp every year. And so for me, it's a chance to catch up with them, hang out with them and just chat.</p>
+<p>[00:03:12.27] - Gordon<br />
+So it's the networking side of it and the keeping up with your friends. It's a little bit like me going to my Blackpool Magic Convention. I like going because I enjoy seeing my friends. And seeing people that I haven't seen for a while and catching up with them and having a good time, really. Yeah. So that's the reason you went. Anything, did you learn anything?</p>
+<p>[00:03:35.28] - Taylor<br />
+There were some interesting talks that I went to as well, which again, I found interesting even if they weren't really relevant to me or my business. And there are a couple that were actually quite interesting that I'm going to potentially implement and, kind of use.</p>
+<p>[00:03:54.16] - Gordon<br />
+So the main theme for this year seemed to be AI, didn't it?</p>
+<p>[00:03:59.24] - Taylor<br />
+Yeah.</p>
+<p>[00:04:00.05] - Gordon<br />
+So linking WordPress to AI or using AI to build plug-ins or using AI to correct your grammar and spelling. What else was there? Yeah, just AI everything really. Linking WordPress using MCP to Claude, for example, is a really interesting case. So you can then give access to your whole WordPress website to your AI chatbot or coder and basically say, you know, ""go and have a look at my site. Anything that has a calendar on the page, then, pull it all from custom fields and I want the fields to be this, this and this and anything else you think I need"" and just let it get on with it.</p>
+<p>[00:04:55.03] - Taylor<br />
+Yeah.</p>
+<p>[00:04:55.13] - Gordon<br />
+It's very interesting. You do still, I think after listening to all the talks, you do, the overriding sort of theme was that you still need to know what you're doing.</p>
+<p>[00:05:07.17] - Taylor<br />
+Yeah.</p>
+<p>[00:05:08.04] - Gordon<br />
+I think that's the same with any AI really, isn't it? You need to know what you're doing and what you want to get out of it, not just blindly use it and hope that what it gives you is correct because that's a recipe for disaster, isn't it?</p>
+<p>[00:05:20.18] - Taylor<br />
+Yeah.</p>
+<p>[00:05:21.03] - Gordon<br />
+Yeah, you need to understand the backend of what it's doing, not physically how it's working, but what it's actually achieving so that you can then go and check it and make sure that it's not going to, you know, blow up your website or something. Because, you know, there are people out there who've managed to give a wrong prompt and managed to delete a tonne of stuff, which they didn't want to delete. And that's never good. We don't want that to happen to anyone. So, WordCamp as a convention, let's just talk about that. They had a convention centre that we were in. There was 4 floors?</p>
+<p>[00:06:02.22] - Taylor<br />
+Something like that, yeah.</p>
+<p>[00:06:04.29] - Gordon<br />
+Two tracks, so basically two big lecture rooms. One of them was huge.</p>
+<p>[00:06:12.13] - Taylor<br />
+More like auditoriums.</p>
+<p>[00:06:13.16] - Gordon<br />
+Yeah, they were really big, like 2,000, 3,000 people in them. Amazing. And they had big screens up, and this year they were doing live translation, not necessarily on the screen. They were doing live transcriptions on the screen, but apparently they were doing live translations. If you sort of held your phone up and scanned the QR code, you could then tell it which language you wanted and then sort of put your headphones in and listen to what they were saying in your own language, which is really cool and something I've looked into and found to be very expensive, mainly because it's live. So, it was good to see them doing that. Every floor had food on it. So, there were always drinks available, always snacks available. They had breakfast and lunch available for everybody. And when you consider there's 2,600 people, that's a huge undertaking to make sure everyone's fed.</p>
+<p>[00:07:11.19] - Taylor<br />
+Keeping everything stocked up.</p>
+<p>[00:07:12.28] - Gordon<br />
+Yeah. And I think the reason for it was to keep everyone in the building and sort of keep them as part of the convention rather than them having to go out and find food somewhere. Because, you know, all the poor restaurants nearby or fast food places would have had, you know, potentially 2,000 people descending upon them in one hour. And that's just not fair for any company, is it? It's a bit like a DDoS attack on a restaurant. So that was that. Lots of meeting up with other people that we know. We met Jewel Shahjahan﻿. That was lovely. We met Steve Woody, which was lovely. Nice surprise. Didn't know he was going to be there. We met up with Kees and Jamie and, who have I missed? Chris.</p>
+<p>[00:08:06.08] - Taylor<br />
+Just a couple of other people.</p>
+<p>[00:08:08.04] - Gordon<br />
+Yeah. And some others. So thanks for those people who were there. It was lovely to see you. There were also lots of parties that we got invited to.</p>
+<p>[00:08:18.21] - Taylor<br />
+Yeah.</p>
+<p>[00:08:19.00] - Gordon<br />
+So they were sort of night-time parties that we went to. And again, that consisted of more networking, a little bit of drinking. I wasn't feeling too good on the first night. So you went out. What happened on the first night?</p>
+<p>[00:08:32.08] - Taylor<br />
+I just, we went to, well, I originally went out for a walk. So Jamie and I went for a walk after he'd had some food and he was going to the party and I was just going to explore the city because it was like the first kind of night. And I somehow ended up getting dragged into the party and then we ended up going out. Ended up at a club. Yeah.</p>
+<p>[00:08:56.21] - Gordon<br />
+Yeah. Got in quite late, I seem to remember. That seemed to be a recurring theme. But, you know, you have to enjoy these times while you can because, you know, they only come around, you know, once a year in this case. So it's nice to go out and see these people and spend time with them. I went out with you on the second night and we did very similar sort of thing, went to one of the parties. Do you want to give a shout out to WP Umbrella?</p>
+<p>[00:09:24.01] - Taylor<br />
+Yeah, Aurelio, who is a lovely guy. And we were chatting for quite a while and was one of the first kind of people that I met at, I think it was Athens, no, WordCamp Porto, which was my first ever WordCamp. And yeah, I met him for the first time and now he's, you know, he's doing great.</p>
+<p>[00:09:44.13] - Gordon<br />
+He's doing really well. Yeah, it's a great product for those. I'm going to, I'm going to put a link in the notes for this, WP Umbrella. It's a way to manage your WordPress websites. If you've got more than one, it's really, really useful for upgrading plug-ins and themes and everything else, as well as sort of keeping an eye on the health of your website. And you can do it for multiple websites in one dashboard. That's the, that's sort of like the truncated version of it. So that was really good. So let's talk about the venue, or rather the country, Kraków. The city of Kraków, I've never been to Poland, so this was all very new to me. What was your overriding experience of the city and the country?</p>
+<p>[00:10:32.13] - Taylor<br />
+I really enjoyed it. I thought the food was really nice. I thought the—</p>
+<p>[00:10:38.10] - Gordon<br />
+What did you really like food-wise?</p>
+<p>[00:10:40.10] - Taylor<br />
+We had pierogi, which is very nice.</p>
+<p>[00:10:42.09] - Gordon<br />
+Pierogi.</p>
+<p>[00:10:43.01] - Taylor<br />
+Like dumplings.</p>
+<p>[00:10:44.16] - Gordon<br />
+Steamed dumplings with something inside. You had cottage cheese and potato, I seem to remember.</p>
+<p>[00:10:49.20] - Taylor<br />
+Yeah.</p>
+<p>[00:10:50.00] - Gordon<br />
+Yeah, I had a meat one, which I think was pork. So, yeah, go on.</p>
+<p>[00:10:55.01] - Taylor<br />
+The city was really nice. A really nice city. Really pretty.</p>
+<p>[00:10:58.18] - Gordon<br />
+Really clean as well, I thought. They kept it nice and clean. There was a castle we looked around.</p>
+<p>[00:11:03.10] - Taylor<br />
+Yeah, a river.</p>
+<p>[00:11:04.15] - Gordon<br />
+Yeah, a big river that we crossed many times.</p>
+<p>[00:11:07.26] - Taylor<br />
+And it was also relatively cheap as well when you compare it to— when you compare it to London, it's quite cheap. Obviously, if you're in a different country, it could be expensive, but not as expensive as last year when we were in Switzerland.</p>
+<p>[00:11:20.19] - Gordon<br />
+Oh, yeah. That was really expensive. I guess if you average out the two, last year and this year. They're just sort of normal prices, but yeah, you could definitely tell the difference. To give you an idea, we got an Uber from our Airbnb to the airport on our last day, and that was about a 20-minute journey, 25-minute journey, and apparently it's 5 sloten to get into the airport. So they had a price to get in there, so that was included, and it cost us £10.</p>
+<p>[00:11:51.04] - Taylor<br />
+Yeah.</p>
+<p>[00:11:51.23] - Gordon<br />
+You know, it was a £1 fee to get into the airport if you're driving and, you know, so £9 for a 20-minute journey in an Uber, which is, you know, unheard of anywhere else in London, that's for sure.</p>
+<p>[00:12:05.10] - Taylor<br />
+Yeah.</p>
+<p>[00:12:05.19] - Gordon<br />
+We also did a couple of trips. We went to the salt mine, which was really, really interesting. Just a whole mine with lots of sculptures that had been sort of carved into the rock salt walls, just phenomenal, going back to like the 1700s and even earlier, I think, in fact. Yeah, so that was really interesting. If you ever go to Kraków, definitely make a trip to the salt mines.</p>
+<p>[00:12:36.01] - Gordon<br />
+That's reasonably close. That was about half an hour away, wasn't it, by train? Again, very cheap train. I think we paid about £3 return from Kraków for a half-hour journey there and a half-hour journey back. Nothing really, is it? We also went to Auschwitz, which was very interesting, if not a little harrowing. I've, as you know, just finished doing ""The Diary of Anne Frank,"" and all of the people that were portrayed in that play went to Auschwitz at some point. Some of them stayed there, others went on to other concentration camps, and that was a real eye-opener, wasn't it? I thought they'd done it very well though, because you've got Auschwitz I, which is where all the brick buildings are and all the blocks, and they'd sort of converted a lot of the blocks into memorials with sort of explanations and photos, and there was a whole room full of shoes that were just, you know, discovered at Auschwitz, because a lot of people were killed there, and they got them to take all their clothes off before they went in to get, you know, exterminated, as they kept saying. So, they had all these clothes, and there was just a whole room of shoes, which was, you know, scary really to think of all the people that owned them.</p>
+<p>[00:14:06.06] - Gordon<br />
+And then there was a room with a, one long side cabinet. So a really long room just full of hair because they shaved people's head for many reasons. One, for hygiene reasons, but the main reason was so that if anyone escaped, they would very easily be able to see who they were because they were shaved, you know. Anyone who had long hair that hadn't been cut, they knew was not part of the camp. So I didn't know that. That was quite interesting. But it was all, it was quite, quite well done in that respect. And we could go into different blocks and see what was going on. And then you had the other part of it, which was called Belk—</p>
+<p>[00:14:52.23] - Taylor<br />
+Birkenau.</p>
+<p>[00:14:53.16] - Gordon<br />
+Birkenau. Thank you. I had forgotten the name of it, which is the iconic view of the entrance with the train track going through the middle. So they would just lead people straight in by train, straight into the death camp. And there were up to, I think there was 5 gas chambers at one point, which was, you know, quite scary in the number of people that were executed there, murdered there. The other thing I found that I didn't know before was the gas chambers were using something called something B, was it Zyklon B, which were sort of pellets that you burn and they give off gas. And the reason for this product is so that it can sort of clean your clothes of any lice and creatures and and stuff, and it just kills them dead so that your clothes are sort of sanitised. And the Germans discovered that this might work on people as well. So it wasn't piping in gas, which is what I assumed a gas chamber would be. It was setting fire to these cans of Zyklon B, and they very quickly figured out how much they needed to be efficient.</p>
+<p>[00:16:15.16] - Gordon<br />
+And it's just horrible to think about. But it was a really nice rounding off of my Anne Frank experience to sort of visit the place that they all visited and, you know, all but Otto Frank died in a concentration camp of some sort. So that was sort of like a closure for me in some respects, but it was well worth going to see if not, you know, horrific at the same time, don't you think? Yeah, definitely. Did you learn much from there? Did you know much about it before you went?</p>
+<p>[00:16:52.07] - Taylor<br />
+I did know parts, but yeah, I learned a lot.</p>
+<p>[00:16:55.11] - Gordon<br />
+I need to watch Schindler's List again because I saw that maybe 30 years ago at the cinema and now I've been to Auschwitz, I want to watch it again with, you know, renewed knowledge in my head of how everything worked. Next year is going to be in Spain. We're going to Malaga. They've moved it to about a week earlier, two weeks earlier. No, a week earlier. So it's the end of May. So we're going there, right?</p>
+<p>[00:17:26.29] - Taylor<br />
+We are.</p>
+<p>[00:17:27.26] - Gordon<br />
+Okay. So we'll be going to Malaga and we'll tell you all about it next year. And we'll see, you know, what the, what WordCamp is, what WordPress is doing at the time and what the experience of it all is as far as everyone else is concerned. Plus we get to see our friends and have a few drinks. Anything else you want to say about the trip?</p>
+<p>[00:17:49.26] - Taylor<br />
+Don't think so.</p>
+<p>[00:17:50.28] - Gordon<br />
+Well worth going to. We did manage to get some work done while we were out there, but not as much as we would normally do. So this week has been a sort of a catch-up week.</p>
+<p>[00:18:00.09] - Taylor<br />
+Yeah.</p>
+<p>[00:18:00.20] - Gordon<br />
+We got home very early on Tuesday morning. I think we were landing about midnight and then we had to obviously get home from there. So didn't get to bed till about half past 1 in the morning, quarter to 2. What time were you up? You had a nice lie-in, I hope.</p>
+<p>[00:18:16.09] - Taylor<br />
+I think I was awake at half 5.</p>
+<p>[00:18:18.15] - Gordon<br />
+Half 5, right, in the morning.</p>
+<p>[00:18:20.16] - Taylor<br />
+Yeah.</p>
+<p>[00:18:21.00] - Gordon<br />
+Right, yes, because Taylor has BNI, so he was off doing that. I had a nice little sleep. I had Drama Kids in the afternoon. That was all I had. Anyway, thank you so much for joining us. If WordCamp is something you think might be of interest to you, WordCamp Europe is on next May. I am going to Malaga. Make sure you get tickets and get your accommodation and flights because it's going to be a busy one. I think there's going to be lots of people going. Thank you for joining us. As always, if you're on YouTube, please like, share, and subscribe.</p>
+<p>[00:18:55.25] - Taylor<br />
+You can also go to our website thisweekwith.co.uk to find all of our past episodes.</p>
+<p>[00:19:00.16] - Gordon<br />
+And if you would prefer to listen to us instead of watch us, we're on all the major podcast platforms, and you can even ask your smart speaker to play ""This Week with Taylor and Gordon,"" and it will play the latest episode for you. We'll be back with you probably in our normal location next week, once things get back to normal. Next week at 1 o'clock on Friday. Until then, my name is Gordon and I'm from Drayson Design.</p>
+<p>[00:19:27.01] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:19:29.16] - Gordon<br />
+Goodbye.</p>
+<p>[00:19:29.29] - Taylor<br />
+Bye.</p>",1186,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-248.mp3,https://youtube.com/live/z09tWJPWpbg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-248.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-248.jpg
 "2026-05-29 13:00:00",7,247,"AI Ownership - Smart Archiving - AI Search - Evernote MCP - AI Summaries - Smarter Tagging - ScanSnap Workflow - Trix 2026 - Industry Trends - New Products - Smarter Purchases - Networking - UK Party Culture - Spencer Jones - Final Trix 2027 - Falling Attendance - Convention Challenges - What’s Next After Trix?","News - AI is created by a machine, so is not owned by anyone!
 
 Archiving Documents - for personal and business purposes
@@ -161,7 +425,82 @@ The Creative Tinker Website – <a href=""https://www.thecreativetinker.com"">ht
 Facebook: <a href=""https://www.thisweekwith.co.uk/facebook"">https://www.thisweekwith.co.uk/facebook</a>
 Youtube: <a href=""https://www.thisweekwith.co.uk/youtube"">https://www.thisweekwith.co.uk/youtube</a>
 
-* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.",,1080,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-247.mp3,https://www.youtube.com/live/9oQz2qHBoKM,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-247.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-247.jpg
+* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.","<p>[00:00:09.00] - Gordon<br />
+Hello.</p>
+<p>[00:00:09.23] - Taylor<br />
+Hello.</p>
+<p>[00:00:10.08] - Gordon<br />
+My name is Gordon from Drayson Design.</p>
+<p>[00:00:12.04] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:00:13.27] - Gordon<br />
+And welcome to ""This Week With Taylor and Gordon,"" a weekly podcast and vidcast where we talk about things that have affected our businesses over the last 7 days. And thank you for joining us.</p>
+<p>[00:00:25.29] - Taylor<br />
+Welcome back.</p>
+<p>[00:00:26.10] - Gordon<br />
+Today is a day where I want to reflect on a few things that have happened and the reason we didn't have an episode last week. Any news, first of all?</p>
+<p>[00:00:38.26] - Taylor<br />
+Not from me.</p>
+<p>[00:00:39.23] - Gordon<br />
+I had some interesting news, actually, that AI is created by a machine, and therefore, the product of that AI is public domain. It's not owned by anyone as far as copyright goes, which was, I thought, very interesting. They did a court case a long time ago about a monkey or a gorilla that took a photo with a camera. And the photographer was claiming it was his camera, therefore it was his photo. And they said, ""no, but you didn't take the photo, the animal did."" And because the animal isn't an intelligent creature, it didn't count, and therefore it was a public domain photo. And they're sort of applying the same sort of thinking to AI, which is very interesting because it just— if that's the case, it means that no AI is actually owned by anyone.</p>
+<p>[00:01:39.08] - Taylor<br />
+But surely all of the data it's trained on is copyrighted, and so therefore—</p>
+<p>[00:01:44.12] - Gordon<br />
+Yes, but the computer is the one that's taking your prompt and creating something, and because the computer is not a sentient being, it's therefore only following code, therefore it doesn't own the copyright. So if, for example, you take— if you make a song, for example, you can't claim ownership of it as far as copyright goes, but you can, depending on your terms and conditions, have creative and commercial use of it, which is really interesting. If you take a song that AI has written and then re-record it yourself, you're using it as inspiration, and therefore what you create, because you created it, is then your own copyright. Interesting, innit? Anyway, that was my little bit of news that I discovered this week. Let's get straight into our topics. Would you like to go first or shall I?</p>
+<p>[00:02:41.00] - Taylor<br />
+I'll go first this week.</p>
+<p>[00:02:41.22] - Gordon<br />
+Off you go.</p>
+<p>[00:02:42.23] - Taylor<br />
+So over the past couple of weeks, I have been working on a tool for categorising and archiving my content and my documents and things like that. So, something that I wanted to do for a long time was basically archive both documents for things like the hospital and things like that, but also be able to recollect it from a search. So the idea being is I can do a search for whatever I want and it will return results. So if I wanted to say, ""what was that hospital appointment that I had last year with my surgeon?"" for example. And because it has all the data and it has all the information, I can then you know, it can find it because it's archived and it's scanned the document, things like that. And I got the ScanSnap, from Facebook a while ago, and I've only just managed to now set it up and configure it. But what's been interesting was I took it a step further and I created a tool, a CLI tool, that allowed me to basically interact with Evernote and also with AI through the terminal.</p>
+<p>[00:04:02.27] - Taylor<br />
+But also I created an MCP server, which is something I hadn't done before, which allowed me to then talk to, you know, using any sort of like AI kind of web app or whatever, like Claude Desktop or ChatGPT, and it has context and tools that it can use to fetch notes, edit tags, create new notes, and also do search and finding for notes. So taking that a step further, rather than just archiving, I can then use it to actually get the data back with my own tools. So Evernote have their own inbuilt search, which is fine, and it actually probably does a very, very good job.. But for me, being able to talk to, you know, have a chat and have it be able to fetch it, you know, in real time and go off and do its own calls has been really helpful, and will be really helpful when I'm just, yeah, trying to find out when something was or what I was doing, etc.</p>
+<p>[00:05:00.14] - Gordon<br />
+And you've created this tool that will look at the document and give it a bit of context as well, so it'll basically type a note in with a bit of information about what the document is, based on what's in the content, right?</p>
+<p>[00:05:16.13] - Taylor<br />
+Yeah. So a lot of people will just scan the document. It automatically will OCR it when you scan it in through the scanner. But some things that it doesn't do is add kind of actual written notes that are kind of summarising what the document shows or adding a meaningful title. Instead of just having the file name, it actually has a meaningful title. So when you are searching, you're giving that tiny bit more context, and you can pull out the key things from a document. So if you've got a 20-page document about your mortgage, for example, well, you may want to pull out the highlights of what the rate is and how long it lasts and things like that. So obviously, the context, you can already find it inside of the document. But you're pulling out key things that you may want to reference and be able to find and see at a glance. Alongside that, you know, you can obviously still go through the document and read it yourself, or, you know, it can find it from the document, but it just, kind of neatens it up and, kind of just standardises it.</p>
+<p>[00:06:23.25] - Taylor<br />
+I wanted to be able to do this but not have just a big dump of just documents. Or if I wanted to create a note, I wanted them to be kind of in a similar format, you know, being labelled the same, being named the same, having a tag system that it follows. So being able to tag everything that's related to the flat inside of one tag. And again, I could just say find me all documents that reference my flat name, for example, and that would work. But going the extra mile to tag it— and again, this is it doing its own tagging through the AI - I can then click on a tag and it'll show me all the documents. It makes it slightly quicker for querying for certain things, whether it's a letter type or if it's a, you know, an online document, if it's a whatever it is, you know, all different types of files you can have essentially.</p>
+<p>[00:07:21.20] - Gordon<br />
+Well, the paid version of Evernote does have AI search facilities and it's not too bad actually. It's— you can do similar things to what you're saying, but if you've done it all at the time of capture, that's just adding more data, isn't it, that it can then search through?</p>
+<p>[00:07:42.14] - Taylor<br />
+And you can scan basically as many documents as you want and then say, ""categorise everything,"" and it will go through each file individually, look at the content, kind of get context, and you can give it your own prompt and your own context as well to say like, you know, ""I live by myself in a flat, this is the name for my flat, I play a lot of sport,"" things like that. So it's going to have context about who you are as well. So when it's writing tags, when it's writing the notes, it's got context about you as well without having to go through every single note and get the context.</p>
+<p>[00:08:14.02] - Gordon<br />
+That's very good. And we should say the ScanSnap is a hardware scanner that allows you to put a bunch of documents into the feeder, press scan and it scans double-sided, so it scans both sides in one pass and then creates, in our case, PDF files and uploads to Evernote. And that's what ScanSnap is. And it's a really good system. I discovered it a long time ago and I've had, I think, 3 ScanSnaps now. Not because there was anything wrong with them. It's just I've upgraded to the latest and the best to make it faster and higher quality and so on. But it's really good and it works very well with Evernote. So yeah, welcome to ScanSnap and Evernote. It's another person on there. I think friend of the podcast Marc Summers did it at one point as well. I think even Paul Longhurst, another friend of the podcast, has done that as well. So there we go. I'm sort of suggesting these things and people are doing their own research and coming to the same conclusion, which is always a nice thing. Anything else you want to say on that?</p>
+<p>[00:09:17.12] - Taylor<br />
+I don't think so.</p>
+<p>[00:09:19.02] - Gordon<br />
+So my topic is about Trix, T-R-I-X. Now I visited Trix, which is a children's entertainer convention that happens every May. And this was in Stoke. And I've been going for many years now. And it's basically two guys who put together this convention. It's a day and a half convention, I think is probably fair to say. So it's a full day, but it's also the evening before, starting about 5 o'clock in the evening. So it's, you know, by the time we finished at midnight, it's sort of half a day's worth, you know, maybe even nearly a full day's work, isn't it? It's like 7 hours, isn't it? And so that happens every May, and I go along to it for several reasons. One is that we have lecturers, and it's always good to see lectures on the topic that is something I do as a job. So you can learn from other people, you can listen to what they have to say, you can make decisions as to whether it's something that would work for you or not. And you're getting someone else's experiences, which is a little bit similar to my podcast, FACE: The Podcast, which is a different podcast, and that's designed for family and children's entertainers, and that's a similar sort of thing.</p>
+<p>[00:10:50.26] - Gordon<br />
+We talk to other entertainers and you can sort of listen to their experiences and take from it whatever you can. But we also have magic shops that go along, so you can sort of have a look and see what they're offering and again decide if there's something you need or want for your show, or something that we end up just putting in our cupboard, which is the other thing magicians are wont to do. They quite often buy things and it goes in a cupboard, never to be seen again. And these things aren't cheap either. Normally they're very expensive. So it's a, you know, it's the longer you do magic, the less you do an impulse purchase. You think about it a bit more and then you make a decision. And sometimes that means you miss out because they've run out, but you do carefully consider things before you purchase them. Just because you don't want to put it in your cupboard and have it never see the light of day again. So we did that. But the thing I think that is the biggest draw for me to these sort of events is meeting all the people.</p>
+<p>[00:12:06.00] - Gordon<br />
+People that I know, people that I don't know, people that I have already become friends with, people that I make friends with, and some people I just don't have time to speak to, and, you know, next time we have this sort of event, we'll speak to them then and, you know, have a, make a new friend. And it's sort of catching up with them and what they're up to, because most of them live in lots of different parts of the country, sometimes different countries, and you only get to see them, you know, once a year, maybe twice a year if they go to Blackpool as well. And so it's quite nice to catch up and just find out what's been going on and discuss ways that you run children's parties and I got into a conversation with two guys from, ooh, where were they from? Possibly Germany. And they don't do two-hour parties. They do 45-minute shows and then they move on to the next party. That's it. That's all that they do. Mainly because they don't have a two-hour party format in their country. That's not how their birthday parties work. So it's really interesting to listen to different cultures and how they run a party.</p>
+<p>[00:13:23.24] - Gordon<br />
+And so that was all very exciting. And we had a cabaret act. We had a guy called Spencer Jones who plays the part of Kemp in Upstart Crow, which is a TV comedy by Ben Elton, which funnily enough, I'm watching at the moment. And it was really surprising because he came on and started doing his act. And I looked at him. And you know how you sometimes think ""that guy looks familiar and I don't know why."" That's exactly the feeling I had. And we looked him up afterwards and it's like ""he was in Upstart Crow."" ""Ah, of course he was. I'm watching that at the moment."" I knew exactly who he was as soon as I read that. And I'm glad I did because I got to say hello and had a photo with him, which was lovely. And he was a very nice guy.</p>
+<p>[00:14:10.14] - Taylor<br />
+Nice.</p>
+<p>[00:14:11.13] - Gordon<br />
+So that's Trix. Used to be called Trix in the Stix. Now it's just called Trix because it's in a city centre. But we did have some news from the two organisers, and that news was that next year, 2027, is going to be the last Trix as it is. And the main reason for it is declining numbers. So, they used to get, I believe they said, 240 people, and they would sell out in an hour, sell all the tickets in an hour. And now they always have tickets available. And I think this year they had 94 people. So it's quite a drop, isn't it? And when you're trying to plan an event and the costs are going up, not down. So you've got lecturers, you've got the venue hire, you've got, you know any staff and equipment that you need to hire in. You've got your cabaret act. All of these things require expenditure. And if you don't know how many people are actually coming, so therefore, you don't know what your budget is, it gets really difficult to plan something like this and even more so to make a profit from it.</p>
+<p>[00:15:23.07] - Gordon<br />
+And they put a tonne of extra time in because they do videos that are specific for the event. They film things specifically for it. And they have sketches and skits and things like this that they plan for the event, you know, songs that they have. And all of this is time and effort, which, if people aren't coming is time you could be spending on other things. So they've made the decision that next year is going to be the last one. This might change. It might not. But for the time being, that's what's going to happen. They get their life back a bit because it takes up a lot of time to plan these sort of things. We know that because we were sort of partially involved with the planning of POP.</p>
+<p>[00:16:09.04] - Taylor<br />
+Yeah.</p>
+<p>[00:16:09.19] - Gordon<br />
+The bubble convention. We know how much effort and time goes into it. So yeah, I'm sure they'll enjoy the extra time that they have without having to worry about a convention. So that's why we didn't have an episode last week. That's what I was getting up to. We've got one more I'm going to go to next year. So it's hopefully going to be a big sell out because I'm hoping lots of people will go, ""oh, it's the last one, we'll come along to it."" So hopefully that will be the case. And, you know, I'm sure we'll have lots of looking back over the last 15 years to see what we did, and there'll be lots of tears and so on next year because people enjoy going, they enjoy meeting their friends and having time to learn. So hopefully something else will come along in it's place, someone else might take up the mantle, who knows. We will see. But for the time being, next year's the last one. That's everything I wanted to say. Anything you want to add?</p>
+<p>[00:17:09.00] - Taylor<br />
+I don't think so.</p>
+<p>[00:17:10.04] - Gordon<br />
+That's it for this week then. Thank you so much for joining us. As always, we're on YouTube. Please like, share, and subscribe.</p>
+<p>[00:17:17.20] - Taylor<br />
+You can also go to our website, thisweekwith.co.uk, to find all of our past episodes.</p>
+<p>[00:17:22.20] - Gordon<br />
+And if you prefer to listen to us, we're on all the major podcast platforms as well as your smart speaker. Just do a search for ""This Week With Taylor and Gordon."" We'll be back with you next week on Friday at 1pm. Until then, my name is Gordon and I'm from Drayson Design.</p>
+<p>[00:17:40.23] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:17:43.08] - Gordon<br />
+Goodbye.</p>
+<p>[00:17:44.21] - Taylor<br />
+Bye.</p>",1080,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-247.mp3,https://www.youtube.com/live/9oQz2qHBoKM,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-247.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-247.jpg
 "2026-05-15 13:00:00",7,246,"Show week challenges - Organising props - 3D printing cast gifts - Running out of filament - Waiting for IKEA replacements - WordPress “Noted” plugin - Admin reminder notes - Adding Taylor’s framework - New settings panel - Pinning and block notes - User role permissions - Simple useful plugins - Dashboard widget additions - Gordon away at Trix","Show week
 
 Sorting out collection of props - old and more recent - some valuable, some not
@@ -14308,7 +14647,7 @@ And I'm Taylor from The Creative Tinker.</p>
 Goodbye.</p>
 <p>[00:21:43.960] - Taylor<br />
 Bye.</p>",1320,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-149.mp3,https://www.youtube.com/watch?v=ZjjCVHCZ3QQ,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-149.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-149.jpg
-"2024-01-13 13:00:00",5,148,"Notion, An All Round App To Manage Projects and To-Dos - Resources, Hard Drives in particular","Full On Pantomime this week - Dick Whittington 2024
+"2024-01-12 13:00:00",5,148,"Notion, An All Round App To Manage Projects and To-Dos - Resources, Hard Drives in particular","Full On Pantomime this week - Dick Whittington 2024
 
 Notion App - <a href=""https://www.notion.so/"">https://www.notion.so/</a>
 
@@ -14536,7 +14875,7 @@ And I'm Taylor from The Creative Tinker.</p>
 Goodbye.</p>
 <p>[00:13:37.150] - Taylor<br />
 Bye.</p>",833,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-147.mp3,https://www.youtube.com/watch?v=rbop3el3g5s,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-147.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-147.jpg
-"2023-12-30 13:00:00",4,146,"Merry Christmas and Happy New Year to you all - See you all again next year in 2024","Just wishing you a Merry Christmas, and a Happy New Year
+"2023-12-29 13:00:00",4,146,"Merry Christmas and Happy New Year to you all - See you all again next year in 2024","Just wishing you a Merry Christmas, and a Happy New Year
 
 Thank you for joining us during 2023
 
@@ -15346,7 +15685,126 @@ The Creative Tinker Website – <a href=""https://www.thecreativetinker.com"">ht
 Facebook: <a href=""https://www.thisweekwith.co.uk/facebook"">https://www.thisweekwith.co.uk/facebook</a>
 Youtube: <a href=""https://www.thisweekwith.co.uk/youtube"">https://www.thisweekwith.co.uk/youtube</a>
 
-* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.",,1178,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-140.mp3,https://www.youtube.com/watch?v=4uEUeu0ciEE,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-140.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-140.jpg
+* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.","<p>[00:00:08.960] - Gordon<br />
+Hello.</p>
+<p>[00:00:09.280] - Taylor<br />
+Hello.</p>
+<p>[00:00:09.440] - Gordon<br />
+My name is Gordon from Drayson Design.</p>
+<p>[00:00:11.330] - Taylor<br />
+I'm Taylor from The Creative Tinker.</p>
+<p>[00:00:13.280] - Gordon<br />
+And welcome to ""This Week With Taylor and Gordon,"" a weekly podcast and vidcast where we talk about things that have affected our businesses over the last seven days. And welcome back. Thank you for joining us. So I think we should first of all go to Taylor and find out what he's been doing this week. What have you been up to?</p>
+<p>[00:00:33.330] - Taylor<br />
+So I went to Macedonia to see a friend of mine that lives out there, and he looked after me. He showed me around Macedonia, had some lovely food, lots of homemade food, lots of food from Macedonia and that region. I got to see some really nice places. It was very very pretty, and just got to hang out with one of my friends.</p>
+<p>[00:00:58.880] - Gordon<br />
+And this is part of your 12 months of coffee, isn't it?</p>
+<p>[00:01:01.470] - Taylor<br />
+Yes.</p>
+<p>[00:01:02.290] - Gordon<br />
+So for those who don't know about this, Taylor was going to a different European country every month and spending a few days there. Basically hanging out in coffee shops. Although I'm suspecting you didn't do that quite as much this time.</p>
+<p>[00:01:15.410] - Taylor<br />
+I didn't. They don't actually have a Starbucks, which is the mugs that I collect on my trips, in Macedonia, so I wasn't able to go. But I did get to see my friend, so it wasn't all lost.</p>
+<p>[00:01:28.450] - Gordon<br />
+But this is someone you've not actually met before, other than talking to online, isn't it?</p>
+<p>[00:01:33.430] - Taylor<br />
+Yes.</p>
+<p>[00:01:34.100] - Gordon<br />
+And he's a programmer, effectively.</p>
+<p>[00:01:39.520] - Taylor<br />
+Yeah.</p>
+<p>[00:01:39.890] - Gordon<br />
+Was it interesting seeing how he works and comparing it to the way you work and see what the differences were?</p>
+<p>[00:01:48.060] - Taylor<br />
+Yeah. Well, so he has a family and things like that. So his day-to-day life and things like that is a lot different to mine, for example. He has to look after... He's got two small kids that he has to look after. So he doesn't get much sleep and he's got commitments to his family and stuff that he has to worry about. So when it compared to my life, it was very different, but it was very interesting to see what he goes through on a day-to-day basis and what he gets up to. So yeah, it was really nice to see and experience.</p>
+<p>[00:02:22.240] - Gordon<br />
+And how different was Macedonia to the UK, for example?</p>
+<p>[00:02:27.260] - Taylor<br />
+I found that it wasn't a big English-speaking country. A lot of people were Macedonian and knew bits of English, but it wasn't a widely supported language, I don't think. We went to some restaurants that didn't have any English menus and they still have English signs. So they'll have the Macedonian version and then the English version, and they had some adverts that were fully in English and then some that were fully in Macedonian. But for the most part, I found that a lot of people spoke Macedonian mainly. And so my friend, he translated and spoke for me, which was nice. But yeah.</p>
+<p>[00:03:12.140] - Gordon<br />
+Did you pick up any Macedonian words?</p>
+<p>[00:03:14.450] - Taylor<br />
+No, not at all.</p>
+<p>[00:03:15.510] - Gordon<br />
+None at all.</p>
+<p>[00:03:16.000] - Taylor<br />
+No idea.</p>
+<p>[00:03:16.580] - Gordon<br />
+Not even hello or thank you?</p>
+<p>[00:03:18.310] - Taylor<br />
+No.</p>
+<p>[00:03:18.850] - Gordon<br />
+Okay, so there's a few expressions you should always learn if you go on to a new country, and that is 'hello,' 'thank you,' and 'one beer, please.' That's always quite useful, although not necessarily for us, but it's quite a useful thing to have.</p>
+<p>[00:03:36.880] - Taylor<br />
+Yeah.</p>
+<p>[00:03:37.550] - Gordon<br />
+So tell us about what you did out there, as opposed to the work you did out there, was it? Because normally you sit in coffee shops and if there aren't any coffee shops, where were you?</p>
+<p>[00:03:50.890] - Taylor<br />
+He has an office that is about a two-minute walk from his flat that we went and did some work in. But we went up to this part of the river. There was this very nice river/ lake, which had some boats that you could go on, canoes. We had a nice coffee up there, which was a bit like a tourist attraction, which was very nice and very pretty. They have lots of malls, that seems to be what they do for fun and leisure. They go to the shopping centre or the mall.</p>
+<p>[00:04:27.240] - Gordon<br />
+Right. And do they have the shops we have or are they all very unique to them?</p>
+<p>[00:04:30.160] - Taylor<br />
+They do have some of the main brands. A lot of the clothing shops they have. They don't have any Apple stores. They have approved resellers, and their Apple store equivalent is called iStyle, which is essentially the Apple Store, but they don't have the license to call it the Apple Store, which is again very, very interesting because they don't have Starbucks, McDonalds, things like that they don't have. And this is their equivalent for the Apple Store.</p>
+<p>[00:05:03.400] - Gordon<br />
+Very interesting.</p>
+<p>[00:05:04.620] - Taylor<br />
+But yeah, overall it was great. I liked the food. I tried lots of new stuff, which was great. I just really enjoyed it. It was nice to see how-.</p>
+<p>[00:05:12.220] - Gordon<br />
+Fried mushrooms?</p>
+<p>[00:05:13.580] - Taylor<br />
+Yes, fried mushrooms.</p>
+<p>[00:05:15.330] - Gordon<br />
+And how were they?</p>
+<p>[00:05:16.320] - Taylor<br />
+Yeah, they're all right.</p>
+<p>[00:05:17.790] - Gordon<br />
+The reason I say that is because Taylor has never eaten mushrooms at home. He's never liked them, ever. And it seems like he hasn't actually tried them, because if he quite likes them now.</p>
+<p>[00:05:29.680] - Taylor<br />
+They're all right.</p>
+<p>[00:05:30.520] - Gordon<br />
+Your tastes do change over time. So maybe you've got to the point now where you can tolerate it.</p>
+<p>[00:05:35.950] - Taylor<br />
+Yeah.</p>
+<p>[00:05:37.930] - Gordon<br />
+Anything else you want to say business-wise, maybe?</p>
+<p>[00:05:41.540] - Taylor<br />
+It was good to see my friend, and we spoke a lot about websites, web design, building websites, things like that, running businesses. It was really nice to talk to someone in a similar situation with their own business and stuff.</p>
+<p>[00:05:58.290] - Gordon<br />
+It's nice to bounce off someone who's got a similar knowledge base, because you can push yourself forward by doing that, can't you?</p>
+<p>[00:06:06.760] - Taylor<br />
+Definitely.</p>
+<p>[00:06:07.870] - Gordon<br />
+And you actually went for slightly longer than you normally do, because you went for a weekend, didn't you?</p>
+<p>[00:06:12.130] - Taylor<br />
+Yeah. So there's only three flights a week to Macedonia from London. I had to fly from London, Luton, and there's three flights a week: Tuesday, Thursday, and a Saturday. So I decided to go on a Saturday and I came back on the Tuesday. So yeah, because of the flights and things like that.</p>
+<p>[00:06:30.580] - Gordon<br />
+Very good. So, anything else?</p>
+<p>[00:06:34.180] - Taylor<br />
+I don't think so.</p>
+<p>[00:06:35.340] - Gordon<br />
+So, I have a Balloon Twisting website. Now, originally, I created a community that didn't really get very big and it was part of this. And because of that, I got invited to do a radio show on Balloon Twisting with Liza Tarbuck, who was lovely. I think it was Radio Two, can't remember exactly. But anyway, it was learning how to do a new skill for the new year, New Year's resolution type thing. So it was all pre-recorded. I remember when I did it many, many years ago now, Stephen Mulhern, who I know, was in there just before me, and he was doing a learn how to do magic section, which was great. I went in, did my balloon twisting, and she said to me at the end of the recording, ""and if people want to purchase balloons, they can get that from your website?"" I said, ""Yes, that's right. And that's balloontwisting.co.uk."" And came out of it and started heading home thinking, ""I don't have a shop. I don't have any balloons I can sell."" But I knew when this recording was coming out and I knew I had like two weeks to get it up and running. So I built myself a balloon twisting shop. Now, I have a colleague and a friend of mine who sells balloons. They have huge stock and they sell balloons to entertainers mainly. I came up with a proposition for him that I would build my store, I would promote my store, my online store that is, and that I would copy him in with any orders that I get. He would then drop ship them out. Now, drop shipping is a great idea. If you don't want to hold stock of something, drop shipping is... Effectively, what Amazon do in some respects, they do drop shipping, because you either send your products to them and then they send it out, or you have an affiliate-type scheme where you sell their product and they send it out. And so that's what I wanted. I didn't want to have to every time an order came in, talk to my friend, get some balloons brought over, pack them up, send them out, because that would have taken forever and the customers would not have been happy. So we arranged this. Every month I pay him the amount of stock and postage that we've agreed upon ahead of time. Then the bill goes back to zero and we start again for the next month. And I've been doing this for a little while now and it works great, really well, until there's a problem. Now, the main problems that I've had are where stock has been sold out and I haven't been told. For example, because my friend also sells to entertainers, he could sell the last few bags of a line, and I don't know that, and my shop is still saying I've got it in stock. Therefore, we get an order in which we can't fulfil. And that's always disappointing. The other thing is that if he's making a big order for balloons, which he does every however long, he'll make a note as to what lines he needs and he'll make a big order. So it does mean that some lines can go out of stock for an extended period of time, like six, eight months at a time, which again is not ideal. But I'm not relying on this shop earning my living, so it's not an issue for me. It's just really nice, actually, when I get an email saying, ""this is the order, you've just taken some money."" Then, later on that day, I get another email saying, ""This order has been sent out. Thank you."" It's like, ""Great, that's my job done."" The biggest issue I have at the moment is that he's decided to go on some cruises. Now, he's on a cruise at the moment, which is one month. He's away for a month. In January, he's going to be away for four months doing a world cruise, which is a huge amount of time. I had a choice. I could either shut the shop down for the period of time that he's not here, which isn't great for SEO. You're listed on Google with all the products because you can actually tell Google what products you sell and it can list those and put them in a result when you are... When people are searching for products, it can show your products and it can link directly to your shop to that page, which is great. In fact, all of my sales come from Google, and I don't pay for this, it's a free service. So if he's away, I have the option of closing down the shop, which is not great because then all of my listings get wiped out and I then have to basically turn it back on again and it takes time for it to then propagate and come back into Google Store. The alternative is he drops a load of stock off with me and when I get orders in, I pack them myself, which is what we're doing. Now, the downside to this for me is it's not something that I normally do. So, I'm not particularly good at packing these balloon orders up because I haven't had the experience to know how to pack them and I haven't been told either, so I'm doing the best I can to pack them up. The second thing is it takes time to do. Because I don't do it normally, I don't have set times during the day when I can do it, so I just do it as and when I can. And last of all, the way that I am doing it at the minute, because for me to go to the post office, because I can't go to the post box, the parcels, the packages are too big, is like half an hour, 45 minutes out of my day. Just going there, dropping it off, coming back again. That's just time I really don't want to have to spend every day. I don't get orders every day, but were I to get orders every day, it would be every day. So what I'm doing is I'm using Royal Mail online postage. You can tell them how much something weighs, how big it is, where it's going, and it will tell you how much it is. You can then pay it online. And in fact, it's cheaper. I don't understand this. It's cheaper to buy postage for some packages, some sizes online than it is to go to a post office and pay for it there and then.</p>
+<p>[00:13:39.880] - Taylor<br />
+It's crazy.</p>
+<p>[00:13:40.940] - Gordon<br />
+Makes no sense. I don't understand it. But more importantly, they offer a service where your postman or somebody, if it's not your postman, depending on the size of the package actually, will come to your house or your place of business the next day, in the morning and will collect that package for you. They'll also bring a pre-printed label that they can stick on it and then they'll take it and it's the same as me going to the post office. So what's happening at the moment is if I get an order in the evenings or during a day, I will package up, depending on when I get the order, I will package up the parcel the following day. I will then pay for the postage. It will get collected the following day. So this is now two days after it was ordered and be delivered the day after that, which is three days in total. Now, they do get sent First Class, which I feel is important. It's something we offer on our site, but they're not arriving next day because of the way that I've got it set. And I'm not earning enough from this for me to put time into my day to go to the post office. Wouldn't you know it, I've been reasonably quiet recently with orders coming in. The day that he leaves to go on his cruise, I get two orders in. Since then, I've had another three orders. It's all gone mad. The other thing is I have limited stock, because I don't have his whole garage full of stock. I've just got a few select lines and a few packs of each. So at some point, I'm going to have to say, ""I can't do this."" In fact, we've already had one. One of the lines that I have is already out of stock because I don't have any more of them. I don't know if he does, but I don't. So my online balloon sales are probably going to take a little bit of a dip at the moment because the drop shipping is not in place. Why am I telling you all this? Well, basically, I wasn't expecting to ever have to package up balloon orders and send them out. But if I want to keep going and I don't want to lose my search engine rankings, it's something I'm having to do, which is an extra job for me and not one I particularly enjoy, which is why I set up drop shipping in the first place. But when you take on a new project or a new sideline, you need to just consider what might happen in the future. If your supplier falls out with you or decides that they're going to stop their business or whatever, then what will you need to do to keep your business going? And this applies to any supplier that you might have. If you rely on someone to supply you with a product or a service, make sure you've got a backup plan. Now, that could be that you've spoken to another supplier and they can take over if the first supplier, your preferred supplier, decides not to do it anymore. But always have that in place because you don't know when things are going to change. I actually got a little bit of notice that he's going away. But he could have said to me, ""Look, I'm not selling balloons anymore,"" and that's it. I don't have currently a backup plan. So this is what I've learned and this is what I'm telling you about. There are other people who sell balloons and I will be talking to them and saying, ""This is my business, this is my model. If you're interested in being my supplier, then let me know. Tell me what your best price is and any orders I get, you can send out for me."" I need to put that in place because I don't know how long this is going to continue for and I don't know that I really want to do four months worth of packing. The amount of stock that I'd have to take on just to allow me to service those orders is huge, and I don't want to do that. So that's the lesson from me from this week is make sure you have a backup plan for suppliers or products that you rely on. Make sure you've got some way of getting those if the current supplier no longer does it. Anything else you want to add to that?</p>
+<p>[00:18:19.390] - Taylor<br />
+I don't think so. It's a good thing to think about.</p>
+<p>[00:18:22.060] - Gordon<br />
+Yeah, it is. And it goes through every business, really. If you've got a... Quite often people are reactionary, so something will go wrong, they'll react to it and deal with it at that point. But it's always nice to be proactive and have a plan in place and I think that is something that all businesses should do and should learn from. So that's everything from me.</p>
+<p>[00:18:53.740] - Taylor<br />
+And me as well.</p>
+<p>[00:18:55.010] - Gordon<br />
+And you. Thank you so much for joining us. As always, we can be found on YouTube and on Facebook. Please like, share, and subscribe.</p>
+<p>[00:19:03.020] - Taylor<br />
+You can also go to our website thisweekwith.co.uk to find all of our past episodes.</p>
+<p>[00:19:07.600] - Gordon<br />
+We will be back with you next week, 1pm on Friday is when we go live. Please join us then. Until then, my name is Gordon, and I am from a company called Drayson Design.</p>
+<p>[00:19:19.210] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:19:21.870] - Gordon<br />
+Goodbye.</p>
+<p>[00:19:22.480] - Taylor<br />
+Bye.</p>",1178,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-140.mp3,https://www.youtube.com/watch?v=4uEUeu0ciEE,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-140.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-140.jpg
 "2023-10-13 13:00:00",4,139,"Brand new set !! - Taking Time Off - Groundhog Day - Alton Towers - Panto Dick Whittington - Getting Up Early - Less Distractions - Routines - AI Website Chatbot","Brand new set !!!
 
 Taking Time Off - we are in Alton Towers
@@ -21518,7 +21976,154 @@ The Creative Tinker Website - <a href=""https://www.thecreativetinker.com"">http
 Facebook: <a href=""https://www.thisweekwith.co.uk/facebook"">https://www.thisweekwith.co.uk/facebook</a>
 Youtube: <a href=""https://www.thisweekwith.co.uk/youtube"">https://www.thisweekwith.co.uk/youtube</a>
 
-* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.",,1089,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-103.mp3,https://www.youtube.com/watch?v=-4QlNbR9O_Y,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-103.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-103.jpg
+* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.","<p>[00:00:09.090] - Gordon<br />
+Hello.</p>
+<p>[00:00:09.580] - Taylor<br />
+Hello.</p>
+<p>[00:00:10.060] - Gordon<br />
+My name's Gordon from Drayson Design.</p>
+<p>[00:00:11.770] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:00:14.070] - Gordon<br />
+And welcome to ""This Week With Taylor and Gordon,"" a weekly podcast and vidcast where we talk about things that have affected our businesses over the last seven days. And welcome back, everyone.</p>
+<p>[00:00:24.850] - Taylor<br />
+Hasn't been quite seven days from when we're recording this.</p>
+<p>[00:00:27.000] - Gordon<br />
+Well, that is true. We are recording this early because on Thursday this week, which will be yesterday, when you come to watch this, Taylor's gone away, but we'll talk about that in a minute. We'll explain why. Any news first of all?</p>
+<p>[00:00:45.550] - Taylor<br />
+Not from me, apart from Snippet Club. The Lifetime deal finished and it was, I think a success. I was happy with how many people subscribed and became members and the feedback that I got was very positive.</p>
+<p>[00:01:00.210] - Gordon<br />
+Excellent. So now the people who want to join from now on are on a subscription?</p>
+<p>[00:01:05.660] - Taylor<br />
+Yep.</p>
+<p>[00:01:06.430] - Gordon<br />
+And with that subscription, you get the opportunity to request tutorials, so it's still a great deal. So go and have a look at it: Snippet Club. Snippets club?</p>
+<p>[00:01:17.740] - Taylor<br />
+Snippet.</p>
+<p>[00:01:18.450] - Gordon<br />
+Snippetclub.com.</p>
+<p>[00:01:20.980] - Taylor<br />
+Yeah.</p>
+<p>[00:01:21.720] - Gordon<br />
+Perfect. There you go. Any news from me? I didn't have any shows at the weekend.</p>
+<p>[00:01:28.690] - Taylor<br />
+That's very strange.</p>
+<p>[00:01:29.000] - Gordon<br />
+Which is very strange. But it is nice to have a bit of time off at a weekend that I don't normally have, and I managed to do lots of things around the house. So, yes, I had time off. I got a few things done around the house, which I don't normally do. So, we've got a new security light outside the house, we've got some new lights up in the bathrooms. I set all my radio mic up and haven't had a chance to test it in the field yet. I am really hoping that it works well, because I've got the old one here, I haven't got rid of it yet, just in case. But I will be testing that this coming weekend when I've got three shows. So hopefully, fingers crossed, everything will go well.</p>
+<p>[00:02:18.100] - Taylor<br />
+Great!</p>
+<p>[00:02:18.970] - Gordon<br />
+Shall I start today?</p>
+<p>[00:02:19.980] - Taylor<br />
+Yeah, you can start.</p>
+<p>[00:02:21.040] - Gordon<br />
+So today I would like to talk about workday preparations. Now, this comes in two different tips, really, and they're things that I've found work really well for me and they might work well for you as well. We have a dog.</p>
+<p>[00:02:39.850] - Taylor<br />
+Do we?</p>
+<p>[00:02:40.470] - Gordon<br />
+We have a dog called Marty. And he's lovely, and he gets to go out in the morning for a walk. And so, during the time that I'm walking him, which is sort of 20/25 minutes at the beginning of the day, it gives me a bit of time to think about my day and think about what I did yesterday. Sort of reflect on my achievements, or lack of progress yesterday and thinking about what I've got coming up today. And it's really good time, good use of time, because I come out with some really interesting ideas of what I can do to improve on yesterday, or something that I did yesterday that I'd like to do better, and also it allows me time to think about what I'm going to be doing today and plan it ahead of time as it were. Instead of just sitting down at my desk in my office and getting on with work it gives me just a little bit of time to think about what's going on and I can sort of plan things out. So if I've got errands to run or I've got deliveries to deliver for example, I can sort of plan out the best time that I can do it and try and put them together so I only go out once for example.</p>
+<p>[00:03:58.540] - Taylor<br />
+So yeah, it's an interesting concept because I know that in the corporate tech industry at least that's very common. So a lot of people might know it as ""stand up"" and it's normally a check in morning meeting where you stand up and you say, ""this is what I was working on yesterday...""</p>
+<p>[00:04:19.140] - Gordon<br />
+Yes.</p>
+<p>[00:04:19.410] - Taylor<br />
+""This is what I'm working on today."" And you give updates to the rest of the team. Maybe people that are higher than you. You just give them a little update essentially. And it's a similar concept I think, and it's something that I've started doing as well to get myself focused and organized because sometimes, like you said, just getting straight into work, you don't actually think... You don't think about the coming day or the coming weeks.</p>
+<p>[00:04:44.880] - Gordon<br />
+Yep.</p>
+<p>[00:04:45.310] - Taylor<br />
+And you don't plan it. You just get on with whatever's on your list, which sometimes you do need to plan because you may have things that are coming up that you need to make sure you can schedule around.</p>
+<p>[00:04:55.740] - Gordon<br />
+Yeah, and the other thing is if you know sort of what you've got to achieve during a day then you can sort of plan out in your head how long you're going to give to each task. And that might be fluid, it might change but at least you've got sort of the ability to set times during your day. I know you've got a different sort of system, but for me I can set times. I know I need to do this, this and this and I'm going to give this 2 hours, I'm going to give this an hour and I'm going to give this 3 hours and that's a good length of time.</p>
+<p>[00:05:28.150] - Taylor<br />
+Are you strict with it? So if you give yourself 2 hours and you go over 2 hours do you say ""okay, well I'll put that on pause and come back to it,"" or do you?</p>
+<p>[00:05:35.470] - Gordon<br />
+Sometimes. Yeah. Because it is fluid. It does change. And your whole day changes sometimes if you get an inquiry... For me, if I get an inquiry through  that I need to deal with; it's a big job coming up for example I need to spend time sending a quotation or I need to talk to the client and talk things through, or do a confirmation. That's additional work that I hadn't already planned, but it's quite important because it's work that's coming in which I need to address and deal with. And so sometimes it doesn't always work, but it's a good way to sort of get your head around what needs doing and gives you an idea of what your day is going to look like. So that's what I do in the mornings when I go for my dog walks. And if you haven't got a dog, then, you know, maybe just have a cup of coffee and sit down and just have a think about what you're going to be doing for that day.</p>
+<p>[00:06:32.230] - Taylor<br />
+Or go for a walk.</p>
+<p>[00:06:32.570] - Gordon<br />
+Use that time. Or go for a walk.</p>
+<p>[00:06:33.790] - Taylor<br />
+A lot of people, I think, in lockdown started going for regular daily walks.</p>
+<p>[00:06:37.600] - Gordon<br />
+Or a run.</p>
+<p>[00:06:38.220] - Taylor<br />
+Because that was the only option they had really, to get out.</p>
+<p>[00:06:40.830] - Gordon<br />
+Yeah, that's true. So that's the first tip. The second tip is something I've been doing forever. And I can't remember if I was told about it or if I sort of came up with it on my own, but it's something I always do. And that is... Here we go, there's a question for you, Taylor. When do you check what your schedule is for the day?</p>
+<p>[00:07:08.210] - Taylor<br />
+The night before and then in the morning.</p>
+<p>[00:07:11.440] - Gordon<br />
+Yeah. So the night before is, for me something that I've been doing forever now. So it's pretty much the last thing I do before I shut my computer down, or before I go to bed. I will look at tomorrow's diary and see what's happening that day. Now, there's many reasons for this. The first reason is, for me, I can be thinking about this subconsciously while I'm sleeping. So if it's a creative task that I've got coming up. Like I'm designing a poster or something along those lines. My mind, by looking at it last thing at night, my mind is sort of thinking about it and I go to sleep and my unconscious brain thinks about it and I come up with ideas that maybe I wouldn't have come up with had I just looked at it first thing in the morning and then got on with it. So that's the first reason. But more importantly is, if you've got something coming up tomorrow that you forgot about or you haven't prepared for, then by looking at it the night before, it's giving you, what is it, 8 hours? To sort of get yourself ready. So if you have to do an all-nighter for whatever reason you have the ability to do so, you have those 8 hours. I don't recommend it because sleep is important, but you do have a ""oh my goodness. I've got this meeting tomorrow, I need to do some notes. I haven't done them yet!"" So scheduling is an issue here. You need to sort that out. But by looking at it the night before, you can suddenly go, ""right, okay, it's going to take me half an hour. I'm going to do that now before I go to bed, or before I finish work."" It could be the last thing you do before you leave work is look at what your schedule is for tomorrow. But it's much more important to do it the day before than it is to do it on the morning of the day, because your brain will be thinking things through and it gives you that extra time and there's gonna be other reasons why it's a good idea as well. You know, you can, if you've got a meeting planned and all of a sudden you realize you can't do that meeting because of something's come up, then at least you can message that person and let them know sort of the day before. Albeit late at night or end of the working day. But at least you can give them a bit of notice rather than suddenly speaking to them on the morning going, ""oh! You know that 10:00 meeting we had. I can't do it. So sorry."" And realizing at 9:30. Which is never good. So it does give you the opportunity to deal with things like that. Have you found any other advantages to doing that?</p>
+<p>[00:09:58.990] - Taylor<br />
+No, I think most of the reasons...</p>
+<p>[00:10:00.300] - Gordon<br />
+I've mentioned most of them, haven't I?</p>
+<p>[00:10:01.710] - Taylor<br />
+Most of the reasons are why I do it as well.</p>
+<p>[00:10:03.880] - Gordon<br />
+Yeah. So that's something I've been doing forever now. And I highly recommend last thing before you go to sleep, before you leave your work day, have a look at your day tomorrow, see what it entails, just so it's fresh in your mind, really. That's it. Right. What are you doing? Why are we recording this this week?</p>
+<p>[00:10:22.710] - Taylor<br />
+So, last week, I very kind of last minutely decided to go to America. So yesterday, for when this goes out, I will be on a plane, or I was on a plane going to America.</p>
+<p>[00:10:42.280] - Gordon<br />
+Talking about the future, in the past. It's so strange.</p>
+<p>[00:10:46.390] - Taylor<br />
+So this came about because I have a friend who is modelling at New York Fashion Week and basically said, ""do you want to come along?"" And they went a couple of months ago, I think, and they literally told me the day they were flying and said, ""do you want to come?"" And it was a bit late notice. And then they asked me again when they were going to Italy for a similar reason, said,  ""I'm going to Italy, do you want to join me?"" Now they're getting an all expense paid trip, so hotel and travel, which I'm very jealous of, but they said, ""do you want to come and join me?"" And I said, ""well...""</p>
+<p>[00:11:19.300] - Gordon<br />
+Can I spend time with you?</p>
+<p>[00:11:20.460] - Taylor<br />
+Yeah.</p>
+<p>[00:11:20.800] - Gordon<br />
+Come and hang out.</p>
+<p>[00:11:21.460] - Taylor<br />
+So I said yes. So I booked a flight, I booked flights for ten days and in that time I'm going to New York, which is obviously where New York Fashion Week is, and then I will be spending a week in Ohio, which people always go, ""Ohio? Why there? There's nothing over there."" Mainly because I have a friend, a couple of friends that live there and I wanted to go and see them. So that's what my trip is going to be.</p>
+<p>[00:11:49.290] - Gordon<br />
+So this was very last minute. And the nice thing about the job you do is that you can do this, because you can just up sticks, grab your computer, make sure that wherever you're going has got internet, and you can carry on working.</p>
+<p>[00:12:02.010] - Taylor<br />
+Exactly. And my two favourite cities are London and New York. Very much, because they're both very bustling cities, people walk with purpose and things like that, but they're also different in the way that London is very historical and old, and New York is very kind of new and modern. Well, London's still modern, but London has a lot of history to it, whereas New York doesn't have as much of that just because of the time that it's been kind of around. And I just love the kind of the vibe of both cities. And so one of the reasons for wanting to go to New York is just to sit in a café and kind of work from there. Because it's always been a dream of mine. Just because I work, I'm self-employed and I can kind of work essentially remotely. That I've always thought just being able to sit in a café by Central Park and look out at the city going by and working has always been a dream of mine, and so I thought, because I've got no responsibilities, or no commitments, that why not go, really?</p>
+<p>[00:13:03.640] - Gordon<br />
+Now's the time to do it. Yeah, definitely. When I was your age, I was similar. I went and visited friends in Canada, stayed with them for a couple of weeks. I was a Blue Coat at a holiday park, so I did that when I was 18. So it would have been sort of three, maybe four years ago from the age you are now. And I kept friends with a few people and I went and spent time with people in Somerset and in Devon and Yorkshire and all over the place. And it was nice just to be able to do that, just get in the car, in my case, and drive off. Or get a plane to Canada and see my friends there. And now is definitely the time to do it. While you have no mortgage or significant half or children or anything.</p>
+<p>[00:13:54.040] - Gordon<br />
+I just thought it'd be a good experience, nice experience to travel by myself, because I've done it once, obviously, when I went to America. Well, I've done it twice when I went to America in February, and then also again in Porto. But, yeah, I just thought it would be a fun experience.</p>
+<p>[00:14:11.960] - Gordon<br />
+So, what's on the list? You're going to obviously spend time with your friends that are over there. Anything else on your list to do?</p>
+<p>[00:14:19.470] - Taylor<br />
+I want to do Brooklyn Bridge.</p>
+<p>[00:14:21.190] - Gordon<br />
+Okay, go and see Brooklyn Bridge.</p>
+<p>[00:14:23.510] - Taylor<br />
+Mainly because when we went in December 2019, which was just before Covid, I was sort of ill and so I wasn't able to walk around New York for a long period of time without sitting down or whatever, and on that specific day that we kind of went over to Brooklyn, I was struggling and we didn't manage to walk over the bridge, so that's something I really want to do, and just walk it, essentially. I think I'll visit the 9/11 Memorial again because it's quite a surreal experience. I've done the museum, which we did, but I think just obviously going to the memorial. Maybe on one of the evenings, get the Staten Island Ferry, because getting the Staten Island Ferry back towards New York during kind of sunset time gives you a really nice view of the city with obviously the sunset in the background, which obviously is really nice.</p>
+<p>[00:15:26.920] - Gordon<br />
+So the good news is you'll have your phone with you, which has got a camera on it. Not a great camera when you're talking about a whole skyline of Manhattan, but will you be taking any other camera with you?</p>
+<p>[00:15:39.810] - Taylor<br />
+I might do. However, I'm also conscious of weight and I've got to carry it around. I've got to look after it, obviously, for being stolen.</p>
+<p>[00:15:51.880] - Gordon<br />
+Security reasons.</p>
+<p>[00:15:52.930] - Taylor<br />
+More than anything, really. So, yeah, it all depends on, I guess, how much I want to be carrying that around, because it's not something that, especially in New York, it's not something I can just leave at the place I'm staying.</p>
+<p>[00:16:07.090] - Gordon<br />
+No.</p>
+<p>[00:16:07.760] - Taylor<br />
+So I want to be careful. But also the camera on your phone is actually very, very good. And I've got, obviously, the wide angle lens on my phone, which is an iPhone 13 Pro, which I have. So, yeah, I've got the wide angle lens, a high quality camera, so it does a good job. So, I wouldn't say that...</p>
+<p>[00:16:26.430] - Gordon<br />
+Okay, perfect. Well it sounds like you're going to have a lovely time and I do hope that when you get back, you will tell us all about it. It does mean that we may not have a This Week With for the next couple of weeks, because Taylor's away for ten days, starting on a Thursday, so there's two Fridays that it covers there. So we may try and do a zoom one, which we have done before, that might be quite good, just to catch up with you and see where you are, what you're doing. Maybe we'll try and get that happening, but if not, we'll be back as soon as Taylor returns from his trip and he'll tell you all about it. Anything else you want to say?</p>
+<p>[00:17:09.990] - Taylor<br />
+I think that's everything.</p>
+<p>[00:17:11.590] - Gordon<br />
+That's it for today, then. Thank you so much for joining us. If you have enjoyed it, please like, share, and subscribe. It really does help us.</p>
+<p>[00:17:20.100] - Taylor<br />
+You can also go to our website thisweekwith.co.uk to find any past episodes and topics we may have spoken about.</p>
+<p>[00:17:27.160] - Gordon<br />
+And I should have said we're on Facebook and on YouTube. Until whenever... It might be next Friday, it might be the Friday after. It might even be the Friday after that. But whenever it is...</p>
+<p>[00:17:39.070] - Taylor<br />
+At some point in the near future.</p>
+<p>[00:17:40.530] - Gordon<br />
+It will be one of the next three Fridays and it'll be at 1 o'clock. We will see you then. Until then, my name is Gordon and I'm from Drayson Design.</p>
+<p>[00:17:49.540] - Taylor<br />
+And I'm Taylor from The Creative Tinker.</p>
+<p>[00:17:52.440] - Gordon<br />
+Goodbye.</p>
+<p>[00:17:53.070] - Taylor<br />
+Bye.</p>",1089,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-103.mp3,https://www.youtube.com/watch?v=-4QlNbR9O_Y,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-103.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-103.jpg
 "2022-10-07 13:00:00",3,102,"Snipetclub update - Email Add On, Mailbutler - Upgrading Tech - iPhone 14 Pro - New Digital Radio Mic Transmitter and Receiver","Did you see our Easter Egg in our vidcast from last week?
 
 Snippetclub is going well.
@@ -26000,7 +26605,7 @@ And I'm Taylor from The Creative Tinker.</p>
 Goodbye.</p>
 <p>[00:20:11.550] - Taylor<br />
 Bye.</p>",1225,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-79.mp3,https://www.youtube.com/embed/7e--CtBDnEw,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-79.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-79.jpg
-"2021-12-27 13:00:00",2,78,"Christmas Message","Merry Christmas to all our viewers and listerners.
+"2021-12-24 13:00:00",2,78,"Christmas Message","Merry Christmas to all our viewers and listerners.
 
 We are back in January with Season 3
 
@@ -43043,3 +43648,46 @@ I've been Taylor from The Creative Tinker.</p>
 And I've been Gordon from Drayson Design. We'll see you next week. Bye.</p>
 <p>[00:15:52.800] - Taylor<br />
 Take care.</p>",966,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-1.mp3,https://www.youtube.com/embed/x4Cotue5IDo,https://www.thisweekwith.co.uk/wp-content/uploads/This-Week-with-Taylor-Gordon-Podcast-1.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/This-Week-with-Taylor-Gordon-Video-01.jpg
+"2026-06-26 13:00:00",7,250,"Celebrating 250 Episodes - Statistics of the Podcast - First Episode, Total Run Time, Shortest and Longest, Average Length, Episodes per year, Health Kit, Transcripts and a HUGE Thank You to Hayley, Show Guests - Planning for Episode 500 - New Personal Website Redesign","Very hot week
+
+Celebrating 250 episodes of This Week With
+
+Statistics for the podcast
+
+Episode 1, 24th April 2000
+
+Keeping a record of what we have been up to
+
+Total run time
+
+Shortest and Longest episode
+
+Average length, Average time between episodes
+
+Number of episodes per year
+
+We outlived the pandemic which was the reason for starting
+
+Health Kit for the podcast
+
+Transcripts and thanks to the lady behind them - Hayley
+
+Backdating the transcripts to episode 1
+
+Guests on the show
+
+Planning for the 500th episode
+
+New personal website redesign in progress
+
+ 
+
+Visit the website: <a href=""https://www.thisweekwith.co.uk"">https://www.thisweekwith.co.uk</a>
+
+Drayson Design Website – <a href=""https://www.draysondesign.com"">https://www.draysondesign.com</a>
+The Creative Tinker Website – <a href=""https://www.thecreativetinker.com"">https://www.thecreativetinker.com</a>
+
+Facebook: <a href=""https://www.thisweekwith.co.uk/facebook"">https://www.thisweekwith.co.uk/facebook</a>
+Youtube: <a href=""https://www.thisweekwith.co.uk/youtube"">https://www.thisweekwith.co.uk/youtube</a>
+
+* Full transcript will be available on the website. We may receive a referral fee from any of our links which help towards the costs involved in creating this content for you.",,1617,https://media.blubrry.com/thisweekwith/www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-250.mp3,https://www.youtube.com/live/e-YubsxQclE,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-podcast-250.jpg,https://www.thisweekwith.co.uk/wp-content/uploads/this-week-with-taylor-gordon-Video-250.jpg

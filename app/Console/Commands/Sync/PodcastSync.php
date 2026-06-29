@@ -26,7 +26,7 @@ class PodcastSync extends Command
         'transcript',
         'duration',
         'audio_url',
-        'youtube_url',
+        'video_url',
         'thumbnail',
         'cover_image',
     ];
@@ -101,7 +101,7 @@ class PodcastSync extends Command
             'transcript' => trim((string) ($episode['transcript'] ?? '')) ?: null,
             'duration' => ($episode['duration'] ?? 0) ?: null,
             'audio_url' => $episode['audio_url'] ?? null,
-            'youtube_url' => $episode['video_link'] ?? null,
+            'video_url' => $episode['video_link'] ?? null,
             'thumbnail' => $episode['thumbnail'] ?? null,
             'cover_image' => $episode['cover_image'] ?? null,
         ];
