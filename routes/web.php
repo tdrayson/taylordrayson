@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\Cp\LoginController;
+use App\Http\Controllers\Cp\ResourceController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\NowController;
@@ -74,4 +75,10 @@ Route::post('/cp/logout', [LoginController::class, 'destroy'])->name('cp.logout'
 
 Route::middleware('auth')->prefix('cp')->name('cp.')->group(function () {
     Route::get('/', fn () => Inertia::render('Cp/Dashboard', ['collections' => []]))->name('dashboard');
+    Route::get('/{resource}/create', [ResourceController::class, 'create'])->name('resource.create');
+    Route::get('/{resource}', [ResourceController::class, 'index'])->name('resource.index');
+    Route::post('/{resource}', [ResourceController::class, 'store'])->name('resource.store');
+    Route::get('/{resource}/{id}/edit', [ResourceController::class, 'edit'])->where('id', '[0-9]+')->name('resource.edit');
+    Route::put('/{resource}/{id}', [ResourceController::class, 'update'])->where('id', '[0-9]+')->name('resource.update');
+    Route::delete('/{resource}/{id}', [ResourceController::class, 'destroy'])->where('id', '[0-9]+')->name('resource.destroy');
 });
