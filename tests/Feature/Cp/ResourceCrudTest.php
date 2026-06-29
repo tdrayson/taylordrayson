@@ -32,6 +32,7 @@ it('stores a new record', function () {
         'origin_iata' => 'LHR',
         'destination_iata' => 'JFK',
         'cabin_class' => 'business',
+        'airline_icao' => 'BAW',
     ])->assertRedirect('/cp/flights');
 
     expect(Flight::where('flight_number', 'BA112')->exists())->toBeTrue();
