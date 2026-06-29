@@ -206,7 +206,7 @@ class ResourceController extends Controller
 
                 if ($composite['type'] === 'keyvalue') {
                     foreach ((array) $submitted as $k => $value) {
-                        if ($k !== '' && $k !== null) {
+                        if ($k !== '') {
                             $merged[$k] = $value;
                         }
                     }
@@ -233,6 +233,7 @@ class ResourceController extends Controller
                 'boolean' => false,
                 'group' => collect($field['fields'])->mapWithKeys(fn (array $sub): array => [$sub['key'] => ''])->all(),
                 'keyvalue' => [],
+                'tags' => [],
                 default => '',
             };
         }

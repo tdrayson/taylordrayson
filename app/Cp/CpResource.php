@@ -157,9 +157,13 @@ abstract class CpResource
     public function rules(): array
     {
         return collect($this->fields())
-            ->mapWithKeys(fn (array $field): array => [
-                $field['key'] => $field['rules'] ?? ['nullable', 'array'],
-            ])
+            ->mapWithKeys(function (array $field): array {
+                $rules = in_array($field['type'], ['group', 'keyvalue', 'tags'], true)
+                    ? ['nullable', 'array']
+                    : ($field['rules'] ?? ['nullable', 'array']);
+
+                return [$field['key'] => $rules];
+            })
             ->all();
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Article;
 use App\Models\Flight;
 use App\Models\User;
 
@@ -74,4 +75,41 @@ it('blocks guests from resource routes', function () {
     auth()->logout();
 
     $this->get('/cp/flights')->assertRedirect(route('cp.login'));
+});
+
+it('updates an article with a tags array without validation errors', function () {
+    $article = Article::factory()->create(['tags' => ['Laravel', 'PHP']]);
+
+    $this->from("/cp/articles/{$article->id}/edit")
+        ->put("/cp/articles/{$article->id}", [
+            'occurred_at' => $article->occurred_at->format('Y-m-d\TH:i'),
+            'title' => $article->title,
+            'slug' => $article->slug,
+            'excerpt' => $article->excerpt,
+            'content' => $article->content,
+            'draft' => false,
+            'tags' => ['Laravel', 'PHP', 'Testing'],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/cp/articles');
+
+    expect($article->fresh()->tags)->toBe(['Laravel', 'PHP', 'Testing']);
+});
+
+it('stores a new article with a tags array without validation errors', function () {
+    $this->from('/cp/articles/create')
+        ->post('/cp/articles', [
+            'occurred_at' => '2026-07-01T10:00',
+            'title' => 'Tags Test Article',
+            'slug' => 'tags-test-article',
+            'excerpt' => 'An excerpt for the tags test.',
+            'content' => ['blocks' => []],
+            'draft' => false,
+            'tags' => ['Web Development', 'Testing'],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/cp/articles');
+
+    $article = Article::where('slug', 'tags-test-article')->firstOrFail();
+    expect($article->tags)->toBe(['Web Development', 'Testing']);
 });
