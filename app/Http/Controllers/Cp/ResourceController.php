@@ -6,6 +6,7 @@ use App\Cp\CpResource;
 use App\Cp\ResourceRegistry;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\ResourceRequest;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class ResourceController extends Controller
         $query = $definition->query();
 
         if ($search !== '' && $definition->searchable() !== []) {
-            $query->where(function ($builder) use ($definition, $search): void {
+            $query->where(function (Builder $builder) use ($definition, $search): void {
                 foreach ($definition->searchable() as $column) {
                     $builder->orWhere($column, 'like', "%{$search}%");
                 }
