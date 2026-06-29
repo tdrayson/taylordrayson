@@ -22,10 +22,9 @@ it('enriches a flight from the aviation api and updates the csv and database', f
         'origin_iata' => 'AAA',
         'destination_iata' => 'BBB',
         'distance_miles' => 1000,
-        'duration_min' => null,
+        'duration' => null,
         'departure_timezone' => null,
         'arrival_timezone' => null,
-        'co2_kg' => null,
     ]);
 
     Http::fake([
@@ -34,7 +33,7 @@ it('enriches a flight from the aviation api and updates the csv and database', f
                 'duration_min' => 120,
                 'departure_timezone' => 'Europe/London',
                 'arrival_timezone' => 'Europe/Paris',
-                'co2_kg' => 200,
+                'distance_km' => 3218,
             ]],
         ]),
     ]);
@@ -45,12 +44,12 @@ it('enriches a flight from the aviation api and updates the csv and database', f
     $this->artisan('flights:enrich', ['--file' => $csv])->assertExitCode(0);
 
     $flight->refresh();
-    expect($flight->duration_min)->toBe(120);
+    expect($flight->duration)->toBe(7200); // 120 min → seconds
     expect($flight->departure_timezone)->toBe('Europe/London');
     expect($flight->arrival_timezone)->toBe('Europe/Paris');
-    expect($flight->co2_kg)->toBe(200);
+    expect($flight->distance_miles)->toBe(2000); // 3218 km → miles
 
-    expect(file_get_contents($csv))->toContain('duration_min')->toContain('Europe/London');
+    expect(file_get_contents($csv))->toContain('duration')->toContain('Europe/London');
 
     @unlink($csv);
 });
@@ -81,8 +80,8 @@ it('falls back to the timezone api when the route is unknown', function () {
     $flight->refresh();
     expect($flight->departure_timezone)->toBe('Asia/Tokyo');
     expect($flight->arrival_timezone)->toBe('Asia/Tokyo');
-    expect($flight->duration_min)->not->toBeNull(); // distance estimate
-    expect($flight->co2_kg)->toBeNull();
+    expect($flight->duration)->not->toBeNull(); // distance estimate (seconds)
+    expect($flight->distance_miles)->toBeGreaterThan(900)->toBeLessThan(1020); // great-circle from airport coords
 
     @unlink($csv);
 });

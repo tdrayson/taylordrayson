@@ -12,10 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('flights', function (Blueprint $table) {
-            $table->unsignedSmallInteger('duration_min')->nullable()->after('distance_miles');
-            $table->string('departure_timezone')->nullable()->after('duration_min');
+            $table->unsignedInteger('duration')->nullable()->after('distance_miles');
+            $table->string('departure_timezone')->nullable()->after('duration');
             $table->string('arrival_timezone')->nullable()->after('departure_timezone');
-            $table->unsignedInteger('co2_kg')->nullable()->after('arrival_timezone');
         });
     }
 
@@ -25,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('flights', function (Blueprint $table) {
-            $table->dropColumn(['duration_min', 'departure_timezone', 'arrival_timezone', 'co2_kg']);
+            $table->dropColumn(['duration', 'departure_timezone', 'arrival_timezone']);
         });
     }
 };

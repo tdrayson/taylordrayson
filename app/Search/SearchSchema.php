@@ -78,11 +78,10 @@ class SearchSchema
             'number' => ['label' => 'Flight number', 'dataType' => 'text', 'column' => 'flight_number', 'category' => 'Flight'],
             'cabin' => ['label' => 'Cabin class', 'dataType' => 'enum', 'column' => 'cabin_class', 'category' => 'Flight'],
             'reason' => ['label' => 'Reason', 'dataType' => 'text', 'column' => 'reason', 'category' => 'Flight'],
-            'co2' => ['label' => 'CO₂', 'dataType' => 'number', 'column' => 'co2_kg', 'category' => 'Flight', 'suffix' => 'kg'],
             'origin' => ['label' => 'Origin (IATA)', 'dataType' => 'text', 'column' => 'origin_iata', 'category' => 'Route'],
             'destination' => ['label' => 'Destination (IATA)', 'dataType' => 'text', 'column' => 'destination_iata', 'category' => 'Route'],
             'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance_miles', 'category' => 'Route', 'suffix' => 'mi'],
-            'flight_duration' => ['label' => 'Duration', 'dataType' => 'number', 'column' => 'duration_min', 'category' => 'Route', 'suffix' => 'min'],
+            'flight_duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Route'],
         ],
         'checkin' => [
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Place'],

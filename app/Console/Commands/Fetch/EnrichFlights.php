@@ -11,11 +11,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 
 #[Signature('flights:enrich {--force : Re-fetch route info for rows that already have it} {--file= : CSV path to enrich (defaults to data/flights.csv)}')]
-#[Description('Add flight duration, departure/arrival timezones and CO2 to data/flights.csv and the database, sourced from the aviation API with a timezone fallback')]
+#[Description('Add flight duration and departure/arrival timezones to data/flights.csv and the database, sourced from the aviation API with a coordinate/timezone fallback')]
 class EnrichFlights extends Command
 {
     /** @var list<string> */
-    private const COLUMNS = ['duration_min', 'departure_timezone', 'arrival_timezone', 'co2_kg'];
+    private const COLUMNS = ['duration', 'departure_timezone', 'arrival_timezone'];
 
     /** @var array<string, array{lat: float, lng: float}> */
     private array $airports = [];
@@ -128,10 +128,9 @@ class EnrichFlights extends Command
     {
         if (! $this->option('force') && ($row['departure_timezone'] ?? '') !== '') {
             return [
-                'duration_min' => ($row['duration_min'] ?? '') !== '' ? (int) $row['duration_min'] : null,
+                'duration' => ($row['duration'] ?? '') !== '' ? (int) $row['duration'] : null,
                 'departure_timezone' => $row['departure_timezone'],
                 'arrival_timezone' => ($row['arrival_timezone'] ?? '') ?: null,
-                'co2_kg' => ($row['co2_kg'] ?? '') !== '' ? (int) $row['co2_kg'] : null,
             ];
         }
 
@@ -152,13 +151,15 @@ class EnrichFlights extends Command
         $info = $this->fromAviationApi($departure, $arrival);
 
         if ($info === null) {
+            $distance = $this->distanceMiles($departure, $arrival) ?? ($miles ?: null);
+
             $info = [
-                'duration_min' => $this->estimateDuration($miles),
+                'duration' => $this->estimateDuration((int) ($distance ?? 0)),
                 'departure_timezone' => $this->timezoneFor($departure),
                 'arrival_timezone' => $this->timezoneFor($arrival),
-                'co2_kg' => null,
+                'distance_miles' => $distance,
             ];
-            $this->components->warn("{$departure} → {$arrival} not in aviation API — used timezone fallback");
+            $this->components->warn("{$departure} → {$arrival} not in aviation API — used coordinate/timezone fallback");
         } else {
             $this->components->task("{$departure} → {$arrival}");
         }
@@ -189,10 +190,10 @@ class EnrichFlights extends Command
         }
 
         return [
-            'duration_min' => $route['duration_min'] ?? null,
+            'duration' => isset($route['duration_min']) ? (int) $route['duration_min'] * 60 : null,
             'departure_timezone' => $route['departure_timezone'] ?? null,
             'arrival_timezone' => $route['arrival_timezone'] ?? null,
-            'co2_kg' => $route['co2_kg'] ?? null,
+            'distance_miles' => isset($route['distance_km']) ? (int) round($route['distance_km'] * 0.621371) : null,
         ];
     }
 
@@ -218,7 +219,31 @@ class EnrichFlights extends Command
             return null;
         }
 
-        return (int) round(($miles / 500) * 60 + 25);
+        // ~500 mph cruise + 25 min taxi, returned in seconds.
+        return (int) round((($miles / 500) * 60 + 25) * 60);
+    }
+
+    /**
+     * Great-circle distance in miles between two airports, from their stored
+     * coordinates (the fallback when the aviation API has no route).
+     */
+    private function distanceMiles(string $departure, string $arrival): ?int
+    {
+        $from = $this->airports[$departure] ?? null;
+        $to = $this->airports[$arrival] ?? null;
+
+        if ($from === null || $to === null) {
+            return null;
+        }
+
+        $earthRadiusMiles = 3958.8;
+        $deltaLat = deg2rad($to['lat'] - $from['lat']);
+        $deltaLng = deg2rad($to['lng'] - $from['lng']);
+
+        $haversine = sin($deltaLat / 2) ** 2
+            + cos(deg2rad($from['lat'])) * cos(deg2rad($to['lat'])) * sin($deltaLng / 2) ** 2;
+
+        return (int) round($earthRadiusMiles * 2 * asin(min(1.0, sqrt($haversine))));
     }
 
     private function csvValue(int|string|null $value): string

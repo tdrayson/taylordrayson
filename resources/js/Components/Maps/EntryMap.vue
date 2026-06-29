@@ -11,7 +11,10 @@ const props = defineProps({
 const MAPLIBRE_VERSION = '4.7.1';
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
-const FIT_OPTIONS = { padding: 48 };
+// maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
+// activities (e.g. padel) keep surrounding map context instead of filling the
+// frame with an unreadable scribble.
+const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
 const ready = ref(false);

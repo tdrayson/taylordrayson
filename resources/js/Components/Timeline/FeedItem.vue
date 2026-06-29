@@ -8,7 +8,7 @@ import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import RouteThumb from '../Maps/RouteThumb.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, flightDurationLabel, number } from '../../lib/format.js';
+import { clock, duration, flightDurationLabel, number } from '../../lib/format.js';
 import { greatCircle } from '../../lib/maplibre.js';
 import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
@@ -106,7 +106,7 @@ const routeView = computed(() => {
         destination: props.route.destination,
         departTime: clockOf(props.route.depart),
         arriveTime: clockOf(props.route.arrive),
-        duration: flightDurationLabel(props.route.distance),
+        duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
         note: props.route.distance ? `${number(props.route.distance)} mi` : null,
     };
 });
