@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Calories\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -13,59 +14,39 @@ class CaloriesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('occurred_at', 'desc')
             ->columns([
                 TextColumn::make('occurred_at')
-                    ->dateTime()
+                    ->label('Date')
+                    ->date('j M Y')
                     ->sortable(),
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('icon')
+                    ->weight(FontWeight::Medium)
                     ->searchable(),
                 TextColumn::make('meal')
-                    ->searchable(),
-                TextColumn::make('quantity')
-                    ->numeric()
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->color(fn (string $state): string => match ($state) {
+                        'breakfast' => 'warning',
+                        'lunch' => 'success',
+                        'dinner' => 'info',
+                        default => 'gray',
+                    })
                     ->sortable(),
-                TextColumn::make('units')
-                    ->searchable(),
                 TextColumn::make('calories')
                     ->numeric()
+                    ->suffix(' kcal')
+                    ->alignEnd()
                     ->sortable(),
-                TextColumn::make('fat')
+                TextColumn::make('quantity')
                     ->numeric()
-                    ->sortable(),
-                TextColumn::make('protein')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('carbs')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('saturated_fat')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('sugars')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('fibre')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('cholesterol')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('sodium')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
+                    ->toggleable(),
+                TextColumn::make('units')
+                    ->toggleable(),
+                TextColumn::make('protein')->numeric()->suffix(' g')->alignEnd()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('carbs')->numeric()->suffix(' g')->alignEnd()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('fat')->numeric()->suffix(' g')->alignEnd()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
                 EditAction::make(),

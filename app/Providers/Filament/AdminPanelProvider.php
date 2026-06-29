@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Taylor Drayson')
             ->darkMode(false)
             ->font('Inter')
+            ->navigationGroups(['Timeline', 'Content', 'Reference'])
             ->colors([
                 'primary' => Color::hex('#3858e9'),
             ])

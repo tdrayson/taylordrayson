@@ -11,14 +11,21 @@ use App\Models\FuelStation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class FuelStationResource extends Resource
 {
     protected static ?string $model = FuelStation::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Reference';
+
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $navigationLabel = 'Fuel stations';
+
+    protected static ?string $pluralModelLabel = 'Fuel stations';
 
     public static function form(Schema $schema): Schema
     {

@@ -11,14 +11,17 @@ use App\Models\Sleep;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class SleepResource extends Resource
 {
     protected static ?string $model = Sleep::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-moon';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Timeline';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

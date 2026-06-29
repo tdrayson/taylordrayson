@@ -11,14 +11,21 @@ use App\Models\Checkin;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class CheckinResource extends Resource
 {
     protected static ?string $model = Checkin::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Timeline';
+
+    protected static ?int $navigationSort = 9;
+
+    protected static ?string $navigationLabel = 'Places';
+
+    protected static ?string $pluralModelLabel = 'Places';
 
     public static function form(Schema $schema): Schema
     {
