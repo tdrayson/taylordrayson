@@ -16,8 +16,8 @@ function onInput(value) {
 </script>
 
 <template>
-    <div class="flex flex-col gap-1.5">
-        <label class="text-label font-medium text-neutral-700">{{ field.label }}</label>
+    <div class="flex flex-col gap-2">
+        <label class="text-caption font-medium text-neutral-600">{{ field.label }}</label>
         <p v-if="mode === 'display'" class="text-meta text-neutral-900">
             <span v-if="modelValue !== '' && modelValue !== null">{{ modelValue }}</span>
             <span v-else class="text-neutral-500">Not set</span>

@@ -13,7 +13,7 @@ defineEmits(['update:modelValue']);
 
 <template>
     <div class="flex items-center justify-between gap-3">
-        <label class="text-label font-medium text-neutral-700">{{ field.label }}</label>
+        <label class="text-caption font-medium text-neutral-600">{{ field.label }}</label>
         <Switch :model-value="!!modelValue" @update:model-value="$emit('update:modelValue', $event)" />
     </div>
 </template>

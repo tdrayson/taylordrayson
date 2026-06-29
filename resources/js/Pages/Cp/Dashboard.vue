@@ -15,13 +15,13 @@ setLayoutProps({ mode: 'cp' });
 
 <template>
     <AppHead :og="{ title: 'Control panel' }" />
-    <h1 class="font-display text-display">Control panel</h1>
+    <h1 class="text-item-title text-neutral-900">Control panel</h1>
 
     <div v-for="group in collections" :key="group.group" class="mt-8">
         <h2 class="text-eyebrow uppercase text-neutral-500">{{ group.group }}</h2>
         <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Link v-for="item in group.items" :key="item.slug" :href="`/cp/${item.slug}`">
-                <Card variant="outline" class="transition-colors hover:border-accent-500">
+                <Card variant="elevated" class="transition-colors hover:bg-neutral-25">
                     <p class="text-stat font-display text-neutral-900">{{ item.count }}</p>
                     <p class="text-meta text-neutral-700">{{ item.label }}</p>
                 </Card>

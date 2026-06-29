@@ -16,7 +16,7 @@ defineExpose({ active });
         <header class="flex items-center justify-between gap-4">
             <div class="flex min-w-0 items-center gap-2.5">
                 <slot name="status" />
-                <h1 class="truncate font-display text-display">
+                <h1 class="truncate text-item-title text-neutral-900">
                     <slot name="heading" />
                 </h1>
             </div>
@@ -30,7 +30,7 @@ defineExpose({ active });
                 v-for="tab in tabs"
                 :key="tab"
                 type="button"
-                class="-mb-px border-b-2 pb-2.5 text-label transition-colors"
+                class="-mb-px border-b-2 pb-2.5 text-caption font-medium transition-colors"
                 :class="active === tab ? 'border-accent-500 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-900'"
                 @click="active = tab"
             >

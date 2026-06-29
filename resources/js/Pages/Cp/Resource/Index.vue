@@ -53,7 +53,7 @@ function remove(id) {
     <AppHead :og="{ title: resource.pluralLabel }" />
 
     <div class="flex items-center justify-between gap-4">
-        <h1 class="font-display text-display">{{ resource.pluralLabel }}</h1>
+        <h1 class="text-item-title text-neutral-900">{{ resource.pluralLabel }}</h1>
         <Button :href="`/cp/${resource.slug}/create`" variant="primary">Create entry</Button>
     </div>
 
@@ -61,10 +61,10 @@ function remove(id) {
         <Input v-model="search" placeholder="Search" />
     </div>
 
-    <Card variant="outline" class="mt-6 overflow-x-auto p-0">
+    <Card variant="elevated" class="mt-6 overflow-x-auto p-0">
         <table class="w-full text-meta">
             <thead>
-                <tr class="border-b border-neutral-50 bg-neutral-25 text-left text-label text-neutral-500">
+                <tr class="border-b border-neutral-50 bg-neutral-25 text-left text-caption font-medium text-neutral-500">
                     <th v-for="column in resource.columns" :key="column.key" class="px-4 py-3 font-medium">
                         <button type="button" class="flex items-center gap-1 hover:text-neutral-900" @click="sortBy(column.key)">
                             {{ column.label }}

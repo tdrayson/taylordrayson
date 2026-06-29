@@ -9,8 +9,8 @@ defineProps({
 </script>
 
 <template>
-    <Card variant="outline" class="flex flex-col gap-5 p-5">
-        <p v-if="section.title" class="text-label font-medium text-neutral-900">{{ section.title }}</p>
+    <Card variant="elevated" class="flex flex-col gap-6 p-6">
+        <p v-if="section.title" class="text-caption font-semibold text-neutral-900">{{ section.title }}</p>
         <FieldRenderer
             v-for="field in section.fields"
             :key="field.key"

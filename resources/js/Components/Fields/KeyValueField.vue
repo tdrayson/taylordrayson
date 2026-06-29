@@ -46,8 +46,8 @@ function remove(index) {
 </script>
 
 <template>
-    <div class="flex flex-col gap-1.5">
-        <label class="text-label font-medium text-neutral-700">{{ field.label }}</label>
+    <div class="flex flex-col gap-2">
+        <label class="text-caption font-medium text-neutral-600">{{ field.label }}</label>
         <div class="flex flex-col gap-2">
             <div v-for="(row, index) in rows" :key="index" class="flex items-center gap-2">
                 <Input :model-value="row.key" placeholder="Key" class="flex-1" @update:model-value="update(index, { key: $event })" />

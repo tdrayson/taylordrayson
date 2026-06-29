@@ -10,8 +10,8 @@ defineEmits(['update:modelValue']);
 </script>
 
 <template>
-    <div class="flex flex-col gap-1.5">
-        <label class="text-label font-medium text-neutral-700">{{ field.label }}</label>
+    <div class="flex flex-col gap-2">
+        <label class="text-caption font-medium text-neutral-600">{{ field.label }}</label>
         <pre v-if="mode === 'display'" class="overflow-x-auto rounded-md bg-neutral-25 p-3 text-caption text-neutral-700">{{ modelValue || 'Not set' }}</pre>
         <template v-else>
             <textarea
