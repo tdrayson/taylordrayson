@@ -24,7 +24,6 @@
         "fuzzysort": "^3.1.0",
         "gridstack": "^12.6.0",
         "maplibre-gl": "^5.24.0",
-        "playwright": "^1.61.1",
         "plyr": "^3.8.4",
         "puppeteer": "^25.2.1",
         "tailwind-merge": "^3.6.0",
