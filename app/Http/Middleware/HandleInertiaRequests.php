@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Cp\ResourceRegistry;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,17 +35,9 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user();
-
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
-            'auth' => [
-                'user' => $user ? ['name' => $user->name, 'email' => $user->email] : null,
-            ],
-            'cp' => [
-                'nav' => $user ? app(ResourceRegistry::class)->nav() : [],
-            ],
         ];
     }
 }

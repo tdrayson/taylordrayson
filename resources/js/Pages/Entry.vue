@@ -1,9 +1,8 @@
 <script setup>
 import { computed } from 'vue';
-import { Link, setLayoutProps, usePage } from '@inertiajs/vue3';
+import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
-import Button from '../Components/Ui/Button.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
 import Source from '../Components/Profile/Source.vue';
@@ -35,13 +34,9 @@ const props = defineProps({
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
     og: { type: Object, default: () => ({}) },
-    editUrl: { type: String, default: null },
     occurredLabel: { type: String, default: '' },
     occurredOffset: { type: String, default: '' },
 });
-
-const pageProps = usePage();
-const canEdit = computed(() => !!pageProps.props.auth?.user && !!props.editUrl);
 
 const DETAIL_COMPONENTS = {
     activity: ActivityDetail,
@@ -95,7 +90,6 @@ setLayoutProps({
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
             </Link>
-            <Button v-if="canEdit" :href="editUrl" variant="secondary" size="sm" class="mt-3">Edit</Button>
         </div>
     </header>
 

@@ -1,9 +1,6 @@
 <?php
 
 use App\Http\Controllers\ArchiveController;
-use App\Http\Controllers\Cp\DashboardController;
-use App\Http\Controllers\Cp\LoginController;
-use App\Http\Controllers\Cp\ResourceController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\NowController;
@@ -75,22 +72,7 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 
-Route::get('/cp/login', [LoginController::class, 'create'])->name('cp.login');
-Route::post('/cp/login', [LoginController::class, 'store'])->name('cp.login.store');
-Route::post('/cp/logout', [LoginController::class, 'destroy'])->name('cp.logout');
-
-Route::middleware('auth')->prefix('cp')->name('cp.')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/{resource}/create', [ResourceController::class, 'create'])->name('resource.create');
-    Route::get('/{resource}/options', [ResourceController::class, 'options'])->name('resource.options');
-    Route::get('/{resource}', [ResourceController::class, 'index'])->name('resource.index');
-    Route::post('/{resource}', [ResourceController::class, 'store'])->name('resource.store');
-    Route::get('/{resource}/{id}/edit', [ResourceController::class, 'edit'])->where('id', '[0-9]+')->name('resource.edit');
-    Route::put('/{resource}/{id}', [ResourceController::class, 'update'])->where('id', '[0-9]+')->name('resource.update');
-    Route::delete('/{resource}/{id}', [ResourceController::class, 'destroy'])->where('id', '[0-9]+')->name('resource.destroy');
-});
-
-// CP-managed content pages, matched last so every real route wins. Letter-first
-// so the digit-constrained /{year} routes are never shadowed.
+// Content pages, matched last so every real route wins. Letter-first so the
+// digit-constrained /{year} routes are never shadowed.
 Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', '[a-z][a-z0-9-]*')->name('page');

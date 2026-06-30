@@ -1,6 +1,5 @@
 <?php
 
-use App\Cp\Resources\PageResource;
 use App\Models\Page;
 use App\Models\User;
 
@@ -29,28 +28,4 @@ it('does not shadow an explicit route with a same-slug page', function () {
     $this->get('/sleep-score')
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page->component('SleepScore'));
-});
-
-it('exposes the content field as an editor type', function () {
-    $content = collect((new PageResource)->fields())->firstWhere('key', 'content');
-
-    expect($content['type'])->toBe('editor')
-        ->and($content['rules'])->toContain('array');
-});
-
-it('creates a page with editor content from the CP', function () {
-    $this->actingAs(User::factory()->create());
-
-    $this->post('/cp/pages', [
-        'title' => 'New page',
-        'slug' => 'new-page',
-        'excerpt' => 'Intro',
-        'content' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Hello']]]],
-        'draft' => false,
-    ])->assertRedirect();
-
-    $page = Page::query()->where('slug', 'new-page')->first();
-
-    expect($page)->not->toBeNull()
-        ->and($page->content['blocks'][0]['data']['text'])->toBe('Hello');
 });

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Cp\ResourceRegistry;
 use App\Models\Appearance;
 use App\Models\Calorie;
 use App\Models\Flight;
@@ -18,8 +17,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
-    public function __construct(private ResourceRegistry $registry) {}
-
     public function show(int $year, int $month, int $day, string $slug): Response
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
@@ -61,7 +58,6 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
-            'editUrl' => $this->editUrlFor($model),
         ]);
     }
 
@@ -79,20 +75,6 @@ class EntryController extends Controller
             'occurredLabel' => $local['label'],
             'occurredOffset' => $local['offset'],
         ];
-    }
-
-    /**
-     * The relative control panel edit URL for a timeline model, or null when it has no registered resource.
-     */
-    private function editUrlFor(Model $model): ?string
-    {
-        $resource = $this->registry->findByModel($model::class);
-
-        if ($resource === null) {
-            return null;
-        }
-
-        return "/cp/{$resource->slug()}/{$model->getKey()}/edit";
     }
 
     /**
