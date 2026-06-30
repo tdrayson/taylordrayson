@@ -3,19 +3,18 @@
 namespace App\Console\Commands\Sync;
 
 use App\Models\Podcast;
+use App\Services\ThisWeekWith;
 use App\Support\HtmlSanitizer;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 #[Signature('podcast:sync {--per-page=50 : Episodes to request per page}')]
 #[Description('Sync This Week With episodes from the website API into data/podcasts.csv and the database')]
 class PodcastSync extends Command
 {
-    private const ENDPOINT = 'https://www.thisweekwith.co.uk/wp-json/podcast/v1/episodes';
-
     /** @var list<string> */
     private const HEADERS = [
         'occurred_at',
@@ -31,20 +30,25 @@ class PodcastSync extends Command
         'cover_image',
     ];
 
-    public function handle(): int
+    public function handle(ThisWeekWith $thisWeekWith): int
     {
         $perPage = (int) $this->option('per-page');
-        $rows = $this->fetchEpisodes($perPage);
 
-        if ($rows === null) {
+        try {
+            $episodes = $thisWeekWith->episodes($perPage);
+        } catch (RuntimeException $exception) {
+            $this->error($exception->getMessage());
+
             return self::FAILURE;
         }
 
-        if ($rows === []) {
+        if ($episodes === []) {
             $this->warn('No episodes returned from the API.');
 
             return self::FAILURE;
         }
+
+        $rows = array_map(fn (array $episode): array => $this->mapEpisode($episode), $episodes);
 
         $this->writeCsv($rows);
         $this->syncDatabase($rows);
@@ -52,38 +56,6 @@ class PodcastSync extends Command
         $this->info('Synced '.count($rows).' episodes to data/podcasts.csv and the database.');
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @return list<array<string, mixed>>|null
-     */
-    private function fetchEpisodes(int $perPage): ?array
-    {
-        $rows = [];
-        $page = 1;
-
-        do {
-            $response = Http::acceptJson()->get(self::ENDPOINT, [
-                'page' => $page,
-                'per_page' => $perPage,
-            ]);
-
-            if ($response->failed()) {
-                $this->error("API request failed on page {$page}: {$response->status()}");
-
-                return null;
-            }
-
-            foreach ($response->json('episodes', []) as $episode) {
-                $rows[] = $this->mapEpisode($episode);
-            }
-
-            $totalPages = (int) $response->json('total_pages', 1);
-            $this->info("Fetched page {$page} of {$totalPages}.");
-            $page++;
-        } while ($page <= $totalPages);
-
-        return $rows;
     }
 
     /**

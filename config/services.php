@@ -38,12 +38,6 @@ return [
 
     'logostream' => [
         'key' => env('LOGOSTREAM_KEY'),
-        'url' => env('LOGOSTREAM_URL', 'https://airlines-api.logostream.dev'),
-        'aviation_url' => env('LOGOSTREAM_AVIATION_URL', 'https://aviation-api.logostream.dev'),
-    ],
-
-    'timeapi' => [
-        'url' => env('TIMEAPI_URL', 'https://timeapi.io'),
     ],
 
     'strava' => [

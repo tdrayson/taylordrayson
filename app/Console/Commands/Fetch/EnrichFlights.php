@@ -4,11 +4,12 @@ namespace App\Console\Commands\Fetch;
 
 use App\Models\Airport;
 use App\Models\Flight;
+use App\Services\LogoStream;
+use App\Services\TimeApi;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Http;
 
 #[Signature('flights:enrich {--force : Re-fetch route info for rows that already have it} {--file= : CSV path to enrich (defaults to data/flights.csv)}')]
 #[Description('Add flight duration and departure/arrival timezones to data/flights.csv and the database, sourced from the aviation API with a coordinate/timezone fallback')]
@@ -22,6 +23,13 @@ class EnrichFlights extends Command
 
     /** @var array<string, array<string, int|string|null>> */
     private array $routeCache = [];
+
+    public function __construct(
+        private readonly LogoStream $logoStream,
+        private readonly TimeApi $timeApi,
+    ) {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -172,29 +180,7 @@ class EnrichFlights extends Command
      */
     private function fromAviationApi(string $departure, string $arrival): ?array
     {
-        $response = Http::withHeaders(['x-api-key' => config('services.logostream.key')])
-            ->get(rtrim((string) config('services.logostream.aviation_url'), '/').'/v1/routes', [
-                'departureIata' => $departure,
-                'arrivalIata' => $arrival,
-                'limit' => 1,
-            ]);
-
-        if (! $response->successful()) {
-            return null;
-        }
-
-        $route = $response->json('data.0');
-
-        if (! $route) {
-            return null;
-        }
-
-        return [
-            'duration' => isset($route['duration_min']) ? (int) $route['duration_min'] * 60 : null,
-            'departure_timezone' => $route['departure_timezone'] ?? null,
-            'arrival_timezone' => $route['arrival_timezone'] ?? null,
-            'distance_miles' => isset($route['distance_km']) ? (int) round($route['distance_km'] * 0.621371) : null,
-        ];
+        return $this->logoStream->route($departure, $arrival);
     }
 
     private function timezoneFor(string $iata): ?string
@@ -205,12 +191,7 @@ class EnrichFlights extends Command
             return null;
         }
 
-        $response = Http::get(rtrim((string) config('services.timeapi.url'), '/').'/api/timezone/coordinate', [
-            'latitude' => $airport['lat'],
-            'longitude' => $airport['lng'],
-        ]);
-
-        return $response->successful() ? $response->json('timeZone') : null;
+        return $this->timeApi->timezoneForCoordinate($airport['lat'], $airport['lng']);
     }
 
     private function estimateDuration(int $miles): ?int

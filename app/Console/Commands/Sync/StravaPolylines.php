@@ -3,10 +3,10 @@
 namespace App\Console\Commands\Sync;
 
 use App\Models\Activity;
+use App\Services\Strava;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 
 #[Signature('strava:polylines {--limit=0 : Max activities to fetch (0 = all)} {--force : Re-fetch even if polyline exists}')]
 #[Description('Fetch polylines from Strava API for run/walk/ride activities')]
@@ -18,10 +18,11 @@ class StravaPolylines extends Command
 
     private const POLYLINE_TYPES = ['run', 'walk', 'ride', 'e-bike-ride'];
 
-    public function handle(): int
+    public function handle(Strava $strava): int
     {
-        $accessToken = $this->getAccessToken();
-        if (! $accessToken) {
+        if (! $strava->token()) {
+            $this->error('Could not obtain a Strava access token.');
+
             return self::FAILURE;
         }
 
@@ -67,32 +68,16 @@ class StravaPolylines extends Command
                 $windowStart = time();
             }
 
-            $response = Http::withToken($accessToken)
-                ->get("https://www.strava.com/api/v3/activities/{$activity->platform_id}");
+            $data = $strava->activity($activity->platform_id);
 
             $requestsInWindow++;
 
-            if ($response->status() === 401) {
-                $this->warn('Token expired, refreshing...');
-                $accessToken = $this->refreshAccessToken();
-                if (! $accessToken) {
-                    $this->writeCsv($csvPath, $csvData);
-
-                    return self::FAILURE;
-                }
-
-                $response = Http::withToken($accessToken)
-                    ->get("https://www.strava.com/api/v3/activities/{$activity->platform_id}");
-                $requestsInWindow++;
-            }
-
-            if ($response->failed()) {
-                $this->warn("Failed to fetch {$activity->platform_id}: {$response->status()} — {$response->body()}");
+            if ($data === null) {
+                $this->warn("Failed to fetch {$activity->platform_id}");
 
                 continue;
             }
 
-            $data = $response->json();
             $polyline = $data['map']['polyline'] ?? null;
 
             if ($polyline) {
@@ -111,12 +96,6 @@ class StravaPolylines extends Command
         $this->info("Done. Fetched polylines for {$fetched} activities. CSV updated.");
 
         return self::SUCCESS;
-    }
-
-    private function getAccessToken(): ?string
-    {
-        return cache('strava_access_token')
-            ?? $this->refreshAccessToken();
     }
 
     /**
@@ -166,30 +145,5 @@ class StravaPolylines extends Command
             fputcsv($handle, $row);
         }
         fclose($handle);
-    }
-
-    private function refreshAccessToken(): ?string
-    {
-        $response = Http::post('https://www.strava.com/oauth/token', [
-            'client_id' => config('services.strava.client_id'),
-            'client_secret' => config('services.strava.client_secret'),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => config('services.strava.refresh_token'),
-        ]);
-
-        if ($response->failed()) {
-            $this->error('Failed to refresh Strava access token: '.$response->body());
-
-            return null;
-        }
-
-        $data = $response->json();
-        $expiresIn = $data['expires_in'] ?? 3600;
-
-        cache(['strava_access_token' => $data['access_token']], $expiresIn - 60);
-
-        $this->info('Access token refreshed. Athlete: '.($data['athlete']['id'] ?? 'n/a'));
-
-        return $data['access_token'];
     }
 }

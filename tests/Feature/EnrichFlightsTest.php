@@ -5,11 +5,7 @@ use App\Models\Flight;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
-    config([
-        'services.logostream.key' => 'test-key',
-        'services.logostream.aviation_url' => 'https://aviation-api.logostream.dev',
-        'services.timeapi.url' => 'https://timeapi.io',
-    ]);
+    config(['services.logostream.key' => 'test-key']);
 });
 
 it('enriches a flight from the aviation api and updates the csv and database', function () {

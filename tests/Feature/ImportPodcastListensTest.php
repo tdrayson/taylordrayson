@@ -1,6 +1,6 @@
 <?php
 
-use App\Support\PocketCasts;
+use App\Services\PocketCasts;
 
 use function Pest\Laravel\mock;
 

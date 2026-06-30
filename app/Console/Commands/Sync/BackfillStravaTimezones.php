@@ -3,11 +3,11 @@
 namespace App\Console\Commands\Sync;
 
 use App\Models\Activity;
+use App\Services\Strava;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 #[Signature('strava:backfill-timezones {--per-page=200 : Activities per page}')]
@@ -23,11 +23,9 @@ class BackfillStravaTimezones extends Command
      *
      * @return int Command exit code
      */
-    public function handle(): int
+    public function handle(Strava $strava): int
     {
-        $token = $this->resolveAccessToken();
-
-        if (! $token) {
+        if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
 
             return self::FAILURE;
@@ -38,18 +36,13 @@ class BackfillStravaTimezones extends Command
         $updated = 0;
 
         do {
-            $response = Http::withToken($token)->get('https://www.strava.com/api/v3/athlete/activities', [
-                'page' => $page,
-                'per_page' => $perPage,
-            ]);
+            $batch = $strava->activitiesPage($page, $perPage);
 
-            if ($response->failed()) {
-                $this->error("Strava request failed on page {$page}: {$response->status()}");
+            if ($batch === null) {
+                $this->error("Strava request failed on page {$page}.");
 
                 return self::FAILURE;
             }
-
-            $batch = $response->json();
 
             foreach ($batch as $summary) {
                 $activity = Activity::query()
@@ -80,39 +73,5 @@ class BackfillStravaTimezones extends Command
         $this->info("Backfilled {$updated} activities.");
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Resolve a valid Strava access token, refreshing via OAuth if needed.
-     *
-     * @return string|null The access token, or null on failure
-     */
-    private function resolveAccessToken(): ?string
-    {
-        $cached = cache('strava_access_token');
-
-        if ($cached) {
-            return $cached;
-        }
-
-        $response = Http::post('https://www.strava.com/oauth/token', [
-            'client_id' => config('services.strava.client_id'),
-            'client_secret' => config('services.strava.client_secret'),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => config('services.strava.refresh_token'),
-        ]);
-
-        if ($response->failed()) {
-            $this->error('Failed to refresh Strava access token: '.$response->body());
-
-            return null;
-        }
-
-        $data = $response->json();
-        $expiresIn = $data['expires_in'] ?? 3600;
-
-        cache(['strava_access_token' => $data['access_token']], $expiresIn - 60);
-
-        return $data['access_token'];
     }
 }

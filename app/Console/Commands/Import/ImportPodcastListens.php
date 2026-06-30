@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Import;
 
-use App\Support\PocketCasts;
+use App\Services\PocketCasts;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;

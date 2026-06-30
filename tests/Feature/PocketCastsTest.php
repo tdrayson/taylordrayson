@@ -1,6 +1,6 @@
 <?php
 
-use App\Support\PocketCasts;
+use App\Services\PocketCasts;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
