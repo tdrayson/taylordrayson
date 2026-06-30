@@ -15,6 +15,8 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(CalorieTimelineObserver::class)]
 #[Fillable([
     'occurred_at',
+    'source',
+    'source_id',
     'name',
     'icon',
     'meal',
