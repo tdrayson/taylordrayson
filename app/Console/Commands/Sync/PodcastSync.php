@@ -114,7 +114,21 @@ class PodcastSync extends Command
     private function cleanShowNotes(string $content): ?string
     {
         $content = str_replace("\r\n", "\n", $content);
-        $content = HtmlSanitizer::clean($content, ['a' => ['href']]);
+        $content = HtmlSanitizer::clean($content, [
+            'a' => ['href'],
+            'p' => [],
+            'br' => [],
+            'ul' => [],
+            'ol' => [],
+            'li' => [],
+            'strong' => [],
+            'b' => [],
+            'em' => [],
+            'i' => [],
+            'blockquote' => [],
+            'h2' => [],
+            'h3' => [],
+        ]);
         $content = preg_replace("/\n{3,}/", "\n\n", $content);
 
         return trim($content) ?: null;
