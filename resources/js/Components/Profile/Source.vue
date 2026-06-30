@@ -20,6 +20,8 @@ const PLATFORMS = {
     apple_watch: 'Apple Watch',
     clock: 'Apple Clock',
     setgraph: 'Setgraph',
+    rovi: 'Rovi',
+    loseit: 'Lose It',
 };
 
 const label = computed(() => PLATFORMS[props.platform] ?? titleCase(props.platform));

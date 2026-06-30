@@ -113,7 +113,12 @@ class EntryController extends Controller
             ->orderBy('occurred_at')
             ->get();
 
+        $mealOrder = ['breakfast' => 0, 'lunch' => 1, 'dinner' => 2, 'snacks' => 3];
+
         return [
+            // True while the day is still today, so the page can flag that more
+            // food may yet be logged. Computed server-side to avoid client tz math.
+            'inProgress' => $model->occurred_at->isToday(),
             'totals' => [
                 'calories' => (int) $items->sum('calories'),
                 'protein' => round((float) $items->sum('protein'), 1),
@@ -134,7 +139,10 @@ class EntryController extends Controller
                         'quantity' => (float) $item->quantity,
                         'units' => $item->units,
                     ])->values()->all(),
-                ])->values()->all(),
+                ])
+                ->sortBy(fn (array $meal): int => $mealOrder[$meal['meal']] ?? 99)
+                ->values()
+                ->all(),
         ];
     }
 

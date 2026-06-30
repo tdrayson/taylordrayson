@@ -30,14 +30,23 @@ const macros = computed(() => {
     return entries.map((macro) => ({ ...macro, percent: (macro.energy / energyTotal) * 100 }));
 });
 
-const micros = computed(() =>
-    [
-        { label: 'Saturated fat', value: totals.value.saturated_fat ? `${number(totals.value.saturated_fat, 1)} g` : null },
-        { label: 'Sugars', value: totals.value.sugars ? `${number(totals.value.sugars, 1)} g` : null },
-        { label: 'Fibre', value: totals.value.fibre ? `${number(totals.value.fibre, 1)} g` : null },
-        { label: 'Sodium', value: totals.value.sodium ? `${number(totals.value.sodium)} mg` : null },
-    ].filter((row) => row.value),
-);
+// Full per-nutrient breakdown. Calories and macros are always present, so the
+// table renders for every day; the micros below are only supplied by some
+// sources (e.g. Lose It, not Rovi) and appear when they carry a value.
+const nutrition = computed(() => {
+    const t = totals.value;
+
+    return [
+        { label: 'Calories', value: t.calories ? `${number(t.calories)} kcal` : null },
+        { label: 'Protein', value: t.protein ? `${number(t.protein, 1)} g` : null },
+        { label: 'Carbs', value: t.carbs ? `${number(t.carbs, 1)} g` : null },
+        { label: 'Fat', value: t.fat ? `${number(t.fat, 1)} g` : null },
+        { label: 'Saturated fat', value: t.saturated_fat ? `${number(t.saturated_fat, 1)} g` : null },
+        { label: 'Sugars', value: t.sugars ? `${number(t.sugars, 1)} g` : null },
+        { label: 'Fibre', value: t.fibre ? `${number(t.fibre, 1)} g` : null },
+        { label: 'Sodium', value: t.sodium ? `${number(t.sodium)} mg` : null },
+    ].filter((row) => row.value);
+});
 
 function quantity(item) {
     if (!item.quantity) {
@@ -50,6 +59,14 @@ function quantity(item) {
 
 <template>
     <div class="space-y-10">
+        <div v-if="entry.inProgress" class="flex items-center gap-2">
+            <span class="relative flex size-2">
+                <span class="absolute inline-flex size-full animate-ping rounded-full bg-food opacity-75" />
+                <span class="relative inline-flex size-2 rounded-full bg-food" />
+            </span>
+            <span class="text-label uppercase tracking-wide text-food">Still logging today</span>
+        </div>
+
         <div v-if="macros.length">
             <div class="flex h-2.5 overflow-hidden rounded-full">
                 <div v-for="macro in macros" :key="macro.key" :style="{ width: `${macro.percent}%`, background: macro.color }" />
@@ -86,9 +103,9 @@ function quantity(item) {
             </div>
         </div>
 
-        <div v-if="micros.length">
+        <div v-if="nutrition.length">
             <SectionHead title="Nutrition" />
-            <DetailList :rows="micros" />
+            <DetailList :rows="nutrition" />
         </div>
     </div>
 </template>
