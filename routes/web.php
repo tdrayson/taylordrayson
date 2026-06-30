@@ -9,6 +9,7 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
+use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TimelineController;
 use App\Models\LeaderboardEntry;
 use App\Support\OgMeta;
@@ -31,6 +32,9 @@ Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 
 Route::get('/photos', [GalleryController::class, 'index'])->name('photos');
+
+Route::get('/stories', [StoryController::class, 'index'])->name('stories.index');
+Route::get('/stories/{story}', [StoryController::class, 'show'])->name('stories.show');
 
 Route::get('/now', [NowController::class, 'index'])->name('now');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem', [

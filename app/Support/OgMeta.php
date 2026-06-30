@@ -98,6 +98,61 @@ class OgMeta
     /**
      * @return OgPayload
      */
+    public static function fuelStory(): array
+    {
+        return self::make([
+            'title' => 'The pandemic and a war, in my fuel receipts',
+            'eyebrow' => 'Data Story',
+            'heading' => 'The pandemic and a war, in my fuel receipts',
+            'accent' => TypeColors::hex('fuel'),
+            'description' => 'Seven years of pump receipts for one small car: a wild petrol-price rollercoaster, the miles quietly stacking up to almost twice around the Earth, and what it really costs to keep moving.',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
+    public static function foodStory(): array
+    {
+        return self::make([
+            'title' => 'The most-logged thing in my diet is coffee',
+            'eyebrow' => 'Data Story',
+            'heading' => 'The most-logged thing in my diet is coffee',
+            'accent' => TypeColors::hex('food'),
+            'description' => 'An unbroken daily food diary since 2019, kept through a Crohn\'s diagnosis, surgery and the gym, by someone who finds the data far more interesting than the eating.',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
+    public static function flightStory(): array
+    {
+        return self::make([
+            'title' => 'The year I flew somewhere new every month',
+            'eyebrow' => 'Data Story',
+            'heading' => 'The year I flew somewhere new every month',
+            'accent' => TypeColors::hex('flight'),
+            'description' => 'Every flight I can still find a record of: two a year for ages, then a brand-new European city every month, all the budget hops and one accidental A380, adding up to barely a week off the ground.',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
+    public static function stories(): array
+    {
+        return self::make([
+            'title' => 'Data Stories',
+            'eyebrow' => 'Data Stories',
+            'heading' => 'Data stories',
+            'description' => 'In-depth, living looks at the data I keep on myself: the long reads behind the numbers.',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
     public static function leaderboard(): array
     {
         return self::make([

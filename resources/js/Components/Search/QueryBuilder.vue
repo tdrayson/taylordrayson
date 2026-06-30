@@ -250,9 +250,9 @@ function clearFilter() {
         </template>
 
         <div class="mt-2 flex items-center gap-4">
-            <Button variant="primary" size="lg" :disabled="!canFilter" @click="applyFilter">Filter</Button>
-            <button type="button" class="text-meta text-neutral-500 transition-colors hover:text-neutral-900" @click="clearFilter">
-                Clear filters
+            <Button variant="primary" size="lg" :disabled="!canFilter" @click="applyFilter">Search</Button>
+            <button type="button" class="text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" @click="clearFilter">
+                Clear
             </button>
         </div>
     </div>

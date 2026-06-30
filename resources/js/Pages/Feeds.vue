@@ -5,7 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import { RssIcon, SourceCodeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
-import FeedPresetCard from '../Components/Feeds/FeedPresetCard.vue';
+import OptionCard from '../Components/Ui/OptionCard.vue';
 import FeedTypeToggle from '../Components/Feeds/FeedTypeToggle.vue';
 import FeedUrlField from '../Components/Feeds/FeedUrlField.vue';
 
@@ -91,7 +91,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         <section class="mb-10">
             <h2 class="mb-3 text-label uppercase text-neutral-500">Ready-made mixes</h2>
             <div class="grid gap-3 sm:grid-cols-2">
-                <FeedPresetCard
+                <OptionCard
                     v-for="preset in presets"
                     :key="preset.key"
                     :label="preset.label"

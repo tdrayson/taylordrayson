@@ -1,15 +1,24 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { loadMaplibre, resolveColor, greatCircle, iataLabel, OPENFREEMAP_POSITRON } from '../../lib/maplibre.js';
 
 const props = defineProps({
     // [{ origin: { lat, lng, iata }, destination: { lat, lng, iata } }]
     routes: { type: Array, required: true },
     color: { type: String, default: 'var(--color-flight)' },
+    // Break out full-bleed (true) or sit within the content column (false).
+    bleed: { type: Boolean, default: true },
 });
 
 const container = ref(null);
-const showLabels = ref(true);
+const showLabels = ref(false);
+
+// Full-bleed box vs a contained box aligned to the surrounding text column.
+const layoutClass = computed(() =>
+    props.bleed
+        ? 'full-width border-y md:full-width-inset md:rounded-lg md:border-x'
+        : 'rounded-lg border',
+);
 let map = null;
 let markers = [];
 
@@ -127,7 +136,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="flights-map full-width relative overflow-hidden border-y border-neutral-50 md:full-width-inset md:rounded-lg md:border-x">
+    <div class="flights-map relative overflow-hidden border-neutral-50" :class="layoutClass">
         <div ref="container" class="size-full" />
         <button
             type="button"
@@ -142,6 +151,6 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .flights-map {
-    height: clamp(26rem, 65vh, 48rem);
+    height: clamp(20rem, 48vh, 32rem);
 }
 </style>

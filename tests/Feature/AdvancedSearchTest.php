@@ -5,6 +5,7 @@ use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Search\SearchPresets;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -280,6 +281,41 @@ it('filters Anything that has photos across types', function () {
 
     get(searchUrl([['type' => 'any', 'conditions' => [['field' => 'photos', 'operator' => 'gt', 'value' => 0]]]]))
         ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('exposes ready-made example searches', function () {
+    get('/search')->assertOk()->assertInertia(fn ($page) => $page
+        ->has('presets', 6)
+        ->has('presets.0.label')
+        ->has('presets.0.filter')
+    );
+});
+
+it('runs a preset filter to real results', function () {
+    Activity::factory()->create(['type' => 'run', 'distance_km' => 12, 'occurred_at' => now()]); // matches (>= 5km run)
+    Activity::factory()->create(['type' => 'run', 'distance_km' => 3, 'occurred_at' => now()]);  // too short
+    Activity::factory()->create(['type' => 'walk', 'distance_km' => 15, 'occurred_at' => now()]); // not a run
+
+    $preset = collect(SearchPresets::all())->firstWhere('key', 'long-runs');
+
+    get(searchUrl($preset['filter']))->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('orders results newest or oldest first', function () {
+    Activity::factory()->create(['name' => 'Older', 'type' => 'run', 'occurred_at' => '2026-01-01 09:00:00']);
+    Activity::factory()->create(['name' => 'Newer', 'type' => 'run', 'occurred_at' => '2026-06-01 09:00:00']);
+
+    $filter = [['type' => 'activity', 'conditions' => [['field' => 'kind', 'operator' => 'is', 'value' => ['run']]]]];
+
+    get(searchUrl($filter))->assertInertia(fn ($page) => $page
+        ->where('order', 'newest')
+        ->where('groups.0.items.0.title', 'Newer')
+    );
+
+    get(searchUrl($filter).'&order=oldest')->assertInertia(fn ($page) => $page
+        ->where('order', 'oldest')
+        ->where('groups.0.items.0.title', 'Older')
+    );
 });
 
 it('drops unknown fields and disallowed operators', function () {

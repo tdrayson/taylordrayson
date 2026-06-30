@@ -1,6 +1,6 @@
 <script setup>
-import Card from '../Ui/Card.vue';
-import Pill from '../Ui/Pill.vue';
+import Card from './Card.vue';
+import Pill from './Pill.vue';
 
 defineProps({
     label: { type: String, required: true },
@@ -13,13 +13,14 @@ defineEmits(['select']);
 </script>
 
 <template>
-    <button type="button" class="block w-full text-left" @click="$emit('select')">
+    <button
+        type="button"
+        class="block w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        @click="$emit('select')"
+    >
         <Card
             variant="outline"
-            :class="[
-                'h-full transition-colors',
-                active ? 'border-accent-500 ring-1 ring-accent-500' : 'hover:border-accent-500',
-            ]"
+            :class="['h-full transition-colors', active ? 'border-accent-500 ring-1 ring-accent-500' : 'hover:border-accent-500']"
         >
             <div class="flex items-start justify-between gap-3">
                 <p class="font-display text-item-title text-neutral-900">{{ label }}</p>
