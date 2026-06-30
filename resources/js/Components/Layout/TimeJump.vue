@@ -77,7 +77,7 @@ onUnmounted(() => {
                 v-for="item in items"
                 :key="item.label"
                 :href="item.href"
-                class="block px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900"
+                class="block px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900 focus-visible:outline-none"
                 @click="close"
             >
                 {{ item.label }}

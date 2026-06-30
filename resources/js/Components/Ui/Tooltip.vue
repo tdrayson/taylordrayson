@@ -15,7 +15,7 @@ const isTop = computed(() => props.placement === 'top');
         <span
             role="tooltip"
             aria-hidden="true"
-            class="pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-card transition-opacity duration-150 group-hover:opacity-100"
+            class="pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-card transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
             :class="isTop ? 'bottom-full mb-2' : 'top-full mt-2'"
         >
             {{ label }}

@@ -23,6 +23,35 @@ defineProps({
 function isIdentityUrl(link) {
     return link.rel === 'me' && link.href !== '#';
 }
+
+/**
+ * Absolute external links open in a new tab; internal paths and placeholders do not.
+ *
+ * @param {{ href: string }} link
+ * @return {boolean}
+ */
+function isExternal(link) {
+    return link.href.startsWith('http');
+}
+
+/**
+ * @param {{ rel?: string, href: string }} link
+ * @return {string|undefined}
+ */
+function relFor(link) {
+    if (!isExternal(link)) {
+        return link.rel ?? undefined;
+    }
+    return [link.rel, 'noopener', 'noreferrer'].filter(Boolean).join(' ');
+}
+
+/**
+ * @param {{ href: string, label: string }} link
+ * @return {string}
+ */
+function ariaFor(link) {
+    return isExternal(link) ? `${link.label}, opens in a new tab` : link.label;
+}
 </script>
 
 <template>
@@ -31,9 +60,10 @@ function isIdentityUrl(link) {
             v-for="link in links"
             :key="link.label"
             :href="link.href"
-            :rel="link.rel"
-            :aria-label="link.label"
-            :class="['text-neutral-500 transition-colors hover:text-accent-500', { 'u-url': isIdentityUrl(link) }]"
+            :target="isExternal(link) ? '_blank' : undefined"
+            :rel="relFor(link)"
+            :aria-label="ariaFor(link)"
+            :class="['text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500', { 'u-url': isIdentityUrl(link) }]"
         >
             <Icon :icon="link.icon" class="size-5" />
         </a>

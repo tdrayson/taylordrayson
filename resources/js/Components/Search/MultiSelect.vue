@@ -48,10 +48,12 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
 </script>
 
 <template>
-    <div ref="root" class="relative">
+    <div ref="root" class="relative" @keydown.esc="open = false">
         <button
             type="button"
-            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500"
+            aria-haspopup="true"
+            :aria-expanded="open"
+            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="summary ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
@@ -67,6 +69,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     v-model="query"
                     type="text"
                     placeholder="Search…"
+                    aria-label="Search options"
                     class="w-full bg-transparent py-2.5 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 >
             </div>
@@ -74,7 +77,8 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 <li v-for="option in filtered" :key="option">
                     <button
                         type="button"
-                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-neutral-25"
+                        :aria-pressed="isSelected(option)"
+                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
                         :class="isSelected(option) ? 'text-neutral-900' : 'text-neutral-700'"
                         @click="toggleOption(option)"
                     >

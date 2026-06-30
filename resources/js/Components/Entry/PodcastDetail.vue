@@ -82,7 +82,7 @@ onBeforeUnmount(() => {
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0"
+                class="group absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 aria-label="Watch on YouTube"
                 @click="watchVideo"
             >
@@ -128,6 +128,10 @@ onBeforeUnmount(() => {
 }
 
 .show-notes :deep(a:hover) {
+    color: var(--color-accent-700);
+}
+
+.show-notes :deep(a:focus-visible) {
     color: var(--color-accent-700);
 }
 

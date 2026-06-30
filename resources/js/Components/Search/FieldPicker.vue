@@ -61,10 +61,12 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
 </script>
 
 <template>
-    <div ref="root" class="relative">
+    <div ref="root" class="relative" @keydown.esc="open = false">
         <button
             type="button"
-            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500"
+            aria-haspopup="true"
+            :aria-expanded="open"
+            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="toggle"
         >
             <span class="flex-1 truncate">
@@ -78,7 +80,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 <li v-for="category in categories" :key="category.label">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-between px-4 py-2 text-left text-meta transition-colors"
+                        class="flex w-full items-center justify-between px-4 py-2 text-left text-meta transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
                         :class="category.label === activeCategory ? 'bg-neutral-25 text-accent-500' : 'text-neutral-700 hover:bg-neutral-25'"
                         @mouseenter="activeCategory = category.label"
                         @click="activeCategory = category.label"
@@ -92,7 +94,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 <li v-for="field in activeFields" :key="field.key">
                     <button
                         type="button"
-                        class="block w-full px-4 py-2 text-left text-meta transition-colors"
+                        class="block w-full px-4 py-2 text-left text-meta transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
                         :class="field.key === modelValue ? 'text-accent-500' : 'text-neutral-700 hover:bg-neutral-25'"
                         @click="pick(field)"
                     >

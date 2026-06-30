@@ -19,7 +19,7 @@ const accent = computed(() => `var(--color-${meta.value.accent})`);
     <button
         type="button"
         :aria-pressed="active"
-        class="feed-toggle inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-meta font-semibold transition-colors"
+        class="feed-toggle inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-meta font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
         :class="active ? 'feed-toggle--active text-neutral-0' : 'border-neutral-100 text-neutral-700 hover:border-accent-500'"
         :style="{ '--accent': accent }"
         @click="$emit('toggle', typeKey)"

@@ -18,10 +18,12 @@ const VARIANTS = {
 };
 
 const tone = computed(() => VARIANTS[props.variant] ?? VARIANTS.info);
+
+const role = computed(() => (props.variant === 'danger' || props.variant === 'warning' ? 'alert' : 'status'));
 </script>
 
 <template>
-    <div :class="cn('flex gap-3 rounded-lg border-l-2 px-4 py-3', tone.wrap, props.class)">
+    <div :role="role" :class="cn('flex gap-3 rounded-lg border-l-2 px-4 py-3', tone.wrap, props.class)">
         <Icon :icon="tone.glyph" class="mt-0.5 size-5 shrink-0" :class="tone.icon" />
         <div class="min-w-0 text-meta text-neutral-700">
             <p v-if="title" class="mb-0.5 font-semibold text-neutral-900">{{ title }}</p>

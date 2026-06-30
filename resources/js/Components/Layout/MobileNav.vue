@@ -46,7 +46,7 @@ onUnmounted(() => {
             </Link>
             <button
                 type="button"
-                class="flex text-neutral-700 transition-colors hover:text-accent-500"
+                class="flex text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                 :aria-expanded="open"
                 aria-controls="mobile-menu"
                 aria-label="Open menu"
@@ -65,7 +65,7 @@ onUnmounted(() => {
                     </Link>
                     <button
                         type="button"
-                        class="flex text-neutral-700 transition-colors hover:text-accent-500"
+                        class="flex text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                         aria-label="Close menu"
                         @click="open = false"
                     >

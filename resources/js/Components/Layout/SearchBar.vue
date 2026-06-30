@@ -12,7 +12,7 @@ const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navig
 <template>
     <button
         type="button"
-        class="flex h-9 w-full items-center gap-2.5 rounded-full border border-neutral-50 bg-neutral-25 px-4 text-neutral-500 transition-colors hover:border-neutral-100 focus-visible:border-accent-500 focus-visible:outline-none"
+        class="flex h-9 w-full items-center gap-2.5 rounded-full border border-neutral-50 bg-neutral-25 px-4 text-neutral-500 transition-colors hover:border-neutral-100 focus-visible:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
         @click="open"
     >
         <Icon :icon="Search01Icon" class="size-4 shrink-0" />

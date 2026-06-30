@@ -84,16 +84,16 @@ setLayoutProps({
                 <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
                     <Icon :icon="meta.icon" class="size-6" />
                 </span>
-                <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline" :style="accentStyle">{{ meta.label }}</Link>
+                <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
             </div>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
-            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">
+            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
             </Link>
         </div>
     </header>
 
-    <EntryMap v-if="polyline" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
+    <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
     <component :is="detailComponent" v-if="detailComponent" :entry="entry" class="mt-10" />
 

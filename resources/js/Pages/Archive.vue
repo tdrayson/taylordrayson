@@ -49,7 +49,7 @@ setLayoutProps({
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0 sm:pl-16 lg:pl-0">
-            <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
+            <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>

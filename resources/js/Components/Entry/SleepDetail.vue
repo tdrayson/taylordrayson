@@ -39,7 +39,7 @@ const fallbackSegments = computed(() =>
                 :bedtime-score="entry.bedtime_score"
                 :interruption-score="entry.interruption_score"
             />
-            <Link href="/sleep-score" class="inline-block text-meta text-neutral-500 transition-colors hover:text-neutral-900">
+            <Link href="/sleep-score" class="inline-block text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900">
                 How the score is calculated
             </Link>
         </div>

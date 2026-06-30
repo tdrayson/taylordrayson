@@ -155,6 +155,11 @@ const onImageError = (event) => {
     color: #9298a2;
 }
 
+.podcast__episode:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+}
+
 .podcast__show {
     display: -webkit-box;
     margin-top: 4.02cqw;
@@ -165,6 +170,11 @@ const onImageError = (event) => {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
+}
+
+.podcast__show:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
 }
 
 .podcast__meta {

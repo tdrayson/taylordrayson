@@ -27,14 +27,14 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
             <Icon :icon="Home01Icon" class="size-4" />
             Home
         </span>
-        <Link v-else href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent-500">
+        <Link v-else href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent-500 focus-visible:text-accent-500">
             <Icon :icon="Home01Icon" class="size-4" />
         </Link>
 
         <!-- Ancestors: shown inline on every breakpoint (these are the real navigation). -->
         <template v-for="(item, index) in ancestors" :key="index">
             <span class="mx-2 shrink-0 text-neutral-100" aria-hidden="true">/</span>
-            <Link v-if="item.href" :href="item.href" class="shrink-0 transition-colors hover:text-accent-500">{{ item.label }}</Link>
+            <Link v-if="item.href" :href="item.href" class="shrink-0 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ item.label }}</Link>
             <span v-else class="shrink-0">{{ item.label }}</span>
         </template>
 
