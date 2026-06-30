@@ -69,8 +69,8 @@ const secondValue = computed({
         <DurationInput v-else v-model="single" />
     </template>
 
-    <!-- Number (with optional unit prefix/suffix) -->
-    <template v-else-if="dataType === 'number'">
+    <!-- Number / photo count (with optional unit prefix/suffix) -->
+    <template v-else-if="dataType === 'number' || dataType === 'media'">
         <div v-if="isBetween" class="flex items-center gap-2">
             <UnitInput v-model="firstValue" :prefix="prefix" :suffix="suffix" placeholder="Min" class="flex-1" />
             <UnitInput v-model="secondValue" :prefix="prefix" :suffix="suffix" placeholder="Max" class="flex-1" />
@@ -81,9 +81,9 @@ const secondValue = computed({
     <!-- Enum: is / is not → searchable multi-select; equals / contains → text -->
     <template v-else-if="dataType === 'enum'">
         <MultiSelect v-if="isList" v-model="listValue" :options="options ?? []" />
-        <input v-else v-model="single" type="text" placeholder="Filter value" :class="inputClass">
+        <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
     </template>
 
     <!-- Text -->
-    <input v-else v-model="single" type="text" placeholder="Filter value" :class="inputClass">
+    <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
 </template>

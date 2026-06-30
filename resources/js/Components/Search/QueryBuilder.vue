@@ -18,6 +18,7 @@ const OPERATOR_LABELS = {
     is: 'equals', is_not: 'not equal',
     eq: 'equals', neq: 'does not equal', gt: 'greater than', gte: 'greater than or equal', lt: 'less than', lte: 'less than or equal',
     between: 'between', not_between: 'not between',
+    has_any: 'has any', has_none: 'has none',
     on: 'on', not_on: 'not on', in: 'is', not_in: 'is not', before: 'before', after: 'after',
 };
 
@@ -29,8 +30,13 @@ const fieldDef = (type, key) => fieldsOf(type).find((field) => field.key === key
 const operatorOptions = (type, key) =>
     (fieldDef(type, key)?.operators ?? []).map((operator) => ({ value: operator, label: OPERATOR_LABELS[operator] ?? operator }));
 
-// The value shape an operator expects: a [from, to] pair, a multi-select list, or a scalar.
+// The value shape an operator expects: none, a [from, to] pair, a multi-select
+// list, or a scalar.
 function valueShape(operator) {
+    if (operator === 'has_any' || operator === 'has_none') {
+        return 'none';
+    }
+
     if (operator === 'between' || operator === 'not_between') {
         return 'pair';
     }
@@ -42,7 +48,11 @@ function valueShape(operator) {
     return 'single';
 }
 
-const blankValue = (operator) => (valueShape(operator) === 'pair' ? ['', ''] : valueShape(operator) === 'list' ? [] : '');
+const blankValue = (operator) => {
+    const shape = valueShape(operator);
+
+    return shape === 'pair' ? ['', ''] : shape === 'list' ? [] : shape === 'none' ? null : '';
+};
 
 function freshCondition(type) {
     const field = fieldsOf(type)[0];
@@ -114,6 +124,11 @@ function isFilled(condition) {
     const shape = valueShape(condition.operator);
     const value = condition.value;
 
+    // Operators like "has any" / "has none" carry no value and are always complete.
+    if (shape === 'none') {
+        return true;
+    }
+
     if (shape === 'list') {
         return Array.isArray(value) && value.length > 0;
     }
@@ -156,7 +171,7 @@ function clearFilter() {
                     :class="group.type ? 'rounded-t-lg border-b border-neutral-50' : 'rounded-lg'"
                 >
                     <span class="shrink-0 whitespace-nowrap text-label uppercase text-neutral-500">Show me</span>
-                    <div class="w-56">
+                    <div class="min-w-0 flex-1 sm:w-56 sm:flex-none">
                         <StyledSelect
                             :model-value="group.type"
                             :options="typeOptions"
@@ -168,10 +183,10 @@ function clearFilter() {
 
                 <div v-if="group.type" class="rounded-b-lg bg-neutral-0 px-5 py-5">
                 <div class="flex flex-col gap-3">
-                    <div v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex" class="flex items-center gap-3">
-                        <span class="w-16 shrink-0 text-label uppercase text-neutral-500">{{ conditionIndex === 0 ? 'Where' : 'And' }}</span>
+                    <div v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex" class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                        <span class="text-label uppercase text-neutral-500 sm:w-16 sm:shrink-0">{{ conditionIndex === 0 ? 'Where' : 'And' }}</span>
 
-                        <div class="w-56 shrink-0">
+                        <div class="w-full sm:w-56 sm:shrink-0">
                             <FieldPicker
                                 :fields="fieldsOf(group.type)"
                                 :model-value="condition.field"
@@ -179,7 +194,7 @@ function clearFilter() {
                             />
                         </div>
 
-                        <div class="w-40 shrink-0">
+                        <div class="w-full sm:w-40 sm:shrink-0">
                             <StyledSelect
                                 :model-value="condition.operator"
                                 :options="operatorOptions(group.type, condition.field)"
@@ -187,7 +202,7 @@ function clearFilter() {
                             />
                         </div>
 
-                        <div class="min-w-0 flex-1">
+                        <div v-if="valueShape(condition.operator) !== 'none'" class="w-full min-w-0 sm:flex-1">
                             <FilterValue
                                 v-model="condition.value"
                                 :data-type="fieldDef(group.type, condition.field)?.dataType"
@@ -197,10 +212,11 @@ function clearFilter() {
                                 :suffix="fieldDef(group.type, condition.field)?.suffix"
                             />
                         </div>
+                        <div v-else class="hidden sm:block sm:flex-1"></div>
 
                         <button
                             type="button"
-                            class="shrink-0 rounded-md p-2 text-neutral-500 transition-colors hover:text-accent-500"
+                            class="-mt-1 self-end rounded-md p-2 text-neutral-500 transition-colors hover:text-accent-500 sm:mt-0 sm:shrink-0 sm:self-auto"
                             aria-label="Remove condition"
                             @click="removeCondition(group, conditionIndex)"
                         >
