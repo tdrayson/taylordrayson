@@ -50,6 +50,11 @@ return [
         'token' => env('HEALTH_EXPORT_TOKEN'),
     ],
 
+    'rovi' => [
+        'key' => env('ROVI_KEY'),
+        'base_url' => env('ROVI_BASE_URL', 'https://europe-west1-rovi-16b3a.cloudfunctions.net/personalApi'),
+    ],
+
     'pocketcasts' => [
         'email' => env('POCKETCASTS_EMAIL'),
         'password' => env('POCKETCASTS_PASSWORD'),
