@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Calorie;
 use App\Models\Flight;
@@ -40,7 +41,7 @@ class EntryController extends Controller
             $model->load('airline', 'origin', 'destination');
         }
 
-        if ($model instanceof Appearance) {
+        if ($model instanceof Appearance || $model instanceof Activity) {
             $model->load('media');
         }
 
@@ -90,6 +91,10 @@ class EntryController extends Controller
         if ($model instanceof Appearance) {
             $data['thumbnail'] = $model->thumbnailUrl();
             $data['thumbnailSrcset'] = $model->thumbnailSrcset();
+        }
+
+        if ($model instanceof Activity) {
+            $data['photos'] = $model->galleryPhotos();
         }
 
         return $data;

@@ -12,12 +12,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
     'type',
     'name',
+    'description',
     'duration',
     'calories',
     'distance_km',
@@ -59,6 +61,26 @@ class Activity extends Model implements HasMedia, Timelineable
         return Str::slug($this->name ?? $this->type);
     }
 
+    /**
+     * The activity's photos in display order (cover first, then the gallery),
+     * each with the optimised card source, its responsive srcset, and the
+     * full-size original for the lightbox.
+     *
+     * @return array<int, array{src: string, srcset: ?string, full: string}>
+     */
+    public function galleryPhotos(): array
+    {
+        return $this->getMedia('cover')
+            ->merge($this->getMedia('photos'))
+            ->map(fn (Media $media): array => [
+                'src' => $media->getUrl('card'),
+                'srcset' => $media->getSrcset('card') ?: null,
+                'full' => $media->getUrl(),
+            ])
+            ->values()
+            ->all();
+    }
+
     public function timezone(): ?string
     {
         return $this->timezone;
@@ -75,6 +97,7 @@ class Activity extends Model implements HasMedia, Timelineable
             'accent' => 'activity',
             'meta' => [
                 'polyline' => data_get($this->meta, 'polyline'),
+                'photos' => $this->galleryPhotos(),
             ],
         ];
     }

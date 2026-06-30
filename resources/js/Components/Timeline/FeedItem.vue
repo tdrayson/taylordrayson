@@ -4,9 +4,11 @@ import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
+import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import RouteThumb from '../Maps/RouteThumb.vue';
+import Lightbox from '../Overlays/Lightbox.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel, number } from '../../lib/format.js';
 import { greatCircle } from '../../lib/maplibre.js';
@@ -26,6 +28,7 @@ const props = defineProps({
     segments: { type: Array, default: null },
     route: { type: Object, default: null },
     media: { type: Object, default: null },
+    photos: { type: Array, default: null },
     polyline: { type: String, default: null },
     pb: { type: Boolean, default: false },
     url: { type: String, default: null },
@@ -172,6 +175,19 @@ const banner = computed(() => {
 });
 
 const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
+
+// Activity photos: the cover sits beside the route map, with a "+N" badge for
+// any extras. A hover zoom icon opens the photos in a lightbox in place; the map
+// is not lightboxed (clicking the card opens the entry's interactive map).
+const coverPhoto = computed(() => props.photos?.[0] ?? null);
+const extraPhotos = computed(() => (props.photos ? props.photos.length - 1 : 0));
+
+const lightboxIndex = ref(null);
+const lightboxItems = computed(() => props.photos ?? []);
+
+function openLightbox(index) {
+    lightboxIndex.value = index;
+}
 </script>
 
 <template>
@@ -215,7 +231,45 @@ const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offs
         <div v-else-if="meta" class="p-summary mt-2 line-clamp-2 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</div>
         <!-- SVG banner only as a fallback when no generated image is available. -->
         <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
-        <img v-if="routeImageUrl" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" >
+        <!-- Map alone when there is no photo. -->
+        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover">
+
+        <!-- The cover shown on its own: on small screens (to avoid cramming both),
+             and whenever the activity has no route map. -->
+        <component
+            v-if="coverPhoto"
+            :is="url ? Link : 'div'"
+            :href="url || undefined"
+            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
+            :class="routeImageUrl ? 'lg:hidden' : ''"
+        >
+            <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
+            <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click.prevent.stop="openLightbox(0)">
+                <ZoomButton />
+            </button>
+            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
+        </component>
+
+        <!-- A wide route map (aspect-video, the same 512x288 as a video thumbnail)
+             beside a square cover of the same height, like Strava, on lg+ screens.
+             Both are sized by a fixed height plus their aspect, so widths follow
+             cleanly without flex height-matching. -->
+        <component
+            v-if="routeImageUrl && coverPhoto"
+            :is="url ? Link : 'div'"
+            :href="url || undefined"
+            class="mt-3 hidden gap-2 lg:flex"
+        >
+            <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+            <div class="group/zoom relative">
+                <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+                <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click.prevent.stop="openLightbox(0)">
+                    <ZoomButton />
+                </button>
+                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
+            </div>
+        </component>
+        <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div
             v-if="media?.thumbnail && media?.videoUrl"
             ref="videoSlot"

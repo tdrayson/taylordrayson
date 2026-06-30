@@ -6,6 +6,7 @@ import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
 const props = defineProps({
     polyline: { type: String, required: true },
     color: { type: String, default: '#3858e9' },
+    heightClass: { type: String, default: 'h-72 sm:h-96' },
 });
 
 const MAPLIBRE_VERSION = '4.7.1';
@@ -178,11 +179,11 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="relative">
-        <div ref="container" class="h-72 w-full overflow-hidden rounded-lg border border-neutral-50 sm:h-96" />
+        <div ref="container" class="w-full overflow-hidden rounded-lg border border-neutral-50" :class="heightClass" />
         <button
             v-if="ready"
             type="button"
-            class="absolute left-2.5 top-2.5 z-10 flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-white text-neutral-700 shadow-sm transition-colors hover:text-accent-500"
+            class="absolute left-2.5 top-2.5 z-10 flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-white text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
             aria-label="Re-center map"
             @click="recenter"
         >

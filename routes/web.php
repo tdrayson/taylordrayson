@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
@@ -28,6 +29,8 @@ Route::get('/og/preview/{type}.png', [OgImageController::class, 'preview'])
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
+
+Route::get('/photos', [GalleryController::class, 'index'])->name('photos');
 
 Route::get('/now', [NowController::class, 'index'])->name('now');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem', [

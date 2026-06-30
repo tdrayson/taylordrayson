@@ -72,6 +72,19 @@ class OgMeta
     /**
      * @return OgPayload
      */
+    public static function gallery(): array
+    {
+        return self::make([
+            'title' => 'Photos',
+            'eyebrow' => 'Photos',
+            'heading' => 'Every photo, in one place',
+            'description' => "A gallery of the photos from everything I've logged, newest first.",
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
     public static function feeds(): array
     {
         return self::make([

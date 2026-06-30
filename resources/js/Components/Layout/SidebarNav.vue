@@ -7,6 +7,7 @@ import {
     Calendar03Icon,
     ChartColumnIcon,
     MapsLocation01Icon,
+    Image01Icon,
     UserIcon,
 } from '@hugeicons-pro/core-stroke-rounded';
 import SidebarNavItem from './SidebarNavItem.vue';
@@ -17,6 +18,7 @@ const links = [
     { label: 'Calendar', href: '/calendar', icon: Calendar03Icon },
     { label: 'Stats', href: '/stats', icon: ChartColumnIcon },
     { label: 'Map', href: '/map', icon: MapsLocation01Icon },
+    { label: 'Photos', href: '/photos', icon: Image01Icon },
     { label: 'About', href: '/about', icon: UserIcon },
 ];
 

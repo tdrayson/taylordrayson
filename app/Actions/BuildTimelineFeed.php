@@ -49,6 +49,7 @@ class BuildTimelineFeed
             'segments' => $card['meta']['segments'] ?? null,
             'route' => $card['meta']['route'] ?? null,
             'media' => $card['meta']['media'] ?? null,
+            'photos' => $card['meta']['photos'] ?? null,
             'polyline' => $card['meta']['polyline'] ?? null,
             'time' => $local['time'],
             'datetime' => $local['iso'],
