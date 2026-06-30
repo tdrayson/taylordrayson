@@ -58,6 +58,59 @@ it('windows samples into an activity and prefers the dominant source', function 
         ->and($matched[$activity->id]['series'])->toHaveCount(3);
 });
 
+it('matches samples to a BST activity using its stored timezone', function () {
+    // occurred_at is stored as LOCAL wall-clock (app tz is UTC), with the real
+    // zone in the timezone column. This activity ran 14:00-14:10 BST, which is
+    // 13:00-13:10 UTC. Health Auto Export stamps samples in real UTC, so the
+    // matcher must interpret occurred_at through Europe/London to find them.
+    $activity = Activity::factory()->create([
+        'occurred_at' => '2026-07-15 14:00:00', // local wall-clock (BST)
+        'timezone' => 'Europe/London',
+        'duration' => 600,
+        'meta' => [],
+        'heart_rate' => null,
+    ]);
+
+    $samples = [
+        ['time' => strtotime('2026-07-15 13:00:00 +0000'), 'avg' => 100, 'max' => 105, 'source' => 'Apple Watch'],
+        ['time' => strtotime('2026-07-15 13:05:00 +0000'), 'avg' => 110, 'max' => 115, 'source' => 'Apple Watch'],
+        ['time' => strtotime('2026-07-15 13:10:00 +0000'), 'avg' => 120, 'max' => 160, 'source' => 'Apple Watch'],
+    ];
+
+    /** @var Collection<int, Activity> $activities */
+    $activities = Activity::query()->get()->keyBy('id');
+    $matched = app(HeartRateMatcher::class)->match($samples, $activities);
+
+    expect($matched)->toHaveKey($activity->id);
+    expect($matched[$activity->id]['series'])->toHaveCount(3)
+        ->and($matched[$activity->id]['avg'])->toBe(110);
+});
+
+it('matches samples to a GMT activity where local time equals UTC', function () {
+    // The winter control: Europe/London is UTC+0 in January, so the wall-clock
+    // start and the real UTC start coincide and the window lines up directly.
+    $activity = Activity::factory()->create([
+        'occurred_at' => '2026-01-15 14:00:00',
+        'timezone' => 'Europe/London',
+        'duration' => 600,
+        'meta' => [],
+        'heart_rate' => null,
+    ]);
+
+    $samples = [
+        ['time' => strtotime('2026-01-15 14:00:00 +0000'), 'avg' => 100, 'max' => 105, 'source' => 'Apple Watch'],
+        ['time' => strtotime('2026-01-15 14:05:00 +0000'), 'avg' => 110, 'max' => 115, 'source' => 'Apple Watch'],
+        ['time' => strtotime('2026-01-15 14:10:00 +0000'), 'avg' => 120, 'max' => 160, 'source' => 'Apple Watch'],
+    ];
+
+    /** @var Collection<int, Activity> $activities */
+    $activities = Activity::query()->get()->keyBy('id');
+    $matched = app(HeartRateMatcher::class)->match($samples, $activities);
+
+    expect($matched)->toHaveKey($activity->id);
+    expect($matched[$activity->id]['series'])->toHaveCount(3);
+});
+
 it('attaches heart-rate to the matching activity and mirrors only its CSV row', function () {
     $dir = sys_get_temp_dir().'/health_hr_'.uniqid();
     mkdir($dir);

@@ -33,7 +33,7 @@ class HeartRateMatcher
         $matched = [];
 
         foreach ($activities as $activity) {
-            $start = $activity->occurred_at?->getTimestamp();
+            $start = $this->windowStart($activity);
             $seconds = (int) (data_get($activity->meta, 'elapsed_time') ?? $activity->duration);
 
             if ($start === null || $seconds <= 0) {
@@ -55,6 +55,24 @@ class HeartRateMatcher
         }
 
         return $matched;
+    }
+
+    /**
+     * The activity's real UTC start instant. occurred_at is stored as local
+     * wall-clock, so it must be read through the activity's timezone before
+     * comparing against the real-UTC sample stamps; otherwise summer (DST)
+     * activities are windowed an hour adrift and miss their samples.
+     */
+    private function windowStart(Activity $activity): ?int
+    {
+        if ($activity->occurred_at === null) {
+            return null;
+        }
+
+        return Carbon::parse(
+            $activity->occurred_at->format('Y-m-d H:i:s'),
+            $activity->timezone ?? 'UTC'
+        )->getTimestamp();
     }
 
     /**
