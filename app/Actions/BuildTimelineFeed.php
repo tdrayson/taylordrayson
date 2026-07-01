@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Content\ContentEntry;
 use App\Models\TimelineEntry;
 use App\Support\LocalTime;
 use App\Support\Text;
@@ -56,6 +57,37 @@ class BuildTimelineFeed
             'label' => $local['label'],
             'offset' => $local['offset'],
             'url' => $entry->timelineable->url(),
+        ];
+    }
+
+    /**
+     * Shape a Statamic ContentEntry into the same feed card payload as cardItem().
+     * Articles and notes are date-only (no meaningful wall-clock time).
+     *
+     * @return array<string, mixed>
+     */
+    public function contentCardItem(ContentEntry $entry): array
+    {
+        $card = $entry->card();
+        $local = LocalTime::for($entry->occurredAt(), null, true);
+
+        return [
+            'iconKey' => $card['type'],
+            'accent' => $card['accent'],
+            'title' => $card['title'],
+            'meta' => Text::excerpt($card['subtitle'], 160),
+            'segments' => null,
+            'route' => null,
+            'media' => null,
+            'photos' => null,
+            'polyline' => null,
+            'time' => $local['time'],
+            'datetime' => $local['iso'],
+            'label' => $local['label'],
+            'offset' => $local['offset'],
+            'url' => $entry->url(),
+            // Carry the occurred_at Carbon instance so groupsForDates() can sort on it.
+            '_occurred_at' => $entry->occurredAt(),
         ];
     }
 }

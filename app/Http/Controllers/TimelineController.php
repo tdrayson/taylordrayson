@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Content\ContentEntry;
+use App\Content\ContentRepository;
 use App\Models\Activity;
+use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Media;
+use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
@@ -20,47 +24,139 @@ class TimelineController extends Controller
 {
     private const DAYS_PER_PAGE = 10;
 
-    public function __construct(private readonly BuildTimelineFeed $feed) {}
+    /** Eloquent morph types superseded by Statamic; excluded from TimelineEntry queries. */
+    private const EXCLUDED_MORPH_TYPES = [Article::class, Note::class];
+
+    public function __construct(
+        private readonly BuildTimelineFeed $feed,
+        private readonly ContentRepository $content,
+    ) {}
 
     public function index(): Response
     {
-        $days = TimelineEntry::query()
-            ->toBase()
-            ->selectRaw('DATE(occurred_at) as date')
-            ->groupBy('date')
-            ->orderByDesc('date')
-            ->paginate(self::DAYS_PER_PAGE);
+        // Build a unified, sorted list of distinct dates from both Eloquent and Statamic,
+        // then paginate that list so Statamic-only days are counted and shown.
+        $allDates = $this->unifiedDistinctDates();
 
-        $dates = collect($days->items())->pluck('date');
+        $total = $allDates->count();
+        $perPage = self::DAYS_PER_PAGE;
+        $currentPage = (int) request()->query('page', 1);
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $currentPage = min($currentPage, $lastPage);
 
-        $groups = $dates->isEmpty()
+        $pageDates = $allDates->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $groups = $pageDates->isEmpty()
             ? []
-            : $this->groupsForDates($dates->first(), $dates->last());
+            : $this->groupsForDates($pageDates->first(), $pageDates->last());
 
         return Inertia::render('Timeline', [
             'og' => OgMeta::timeline(),
             'groups' => $groups,
-            'currentPage' => $days->currentPage(),
-            'lastPage' => $days->lastPage(),
+            'currentPage' => $currentPage,
+            'lastPage' => $lastPage,
             'podcastEpisodes' => Podcast::query()->count(),
         ]);
     }
 
     /**
+     * Return a sorted (newest-first) Collection of distinct date strings ('Y-m-d')
+     * from the union of Eloquent TimelineEntry rows (excluding Article/Note morphs)
+     * and all published Statamic articles and notes.
+     *
+     * @return Collection<int, string>
+     */
+    private function unifiedDistinctDates(): Collection
+    {
+        // Distinct dates from Eloquent (Article/Note morph types excluded).
+        $eloquentDates = TimelineEntry::query()
+            ->toBase()
+            ->selectRaw('DATE(occurred_at) as date')
+            ->whereNotIn('timelineable_type', self::EXCLUDED_MORPH_TYPES)
+            ->groupBy('date')
+            ->orderByDesc('date')
+            ->get()
+            ->pluck('date');
+
+        // Distinct dates from Statamic content (betweenDates needs bounds).
+        $contentDates = $this->content->all()
+            ->map(fn (ContentEntry $e): string => $e->occurredAt()->toDateString())
+            ->unique()
+            ->values();
+
+        return $eloquentDates
+            ->merge($contentDates)
+            ->unique()
+            ->sort()
+            ->reverse()
+            ->values();
+    }
+
+    /**
      * Build day-grouped timeline cards for every entry between two dates (inclusive).
+     * Merges Eloquent cards (Article/Note morphs excluded) with Statamic content cards,
+     * sorts the combined set newest-first, then groups by day.
      *
      * @return array<int, array{label: string, href: string, items: array<int, array<string, mixed>>}>
      */
     private function groupsForDates(string $newest, string $oldest): array
     {
+        // Eloquent entries — exclude Article/Note morph types to avoid duplicates.
         $entries = TimelineEntry::query()
             ->withCardRelations()
+            ->whereNotIn('timelineable_type', self::EXCLUDED_MORPH_TYPES)
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
             ->orderByDesc('occurred_at')
-            ->get();
+            ->get()
+            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null);
 
-        return $this->feed->groupByDay($entries);
+        // Map Eloquent entries to card items, carrying occurred_at for sorting.
+        // Convert to a base Collection so merge() with content cards (plain arrays) works.
+        $eloquentCards = collect($entries->map(function (TimelineEntry $entry): array {
+            $item = $this->feed->cardItem($entry);
+            $item['_occurred_at'] = $entry->occurred_at;
+
+            return $item;
+        })->all());
+
+        // Statamic content cards for the same date window.
+        $newestCarbon = Carbon::parse($newest)->endOfDay();
+        $oldestCarbon = Carbon::parse($oldest)->startOfDay();
+
+        $contentCards = $this->content
+            ->betweenDates($newestCarbon, $oldestCarbon)
+            ->map(fn (ContentEntry $e): array => $this->feed->contentCardItem($e));
+
+        // Merge and sort newest-first.
+        $merged = $eloquentCards
+            ->values()
+            ->merge($contentCards->values())
+            ->sortByDesc(fn (array $item): int => $item['_occurred_at']->timestamp)
+            ->values();
+
+        // Group by day and build the group payload.
+        return $merged
+            ->groupBy(fn (array $item): string => $item['_occurred_at']->format('Y-m-d'))
+            ->map(function (Collection $group): array {
+                $date = $group->first()['_occurred_at'];
+
+                // Strip the internal sort key before sending to the frontend.
+                $items = $group->map(function (array $item): array {
+                    unset($item['_occurred_at']);
+
+                    return $item;
+                })->values()->all();
+
+                return [
+                    'label' => $date->format('l j F Y'),
+                    'date' => $date->format('Y-m-d'),
+                    'href' => '/'.$date->format('Y/m/d'),
+                    'items' => $items,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function year(int $year): Response
