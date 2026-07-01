@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Content\ContentRepository;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
@@ -111,15 +112,48 @@ class OgImageController extends Controller
 
         abort_if($card === null, 404);
 
-        $disk = Storage::disk('local');
         $path = 'og/entry/'.md5(implode('|', [config('og.version'), $entry->id, $this->entryTimestamp($entry)])).'.png';
 
-        if (! $disk->exists($path)) {
-            $disk->makeDirectory('og/entry');
-            $this->screenshot(view('og.card', $card), $disk->path($path));
-        }
+        return $this->renderAndServeCard($card, $path, 'og/entry', 'public, max-age=86400');
+    }
 
-        return $this->serve($disk->path($path), 'public, max-age=86400');
+    /**
+     * Render (and cache) the Open Graph card for a Statamic content entry
+     * (article or note), identified by type and slug.
+     *
+     * Content entries have no map/media/segments — the card always uses the
+     * text layout. Cached by og version, type, slug, and updated_at timestamp.
+     */
+    public function content(string $type, string $slug): BinaryFileResponse
+    {
+        $entry = app(ContentRepository::class)->findByTypeAndSlug($type, $slug);
+
+        abort_if($entry === null || $entry->isDraft(), 404);
+
+        $card = $entry->card();
+        $accent = TypeColors::hex($card['accent'], self::ACCENT_DEFAULT);
+
+        $cardData = [
+            'layout' => 'text',
+            'accent' => $accent,
+            'eyebrow' => self::TYPE_EYEBROWS[$type] ?? null,
+            'title' => Str::limit(trim((string) $card['title']), 160, ''),
+            'date' => $entry->occurredAt()->format('D j M Y'),
+            'subtitle' => null,
+            'image' => null,
+            'stages' => null,
+            'cutout' => $this->dataUri('taylor-cutout.png', 'image/png'),
+        ];
+
+        // Cache key: og version + type + slug + entry date.
+        // The date is stable (changing the content does not shift the date),
+        // so the cached card is regenerated only when the og version is bumped
+        // or the entry's date itself changes.
+        $dateKey = $entry->occurredAt()->toDateString();
+
+        $path = 'og/content/'.md5(implode('|', [config('og.version'), $type, $slug, $dateKey])).'.png';
+
+        return $this->renderAndServeCard($cardData, $path, 'og/content', 'public, max-age=86400');
     }
 
     /**
@@ -499,6 +533,30 @@ class OgImageController extends Controller
         $hex = ltrim((string) $value, '#');
 
         return preg_match('/^[0-9a-fA-F]{6}$/', $hex) ? strtolower($hex) : self::ACCENT_DEFAULT;
+    }
+
+    /**
+     * Render a card data array to a PNG (if not already cached) and serve it.
+     *
+     * Extracts the cache-check / mkdir / screenshot / serve pattern shared by
+     * {@see entry()} and {@see content()}, so neither duplicates the PNG
+     * generation logic.
+     *
+     * @param  array<string, mixed>  $card  Full card view data (all keys the og.card view needs).
+     * @param  string  $path  Relative storage path (e.g. "og/entry/{hash}.png").
+     * @param  string  $directory  The storage directory to create when absent (e.g. "og/entry").
+     * @param  string  $cacheControl  Cache-Control header value.
+     */
+    private function renderAndServeCard(array $card, string $path, string $directory, string $cacheControl): BinaryFileResponse
+    {
+        $disk = Storage::disk('local');
+
+        if (! $disk->exists($path)) {
+            $disk->makeDirectory($directory);
+            $this->screenshot(view('og.card', $card), $disk->path($path));
+        }
+
+        return $this->serve($disk->path($path), $cacheControl);
     }
 
     /**

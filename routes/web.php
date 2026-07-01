@@ -22,6 +22,8 @@ Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
 Route::get('/og.png', [OgImageController::class, 'show'])->middleware('throttle:60,1')->name('og');
 Route::get('/og/entry/{entry}.png', [OgImageController::class, 'entry'])
     ->where('entry', '[0-9]+')->middleware('throttle:120,1')->name('og.entry');
+Route::get('/og/content/{type}/{slug}.png', [OgImageController::class, 'content'])
+    ->where('type', 'article|note')->middleware('throttle:120,1')->name('og.content');
 // TEMP: per-type OG card preview gallery.
 Route::get('/og-gallery', [OgImageController::class, 'gallery']);
 Route::get('/og/preview/{type}.png', [OgImageController::class, 'preview'])

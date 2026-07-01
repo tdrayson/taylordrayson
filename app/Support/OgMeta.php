@@ -279,6 +279,7 @@ class OgMeta
         return self::make([
             'title' => $resolvedTitle,
             'description' => $entry->excerpt() ?? $resolvedTitle,
+            'image' => route('og.content', ['type' => $entry->type(), 'slug' => $entry->slug()]),
         ]);
     }
 
