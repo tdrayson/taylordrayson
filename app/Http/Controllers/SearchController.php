@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Content\ContentEntry;
 use App\Models\TimelineEntry;
+use App\Search\ContentSearch;
 use App\Search\SearchCompiler;
 use App\Search\SearchPresets;
 use App\Search\SearchSchema;
 use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -29,7 +33,8 @@ class SearchController extends Controller
 
     /**
      * Searchable text columns per timeline type. Types without meaningful free
-     * text (e.g. sleep) are intentionally omitted.
+     * text (e.g. sleep) are intentionally omitted. Article and note are absent:
+     * their content is now sourced from Statamic via ContentSearch.
      *
      * @var array<string, array<int, string>>
      */
@@ -44,17 +49,17 @@ class SearchController extends Controller
         'checkin' => ['venue_name', 'category', 'city', 'description'],
         'fuel' => ['station', 'city'],
         'project' => ['title', 'description', 'status'],
-        'note' => ['content'],
-        'article' => ['title', 'excerpt', 'content'],
     ];
 
     /**
      * @param  BuildTimelineFeed  $feed  Shapes entries into feed-card day groups.
      * @param  SearchCompiler  $compiler  Compiles a filter into a TimelineEntry query.
+     * @param  ContentSearch  $contentSearch  Searches Statamic articles and notes.
      */
     public function __construct(
         private readonly BuildTimelineFeed $feed,
         private readonly SearchCompiler $compiler,
+        private readonly ContentSearch $contentSearch,
     ) {}
 
     /**
@@ -98,20 +103,105 @@ class SearchController extends Controller
             return ['groups' => [], 'total' => 0, 'currentPage' => 1, 'lastPage' => 1];
         }
 
-        $query = TimelineEntry::query()
-            ->withCardRelations();
+        $timelineGroups = array_values(array_filter(
+            $groups,
+            fn (array $group): bool => ! in_array($group['type'], SearchSchema::CONTENT_TYPES, true),
+        ));
 
-        $this->compiler->apply($query, $groups);
+        $cards = $this->timelineCards($timelineGroups)
+            ->merge($this->contentCards($groups))
+            ->sortBy(fn (array $card): int => $card['_occurred_at']->getTimestamp(), descending: $order !== 'oldest')
+            ->values();
 
-        $paginated = $query
-            ->orderBy('occurred_at', $order === 'oldest' ? 'asc' : 'desc')
-            ->paginate(self::PER_PAGE, ['*'], 'page', $page);
+        return $this->paginateCards($cards, $page);
+    }
+
+    /**
+     * Shape the compiled timeline (non-content) matches into feed cards, each
+     * carrying `_occurred_at` so it can be merged and sorted with content cards.
+     *
+     * @param  array<int, array<string, mixed>>  $timelineGroups  Groups excluding content types.
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function timelineCards(array $timelineGroups): Collection
+    {
+        if ($timelineGroups === []) {
+            return collect();
+        }
+
+        $query = TimelineEntry::query()->withCardRelations();
+        $this->compiler->apply($query, $timelineGroups);
+
+        return $query->get()
+            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->map(fn (TimelineEntry $entry): array => [
+                ...$this->feed->cardItem($entry),
+                '_occurred_at' => $entry->occurred_at,
+            ])
+            ->toBase();
+    }
+
+    /**
+     * Resolve every content (article/note) match across the filter's groups into
+     * feed cards. Typed article/note groups apply their conditions to Statamic;
+     * `any` free-text groups also match content. Duplicate entries (same URL) are
+     * collapsed so a post matched by two groups appears once.
+     *
+     * @param  array<int, array<string, mixed>>  $groups  All validated filter groups.
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function contentCards(array $groups): Collection
+    {
+        return collect($groups)
+            ->flatMap(fn (array $group): iterable => $this->contentMatchesForGroup($group))
+            ->unique(fn (ContentEntry $entry): string => $entry->url())
+            ->map(fn (ContentEntry $entry): array => $this->feed->contentCardItem($entry));
+    }
+
+    /**
+     * The content entries matched by a single group: typed content groups run
+     * their conditions against Statamic; `any` groups match their free text.
+     *
+     * @param  array<string, mixed>  $group
+     * @return Collection<int, ContentEntry>
+     */
+    private function contentMatchesForGroup(array $group): Collection
+    {
+        if (in_array($group['type'], SearchSchema::CONTENT_TYPES, true)) {
+            return $this->contentSearch->advanced($group);
+        }
+
+        if ($group['type'] !== 'any') {
+            return collect();
+        }
+
+        return collect($group['conditions'])
+            ->filter(fn (array $condition): bool => $condition['field'] === 'text')
+            ->flatMap(fn (array $condition): iterable => $this->contentSearch->anyText((string) $condition['value']))
+            ->unique(fn (ContentEntry $entry): string => $entry->url())
+            ->values();
+    }
+
+    /**
+     * Paginate an ordered collection of feed cards in-memory and group the
+     * requested page by day, mirroring the Eloquent paginator's totals.
+     *
+     * @param  Collection<int, array<string, mixed>>  $cards  Ordered feed cards carrying `_occurred_at`.
+     * @return array{groups: array<int, mixed>, total: int, currentPage: int, lastPage: int}
+     */
+    private function paginateCards(Collection $cards, int $page): array
+    {
+        $total = $cards->count();
+        $lastPage = max(1, (int) ceil($total / self::PER_PAGE));
+        $currentPage = min($page, $lastPage);
+
+        $pageCards = $cards->slice(($currentPage - 1) * self::PER_PAGE, self::PER_PAGE)->values();
 
         return [
-            'groups' => $this->feed->groupByDay(collect($paginated->items())),
-            'total' => $paginated->total(),
-            'currentPage' => $paginated->currentPage(),
-            'lastPage' => $paginated->lastPage(),
+            'groups' => $this->feed->groupContentByDay($pageCards),
+            'total' => $total,
+            'currentPage' => $currentPage,
+            'lastPage' => $lastPage,
         ];
     }
 
@@ -218,6 +308,7 @@ class SearchController extends Controller
                 self::SEARCHABLE[$key],
                 $term,
             ))
+            ->merge($this->searchContent($term))
             ->sortByDesc(fn (array $result): int => $result['occurred_at']->getTimestamp())
             ->take(self::LIMIT)
             ->map(fn (array $result): array => [
@@ -310,6 +401,28 @@ class SearchController extends Controller
                     'type' => $card['type'],
                     'url' => $entry->url(),
                     'occurred_at' => $entry->occurred_at,
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * Match Statamic articles and notes for the palette, shaped like searchType().
+     *
+     * @return array<int, array{title: string, subtitle: ?string, type: string, url: string, occurred_at: CarbonInterface}>
+     */
+    private function searchContent(string $term): array
+    {
+        return $this->contentSearch->suggest($term, self::PER_TYPE)
+            ->map(function (ContentEntry $entry): array {
+                $card = $entry->card();
+
+                return [
+                    'title' => $card['title'],
+                    'subtitle' => $card['subtitle'] ?? null,
+                    'type' => $card['type'],
+                    'url' => $entry->url(),
+                    'occurred_at' => $entry->occurredAt(),
                 ];
             })
             ->all();

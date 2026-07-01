@@ -133,6 +133,7 @@ class SearchCompiler
         $registry = TypeRegistry::all();
         $models = collect(SearchSchema::TEXT_COLUMNS)
             ->keys()
+            ->reject(fn (string $key): bool => in_array($key, SearchSchema::CONTENT_TYPES, true))
             ->map(fn (string $key): string => $registry[$key]['model'])
             ->all();
 

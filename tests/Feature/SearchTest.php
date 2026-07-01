@@ -2,9 +2,17 @@
 
 use App\Models\Activity;
 use App\Models\Checkin;
-use App\Models\Note;
+use Statamic\Facades\Entry;
 
 use function Pest\Laravel\getJson;
+
+beforeEach(function () {
+    $this->preContent = snapshotContentFiles();
+});
+
+afterEach(function () {
+    deleteNewContentFiles($this->preContent);
+});
 
 it('returns matching entries with a navigable url', function () {
     Activity::factory()->create(['name' => 'Parkrun at Lloyd Park', 'type' => 'run', 'occurred_at' => '2026-03-15 08:00:00']);
@@ -21,7 +29,11 @@ it('returns matching entries with a navigable url', function () {
 
 it('searches across multiple types and orders by recency', function () {
     Checkin::factory()->create(['venue_name' => 'Coffee Lab', 'occurred_at' => '2026-01-10 09:00:00']);
-    Note::factory()->create(['content' => 'Thinking about coffee roasting', 'occurred_at' => '2026-05-01 09:00:00']);
+
+    // The note is sourced from Statamic, not the Eloquent morph.
+    $bard = [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Thinking about coffee roasting']]]];
+    Entry::make()->collection('notes')->slug('coffee-note')
+        ->date('2026-05-01')->data(['content' => $bard])->save();
 
     getJson('/search/suggest?q=coffee')->assertOk()->assertJson(fn ($json) => $json
         ->has('results', 2)

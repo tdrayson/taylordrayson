@@ -120,6 +120,15 @@ class SearchSchema
     ];
 
     /**
+     * Timeline types whose content is now sourced from Statamic rather than the
+     * stale Eloquent morph. Search resolves these via App\Search\ContentSearch,
+     * so the Eloquent query path must exclude them to avoid duplicate results.
+     *
+     * @var array<int, string>
+     */
+    public const CONTENT_TYPES = ['article', 'note'];
+
+    /**
      * Text columns per type used by the generic "Anything" text search.
      *
      * @var array<string, array<int, string>>
