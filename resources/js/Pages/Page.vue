@@ -2,7 +2,7 @@
 import { setLayoutProps } from '../composables/useLayout.js';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
-import BlockContent from '../Components/Ui/BlockContent.vue';
+import ProseBody from '../Components/Ui/ProseBody.vue';
 import Pill from '../Components/Ui/Pill.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -10,7 +10,8 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 const props = defineProps({
     title: { type: String, required: true },
     excerpt: { type: String, default: null },
-    content: { type: [Object, Array, String], default: null },
+    /** Rendered Bard HTML from the server (replaces the old Editor.js content prop). */
+    bodyHtml: { type: String, default: '' },
     draft: { type: Boolean, default: false },
     og: { type: Object, default: () => ({}) },
 });
@@ -28,6 +29,6 @@ setLayoutProps({ breadcrumb: [{ label: props.title }] });
             <p v-if="excerpt" class="mt-3 text-body text-lg text-neutral-700">{{ excerpt }}</p>
         </header>
 
-        <BlockContent :document="content" class="mt-8" />
+        <ProseBody :html="bodyHtml" class="mt-8" />
     </article>
 </template>
