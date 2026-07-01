@@ -1,0 +1,38 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: iata_code
+        field:
+          type: text
+          display: 'IATA Code'
+      -
+        handle: icao_code
+        field:
+          type: text
+          display: 'ICAO Code'
+      -
+        handle: name
+        field:
+          type: text
+          display: Name
+      -
+        handle: city
+        field:
+          type: text
+          display: City
+      -
+        handle: country
+        field:
+          type: text
+          display: Country
+      -
+        handle: latitude
+        field:
+          type: text
+          display: Latitude
+      -
+        handle: longitude
+        field:
+          type: text
+          display: Longitude

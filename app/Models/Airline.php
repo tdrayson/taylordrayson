@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use StatamicRadPack\Runway\Traits\HasRunwayResource;
 
 #[Fillable([
     'iata_code',
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 class Airline extends Model
 {
     use HasFactory;
+    use HasRunwayResource;
 
     /**
      * @var list<string>

@@ -17,18 +17,30 @@ tabs:
       -
         handle: airline_icao
         field:
-          type: text
-          display: 'Airline ICAO'
+          type: belongs_to
+          display: Airline
+          resource: airline
+          relationship_name: airline
+          mode: select
+          create: false
       -
         handle: origin_iata
         field:
-          type: text
-          display: 'Origin IATA'
+          type: belongs_to
+          display: 'Origin Airport'
+          resource: airport
+          relationship_name: origin
+          mode: select
+          create: false
       -
         handle: destination_iata
         field:
-          type: text
-          display: 'Destination IATA'
+          type: belongs_to
+          display: 'Destination Airport'
+          resource: airport
+          relationship_name: destination
+          mode: select
+          create: false
       -
         handle: distance_miles
         field:

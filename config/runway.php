@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Airline;
+use App\Models\Airport;
 use App\Models\Appearance;
 use App\Models\Calorie;
 use App\Models\Checkin;
@@ -27,6 +29,18 @@ return [
             'name' => 'Flights',
             'blueprint' => 'flight',
             'route' => null,
+        ],
+        Airline::class => [
+            'name' => 'Airlines',
+            'blueprint' => 'airline',
+            'route' => null,
+            'read_only' => true,
+        ],
+        Airport::class => [
+            'name' => 'Airports',
+            'blueprint' => 'airport',
+            'route' => null,
+            'read_only' => true,
         ],
         Activity::class => [
             'name' => 'Activities',

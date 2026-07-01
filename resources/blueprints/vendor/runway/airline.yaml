@@ -1,0 +1,23 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: iata_code
+        field:
+          type: text
+          display: 'IATA Code'
+      -
+        handle: icao_code
+        field:
+          type: text
+          display: 'ICAO Code'
+      -
+        handle: name
+        field:
+          type: text
+          display: Name
+      -
+        handle: country
+        field:
+          type: text
+          display: Country
