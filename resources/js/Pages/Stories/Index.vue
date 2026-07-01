@@ -1,5 +1,6 @@
 <script setup>
-import { Link, setLayoutProps } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import { setLayoutProps } from '../../composables/useLayout.js';
 import { ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';

@@ -1,6 +1,7 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { Link, useHttp } from '@inertiajs/vue3';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import axios from 'axios';
 import HeatmapSnake from './HeatmapSnake.vue';
 import Leaderboard from './Leaderboard.vue';
 import { bestPhrases, missPhrases, pickPhrase } from '../../lib/snakePhrases.js';
@@ -35,9 +36,61 @@ const renameOpen = ref(false);
 const renameName = ref('');
 const renameInput = ref(null);
 
-const tokenHttp = useHttp({});
-const scoreHttp = useHttp({ name: '', score: 0, nonce: '', player_id: '' });
-const renameHttp = useHttp({ name: '', player_id: '' });
+/**
+ * v2-compatible replacement for Inertia v3's useHttp().
+ * Returns a reactive object whose own enumerable data fields are POSTed to the
+ * given URL. The object also exposes `processing` and `errors` for UI binding.
+ *
+ * @param {object} initialData - Initial field values (shallow).
+ * @returns {{ processing: boolean, errors: object, post: Function } & typeof initialData}
+ */
+function createHttp(initialData) {
+    const state = reactive({
+        ...initialData,
+        processing: false,
+        errors: {},
+        /**
+         * POST the current data fields to the given URL.
+         *
+         * @param {string} url
+         * @param {{ onSuccess?: (data: any) => void, onError?: (errors: any) => void }} [callbacks]
+         */
+        post(url, { onSuccess, onError } = {}) {
+            // Collect only the declared data fields, not the control props.
+            const reserved = new Set(['processing', 'errors', 'post']);
+            const payload = {};
+
+            for (const key of Object.keys(state)) {
+                if (!reserved.has(key)) {
+                    payload[key] = state[key];
+                }
+            }
+
+            state.processing = true;
+            state.errors = {};
+
+            axios.post(url, payload)
+                .then((response) => {
+                    state.processing = false;
+                    onSuccess?.(response.data);
+                })
+                .catch((error) => {
+                    state.processing = false;
+                    const serverErrors = error.response?.data?.errors ?? {};
+                    state.errors = Object.keys(serverErrors).length
+                        ? serverErrors
+                        : { _: error.response?.data?.message ?? 'An error occurred.' };
+                    onError?.(state.errors);
+                });
+        },
+    });
+
+    return state;
+}
+
+const tokenHttp = createHttp({});
+const scoreHttp = createHttp({ name: '', score: 0, nonce: '', player_id: '' });
+const renameHttp = createHttp({ name: '', player_id: '' });
 
 // A finished game worth recording: a new personal best backed by a live token.
 const eligible = computed(() => lastResult.value !== null && lastWasBest.value && lastScore.value > 0 && !!nonce.value && !submitted.value);

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '../../composables/useLayout.js';
 import { Restaurant01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';

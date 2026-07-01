@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '../composables/useLayout.js';
 import AppHead from '../Components/AppHead.vue';
 import { RssIcon, SourceCodeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';

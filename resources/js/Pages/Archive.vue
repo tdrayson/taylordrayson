@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { Link, setLayoutProps, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { setLayoutProps } from '../composables/useLayout.js';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';

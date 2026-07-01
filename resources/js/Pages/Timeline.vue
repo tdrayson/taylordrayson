@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '../composables/useLayout.js';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import IntroBlock from '../Components/Timeline/IntroBlock.vue';

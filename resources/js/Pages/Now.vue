@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, markRaw } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '../composables/useLayout.js';
 import AppHead from '../Components/AppHead.vue';
 import { GridStack } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';

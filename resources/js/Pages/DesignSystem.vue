@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Link, setLayoutProps } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import { setLayoutProps } from '../composables/useLayout.js';
 import AppHead from '../Components/AppHead.vue';
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
