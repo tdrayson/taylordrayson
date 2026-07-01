@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Content\ContentRepository;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Calorie;
@@ -21,6 +22,40 @@ class EntryController extends Controller
     public function show(int $year, int $month, int $day, string $slug): Response
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
+        // Try to resolve from Statamic content (articles then notes) before
+        // falling through to the Eloquent TimelineEntry path.
+        $contentEntry = app(ContentRepository::class)->findByTypeAndSlug('article', $slug)
+            ?? app(ContentRepository::class)->findByTypeAndSlug('note', $slug);
+
+        if ($contentEntry !== null) {
+            // Verify the entry's date matches the URL segments to avoid slug
+            // collisions across different dates.
+            if ($contentEntry->occurredAt()->toDateString() !== $date) {
+                $contentEntry = null;
+            }
+        }
+
+        if ($contentEntry !== null) {
+            $type = $contentEntry->type();
+            $local = $this->occurredFields($contentEntry->occurredAt(), null, LocalTime::isDayLevel($type));
+
+            return Inertia::render('Entry', [
+                'type' => $type,
+                'accent' => $type,
+                'title' => $contentEntry->title(),
+                ...$local,
+                'og' => OgMeta::contentEntry($contentEntry),
+                'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
+                'entry' => [
+                    'bodyHtml' => $contentEntry->bodyHtml(),
+                    'excerpt' => $contentEntry->excerpt(),
+                    'tags' => $contentEntry->tags(),
+                ],
+                'polyline' => null,
+                'source' => null,
+            ]);
+        }
 
         $entries = TimelineEntry::query()
             ->with('timelineable')

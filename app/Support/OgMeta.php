@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Content\ContentEntry;
 use App\Models\TimelineEntry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -261,6 +262,21 @@ class OgMeta
             'title' => $title,
             'description' => $title,
             'image' => route('og.entry', $entry),
+        ]);
+    }
+
+    /**
+     * OG metadata for a Statamic content entry (article or note).
+     *
+     * @return OgPayload
+     */
+    public static function contentEntry(ContentEntry $entry): array
+    {
+        $title = $entry->title() ?: $entry->excerpt() ?: ucfirst($entry->type());
+
+        return self::make([
+            'title' => $title,
+            'description' => $entry->excerpt() ?? $title,
         ]);
     }
 
