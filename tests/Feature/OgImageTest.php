@@ -73,6 +73,41 @@ it('regenerates cards when the og version changes', function () {
     $this->get('/og.png?title=Hello world')->assertOk();
 });
 
+it('renders the sleep stage bar with each stage segment', function () {
+    $html = view('og.card', [
+        'layout' => 'text',
+        'accent' => '6a5acd',
+        'eyebrow' => 'Sleep',
+        'title' => 'I slept 7h 32m',
+        'date' => 'Wed 25 Jun 2026',
+        'cutout' => '',
+        'stages' => [
+            ['label' => 'Awake', 'color' => '#ea8686', 'percent' => 6],
+            ['label' => 'REM', 'color' => '#5494d4', 'percent' => 24],
+            ['label' => 'Light', 'color' => '#9fbfdf', 'percent' => 49],
+            ['label' => 'Deep', 'color' => '#5247c2', 'percent' => 21],
+        ],
+    ])->render();
+
+    expect($html)->toContain('class="stage-bar"')
+        ->toContain('width: 49%')
+        ->toContain('#5247c2')
+        ->toContain('Deep');
+});
+
+it('omits the sleep stage bar when there are no stages', function () {
+    $html = view('og.card', [
+        'layout' => 'text',
+        'accent' => '6a5acd',
+        'eyebrow' => 'Note',
+        'title' => 'A quick thought',
+        'date' => 'Wed 25 Jun 2026',
+        'cutout' => '',
+    ])->render();
+
+    expect($html)->not->toContain('class="stage-bar"');
+});
+
 it('clears cached og cards with og:clear', function () {
     Storage::fake('local');
     Storage::disk('local')->put('og/card.png', 'bytes');

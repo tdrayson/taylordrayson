@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'UTC',
 
+    'home_timezone' => env('APP_HOME_TIMEZONE', 'Europe/London'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

@@ -38,18 +38,26 @@ return [
 
     'logostream' => [
         'key' => env('LOGOSTREAM_KEY'),
-        'url' => env('LOGOSTREAM_URL', 'https://airlines-api.logostream.dev'),
-        'aviation_url' => env('LOGOSTREAM_AVIATION_URL', 'https://aviation-api.logostream.dev'),
-    ],
-
-    'timeapi' => [
-        'url' => env('TIMEAPI_URL', 'https://timeapi.io'),
     ],
 
     'strava' => [
         'client_id' => env('STRAVA_CLIENT_ID'),
         'client_secret' => env('STRAVA_CLIENT_SECRET'),
         'refresh_token' => env('STRAVA_REFRESH_TOKEN'),
+    ],
+
+    'health_export' => [
+        'token' => env('HEALTH_EXPORT_TOKEN'),
+    ],
+
+    'rovi' => [
+        'key' => env('ROVI_KEY'),
+        'base_url' => env('ROVI_BASE_URL', 'https://europe-west1-rovi-16b3a.cloudfunctions.net/personalApi'),
+    ],
+
+    'pocketcasts' => [
+        'email' => env('POCKETCASTS_EMAIL'),
+        'password' => env('POCKETCASTS_PASSWORD'),
     ],
 
     'slack' => [

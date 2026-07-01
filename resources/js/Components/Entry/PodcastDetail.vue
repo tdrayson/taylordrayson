@@ -82,7 +82,7 @@ onBeforeUnmount(() => {
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0"
+                class="group absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 aria-label="Watch on YouTube"
                 @click="watchVideo"
             >
@@ -114,7 +114,7 @@ onBeforeUnmount(() => {
         </div>
 
         <Accordion v-if="entry.show_notes" title="Show Notes">
-            <div class="show-notes max-w-prose whitespace-pre-neutral-100 text-body text-neutral-700" v-html="entry.show_notes"></div>
+            <div class="show-notes max-w-prose whitespace-pre-line text-body text-neutral-700" v-html="entry.show_notes"></div>
         </Accordion>
     </div>
 </template>
@@ -129,5 +129,33 @@ onBeforeUnmount(() => {
 
 .show-notes :deep(a:hover) {
     color: var(--color-accent-700);
+}
+
+.show-notes :deep(a:focus-visible) {
+    color: var(--color-accent-700);
+}
+
+.show-notes :deep(strong),
+.show-notes :deep(b) {
+    font-weight: 600;
+    color: var(--color-neutral-900);
+}
+
+.show-notes :deep(ul),
+.show-notes :deep(ol) {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
+.show-notes :deep(ul) {
+    list-style: disc;
+}
+
+.show-notes :deep(ol) {
+    list-style: decimal;
+}
+
+.show-notes :deep(p) {
+    margin: 0;
 }
 </style>

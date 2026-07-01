@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from 'vue';
+import { ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import Icon from '../Ui/Icon.vue';
 import { titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -18,6 +20,8 @@ const PLATFORMS = {
     apple_watch: 'Apple Watch',
     clock: 'Apple Clock',
     setgraph: 'Setgraph',
+    rovi: 'Rovi',
+    loseit: 'Lose It',
 };
 
 const label = computed(() => PLATFORMS[props.platform] ?? titleCase(props.platform));
@@ -31,8 +35,12 @@ const label = computed(() => PLATFORMS[props.platform] ?? titleCase(props.platfo
             :href="url"
             target="_blank"
             rel="noopener noreferrer"
-            class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500"
-        >{{ label }}</a>
+            :aria-label="`${label}, opens in a new tab`"
+            class="group inline-flex items-center gap-1 font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+        >{{ label }}<Icon
+            :icon="ArrowUpRight01Icon"
+            class="size-3.5 transition-transform duration-150 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-focus-visible:-translate-y-0.5 group-focus-visible:translate-x-0.5 motion-reduce:transition-none"
+        /></a>
         <span v-else class="font-medium text-neutral-700">{{ label }}</span>
     </p>
 </template>

@@ -7,7 +7,6 @@ import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
 import Source from '../Components/Profile/Source.vue';
 import { entryType } from '../entryTypes.js';
-import { dateLong } from '../lib/format.js';
 
 import ActivityDetail from '../Components/Entry/ActivityDetail.vue';
 import SleepDetail from '../Components/Entry/SleepDetail.vue';
@@ -35,6 +34,8 @@ const props = defineProps({
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
     og: { type: Object, default: () => ({}) },
+    occurredLabel: { type: String, default: '' },
+    occurredOffset: { type: String, default: '' },
 });
 
 const DETAIL_COMPONENTS = {
@@ -56,8 +57,6 @@ const DETAIL_COMPONENTS = {
 const meta = computed(() => entryType(props.type));
 const detailComponent = computed(() => DETAIL_COMPONENTS[props.type] ?? null);
 const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
-const occurredLabel = computed(() => dateLong(props.occurredAt));
-
 const [, year, month, day] = props.dayUrl.split('/');
 const monthName = computed(() => new Date(props.occurredAt).toLocaleDateString('en-GB', { month: 'long' }));
 
@@ -79,18 +78,22 @@ setLayoutProps({
 <template>
     <AppHead :og="og" />
 
-    <header class="flex items-start gap-4">
-        <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
-            <Icon :icon="meta.icon" class="size-6" />
-        </span>
-        <div class="min-w-0">
-            <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline" :style="accentStyle">{{ meta.label }}</Link>
+    <header class="relative">
+        <div class="min-w-0 sm:pl-16 lg:pl-0">
+            <div class="relative">
+                <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
+                    <Icon :icon="meta.icon" class="size-6" />
+                </span>
+                <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
+            </div>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
-            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500">{{ occurredLabel }}</Link>
+            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
+                <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
+            </Link>
         </div>
     </header>
 
-    <EntryMap v-if="polyline" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
+    <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
     <component :is="detailComponent" v-if="detailComponent" :entry="entry" class="mt-10" />
 

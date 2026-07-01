@@ -16,4 +16,9 @@ trait HasTimelineEntry
     {
         return '/'.$this->occurred_at->format('Y/m/d').'/'.$this->slug();
     }
+
+    public function timezone(): ?string
+    {
+        return null;
+    }
 }

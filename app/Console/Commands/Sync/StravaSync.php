@@ -3,11 +3,13 @@
 namespace App\Console\Commands\Sync;
 
 use App\Actions\GenerateStaticMap;
+use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
+use App\Services\Strava;
+use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 #[Signature('strava:sync {--days=7 : How many days back to check for new activities}')]
@@ -25,13 +27,13 @@ class StravaSync extends Command
         'VirtualRide' => 'ride',
         'GravelRide' => 'ride',
         'MountainBikeRide' => 'ride',
-        'EBikeRide' => 'e-bike ride',
-        'EMountainBikeRide' => 'e-bike ride',
+        'EBikeRide' => 'e-bike-ride',
+        'EMountainBikeRide' => 'e-bike-ride',
         'Swim' => 'swim',
         'Workout' => 'workout',
-        'WeightTraining' => 'weight training',
+        'WeightTraining' => 'weight-training',
         'Yoga' => 'yoga',
-        'IceSkate' => 'ice skate',
+        'IceSkate' => 'ice-skate',
         'Squash' => 'workout',
         'Tennis' => 'workout',
         'Badminton' => 'workout',
@@ -46,16 +48,17 @@ class StravaSync extends Command
         'Pilates' => 'workout',
     ];
 
-    public function handle(): int
+    public function handle(Strava $strava): int
     {
-        $accessToken = $this->getAccessToken();
-        if (! $accessToken) {
+        if (! $strava->token()) {
+            $this->error('Could not obtain a Strava access token.');
+
             return self::FAILURE;
         }
 
         $after = now()->subDays((int) $this->option('days'))->timestamp;
 
-        $stravaActivities = $this->fetchActivities($accessToken, $after);
+        $stravaActivities = $this->fetchActivities($strava, $after);
 
         if ($stravaActivities === null) {
             return self::FAILURE;
@@ -76,23 +79,29 @@ class StravaSync extends Command
             return self::SUCCESS;
         }
 
-        $synced = 0;
+        $created = [];
 
         foreach ($newActivities as $stravaActivity) {
-            $detail = $this->fetchDetail($accessToken, $stravaActivity['id']);
+            $detail = $strava->activity($stravaActivity['id']);
             if (! $detail) {
                 continue;
             }
 
             $activity = $this->createActivity($detail);
-            $this->downloadPhotos($accessToken, $detail, $activity);
+            $this->downloadPhotos($strava, $detail, $activity);
             app(GenerateStaticMap::class)($activity);
 
-            $synced++;
-            $this->info("[{$synced}] {$activity->name}");
+            $created[] = $activity;
+            $this->info('['.count($created).'] '.$activity->name);
         }
 
-        $this->info("Done. Synced {$synced} activities.");
+        $appended = $this->appendActivitiesToCsv($created);
+
+        if ($appended > 0) {
+            $this->info("Appended {$appended} row(s) to data/activities.csv.");
+        }
+
+        $this->info('Done. Synced '.count($created).' activities.');
 
         return self::SUCCESS;
     }
@@ -100,27 +109,21 @@ class StravaSync extends Command
     /**
      * @return array<int, array<string, mixed>>|null
      */
-    private function fetchActivities(string $token, int $after): ?array
+    private function fetchActivities(Strava $strava, int $after): ?array
     {
         $activities = [];
         $page = 1;
 
         while (true) {
-            $response = Http::withToken($token)
-                ->get('https://www.strava.com/api/v3/athlete/activities', [
-                    'after' => $after,
-                    'per_page' => 200,
-                    'page' => $page,
-                ]);
+            $batch = $strava->activitiesPage($page, 200, $after);
 
-            if ($response->failed()) {
-                $this->error("Failed to fetch activities: {$response->status()} — {$response->body()}");
+            if ($batch === null) {
+                $this->error('Failed to fetch activities from Strava.');
 
                 return null;
             }
 
-            $batch = $response->json();
-            if (empty($batch)) {
+            if ($batch === []) {
                 break;
             }
 
@@ -132,42 +135,12 @@ class StravaSync extends Command
     }
 
     /**
-     * @return array<string, mixed>|null
-     */
-    private function fetchDetail(string &$token, int $activityId): ?array
-    {
-        $response = Http::withToken($token)
-            ->get("https://www.strava.com/api/v3/activities/{$activityId}");
-
-        if ($response->status() === 401) {
-            $this->warn('Token expired, refreshing...');
-            $token = $this->refreshAccessToken();
-            if (! $token) {
-                return null;
-            }
-
-            $response = Http::withToken($token)
-                ->get("https://www.strava.com/api/v3/activities/{$activityId}");
-        }
-
-        if ($response->failed()) {
-            $this->warn("Failed to fetch activity {$activityId}: {$response->status()}");
-
-            return null;
-        }
-
-        return $response->json();
-    }
-
-    /**
      * @param  array<string, mixed>  $data
      */
     private function createActivity(array $data): Activity
     {
         $sportType = $data['sport_type'] ?? $data['type'] ?? 'Workout';
-        $type = self::TYPE_MAP[$sportType] ?? strtolower(
-            Str::snake($sportType, ' ')
-        );
+        $type = self::TYPE_MAP[$sportType] ?? Str::kebab($sportType);
 
         $meta = array_filter([
             'elapsed_time' => $data['elapsed_time'] ?? null,
@@ -185,10 +158,14 @@ class StravaSync extends Command
             $meta['polyline'] = $polyline;
         }
 
+        $localDate = $data['start_date_local'] ?? $data['start_date'];
+
         return Activity::create([
-            'occurred_at' => $data['start_date'],
+            // Strava's start_date_local carries a Z; parse as UTC so the wall-clock digits are kept verbatim.
+            'occurred_at' => Carbon::parse($localDate, 'UTC')->format('Y-m-d H:i:s'),
             'type' => $type,
             'name' => $data['name'],
+            'description' => trim((string) ($data['description'] ?? '')) ?: null,
             'duration' => $data['moving_time'],
             'calories' => $data['calories'] ?: null,
             'distance_km' => $data['distance'] ? round($data['distance'] / 1000, 3) : null,
@@ -196,6 +173,7 @@ class StravaSync extends Command
             'max_heart_rate' => $data['max_heartrate'] ?? null,
             'platform_type' => 'strava',
             'platform_id' => (string) $data['id'],
+            'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
             'meta' => $meta ?: null,
         ]);
     }
@@ -203,73 +181,93 @@ class StravaSync extends Command
     /**
      * @param  array<string, mixed>  $data
      */
-    private function downloadPhotos(string $token, array $data, Activity $activity): void
+    private function downloadPhotos(Strava $strava, array $data, Activity $activity): void
     {
-        $photoCount = $data['total_photo_count'] ?? 0;
-        if ($photoCount === 0) {
+        if (($data['total_photo_count'] ?? 0) === 0) {
             return;
         }
 
-        $response = Http::withToken($token)
-            ->get("https://www.strava.com/api/v3/activities/{$data['id']}/photos", [
-                'size' => 2048,
-            ]);
+        $photos = $strava->activityPhotos($data['id']);
 
-        if ($response->failed()) {
+        if ($photos === null) {
             $this->warn("Failed to fetch photos for {$data['id']}");
 
             return;
         }
 
-        $photos = $response->json();
+        $stored = app(SyncStravaPhotos::class)($activity, $photos);
 
-        foreach ($photos as $index => $photo) {
-            $url = $photo['urls']['2048'] ?? $photo['urls']['600'] ?? null;
-            if (! $url) {
-                continue;
-            }
+        if ($stored > 0) {
+            $this->info("  → Downloaded {$stored} photo(s)");
+        }
+    }
 
-            $imageResponse = Http::get($url);
-            if ($imageResponse->failed()) {
-                continue;
-            }
-
-            $activity->addMediaFromString($imageResponse->body())
-                ->usingFileName(($photo['unique_id'] ?? Str::uuid()).'.jpg')
-                ->toMediaCollection($index === 0 ? 'cover' : 'photos');
+    /**
+     * Append newly-synced activities to data/activities.csv (the seed used to
+     * populate production via import:all), matching its header order and the
+     * json_encode + fputcsv encoding the rest of the pipeline uses.
+     *
+     * @param  array<int, Activity>  $activities
+     * @param  string|null  $path  Target CSV path; defaults to data/activities.csv.
+     * @return int The number of rows appended.
+     */
+    public function appendActivitiesToCsv(array $activities, ?string $path = null): int
+    {
+        if ($activities === []) {
+            return 0;
         }
 
-        $this->info("  → Downloaded {$photoCount} photo(s)");
+        $path ??= base_path('data/activities.csv');
+
+        if (! is_file($path)) {
+            return 0;
+        }
+
+        $readHandle = fopen($path, 'r');
+        $headers = fgetcsv($readHandle);
+        fclose($readHandle);
+
+        if (! is_array($headers)) {
+            return 0;
+        }
+
+        usort($activities, fn (Activity $first, Activity $second): int => $first->occurred_at <=> $second->occurred_at);
+
+        $writeHandle = fopen($path, 'a');
+
+        foreach ($activities as $activity) {
+            fputcsv($writeHandle, $this->csvRow($activity, $headers));
+        }
+
+        fclose($writeHandle);
+
+        return count($activities);
     }
 
-    private function getAccessToken(): ?string
+    /**
+     * Map an activity to a CSV row in the given header order.
+     *
+     * @param  array<int, string>  $headers
+     * @return array<int, string>
+     */
+    public function csvRow(Activity $activity, array $headers): array
     {
-        return cache('strava_access_token')
-            ?? $this->refreshAccessToken();
+        return array_map(fn (string $column): string => match ($column) {
+            'occurred_at' => $activity->occurred_at?->format('Y-m-d H:i:s') ?? '',
+            'meta' => $activity->meta ? (string) json_encode($activity->meta) : '',
+            default => (string) ($activity->getAttribute($column) ?? ''),
+        }, $headers);
     }
 
-    private function refreshAccessToken(): ?string
+    /**
+     * Extract the IANA timezone name from Strava's "(GMT+00:00) Europe/London" format.
+     */
+    private function ianaTimezone(?string $stravaTimezone): ?string
     {
-        $response = Http::post('https://www.strava.com/oauth/token', [
-            'client_id' => config('services.strava.client_id'),
-            'client_secret' => config('services.strava.client_secret'),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => config('services.strava.refresh_token'),
-        ]);
-
-        if ($response->failed()) {
-            $this->error('Failed to refresh Strava access token: '.$response->body());
-
+        if (! $stravaTimezone) {
             return null;
         }
 
-        $data = $response->json();
-        $expiresIn = $data['expires_in'] ?? 3600;
-
-        cache(['strava_access_token' => $data['access_token']], $expiresIn - 60);
-
-        $this->info('Access token refreshed. Athlete: '.($data['athlete']['id'] ?? 'n/a'));
-
-        return $data['access_token'];
+        return Str::afterLast($stravaTimezone, ' ') ?: null;
     }
 }

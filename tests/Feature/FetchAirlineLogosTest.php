@@ -5,10 +5,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
-    config([
-        'services.logostream.key' => 'test-key',
-        'services.logostream.url' => 'https://airlines-api.logostream.dev',
-    ]);
+    config(['services.logostream.key' => 'test-key']);
 });
 
 afterEach(function () {

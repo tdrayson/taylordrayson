@@ -4,12 +4,12 @@ namespace App\Console\Commands\Fetch;
 
 use App\Models\Airline;
 use App\Models\Flight;
+use App\Services\LogoStream;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 
 #[Signature('airlines:logos {iata?* : Specific IATA codes to fetch; defaults to every airline we have flights for} {--force : Re-download logos that already exist}')]
 #[Description('Download airline icon and logo images from LogoStream, keyed by IATA code')]
@@ -25,7 +25,7 @@ class FetchAirlineLogos extends Command
         'logo' => 'logo-transparent',
     ];
 
-    public function handle(): int
+    public function handle(LogoStream $logoStream): int
     {
         if (! config('services.logostream.key')) {
             $this->components->error('LOGOSTREAM_KEY is not set.');
@@ -56,7 +56,7 @@ class FetchAirlineLogos extends Command
                     continue;
                 }
 
-                match ($this->download($iata, $variant, $path)) {
+                match ($this->download($logoStream, $iata, $variant, $path)) {
                     'saved' => [$this->components->task("{$iata} · {$type}"), $downloaded++],
                     'unavailable' => [$this->components->warn("{$iata} · {$type} — no logo available"), $unavailable++],
                     default => [$this->components->error("{$iata} · {$type} — request failed"), $failed++],
@@ -104,29 +104,16 @@ class FetchAirlineLogos extends Command
      * @return 'saved'|'unavailable'|'error' 'unavailable' when LogoStream has no
      *                                       real logo, 'error' on a request failure.
      */
-    private function download(string $iata, string $variant, string $path): string
+    private function download(LogoStream $logoStream, string $iata, string $variant, string $path): string
     {
-        $response = Http::get(rtrim((string) config('services.logostream.url'), '/')."/airlines/iata/{$iata}", [
-            'key' => config('services.logostream.key'),
-            'variant' => $variant,
-            'format' => 'png',
-            'size' => 400,
-        ]);
+        $result = $logoStream->airlineLogo($iata, $variant);
 
-        if (! $response->successful()) {
-            return 'error';
-        }
-
-        // LogoStream returns a generated SVG placeholder (x-asset: "-") when it has
-        // no real logo, so treat anything but a resolved raster asset as unavailable.
-        $asset = (string) $response->header('x-asset');
-
-        if ($asset === '' || $asset === '-' || ! str_starts_with((string) $response->header('content-type'), 'image/')) {
-            return 'unavailable';
+        if ($result['status'] !== 'saved') {
+            return $result['status'];
         }
 
         File::ensureDirectoryExists(dirname($path));
-        File::put($path, $response->body());
+        File::put($path, $result['body']);
 
         return 'saved';
     }

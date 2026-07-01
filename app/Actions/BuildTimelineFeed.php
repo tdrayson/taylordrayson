@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\TimelineEntry;
+use App\Support\LocalTime;
 use App\Support\Text;
 use Illuminate\Support\Collection;
 
@@ -38,6 +39,7 @@ class BuildTimelineFeed
     public function cardItem(TimelineEntry $entry): array
     {
         $card = $entry->timelineable->card();
+        $local = LocalTime::for($entry->occurred_at, $entry->timelineable->timezone(), LocalTime::isDayLevel($card['type']));
 
         return [
             'iconKey' => $card['type'],
@@ -47,9 +49,12 @@ class BuildTimelineFeed
             'segments' => $card['meta']['segments'] ?? null,
             'route' => $card['meta']['route'] ?? null,
             'media' => $card['meta']['media'] ?? null,
+            'photos' => $card['meta']['photos'] ?? null,
             'polyline' => $card['meta']['polyline'] ?? null,
-            'time' => $entry->occurred_at->format('g:ia'),
-            'datetime' => $entry->occurred_at->toIso8601String(),
+            'time' => $local['time'],
+            'datetime' => $local['iso'],
+            'label' => $local['label'],
+            'offset' => $local['offset'],
             'url' => $entry->timelineable->url(),
         ];
     }

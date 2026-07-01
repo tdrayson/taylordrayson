@@ -53,13 +53,13 @@ onUnmounted(() => {
 <template>
     <div ref="root" class="relative">
         <div class="inline-flex">
-            <Button :href="todayUrl" variant="secondary" size="sm" class="rounded-r-none border-r-0">
+            <Button :href="todayUrl" variant="secondary" size="sm" class="h-9 rounded-r-none border-r-0">
                 Today
             </Button>
             <Button
                 variant="secondary"
                 size="sm"
-                class="rounded-l-none px-2"
+                class="h-9 rounded-l-none px-2"
                 :aria-label="open ? 'Close time navigation' : 'Open time navigation'"
                 aria-haspopup="true"
                 :aria-expanded="open"
@@ -77,7 +77,7 @@ onUnmounted(() => {
                 v-for="item in items"
                 :key="item.label"
                 :href="item.href"
-                class="block px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900"
+                class="block px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900 focus-visible:outline-none"
                 @click="close"
             >
                 {{ item.label }}

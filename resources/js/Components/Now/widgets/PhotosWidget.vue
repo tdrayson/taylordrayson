@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import { ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../../Ui/Icon.vue';
 
@@ -151,10 +152,22 @@ onMounted(() => {
         }
     };
 
+    // Keyboard equivalent of the swipe: left/right arrows advance the deck.
+    const onKey = (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            commit(1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            commit(-1);
+        }
+    };
+
     deck.addEventListener('pointerdown', onDown);
     deck.addEventListener('pointermove', onMove);
     deck.addEventListener('pointerup', end);
     deck.addEventListener('pointercancel', end);
+    deck.addEventListener('keydown', onKey);
 
     cleanup = () => {
         if (finalizeTimer) {
@@ -164,6 +177,7 @@ onMounted(() => {
         deck.removeEventListener('pointermove', onMove);
         deck.removeEventListener('pointerup', end);
         deck.removeEventListener('pointercancel', end);
+        deck.removeEventListener('keydown', onKey);
     };
 });
 
@@ -182,14 +196,21 @@ onBeforeUnmount(() => {
                     <h2 class="photos__title">{{ title }}</h2>
                     <div class="photos__subtitle">{{ subtitle }}</div>
                 </div>
-                <button type="button" class="photos__link">
+                <Link href="/photos" class="photos__link">
                     All photos
                     <Icon class="photos__link-icon" :icon="ArrowRight01Icon" :stroke-width="2.6" />
-                </button>
+                </Link>
             </div>
         </div>
 
-        <div ref="deckEl" class="photos__deck">
+        <div
+            ref="deckEl"
+            class="photos__deck"
+            tabindex="0"
+            role="group"
+            aria-roledescription="photo carousel"
+            aria-label="Recent photos. Use the left and right arrow keys to browse."
+        >
             <div v-for="(photo, i) in photos" :key="i" class="photos__card" :style="{ background: photo.gradient }">
                 <img v-if="photo.src" :src="photo.src" alt="" @error="onImgError" />
             </div>
@@ -257,6 +278,12 @@ onBeforeUnmount(() => {
     white-space: nowrap;
 }
 
+.photos__link:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 .photos__link-icon {
     width: 3.3cqw;
     height: 3.3cqw;
@@ -266,6 +293,11 @@ onBeforeUnmount(() => {
     flex: 1;
     position: relative;
     touch-action: none;
+}
+
+.photos__deck:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: -2px;
 }
 
 .photos__card {

@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
-import { number, titleCase, time, flightDurationLabel } from '../../lib/format.js';
+import { number, titleCase, time, duration, flightDurationLabel } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -14,9 +14,9 @@ const airline = computed(() => props.entry.airline || null);
 const origin = computed(() => props.entry.origin || {});
 const destination = computed(() => props.entry.destination || {});
 
-const departAt = computed(() => meta.value.departed_actual || meta.value.departed_scheduled || props.entry.occurred_at);
-const arriveAt = computed(() => meta.value.arrived_actual || meta.value.arrived_scheduled || null);
-const durationLabel = computed(() => flightDurationLabel(props.entry.distance_miles));
+const departAt = computed(() => props.entry.departed_local);
+const arriveAt = computed(() => props.entry.arrived_local);
+const durationLabel = computed(() => (props.entry.duration ? duration(props.entry.duration) : flightDurationLabel(props.entry.distance_miles)));
 const distanceLabel = computed(() => (props.entry.distance_miles ? `${number(props.entry.distance_miles)} mi` : null));
 
 const hasCoordinates = computed(() => origin.value.latitude != null && destination.value.latitude != null);
@@ -44,7 +44,7 @@ const stats = computed(() => [
             <img
                 v-if="airline?.logo_url"
                 :src="airline.logo_url"
-                :alt="airline.name"
+                :alt="airline.name || 'Airline logo'"
                 class="h-8 w-auto object-contain"
             >
             <span v-else-if="airline" class="font-display text-section">{{ airline.name }}</span>

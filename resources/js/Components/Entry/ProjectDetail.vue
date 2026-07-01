@@ -32,7 +32,7 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
 
         <div v-if="entry.url || entry.github_url" class="flex flex-wrap gap-x-6 gap-y-3">
             <ExternalLink v-if="entry.url" :href="entry.url" label="Visit site" />
-            <ExternalLink v-if="entry.github_url" :href="entry.github_url" label="GitHub" />
+            <ExternalLink v-if="entry.github_url" :href="entry.github_url" :label="`View ${entry.title} on GitHub`" />
         </div>
     </div>
 </template>

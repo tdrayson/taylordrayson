@@ -1,35 +1,48 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import HeartRateChart from '../Stats/HeartRateChart.vue';
+import ActivityMedia from './ActivityMedia.vue';
+import Lightbox from '../Overlays/Lightbox.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-// Hardcoded sample trace for previewing the chart — real heart_rate wiring deferred.
-const SAMPLE_HEART_RATE = Array.from({ length: 90 }, (_, i) => {
-    const t = i / 89;
-    let bpm = 96 + 58 * Math.min(1, t * 3);
-    bpm += Math.sin(t * Math.PI * 9) * 7;
+const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
+const polyline = computed(() => props.entry.meta?.polyline ?? null);
+const lightboxIndex = ref(null);
 
-    if (t > 0.45 && t < 0.62) {
-        bpm += 16;
-    }
-
-    if (t > 0.9) {
-        bpm -= (t - 0.9) * 220;
-    }
-
-    return Math.round(Math.max(92, bpm));
-});
-
+// Stored series is a list of { time, bpm } points; the chart wants bare BPM values.
 const heartRate = computed(() => {
     const series = props.entry.heart_rate;
 
-    return Array.isArray(series) && series.length ? series : SAMPLE_HEART_RATE;
+    if (!Array.isArray(series) || series.length === 0) {
+        return [];
+    }
+
+    return series.map((point) => (typeof point === 'number' ? point : point.bpm));
+});
+
+// Some activities (e.g. phone-tracked walks with only passive watch readings)
+// carry just a handful of points spread minutes apart, which plots as a
+// misleading two-dot "line". Only show the chart when the series is dense
+// enough to be a real trace: at least a floor of points, and on average no
+// sparser than one reading every couple of minutes across the activity.
+const MIN_HR_POINTS = 5;
+const MAX_HR_GAP_SECONDS = 120;
+const showHeartRate = computed(() => {
+    const points = heartRate.value.length;
+
+    if (points < MIN_HR_POINTS) {
+        return false;
+    }
+
+    const duration = Number(props.entry.duration) || 0;
+
+    return duration <= 0 || points >= duration / MAX_HR_GAP_SECONDS;
 });
 
 /** Real data uses weight_kg; the factory/parser use weight. Support both. */
@@ -81,9 +94,23 @@ function weightLabel(value) {
 
 <template>
     <div class="space-y-8">
+        <p v-if="entry.description" class="text-balance whitespace-pre-line text-neutral-700">
+            {{ entry.description }}
+        </p>
+
         <StatGrid :stats="stats" />
 
-        <div v-if="!exercises.length">
+        <ActivityMedia
+            v-if="polyline || photos.length"
+            :polyline="polyline"
+            :photos="photos"
+            color="var(--color-activity)"
+            @open="lightboxIndex = $event"
+        />
+
+        <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+
+        <div v-if="!exercises.length && showHeartRate">
             <SectionHead title="Heart rate" meta="bpm over the activity" />
             <HeartRateChart :data="heartRate" :duration="entry.duration" />
         </div>

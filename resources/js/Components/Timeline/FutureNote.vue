@@ -97,7 +97,7 @@ onMounted(() => {
         </div>
         <Link
             href="/"
-            class="inline-flex items-center gap-1.5 text-meta font-semibold text-accent-500 transition-colors hover:text-accent-700"
+            class="inline-flex items-center gap-1.5 text-meta font-semibold text-accent-500 transition-colors hover:text-accent-700 focus-visible:text-accent-700"
         >
             <Icon :icon="ArrowLeft01Icon" class="size-4" />
             Back to the present

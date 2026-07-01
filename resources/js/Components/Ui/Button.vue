@@ -31,7 +31,7 @@ const SIZES = {
 
 const classes = computed(() =>
     cn(
-        'inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40',
         props.pill ? 'rounded-full' : 'rounded-md',
         VARIANTS[props.variant] ?? VARIANTS.secondary,
         SIZES[props.size] ?? SIZES.md,

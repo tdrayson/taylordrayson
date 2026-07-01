@@ -27,6 +27,7 @@ class SearchSchema
             'calories' => ['label' => 'Calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'Metrics', 'suffix' => 'kcal'],
             'avg_hr' => ['label' => 'Avg heart rate', 'dataType' => 'number', 'column' => 'average_heart_rate', 'category' => 'Metrics', 'suffix' => 'bpm'],
             'max_hr' => ['label' => 'Max heart rate', 'dataType' => 'number', 'column' => 'max_heart_rate', 'category' => 'Metrics', 'suffix' => 'bpm'],
+            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
         ],
         'sleep' => [
             'duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Sleep'],
@@ -58,12 +59,14 @@ class SearchSchema
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Location'],
             'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
             'country' => ['label' => 'Country', 'dataType' => 'text', 'column' => 'country', 'category' => 'Location'],
+            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
         ],
         'appearance' => [
             'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Appearance'],
             'show' => ['label' => 'Show', 'dataType' => 'text', 'column' => 'show_name', 'category' => 'Appearance'],
             'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Appearance'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Appearance'],
+            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
         ],
         'podcast' => [
             'topic' => ['label' => 'Topic', 'dataType' => 'text', 'column' => 'topic', 'category' => 'Episode'],
@@ -78,11 +81,10 @@ class SearchSchema
             'number' => ['label' => 'Flight number', 'dataType' => 'text', 'column' => 'flight_number', 'category' => 'Flight'],
             'cabin' => ['label' => 'Cabin class', 'dataType' => 'enum', 'column' => 'cabin_class', 'category' => 'Flight'],
             'reason' => ['label' => 'Reason', 'dataType' => 'text', 'column' => 'reason', 'category' => 'Flight'],
-            'co2' => ['label' => 'CO₂', 'dataType' => 'number', 'column' => 'co2_kg', 'category' => 'Flight', 'suffix' => 'kg'],
             'origin' => ['label' => 'Origin (IATA)', 'dataType' => 'text', 'column' => 'origin_iata', 'category' => 'Route'],
             'destination' => ['label' => 'Destination (IATA)', 'dataType' => 'text', 'column' => 'destination_iata', 'category' => 'Route'],
             'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance_miles', 'category' => 'Route', 'suffix' => 'mi'],
-            'flight_duration' => ['label' => 'Duration', 'dataType' => 'number', 'column' => 'duration_min', 'category' => 'Route', 'suffix' => 'min'],
+            'flight_duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Route'],
         ],
         'checkin' => [
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Place'],
@@ -105,6 +107,7 @@ class SearchSchema
             'status' => ['label' => 'Status', 'dataType' => 'enum', 'column' => 'status', 'category' => 'Project'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Project'],
             'long_description' => ['label' => 'Long description', 'dataType' => 'text', 'column' => 'long_description', 'category' => 'Project'],
+            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
         ],
         'article' => [
             'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Article'],
@@ -147,6 +150,7 @@ class SearchSchema
             'text' => ['contains', 'not_contains', 'equals', 'starts_with', 'ends_with'],
             'enum' => ['is', 'is_not', 'contains', 'not_contains'],
             'number', 'duration' => ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'not_between'],
+            'media' => ['has_any', 'has_none', 'gte', 'gt', 'lt', 'lte', 'eq', 'neq', 'between'],
             'day' => ['on', 'not_on', 'before', 'after', 'between', 'not_between'],
             'month', 'year' => ['in', 'not_in', 'before', 'after', 'between', 'not_between'],
             default => [],
@@ -167,7 +171,8 @@ class SearchSchema
                 'label' => 'Anything',
                 'model' => null,
                 'fields' => self::normalise([
-                    'text' => ['label' => 'Any text', 'dataType' => 'text', 'column' => null, 'category' => 'Anything', 'operators' => ['contains']],
+                    'text' => ['label' => 'Text', 'dataType' => 'text', 'column' => null, 'category' => 'Where', 'operators' => ['contains']],
+                    'photos' => ['label' => 'Media', 'dataType' => 'media', 'column' => null, 'category' => 'Where', 'suffix' => 'photos'],
                 ]),
             ],
         ];

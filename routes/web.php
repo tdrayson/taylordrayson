@@ -3,10 +3,13 @@
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
+use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TimelineController;
 use App\Models\LeaderboardEntry;
 use App\Support\OgMeta;
@@ -28,10 +31,19 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 
+Route::get('/photos', [GalleryController::class, 'index'])->name('photos');
+
+Route::get('/stories', [StoryController::class, 'index'])->name('stories.index');
+Route::get('/stories/{story}', [StoryController::class, 'show'])->name('stories.show');
+
 Route::get('/now', [NowController::class, 'index'])->name('now');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem', [
     'og' => OgMeta::designSystem(),
 ]))->name('design-system');
+
+Route::get('/sleep-score', fn () => Inertia::render('SleepScore', [
+    'og' => ['title' => 'How the sleep score works'],
+]))->name('sleep-score');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
@@ -66,3 +78,8 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('day');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
+
+// Content pages, matched last so every real route wins. Letter-first so the
+// digit-constrained /{year} routes are never shadowed.
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->where('slug', '[a-z][a-z0-9-]*')->name('page');

@@ -265,6 +265,11 @@ const days = computed(() => {
     filter: brightness(0.92);
 }
 
+.sleep__bar:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+}
+
 .sleep__days {
     display: flex;
 }

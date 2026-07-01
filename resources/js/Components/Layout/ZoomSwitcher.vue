@@ -21,7 +21,7 @@ defineEmits(['update:modelValue']);
             :key="option.value"
             type="button"
             :aria-pressed="modelValue === option.value"
-            class="rounded-sm px-4 py-1.5 text-sm font-semibold transition-colors"
+            class="rounded-sm px-4 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="modelValue === option.value ? 'bg-neutral-0 text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'"
             @click="$emit('update:modelValue', option.value)"
         >

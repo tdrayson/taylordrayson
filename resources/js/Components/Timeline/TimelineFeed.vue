@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-    <div class="timeline-feed flex flex-col gap-9 pl-14">
+    <div class="timeline-feed flex flex-col gap-9 pl-14 lg:pl-0">
         <FeedItem
             v-for="(item, index) in items"
             :key="index"
@@ -28,7 +28,7 @@ defineProps({
     top: 14px;
     bottom: 10px;
     width: 2px;
-    background: var(--color-neutral-50);
+    background: linear-gradient(to bottom, var(--color-neutral-25), var(--color-neutral-50));
     border-radius: 2px;
 }
 
@@ -41,5 +41,17 @@ defineProps({
     height: 8px;
     border-radius: 9999px;
     background: var(--color-neutral-50);
+}
+
+/* From lg up the cards align to the content column and the icon rail hangs just
+   outside it in the grid gutter, so the line/dot follow the icon's new centre. */
+@media (min-width: 1024px) {
+    .timeline-feed::before {
+        left: -31px;
+    }
+
+    .timeline-feed::after {
+        left: -34px;
+    }
 }
 </style>

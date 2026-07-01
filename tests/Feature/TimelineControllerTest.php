@@ -5,6 +5,7 @@ use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Podcast;
 
 use function Pest\Laravel\get;
 
@@ -14,6 +15,12 @@ it('returns 200 for the homepage', function () {
 
 it('renders the timeline page via Inertia', function () {
     get('/')->assertInertia(fn ($page) => $page->component('Timeline'));
+});
+
+it('shares the real This Week With episode count', function () {
+    Podcast::factory()->count(3)->create();
+
+    get('/')->assertInertia(fn ($page) => $page->where('podcastEpisodes', 3));
 });
 
 it('groups timeline entries by day, newest day first', function () {

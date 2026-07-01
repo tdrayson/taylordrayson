@@ -34,7 +34,7 @@ const batteryLabel = `${Math.round(props.batteryLevel * 100)}% · ${props.chargi
     <Link
         href="/now"
         aria-label="Today's status — open the Now page"
-        class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900"
+        class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
         :class="compact ? 'gap-3 text-xs' : 'gap-4 text-sm'"
     >
         <Tooltip :label="ringsLabel">

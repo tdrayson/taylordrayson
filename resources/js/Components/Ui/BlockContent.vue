@@ -1,6 +1,8 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import EditorList from './EditorList.vue';
+import ZoomButton from './ZoomButton.vue';
+import Lightbox from '../Overlays/Lightbox.vue';
 
 // Read-only renderer for an Editor.js document. Accepts the parsed document
 // object (content is cast to an array server-side) or a raw JSON string.
@@ -24,6 +26,18 @@ const blocks = computed(() => {
 
 const headingTag = (level) => `h${Math.min(Math.max(Number(level) || 2, 1), 6)}`;
 const imageUrl = (data) => data?.file?.url ?? data?.url ?? null;
+
+// Every image in the document forms one lightbox gallery, clicked open in place.
+const lightboxItems = computed(() =>
+    blocks.value
+        .filter((block) => block.type === 'image' && imageUrl(block.data))
+        .map((block) => ({ full: imageUrl(block.data) })),
+);
+const lightboxIndex = ref(null);
+
+function openImage(url) {
+    lightboxIndex.value = lightboxItems.value.findIndex((item) => item.full === url);
+}
 </script>
 
 <template>
@@ -67,10 +81,22 @@ const imageUrl = (data) => data?.file?.url ?? data?.url ?? null;
             <hr v-else-if="block.type === 'delimiter'" class="border-neutral-50" />
 
             <figure v-else-if="block.type === 'image' && imageUrl(block.data)">
-                <img :src="imageUrl(block.data)" :alt="block.data.caption || ''" class="w-full rounded-lg border border-neutral-50">
+                <button
+                    type="button"
+                    :aria-label="block.data.caption ? `View image: ${block.data.caption}` : 'View image full size'"
+                    class="group/zoom relative block w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    @click="openImage(imageUrl(block.data))"
+                >
+                    <img :src="imageUrl(block.data)" :alt="block.data.caption || ''" class="w-full rounded-lg border border-neutral-50">
+                    <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-visible/zoom:opacity-100">
+                        <ZoomButton />
+                    </span>
+                </button>
                 <figcaption v-if="block.data.caption" class="mt-2 text-center text-meta text-neutral-500" v-html="block.data.caption"></figcaption>
             </figure>
         </template>
+
+        <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
     </div>
 </template>
 

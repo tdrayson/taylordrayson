@@ -20,10 +20,10 @@ defineProps({
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>
         <div class="flex gap-4 text-sm font-semibold text-neutral-500">
-            <Link v-if="prev" :href="prev.href" class="inline-flex items-center gap-1 hover:text-accent-500">
+            <Link v-if="prev" :href="prev.href" class="inline-flex items-center gap-1 hover:text-accent-500 focus-visible:text-accent-500">
                 <Icon :icon="ArrowLeft01Icon" class="size-4" /> {{ prev.label }}
             </Link>
-            <Link v-if="next" :href="next.href" class="inline-flex items-center gap-1 hover:text-accent-500">
+            <Link v-if="next" :href="next.href" class="inline-flex items-center gap-1 hover:text-accent-500 focus-visible:text-accent-500">
                 {{ next.label }} <Icon :icon="ArrowRight01Icon" class="size-4" />
             </Link>
         </div>

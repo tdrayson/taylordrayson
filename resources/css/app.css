@@ -117,6 +117,11 @@
     --radius-md: 11px;
     --radius-lg: 14px;
 
+    /* Long-read column widths: prose reads at `max-w-reading`; charts, images and
+       other blocks sit a touch wider at `max-w-media`. Reused by stories/articles. */
+    --container-reading: 42rem;
+    --container-media: 44rem;
+
     /* Elevation — the single shadow tier */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
 
@@ -180,6 +185,18 @@
     --color-macro-protein: hsl(200 70% 48%);
     --color-macro-carbs: hsl(35 85% 52%);
     --color-macro-fat: hsl(340 60% 55%);
+
+    /* Sleep-score bands: red → amber → green by quality */
+    --color-score-excellent: hsl(152 55% 40%);
+    --color-score-high: hsl(110 48% 45%);
+    --color-score-ok: hsl(40 85% 50%);
+    --color-score-low: hsl(25 85% 55%);
+    --color-score-poor: hsl(0 70% 58%);
+
+    /* Sleep-score ring segments, one colour per component */
+    --color-score-duration: hsl(212 88% 56%);
+    --color-score-bedtime: hsl(168 65% 42%);
+    --color-score-interruptions: hsl(5 80% 66%);
 }
 
 @layer base {
@@ -214,6 +231,15 @@
     summary,
     [role='button']:not([aria-disabled='true']) {
         cursor: pointer;
+    }
+
+    /* Abbreviations with a title are tooltips, not links: a dotted underline (vs
+       the solid underline used for links) and a help cursor signal "hover me". */
+    abbr[title] {
+        text-decoration: underline dotted;
+        text-decoration-color: var(--color-neutral-300);
+        text-underline-offset: 2px;
+        cursor: help;
     }
 
     /* Colour changes on interactive elements always ease rather than snap. */
@@ -276,9 +302,12 @@
 }
 
 @layer components {
-    /* Children default to the content column; the utilities below opt out. */
+    /* Children default to the content column; the utilities below opt out.
+       min-width: 0 stops a grid item's auto min-content (e.g. a long unbroken
+       URL) from blowing the track wider than the viewport. */
     .content-grid > * {
         grid-column: content;
+        min-width: 0;
     }
 }
 
@@ -329,4 +358,56 @@
     inset: 0;
     height: 100%;
     width: 100%;
+}
+/* Staggered reveal for the sleep entry charts */
+@keyframes sleep-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sleep-seg-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-rise {
+    animation: sleep-rise 0.5s ease both;
+}
+
+.hypnogram-seg {
+    animation: sleep-seg-in 0.45s ease both;
+}
+
+.ring-fill {
+    transition: stroke-dashoffset 0.7s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-rise,
+    .hypnogram-seg {
+        animation: none;
+    }
+
+    .ring-fill {
+        transition: none;
+    }
+}
+
+/* GridStack drag chrome: match the widgets' rounded-3xl so corners stay round
+   while dragging/dropping (the placeholder and the drag shadow are otherwise square). */
+.now-grid .grid-stack-item-content,
+.now-grid .grid-stack-placeholder > .placeholder-content {
+    border-radius: 1.5rem;
 }

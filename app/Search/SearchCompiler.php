@@ -111,6 +111,12 @@ class SearchCompiler
                 continue;
             }
 
+            if ($field['dataType'] === 'media') {
+                $this->anyMedia($query, $condition['operator'], $condition['value']);
+
+                continue;
+            }
+
             // The remaining "any" fields are date presets that constrain the entry directly.
             $this->clause($query, $field['column'], $field['dataType'], $condition['operator'], $condition['value']);
         }
@@ -143,6 +149,68 @@ class SearchCompiler
     }
 
     /**
+     * Constrain a model query by its photo count (the cover + photos collections),
+     * comparing against the operator and value. Used by typed and Anything groups.
+     *
+     * @param  Builder  $query  The (possibly morphed) model query to constrain.
+     * @param  string  $operator  A numeric operator (eq/neq/gt/gte/lt/lte/between).
+     * @param  mixed  $value  The photo count, or a [min, max] pair for "between".
+     */
+    private function mediaClause(Builder $query, string $operator, mixed $value): void
+    {
+        $photos = fn (Builder $media) => $media->whereIn('collection_name', ['cover', 'photos']);
+
+        if ($operator === 'has_any') {
+            $query->whereHas('media', $photos);
+
+            return;
+        }
+
+        if ($operator === 'has_none') {
+            $query->whereDoesntHave('media', $photos);
+
+            return;
+        }
+
+        if ($operator === 'between') {
+            $range = $this->numberRange($value);
+
+            if ($range === null) {
+                return;
+            }
+
+            $query->whereHas('media', $photos, '>=', (int) $range[0])
+                ->whereHas('media', $photos, '<=', (int) $range[1]);
+
+            return;
+        }
+
+        $comparators = ['eq' => '=', 'neq' => '!=', 'gt' => '>', 'gte' => '>=', 'lt' => '<', 'lte' => '<='];
+
+        if (! isset($comparators[$operator])) {
+            return;
+        }
+
+        $query->whereHas('media', $photos, $comparators[$operator], (int) $value);
+    }
+
+    /**
+     * Apply a photo-count filter across every timeline type for the Anything group.
+     *
+     * @param  Builder  $query  The TimelineEntry query to constrain.
+     * @param  string  $operator  A numeric operator.
+     * @param  mixed  $value  The photo count, or a [min, max] pair for "between".
+     */
+    private function anyMedia(Builder $query, string $operator, mixed $value): void
+    {
+        $models = collect(TypeRegistry::all())->pluck('model')->all();
+
+        $query->whereHasMorph('timelineable', $models, function (Builder $morph) use ($operator, $value): void {
+            $this->mediaClause($morph, $operator, $value);
+        });
+    }
+
+    /**
      * Apply one condition, delegating relation fields through a whereHas.
      *
      * @param  Builder  $query  The model query to constrain.
@@ -153,6 +221,12 @@ class SearchCompiler
     private function applyCondition(Builder $query, array $field, string $operator, mixed $value): void
     {
         if (! in_array($operator, SearchSchema::operatorsFor($field['dataType']), true)) {
+            return;
+        }
+
+        if ($field['dataType'] === 'media') {
+            $this->mediaClause($query, $operator, $value);
+
             return;
         }
 

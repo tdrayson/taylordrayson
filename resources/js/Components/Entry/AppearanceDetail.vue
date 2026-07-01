@@ -83,7 +83,7 @@ onBeforeUnmount(() => {
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0"
+                class="group absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 aria-label="Watch video"
                 @click="watchVideo"
             >

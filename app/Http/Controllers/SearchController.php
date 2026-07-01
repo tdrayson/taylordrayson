@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
 use App\Search\SearchCompiler;
+use App\Search\SearchPresets;
 use App\Search\SearchSchema;
 use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
@@ -67,12 +68,15 @@ class SearchController extends Controller
     {
         $groups = $this->validateFilter($request->input('filter'));
         $page = max(1, (int) $request->input('page', 1));
-        $results = $this->runSearch($groups, $page);
+        $order = $request->input('order') === 'oldest' ? 'oldest' : 'newest';
+        $results = $this->runSearch($groups, $page, $order);
 
         return Inertia::render('Search', [
             'og' => OgMeta::search(),
             'schema' => SearchSchema::forClient(),
+            'presets' => SearchPresets::all(),
             'filter' => $groups,
+            'order' => $order,
             'groups' => $results['groups'],
             'total' => $results['total'],
             'currentPage' => $results['currentPage'],
@@ -85,9 +89,10 @@ class SearchController extends Controller
      *
      * @param  array<int, array<string, mixed>>  $groups  Validated filter groups.
      * @param  int  $page  The 1-based results page to load.
+     * @param  string  $order  'newest' (default) or 'oldest', by occurrence.
      * @return array{groups: array<int, mixed>, total: int, currentPage: int, lastPage: int}
      */
-    private function runSearch(array $groups, int $page): array
+    private function runSearch(array $groups, int $page, string $order = 'newest'): array
     {
         if ($groups === []) {
             return ['groups' => [], 'total' => 0, 'currentPage' => 1, 'lastPage' => 1];
@@ -98,7 +103,9 @@ class SearchController extends Controller
 
         $this->compiler->apply($query, $groups);
 
-        $paginated = $query->orderByDesc('occurred_at')->paginate(self::PER_PAGE, ['*'], 'page', $page);
+        $paginated = $query
+            ->orderBy('occurred_at', $order === 'oldest' ? 'asc' : 'desc')
+            ->paginate(self::PER_PAGE, ['*'], 'page', $page);
 
         return [
             'groups' => $this->feed->groupByDay(collect($paginated->items())),

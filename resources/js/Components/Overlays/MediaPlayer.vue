@@ -228,6 +228,33 @@ function seek(event) {
     el.currentTime = ((event.clientX - rect.left) / rect.width) * duration.value;
 }
 
+// Keyboard seeking for the scrubber slider: arrows nudge ±5s, Home/End jump to the ends.
+function nudge(delta) {
+    const el = audioEl.value;
+
+    if (!el || !duration.value) {
+        return;
+    }
+
+    el.currentTime = Math.min(duration.value, Math.max(0, el.currentTime + delta));
+}
+
+function onScrubKey(event) {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        nudge(5);
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        nudge(-5);
+    } else if (event.key === 'Home') {
+        event.preventDefault();
+        nudge(-duration.value);
+    } else if (event.key === 'End') {
+        event.preventDefault();
+        nudge(duration.value);
+    }
+}
+
 function clock(seconds) {
     if (!seconds || Number.isNaN(seconds)) {
         return '0:00';
@@ -271,17 +298,28 @@ onBeforeUnmount(() => {
                         :is="player.track.url ? Link : 'div'"
                         :href="player.track.url || undefined"
                         class="block truncate text-meta font-semibold text-neutral-900"
-                        :class="player.track.url ? 'transition-colors hover:text-accent-500' : ''"
+                        :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-label text-neutral-500 tnum">{{ clock(currentTime) }}</span>
-                        <div class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100" @click="seek">
+                        <div
+                            class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                            role="slider"
+                            tabindex="0"
+                            aria-label="Seek"
+                            :aria-valuemin="0"
+                            :aria-valuemax="Math.round(duration)"
+                            :aria-valuenow="Math.round(currentTime)"
+                            :aria-valuetext="`${clock(currentTime)} of ${clock(duration)}`"
+                            @click="seek"
+                            @keydown="onScrubKey"
+                        >
                             <div class="absolute inset-y-0 left-0 rounded-full bg-accent-500" :style="{ width: progress + '%' }" />
                         </div>
                         <span class="text-label text-neutral-500 tnum">{{ clock(duration) }}</span>
                     </div>
                 </div>
-                <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close player" @click="closePlayer">
+                <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">
                     <Icon :icon="Cancel01Icon" class="size-5" />
                 </button>
             </div>
@@ -303,9 +341,9 @@ onBeforeUnmount(() => {
                         :is="player.track.url ? Link : 'span'"
                         :href="player.track.url || undefined"
                         class="truncate text-caption font-semibold text-neutral-900"
-                        :class="player.track.url ? 'transition-colors hover:text-accent-500' : ''"
+                        :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
-                    <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close player" @click="closePlayer">
+                    <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">
                         <Icon :icon="Cancel01Icon" class="size-4" />
                     </button>
                 </div>

@@ -5,7 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import { RssIcon, SourceCodeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
-import FeedPresetCard from '../Components/Feeds/FeedPresetCard.vue';
+import OptionCard from '../Components/Ui/OptionCard.vue';
 import FeedTypeToggle from '../Components/Feeds/FeedTypeToggle.vue';
 import FeedUrlField from '../Components/Feeds/FeedUrlField.vue';
 
@@ -75,11 +75,11 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
     <div class="mx-auto max-w-2xl">
         <AppHead :og="og" />
 
-        <header class="mb-10 flex items-start gap-4">
-            <span class="hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 sm:flex">
+        <header class="relative mb-10">
+            <span class="absolute left-0 top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 sm:flex lg:-left-16">
                 <Icon :icon="RssIcon" class="size-6" />
             </span>
-            <div class="min-w-0">
+            <div class="min-w-0 sm:pl-16 lg:pl-0">
                 <h1 class="font-display text-display">Feeds</h1>
                 <p class="mt-2 max-w-prose text-meta text-neutral-500">
                     Pop me in your feed reader. Grab one of my ready-made mixes, or flip the switches below
@@ -91,7 +91,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         <section class="mb-10">
             <h2 class="mb-3 text-label uppercase text-neutral-500">Ready-made mixes</h2>
             <div class="grid gap-3 sm:grid-cols-2">
-                <FeedPresetCard
+                <OptionCard
                     v-for="preset in presets"
                     :key="preset.key"
                     :label="preset.label"

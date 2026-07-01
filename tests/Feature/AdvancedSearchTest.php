@@ -5,12 +5,30 @@ use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Search\SearchPresets;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
 
 function searchUrl(array $filter): string
 {
     return '/search?'.http_build_query(['filter' => json_encode($filter)]);
+}
+
+/** Attach `$count` photos (the first as the cover) to a media-bearing model. */
+function attachPhotos(object $model, int $count): void
+{
+    foreach (range(1, $count) as $index) {
+        $image = imagecreatetruecolor(20, 20);
+        ob_start();
+        imagejpeg($image);
+        $bytes = ob_get_clean();
+        imagedestroy($image);
+
+        $model->addMediaFromString($bytes)
+            ->usingFileName("p{$index}.jpg")
+            ->toMediaCollection($index === 1 ? 'cover' : 'photos');
+    }
 }
 
 function makeFlight(string $airlineIcao, int $miles, string $occurredAt): void
@@ -224,6 +242,80 @@ it('supports text operators on an enum column', function () {
 
     get(searchUrl([['type' => 'activity', 'conditions' => [['field' => 'kind', 'operator' => 'contains', 'value' => 'run']]]]))
         ->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('filters activities by photo count', function () {
+    Storage::fake('public');
+
+    attachPhotos(Activity::factory()->create(['type' => 'run', 'name' => 'Big trip', 'occurred_at' => now()]), 3);
+    attachPhotos(Activity::factory()->create(['type' => 'run', 'name' => 'One shot', 'occurred_at' => now()]), 1);
+    Activity::factory()->create(['type' => 'run', 'name' => 'No photos', 'occurred_at' => now()]);
+
+    // More than 2 photos: only the 3-photo activity.
+    get(searchUrl([['type' => 'activity', 'conditions' => [['field' => 'photos', 'operator' => 'gt', 'value' => 2]]]]))
+        ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+
+    // Has at least one photo: the 3-photo and 1-photo activities.
+    get(searchUrl([['type' => 'activity', 'conditions' => [['field' => 'photos', 'operator' => 'gte', 'value' => 1]]]]))
+        ->assertInertia(fn ($page) => $page->where('total', 2));
+});
+
+it('filters by has any / has none photos', function () {
+    Storage::fake('public');
+
+    attachPhotos(Activity::factory()->create(['type' => 'run', 'name' => 'With pics', 'occurred_at' => now()]), 2);
+    Activity::factory()->create(['type' => 'run', 'name' => 'Bare', 'occurred_at' => now()]);
+
+    get(searchUrl([['type' => 'activity', 'conditions' => [['field' => 'photos', 'operator' => 'has_any', 'value' => null]]]]))
+        ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+
+    get(searchUrl([['type' => 'activity', 'conditions' => [['field' => 'photos', 'operator' => 'has_none', 'value' => null]]]]))
+        ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('filters Anything that has photos across types', function () {
+    Storage::fake('public');
+
+    attachPhotos(Activity::factory()->create(['type' => 'run', 'occurred_at' => now()->subDay()]), 2);
+    Checkin::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => now()->subDays(2)]);
+
+    get(searchUrl([['type' => 'any', 'conditions' => [['field' => 'photos', 'operator' => 'gt', 'value' => 0]]]]))
+        ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('exposes ready-made example searches', function () {
+    get('/search')->assertOk()->assertInertia(fn ($page) => $page
+        ->has('presets', 6)
+        ->has('presets.0.label')
+        ->has('presets.0.filter')
+    );
+});
+
+it('runs a preset filter to real results', function () {
+    Activity::factory()->create(['type' => 'run', 'distance_km' => 12, 'occurred_at' => now()]); // matches (>= 5km run)
+    Activity::factory()->create(['type' => 'run', 'distance_km' => 3, 'occurred_at' => now()]);  // too short
+    Activity::factory()->create(['type' => 'walk', 'distance_km' => 15, 'occurred_at' => now()]); // not a run
+
+    $preset = collect(SearchPresets::all())->firstWhere('key', 'long-runs');
+
+    get(searchUrl($preset['filter']))->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('orders results newest or oldest first', function () {
+    Activity::factory()->create(['name' => 'Older', 'type' => 'run', 'occurred_at' => '2026-01-01 09:00:00']);
+    Activity::factory()->create(['name' => 'Newer', 'type' => 'run', 'occurred_at' => '2026-06-01 09:00:00']);
+
+    $filter = [['type' => 'activity', 'conditions' => [['field' => 'kind', 'operator' => 'is', 'value' => ['run']]]]];
+
+    get(searchUrl($filter))->assertInertia(fn ($page) => $page
+        ->where('order', 'newest')
+        ->where('groups.0.items.0.title', 'Newer')
+    );
+
+    get(searchUrl($filter).'&order=oldest')->assertInertia(fn ($page) => $page
+        ->where('order', 'oldest')
+        ->where('groups.0.items.0.title', 'Older')
+    );
 });
 
 it('drops unknown fields and disallowed operators', function () {

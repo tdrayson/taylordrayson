@@ -47,6 +47,19 @@ class OgImageController extends Controller
     ];
 
     /**
+     * Sleep stage bar colours, mirroring the --color-sleep-* tokens in
+     * resources/css/app.css (hsl converted to hex for the server-rendered card).
+     *
+     * @var array<string, string>
+     */
+    private const SLEEP_STAGE_COLORS = [
+        'awake' => '#ea8686',
+        'rem' => '#5494d4',
+        'light' => '#9fbfdf',
+        'deep' => '#5247c2',
+    ];
+
+    /**
      * Render (and cache) a 1200x630 Open Graph card for the given title.
      *
      * Input is read leniently so a malformed share URL still returns a valid
@@ -144,8 +157,31 @@ class OgImageController extends Controller
             'date' => $entry->occurred_at->format('D j M Y'),
             'subtitle' => null,
             'image' => $image,
+            'stages' => $card['type'] === 'sleep' ? $this->sleepStages(data_get($card, 'meta.segments', [])) : null,
             'cutout' => $this->dataUri('taylor-cutout.png', 'image/png'),
         ];
+    }
+
+    /**
+     * Build the sleep stage bar segments (label, colour, width percent) from the
+     * card's per-stage seconds. Returns an empty array when there is no data.
+     *
+     * @param  array<int, array{label: string, stage: string, seconds: int}>  $segments
+     * @return array<int, array{label: string, color: string, percent: float}>
+     */
+    private function sleepStages(array $segments): array
+    {
+        $total = array_sum(array_column($segments, 'seconds'));
+
+        if ($total <= 0) {
+            return [];
+        }
+
+        return array_map(fn (array $segment): array => [
+            'label' => $segment['label'],
+            'color' => self::SLEEP_STAGE_COLORS[$segment['stage']] ?? '#'.self::ACCENT_DEFAULT,
+            'percent' => round($segment['seconds'] / $total * 100, 2),
+        ], $segments);
     }
 
     /**
@@ -420,7 +456,12 @@ class OgImageController extends Controller
             'note' => ['layout' => 'text', 'accent' => TypeColors::hex('note'), 'eyebrow' => 'Note', 'title' => 'A quick thought on building in public', 'date' => 'Tue 24 Jun 2026', 'meta' => null],
             'project' => ['layout' => 'text', 'accent' => TypeColors::hex('project'), 'eyebrow' => 'Project', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel · Inertia · Vue'],
             'event' => ['layout' => 'text', 'accent' => TypeColors::hex('event'), 'eyebrow' => 'Event', 'title' => 'Laracon EU', 'date' => 'Tue 28 Jan 2026', 'meta' => 'Amsterdam'],
-            'sleep' => ['layout' => 'text', 'accent' => TypeColors::hex('sleep'), 'eyebrow' => 'Sleep', 'title' => 'I slept 7h 32m', 'date' => 'Wed 25 Jun 2026', 'meta' => '89 sleep score'],
+            'sleep' => ['layout' => 'text', 'accent' => TypeColors::hex('sleep'), 'eyebrow' => 'Sleep', 'title' => 'I slept 7h 32m', 'date' => 'Wed 25 Jun 2026', 'stages' => $this->sleepStages([
+                ['label' => 'Awake', 'stage' => 'awake', 'seconds' => 1620],
+                ['label' => 'REM', 'stage' => 'rem', 'seconds' => 6480],
+                ['label' => 'Light', 'stage' => 'light', 'seconds' => 13320],
+                ['label' => 'Deep', 'stage' => 'deep', 'seconds' => 5700],
+            ])],
             'calorie' => ['layout' => 'text', 'accent' => TypeColors::hex('food'), 'eyebrow' => 'Food', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
             'fuel' => ['layout' => 'text', 'accent' => TypeColors::hex('fuel'), 'eyebrow' => 'Fuel', 'title' => 'I put £62.40 of fuel in', 'date' => 'Sat 14 Jun 2026', 'meta' => null],
         ];

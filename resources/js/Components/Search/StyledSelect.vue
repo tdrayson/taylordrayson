@@ -2,6 +2,8 @@
 import { ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
+defineOptions({ inheritAttrs: false });
+
 defineProps({
     modelValue: { type: [String, Number], default: '' },
     options: { type: Array, required: true }, // [{ value, label }]
@@ -14,6 +16,7 @@ const emit = defineEmits(['update:modelValue']);
 <template>
     <div class="relative">
         <select
+            v-bind="$attrs"
             :value="modelValue"
             class="w-full appearance-none rounded-md border border-neutral-100 bg-neutral-0 py-2.5 pl-3 pr-9 text-meta transition-colors focus:border-accent-500 focus:outline-none"
             :class="modelValue === '' ? 'text-neutral-500' : 'text-neutral-900'"

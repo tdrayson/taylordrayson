@@ -28,7 +28,7 @@ onBeforeUnmount(() => observer?.disconnect());
 
 <template>
     <div ref="container" class="relative h-40 w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
-        <svg v-if="size.width && projected.length" class="size-full" :viewBox="`0 0 ${size.width} ${size.height}`" fill="none">
+        <svg v-if="size.width && projected.length" class="size-full" :viewBox="`0 0 ${size.width} ${size.height}`" fill="none" aria-hidden="true">
             <polyline
                 :points="path"
                 :style="{ stroke: color }"

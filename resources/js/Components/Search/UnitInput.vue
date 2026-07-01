@@ -16,6 +16,7 @@ const emit = defineEmits(['update:modelValue']);
             :value="modelValue"
             type="number"
             :placeholder="placeholder"
+            :aria-label="[prefix, placeholder, suffix].filter(Boolean).join(' ')"
             class="w-full min-w-0 bg-transparent py-2.5 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
             :class="[prefix ? 'pl-1.5' : 'pl-3', suffix ? 'pr-1.5' : 'pr-3']"
             @input="emit('update:modelValue', $event.target.value)"

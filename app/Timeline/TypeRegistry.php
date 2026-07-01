@@ -73,8 +73,9 @@ class TypeRegistry
 
     /**
      * A taxonomy over a column, addressed in the URL by a slug (dashes) of the value.
-     * Slugs are matched back with `whereIn` so divergent encodings of the same thing
-     * (e.g. "weight training" and "weight_training" → weight-training) both resolve.
+     * Stored types are kebab-case (e.g. "weight-training"), so the slug is usually
+     * the value itself; slugs are still matched back with `whereIn` so any legacy
+     * encoding ("weight training", "weight_training") resolves to the same page.
      */
     private static function column(string $column, string $label, ?callable $title = null): callable
     {

@@ -8,6 +8,7 @@ use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,10 +22,9 @@ use Spatie\MediaLibrary\HasMedia;
     'origin_iata',
     'destination_iata',
     'distance_miles',
-    'duration_min',
+    'duration',
     'departure_timezone',
     'arrival_timezone',
-    'co2_kg',
     'cabin_class',
     'reason',
     'meta',
@@ -35,6 +35,9 @@ class Flight extends Model implements HasMedia, Timelineable
     use HasFactory;
     use HasTimelineEntry;
 
+    /** @var list<string> */
+    protected $appends = ['departed_local', 'arrived_local'];
+
     /**
      * @return array<string, string>
      */
@@ -43,9 +46,46 @@ class Flight extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'meta' => 'array',
-            'duration_min' => 'integer',
-            'co2_kg' => 'integer',
+            'duration' => 'integer',
         ];
+    }
+
+    /**
+     * Departure as a wall-clock string in the origin's local time: an explicit
+     * actual/scheduled time from meta, otherwise occurred_at (stored origin-local).
+     */
+    protected function departedLocal(): Attribute
+    {
+        return Attribute::get(fn (): ?string => data_get($this->meta, 'departed_actual')
+            ?? data_get($this->meta, 'departed_scheduled')
+            ?? $this->occurred_at?->format('Y-m-d\TH:i'));
+    }
+
+    /**
+     * Arrival as a wall-clock string in the destination's local time. Prefers an
+     * explicit meta time; otherwise computes departure + duration across the two
+     * timezones, so the landed time is correct and DST-aware (BST vs GMT, etc.).
+     */
+    protected function arrivedLocal(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $explicit = data_get($this->meta, 'arrived_actual') ?? data_get($this->meta, 'arrived_scheduled');
+
+            if ($explicit) {
+                return $explicit;
+            }
+
+            if (! $this->occurred_at || ! $this->duration || ! $this->departure_timezone || ! $this->arrival_timezone) {
+                return null;
+            }
+
+            return $this->occurred_at
+                ->copy()
+                ->shiftTimezone($this->departure_timezone)
+                ->addSeconds($this->duration)
+                ->setTimezone($this->arrival_timezone)
+                ->format('Y-m-d\TH:i');
+        });
     }
 
     public function airline(): BelongsTo
@@ -61,6 +101,11 @@ class Flight extends Model implements HasMedia, Timelineable
     public function destination(): BelongsTo
     {
         return $this->belongsTo(Airport::class, 'destination_iata', 'iata_code');
+    }
+
+    public function timezone(): ?string
+    {
+        return $this->departure_timezone;
     }
 
     public function slug(): string
@@ -93,10 +138,11 @@ class Flight extends Model implements HasMedia, Timelineable
                 'route' => [
                     'origin' => ['iata' => $this->origin_iata, 'place' => $this->relationLoaded('origin') ? $this->origin?->place : null, 'name' => $this->relationLoaded('origin') ? $this->origin?->name : null, 'lat' => $this->relationLoaded('origin') ? $this->origin?->latitude : null, 'lng' => $this->relationLoaded('origin') ? $this->origin?->longitude : null],
                     'destination' => ['iata' => $this->destination_iata, 'place' => $this->relationLoaded('destination') ? $this->destination?->place : null, 'name' => $this->relationLoaded('destination') ? $this->destination?->name : null, 'lat' => $this->relationLoaded('destination') ? $this->destination?->latitude : null, 'lng' => $this->relationLoaded('destination') ? $this->destination?->longitude : null],
-                    'depart' => data_get($this->meta, 'departed_actual') ?? data_get($this->meta, 'departed_scheduled'),
-                    'arrive' => data_get($this->meta, 'arrived_actual'),
+                    'depart' => $this->departed_local,
+                    'arrive' => $this->arrived_local,
                     'distance' => $this->distance_miles,
-                    'airline' => $this->relationLoaded('airline') && $this->airline ? ['name' => $this->airline->name, 'icon' => $this->airline->icon_url] : null,
+                    'duration' => $this->duration,
+                    'airline' => $this->relationLoaded('airline') && $this->airline ? ['name' => $this->airline->name, 'icon' => $this->airline->icon_url, 'number' => trim(($this->airline->iata_code ?: $this->airline_icao).' '.$this->flight_number)] : null,
                 ],
             ],
         ];

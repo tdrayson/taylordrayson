@@ -3,27 +3,18 @@
 namespace App\Console\Commands\Import;
 
 use App\Models\Checkin;
+use App\Services\Foursquare;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 #[Signature('foursquare:import {--limit=0 : Max checkins to fetch (0 = all)}')]
 #[Description('Import all check-in history from Foursquare/Swarm')]
 class FoursquareImport extends Command
 {
-    private const PER_PAGE = 250;
-
-    public function handle(): int
+    public function handle(Foursquare $foursquare): int
     {
-        $token = config('services.foursquare.access_token');
-
-        if (! $token) {
-            $this->error('FOURSQUARE_ACCESS_TOKEN is not set.');
-
-            return self::FAILURE;
-        }
-
         $existingIds = Checkin::query()
             ->where('platform_type', 'swarm')
             ->whereNotNull('platform_id')
@@ -31,33 +22,12 @@ class FoursquareImport extends Command
             ->flip()
             ->all();
 
-        $offset = 0;
         $imported = 0;
         $skipped = 0;
         $limit = (int) $this->option('limit');
 
-        while (true) {
-            $response = Http::get('https://api.foursquare.com/v2/users/self/checkins', [
-                'oauth_token' => $token,
-                'v' => '20240109',
-                'limit' => self::PER_PAGE,
-                'offset' => $offset,
-                'sort' => 'newestfirst',
-            ]);
-
-            if ($response->failed()) {
-                $this->error("API request failed: {$response->status()} — {$response->body()}");
-
-                return self::FAILURE;
-            }
-
-            $items = $response->json('response.checkins.items');
-
-            if (empty($items)) {
-                break;
-            }
-
-            foreach ($items as $item) {
+        try {
+            foreach ($foursquare->checkins() as $item) {
                 if (isset($existingIds[$item['id']])) {
                     $skipped++;
 
@@ -90,11 +60,13 @@ class FoursquareImport extends Command
                 $this->info("[{$imported}] {$venueName} — ".date('Y-m-d', $item['createdAt']));
 
                 if ($limit > 0 && $imported >= $limit) {
-                    break 2;
+                    break;
                 }
             }
+        } catch (RuntimeException $exception) {
+            $this->error($exception->getMessage());
 
-            $offset += self::PER_PAGE;
+            return self::FAILURE;
         }
 
         $this->info("Done. Imported {$imported} checkins, skipped {$skipped} existing.");
