@@ -1,0 +1,30 @@
+title: Article
+fields:
+  -
+    handle: title
+    field:
+      type: text
+      display: Title
+      required: true
+  -
+    handle: slug
+    field:
+      type: slug
+      display: Slug
+      required: true
+  -
+    handle: excerpt
+    field:
+      type: textarea
+      display: Excerpt
+  -
+    handle: content
+    field:
+      type: bard
+      display: Content
+      sets: ~
+  -
+    handle: tags
+    field:
+      type: tags
+      display: Tags

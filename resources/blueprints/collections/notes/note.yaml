@@ -1,0 +1,8 @@
+title: Note
+fields:
+  -
+    handle: content
+    field:
+      type: bard
+      display: Content
+      sets: ~
