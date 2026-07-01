@@ -172,20 +172,25 @@ class TimelineController extends Controller
         $start = Carbon::create($year, $month, 1)->startOfDay();
         $end = (clone $start)->endOfMonth()->endOfDay();
 
+        // Exclude Article/Note morph types — Statamic content provides those entries.
         $entries = TimelineEntry::query()
             ->withCardRelations()
+            ->whereNotIn('timelineable_type', self::EXCLUDED_MORPH_TYPES)
             ->whereBetween('occurred_at', [$start, $end])
             ->orderBy('occurred_at')
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
 
+        // Published Statamic articles and notes for the same month window.
+        $contentEntries = $this->content->betweenDates($end->copy()->endOfDay(), $start->copy()->startOfDay());
+
         return Inertia::render('Month', [
             'year' => $year,
             'month' => $month,
             'og' => OgMeta::month($year, $month),
-            'entriesCount' => $entries->count(),
-            'days' => $this->monthDays($entries),
+            'entriesCount' => $entries->count() + $contentEntries->count(),
+            'days' => $this->monthDays($entries, $contentEntries),
             'stats' => $this->monthStats($entries, $start, $end),
         ]);
     }
@@ -196,12 +201,17 @@ class TimelineController extends Controller
      * sleep and food are kept out of the icon row since they happen daily and
      * would just clutter every cell.
      *
+     * Content entries (Statamic articles/notes) contribute their type to the
+     * icon row for the day they occurred on.
+     *
      * @param  Collection<int, TimelineEntry>  $entries
+     * @param  Collection<int, ContentEntry>  $contentEntries
      * @return array<int, array{sleep: ?int, calories: ?int, types: array<int, string>}>
      */
-    private function monthDays(Collection $entries): array
+    private function monthDays(Collection $entries, ?Collection $contentEntries = null): array
     {
-        return $entries->groupBy(fn (TimelineEntry $entry): int => (int) $entry->occurred_at->format('j'))
+        // Build the base day map from Eloquent entries.
+        $days = $entries->groupBy(fn (TimelineEntry $entry): int => (int) $entry->occurred_at->format('j'))
             ->map(function (Collection $group): array {
                 $sleep = null;
                 $calories = 0;
@@ -226,7 +236,18 @@ class TimelineController extends Controller
                 }
 
                 return ['sleep' => $sleep, 'calories' => $calories ?: null, 'types' => $types];
-            })->all();
+            });
+
+        // Fold Statamic content entries into the day map — they contribute their
+        // type ('article'|'note') to the icon row; sleep/calories are unaffected.
+        foreach ($contentEntries ?? [] as $contentEntry) {
+            $dayOfMonth = (int) $contentEntry->occurredAt()->format('j');
+            $existing = $days->get($dayOfMonth, ['sleep' => null, 'calories' => null, 'types' => []]);
+            $existing['types'][] = $contentEntry->card()['type'];
+            $days->put($dayOfMonth, $existing);
+        }
+
+        return $days->all();
     }
 
     /**
@@ -282,20 +303,50 @@ class TimelineController extends Controller
 
         // Day (and other non-timeline views) read chronologically, earliest first —
         // the inverse of the home timeline, which leads with the latest entry.
+        // Exclude Article/Note morph types — Statamic content provides those entries.
         $entries = TimelineEntry::query()
             ->withCardRelations()
+            ->whereNotIn('timelineable_type', self::EXCLUDED_MORPH_TYPES)
             ->whereDate('occurred_at', $date->toDateString())
             ->orderBy('occurred_at', 'asc')
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
 
+        // Map Eloquent entries to card items, carrying occurred_at for stable sort.
+        // Convert to a base Collection so merge() with content cards (plain arrays) works;
+        // Eloquent's Collection::merge() calls getKey() on items, which fails for arrays.
+        $eloquentCards = collect($entries->map(function (TimelineEntry $entry): array {
+            $item = $this->feed->cardItem($entry);
+            $item['_occurred_at'] = $entry->occurred_at;
+
+            return $item;
+        })->all());
+
+        // Published Statamic content for the same day, mapped to card items.
+        $contentCards = $this->content
+            ->betweenDates($date->copy()->endOfDay(), $date->copy()->startOfDay())
+            ->map(fn (ContentEntry $e): array => $this->feed->contentCardItem($e));
+
+        // Merge and sort earliest-first (day view is chronological).
+        $items = $eloquentCards
+            ->values()
+            ->merge($contentCards->values())
+            ->sortBy(fn (array $item): int => $item['_occurred_at']->timestamp)
+            ->values()
+            ->map(function (array $item): array {
+                unset($item['_occurred_at']);
+
+                return $item;
+            })
+            ->all();
+
         return Inertia::render('Day', [
             'year' => $year,
             'month' => $month,
             'day' => $day,
             'og' => OgMeta::day($date),
-            'items' => $entries->map(fn (TimelineEntry $entry): array => $this->feed->cardItem($entry))->all(),
+            'items' => $items,
             'stats' => $this->dayStats($entries, $date),
             // Placeholder Apple-Health summary — replace with real data once the health schema lands.
             'rings' => ['move' => 62, 'exercise' => 53, 'stand' => 75, 'moveKcal' => 137, 'exerciseMins' => 32, 'standHrs' => 9],
