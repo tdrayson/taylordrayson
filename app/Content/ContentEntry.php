@@ -160,8 +160,7 @@ class ContentEntry
     /**
      * Extract plain text from the Bard (ProseMirror/Tiptap) node tree stored
      * on the entry's content field. Traverses the node tree recursively and
-     * collects all text-node values, mirroring the behaviour of
-     * EditorJs::plainText() for the legacy Note model.
+     * collects all text-node values.
      */
     private function bardPlainText(): string
     {

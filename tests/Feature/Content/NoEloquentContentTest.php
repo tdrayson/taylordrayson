@@ -51,3 +51,9 @@ it('GET / (timeline) returns 200', function () {
 it('GET /feed/rss returns 200', function () {
     get('/feed/rss')->assertOk()->assertSee('<rss', false);
 });
+
+it('the committed Statamic article entry page returns 200', function () {
+    get('/2026/05/21/autem-exercitationem-reiciendis-sapiente-voluptatem-porro-iure-atque-repellendus-labore')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('Entry')->where('type', 'article'));
+});
