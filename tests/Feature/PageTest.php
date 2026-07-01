@@ -1,7 +1,16 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\File;
 use Statamic\Facades\Entry;
+
+afterEach(function () {
+    // Remove flat-file page entries created during this test to keep the
+    // content directory clean. We delete from disk directly to avoid
+    // triggering Statamic stache events that interfere with later tests.
+    File::delete(File::glob(base_path('content/collections/pages/*.md')));
+    File::delete(File::glob(base_path('content/collections/pages/*.*.md')));
+});
 
 it('renders a published page at its slug', function () {
     Entry::make()->collection('pages')->slug('about')
@@ -14,7 +23,7 @@ it('renders a published page at its slug', function () {
 
 it('hides a draft page from guests but shows it to authenticated users', function () {
     Entry::make()->collection('pages')->slug('secret')
-        ->data(['title' => 'Secret', 'published' => false])->save();
+        ->data(['title' => 'Secret'])->published(false)->save();
 
     $this->get('/secret')->assertNotFound();
     $this->actingAs(User::factory()->create())->get('/secret')->assertSuccessful();
