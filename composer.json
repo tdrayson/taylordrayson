@@ -13,6 +13,7 @@
         "spatie/browsershot": "^5.4",
         "spatie/laravel-feed": "^4.5",
         "spatie/laravel-medialibrary": "^11.23",
+        "statamic-rad-pack/runway": "^9.0",
         "statamic/cms": "^6.5"
     },
     "require-dev": {
@@ -88,7 +89,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "pixelfear/composer-dist-plugin": true
         }
     },
     "minimum-stability": "dev",

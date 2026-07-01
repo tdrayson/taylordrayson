@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
+use StatamicRadPack\Runway\Traits\HasRunwayResource;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -33,6 +34,7 @@ class Flight extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
+    use HasRunwayResource;
     use HasTimelineEntry;
 
     /** @var list<string> */

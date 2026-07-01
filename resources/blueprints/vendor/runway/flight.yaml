@@ -1,0 +1,73 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: flight_number
+        field:
+          type: text
+          display: 'Flight Number'
+      -
+        handle: airline_icao
+        field:
+          type: text
+          display: 'Airline ICAO'
+      -
+        handle: origin_iata
+        field:
+          type: text
+          display: 'Origin IATA'
+      -
+        handle: destination_iata
+        field:
+          type: text
+          display: 'Destination IATA'
+      -
+        handle: distance_miles
+        field:
+          type: integer
+          display: 'Distance (miles)'
+      -
+        handle: duration
+        field:
+          type: integer
+          display: 'Duration (seconds)'
+      -
+        handle: cabin_class
+        field:
+          type: select
+          display: 'Cabin Class'
+          options:
+            economy: Economy
+            premium-economy: 'Premium Economy'
+            business: Business
+            first: First
+      -
+        handle: reason
+        field:
+          type: text
+          display: Reason
+  sidebar:
+    fields:
+      -
+        handle: departure_timezone
+        field:
+          type: text
+          display: 'Departure Timezone'
+      -
+        handle: arrival_timezone
+        field:
+          type: text
+          display: 'Arrival Timezone'
+      -
+        handle: meta
+        field:
+          type: textarea
+          display: Meta
