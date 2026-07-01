@@ -38,14 +38,15 @@ class EntryController extends Controller
 
         if ($contentEntry !== null) {
             $type = $contentEntry->type();
+            $card = $contentEntry->card();
             $local = $this->occurredFields($contentEntry->occurredAt(), null, LocalTime::isDayLevel($type));
 
             return Inertia::render('Entry', [
                 'type' => $type,
                 'accent' => $type,
-                'title' => $contentEntry->title(),
+                'title' => $card['title'],
                 ...$local,
-                'og' => OgMeta::contentEntry($contentEntry),
+                'og' => OgMeta::contentEntry($contentEntry, $card['title']),
                 'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
                 'entry' => [
                     'bodyHtml' => $contentEntry->bodyHtml(),

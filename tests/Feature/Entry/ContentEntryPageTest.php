@@ -57,6 +57,7 @@ it('renders a statamic note entry via Inertia', function () {
             ->where('type', 'note')
             ->where('accent', 'note')
             ->where('source', null)
+            ->where('title', fn ($value) => str_contains($value, 'Hello from a note'))
             ->where('entry.bodyHtml', fn ($value) => str_contains($value, 'Hello from a note'))
         );
 });

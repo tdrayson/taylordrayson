@@ -268,15 +268,17 @@ class OgMeta
     /**
      * OG metadata for a Statamic content entry (article or note).
      *
+     * @param  string  $title  The resolved display title (from card()); used as the primary title.
+     *                         Falls back to excerpt, then type label when empty.
      * @return OgPayload
      */
-    public static function contentEntry(ContentEntry $entry): array
+    public static function contentEntry(ContentEntry $entry, string $title): array
     {
-        $title = $entry->title() ?: $entry->excerpt() ?: ucfirst($entry->type());
+        $resolvedTitle = $title ?: $entry->excerpt() ?: ucfirst($entry->type());
 
         return self::make([
-            'title' => $title,
-            'description' => $entry->excerpt() ?? $title,
+            'title' => $resolvedTitle,
+            'description' => $entry->excerpt() ?? $resolvedTitle,
         ]);
     }
 
