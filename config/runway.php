@@ -1,6 +1,15 @@
 <?php
 
+use App\Models\Activity;
+use App\Models\Appearance;
+use App\Models\Calorie;
+use App\Models\Checkin;
+use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Fuel;
+use App\Models\Podcast;
+use App\Models\Project;
+use App\Models\Sleep;
 
 return [
 
@@ -17,6 +26,51 @@ return [
         Flight::class => [
             'name' => 'Flights',
             'blueprint' => 'flight',
+            'route' => null,
+        ],
+        Activity::class => [
+            'name' => 'Activities',
+            'blueprint' => 'activity',
+            'route' => null,
+        ],
+        Calorie::class => [
+            'name' => 'Calories',
+            'blueprint' => 'calorie',
+            'route' => null,
+        ],
+        Sleep::class => [
+            'name' => 'Sleep',
+            'blueprint' => 'sleep',
+            'route' => null,
+        ],
+        Fuel::class => [
+            'name' => 'Fuel',
+            'blueprint' => 'fuel',
+            'route' => null,
+        ],
+        Podcast::class => [
+            'name' => 'Podcasts',
+            'blueprint' => 'podcast',
+            'route' => null,
+        ],
+        Checkin::class => [
+            'name' => 'Checkins',
+            'blueprint' => 'checkin',
+            'route' => null,
+        ],
+        Event::class => [
+            'name' => 'Events',
+            'blueprint' => 'event',
+            'route' => null,
+        ],
+        Appearance::class => [
+            'name' => 'Appearances',
+            'blueprint' => 'appearance',
+            'route' => null,
+        ],
+        Project::class => [
+            'name' => 'Projects',
+            'blueprint' => 'project',
             'route' => null,
         ],
     ],

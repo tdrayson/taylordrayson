@@ -1,0 +1,63 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: type
+        field:
+          type: select
+          display: Type
+          validate: required
+          options:
+            podcast: Podcast
+            interview: Interview
+            talk: Talk
+            panel: Panel
+            webinar: Webinar
+            other: Other
+      -
+        handle: title
+        field:
+          type: text
+          display: Title
+          validate: required
+      -
+        handle: show_name
+        field:
+          type: text
+          display: 'Show Name'
+          validate: required
+      -
+        handle: description
+        field:
+          type: textarea
+          display: Description
+      -
+        handle: duration
+        field:
+          type: integer
+          display: 'Duration (seconds)'
+  sidebar:
+    fields:
+      -
+        handle: url
+        field:
+          type: text
+          display: URL
+      -
+        handle: video_url
+        field:
+          type: text
+          display: 'Video URL'
+      -
+        handle: audio_url
+        field:
+          type: text
+          display: 'Audio URL'

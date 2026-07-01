@@ -1,0 +1,103 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: name
+        field:
+          type: text
+          display: Name
+          validate: required
+      -
+        handle: meal
+        field:
+          type: select
+          display: Meal
+          validate: required
+          options:
+            breakfast: Breakfast
+            lunch: Lunch
+            dinner: Dinner
+            snack: Snack
+      -
+        handle: quantity
+        field:
+          type: float
+          display: Quantity
+          validate: required
+      -
+        handle: units
+        field:
+          type: text
+          display: Units
+          validate: required
+      -
+        handle: calories
+        field:
+          type: integer
+          display: Calories
+          validate: required
+      -
+        handle: protein
+        field:
+          type: float
+          display: 'Protein (g)'
+      -
+        handle: carbs
+        field:
+          type: float
+          display: 'Carbs (g)'
+      -
+        handle: fat
+        field:
+          type: float
+          display: 'Fat (g)'
+      -
+        handle: saturated_fat
+        field:
+          type: float
+          display: 'Saturated Fat (g)'
+      -
+        handle: sugars
+        field:
+          type: float
+          display: 'Sugars (g)'
+      -
+        handle: fibre
+        field:
+          type: float
+          display: 'Fibre (g)'
+      -
+        handle: cholesterol
+        field:
+          type: float
+          display: 'Cholesterol (mg)'
+      -
+        handle: sodium
+        field:
+          type: float
+          display: 'Sodium (mg)'
+  sidebar:
+    fields:
+      -
+        handle: icon
+        field:
+          type: text
+          display: Icon
+      -
+        handle: source
+        field:
+          type: text
+          display: Source
+      -
+        handle: source_id
+        field:
+          type: text
+          display: 'Source ID'

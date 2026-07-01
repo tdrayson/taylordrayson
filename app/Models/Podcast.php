@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
+use StatamicRadPack\Runway\Traits\HasRunwayResource;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -30,6 +31,7 @@ class Podcast extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
+    use HasRunwayResource;
     use HasTimelineEntry;
 
     /**

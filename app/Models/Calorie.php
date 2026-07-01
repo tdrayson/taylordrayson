@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
+use StatamicRadPack\Runway\Traits\HasRunwayResource;
 
 #[ObservedBy(CalorieTimelineObserver::class)]
 #[Fillable([
@@ -34,7 +35,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Calorie extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasRunwayResource, HasTimelineEntry;
 
     /**
      * @return array<string, string>

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
+use StatamicRadPack\Runway\Traits\HasRunwayResource;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -31,7 +32,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Checkin extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasRunwayResource, HasTimelineEntry;
 
     /**
      * @return array<string, string>

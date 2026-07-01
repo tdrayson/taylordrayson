@@ -1,0 +1,85 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: bedtime
+        field:
+          type: date
+          display: Bedtime
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: wake_time
+        field:
+          type: date
+          display: 'Wake Time'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: duration
+        field:
+          type: integer
+          display: 'Duration (seconds)'
+          validate: required
+      -
+        handle: awake
+        field:
+          type: integer
+          display: 'Awake (seconds)'
+      -
+        handle: rem
+        field:
+          type: integer
+          display: 'REM (seconds)'
+      -
+        handle: core
+        field:
+          type: integer
+          display: 'Core/Light (seconds)'
+      -
+        handle: deep
+        field:
+          type: integer
+          display: 'Deep (seconds)'
+      -
+        handle: source
+        field:
+          type: text
+          display: Source
+  sidebar:
+    fields:
+      -
+        handle: score
+        field:
+          type: integer
+          display: Score
+      -
+        handle: duration_score
+        field:
+          type: integer
+          display: 'Duration Score'
+      -
+        handle: bedtime_score
+        field:
+          type: integer
+          display: 'Bedtime Score'
+      -
+        handle: interruption_score
+        field:
+          type: integer
+          display: 'Interruption Score'
+      -
+        handle: stages
+        field:
+          type: textarea
+          display: Stages

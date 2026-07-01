@@ -1,0 +1,92 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: type
+        field:
+          type: select
+          display: Type
+          validate: required
+          options:
+            run: Run
+            cycle: Cycle
+            ride: Ride
+            swim: Swim
+            walk: Walk
+            hike: Hike
+            weight-training: 'Weight Training'
+            yoga: Yoga
+            crossfit: CrossFit
+            workout: Workout
+            other: Other
+      -
+        handle: name
+        field:
+          type: text
+          display: Name
+      -
+        handle: description
+        field:
+          type: textarea
+          display: Description
+      -
+        handle: duration
+        field:
+          type: integer
+          display: 'Duration (seconds)'
+          validate: required
+      -
+        handle: calories
+        field:
+          type: integer
+          display: Calories
+      -
+        handle: distance_km
+        field:
+          type: float
+          display: 'Distance (km)'
+      -
+        handle: average_heart_rate
+        field:
+          type: integer
+          display: 'Average Heart Rate'
+      -
+        handle: max_heart_rate
+        field:
+          type: integer
+          display: 'Max Heart Rate'
+      -
+        handle: platform_type
+        field:
+          type: text
+          display: 'Platform Type'
+      -
+        handle: platform_id
+        field:
+          type: text
+          display: 'Platform ID'
+  sidebar:
+    fields:
+      -
+        handle: timezone
+        field:
+          type: text
+          display: Timezone
+      -
+        handle: heart_rate
+        field:
+          type: textarea
+          display: 'Heart Rate Data'
+      -
+        handle: meta
+        field:
+          type: textarea
+          display: Meta

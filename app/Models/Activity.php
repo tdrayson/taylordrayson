@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use StatamicRadPack\Runway\Traits\HasRunwayResource;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -33,7 +34,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 ])]
 class Activity extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasRunwayResource, HasTimelineEntry;
 
     /**
      * @return array<string, string>

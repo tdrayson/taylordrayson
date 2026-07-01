@@ -1,0 +1,51 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: vehicle_id
+        field:
+          type: text
+          display: 'Vehicle ID'
+          validate: required
+      -
+        handle: litres
+        field:
+          type: float
+          display: Litres
+          validate: required
+      -
+        handle: cost
+        field:
+          type: float
+          display: 'Cost (£)'
+          validate: required
+      -
+        handle: fuel_card_cost
+        field:
+          type: float
+          display: 'Fuel Card Cost (£)'
+      -
+        handle: price_per_litre
+        field:
+          type: float
+          display: 'Price Per Litre (£)'
+      -
+        handle: odometer
+        field:
+          type: integer
+          display: 'Odometer (miles)'
+  sidebar:
+    fields:
+      -
+        handle: fuel_station_id
+        field:
+          type: integer
+          display: 'Fuel Station ID'

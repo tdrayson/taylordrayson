@@ -1,0 +1,74 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: venue_name
+        field:
+          type: text
+          display: 'Venue Name'
+          validate: required
+      -
+        handle: category
+        field:
+          type: text
+          display: Category
+      -
+        handle: address
+        field:
+          type: text
+          display: Address
+      -
+        handle: city
+        field:
+          type: text
+          display: City
+      -
+        handle: county
+        field:
+          type: text
+          display: County
+      -
+        handle: country
+        field:
+          type: text
+          display: Country
+      -
+        handle: description
+        field:
+          type: textarea
+          display: Description
+      -
+        handle: is_mayor
+        field:
+          type: toggle
+          display: 'Is Mayor'
+  sidebar:
+    fields:
+      -
+        handle: latitude
+        field:
+          type: float
+          display: Latitude
+      -
+        handle: longitude
+        field:
+          type: float
+          display: Longitude
+      -
+        handle: platform_type
+        field:
+          type: text
+          display: 'Platform Type'
+      -
+        handle: platform_id
+        field:
+          type: text
+          display: 'Platform ID'

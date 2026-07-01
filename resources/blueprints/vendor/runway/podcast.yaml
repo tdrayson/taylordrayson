@@ -1,0 +1,65 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: season_number
+        field:
+          type: integer
+          display: 'Season Number'
+          validate: required
+      -
+        handle: episode_number
+        field:
+          type: integer
+          display: 'Episode Number'
+          validate: required
+      -
+        handle: topic
+        field:
+          type: text
+          display: Topic
+      -
+        handle: show_notes
+        field:
+          type: textarea
+          display: 'Show Notes'
+      -
+        handle: transcript
+        field:
+          type: textarea
+          display: Transcript
+      -
+        handle: duration
+        field:
+          type: integer
+          display: 'Duration (seconds)'
+  sidebar:
+    fields:
+      -
+        handle: audio_url
+        field:
+          type: text
+          display: 'Audio URL'
+      -
+        handle: video_url
+        field:
+          type: text
+          display: 'Video URL'
+      -
+        handle: thumbnail
+        field:
+          type: text
+          display: Thumbnail
+      -
+        handle: cover_image
+        field:
+          type: text
+          display: 'Cover Image'

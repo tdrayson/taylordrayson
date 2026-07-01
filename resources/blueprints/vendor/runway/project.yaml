@@ -1,0 +1,73 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: title
+        field:
+          type: text
+          display: Title
+          validate: required
+      -
+        handle: slug
+        field:
+          type: slug
+          display: Slug
+          validate: required
+      -
+        handle: description
+        field:
+          type: textarea
+          display: Description
+      -
+        handle: long_description
+        field:
+          type: textarea
+          display: 'Long Description'
+      -
+        handle: status
+        field:
+          type: select
+          display: Status
+          validate: required
+          options:
+            active: Active
+            complete: Complete
+            archived: Archived
+            wip: 'Work in Progress'
+      -
+        handle: featured
+        field:
+          type: toggle
+          display: Featured
+      -
+        handle: tags
+        field:
+          type: textarea
+          display: Tags
+  sidebar:
+    fields:
+      -
+        handle: url
+        field:
+          type: text
+          display: URL
+      -
+        handle: github_url
+        field:
+          type: text
+          display: 'GitHub URL'
+      -
+        handle: started_at
+        field:
+          type: date
+          display: 'Started At'
+          time_enabled: true
+          time_seconds_enabled: false

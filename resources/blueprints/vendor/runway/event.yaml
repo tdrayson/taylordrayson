@@ -1,0 +1,74 @@
+tabs:
+  main:
+    fields:
+      -
+        handle: occurred_at
+        field:
+          type: date
+          display: 'Occurred At'
+          time_enabled: true
+          time_seconds_enabled: false
+          validate: required
+      -
+        handle: type
+        field:
+          type: select
+          display: Type
+          validate: required
+          options:
+            concert: Concert
+            conference: Conference
+            festival: Festival
+            sport: Sport
+            theatre: Theatre
+            comedy: Comedy
+            exhibition: Exhibition
+            other: Other
+      -
+        handle: name
+        field:
+          type: text
+          display: Name
+          validate: required
+      -
+        handle: venue_name
+        field:
+          type: text
+          display: 'Venue Name'
+      -
+        handle: address
+        field:
+          type: text
+          display: Address
+      -
+        handle: city
+        field:
+          type: text
+          display: City
+      -
+        handle: country
+        field:
+          type: text
+          display: Country
+      -
+        handle: ticket_price
+        field:
+          type: float
+          display: 'Ticket Price (£)'
+      -
+        handle: notes
+        field:
+          type: textarea
+          display: Notes
+  sidebar:
+    fields:
+      -
+        handle: latitude
+        field:
+          type: float
+          display: Latitude
+      -
+        handle: longitude
+        field:
+          type: float
+          display: Longitude
