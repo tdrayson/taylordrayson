@@ -61,6 +61,37 @@ class BuildTimelineFeed
     }
 
     /**
+     * Group a collection of content card arrays (produced by contentCardItem()) into
+     * the same day-bucket shape as groupByDay(), ready for the archive feed UI.
+     *
+     * @param  Collection<int, array<string, mixed>>  $cards  Cards still carrying the '_occurred_at' key.
+     * @return array<int, array{label: string, date: string, href: string, items: array<int, array<string, mixed>>}>
+     */
+    public function groupContentByDay(Collection $cards): array
+    {
+        return $cards
+            ->groupBy(fn (array $card): string => $card['_occurred_at']->format('Y-m-d'))
+            ->map(function (Collection $group): array {
+                $date = $group->first()['_occurred_at'];
+
+                $items = $group->map(function (array $card): array {
+                    unset($card['_occurred_at']);
+
+                    return $card;
+                })->values()->all();
+
+                return [
+                    'label' => $date->format('l j F Y'),
+                    'date' => $date->format('Y-m-d'),
+                    'href' => '/'.$date->format('Y/m/d'),
+                    'items' => $items,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
      * Shape a Statamic ContentEntry into the same feed card payload as cardItem().
      * Articles and notes are date-only (no meaningful wall-clock time).
      *

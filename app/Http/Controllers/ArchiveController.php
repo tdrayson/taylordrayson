@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Content\ContentEntry;
+use App\Content\ContentRepository;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,7 +19,10 @@ class ArchiveController extends Controller
 {
     private const PER_PAGE = 25;
 
-    public function __construct(private readonly BuildTimelineFeed $feed) {}
+    public function __construct(
+        private readonly BuildTimelineFeed $feed,
+        private readonly ContentRepository $content,
+    ) {}
 
     public function index(string $type): Response
     {
@@ -48,21 +54,35 @@ class ArchiveController extends Controller
             $parent = ['label' => $definition['label'], 'href' => '/'.$definition['slug']];
         }
 
-        $page = TimelineEntry::query()
-            ->whereHasMorph('timelineable', [$definition['model']], function (Builder $query) use ($taxonomy, $value) {
-                if ($value !== null) {
-                    ($taxonomy['filter'])($query, $value);
-                }
-            })
-            ->withCardRelations()
-            ->orderByDesc('occurred_at')
-            ->paginate(self::PER_PAGE);
+        // Content-sourced types (article, note) are read from Statamic via
+        // ContentRepository instead of Eloquent TimelineEntry rows.
+        if ($definition['content_source'] ?? false) {
+            $page = $this->paginateContent($type, $value, $taxonomy);
+        } else {
+            $page = TimelineEntry::query()
+                ->whereHasMorph('timelineable', [$definition['model']], function (Builder $query) use ($taxonomy, $value) {
+                    if ($value !== null) {
+                        ($taxonomy['filter'])($query, $value);
+                    }
+                })
+                ->withCardRelations()
+                ->orderByDesc('occurred_at')
+                ->paginate(self::PER_PAGE);
+        }
 
         $noun = $definition['noun'];
         $taxonomyLabel = $value !== null ? ($taxonomy['labelFor'])($value) : null;
         $accentToken = $type === 'calorie' ? 'food' : $type;
         $title = $this->title($definition, $taxonomy, $taxonomyLabel);
         $subtitle = $page->total().' '.Str::plural($noun, $page->total());
+
+        // Determine the groups shape: content types use contentCardItem(); Eloquent uses cardItem().
+        if ($definition['content_source'] ?? false) {
+            /** @var LengthAwarePaginator<array<string, mixed>> $page */
+            $groups = $this->feed->groupContentByDay(collect($page->items()));
+        } else {
+            $groups = $this->feed->groupByDay(collect($page->items()));
+        }
 
         return Inertia::render('Archive', [
             'type' => $type,
@@ -71,13 +91,52 @@ class ArchiveController extends Controller
             'title' => $title,
             'crumb' => $taxonomyLabel ?? $definition['label'],
             'subtitle' => $subtitle,
-            'groups' => $this->feed->groupByDay(collect($page->items())),
+            'groups' => $groups,
             'currentPage' => $page->currentPage(),
             'lastPage' => $page->lastPage(),
             'chips' => $this->chips($definition, $value),
             'parent' => $parent,
             'map' => $type === 'flight' && $page->currentPage() === 1 ? $this->flightRoutes($taxonomy, $value) : [],
         ]);
+    }
+
+    /**
+     * Fetch and paginate Statamic content for archive types served from ContentRepository.
+     * Returns a LengthAwarePaginator whose items are the content card arrays (with _occurred_at).
+     *
+     * @param  array<string, mixed>|null  $taxonomy
+     * @return LengthAwarePaginator<array<string, mixed>>
+     */
+    private function paginateContent(string $type, ?string $value, ?array $taxonomy): LengthAwarePaginator
+    {
+        $entries = match ($type) {
+            'article' => $this->content->articles(),
+            'note' => $this->content->notes(),
+            default => collect(),
+        };
+
+        // For tag taxonomy on articles, filter in-memory by slug match.
+        if ($value !== null && $taxonomy !== null) {
+            $resolvedTag = ($taxonomy['labelFor'])($value);
+            $entries = $entries->filter(
+                fn (ContentEntry $e): bool => in_array($resolvedTag, $e->tags(), true),
+            )->values();
+        }
+
+        // Map to card arrays carrying _occurred_at for day grouping.
+        $cards = $entries->map(fn (ContentEntry $e): array => $this->feed->contentCardItem($e));
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $total = $cards->count();
+        $items = $cards->forPage($currentPage, self::PER_PAGE)->values()->all();
+
+        return new LengthAwarePaginator(
+            $items,
+            $total,
+            self::PER_PAGE,
+            $currentPage,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()],
+        );
     }
 
     /**

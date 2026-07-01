@@ -2,6 +2,8 @@
 
 namespace App\Timeline;
 
+use App\Content\ContentEntry;
+use App\Content\ContentRepository;
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Appearance;
@@ -43,8 +45,8 @@ class TypeRegistry
             'checkin' => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
             'fuel' => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
             'project' => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
-            'article' => self::type(Article::class, 'articles', 'Articles', self::tags(fn (string $label): string => "Articles tagged {$label}")),
-            'note' => self::type(Note::class, 'notes', 'Notes'),
+            'article' => self::contentType(Article::class, 'articles', 'Articles', self::contentTags(fn (string $label): string => "Articles tagged {$label}")),
+            'note' => self::contentType(Note::class, 'notes', 'Notes'),
         ];
     }
 
@@ -68,6 +70,59 @@ class TypeRegistry
             'label' => $label,
             'noun' => $noun ?? Str::lower(Str::singular($label)),
             'taxonomy' => $taxonomyFactory ? $taxonomyFactory($model, $slug) : null,
+        ];
+    }
+
+    /**
+     * A definition for a type whose archive is served from Statamic via ContentRepository
+     * rather than from Eloquent TimelineEntry rows.
+     *
+     * The Eloquent model class is retained for consumers (e.g. RSS feed) that still
+     * query TimelineEntry rows for these types; it is only the archive pages that
+     * switch to the Statamic read path.
+     *
+     * @param  class-string  $model
+     * @return array<string, mixed>
+     */
+    private static function contentType(string $model, string $slug, string $label, ?callable $taxonomyFactory = null, ?string $noun = null): array
+    {
+        return [
+            'slug' => $slug,
+            'model' => $model,
+            'label' => $label,
+            'noun' => $noun ?? Str::lower(Str::singular($label)),
+            'taxonomy' => $taxonomyFactory ? $taxonomyFactory($slug) : null,
+            'content_source' => true,
+        ];
+    }
+
+    /**
+     * A taxonomy over the tags array on Statamic content entries. Values and
+     * validity checks are derived from ContentRepository at request time.
+     */
+    private static function contentTags(?callable $title = null): callable
+    {
+        /** Collect the distinct tag strings from all published articles. */
+        $distinctTags = function (): Collection {
+            /** @var ContentRepository $repo */
+            $repo = app(ContentRepository::class);
+
+            return $repo->articles()
+                ->flatMap(fn (ContentEntry $e): array => $e->tags())
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values();
+        };
+
+        return fn (string $slug): array => [
+            'base' => $slug,
+            'param' => 'tag',
+            'label' => 'Tag',
+            'title' => $title,
+            'filter' => null, // In-memory filtering handled in ArchiveController; not used for DB queries.
+            'labelFor' => fn (string $value): string => self::resolveSlug($distinctTags(), $value) ?? Str::headline($value),
+            'values' => fn (): Collection => $distinctTags()->map(fn (string $tag): array => ['value' => Str::slug($tag), 'label' => $tag]),
         ];
     }
 
