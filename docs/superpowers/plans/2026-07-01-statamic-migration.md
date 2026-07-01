@@ -19,6 +19,7 @@
 - No em dashes in any generated copy. Comment Vue/JS (JSDoc) and keep PHP comments minimal. Run `vendor/bin/pint --dirty --format agent` before finalizing any task that changes PHP. Do not run `npm run build` while the Vite watcher is running.
 - `data/*.csv` files are precious: back up before any script touches them.
 - Every task ends green: `php artisan test --compact` for the touched files, and the existing story tests (`StoryControllerTest`, `FlightStoryTest`, `FoodStoryTest`, `FuelStoryTest`) must not regress.
+- NO browser-testing dependencies (standing user decision: pest-plugin-browser/playwright were removed). Front-end behaviour is verified with Inertia/feature tests (assert on props/rendered payload) plus `npm run build` and a manual visual pass — never `visit()`/`assertNoJavaScriptErrors()`.
 
 ---
 
@@ -344,25 +345,31 @@ git add -A && git commit -m "feat: pages served from Statamic via ContentReposit
 **Files:**
 - Modify: `resources/js/Pages/Page.vue`
 - Create: `resources/js/Components/Ui/ProseBody.vue`
-- Test: `tests/Browser/PageContentTest.php` (Pest browser smoke)
+- Test: `tests/Feature/Content/PageBodyPropTest.php` (Inertia feature test)
 
 **Interfaces:**
 - Consumes: `bodyHtml` prop from Task 5.
 - Produces: `ProseBody` — renders sanitized HTML string in a prose container.
 
-- [ ] **Step 1: Write the failing browser test**
+Front-end rendering (ProseBody in Page.vue) is verified by the Inertia prop test
+below plus `npm run build` and a manual visual pass — no browser test.
+
+- [ ] **Step 1: Write the failing Inertia feature test**
 
 ```php
-<?php // tests/Browser/PageContentTest.php
+<?php // tests/Feature/Content/PageBodyPropTest.php
 use Statamic\Facades\Entry;
-it('shows page body content without JS errors', function () {
+it('passes bard body html to the Page component', function () {
     Entry::make()->collection('pages')->slug('colophon')
         ->data(['title' => 'Colophon', 'content' => '<p>Built with care</p>'])->save();
-    visit('/colophon')->assertSee('Built with care')->assertNoJavaScriptErrors();
+    $this->get('/colophon')
+        ->assertOk()
+        ->assertInertia(fn ($p) => $p->component('Page')
+            ->where('bodyHtml', fn (string $html) => str_contains($html, 'Built with care')));
 });
 ```
 
-- [ ] **Step 2: Run — expect failure** (Page.vue still expects Editor.js `content`).
+- [ ] **Step 2: Run — expect failure** (Page.vue still expects Editor.js `content`; `bodyHtml` prop asserted here comes from Task 5).
 
 - [ ] **Step 3: Create `ProseBody.vue`**
 
@@ -380,7 +387,7 @@ defineProps({ html: { type: String, default: '' } });
 
 - [ ] **Step 5: Run — expect pass.**
 
-Run: `php artisan test --compact tests/Browser/PageContentTest.php` → PASS
+Run: `php artisan test --compact --filter=PageBodyPropTest` → PASS
 
 - [ ] **Step 6: Commit** (`npm run build` NOT run — watcher handles it)
 
@@ -561,18 +568,21 @@ it('returns article cards matching the legacy card shape', function () {
 **Files:**
 - Modify: `app/Http/Controllers/EntryController.php`
 - Modify: `resources/js/Components/Entry/ArticleDetail.vue`, `resources/js/Components/Entry/NoteDetail.vue`
-- Test: `tests/Feature/Entry/ContentEntryPageTest.php`, `tests/Browser/ContentEntryContentTest.php`
+- Test: `tests/Feature/Entry/ContentEntryPageTest.php` (Inertia feature test)
 
 **Interfaces:**
 - Consumes: `ContentRepository::findByTypeAndSlug()`, `ContentEntry::bodyHtml()`.
 - Produces: `/{Y}/{m}/{d}/{slug}` renders article/note content (Bard HTML) for content entries; unchanged for Eloquent types.
 
-- [ ] **Step 1: Write the failing feature test** — seed a Statamic article dated 2024-01-02 slug `p1`; `GET /2024/01/02/p1` renders `Entry` with `type=article` and the body HTML.
+Front-end (`ArticleDetail.vue`/`NoteDetail.vue` rendering Bard) is verified by the
+Inertia prop assertion below plus `npm run build` and a manual visual pass — no
+browser test.
+
+- [ ] **Step 1: Write the failing feature test** — seed a Statamic article dated 2024-01-02 slug `p1`; `GET /2024/01/02/p1` `assertInertia` renders `Entry` with `type=article` and an `entry.bodyHtml` prop containing the body text.
 - [ ] **Step 2: Run — expect failure** (EntryController only resolves via `TimelineEntry`).
 - [ ] **Step 3: Implement** — in `EntryController::show`, first try `ContentRepository::findByTypeAndSlug` for the date+slug; if found, render `Entry` from the `ContentEntry` (card fields + `bodyHtml`); else fall back to the existing `TimelineEntry` path. Update `ArticleDetail.vue`/`NoteDetail.vue` to render `<ProseBody :html="entry.bodyHtml" />` instead of Editor.js.
-- [ ] **Step 4: Write/adjust the browser test** — visit the entry URL, assert content shows, `assertNoJavaScriptErrors()`.
-- [ ] **Step 5: Run — expect pass.**
-- [ ] **Step 6: Pint + commit.**
+- [ ] **Step 4: Run — expect pass; `npm run build` for the Vue changes; manual visual pass.**
+- [ ] **Step 5: Pint + commit.**
 
 ### Task 13: Feeds include Statamic articles/notes
 
@@ -651,7 +661,7 @@ Run: `php artisan test --compact` → all green.
 - Modify: `CHANGELOG.md`, `docs/superpowers/specs/2026-07-01-statamic-migration-design.md` (mark implemented)
 - Test: full suite + browser smoke
 
-- [ ] **Step 1: Run the whole suite and a page/entry/timeline browser smoke** — `php artisan test --compact`; a Pest browser smoke over `/`, `/articles`, a content entry, `/cp` → `assertNoJavaScriptErrors()`.
+- [ ] **Step 1: Run the whole suite and a page/entry/timeline feature smoke** — `php artisan test --compact`; a Pest feature smoke that `GET`s `/`, `/articles`, a content entry, and `/cp` (redirect) asserting 200/redirect responses. No browser test.
 - [ ] **Step 2: Confirm the isolated production build compiles** — `npx vite build --outDir <scratch> --emptyOutDir` (does not touch `public/build`); expect no errors.
 - [ ] **Step 3: Add a CHANGELOG entry** (version-level: features, design rationale, caveats — two user systems, content now in `content/collections/`).
 - [ ] **Step 4: Commit.**
