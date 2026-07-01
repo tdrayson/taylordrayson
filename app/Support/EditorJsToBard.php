@@ -2,17 +2,23 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Log;
+
 class EditorJsToBard
 {
     /**
-     * Convert an Editor.js document array into a Bard (ProseMirror) node array
-     * suitable for storage in a Statamic Bard field.
+     * Convert an Editor.js document (array or JSON string) into a Bard
+     * (ProseMirror) node array suitable for storage in a Statamic Bard field.
      *
-     * @param  array<string, mixed>  $editorJs
+     * @param  array<string, mixed>|string  $editorJs
      * @return array<int, array<string, mixed>>
      */
-    public static function convert(array $editorJs): array
+    public static function convert(array|string $editorJs): array
     {
+        if (is_string($editorJs)) {
+            $editorJs = json_decode($editorJs, true) ?? [];
+        }
+
         $blocks = $editorJs['blocks'] ?? [];
 
         if (! is_array($blocks)) {
@@ -127,7 +133,9 @@ class EditorJsToBard
     /** @param array<string, mixed> $data */
     private static function unknown(string $type, array $data): ?array
     {
-        rescue(fn () => logger()?->warning("EditorJsToBard: unknown block type '{$type}', falling back to paragraph."), report: false);
+        if (app()->bound('log')) {
+            Log::warning("EditorJsToBard: unknown block type '{$type}', falling back to paragraph.");
+        }
 
         $text = $data['text'] ?? (isset($data['code']) ? $data['code'] : '');
 
@@ -138,11 +146,15 @@ class EditorJsToBard
     }
 
     /**
-     * Convert an HTML string containing inline markup (bold, links, etc.) into
-     * a ProseMirror inline content array (text nodes with marks).
+     * Convert an HTML string into a ProseMirror inline content array.
      *
-     * For simplicity, we emit a single text node with the HTML stripped,
-     * preserving the plain text so the content is never lost.
+     * LIMITATION: inline marks (bold, italic, links, code) are flattened to
+     * plain text. This is intentional: the one-time migration corpus (a single
+     * article) contains no inline marks, and all future content is authored
+     * natively in Bard, so a full HTML->ProseMirror mark parser is out of
+     * scope. A future implementer who needs mark fidelity should parse the HTML
+     * into nodes with a `marks` array (e.g. `[['type' => 'bold']]`) following
+     * the ProseMirror inline-mark spec, or delegate to a Tiptap HTML importer.
      *
      * @return array<int, array<string, mixed>>
      */

@@ -1,15 +1,14 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\File;
 use Statamic\Facades\Entry;
 
+beforeEach(function () {
+    $this->preContent = snapshotContentFiles();
+});
+
 afterEach(function () {
-    // Remove flat-file page entries created during this test to keep the
-    // content directory clean. We delete from disk directly to avoid
-    // triggering Statamic stache events that interfere with later tests.
-    File::delete(File::glob(base_path('content/collections/pages/*.md')));
-    File::delete(File::glob(base_path('content/collections/pages/*.*.md')));
+    deleteNewContentFiles($this->preContent);
 });
 
 it('renders a published page at its slug', function () {

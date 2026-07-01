@@ -65,13 +65,11 @@ class MigrateContentToStatamic extends Command
                 return;
             }
 
-            $published = property_exists($note, 'draft') ? ! $note->draft : true;
-
             Entry::make()
                 ->collection('notes')
                 ->slug($slug)
                 ->date($note->occurred_at)
-                ->published($published)
+                ->published(true) // Note has no draft column; all notes migrate as published
                 ->data([
                     'content' => EditorJsToBard::convert($note->content ?? []),
                 ])

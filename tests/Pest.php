@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 /*
@@ -47,4 +48,51 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Snapshot the current set of flat-file collection entries on disk.
+ * Returns absolute paths for all *.md and *.*.md files across
+ * articles, notes, and pages.
+ *
+ * @return array<int, string>
+ */
+function snapshotContentFiles(): array
+{
+    $patterns = [
+        base_path('content/collections/articles/*.md'),
+        base_path('content/collections/articles/*.*.md'),
+        base_path('content/collections/notes/*.md'),
+        base_path('content/collections/notes/*.*.md'),
+        base_path('content/collections/pages/*.md'),
+        base_path('content/collections/pages/*.*.md'),
+    ];
+
+    $files = [];
+
+    foreach ($patterns as $pattern) {
+        $found = File::glob($pattern);
+        if (is_array($found)) {
+            $files = array_merge($files, $found);
+        }
+    }
+
+    return array_unique($files);
+}
+
+/**
+ * Delete only the flat-file entries that were NOT present in the given
+ * pre-test snapshot, preserving any committed entries that existed before
+ * the test ran.
+ *
+ * @param  array<int, string>  $preExisting
+ */
+function deleteNewContentFiles(array $preExisting): void
+{
+    $current = snapshotContentFiles();
+    $toDelete = array_diff($current, $preExisting);
+
+    if (count($toDelete) > 0) {
+        File::delete(array_values($toDelete));
+    }
 }

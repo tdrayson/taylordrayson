@@ -3,16 +3,14 @@
 use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
-use Illuminate\Support\Facades\File;
 use Statamic\Facades\Entry;
 
+beforeEach(function () {
+    $this->preContent = snapshotContentFiles();
+});
+
 afterEach(function () {
-    File::delete(File::glob(base_path('content/collections/articles/*.md')));
-    File::delete(File::glob(base_path('content/collections/articles/*.*.md')));
-    File::delete(File::glob(base_path('content/collections/notes/*.md')));
-    File::delete(File::glob(base_path('content/collections/notes/*.*.md')));
-    File::delete(File::glob(base_path('content/collections/pages/*.md')));
-    File::delete(File::glob(base_path('content/collections/pages/*.*.md')));
+    deleteNewContentFiles($this->preContent);
 });
 
 it('migrates an eloquent article into a statamic entry', function () {

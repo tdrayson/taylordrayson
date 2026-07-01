@@ -2,12 +2,14 @@
 
 // tests/Feature/Content/PageBodyPropTest.php
 
-use Illuminate\Support\Facades\File;
 use Statamic\Facades\Entry;
 
+beforeEach(function () {
+    $this->preContent = snapshotContentFiles();
+});
+
 afterEach(function () {
-    File::delete(File::glob(base_path('content/collections/pages/*.md')));
-    File::delete(File::glob(base_path('content/collections/pages/*.*.md')));
+    deleteNewContentFiles($this->preContent);
 });
 
 it('passes bard body html to the Page component', function () {
