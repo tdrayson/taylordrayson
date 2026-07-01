@@ -101,14 +101,16 @@ Runway resource + blueprint per model; models and tables unchanged.
 
 The unified timeline currently draws from Eloquent (via the `timeline_entries`
 index, 6,100 rows). Because `articles` and `notes` move to Statamic flat files,
-the timeline must merge Statamic-sourced content with the Eloquent-sourced data:
+the feed **merges at read time**: it combines the Eloquent-backed data types
+(via `timeline_entries`) with Statamic `articles`/`notes`, ordered by
+`occurred_at`. No entry-save sync hooks and no `timeline_entries` rows for
+articles/notes.
 
-- Either the `timeline_entries` index is rebuilt to include Statamic entries
-  (an entry-saved hook writes/updates the index row), or the timeline feed query
-  merges Statamic `articles`/`notes` with the Eloquent types at read time.
-- Preferred: keep the `timeline_entries` index as the single ordered source and
-  sync article/note rows into it on Statamic entry save/delete, so the existing
-  feed/pagination is untouched.
+- Article/note rows are removed from the `timeline_entries` index (now
+  Statamic-sourced); the index continues to serve the data types.
+- The feed/pagination query gains a merge step across two sources. At current
+  content volume (≈1 article, 0 notes) this is cheap; the merge must still order
+  and paginate correctly as content grows.
 
 ### Front-end (unchanged)
 
@@ -151,9 +153,9 @@ app's `users` table. The public front-end remains unauthenticated as now.
   avoid heavy CP editing over ~15k rows.
 - **Two user systems** — acceptable by choice (flat-file CP users); documented so
   it isn't mistaken for a bug.
-- **Timeline index drift** — article/note rows in `timeline_entries` must stay in
-  sync with Statamic entries via save/delete hooks; otherwise the feed shows
-  stale or missing posts.
+- **Timeline read-time merge** — the feed merges two sources; ordering and
+  pagination across Eloquent `timeline_entries` + Statamic articles/notes must
+  stay correct (and efficient) as content grows.
 - **Content migration correctness** — the one Editor.js article must convert to
   Bard without losing structure; verify the rendered output matches before
   retiring the Editor.js renderer.
