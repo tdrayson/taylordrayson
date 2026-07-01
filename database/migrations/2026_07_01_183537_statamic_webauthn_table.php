@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class StatamicWebauthnTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('webauthn', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('user_id');
+            $table->string('name');
+            $table->json('credential')->nullable();
+            $table->datetime('last_login')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        Schema::dropIfExists('webauthn');
+    }
+}

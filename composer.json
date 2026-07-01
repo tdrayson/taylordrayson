@@ -12,7 +12,8 @@
         "laravel/tinker": "^3.0",
         "spatie/browsershot": "^5.4",
         "spatie/laravel-feed": "^4.5",
-        "spatie/laravel-medialibrary": "^11.23"
+        "spatie/laravel-medialibrary": "^11.23",
+        "statamic/cms": "^6.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -37,6 +38,9 @@
         }
     },
     "scripts": {
+        "pre-update-cmd": [
+            "Statamic\\Console\\Composer\\Scripts::preUpdateCmd"
+        ],
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

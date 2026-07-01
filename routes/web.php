@@ -80,6 +80,7 @@ Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 
 // Content pages, matched last so every real route wins. Letter-first so the
-// digit-constrained /{year} routes are never shadowed.
+// digit-constrained /{year} routes are never shadowed. Exclude reserved
+// top-level prefixes: "cp" (Statamic control panel).
 Route::get('/{slug}', [PageController::class, 'show'])
-    ->where('slug', '[a-z][a-z0-9-]*')->name('page');
+    ->where('slug', '(?!cp(?:[/?]|$))[a-z][a-z0-9-]*')->name('page');

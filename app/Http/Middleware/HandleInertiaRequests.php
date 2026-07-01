@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use Closure;
+use Illuminate\Foundation\Vite;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -15,6 +17,17 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /**
+     * Reset the Vite singleton's build directory before each app request, in case
+     * a prior Statamic CP request mutated it via Statamic::cpViteScripts().
+     */
+    public function handle(Request $request, Closure $next): mixed
+    {
+        app(Vite::class)->useBuildDirectory('build');
+
+        return parent::handle($request, $next);
+    }
 
     /**
      * Determines the current asset version.
