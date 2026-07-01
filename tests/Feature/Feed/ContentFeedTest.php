@@ -1,9 +1,7 @@
 <?php
 
-use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Flight;
-use App\Models\Note;
 use Statamic\Facades\Entry;
 
 beforeEach(function () {
@@ -48,47 +46,6 @@ it('uses excerpt as summary for statamic articles', function () {
     $this->get('/feed/rss')
         ->assertOk()
         ->assertSee('The excerpt text');
-});
-
-// ---------------------------------------------------------------------------
-// No duplication: migrated Eloquent Article/Note rows do NOT appear alongside
-// their Statamic counterpart
-// ---------------------------------------------------------------------------
-
-it('a migrated eloquent article title does not appear from the eloquent path', function () {
-    // Eloquent row (migrated, legacy): should be excluded from the Eloquent feed
-    // because Article/Note now come exclusively from Statamic.
-    $uniqueTitle = 'Unique Migrated Article Title '.uniqid();
-    Article::factory()->create([
-        'title' => $uniqueTitle,
-        'occurred_at' => now()->subDays(5),
-    ]);
-
-    $this->get('/feed/rss')
-        ->assertOk()
-        // The Eloquent article's title must NOT appear: Statamic is the sole
-        // source for articles, so the migrated Eloquent row is suppressed.
-        ->assertDontSee($uniqueTitle);
-});
-
-it('types=article shows statamic articles but not their eloquent duplicates', function () {
-    $uniqueTitle = 'Only From Statamic '.uniqid();
-    $eloquentTitle = 'Should Be Hidden '.uniqid();
-
-    // Eloquent Article (migrated row) — should be excluded.
-    Article::factory()->create([
-        'title' => $eloquentTitle,
-        'occurred_at' => now()->subDays(3),
-    ]);
-
-    // Statamic article — should appear.
-    Entry::make()->collection('articles')->slug('dedup-statamic')
-        ->date('2024-06-01')->data(['title' => $uniqueTitle])->save();
-
-    $this->get('/feed/rss?types=article')
-        ->assertOk()
-        ->assertSee($uniqueTitle)
-        ->assertDontSee($eloquentTitle);
 });
 
 it('the feed category is article for statamic articles', function () {

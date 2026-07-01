@@ -3,7 +3,6 @@
 use App\Models\Activity;
 use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
-use App\Models\Note;
 use App\Models\Sleep;
 
 use function Pest\Laravel\get;
@@ -31,17 +30,6 @@ it('renders an activity entry via Inertia', function () {
             ->where('title', 'Morning Run')
             ->where('entry.distance_km', fn ($value) => (float) $value === 5.42)
         );
-});
-
-it('renders a note entry via Inertia', function () {
-    $note = Note::factory()->create([
-        'content' => 'Finished the migration and went for a run.',
-        'occurred_at' => '2026-03-15 20:00:00',
-    ]);
-
-    get('/'.entryUrl($note))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Entry')->where('type', 'note'));
 });
 
 it('exposes the polyline when present', function () {

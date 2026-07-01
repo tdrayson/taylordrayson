@@ -7,14 +7,12 @@ use App\Content\ContentRepository;
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Appearance;
-use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Media;
-use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
@@ -45,8 +43,8 @@ class TypeRegistry
             'checkin' => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
             'fuel' => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
             'project' => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
-            'article' => self::contentType(Article::class, 'articles', 'Articles', self::contentTags(fn (string $label): string => "Articles tagged {$label}")),
-            'note' => self::contentType(Note::class, 'notes', 'Notes'),
+            'article' => self::contentType('articles', 'articles', 'Articles', self::contentTags(fn (string $label): string => "Articles tagged {$label}")),
+            'note' => self::contentType('notes', 'notes', 'Notes'),
         ];
     }
 
@@ -74,21 +72,17 @@ class TypeRegistry
     }
 
     /**
-     * A definition for a type whose archive is served from Statamic via ContentRepository
-     * rather than from Eloquent TimelineEntry rows.
+     * A definition for a type whose archive and feed are served exclusively from
+     * Statamic via ContentRepository. The Eloquent model has been removed; all
+     * content for these types flows through the Statamic flat-file store.
      *
-     * The Eloquent model class is retained for consumers (e.g. RSS feed) that still
-     * query TimelineEntry rows for these types; it is only the archive pages that
-     * switch to the Statamic read path.
-     *
-     * @param  class-string  $model
      * @return array<string, mixed>
      */
-    private static function contentType(string $model, string $slug, string $label, ?callable $taxonomyFactory = null, ?string $noun = null): array
+    private static function contentType(string $identifier, string $slug, string $label, ?callable $taxonomyFactory = null, ?string $noun = null): array
     {
         return [
             'slug' => $slug,
-            'model' => $model,
+            'model' => null,
             'label' => $label,
             'noun' => $noun ?? Str::lower(Str::singular($label)),
             'taxonomy' => $taxonomyFactory ? $taxonomyFactory($slug) : null,

@@ -6,11 +6,9 @@ use App\Actions\BuildTimelineFeed;
 use App\Content\ContentEntry;
 use App\Content\ContentRepository;
 use App\Models\Activity;
-use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Media;
-use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
@@ -24,8 +22,8 @@ class TimelineController extends Controller
 {
     private const DAYS_PER_PAGE = 10;
 
-    /** Eloquent morph types superseded by Statamic; excluded from TimelineEntry queries. */
-    private const EXCLUDED_MORPH_TYPES = [Article::class, Note::class];
+    /** Eloquent morph type strings that were superseded by Statamic; excluded from TimelineEntry queries. */
+    private const EXCLUDED_MORPH_TYPES = ['App\\Models\\Article', 'App\\Models\\Note'];
 
     public function __construct(
         private readonly BuildTimelineFeed $feed,

@@ -4,14 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\Activity;
 use App\Models\Appearance;
-use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Media;
-use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
@@ -85,11 +83,9 @@ class DatabaseSeeder extends Seeder
             $this->seedCalories($date);
             $this->seedActivities($date);
             $this->seedCheckins($date);
-            $this->seedNotes($date);
             $this->seedMediaFilms($date);
             $this->seedMediaTvEpisodes($date);
             $podcastEpisode = $this->seedPodcasts($date, $podcastEpisode);
-            $this->seedArticles($date);
             $this->seedFlights($date);
             $this->seedFuel($date);
             $this->seedEvents($date);
@@ -213,21 +209,6 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedNotes(Carbon $date): void
-    {
-        if (! fake()->boolean(15)) {
-            return;
-        }
-
-        $note = Note::factory()->create([
-            'occurred_at' => $date->copy()->setTime(fake()->numberBetween(8, 22), fake()->numberBetween(0, 59)),
-        ]);
-
-        if (fake()->boolean(20)) {
-            $this->attachPhotos($note, fake()->numberBetween(1, 2));
-        }
-    }
-
     private function seedMediaFilms(Carbon $date): void
     {
         if (! fake()->boolean(40)) {
@@ -299,19 +280,6 @@ class DatabaseSeeder extends Seeder
         $this->attachCover($podcast);
 
         return $currentEpisode + 1;
-    }
-
-    private function seedArticles(Carbon $date): void
-    {
-        if (! fake()->boolean(3)) {
-            return;
-        }
-
-        $article = Article::factory()->create([
-            'occurred_at' => $date->copy()->setTime(fake()->numberBetween(9, 17), fake()->numberBetween(0, 59)),
-        ]);
-
-        $this->attachCover($article);
     }
 
     private function seedFlights(Carbon $date): void

@@ -204,7 +204,13 @@ class SearchCompiler
      */
     private function anyMedia(Builder $query, string $operator, mixed $value): void
     {
-        $models = collect(TypeRegistry::all())->pluck('model')->all();
+        // Exclude content types (article/note) that have no Eloquent model -- their
+        // media lives in Statamic flat files and cannot be queried here.
+        $models = collect(TypeRegistry::all())
+            ->pluck('model')
+            ->filter()
+            ->values()
+            ->all();
 
         $query->whereHasMorph('timelineable', $models, function (Builder $morph) use ($operator, $value): void {
             $this->mediaClause($morph, $operator, $value);

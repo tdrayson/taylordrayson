@@ -4,7 +4,6 @@ use App\Models\Activity;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Media;
-use App\Models\Note;
 use App\Models\Podcast;
 
 use function Pest\Laravel\get;
@@ -80,19 +79,15 @@ it('renders different card types together', function () {
     Activity::factory()->create(['name' => 'Morning Park Run', 'occurred_at' => now()->subHour()]);
     Flight::factory()->create(['origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'occurred_at' => now()->subHours(2)]);
     Media::factory()->create(['title' => 'The Shawshank Redemption', 'type' => 'film', 'occurred_at' => now()->subHours(3)]);
-    // Eloquent Note morph type is excluded from the timeline (Statamic provides notes now).
-    $note = Note::factory()->create(['content' => 'A unique test note for verification', 'occurred_at' => now()->subHours(4)]);
 
-    get('/')->assertInertia(function ($page) use ($note) {
+    get('/')->assertInertia(function ($page) {
         $titles = collect($page->toArray()['props']['groups'])
             ->flatMap(fn ($group) => collect($group['items'])->pluck('title'));
 
         expect($titles)
             ->toContain('Morning Park Run')
             ->toContain('LHR → JFK')
-            ->toContain('The Shawshank Redemption')
-            // Eloquent Note morph rows are intentionally excluded — Statamic provides notes.
-            ->not->toContain($note->content);
+            ->toContain('The Shawshank Redemption');
     });
 });
 

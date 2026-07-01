@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Article;
-use App\Models\Note;
 use Statamic\Facades\Entry;
 
 use function Pest\Laravel\get;
@@ -21,7 +19,7 @@ function contentSearchUrl(array $filter): string
 }
 
 // ---------------------------------------------------------------------------
-// suggest() — the /search/suggest command-palette endpoint
+// suggest() -- the /search/suggest command-palette endpoint
 // ---------------------------------------------------------------------------
 
 it('suggest returns a statamic article matched by title', function () {
@@ -80,44 +78,6 @@ it('suggest matches a statamic note by body text', function () {
         ->assertJsonFragment(['url' => '/2024/04/10/note-body-match']);
 });
 
-it('suggest does not return the eloquent article duplicate', function () {
-    // A stale Eloquent Article row: search must NOT surface it.
-    Article::factory()->create([
-        'title' => 'Stale Eloquent Kookaburra',
-        'occurred_at' => now()->subDay(),
-    ]);
-
-    get('/search/suggest?q=kookaburra')
-        ->assertOk()
-        ->assertJsonMissing(['title' => 'Stale Eloquent Kookaburra']);
-});
-
-it('suggest does not return the eloquent note duplicate', function () {
-    Note::factory()->create([
-        'content' => 'Stale Eloquent Dingo note',
-        'occurred_at' => now()->subDay(),
-    ]);
-
-    get('/search/suggest?q=dingo')
-        ->assertOk()
-        ->assertJsonMissing(['type' => 'note']);
-});
-
-it('suggest returns a migrated post once (statamic, not eloquent)', function () {
-    // Same conceptual post exists both as a stale Eloquent row and a live Statamic entry.
-    Article::factory()->create(['title' => 'Migrated Echidna', 'occurred_at' => now()->subDay()]);
-    Entry::make()->collection('articles')->slug('migrated-echidna')
-        ->date('2024-03-15')->data(['title' => 'Migrated Echidna'])->save();
-
-    $response = get('/search/suggest?q=echidna')->assertOk();
-
-    $matches = collect($response->json('results'))
-        ->where('title', 'Migrated Echidna');
-
-    expect($matches)->toHaveCount(1);
-    expect($matches->first()['url'])->toBe('/2024/03/15/migrated-echidna');
-});
-
 it('suggest excludes draft statamic articles', function () {
     Entry::make()->collection('articles')->slug('draft-quoll')
         ->date('2024-03-15')->data(['title' => 'Draft Quoll'])->published(false)->save();
@@ -137,7 +97,7 @@ it('suggest excludes a non-matching statamic article', function () {
 });
 
 // ---------------------------------------------------------------------------
-// index() — the advanced query builder page
+// index() -- the advanced query builder page
 // ---------------------------------------------------------------------------
 
 it('advanced search returns a statamic article by text (Anything group)', function () {
@@ -191,17 +151,6 @@ it('advanced search filters content by a date range', function () {
     ]]);
 
     get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
-});
-
-it('advanced search does not return the eloquent article duplicate', function () {
-    Article::factory()->create(['title' => 'Stale Advanced Galah', 'occurred_at' => now()->subDay()]);
-
-    $url = contentSearchUrl([[
-        'type' => 'article',
-        'conditions' => [['field' => 'title', 'operator' => 'contains', 'value' => 'galah']],
-    ]]);
-
-    get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 0));
 });
 
 it('advanced search excludes draft statamic articles', function () {

@@ -2,14 +2,11 @@
 /**
  * ArticleDetail -- renders the body and metadata for an article entry.
  *
- * When the entry originates from Statamic, `entry.bodyHtml` is a pre-rendered
- * HTML string (Bard -> ProseBody). When it originates from the legacy Eloquent
- * path, `entry.content` is an Editor.js document (BlockContent). The component
- * handles both shapes: bodyHtml takes precedence when present.
+ * All articles are now served from Statamic, so `entry.bodyHtml` is always
+ * a pre-rendered HTML string (Bard -> ProseBody).
  */
 import { computed } from 'vue';
 import Pill from '../Ui/Pill.vue';
-import BlockContent from '../Ui/BlockContent.vue';
 import ProseBody from '../Ui/ProseBody.vue';
 
 const props = defineProps({
@@ -18,9 +15,6 @@ const props = defineProps({
 
 /** Tag list -- normalised to an array regardless of the source shape. */
 const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
-
-/** True when the entry was rendered server-side via Statamic's Bard pipeline. */
-const hasStatamicContent = computed(() => typeof props.entry.bodyHtml === 'string');
 </script>
 
 <template>
@@ -32,7 +26,6 @@ const hasStatamicContent = computed(() => typeof props.entry.bodyHtml === 'strin
 
         <p v-if="entry.excerpt" class="text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
-        <ProseBody v-if="hasStatamicContent" :html="entry.bodyHtml" />
-        <BlockContent v-else :document="entry.content" />
+        <ProseBody :html="entry.bodyHtml" />
     </div>
 </template>

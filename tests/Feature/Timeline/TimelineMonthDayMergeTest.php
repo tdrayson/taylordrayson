@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Article;
-use App\Models\Note;
 use Illuminate\Support\Carbon;
 use Statamic\Facades\Entry;
 
@@ -76,41 +74,6 @@ it('includes a Statamic article type indicator in monthDays for its day', functi
         });
 });
 
-it('does not duplicate a migrated Eloquent Article in the month days map', function () {
-    $ref = now()->subMonths(2);
-    $year = (int) $ref->format('Y');
-    $month = (int) $ref->format('n');
-    $dayOfMonth = 10;
-    $date = $ref->copy()->setDay($dayOfMonth)->toDateString();
-
-    // Eloquent Article (excluded morph type).
-    Article::factory()->create([
-        'title' => 'Legacy Month Article',
-        'occurred_at' => $date.' 09:00:00',
-        'draft' => false,
-    ]);
-
-    // Statamic twin for the same day.
-    Entry::make()->collection('articles')->slug('month-no-dup-article')
-        ->date($date)
-        ->data(['title' => 'Statamic Month Article', 'excerpt' => 'No dup'])
-        ->save();
-
-    get(monthUrl($year, $month))
-        ->assertInertia(function ($page) use ($dayOfMonth) {
-            $days = $page->toArray()['props']['days'];
-
-            expect($days)->toHaveKey((string) $dayOfMonth);
-
-            // Only one article type in that day's indicator row — no duplicate.
-            $articleCount = collect($days[(string) $dayOfMonth]['types'])
-                ->filter(fn ($t) => $t === 'article')
-                ->count();
-
-            expect($articleCount)->toBe(1, "Expected 1 article indicator, got {$articleCount}");
-        });
-});
-
 it('does not show a draft Statamic article in the month view', function () {
     // Use a far-past year/month with no committed Statamic content to isolate the count.
     $year = 2020;
@@ -169,63 +132,6 @@ it('includes a Statamic note card on the day view', function () {
         });
 });
 
-it('does not duplicate an Eloquent Article on the day view', function () {
-    $date = now()->subDays(16)->startOfDay();
-
-    // Eloquent Article — creates a timeline_entries morph row (excluded).
-    Article::factory()->create([
-        'title' => 'Legacy Day Article',
-        'occurred_at' => $date->copy()->setTime(11, 0),
-        'draft' => false,
-    ]);
-
-    // Statamic twin.
-    Entry::make()->collection('articles')->slug('day-no-dup-article')
-        ->date($date->toDateString())
-        ->data(['title' => 'Statamic Day Article', 'excerpt' => 'No dup day'])
-        ->save();
-
-    get(dayUrl($date))
-        ->assertInertia(function ($page) {
-            $items = collect($page->toArray()['props']['items']);
-
-            $articleCount = $items->filter(fn ($item) => ($item['iconKey'] ?? '') === 'article')->count();
-            expect($articleCount)->toBe(1, "Expected 1 article card on day view, got {$articleCount}");
-
-            $titles = $items->pluck('title');
-            expect($titles)->toContain('Statamic Day Article');
-            expect($titles)->not->toContain('Legacy Day Article');
-        });
-});
-
-it('does not duplicate an Eloquent Note on the day view', function () {
-    $date = now()->subDays(17)->startOfDay();
-
-    // Eloquent Note — excluded morph type.
-    Note::factory()->create([
-        'occurred_at' => $date->copy()->setTime(9, 0),
-        'content' => 'Legacy day note content',
-    ]);
-
-    // Statamic note.
-    $bardContent = [
-        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Statamic day note content']]],
-    ];
-
-    Entry::make()->collection('notes')->slug('day-no-dup-note')
-        ->date($date->toDateString())
-        ->data(['content' => $bardContent])
-        ->save();
-
-    get(dayUrl($date))
-        ->assertInertia(function ($page) {
-            $items = collect($page->toArray()['props']['items']);
-
-            $noteCount = $items->filter(fn ($item) => ($item['iconKey'] ?? '') === 'note')->count();
-            expect($noteCount)->toBe(1, "Expected 1 note card on day view, got {$noteCount}");
-        });
-});
-
 it('does not show a draft Statamic article on the day view', function () {
     $date = now()->subDays(18)->startOfDay();
 
@@ -251,13 +157,13 @@ it('does not show a draft Statamic article on the day view', function () {
 it('merges Statamic and Eloquent items on the day view sorted earliest first', function () {
     $date = now()->subDays(19)->startOfDay();
 
-    // Activity at 10:00 — should appear AFTER the midnight article when sorted earliest first.
+    // Activity at 10:00 -- should appear AFTER the midnight article when sorted earliest first.
     Activity::factory()->create([
         'name' => 'Day Activity',
         'occurred_at' => $date->copy()->setTime(10, 0),
     ]);
 
-    // Statamic article — date-only, treated as midnight (00:00).
+    // Statamic article -- date-only, treated as midnight (00:00).
     Entry::make()->collection('articles')->slug('day-order-article')
         ->date($date->toDateString())
         ->data(['title' => 'Midnight Article', 'excerpt' => 'Date only'])

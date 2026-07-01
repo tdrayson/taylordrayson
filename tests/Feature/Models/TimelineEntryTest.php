@@ -3,7 +3,6 @@
 use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Media;
-use App\Models\Note;
 use App\Models\TimelineEntry;
 
 it('creating a Flight creates a timeline entry', function () {
@@ -40,16 +39,6 @@ it('creating a Checkin creates a timeline entry', function () {
         ->and(TimelineEntry::count())->toBe(1);
 });
 
-it('creating a Note creates a timeline entry', function () {
-    $note = Note::create([
-        'occurred_at' => now(),
-        'content' => 'A quick thought.',
-    ]);
-
-    expect($note->timelineEntry)->not->toBeNull()
-        ->and(TimelineEntry::count())->toBe(1);
-});
-
 it('deleting a model deletes its timeline entry', function () {
     $flight = Flight::create([
         'occurred_at' => now(),
@@ -67,14 +56,14 @@ it('deleting a model deletes its timeline entry', function () {
 });
 
 it('updating occurred_at on a model updates the timeline entry', function () {
-    $note = Note::create([
+    $checkin = Checkin::create([
         'occurred_at' => now()->subWeek(),
-        'content' => 'Old note.',
+        'venue_name' => 'Old Checkin.',
     ]);
 
     $newDate = now()->startOfHour();
-    $note->update(['occurred_at' => $newDate]);
+    $checkin->update(['occurred_at' => $newDate]);
 
-    expect($note->timelineEntry->fresh()->occurred_at->toDateTimeString())
+    expect($checkin->timelineEntry->fresh()->occurred_at->toDateTimeString())
         ->toBe($newDate->toDateTimeString());
 });

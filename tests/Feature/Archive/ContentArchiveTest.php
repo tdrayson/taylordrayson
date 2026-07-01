@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Article;
 use Statamic\Facades\Entry;
 
 use function Pest\Laravel\get;
@@ -37,19 +36,6 @@ it('/articles excludes draft articles', function () {
     get('/articles')->assertOk()->assertInertia(fn ($page) => $page
         ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Live Article')
             && ! archiveTitlesContains($groups, 'Draft Article'))
-    );
-});
-
-it('/articles does NOT include Eloquent articles (no duplicates)', function () {
-    // Create a Statamic article and an Eloquent Article with timeline entry.
-    Entry::make()->collection('articles')->slug('statamic-article')
-        ->date('2024-03-10')->data(['title' => 'Statamic Article'])->save();
-
-    Article::factory()->create(['title' => 'Eloquent Article', 'occurred_at' => now()->subDay()]);
-
-    get('/articles')->assertOk()->assertInertia(fn ($page) => $page
-        ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Statamic Article')
-            && ! archiveTitlesContains($groups, 'Eloquent Article'))
     );
 });
 

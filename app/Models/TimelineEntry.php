@@ -86,30 +86,27 @@ class TimelineEntry extends Model implements Feedable
      * Statamic-sourced articles and notes, honouring the ?filter= / ?types=
      * selection and applying the 50-item cap to the merged, sorted set.
      *
-     * Article and Note morphs are always excluded from the Eloquent query when
-     * the current selection would include them, because those types now come
-     * from Statamic (avoiding duplicate entries for migrated posts).
+     * Article and Note content always comes exclusively from Statamic; they
+     * have no Eloquent rows and their models no longer exist.
      *
      * @return SupportCollection<int, FeedItem>
      */
     public static function getFeedItems(): SupportCollection
     {
-        $models = self::requestedModels();
+        $requestedKeys = self::requestedTypeKeys();
 
         // Determine which content types (article / note) are active in the
-        // current selection. When no selection is set ($models === null) every
-        // type is included, so both content types are active.
-        $includeArticles = $models === null || in_array(Article::class, $models, true);
-        $includeNotes = $models === null || in_array(Note::class, $models, true);
+        // current selection. When no selection is set (null) every type is
+        // included, so both content types are active.
+        $includeArticles = $requestedKeys === null || in_array('article', $requestedKeys, true);
+        $includeNotes = $requestedKeys === null || in_array('note', $requestedKeys, true);
         $includeContent = $includeArticles || $includeNotes;
 
-        // Build the Eloquent models list, removing Article/Note so they are
-        // never returned from TimelineEntry when Statamic is the source.
-        $eloquentModels = $models !== null
-            ? array_values(array_filter($models, fn (string $m): bool => $m !== Article::class && $m !== Note::class))
-            : null;
+        // Resolve Eloquent model class strings for non-content types only.
+        // Article/Note have no Eloquent models anymore, so they are excluded.
+        $eloquentModels = self::resolveEloquentModels($requestedKeys);
 
-        // Fetch Eloquent entries (no Article/Note morphs).
+        // Fetch Eloquent entries (no Article/Note morph rows exist after migration).
         // ->toBase() converts the Eloquent Collection to a plain SupportCollection
         // so the subsequent merge() accepts non-model values (FeedItem instances).
         $eloquentItems = self::query()
@@ -121,7 +118,7 @@ class TimelineEntry extends Model implements Feedable
             )
             ->when(
                 $eloquentModels === null,
-                fn (Builder $query) => $query->whereNotIn('timelineable_type', [Article::class, Note::class]),
+                fn (Builder $query) => $query->whereNotIn('timelineable_type', ['App\\Models\\Article', 'App\\Models\\Note']),
             )
             ->withCardRelations()
             ->orderByDesc('occurred_at')
@@ -157,14 +154,14 @@ class TimelineEntry extends Model implements Feedable
     }
 
     /**
-     * Resolve the requested timelineable models from the feed query string:
+     * Resolve the requested TypeRegistry keys from the feed query string:
      * `?filter=` selects a named preset, `?types=` a comma-separated list of
      * TypeRegistry keys. Unknown presets/types are ignored, and an empty or
      * absent selection returns null so the feed falls back to every type.
      *
-     * @return array<int, class-string>|null
+     * @return array<int, string>|null
      */
-    private static function requestedModels(): ?array
+    private static function requestedTypeKeys(): ?array
     {
         $request = request();
         $keys = null;
@@ -182,8 +179,27 @@ class TimelineEntry extends Model implements Feedable
             return null;
         }
 
-        return collect($keys)
-            ->map(fn (string $key): string => TypeRegistry::find(trim($key))['model'])
+        return array_values($keys);
+    }
+
+    /**
+     * Resolve Eloquent model class strings for non-content type keys.
+     * Article and Note have no Eloquent models (removed in Task 16), so they
+     * are always excluded from the returned list.
+     *
+     * @param  array<int, string>|null  $typeKeys  TypeRegistry keys, or null for all types.
+     * @return array<int, class-string>|null Null means "all Eloquent types".
+     */
+    private static function resolveEloquentModels(?array $typeKeys): ?array
+    {
+        if ($typeKeys === null) {
+            // No filter: all types requested; Eloquent path excludes article/note via whereNotIn.
+            return null;
+        }
+
+        return collect($typeKeys)
+            ->map(fn (string $key): ?string => TypeRegistry::find(trim($key))['model'] ?? null)
+            ->filter()
             ->unique()
             ->values()
             ->all();

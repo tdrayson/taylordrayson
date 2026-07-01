@@ -6,14 +6,12 @@ use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Appearance;
-use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Media;
-use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
@@ -32,14 +30,12 @@ class ImportCsv extends Command
         'airline' => Airline::class,
         'airport' => Airport::class,
         'appearance' => Appearance::class,
-        'article' => Article::class,
         'calorie' => Calorie::class,
         'checkin' => Checkin::class,
         'event' => Event::class,
         'flight' => Flight::class,
         'fuel' => Fuel::class,
         'media' => Media::class,
-        'note' => Note::class,
         'podcast' => Podcast::class,
         'project' => Project::class,
         'sleep' => Sleep::class,
