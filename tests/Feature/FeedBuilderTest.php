@@ -1,13 +1,15 @@
 <?php
 
-use App\Models\Article;
 use App\Models\Checkin;
-use App\Models\Note;
-use Inertia\Testing\AssertableInertia as Assert;
+use Inertia\Testing\AssertableInertia;
+use Statamic\Facades\Entry;
 
 /**
  * The feed item's <category> is the card type, so filtering can be asserted
  * purely by which type categories appear in the rendered feed.
+ *
+ * Notes and articles are now sourced exclusively from Statamic (ContentRepository);
+ * Eloquent Note/Article rows are excluded from the TimelineEntry feed query.
  */
 function category(string $type): string
 {
@@ -15,9 +17,24 @@ function category(string $type): string
 }
 
 beforeEach(function () {
-    Note::factory()->create(['occurred_at' => now()->subDay()]);
-    Article::factory()->create(['occurred_at' => now()->subDays(2)]);
+    $this->preContent = snapshotContentFiles();
+
+    // Statamic entries replace the legacy Eloquent Note/Article rows.
+    Entry::make()->collection('notes')->slug('feed-builder-note')
+        ->date(now()->subDay()->toDateString())
+        ->data(['content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Feed builder note']]]]])
+        ->save();
+
+    Entry::make()->collection('articles')->slug('feed-builder-article')
+        ->date(now()->subDays(2)->toDateString())
+        ->data(['title' => 'Feed Builder Article', 'excerpt' => 'desc'])
+        ->save();
+
     Checkin::factory()->create(['occurred_at' => now()->subDays(3)]);
+});
+
+afterEach(function () {
+    deleteNewContentFiles($this->preContent);
 });
 
 it('returns every type when no filter is given', function () {
@@ -79,7 +96,7 @@ it('applies the same filter to the json feed', function () {
 it('renders the subscribe page with every type and preset', function () {
     $this->get('/feeds')
         ->assertSuccessful()
-        ->assertInertia(fn (Assert $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Feeds')
             ->has('types', 13)
             ->has('presets', 6)

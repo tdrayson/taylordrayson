@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Content\ContentFeed;
+use App\Content\ContentRepository;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Collection as SupportCollection;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 
@@ -79,19 +82,77 @@ class TimelineEntry extends Model implements Feedable
     }
 
     /**
-     * @return Collection<int, TimelineEntry>
+     * Build the feed item list by merging Eloquent timeline entries with
+     * Statamic-sourced articles and notes, honouring the ?filter= / ?types=
+     * selection and applying the 50-item cap to the merged, sorted set.
+     *
+     * Article and Note morphs are always excluded from the Eloquent query when
+     * the current selection would include them, because those types now come
+     * from Statamic (avoiding duplicate entries for migrated posts).
+     *
+     * @return SupportCollection<int, FeedItem>
      */
-    public static function getFeedItems(): Collection
+    public static function getFeedItems(): SupportCollection
     {
         $models = self::requestedModels();
 
-        return self::query()
-            ->when($models !== null, fn (Builder $query) => $query->whereHasMorph('timelineable', $models))
+        // Determine which content types (article / note) are active in the
+        // current selection. When no selection is set ($models === null) every
+        // type is included, so both content types are active.
+        $includeArticles = $models === null || in_array(Article::class, $models, true);
+        $includeNotes = $models === null || in_array(Note::class, $models, true);
+        $includeContent = $includeArticles || $includeNotes;
+
+        // Build the Eloquent models list, removing Article/Note so they are
+        // never returned from TimelineEntry when Statamic is the source.
+        $eloquentModels = $models !== null
+            ? array_values(array_filter($models, fn (string $m): bool => $m !== Article::class && $m !== Note::class))
+            : null;
+
+        // Fetch Eloquent entries (no Article/Note morphs).
+        // ->toBase() converts the Eloquent Collection to a plain SupportCollection
+        // so the subsequent merge() accepts non-model values (FeedItem instances).
+        $eloquentItems = self::query()
+            ->when(
+                $eloquentModels !== null,
+                fn (Builder $query) => count($eloquentModels) > 0
+                    ? $query->whereHasMorph('timelineable', $eloquentModels)
+                    : $query->whereRaw('0 = 1'),
+            )
+            ->when(
+                $eloquentModels === null,
+                fn (Builder $query) => $query->whereNotIn('timelineable_type', [Article::class, Note::class]),
+            )
             ->withCardRelations()
             ->orderByDesc('occurred_at')
             ->limit(50)
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->toBase()
+            ->map(fn (TimelineEntry $entry): FeedItem => $entry->toFeedItem());
+
+        if (! $includeContent) {
+            // No content types requested; return Eloquent items limited to 50.
+            return $eloquentItems->take(50)->values();
+        }
+
+        // Fetch Statamic content entries filtered to the requested types.
+        /** @var ContentRepository $repo */
+        $repo = app(ContentRepository::class);
+
+        $contentEntries = match (true) {
+            $includeArticles && $includeNotes => $repo->all(),
+            $includeArticles => $repo->articles(),
+            default => $repo->notes(),
+        };
+
+        $contentItems = $contentEntries->map(fn ($entry) => ContentFeed::toFeedItem($entry));
+
+        // Merge, sort newest-first, cap at 50.
+        return $eloquentItems
+            ->merge($contentItems)
+            ->sortByDesc(fn (FeedItem $item): int => $item->updated->timestamp)
+            ->take(50)
             ->values();
     }
 
