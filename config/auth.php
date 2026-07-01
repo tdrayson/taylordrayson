@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\User;
-
 return [
 
     /*
@@ -62,15 +60,12 @@ return [
     */
 
     'providers' => [
+        // Users live as Statamic flat files (content/../users/*.yaml), not in the
+        // database. The single web guard resolves them through Statamic's file
+        // user provider, so the CP and the app share one flat-file user system.
         'users' => [
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'driver' => 'statamic',
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*
