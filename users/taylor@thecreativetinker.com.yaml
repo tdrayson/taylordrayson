@@ -1,3 +1,17 @@
 super: true
 id: 556a41b4-551c-4d40-8f3c-621d5bc9531b
 password_hash: $2y$12$RLnGItstCfatAErBt68DE.9YMwQIV69U36Mm9tMDhQx/.JQpMcd3S
+preferences:
+  runway:
+    podcast:
+      columns:
+        - occurred_at
+        - season_number
+        - episode_number
+        - show_notes
+        - transcript
+        - duration
+        - audio_url
+        - video_url
+        - thumbnail
+        - cover_image
