@@ -6,19 +6,19 @@ import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import StoryHero from '../../Components/Story/StoryHero.vue';
 import StoryChapter from '../../Components/Story/StoryChapter.vue';
-import StoryStats from '../../Components/Story/StoryStats.vue';
-import StoryNote from '../../Components/Story/StoryNote.vue';
-import StoryQuote from '../../Components/Story/StoryQuote.vue';
-import StoryChart from '../../Components/Story/StoryChart.vue';
+import StatCards from '../../Components/Ui/StatCards.vue';
+import Note from '../../Components/Ui/Note.vue';
+import Blockquote from '../../Components/Ui/Blockquote.vue';
+import Chart from '../../Components/Ui/Chart.vue';
 import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
 import StoryToc from '../../Components/Story/StoryToc.vue';
-import StoryDate from '../../Components/Story/StoryDate.vue';
-import StoryFlags from '../../Components/Story/StoryFlags.vue';
+import DateLink from '../../Components/Ui/DateLink.vue';
+import FlagList from '../../Components/Ui/FlagList.vue';
 import StoryAirline from '../../Components/Story/StoryAirline.vue';
 import Abbr from '../../Components/Ui/Abbr.vue';
 import FlightsMap from '../../Components/Maps/FlightsMap.vue';
-import { PALETTE, baseOptions } from '../../lib/storyChart.js';
+import { PALETTE, baseOptions } from '../../lib/chart.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -176,16 +176,16 @@ const seatsOptions = baseOptions({
             getting rich, it's a daft little project I set myself, which I'll get to. The headline is just how lumpy it is:
             years of nothing much, then a great big spike.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: n(story.kpis.flights), label: 'Flights on record', tone: 'flight' },
             { value: n(story.kpis.miles), label: 'Miles flown' },
             { value: `${story.kpis.days}`, label: 'Days in the air' },
             { value: `${story.kpis.hours}`, label: 'Hours aloft' },
         ]" />
-        <StoryNote label="One caveat">
+        <Note label="One caveat">
             The early years are thin because the records are, not because I sat still. Anything before about 2009 is
             mostly lost, so treat these totals as the flights I can still find, not every flight I've ever taken.
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="02" kicker="Flights a year">
@@ -196,7 +196,7 @@ const seatsOptions = baseOptions({
             neatly either: a single long-haul out to the States does more for the mileage total than a whole summer of
             short European hops.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Flights per year"
             summary="Flights are flat for years, then spike in 2022 and 2023"
@@ -220,9 +220,9 @@ const seatsOptions = baseOptions({
             {{ peakYear.flights }} flights in it, and why nearly all of them are short out-and-back hops rather than
             anything glamorous.
         </p>
-        <StoryQuote cite="The cheapest way I've found to see Europe.">
+        <Blockquote cite="The cheapest way I've found to see Europe." tone="flight">
             One city a month, solo, on a budget, working as I went. Most of the flights in here are just me chasing that.
-        </StoryQuote>
+        </Blockquote>
     </StoryChapter>
 
     <StoryChapter number="04" kicker="Longest and shortest">
@@ -231,22 +231,22 @@ const seatsOptions = baseOptions({
             Funny one, this. My longest ever flight is
             <strong><Abbr :title="story.airportNames[story.extremes.longest.origin]">{{ story.extremes.longest.origin }}</Abbr> to <Abbr :title="story.airportNames[story.extremes.longest.destination]">{{ story.extremes.longest.destination }}</Abbr></strong>
             at <strong>{{ n(story.extremes.longest.miles) }} miles</strong>
-            (<StoryDate :date="story.extremes.longest.date" :label="story.extremes.longest.when" month />), and my shortest is
+            (<DateLink :date="story.extremes.longest.date" :label="story.extremes.longest.when" month />), and my shortest is
             <strong><Abbr :title="story.airportNames[story.extremes.shortest.origin]">{{ story.extremes.shortest.origin }}</Abbr> to <Abbr :title="story.airportNames[story.extremes.shortest.destination]">{{ story.extremes.shortest.destination }}</Abbr></strong>
             at just <strong>{{ n(story.extremes.shortest.miles) }} miles</strong>, a quick hop you'd barely call a flight. Both
             were on the same trip: a big loop around the US visiting friends, where I ended up flying everywhere because
             it's the only sensible way to get about over there.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: `${n(story.extremes.longest.miles)} mi`, label: `Longest, ${story.extremes.longest.route}`, tone: 'flight' },
             { value: `${n(story.extremes.shortest.miles)} mi`, label: `Shortest, ${story.extremes.shortest.route}` },
             { value: n(story.kpis.miles), label: 'Total miles flown' },
             { value: `${story.kpis.aroundEarth}x`, label: 'Times round the planet' },
         ]" />
-        <StoryNote label="The good seats">
+        <Note label="The good seats">
             That US trip is also the only time I've turned left on a plane. A handful of those legs were in business or
             premium class, a proper one-off treat, and the only posh seats in the whole dataset.
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="05" kicker="The home airport">
@@ -258,7 +258,7 @@ const seatsOptions = baseOptions({
             isn't anyone's idea of a glamorous hub, but it's a twenty-five-minute drive and it flies cheaply to half of
             Europe, which is exactly what the whole twelve months of coffee needed.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Flights through each airport"
             summary="Gatwick dominates, with every other airport far behind"
@@ -281,7 +281,7 @@ const seatsOptions = baseOptions({
             Those lines touch down in a fair spread of places, from quick hops across the Channel to the odd long-haul
             that snuck in. Here's the full set, one flag each:
         </p>
-        <StoryFlags :codes="story.countries" />
+        <FlagList :codes="story.countries" />
     </StoryChapter>
 
     <StoryChapter number="07" kicker="Budget travel">
@@ -294,7 +294,7 @@ const seatsOptions = baseOptions({
             no-frills carriers are what made twelve months of coffee actually affordable, so I just put up with the orange
             seats and the 6am departures.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: `${story.budget.easyjetPct}%`, label: 'On easyJet', tone: 'flight' },
             { value: `${story.budget.budgetPct}%`, label: 'On budget airlines' },
             { value: n(story.kpis.airlines), label: 'Different airlines' },
@@ -309,7 +309,7 @@ const seatsOptions = baseOptions({
             <strong>{{ story.fleet.types }} different aircraft types</strong> in total, and the fun ones are right at the
             bottom of the list.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Most-flown aircraft types"
             summary="A few small Airbus types do most of the flying"
@@ -321,7 +321,7 @@ const seatsOptions = baseOptions({
             The treats were the rare wide-bodies. I've flown the
             <strong>Airbus A380</strong> exactly once
             <template v-if="story.fleet.a380">
-                (<StoryDate :date="story.fleet.a380.date" :label="story.fleet.a380.when" month />, coming back from the
+                (<DateLink :date="story.fleet.a380.date" :label="story.fleet.a380.when" month />, coming back from the
                 States)</template>, the only double-decker in here, and a couple of old
             <strong>Boeing 747s</strong> on a family holiday to Jamaica back in 2009. After a steady diet of easyJet A319s,
             stepping onto a jumbo feels faintly ridiculous.
@@ -335,7 +335,7 @@ const seatsOptions = baseOptions({
             time</strong>, with aisle and middle splitting the rest. I'll happily climb over a whole row of people just to
             get my head against the glass and watch the ground go by. Some habits really don't budge.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Seat choice, where recorded"
             summary="Window seats are the clear favourite, ahead of aisle and middle"
@@ -353,7 +353,7 @@ const seatsOptions = baseOptions({
             new city every June. Porto, Athens, Turin, Basel, Krakow, one each year, always the first week of the month.
             Everything else, the twelve months of coffee included, was purely for me.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: n(story.purpose.personal), label: 'Personal flights', tone: 'flight' },
             { value: n(story.purpose.business), label: 'Work flights' },
             { value: `${story.purpose.businessPct}%`, label: 'Flown for work' },

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { Chart } from '../../lib/storyChart.js';
+import { Chart } from '../../lib/chart.js';
 
 const props = defineProps({
     type: { type: String, required: true },

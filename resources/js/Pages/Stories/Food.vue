@@ -6,15 +6,15 @@ import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import StoryHero from '../../Components/Story/StoryHero.vue';
 import StoryChapter from '../../Components/Story/StoryChapter.vue';
-import StoryStats from '../../Components/Story/StoryStats.vue';
-import StoryNote from '../../Components/Story/StoryNote.vue';
-import StoryQuote from '../../Components/Story/StoryQuote.vue';
-import StoryChart from '../../Components/Story/StoryChart.vue';
+import StatCards from '../../Components/Ui/StatCards.vue';
+import Note from '../../Components/Ui/Note.vue';
+import Blockquote from '../../Components/Ui/Blockquote.vue';
+import Chart from '../../Components/Ui/Chart.vue';
 import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
 import StoryToc from '../../Components/Story/StoryToc.vue';
-import StoryDate from '../../Components/Story/StoryDate.vue';
-import { PALETTE, baseOptions, tooltip } from '../../lib/storyChart.js';
+import DateLink from '../../Components/Ui/DateLink.vue';
+import { PALETTE, baseOptions, tooltip } from '../../lib/chart.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -259,7 +259,7 @@ const topFoodsOptions = baseOptions({
             I got 100 days in, didn't want to lose the streak, and, well, here we are. Every full year since is a
             complete 365.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: n(story.streak.days), label: 'Day logging streak', tone: 'food' },
             { value: n(story.kpis.items), label: 'Items logged' },
             { value: `${(story.kpis.totalKcal / 1e6).toFixed(2)}M`, label: 'Calories in total' },
@@ -273,12 +273,12 @@ const topFoodsOptions = baseOptions({
             {{ n(story.distribution.median) }}, so it's pretty consistent really, spread over about
             {{ story.kpis.avgItems }} separate entries a day. The lightest day was a grim
             <strong>{{ n(story.distribution.low.kcal) }} kcal</strong>
-            (<StoryDate :date="story.distribution.low.date" :label="story.distribution.low.when" />); the biggest was a
+            (<DateLink :date="story.distribution.low.date" :label="story.distribution.low.when" />); the biggest was a
             <strong>{{ n(story.distribution.high.kcal) }} kcal</strong> day
-            (<StoryDate :date="story.distribution.high.date" :label="story.distribution.high.when" />). There's a story
+            (<DateLink :date="story.distribution.high.date" :label="story.distribution.high.when" />). There's a story
             behind both, and it's the same one.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: n(story.kpis.avgPerDay), label: 'Average day', tone: 'food' },
             { value: n(story.distribution.median), label: 'Median day' },
             { value: n(story.distribution.low.kcal), label: `Lightest, ${story.distribution.low.when}` },
@@ -293,7 +293,7 @@ const topFoodsOptions = baseOptions({
             <strong>{{ story.macros.fat.pct }}% fat</strong>, <strong>{{ story.macros.protein.pct }}% protein</strong>
             across the whole lot. Not exactly a bodybuilder's ratio, but it has been slowly shifting, as you'll see.
         </p>
-        <StoryChart
+        <Chart
             type="doughnut"
             label="Where my calories come from"
             summary="A calorie-weighted macro split, led by carbohydrate"
@@ -301,10 +301,10 @@ const topFoodsOptions = baseOptions({
             :options="macrosOptions"
             :height="240"
         />
-        <StoryNote label="FYI">
+        <Note label="FYI">
             Not every food in here has full macro data attached, so the protein, carbs and fat totals are a slight
             undercount. The calorie figures themselves are solid.
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="04" kicker="Being ill">
@@ -315,7 +315,7 @@ const topFoodsOptions = baseOptions({
             a lot of them barely-eating days while I was flaring. You can see the bad patches in the data, often before I
             really knew what was going on myself, which is, funnily enough, exactly why I started logging in the first place.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Days under 1,200 kcal, per year"
             summary="Low-intake days peak in 2022, the run-up to surgery"
@@ -328,14 +328,14 @@ const topFoodsOptions = baseOptions({
     <StoryChapter number="05" kicker="Surgery">
         <template #title>The clearest dot on the whole chart.</template>
         <p>
-            On <strong><StoryDate date="2023-01-26" label="26 January 2023" /></strong> I had ileostomy surgery, and you
+            On <strong><DateLink date="2023-01-26" label="26 January 2023" /></strong> I had ileostomy surgery, and you
             can spot it in the data without checking a calendar. I more or less stopped eating in hospital while I
             recovered (that {{ n(story.distribution.low.kcal) }}-kcal day is in there), then went onto steroids, which
             give you a massive appetite, and it all swung the other way. My lowest 30-day stretch averaged
             <strong>{{ n(story.surgery.crash.avg) }} kcal a day</strong>, immediately followed by my highest ever at
             <strong>{{ n(story.surgery.rebound.avg) }}</strong>.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Calories a day, December 2022 to March 2023"
             summary="The hospital crash followed by the steroid rebound"
@@ -343,10 +343,10 @@ const topFoodsOptions = baseOptions({
             :options="surgeryOptions"
             :height="220"
         />
-        <StoryQuote cite="The bit the chart can't show.">
+        <Blockquote cite="The bit the chart can't show." tone="food">
             I haven't had a proper flare since. The surgery worked, and the line settling back to normal afterwards is
             the happiest thing in this whole dataset.
-        </StoryQuote>
+        </Blockquote>
     </StoryChapter>
 
     <StoryChapter number="06" kicker="The gym">
@@ -357,7 +357,7 @@ const topFoodsOptions = baseOptions({
             illness; it's up around <strong>{{ proteinNow.avgProtein }} g</strong> now, and the carbs have quietly dropped
             back to make room. It's pretty much the only thing about how I eat that I've actively tried to change.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Average protein a day, by year"
             summary="Protein climbs steadily from the 2022 trough"
@@ -375,7 +375,7 @@ const topFoodsOptions = baseOptions({
             year; this year, after deciding to knock the fizzy stuff on the head, I'm down to
             <strong>{{ n(story.fizzy.latest.count) }}</strong>. Just a bit of willpower, showing up in the numbers.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Fizzy drinks logged, per year"
             summary="The fizzy-drink habit peaks in 2021, then drops off a cliff"
@@ -392,7 +392,7 @@ const topFoodsOptions = baseOptions({
             the day, with lunch close behind and breakfast the afterthought it has always been for me. (There are no clock
             times in the data, just which meal I tagged each thing as.)
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Share of calories by meal"
             summary="Dinner is the largest share, breakfast the smallest"
@@ -410,7 +410,7 @@ const topFoodsOptions = baseOptions({
             behind, then orange juice and milk. The top of my whole food diary is, basically, just drinks. I run on
             caffeine, sugar and habit, and the chart isn't going to let me pretend otherwise.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="My most-logged foods, grouped"
             summary="Coffee, Coke, orange juice and milk lead the list"

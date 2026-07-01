@@ -5,16 +5,16 @@ import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import StoryHero from '../../Components/Story/StoryHero.vue';
 import StoryChapter from '../../Components/Story/StoryChapter.vue';
-import StoryStats from '../../Components/Story/StoryStats.vue';
-import StoryNote from '../../Components/Story/StoryNote.vue';
-import StoryQuote from '../../Components/Story/StoryQuote.vue';
-import StoryChart from '../../Components/Story/StoryChart.vue';
+import StatCards from '../../Components/Ui/StatCards.vue';
+import Note from '../../Components/Ui/Note.vue';
+import Blockquote from '../../Components/Ui/Blockquote.vue';
+import Chart from '../../Components/Ui/Chart.vue';
 import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
 import StoryToc from '../../Components/Story/StoryToc.vue';
-import StoryDate from '../../Components/Story/StoryDate.vue';
+import DateLink from '../../Components/Ui/DateLink.vue';
 import { PetrolPumpIcon } from '@hugeicons-pro/core-stroke-rounded';
-import { PALETTE, baseOptions } from '../../lib/storyChart.js';
+import { PALETTE, baseOptions } from '../../lib/chart.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -281,45 +281,45 @@ const savingsOptions = baseOptions({
             <strong>{{ gbp(story.kpis.spend) }}</strong> spent and <strong>{{ n(story.kpis.miles) }} miles</strong>
             covered, which works out at about {{ story.kpis.avgMpg }} miles to the gallon.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: n(story.kpis.fills), label: 'Fill-ups logged', tone: 'fuel' },
             { value: n(story.kpis.miles), label: 'Miles driven' },
             { value: n(story.kpis.litres), label: 'Litres bought' },
             { value: gbp(story.kpis.spend), label: 'Total spent' },
         ]" />
-        <StoryNote label="For scale">
+        <Note label="For scale">
             Just for fun: those <strong>{{ n(story.kpis.miles) }} miles</strong> are very nearly
             <strong>{{ story.kpis.aroundEarth }} laps of the planet</strong> (it's 24,901 miles the whole way round).
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="02" kicker="The price of petrol">
         <template #title>From {{ price(story.price.low.value) }} to {{ price(story.price.high.value) }} a litre.</template>
         <p>
             The price per litre has been on a proper rollercoaster. The cheapest I ever paid was
-            <strong>{{ price(story.price.low.value) }} in <StoryDate :date="story.price.low.date" :label="story.price.low.when" month /></strong>,
+            <strong>{{ price(story.price.low.value) }} in <DateLink :date="story.price.low.date" :label="story.price.low.when" month /></strong>,
             right in the depths of the pandemic when nobody was going anywhere. The dearest was
-            <strong>{{ price(story.price.high.value) }} in <StoryDate :date="story.price.high.date" :label="story.price.high.when" month /></strong>,
+            <strong>{{ price(story.price.high.value) }} in <DateLink :date="story.price.high.date" :label="story.price.high.when" month /></strong>,
             when the energy crisis after Russia invaded Ukraine sent everything haywire. That's a <strong>{{ story.price.swingPct }}% jump</strong> between the two, for the same car at the
             same sort of garage.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Price per litre, every fill"
             :summary="`Price per litre over time, from ${price(story.price.low.value)} to ${price(story.price.high.value)}`"
             :data="priceChart"
             :options="priceOptions"
         />
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: price(story.price.low.value), label: `Cheapest, ${story.price.low.when}` },
             { value: price(story.price.high.value), label: `Dearest, ${story.price.high.when}`, tone: 'fuel' },
             { value: `${story.price.swingPct}%`, label: 'Peak-to-trough swing' },
             { value: price(story.kpis.avgPrice), label: 'All-time average' },
         ]" />
-        <StoryNote label="Note">
+        <Note label="Note">
             Things have calmed right down since mid-2023. Nowhere near the madness of 2022, but they've never really
             dropped back to those lovely pandemic prices either.
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="03" kicker="How far I drove">
@@ -329,7 +329,7 @@ const savingsOptions = baseOptions({
             The big oddball is <strong>2020</strong>, when it dropped to barely half that. And you can see exactly why in
             the data: two big stretches where the car basically didn't move.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Miles driven per full year"
             summary="Miles driven each year, with 2020 far below the others"
@@ -337,17 +337,17 @@ const savingsOptions = baseOptions({
             :options="milesOptions"
             :height="220"
         />
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: `${story.intervals.longest} days`, label: 'Longest gap between fills', tone: 'fuel' },
             { value: `${story.intervals.typical} days`, label: 'Typical gap' },
             { value: `${story.intervals.shortest} days`, label: 'Shortest gap' },
         ]" />
-        <StoryNote label="Lockdowns">
+        <Note label="Lockdowns">
             You can spot both lockdowns a mile off: <strong>{{ story.gaps[0].days }} days</strong> without a single fill
             ({{ story.gaps[0].from }} to {{ story.gaps[0].to }}) for the first one, and
             <strong>{{ story.gaps[1].days }} days</strong> ({{ story.gaps[1].from }} to {{ story.gaps[1].to }}) for the
             third. Either side of those, I'm back to filling up like clockwork.
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="04" kicker="Seasonal economy">
@@ -360,7 +360,7 @@ const savingsOptions = baseOptions({
             heating the second it gets cold, which the engine has to graft a bit harder to provide. Either way, it shows up
             every single year.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Average MPG by calendar month"
             summary="Fuel economy peaks in summer and dips in winter"
@@ -368,7 +368,7 @@ const savingsOptions = baseOptions({
             :options="seasonalOptions"
             :height="200"
         />
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: `${story.seasonal.summer}`, label: 'Summer MPG (June to August)', tone: 'fuel' },
             { value: `${story.seasonal.winter}`, label: 'Winter MPG (December to February)' },
             { value: `+${story.seasonal.diff}`, label: 'Summer gain (mpg)' },
@@ -384,7 +384,7 @@ const savingsOptions = baseOptions({
             once you're out in the real world. The bit I like is how steady it stays year after year, even with the clock
             now well past <strong>{{ n(story.kpis.odometer) }} miles</strong>.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Average MPG per full year"
             summary="Average fuel economy is broadly flat across the years"
@@ -392,11 +392,11 @@ const savingsOptions = baseOptions({
             :options="mpgYearOptions"
             :height="200"
         />
-        <StoryNote label="Method">
+        <Note label="Method">
             Quick word on the maths: each mpg is just the miles since the last fill divided by the litres I put in,
             converted at 4.546 litres to the gallon. I always fill right to the top, so litres in equals litres burnt.
             Nothing's estimated, it's the genuine figure.
-        </StoryNote>
+        </Note>
     </StoryChapter>
 
     <StoryChapter number="06" kicker="What it cost">
@@ -407,7 +407,7 @@ const savingsOptions = baseOptions({
             average, but because the price per litre went mad. <strong>2020</strong> was the cheapest, for the least
             impressive reason going: I hardly went anywhere, and fuel was dirt cheap anyway.
         </p>
-        <StoryChart
+        <Chart
             type="bar"
             label="Total fuel spend per full year"
             summary="Yearly fuel spend, highest in 2022"
@@ -415,10 +415,10 @@ const savingsOptions = baseOptions({
             :options="spendOptions"
             :height="220"
         />
-        <StoryQuote cite="Price, miles and economy almost never line up.">
+        <Blockquote cite="Price, miles and economy almost never line up." tone="fuel">
             2020 was cheap because I barely drove and petrol had crashed, not because of any clever driving. 2022 was dear
             purely because of the price.
-        </StoryQuote>
+        </Blockquote>
     </StoryChapter>
 
     <StoryChapter number="07" kicker="The real cost">
@@ -432,7 +432,7 @@ const savingsOptions = baseOptions({
             <strong>{{ story.pencePerMile.changePct }}% higher</strong> than it was. The annoying bit is that cheaper fuel
             keeps getting cancelled out by the car going a tiny bit thirstier every year.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Pence per mile, per full year"
             summary="The real per-mile cost over time"
@@ -450,7 +450,7 @@ const savingsOptions = baseOptions({
             <strong>{{ gbp(story.fuelCard.saved) }}</strong> so far, slowly stacking up in the background over
             {{ n(story.fuelCard.fills) }} fills. Never much on the day, but it's basically free money for doing nothing.
         </p>
-        <StoryChart
+        <Chart
             type="line"
             label="Cumulative saving since the first card fill"
             summary="Total fuel-card saving, climbing steadily over time"
@@ -460,12 +460,12 @@ const savingsOptions = baseOptions({
         />
         <p>
             The best single one was <strong>{{ money(story.fuelCard.best.amount) }}</strong> on
-            <StoryDate :date="story.fuelCard.best.date" :label="story.fuelCard.best.when" />: a
+            <DateLink :date="story.fuelCard.best.date" :label="story.fuelCard.best.when" />: a
             {{ money(story.fuelCard.best.pump) }} fill that came to just
             {{ money(story.fuelCard.best.card) }} on the card. That one was so big because I filled up at motorway
             services, where the pump price is daylight robbery, so the card's rate left a massive gap.
         </p>
-        <StoryStats :stats="[
+        <StatCards :stats="[
             { value: gbp(story.fuelCard.saved), label: 'Saved via the fuel card', tone: 'fuel' },
             { value: n(story.fuelCard.fills), label: 'Fills on the card' },
             { value: money(story.fuelCard.best.amount), label: `Best saving, ${story.fuelCard.best.when}` },

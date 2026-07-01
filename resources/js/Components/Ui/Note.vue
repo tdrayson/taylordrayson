@@ -7,8 +7,10 @@ defineProps({
 // The diamond marker and label pick up the tone; the rule and body stay quiet.
 const MARKERS = {
     default: 'bg-neutral-900',
-    fuel: 'bg-fuel',
     accent: 'bg-accent-500',
+    fuel: 'bg-fuel',
+    food: 'bg-food',
+    flight: 'bg-flight',
 };
 </script>
 
