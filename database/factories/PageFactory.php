@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Page;
+use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -23,10 +24,8 @@ class PageFactory extends Factory
             'slug' => Str::slug($title),
             'excerpt' => $this->faker->sentence(),
             'content' => [
-                'blocks' => [
-                    ['type' => 'header', 'data' => ['text' => rtrim($title, '.'), 'level' => 2]],
-                    ['type' => 'paragraph', 'data' => ['text' => $this->faker->paragraph()]],
-                ],
+                PortableText::block(rtrim($title, '.'), 'h2'),
+                PortableText::block($this->faker->paragraph()),
             ],
             'published' => true,
         ];

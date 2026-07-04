@@ -7,7 +7,7 @@ use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use App\Support\EditorJs;
+use App\Support\PortableText;
 use App\Support\Text;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -61,7 +61,7 @@ class Article extends Model implements HasMedia, Timelineable
             'type' => 'article',
             'icon' => 'file-text',
             'title' => $this->title,
-            'subtitle' => Text::excerpt(EditorJs::plainText($this->content), 240) ?: $this->excerpt,
+            'subtitle' => Text::excerpt(PortableText::plainText($this->content), 240) ?: $this->excerpt,
             'occurred_at' => $this->occurred_at,
             'accent' => 'article',
             'meta' => [],

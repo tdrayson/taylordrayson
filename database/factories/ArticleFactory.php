@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Article;
-use App\Support\EditorJs;
+use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -19,13 +19,15 @@ class ArticleFactory extends Factory
     {
         $title = fake()->sentence(fake()->numberBetween(4, 8));
 
-        $blocks = [['type' => 'header', 'data' => ['text' => fake()->sentence(4), 'level' => 2]]];
+        $blocks = [PortableText::block(fake()->sentence(4), 'h2')];
 
         foreach (range(1, fake()->numberBetween(2, 4)) as $index) {
-            $blocks[] = ['type' => 'paragraph', 'data' => ['text' => fake()->paragraph()]];
+            $blocks[] = PortableText::block(fake()->paragraph());
 
             if ($index === 1) {
-                $blocks[] = ['type' => 'list', 'data' => ['style' => 'unordered', 'items' => fake()->sentences(3)]];
+                foreach (fake()->sentences(3) as $item) {
+                    $blocks[] = PortableText::block($item, 'normal', 'bullet');
+                }
             }
         }
 
@@ -34,7 +36,7 @@ class ArticleFactory extends Factory
             'title' => $title,
             'slug' => Str::slug($title),
             'excerpt' => fake()->sentence(fake()->numberBetween(10, 20)),
-            'content' => EditorJs::document($blocks),
+            'content' => $blocks,
             'published' => fake()->boolean(90),
         ];
     }
