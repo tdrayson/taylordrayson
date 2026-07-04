@@ -8,12 +8,16 @@ use Illuminate\Foundation\Http\FormRequest;
 class ListRequest extends FormRequest
 {
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, string|null>>
      */
     public function rules(): array
     {
         return [
-            'from' => ['sometimes', 'date', 'before_or_equal:to'],
+            'from' => array_filter([
+                'sometimes',
+                'date',
+                $this->filled('to') ? 'before_or_equal:to' : null,
+            ]),
             'to' => ['sometimes', 'date'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];

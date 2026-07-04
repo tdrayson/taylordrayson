@@ -32,3 +32,21 @@ it('rejects a from date after the to date', function () {
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['from']);
 });
+
+it('filters by from alone', function () {
+    Note::factory()->create(['occurred_at' => '2026-06-01 08:00:00']);
+    Note::factory()->create(['occurred_at' => '2026-07-01 08:00:00']);
+
+    $this->withToken('test-token')->getJson('/api/v1/notes?from=2026-06-10')
+        ->assertOk()
+        ->assertJsonCount(1, 'data');
+});
+
+it('filters by to alone', function () {
+    Note::factory()->create(['occurred_at' => '2026-06-01 08:00:00']);
+    Note::factory()->create(['occurred_at' => '2026-07-01 08:00:00']);
+
+    $this->withToken('test-token')->getJson('/api/v1/notes?to=2026-06-10')
+        ->assertOk()
+        ->assertJsonCount(1, 'data');
+});
