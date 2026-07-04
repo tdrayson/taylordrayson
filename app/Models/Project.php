@@ -24,7 +24,6 @@ use Spatie\MediaLibrary\HasMedia;
     'status',
     'featured',
     'tags',
-    'started_at',
 ])]
 class Project extends Model implements HasMedia, Timelineable
 {
@@ -39,7 +38,6 @@ class Project extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'tags' => 'array',
             'featured' => 'boolean',
-            'started_at' => 'datetime',
         ];
     }
 

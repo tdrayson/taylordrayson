@@ -36,7 +36,6 @@ class ProjectFactory extends Factory
     {
         $title = fake()->randomElement(self::PROJECT_NAMES);
         $occurredAt = fake()->dateTimeBetween('-6 months');
-        $startedAt = fake()->dateTimeBetween('-2 years', $occurredAt);
 
         return [
             'occurred_at' => $occurredAt,
@@ -51,7 +50,6 @@ class ProjectFactory extends Factory
                 ['Laravel', 'PHP', 'JavaScript', 'Tailwind', 'Vue', 'WordPress', 'API'],
                 fake()->numberBetween(1, 3),
             ),
-            'started_at' => $startedAt,
         ];
     }
 }
