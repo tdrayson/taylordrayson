@@ -17,6 +17,11 @@ it('parses durations to seconds', function (mixed $input, ?int $expected) {
     'seconds suffix' => ['30s', 30],
     'garbage' => ['soon', null],
     'null' => [null, null],
+    'mph rejected' => ['5 mph', null],
+    'ms rejected' => ['500 ms', null],
+    'hz rejected' => ['5 hz', null],
+    'trailing garbage rejected' => ['2hx', null],
+    'compound unit rejected' => ['774 miles per hour', null],
 ]);
 
 it('parses distances to metres', function (mixed $input, ?int $expected) {

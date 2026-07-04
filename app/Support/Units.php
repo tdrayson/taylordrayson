@@ -39,7 +39,7 @@ class Units
 
         $seconds = 0;
         $matched = false;
-        $pattern = '/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes|s|sec|secs|second|seconds)/';
+        $pattern = '/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes|s|sec|secs|second|seconds)(?![a-z])/';
 
         if (preg_match_all($pattern, $value, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
