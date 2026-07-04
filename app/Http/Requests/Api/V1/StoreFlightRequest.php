@@ -4,13 +4,19 @@ namespace App\Http\Requests\Api\V1;
 
 use App\Support\Units;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class StoreFlightRequest extends FormRequest
 {
     /**
      * Normalise flexible unit strings ("2h 25m", "774 miles") to canonical
-     * seconds/metres. Unparseable values are left as-is so the integer rules
-     * reject them with a validation error.
+     * seconds/metres, and canonicalise occurred_at to a fixed wall-clock
+     * format so retried submissions with a different timestamp format
+     * (e.g. ISO8601 vs "Y-m-d H:i:s") still match the natural-key lookup
+     * used for idempotency. occurred_at is local wall-clock time, so this
+     * must only reformat the string, never shift it to another timezone.
+     * Unparseable values are left as-is so the relevant rules reject them
+     * with a validation error.
      */
     protected function prepareForValidation(): void
     {
@@ -24,7 +30,30 @@ class StoreFlightRequest extends FormRequest
             $normalised['distance'] = Units::metres($this->input('distance')) ?? $this->input('distance');
         }
 
+        if ($this->has('occurred_at')) {
+            $normalised['occurred_at'] = $this->normalisedOccurredAt($this->input('occurred_at'));
+        }
+
         $this->merge($normalised);
+    }
+
+    /**
+     * Reformat a Carbon-parseable occurred_at string to "Y-m-d H:i:s",
+     * preserving its wall-clock components exactly as given. Falls back to
+     * the original value when it can't be parsed, so the "date" rule can
+     * reject it.
+     */
+    protected function normalisedOccurredAt(mixed $value): mixed
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d H:i:s');
+        } catch (\Throwable) {
+            return $value;
+        }
     }
 
     /**

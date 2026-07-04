@@ -69,6 +69,15 @@ it('is idempotent on the natural key', function () {
         ->and(Flight::first()->distance)->toBe(1245700);
 });
 
+it('is idempotent when the retry uses a different timestamp format', function () {
+    $this->withToken('test-token')->postJson('/api/v1/flights', validFlightPayload())->assertCreated();
+
+    $retry = array_merge(validFlightPayload(), ['occurred_at' => '2026-08-12T10:35:00+01:00']);
+    $this->withToken('test-token')->postJson('/api/v1/flights', $retry)->assertOk();
+
+    expect(Flight::count())->toBe(1);
+});
+
 it('rejects unknown airports and airlines', function () {
     $this->withToken('test-token')
         ->postJson('/api/v1/flights', array_merge(validFlightPayload(), ['origin_iata' => 'XXX']))

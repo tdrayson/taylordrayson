@@ -23,11 +23,8 @@ class CreateFlight
             'destination_iata' => $attributes['destination_iata'],
         ];
 
-        $flight = Flight::query()->where($key)->first();
-        $created = $flight === null;
-
         $flight = Flight::updateOrCreate($key, Arr::except($attributes, array_keys($key)));
 
-        return ['flight' => $flight->refresh(), 'created' => $created];
+        return ['flight' => $flight->refresh(), 'created' => $flight->wasRecentlyCreated];
     }
 }
