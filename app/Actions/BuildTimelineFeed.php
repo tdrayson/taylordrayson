@@ -50,6 +50,7 @@ class BuildTimelineFeed
             'accent' => $card['accent'],
             'title' => $card['title'],
             'meta' => Text::excerpt($card['subtitle'], 160),
+            'body' => $card['meta']['body'] ?? null,
             'segments' => $card['meta']['segments'] ?? null,
             'route' => $card['meta']['route'] ?? null,
             'media' => $card['meta']['media'] ?? null,

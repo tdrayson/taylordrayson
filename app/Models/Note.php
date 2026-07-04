@@ -53,7 +53,9 @@ class Note extends Model implements HasMedia, Timelineable
             'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'note',
-            'meta' => [],
+            'meta' => [
+                'body' => $this->content,
+            ],
         ];
     }
 }

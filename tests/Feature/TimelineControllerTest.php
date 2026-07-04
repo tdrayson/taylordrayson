@@ -98,3 +98,14 @@ it('shows day grouping headers', function () {
         ->where('groups.1.label', now()->subDays(3)->format('l j F Y'))
     );
 });
+
+it('ships full note content as the card body', function () {
+    Note::factory()->create([
+        'content' => "Long thought about grinders.\n\nSecond paragraph of the same note.",
+        'occurred_at' => now()->subHour(),
+    ]);
+
+    get('/')->assertInertia(fn ($page) => $page
+        ->where('groups.0.items.0.body', "Long thought about grinders.\n\nSecond paragraph of the same note.")
+        ->where('groups.0.items.0.iconKey', 'note'));
+});

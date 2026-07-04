@@ -24,6 +24,9 @@ const props = defineProps({
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
+    // Full note content: title-less types render this as body text instead of
+    // the display-font title, with the timestamp acting as the permalink.
+    body: { type: String, default: null },
     meta: { type: String, default: '' },
     segments: { type: Array, default: null },
     route: { type: Object, default: null },
@@ -201,10 +204,16 @@ function openLightbox(index) {
                 :href="typeHref || undefined"
                 class="type-color p-category text-label uppercase"
             >{{ displayType }}</component>
-            <time v-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
+            <!-- For body-style cards (notes) the timestamp is the permalink, like classic microblogs. -->
+            <Link v-if="body && url && datetime" :href="url" class="u-url transition-colors hover:text-accent-500 focus-visible:text-accent-500">
+                <time :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
+            </Link>
+            <time v-else-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
             <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
         </div>
-        <div class="mt-1 font-display text-item-title">
+        <!-- Notes show their full content as body text; everything else gets a display-font title. -->
+        <p v-if="body" class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
+        <div v-else class="mt-1 font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
                 :href="url || undefined"
