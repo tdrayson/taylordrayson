@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Note;
-use App\Support\EditorJs;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,15 +15,9 @@ class NoteFactory extends Factory
      */
     public function definition(): array
     {
-        $blocks = [];
-
-        foreach (range(1, fake()->numberBetween(1, 2)) as $ignored) {
-            $blocks[] = ['type' => 'paragraph', 'data' => ['text' => fake()->sentences(fake()->numberBetween(1, 3), true)]];
-        }
-
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
-            'content' => EditorJs::document($blocks),
+            'content' => fake()->sentences(2, true),
         ];
     }
 }

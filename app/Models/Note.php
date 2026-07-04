@@ -6,7 +6,6 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use App\Support\EditorJs;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,7 +29,6 @@ class Note extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'content' => 'array',
         ];
     }
 
@@ -44,7 +42,7 @@ class Note extends Model implements HasMedia, Timelineable
         return [
             'type' => 'note',
             'icon' => 'message-circle',
-            'title' => Str::limit(EditorJs::plainText($this->content), 80),
+            'title' => Str::limit($this->content, 80),
             'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'note',

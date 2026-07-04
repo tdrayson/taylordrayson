@@ -1,11 +1,9 @@
 <script setup>
-import BlockContent from '../Ui/BlockContent.vue';
-
 defineProps({
     entry: { type: Object, required: true },
 });
 </script>
 
 <template>
-    <BlockContent :document="entry.content" />
+    <p class="whitespace-pre-line text-base leading-relaxed">{{ entry.content }}</p>
 </template>
