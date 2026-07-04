@@ -148,4 +148,17 @@ class ResolveFuelStationTest extends TestCase
         $this->assertEquals("Sainsbury's", $station->brand);
         $this->assertEquals('111 High Street', $station->address); // not affected
     }
+
+    #[Test]
+    public function trims_the_stored_name_so_padded_input_cannot_create_duplicates(): void
+    {
+        $action = new ResolveFuelStation;
+
+        $first = $action(['name' => '  Shell London  ']);
+        $second = $action(['name' => 'shell london']);
+
+        $this->assertEquals('Shell London', $first->name);
+        $this->assertEquals($first->id, $second->id);
+        $this->assertCount(1, FuelStation::all());
+    }
 }
