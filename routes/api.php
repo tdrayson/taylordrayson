@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\NoteController;
 use App\Http\Controllers\HealthExportController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,4 +12,5 @@ Route::post('/health/ingest', [HealthExportController::class, 'store'])
 
 Route::prefix('v1')->middleware('api.token')->name('api.v1.')->group(function () {
     Route::get('/ping', fn () => response()->json(['data' => ['ok' => true]]))->name('ping');
+    Route::apiResource('notes', NoteController::class);
 });
