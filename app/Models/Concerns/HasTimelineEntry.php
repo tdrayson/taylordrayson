@@ -12,14 +12,14 @@ trait HasTimelineEntry
         return $this->morphOne(TimelineEntry::class, 'timelineable');
     }
 
+    /**
+     * The URL slug lives on the spine row (assigned once at write time);
+     * models without one yet (e.g. unpublished articles) fall back to the
+     * bare slug.
+     */
     public function url(): string
     {
-        return '/'.$this->occurred_at->format('Y/m/d').'/'.$this->urlSlug();
-    }
-
-    public function urlSlug(): string
-    {
-        return $this->slug().'-'.$this->getKey();
+        return '/'.$this->occurred_at->format('Y/m/d').'/'.($this->timelineEntry?->url_slug ?? $this->slug());
     }
 
     /**

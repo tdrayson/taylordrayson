@@ -17,6 +17,7 @@ use Spatie\Feed\FeedItem;
     'timelineable_type',
     'timelineable_id',
     'occurred_at',
+    'url_slug',
 ])]
 class TimelineEntry extends Model implements Feedable
 {
@@ -63,6 +64,8 @@ class TimelineEntry extends Model implements Feedable
 
     public function toFeedItem(): FeedItem
     {
+        $this->timelineable->setRelation('timelineEntry', $this);
+
         $card = $this->timelineable->card();
         $link = url($this->timelineable->url());
 

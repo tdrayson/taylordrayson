@@ -24,19 +24,14 @@ class EntryController extends Controller
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
-        $entries = TimelineEntry::query()
+        $entry = TimelineEntry::query()
             ->with('timelineable')
             ->whereDate('occurred_at', $date)
-            ->get()
-            ->sortBy([['occurred_at', 'asc'], ['timelineable_id', 'asc']]);
-
-        $entry = $entries->first(function (TimelineEntry $entry) use ($slug) {
-            return $entry->timelineable?->urlSlug() === $slug;
-        }) ?? $entries->first(function (TimelineEntry $entry) use ($slug) {
-            return $entry->timelineable?->slug() === $slug;
-        });
+            ->where('url_slug', $slug)
+            ->first();
 
         $model = $entry?->timelineable;
+        $model?->setRelation('timelineEntry', $entry);
 
         // Unpublished articles have no timeline entry (TimelineEntryObserver
         // removes it), so an authenticated preview needs a direct lookup.

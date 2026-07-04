@@ -38,6 +38,10 @@ class BuildTimelineFeed
      */
     public function cardItem(TimelineEntry $entry): array
     {
+        // Seed the inverse relation so url() reads the spine's url_slug
+        // without a lazy query per card.
+        $entry->timelineable->setRelation('timelineEntry', $entry);
+
         $card = $entry->timelineable->card();
         $local = LocalTime::for($entry->occurred_at, $entry->timelineable->timezone(), LocalTime::isDayLevel($card['type']));
 

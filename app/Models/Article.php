@@ -45,14 +45,6 @@ class Article extends Model implements HasMedia, Timelineable
     }
 
     /**
-     * Articles keep their bare author-managed slug in URLs.
-     */
-    public function urlSlug(): string
-    {
-        return $this->slug();
-    }
-
-    /**
      * Read from the raw attribute so unsaved models resolve to false rather
      * than throwing under strict attribute access.
      */

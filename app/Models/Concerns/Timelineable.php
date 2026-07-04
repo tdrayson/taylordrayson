@@ -21,13 +21,6 @@ interface Timelineable
 
     public function slug(): string;
 
-    /**
-     * The slug as it appears in the entry URL. Machine types append the id so
-     * same-day name collisions stay addressable; types with an author-managed
-     * unique slug (e.g. Article) override to keep the bare slug.
-     */
-    public function urlSlug(): string;
-
     public function url(): string;
 
     public function timezone(): ?string;

@@ -26,6 +26,7 @@ class CalorieTimelineObserver
             ],
             [
                 'occurred_at' => $calorie->occurred_at->copy()->setTime(12, 0),
+                'url_slug' => $firstCalorie->slug(),
             ],
         );
     }
