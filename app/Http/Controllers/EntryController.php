@@ -7,6 +7,7 @@ use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Flight;
+use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
@@ -102,8 +103,9 @@ class EntryController extends Controller
     private function entryPayload(Model $model): array
     {
         // Tags are now a relation rather than a plain attribute; models using
-        // HasTags need the flat array-of-names shape the front-end expects,
-        // not the serialised Tag models toArray() would otherwise produce.
+        // HasTags need a {name, slug} shape so entry pages can link each chip
+        // to its /tags/{slug} page, not the serialised Tag models toArray()
+        // would otherwise produce.
         if (method_exists($model, 'tagNames')) {
             $model->loadMissing('tags');
         }
@@ -111,7 +113,9 @@ class EntryController extends Controller
         $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
 
         if (method_exists($model, 'tagNames')) {
-            $data['tags'] = $model->tagNames();
+            $data['tags'] = $model->tags
+                ->map(fn (Tag $tag): array => ['name' => $tag->name, 'slug' => $tag->slug])
+                ->all();
         }
 
         if ($model instanceof Appearance) {

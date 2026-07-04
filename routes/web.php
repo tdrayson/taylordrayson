@@ -10,6 +10,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Models\LeaderboardEntry;
 use App\Support\OgMeta;
@@ -78,6 +79,10 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('day');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
+
+// Cross-type tag feed. Registered above the page catch-all so /tags/{slug}
+// never falls through to PageController.
+Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.

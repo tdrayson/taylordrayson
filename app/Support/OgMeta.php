@@ -251,6 +251,20 @@ class OgMeta
     }
 
     /**
+     * @param  string  $name  The tag's display name.
+     * @return OgPayload
+     */
+    public static function tag(string $name): array
+    {
+        return self::make([
+            'title' => "Tagged {$name}",
+            'eyebrow' => 'Tag',
+            'heading' => "Tagged {$name}",
+            'description' => "Everything tagged {$name}.",
+        ]);
+    }
+
+    /**
      * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
      *                                     the model has no spine row (e.g. an unpublished article
      *                                     previewed by its author), in which case the OG image is omitted.

@@ -27,7 +27,7 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
         </div>
 
         <div v-if="tags.length" class="flex flex-wrap gap-2">
-            <Pill v-for="tag in tags" :key="tag" :label="tag" />
+            <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
         </div>
 
         <div v-if="entry.url || entry.github_url" class="flex flex-wrap gap-x-6 gap-y-3">

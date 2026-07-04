@@ -41,7 +41,7 @@ const headingCount = computed(() => contentNodes.value.filter(
     <div class="relative max-w-media space-y-8">
         <div v-if="entry.draft || tags.length" class="flex flex-wrap gap-2">
             <Pill v-if="entry.draft" label="Draft" variant="accent" />
-            <Pill v-for="tag in tags" :key="tag" :label="tag" />
+            <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
         </div>
 
         <p v-if="entry.excerpt" class="max-w-reading text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
