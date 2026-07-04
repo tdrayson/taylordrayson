@@ -17,7 +17,7 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
             <Pill v-for="tag in tags" :key="tag" :label="tag" />
         </div>
 
-        <p v-if="entry.excerpt" class="text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
+        <p v-if="entry.excerpt" class="max-w-reading text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
         <BlockContent :document="entry.content" />
     </div>

@@ -6,5 +6,5 @@ defineProps({
 
 <template>
     <!-- Notes have no headline, so the content itself is the page's primary text. -->
-    <p class="whitespace-pre-line text-lg leading-relaxed">{{ entry.content }}</p>
+    <p class="max-w-reading whitespace-pre-line text-lg leading-relaxed">{{ entry.content }}</p>
 </template>
