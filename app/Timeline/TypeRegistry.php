@@ -18,7 +18,9 @@ use App\Models\Project;
 use App\Models\Sleep;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 /**
@@ -98,11 +100,24 @@ class TypeRegistry
     /**
      * A taxonomy over the relational `tags` table, addressed by tag slug.
      * Scoped to tags attached to at least one record of the given model.
+     * Articles are the only publish-gated type: a guest must never see (or
+     * resolve) a tag that is attached only to unpublished articles, so the
+     * taggables subquery is further restricted to published articles when
+     * there's no authenticated viewer. Authed users (the owner) still see
+     * draft-only tags, matching how they see draft articles elsewhere.
      */
     private static function tags(?callable $title = null): callable
     {
         $distinct = fn (string $model): Collection => Tag::query()
-            ->whereIn('id', fn ($query) => $query->select('tag_id')->from('taggables')->where('taggable_type', $model))
+            ->whereIn('id', fn ($query) => $query->select('tag_id')
+                ->from('taggables')
+                ->where('taggable_type', $model)
+                ->when($model === Article::class && ! Auth::check(), fn (QueryBuilder $query) => $query->whereExists(
+                    fn (QueryBuilder $exists) => $exists->selectRaw('1')
+                        ->from('articles')
+                        ->whereColumn('articles.id', 'taggables.taggable_id')
+                        ->where('articles.published', true)
+                )))
             ->orderBy('name')
             ->get(['name', 'slug']);
 
