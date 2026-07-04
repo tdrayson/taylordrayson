@@ -2,6 +2,7 @@
 
 namespace App\Search;
 
+use App\Support\Distance;
 use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -233,13 +234,13 @@ class SearchCompiler
         if (isset($field['relation'])) {
             $query->whereHas(
                 $field['relation'],
-                fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value)
+                fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null)
             );
 
             return;
         }
 
-        $this->clause($query, $field['column'], $field['dataType'], $operator, $value);
+        $this->clause($query, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
     }
 
     /**
@@ -250,13 +251,15 @@ class SearchCompiler
      * @param  string  $dataType  One of text|enum|number|date.
      * @param  string  $operator  The whitelisted operator.
      * @param  mixed  $value  The filter value.
+     * @param  string|null  $unit  The schema's display unit (e.g. km/mi) for a number field, used to
+     *                             scale the human-entered value to the column's storage unit.
      */
-    private function clause(Builder $query, string $column, string $dataType, string $operator, mixed $value): void
+    private function clause(Builder $query, string $column, string $dataType, string $operator, mixed $value, ?string $unit = null): void
     {
         match ($dataType) {
             'text' => $this->textClause($query, $column, $operator, (string) $value),
             'enum' => $this->enumClause($query, $column, $operator, $value),
-            'number', 'duration' => $this->numberClause($query, $column, $operator, $value),
+            'number', 'duration' => $this->numberClause($query, $column, $operator, $value, $unit),
             'day' => $this->dayClause($query, $column, $operator, $value),
             'month' => $this->periodClause($query, $column, $operator, $value, fn (string $bound): ?array => $this->monthBounds($bound)),
             'year' => $this->periodClause($query, $column, $operator, $value, fn (string $bound): ?array => $this->yearBounds($bound)),
@@ -314,15 +317,20 @@ class SearchCompiler
     }
 
     /**
-     * Apply a numeric comparison (equality, ordering, or a range).
+     * Apply a numeric comparison (equality, ordering, or a range). When the field
+     * declares a display unit (km/mi), the human-entered value(s) are scaled to the
+     * column's storage unit (integer metres) before the comparison is built.
      *
      * @param  Builder  $query  The query to constrain.
      * @param  string  $column  The numeric column.
      * @param  string  $operator  The number operator.
      * @param  mixed  $value  A scalar, or a [min, max] array for "between".
+     * @param  string|null  $unit  The schema's display unit (km/mi), or null for no scaling.
      */
-    private function numberClause(Builder $query, string $column, string $operator, mixed $value): void
+    private function numberClause(Builder $query, string $column, string $operator, mixed $value, ?string $unit = null): void
     {
+        $value = $this->scaleToStorageUnit($value, $unit);
+
         if ($operator === 'between' || $operator === 'not_between') {
             $this->applyBetween($query, $column, $this->numberRange($value), $operator === 'not_between');
 
@@ -334,6 +342,35 @@ class SearchCompiler
         if (isset($comparators[$operator])) {
             $query->where($column, $comparators[$operator], $value);
         }
+    }
+
+    /**
+     * Scale a human-entered value (or [min, max] pair) from its display unit to the
+     * column's storage unit (integer metres), leaving it untouched when the field
+     * carries no unit, or the value is missing.
+     *
+     * @param  mixed  $value  A scalar, or a [min, max] array for "between".
+     * @param  string|null  $unit  The schema's display unit (km/mi), or null for no scaling.
+     */
+    private function scaleToStorageUnit(mixed $value, ?string $unit): mixed
+    {
+        if ($unit === null) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            return array_map(fn (mixed $item): mixed => $this->scaleToStorageUnit($item, $unit), $value);
+        }
+
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        return match ($unit) {
+            'km' => Distance::fromKm((float) $value),
+            'mi' => Distance::fromMiles((float) $value),
+            default => $value,
+        };
     }
 
     /**

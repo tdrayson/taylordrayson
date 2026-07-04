@@ -3,6 +3,11 @@
 use App\Models\Activity;
 use App\Models\Flight;
 use App\Support\Distance;
+use Illuminate\Support\Facades\Schema;
+
+it('stores the activity distance column as an integer type', function () {
+    expect(Schema::getColumnType('activities', 'distance'))->toBe('integer');
+});
 
 it('stores activity and flight distance in integer metres', function () {
     $activity = Activity::factory()->create(['distance' => 5230]);

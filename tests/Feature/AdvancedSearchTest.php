@@ -63,10 +63,11 @@ it('ANDs conditions within a group (flights over 300mi with easyJet)', function 
     makeFlight('EZY', 200, '2026-05-02 09:00:00'); // fails distance
     makeFlight('BAW', 400, '2026-05-03 09:00:00'); // fails airline
 
+    // 300 is what the UI sends (miles); the server scales it to metres before comparing.
     $url = searchUrl([[
         'type' => 'flight',
         'conditions' => [
-            ['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)],
+            ['field' => 'distance', 'operator' => 'gt', 'value' => 300],
             ['field' => 'airline', 'operator' => 'contains', 'value' => 'easyJet'],
         ],
     ]]);
@@ -82,7 +83,7 @@ it('ORs between groups of different types', function () {
     $url = searchUrl([
         [
             'type' => 'flight',
-            'conditions' => [['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)]],
+            'conditions' => [['field' => 'distance', 'operator' => 'gt', 'value' => 300]],
         ],
         [
             'type' => 'activity',
@@ -329,7 +330,7 @@ it('drops unknown fields and disallowed operators', function () {
         'conditions' => [
             ['field' => 'airline', 'operator' => 'eq', 'value' => 'easyJet'],
             ['field' => 'bogus', 'operator' => 'gt', 'value' => 1],
-            ['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)],
+            ['field' => 'distance', 'operator' => 'gt', 'value' => 300],
         ],
     ]]);
 

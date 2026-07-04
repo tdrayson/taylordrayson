@@ -2,8 +2,6 @@
 
 namespace App\Search;
 
-use App\Support\Distance;
-
 /**
  * Curated example searches shown on the empty search page. Each entry is a
  * ready-made filter in the exact shape the query builder produces, so clicking
@@ -36,7 +34,7 @@ class SearchPresets
                     'type' => 'activity',
                     'conditions' => [
                         ['field' => 'kind', 'operator' => 'is', 'value' => ['run']],
-                        ['field' => 'distance', 'operator' => 'gte', 'value' => (string) Distance::fromKm(5)],
+                        ['field' => 'distance', 'operator' => 'gte', 'value' => '5'],
                     ],
                 ]],
             ],
@@ -58,7 +56,7 @@ class SearchPresets
                 'filter' => [[
                     'type' => 'flight',
                     'conditions' => [
-                        ['field' => 'distance', 'operator' => 'gte', 'value' => (string) Distance::fromMiles(1000)],
+                        ['field' => 'distance', 'operator' => 'gte', 'value' => '1000'],
                     ],
                 ]],
             ],
