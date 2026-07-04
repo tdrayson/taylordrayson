@@ -35,7 +35,7 @@ class ArticleFactory extends Factory
             'slug' => Str::slug($title),
             'excerpt' => fake()->sentence(fake()->numberBetween(10, 20)),
             'content' => EditorJs::document($blocks),
-            'draft' => fake()->boolean(10),
+            'published' => fake()->boolean(90),
             'tags' => fake()->randomElements(
                 ['Laravel', 'PHP', 'Web Development', 'Tutorial', 'DevOps'],
                 fake()->numberBetween(1, 3),

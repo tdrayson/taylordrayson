@@ -11,14 +11,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PageController extends Controller
 {
     /**
-     * Render a CP-managed content page by slug. Drafts are visible only to
-     * authenticated (CP) users; anyone else gets a 404.
+     * Render a content page by slug. Unpublished pages are visible only to
+     * authenticated users; anyone else gets a 404.
      */
     public function show(string $slug): Response
     {
         $page = Page::query()->where('slug', $slug)->first();
 
-        if ($page === null || ($page->draft && ! Auth::check())) {
+        if ($page === null || (! $page->published && ! Auth::check())) {
             throw new NotFoundHttpException;
         }
 
@@ -26,7 +26,7 @@ class PageController extends Controller
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'content' => $page->content,
-            'draft' => $page->draft,
+            'published' => $page->published,
             'og' => ['title' => $page->title, 'description' => $page->excerpt],
         ]);
     }

@@ -17,8 +17,12 @@ trait HasTimelineEntry
         return '/'.$this->occurred_at->format('Y/m/d').'/'.$this->slug();
     }
 
+    /**
+     * The timezone the entry was captured in; null renders as home time.
+     * Read from the raw attributes so unsaved models resolve to null.
+     */
     public function timezone(): ?string
     {
-        return null;
+        return $this->attributes['timezone'] ?? null;
     }
 }

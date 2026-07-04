@@ -28,12 +28,12 @@ class PageFactory extends Factory
                     ['type' => 'paragraph', 'data' => ['text' => $this->faker->paragraph()]],
                 ],
             ],
-            'draft' => false,
+            'published' => true,
         ];
     }
 
     public function draft(): static
     {
-        return $this->state(fn (): array => ['draft' => true]);
+        return $this->state(fn (): array => ['published' => false]);
     }
 }

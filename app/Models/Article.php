@@ -19,8 +19,9 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'draft',
+    'published',
     'tags',
+    'timezone',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
@@ -35,7 +36,7 @@ class Article extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'content' => 'array',
             'tags' => 'array',
-            'draft' => 'boolean',
+            'published' => 'boolean',
         ];
     }
 

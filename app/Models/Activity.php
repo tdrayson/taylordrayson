@@ -83,11 +83,6 @@ class Activity extends Model implements HasMedia, Timelineable
             ->all();
     }
 
-    public function timezone(): ?string
-    {
-        return $this->timezone;
-    }
-
     public function card(): array
     {
         return [

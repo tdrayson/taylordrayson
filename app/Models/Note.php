@@ -33,11 +33,6 @@ class Note extends Model implements HasMedia, Timelineable
         ];
     }
 
-    public function timezone(): ?string
-    {
-        return $this->attributes['timezone'] ?? null;
-    }
-
     public function slug(): string
     {
         return "note-{$this->id}";
