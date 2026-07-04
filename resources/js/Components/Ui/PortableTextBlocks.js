@@ -10,7 +10,7 @@ function slugify(text) {
         .replace(/^-+|-+$/g, '');
 }
 
-// Flatten a block's spans into plain text, ignoring marks — used for heading
+// Flatten a block's spans into plain text, ignoring marks; used for heading
 // slugs/labels and rendered directly (never as HTML).
 function blockText(node) {
     return (node.children ?? []).map((child) => child.text ?? '').join('');
@@ -31,7 +31,8 @@ function assignHeadingIds(nodes) {
         const base = slugify(blockText(node)) || 'section';
         const count = (seen.get(base) ?? 0) + 1;
         seen.set(base, count);
-        ids.set(node._key, count === 1 ? base : `${base}-${count}`);
+        // Keyed by node identity so headings missing a _key still get unique ids.
+        ids.set(node, count === 1 ? base : `${base}-${count}`);
     }
 
     return ids;
@@ -105,7 +106,7 @@ function buildListTree(items, startIndex, level, listItem, isTop) {
 }
 
 // A run may contain more than one top-level list (e.g. a bullet list directly
-// followed by a numbered list at the same level) — keep parsing fresh lists
+// followed by a numbered list at the same level); keep parsing fresh lists
 // until the whole run is consumed.
 function renderListRun(run) {
     const vnodes = [];
@@ -130,7 +131,7 @@ function renderTextBlock(node, headingIds) {
     if (node.style === 'h2' || node.style === 'h3') {
         return h(node.style, {
             key,
-            id: headingIds.get(key),
+            id: headingIds.get(node),
             class:
                 node.style === 'h2'
                     ? 'font-display text-item-title text-neutral-900 max-w-reading scroll-mt-24'

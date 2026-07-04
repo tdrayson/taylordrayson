@@ -93,7 +93,7 @@ onMounted(() => {
     // Vue flushes a component's mounted hook only after its whole subtree has
     // patched the DOM, and fires siblings in template order, so as long as
     // ContentToc is placed AFTER the rendered content in the host template
-    // (see ArticleDetail.vue), querying the DOM here is safe — same ordering
+    // (see ArticleDetail.vue), querying the DOM here is safe: same ordering
     // StoryToc relies on by being the last chapter sibling.
     buildToc();
     onScroll();
