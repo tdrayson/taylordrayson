@@ -19,8 +19,8 @@ it('renders the month view via Inertia', function () {
 });
 
 it('wires month roll-up stats and per-day calendar data', function () {
-    Activity::factory()->create(['type' => 'run', 'distance_km' => 5, 'occurred_at' => '2026-06-10 07:00:00']);
-    Activity::factory()->create(['type' => 'run', 'distance_km' => 8, 'occurred_at' => '2026-06-15 07:00:00']);
+    Activity::factory()->create(['type' => 'run', 'distance' => 5000, 'occurred_at' => '2026-06-10 07:00:00']);
+    Activity::factory()->create(['type' => 'run', 'distance' => 8000, 'occurred_at' => '2026-06-15 07:00:00']);
     Sleep::factory()->create(['duration' => 25920, 'occurred_at' => '2026-06-10 06:30:00']);
     Calorie::factory()->create(['calories' => 600, 'occurred_at' => '2026-06-10 13:00:00']);
 
@@ -42,7 +42,7 @@ it('renders the day view via Inertia', function () {
 });
 
 it('loads the day feed and summary stats from the database', function () {
-    Activity::factory()->create(['name' => 'Morning Run', 'type' => 'run', 'distance_km' => 5, 'occurred_at' => '2026-06-21 07:30:00']);
+    Activity::factory()->create(['name' => 'Morning Run', 'type' => 'run', 'distance' => 5000, 'occurred_at' => '2026-06-21 07:30:00']);
     Sleep::factory()->create(['duration' => 25200, 'occurred_at' => '2026-06-21 06:30:00']);
     Calorie::factory()->create(['calories' => 600, 'occurred_at' => '2026-06-21 13:00:00']);
 

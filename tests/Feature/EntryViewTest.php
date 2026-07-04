@@ -17,7 +17,7 @@ it('renders an activity entry via Inertia', function () {
     $activity = Activity::factory()->create([
         'name' => 'Morning Run',
         'type' => 'run',
-        'distance_km' => 5.42,
+        'distance' => 5420,
         'duration' => 2340,
         'occurred_at' => '2026-03-15 07:30:00',
     ]);
@@ -29,7 +29,7 @@ it('renders an activity entry via Inertia', function () {
             ->where('type', 'activity')
             ->where('accent', 'activity')
             ->where('title', 'Morning Run')
-            ->where('entry.distance_km', fn ($value) => (float) $value === 5.42)
+            ->where('entry.distance', fn ($value) => (int) $value === 5420)
         );
 });
 

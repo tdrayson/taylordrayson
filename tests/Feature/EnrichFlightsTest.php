@@ -2,6 +2,7 @@
 
 use App\Models\Airport;
 use App\Models\Flight;
+use App\Support\Distance;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -17,7 +18,7 @@ it('enriches a flight from the aviation api and updates the csv and database', f
         'flight_number' => '999',
         'origin_iata' => 'AAA',
         'destination_iata' => 'BBB',
-        'distance_miles' => 1000,
+        'distance' => Distance::fromMiles(1000),
         'duration' => null,
         'departure_timezone' => null,
         'arrival_timezone' => null,
@@ -35,7 +36,7 @@ it('enriches a flight from the aviation api and updates the csv and database', f
     ]);
 
     $csv = tempnam(sys_get_temp_dir(), 'flights').'.csv';
-    file_put_contents($csv, "occurred_at,flight_number,airline_icao,origin_iata,destination_iata,distance_miles,cabin_class,reason,meta\n2020-01-01T10:00,999,XXX,AAA,BBB,1000,economy,,{}\n");
+    file_put_contents($csv, 'occurred_at,flight_number,airline_icao,origin_iata,destination_iata,distance,cabin_class,reason,meta'.PHP_EOL."2020-01-01T10:00,999,XXX,AAA,BBB,{$flight->distance},economy,,{}\n");
 
     $this->artisan('flights:enrich', ['--file' => $csv])->assertExitCode(0);
 
@@ -43,7 +44,7 @@ it('enriches a flight from the aviation api and updates the csv and database', f
     expect($flight->duration)->toBe(7200); // 120 min → seconds
     expect($flight->departure_timezone)->toBe('Europe/London');
     expect($flight->arrival_timezone)->toBe('Europe/Paris');
-    expect($flight->distance_miles)->toBe(2000); // 3218 km → miles
+    expect(Distance::miles($flight->distance))->toBe(2000); // 3218 km → miles
 
     expect(file_get_contents($csv))->toContain('duration')->toContain('Europe/London');
 
@@ -59,7 +60,7 @@ it('falls back to the timezone api when the route is unknown', function () {
         'flight_number' => '111',
         'origin_iata' => 'CCC',
         'destination_iata' => 'DDD',
-        'distance_miles' => 500,
+        'distance' => Distance::fromMiles(500),
         'departure_timezone' => null,
     ]);
 
@@ -69,7 +70,7 @@ it('falls back to the timezone api when the route is unknown', function () {
     ]);
 
     $csv = tempnam(sys_get_temp_dir(), 'flights').'.csv';
-    file_put_contents($csv, "occurred_at,flight_number,airline_icao,origin_iata,destination_iata,distance_miles,cabin_class,reason,meta\n2021-05-05T08:00,111,XXX,CCC,DDD,500,economy,,{}\n");
+    file_put_contents($csv, 'occurred_at,flight_number,airline_icao,origin_iata,destination_iata,distance,cabin_class,reason,meta'.PHP_EOL."2021-05-05T08:00,111,XXX,CCC,DDD,{$flight->distance},economy,,{}\n");
 
     $this->artisan('flights:enrich', ['--file' => $csv])->assertExitCode(0);
 
@@ -77,7 +78,7 @@ it('falls back to the timezone api when the route is unknown', function () {
     expect($flight->departure_timezone)->toBe('Asia/Tokyo');
     expect($flight->arrival_timezone)->toBe('Asia/Tokyo');
     expect($flight->duration)->not->toBeNull(); // distance estimate (seconds)
-    expect($flight->distance_miles)->toBeGreaterThan(900)->toBeLessThan(1020); // great-circle from airport coords
+    expect(Distance::miles($flight->distance))->toBeGreaterThan(900)->toBeLessThan(1020); // great-circle from airport coords
 
     @unlink($csv);
 });

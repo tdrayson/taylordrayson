@@ -168,7 +168,7 @@ class StravaSync extends Command
             'description' => trim((string) ($data['description'] ?? '')) ?: null,
             'duration' => $data['moving_time'],
             'calories' => $data['calories'] ?: null,
-            'distance_km' => $data['distance'] ? round($data['distance'] / 1000, 3) : null,
+            'distance' => $data['distance'] ? (int) round($data['distance']) : null,
             'average_heart_rate' => $data['average_heartrate'] ?? null,
             'max_heart_rate' => $data['max_heartrate'] ?? null,
             'platform_type' => 'strava',

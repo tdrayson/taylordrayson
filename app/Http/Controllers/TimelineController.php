@@ -10,6 +10,7 @@ use App\Models\Media;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Support\Distance;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -152,10 +153,10 @@ class TimelineController extends Controller
         if ($activities->isNotEmpty()) {
             $stats[] = ['label' => 'Activities', 'value' => (string) $activities->count()];
 
-            $distance = round((float) $activities->sum('distance_km'));
+            $distanceKm = Distance::km((int) round($activities->sum('distance'))) ?? 0.0;
 
-            if ($distance > 0) {
-                $stats[] = ['label' => 'Distance', 'value' => number_format($distance), 'unit' => 'km'];
+            if ($distanceKm > 0) {
+                $stats[] = ['label' => 'Distance', 'value' => number_format($distanceKm), 'unit' => 'km'];
             }
         }
 
@@ -228,10 +229,10 @@ class TimelineController extends Controller
         if ($activities->isNotEmpty()) {
             $stats[] = ['label' => 'Activities', 'value' => (string) $activities->count()];
 
-            $distance = (float) $activities->sum('distance_km');
+            $distanceKm = Distance::km((int) round($activities->sum('distance'))) ?? 0.0;
 
-            if ($distance > 0) {
-                $stats[] = ['label' => 'Distance', 'value' => number_format($distance, 1), 'unit' => 'km'];
+            if ($distanceKm > 0) {
+                $stats[] = ['label' => 'Distance', 'value' => number_format($distanceKm, 1), 'unit' => 'km'];
             }
         }
 

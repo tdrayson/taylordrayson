@@ -6,6 +6,7 @@ import HeartRateChart from '../Stats/HeartRateChart.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { number, titleCase } from '../../lib/format.js';
+import { metresToKm } from '../../lib/distance.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -51,7 +52,7 @@ function setWeight(set) {
 }
 
 const stats = computed(() => [
-    { label: 'Distance', value: number(props.entry.distance_km, 2), unit: 'km' },
+    { label: 'Distance', value: number(metresToKm(props.entry.distance), 1), unit: 'km' },
     { label: 'Duration', seconds: props.entry.duration ?? null },
     { label: 'Calories', value: number(props.entry.calories), unit: 'kcal' },
     { label: 'Avg HR', value: number(props.entry.average_heart_rate), unit: 'bpm' },

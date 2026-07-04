@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\Distance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -21,7 +22,7 @@ use Spatie\MediaLibrary\HasMedia;
     'airline_icao',
     'origin_iata',
     'destination_iata',
-    'distance_miles',
+    'distance',
     'duration',
     'departure_timezone',
     'arrival_timezone',
@@ -47,6 +48,7 @@ class Flight extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'meta' => 'array',
             'duration' => 'integer',
+            'distance' => 'integer',
         ];
     }
 
@@ -131,7 +133,7 @@ class Flight extends Model implements HasMedia, Timelineable
             'type' => 'flight',
             'icon' => 'plane',
             'title' => $this->routeTitle(),
-            'subtitle' => $this->distance_miles ? sprintf('%s mi · %s', number_format($this->distance_miles), $this->cabin_class) : null,
+            'subtitle' => $this->distance ? sprintf('%s mi · %s', number_format(Distance::miles($this->distance)), $this->cabin_class) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
             'meta' => [
@@ -140,7 +142,7 @@ class Flight extends Model implements HasMedia, Timelineable
                     'destination' => ['iata' => $this->destination_iata, 'place' => $this->relationLoaded('destination') ? $this->destination?->place : null, 'name' => $this->relationLoaded('destination') ? $this->destination?->name : null, 'lat' => $this->relationLoaded('destination') ? $this->destination?->latitude : null, 'lng' => $this->relationLoaded('destination') ? $this->destination?->longitude : null],
                     'depart' => $this->departed_local,
                     'arrive' => $this->arrived_local,
-                    'distance' => $this->distance_miles,
+                    'distance' => Distance::miles($this->distance),
                     'duration' => $this->duration,
                     'airline' => $this->relationLoaded('airline') && $this->airline ? ['name' => $this->airline->name, 'icon' => $this->airline->icon_url, 'number' => trim(($this->airline->iata_code ?: $this->airline_icao).' '.$this->flight_number)] : null,
                 ],

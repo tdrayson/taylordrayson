@@ -35,8 +35,8 @@ class ActivityFactory extends Factory
             ? fake()->numberBetween(900, 7200)
             : fake()->numberBetween(1800, 5400);
 
-        $distanceKm = $isCardio
-            ? round(fake()->randomFloat(2, 3, 21), 2)
+        $distance = $isCardio
+            ? fake()->numberBetween(1000, 20000)
             : null;
 
         $meta = $isCardio
@@ -56,7 +56,7 @@ class ActivityFactory extends Factory
             'name' => fake()->randomElement($config['names']),
             'duration' => $durationSeconds,
             'calories' => fake()->numberBetween(100, 800),
-            'distance_km' => $distanceKm,
+            'distance' => $distance,
             'meta' => $meta,
         ];
     }

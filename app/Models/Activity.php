@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\Distance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +23,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'description',
     'duration',
     'calories',
-    'distance_km',
+    'distance',
     'average_heart_rate',
     'max_heart_rate',
     'heart_rate',
@@ -44,6 +45,7 @@ class Activity extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'heart_rate' => 'array',
             'meta' => 'array',
+            'distance' => 'integer',
         ];
     }
 
@@ -112,8 +114,8 @@ class Activity extends Model implements HasMedia, Timelineable
 
         $parts = [];
 
-        if ($isCardio && $this->distance_km) {
-            $parts[] = round($this->distance_km, 2).' km';
+        if ($isCardio && $this->distance) {
+            $parts[] = Distance::km($this->distance).' km';
         }
 
         if ($this->duration) {

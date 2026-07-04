@@ -6,6 +6,7 @@ use App\Models\Airport;
 use App\Models\Checkin;
 use App\Models\Flight;
 use App\Search\SearchPresets;
+use App\Support\Distance;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -37,7 +38,7 @@ function makeFlight(string $airlineIcao, int $miles, string $occurredAt): void
         'airline_icao' => $airlineIcao,
         'origin_iata' => 'LHR',
         'destination_iata' => 'JFK',
-        'distance_miles' => $miles,
+        'distance' => Distance::fromMiles($miles),
         'occurred_at' => $occurredAt,
     ]);
 }
@@ -65,7 +66,7 @@ it('ANDs conditions within a group (flights over 300mi with easyJet)', function 
     $url = searchUrl([[
         'type' => 'flight',
         'conditions' => [
-            ['field' => 'distance', 'operator' => 'gt', 'value' => 300],
+            ['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)],
             ['field' => 'airline', 'operator' => 'contains', 'value' => 'easyJet'],
         ],
     ]]);
@@ -81,7 +82,7 @@ it('ORs between groups of different types', function () {
     $url = searchUrl([
         [
             'type' => 'flight',
-            'conditions' => [['field' => 'distance', 'operator' => 'gt', 'value' => 300]],
+            'conditions' => [['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)]],
         ],
         [
             'type' => 'activity',
@@ -292,9 +293,9 @@ it('exposes ready-made example searches', function () {
 });
 
 it('runs a preset filter to real results', function () {
-    Activity::factory()->create(['type' => 'run', 'distance_km' => 12, 'occurred_at' => now()]); // matches (>= 5km run)
-    Activity::factory()->create(['type' => 'run', 'distance_km' => 3, 'occurred_at' => now()]);  // too short
-    Activity::factory()->create(['type' => 'walk', 'distance_km' => 15, 'occurred_at' => now()]); // not a run
+    Activity::factory()->create(['type' => 'run', 'distance' => Distance::fromKm(12), 'occurred_at' => now()]); // matches (>= 5km run)
+    Activity::factory()->create(['type' => 'run', 'distance' => Distance::fromKm(3), 'occurred_at' => now()]);  // too short
+    Activity::factory()->create(['type' => 'walk', 'distance' => Distance::fromKm(15), 'occurred_at' => now()]); // not a run
 
     $preset = collect(SearchPresets::all())->firstWhere('key', 'long-runs');
 
@@ -328,7 +329,7 @@ it('drops unknown fields and disallowed operators', function () {
         'conditions' => [
             ['field' => 'airline', 'operator' => 'eq', 'value' => 'easyJet'],
             ['field' => 'bogus', 'operator' => 'gt', 'value' => 1],
-            ['field' => 'distance', 'operator' => 'gt', 'value' => 300],
+            ['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)],
         ],
     ]]);
 
