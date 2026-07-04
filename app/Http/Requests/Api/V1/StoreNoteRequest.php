@@ -14,6 +14,7 @@ class StoreNoteRequest extends FormRequest
         return [
             'content' => ['required', 'string', 'max:10000'],
             'occurred_at' => ['sometimes', 'date'],
+            'timezone' => ['sometimes', 'nullable', 'timezone'],
         ];
     }
 }

@@ -62,3 +62,30 @@ it('shows, updates, and deletes a note', function () {
 
     expect(Note::count())->toBe(0);
 });
+
+it('stores the timezone sent by the client', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Churros for breakfast.',
+        'occurred_at' => '2026-07-04 09:15:00',
+        'timezone' => 'Europe/Madrid',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.timezone', 'Europe/Madrid');
+
+    expect(Note::first()->timezone)->toBe('Europe/Madrid');
+});
+
+it('defaults the timezone to the home timezone when omitted', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', ['content' => 'Back home.'])
+        ->assertCreated()
+        ->assertJsonPath('data.timezone', 'Europe/London');
+});
+
+it('rejects an invalid timezone', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Where am I?',
+        'timezone' => 'Mars/Olympus_Mons',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['timezone']);
+});

@@ -14,6 +14,7 @@ class UpdateNoteRequest extends FormRequest
         return [
             'content' => ['sometimes', 'required', 'string', 'max:10000'],
             'occurred_at' => ['sometimes', 'date'],
+            'timezone' => ['sometimes', 'nullable', 'timezone'],
         ];
     }
 }

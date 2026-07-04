@@ -17,6 +17,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[Fillable([
     'occurred_at',
     'content',
+    'timezone',
 ])]
 class Note extends Model implements HasMedia, Timelineable
 {
@@ -30,6 +31,11 @@ class Note extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
         ];
+    }
+
+    public function timezone(): ?string
+    {
+        return $this->attributes['timezone'] ?? null;
     }
 
     public function slug(): string

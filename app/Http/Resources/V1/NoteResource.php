@@ -16,6 +16,7 @@ class NoteResource extends JsonResource
             'id' => $this->id,
             'occurred_at' => $this->occurred_at?->toDateTimeString(),
             'content' => $this->content,
+            'timezone' => $this->timezone,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
