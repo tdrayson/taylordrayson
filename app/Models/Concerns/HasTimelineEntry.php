@@ -14,7 +14,12 @@ trait HasTimelineEntry
 
     public function url(): string
     {
-        return '/'.$this->occurred_at->format('Y/m/d').'/'.$this->slug();
+        return '/'.$this->occurred_at->format('Y/m/d').'/'.$this->urlSlug();
+    }
+
+    public function urlSlug(): string
+    {
+        return $this->slug().'-'.$this->getKey();
     }
 
     /**

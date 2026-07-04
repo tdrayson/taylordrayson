@@ -27,9 +27,12 @@ class EntryController extends Controller
         $entries = TimelineEntry::query()
             ->with('timelineable')
             ->whereDate('occurred_at', $date)
-            ->get();
+            ->get()
+            ->sortBy([['occurred_at', 'asc'], ['timelineable_id', 'asc']]);
 
         $entry = $entries->first(function (TimelineEntry $entry) use ($slug) {
+            return $entry->timelineable?->urlSlug() === $slug;
+        }) ?? $entries->first(function (TimelineEntry $entry) use ($slug) {
             return $entry->timelineable?->slug() === $slug;
         });
 

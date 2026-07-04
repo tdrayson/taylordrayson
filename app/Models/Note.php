@@ -36,7 +36,7 @@ class Note extends Model implements HasMedia, Timelineable
 
     public function slug(): string
     {
-        return "note-{$this->id}";
+        return 'note';
     }
 
     public function card(): array
