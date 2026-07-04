@@ -77,12 +77,14 @@ class SearchCompiler
     /**
      * Defence in depth against a stale timeline_entries row (e.g. a mass update
      * that bypassed model observers): guests never see an unpublished article
-     * in search results.
+     * in search results. Public so other search entry points (e.g. the command
+     * palette's free-text suggest endpoint) share this single gate rather than
+     * duplicating the guard logic.
      *
      * @param  Builder  $query  The (possibly morphed) model query to constrain.
      * @param  class-string|null  $model  The model class this query targets.
      */
-    private function guardPublished(Builder $query, ?string $model): void
+    public function guardPublished(Builder $query, ?string $model): void
     {
         if ($model === Article::class && ! Auth::check()) {
             $query->where('published', true);

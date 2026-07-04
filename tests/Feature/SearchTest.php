@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Note;
+use App\Models\User;
 
 use function Pest\Laravel\getJson;
 
@@ -47,4 +49,29 @@ it('suggests taxonomy destination pages drawn live from the registry', function 
         ->toMatchArray(['label' => 'Run', 'section' => 'Activities', 'type' => 'activity']);
 
     expect(collect($destinations)->pluck('url'))->not->toContain('/activities/walk');
+});
+
+it('hides unpublished articles from guest search suggestions', function () {
+    Article::factory()->create(['published' => false, 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
+
+    getJson('/search/suggest?q=Secret draft')
+        ->assertOk()
+        ->assertJsonMissing(['title' => 'Secret draft thoughts']);
+});
+
+it('shows unpublished articles in suggestions to the authenticated user', function () {
+    Article::factory()->create(['published' => false, 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
+
+    $this->actingAs(User::factory()->create())
+        ->getJson('/search/suggest?q=Secret draft')
+        ->assertOk()
+        ->assertJsonFragment(['title' => 'Secret draft thoughts']);
+});
+
+it('shows published articles in suggestions to guests', function () {
+    Article::factory()->create(['published' => true, 'title' => 'Public announcement post', 'occurred_at' => now()]);
+
+    getJson('/search/suggest?q=Public announcement')
+        ->assertOk()
+        ->assertJsonFragment(['title' => 'Public announcement post']);
 });

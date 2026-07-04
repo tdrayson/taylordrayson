@@ -287,12 +287,15 @@ class SearchController extends Controller
      */
     private function searchType(string $model, string $type, array $columns, string $term): array
     {
-        $query = $model::query()
-            ->where(function (Builder $builder) use ($columns, $term): void {
-                foreach ($columns as $column) {
-                    $builder->orWhere($column, 'like', "%{$term}%");
-                }
-            })
+        $query = $model::query();
+
+        $this->compiler->guardPublished($query, $model);
+
+        $query->where(function (Builder $builder) use ($columns, $term): void {
+            foreach ($columns as $column) {
+                $builder->orWhere($column, 'like', "%{$term}%");
+            }
+        })
             ->orderByDesc('occurred_at')
             ->limit(self::PER_TYPE);
 

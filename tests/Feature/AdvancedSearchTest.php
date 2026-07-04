@@ -3,8 +3,10 @@
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
+use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\User;
 use App\Search\SearchPresets;
 use App\Support\Distance;
 use Illuminate\Support\Facades\Storage;
@@ -318,6 +320,27 @@ it('orders results newest or oldest first', function () {
         ->where('order', 'oldest')
         ->where('groups.0.items.0.title', 'Older')
     );
+});
+
+it('never surfaces a stale unpublished article to a guest via the advanced search filter', function () {
+    $article = Article::factory()->create(['published' => true, 'title' => 'Now hidden post', 'occurred_at' => now()]);
+
+    // A mass update via the query builder bypasses the TimelineEntryObserver,
+    // so the timeline_entries row is left behind stale (not deleted) even
+    // though the article is now unpublished. guardPublished() is the only
+    // thing standing between this stale row and a guest search result.
+    Article::query()->where('id', $article->id)->update(['published' => false]);
+
+    $url = searchUrl([[
+        'type' => 'article',
+        'conditions' => [['field' => 'title', 'operator' => 'contains', 'value' => 'hidden']],
+    ]]);
+
+    get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 0));
+
+    $this->actingAs(User::factory()->create());
+
+    get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
 });
 
 it('drops unknown fields and disallowed operators', function () {
