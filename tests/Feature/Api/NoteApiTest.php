@@ -153,3 +153,43 @@ it('clears tags when patching with empty tags array', function () {
 
     expect($note->fresh()->tagNames())->toBeEmpty();
 });
+
+it('uses a custom slug in the note url when provided', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Hot take about coffee grinders.',
+        'occurred_at' => '2026-07-04 09:15:00',
+        'slug' => 'grinder-hot-take',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.slug', 'grinder-hot-take')
+        ->assertJsonPath('data.url', '/2026/07/04/grinder-hot-take');
+});
+
+it('rejects a slug that is not kebab-case', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Bad slug.',
+        'slug' => 'Not A Slug!',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['slug']);
+});
+
+it('reassigns the url when the slug is updated', function () {
+    $note = Note::factory()->create(['occurred_at' => '2026-07-04 09:15:00']);
+
+    $this->withToken('test-token')
+        ->patchJson("/api/v1/notes/{$note->id}", ['slug' => 'renamed-note'])
+        ->assertOk()
+        ->assertJsonPath('data.url', '/2026/07/04/renamed-note');
+
+    expect($note->fresh()->url())->toBe('/2026/07/04/renamed-note');
+});
+
+it('keeps the bare note url when no slug is given', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Plain note.',
+        'occurred_at' => '2026-07-04 09:15:00',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.url', '/2026/07/04/note');
+});

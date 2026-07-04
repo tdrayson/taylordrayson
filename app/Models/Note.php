@@ -18,6 +18,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[Fillable([
     'occurred_at',
     'content',
+    'slug',
     'timezone',
 ])]
 class Note extends Model implements HasMedia, Timelineable
@@ -34,9 +35,13 @@ class Note extends Model implements HasMedia, Timelineable
         ];
     }
 
+    /**
+     * The author-set slug when given, read from the raw attribute so unsaved
+     * models fall back cleanly under strict attribute access.
+     */
     public function slug(): string
     {
-        return 'note';
+        return $this->attributes['slug'] ?? 'note';
     }
 
     public function card(): array

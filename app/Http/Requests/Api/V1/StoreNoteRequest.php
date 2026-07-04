@@ -14,6 +14,7 @@ class StoreNoteRequest extends FormRequest
         return [
             'content' => ['required', 'string', 'max:10000'],
             'occurred_at' => ['sometimes', 'date'],
+            'slug' => ['sometimes', 'nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             'timezone' => ['sometimes', 'nullable', 'timezone'],
             'tags' => ['sometimes', 'array'],
             'tags.*' => ['string', 'max:50'],
