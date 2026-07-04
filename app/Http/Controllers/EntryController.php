@@ -63,7 +63,9 @@ class EntryController extends Controller
         return Inertia::render('Entry', [
             'type' => $card['type'],
             'accent' => $card['accent'],
-            'title' => $card['title'],
+            // Notes are title-less by definition; their card title is just
+            // truncated content, which the detail body already shows in full.
+            'title' => $card['type'] === 'note' ? null : $card['title'],
             ...$this->occurredFields($model->occurred_at, $model->timezone(), LocalTime::isDayLevel($card['type'])),
             'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),

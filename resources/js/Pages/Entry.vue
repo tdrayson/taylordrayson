@@ -27,7 +27,8 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 const props = defineProps({
     type: { type: String, required: true },
     accent: { type: String, required: true },
-    title: { type: String, required: true },
+    // Null for title-less types (notes): the header shows only the type label and date.
+    title: { type: String, default: null },
     occurredAt: { type: String, required: true },
     dayUrl: { type: String, required: true },
     entry: { type: Object, required: true },
@@ -86,7 +87,7 @@ setLayoutProps({
                 </span>
                 <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
             </div>
-            <h1 class="mt-1 font-display text-display">{{ title }}</h1>
+            <h1 v-if="title" class="mt-1 font-display text-display">{{ title }}</h1>
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
             </Link>
