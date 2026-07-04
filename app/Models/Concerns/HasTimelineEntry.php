@@ -25,4 +25,13 @@ trait HasTimelineEntry
     {
         return $this->attributes['timezone'] ?? null;
     }
+
+    /**
+     * Every Timelineable appears on the spine by default; models with their
+     * own publication gate (e.g. Article) override this.
+     */
+    public function shouldAppearOnTimeline(): bool
+    {
+        return true;
+    }
 }

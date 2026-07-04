@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Appearance;
+use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
@@ -12,6 +13,7 @@ use App\Support\OgMeta;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -31,11 +33,24 @@ class EntryController extends Controller
             return $entry->timelineable?->slug() === $slug;
         });
 
-        if (! $entry?->timelineable) {
+        $model = $entry?->timelineable;
+
+        // Unpublished articles have no timeline entry (TimelineEntryObserver
+        // removes it), so an authenticated preview needs a direct lookup.
+        if ($model === null && Auth::check()) {
+            $model = Article::query()
+                ->whereDate('occurred_at', $date)
+                ->where('slug', $slug)
+                ->first();
+        }
+
+        if ($model === null) {
             throw new NotFoundHttpException;
         }
 
-        $model = $entry->timelineable;
+        if ($model instanceof Article && ! $model->published && ! Auth::check()) {
+            throw new NotFoundHttpException;
+        }
 
         if ($model instanceof Flight) {
             $model->load('airline', 'origin', 'destination');
@@ -51,7 +66,7 @@ class EntryController extends Controller
             'type' => $card['type'],
             'accent' => $card['accent'],
             'title' => $card['title'],
-            ...$this->occurredFields($entry->occurred_at, $model->timezone(), LocalTime::isDayLevel($card['type'])),
+            ...$this->occurredFields($model->occurred_at, $model->timezone(), LocalTime::isDayLevel($card['type'])),
             'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie

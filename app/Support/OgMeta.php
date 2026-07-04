@@ -251,16 +251,18 @@ class OgMeta
     }
 
     /**
-     * @param  TimelineEntry  $entry  The entry whose pre-rendered card to point at.
+     * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
+     *                                     the model has no spine row (e.g. an unpublished article
+     *                                     previewed by its author), in which case the OG image is omitted.
      * @param  string  $title  The entry's display title.
      * @return OgPayload
      */
-    public static function entry(TimelineEntry $entry, string $title): array
+    public static function entry(?TimelineEntry $entry, string $title): array
     {
         return self::make([
             'title' => $title,
             'description' => $title,
-            'image' => route('og.entry', $entry),
+            'image' => $entry !== null ? route('og.entry', $entry) : null,
         ]);
     }
 

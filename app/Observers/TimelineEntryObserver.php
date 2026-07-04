@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Calorie;
+use App\Models\Concerns\Timelineable;
 use Illuminate\Database\Eloquent\Model;
 
 class TimelineEntryObserver
@@ -14,6 +15,12 @@ class TimelineEntryObserver
         }
 
         if ($model->occurred_at === null) {
+            return;
+        }
+
+        if ($model instanceof Timelineable && ! $model->shouldAppearOnTimeline()) {
+            $model->timelineEntry()->delete();
+
             return;
         }
 

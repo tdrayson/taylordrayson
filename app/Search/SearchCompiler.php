@@ -2,11 +2,13 @@
 
 namespace App\Search;
 
+use App\Models\Article;
 use App\Support\Distance;
 use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Compiles a validated filter (groups OR-ed, each holding AND-ed conditions over
@@ -66,7 +68,25 @@ class SearchCompiler
         }
 
         $method = $isFirstGroup ? 'whereHasMorph' : 'orWhereHasMorph';
-        $outer->{$method}('timelineable', [$type['model']], fn (Builder $morph) => $this->applyConditions($morph, $group, $type));
+        $outer->{$method}('timelineable', [$type['model']], function (Builder $morph) use ($group, $type): void {
+            $this->guardPublished($morph, $type['model']);
+            $this->applyConditions($morph, $group, $type);
+        });
+    }
+
+    /**
+     * Defence in depth against a stale timeline_entries row (e.g. a mass update
+     * that bypassed model observers): guests never see an unpublished article
+     * in search results.
+     *
+     * @param  Builder  $query  The (possibly morphed) model query to constrain.
+     * @param  class-string|null  $model  The model class this query targets.
+     */
+    private function guardPublished(Builder $query, ?string $model): void
+    {
+        if ($model === Article::class && ! Auth::check()) {
+            $query->where('published', true);
+        }
     }
 
     /**
@@ -138,6 +158,8 @@ class SearchCompiler
             ->all();
 
         $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($registry, $value): void {
+            $this->guardPublished($morph, $modelClass);
+
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
             $columns = SearchSchema::TEXT_COLUMNS[$key] ?? [];
 
@@ -206,7 +228,8 @@ class SearchCompiler
     {
         $models = collect(TypeRegistry::all())->pluck('model')->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph) use ($operator, $value): void {
+        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
+            $this->guardPublished($morph, $modelClass);
             $this->mediaClause($morph, $operator, $value);
         });
     }
