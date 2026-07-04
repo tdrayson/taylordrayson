@@ -107,3 +107,13 @@ it('updates and deletes a flight', function () {
 
     expect(Flight::count())->toBe(0);
 });
+
+it('defaults both timezones to the home timezone when omitted', function () {
+    $payload = validFlightPayload();
+    unset($payload['departure_timezone'], $payload['arrival_timezone']);
+
+    $this->withToken('test-token')->postJson('/api/v1/flights', $payload)
+        ->assertCreated()
+        ->assertJsonPath('data.departure_timezone', 'Europe/London')
+        ->assertJsonPath('data.arrival_timezone', 'Europe/London');
+});
