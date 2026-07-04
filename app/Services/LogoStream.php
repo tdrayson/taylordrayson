@@ -79,7 +79,7 @@ class LogoStream
             'duration' => isset($route['duration_min']) ? (int) $route['duration_min'] * 60 : null,
             'departure_timezone' => $route['departure_timezone'] ?? null,
             'arrival_timezone' => $route['arrival_timezone'] ?? null,
-            'distance' => isset($route['distance_km']) ? Distance::fromMiles(round($route['distance_km'] * 0.621371)) : null,
+            'distance' => isset($route['distance_km']) ? Distance::fromKm($route['distance_km']) : null,
         ];
     }
 }
