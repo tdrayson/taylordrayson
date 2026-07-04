@@ -46,10 +46,6 @@ class ProjectFactory extends Factory
             'github_url' => fake()->optional(0.6)->url(),
             'status' => fake()->randomElement(['active', 'maintained', 'archived', 'on_hold']),
             'featured' => fake()->boolean(20),
-            'tags' => fake()->randomElements(
-                ['Laravel', 'PHP', 'JavaScript', 'Tailwind', 'Vue', 'WordPress', 'API'],
-                fake()->numberBetween(1, 3),
-            ),
         ];
     }
 }

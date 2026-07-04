@@ -20,7 +20,7 @@ class NoteController extends Controller
     public function index(ListRequest $request): AnonymousResourceCollection
     {
         return NoteResource::collection(
-            $request->applyTo(Note::query())
+            $request->applyTo(Note::query()->with('tags'))
                 ->orderByDesc('occurred_at')
                 ->paginate($request->perPage())
         );

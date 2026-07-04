@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -23,11 +24,10 @@ use Spatie\MediaLibrary\HasMedia;
     'github_url',
     'status',
     'featured',
-    'tags',
 ])]
 class Project extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -36,7 +36,6 @@ class Project extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'tags' => 'array',
             'featured' => 'boolean',
         ];
     }

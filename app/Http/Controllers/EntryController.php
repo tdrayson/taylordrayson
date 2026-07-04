@@ -101,7 +101,18 @@ class EntryController extends Controller
      */
     private function entryPayload(Model $model): array
     {
+        // Tags are now a relation rather than a plain attribute; models using
+        // HasTags need the flat array-of-names shape the front-end expects,
+        // not the serialised Tag models toArray() would otherwise produce.
+        if (method_exists($model, 'tagNames')) {
+            $model->loadMissing('tags');
+        }
+
         $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
+
+        if (method_exists($model, 'tagNames')) {
+            $data['tags'] = $model->tagNames();
+        }
 
         if ($model instanceof Appearance) {
             $data['thumbnail'] = $model->thumbnailUrl();

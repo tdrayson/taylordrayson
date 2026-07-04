@@ -16,6 +16,7 @@ use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -44,7 +45,7 @@ class TypeRegistry
             'fuel' => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
             'project' => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
             'article' => self::type(Article::class, 'articles', 'Articles', self::tags(fn (string $label): string => "Articles tagged {$label}")),
-            'note' => self::type(Note::class, 'notes', 'Notes'),
+            'note' => self::type(Note::class, 'notes', 'Notes', self::tags(fn (string $label): string => "Notes tagged {$label}")),
         ];
     }
 
@@ -95,20 +96,25 @@ class TypeRegistry
     }
 
     /**
-     * A taxonomy over a JSON `tags` array, addressed by tag slug.
+     * A taxonomy over the relational `tags` table, addressed by tag slug.
+     * Scoped to tags attached to at least one record of the given model.
      */
     private static function tags(?callable $title = null): callable
     {
-        $distinct = fn (string $model): Collection => $model::query()->pluck('tags')->flatten()->filter()->unique()->sort()->values();
+        $distinct = fn (string $model): Collection => Tag::query()
+            ->whereIn('id', fn ($query) => $query->select('tag_id')->from('taggables')->where('taggable_type', $model))
+            ->orderBy('name')
+            ->get(['name', 'slug']);
 
         return fn (string $model, string $slug): array => [
             'base' => $slug,
             'param' => 'tag',
             'label' => 'Tag',
             'title' => $title,
-            'filter' => fn (Builder $query, string $value) => $query->whereJsonContains('tags', self::resolveSlug($distinct($model), $value) ?? $value),
-            'labelFor' => fn (string $value): string => self::resolveSlug($distinct($model), $value) ?? Str::headline($value),
-            'values' => fn (): Collection => $distinct($model)->map(fn ($tag): array => ['value' => Str::slug($tag), 'label' => $tag]),
+            'filter' => fn (Builder $query, string $value) => $query->whereHas('tags', fn (Builder $t) => $t->where('slug', $value)),
+            'labelFor' => fn (string $value): string => $distinct($model)->firstWhere('slug', $value)?->name ?? Str::headline($value),
+            'values' => fn (): Collection => $distinct($model)
+                ->map(fn (Tag $tag): array => ['value' => $tag->slug, 'label' => $tag->name]),
         ];
     }
 

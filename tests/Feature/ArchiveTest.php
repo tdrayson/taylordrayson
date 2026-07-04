@@ -3,9 +3,12 @@
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
+use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Models\Note;
+use App\Models\Project;
 
 use function Pest\Laravel\get;
 
@@ -171,6 +174,46 @@ it('omits the overview map for non-flight archives', function () {
     Activity::factory()->create(['type' => 'run', 'occurred_at' => now()]);
 
     get('/activities')->assertInertia(fn ($page) => $page->where('map', []));
+});
+
+it('filters the project archive by relational tag slug', function () {
+    $vue = Project::factory()->create(['title' => 'Vue Component Library', 'occurred_at' => now()->subDay()]);
+    $other = Project::factory()->create(['title' => 'API Gateway', 'occurred_at' => now()->subDays(2)]);
+    $vue->syncTagNames(['Vue', 'Tailwind']);
+    $other->syncTagNames(['Laravel']);
+
+    get('/projects')->assertInertia(fn ($page) => $page
+        ->where('chips', fn ($chips) => collect($chips)->pluck('href')->contains('/projects/vue'))
+    );
+
+    get('/projects/vue')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('title', 'Projects tagged Vue')
+        ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Vue Component Library') && ! archiveTitlesContains($groups, 'API Gateway'))
+    );
+});
+
+it('filters the article archive by relational tag slug', function () {
+    $laravel = Article::factory()->create(['published' => true, 'title' => 'Laravel Tips', 'occurred_at' => now()->subDay()]);
+    $other = Article::factory()->create(['published' => true, 'title' => 'A Day Out', 'occurred_at' => now()->subDays(2)]);
+    $laravel->syncTagNames(['Laravel']);
+    $other->syncTagNames(['Travel']);
+
+    get('/articles/laravel')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('title', 'Articles tagged Laravel')
+        ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Laravel Tips') && ! archiveTitlesContains($groups, 'A Day Out'))
+    );
+});
+
+it('registers a tag taxonomy on the note archive too', function () {
+    $coffee = Note::factory()->create(['content' => 'Espresso notes', 'occurred_at' => now()->subDay()]);
+    $other = Note::factory()->create(['content' => 'Random thought', 'occurred_at' => now()->subDays(2)]);
+    $coffee->syncTagNames(['Coffee']);
+    $other->syncTagNames(['Life']);
+
+    get('/notes/coffee')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('title', 'Notes tagged Coffee')
+        ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Espresso notes') && ! archiveTitlesContains($groups, 'Random thought'))
+    );
 });
 
 function archiveTitlesContains($groups, string $title): bool

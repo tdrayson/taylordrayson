@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Note;
+use App\Models\Tag;
 
 beforeEach(function () {
     config()->set('services.api.token', 'test-token');
@@ -88,4 +89,54 @@ it('rejects an invalid timezone', function () {
     ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['timezone']);
+});
+
+it('creates a note with tags and returns them', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Dialled in a new espresso recipe.',
+        'tags' => ['Coffee', 'Recipe'],
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.tags', fn ($tags) => collect($tags)->sort()->values()->all() === ['Coffee', 'Recipe']);
+
+    expect(Note::first()->tagNames())->toEqualCanonicalizing(['Coffee', 'Recipe']);
+});
+
+it('reuses the same tag row across notes with the same tag name', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', ['content' => 'First note.', 'tags' => ['Coffee']])
+        ->assertCreated();
+    $this->withToken('test-token')->postJson('/api/v1/notes', ['content' => 'Second note.', 'tags' => ['Coffee']])
+        ->assertCreated();
+
+    expect(Tag::count())->toBe(1);
+});
+
+it('updates a note tags via sync', function () {
+    $note = Note::factory()->create();
+    $note->syncTagNames(['Coffee', 'Recipe']);
+
+    $this->withToken('test-token')->patchJson("/api/v1/notes/{$note->id}", ['tags' => ['Coffee']])
+        ->assertOk()
+        ->assertJsonPath('data.tags', ['Coffee']);
+
+    expect($note->fresh()->tagNames())->toEqualCanonicalizing(['Coffee']);
+});
+
+it('leaves tags untouched when the key is omitted from an update', function () {
+    $note = Note::factory()->create();
+    $note->syncTagNames(['Coffee']);
+
+    $this->withToken('test-token')->patchJson("/api/v1/notes/{$note->id}", ['content' => 'Updated content.'])
+        ->assertOk();
+
+    expect($note->fresh()->tagNames())->toEqualCanonicalizing(['Coffee']);
+});
+
+it('rejects an oversized tag name', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'Too many characters in this tag.',
+        'tags' => [str_repeat('a', 51)],
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['tags.0']);
 });

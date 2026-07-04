@@ -36,10 +36,6 @@ class ArticleFactory extends Factory
             'excerpt' => fake()->sentence(fake()->numberBetween(10, 20)),
             'content' => EditorJs::document($blocks),
             'published' => fake()->boolean(90),
-            'tags' => fake()->randomElements(
-                ['Laravel', 'PHP', 'Web Development', 'Tutorial', 'DevOps'],
-                fake()->numberBetween(1, 3),
-            ),
         ];
     }
 }

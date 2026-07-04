@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
 use App\Models\Note;
@@ -90,6 +91,16 @@ it('aggregates the whole day for a food entry', function () {
         ->where('type', 'calorie')
         ->where('entry.totals.calories', 770)
         ->has('entry.meals', 2)
+    );
+});
+
+it('exposes tags as a flat array of names on an article entry', function () {
+    $article = Article::factory()->create(['published' => true, 'occurred_at' => '2026-03-15 09:00:00']);
+    $article->syncTagNames(['Laravel', 'PHP']);
+
+    get('/'.entryUrl($article))->assertInertia(fn ($page) => $page
+        ->component('Entry')
+        ->where('entry.tags', fn ($tags) => collect($tags)->sort()->values()->all() === ['Laravel', 'PHP'])
     );
 });
 
