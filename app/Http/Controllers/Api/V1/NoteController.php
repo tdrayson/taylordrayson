@@ -6,6 +6,7 @@ use App\Actions\Notes\CreateNote;
 use App\Actions\Notes\DeleteNote;
 use App\Actions\Notes\UpdateNote;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ListRequest;
 use App\Http\Requests\Api\V1\StoreNoteRequest;
 use App\Http\Requests\Api\V1\UpdateNoteRequest;
 use App\Http\Resources\V1\NoteResource;
@@ -16,10 +17,12 @@ use Illuminate\Http\Response;
 
 class NoteController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
         return NoteResource::collection(
-            Note::query()->orderByDesc('occurred_at')->paginate(25)
+            $request->applyTo(Note::query())
+                ->orderByDesc('occurred_at')
+                ->paginate($request->perPage())
         );
     }
 

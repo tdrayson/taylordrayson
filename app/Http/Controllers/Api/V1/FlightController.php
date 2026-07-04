@@ -6,6 +6,7 @@ use App\Actions\Flights\CreateFlight;
 use App\Actions\Flights\DeleteFlight;
 use App\Actions\Flights\UpdateFlight;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ListRequest;
 use App\Http\Requests\Api\V1\StoreFlightRequest;
 use App\Http\Requests\Api\V1\UpdateFlightRequest;
 use App\Http\Resources\V1\FlightResource;
@@ -16,13 +17,12 @@ use Illuminate\Http\Response;
 
 class FlightController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
         return FlightResource::collection(
-            Flight::query()
-                ->with(['airline', 'origin', 'destination'])
+            $request->applyTo(Flight::query()->with(['airline', 'origin', 'destination']))
                 ->orderByDesc('occurred_at')
-                ->paginate(25)
+                ->paginate($request->perPage())
         );
     }
 
