@@ -40,6 +40,27 @@ it('serves the portable text array in content for a published page', function ()
     );
 });
 
+it('serves 200 for an article entry page whose content has two h2 blocks (TOC eligible)', function () {
+    $article = Article::factory()->create([
+        'occurred_at' => '2026-03-15 09:00:00',
+        'published' => true,
+        'content' => [
+            PortableText::block('First section', 'h2'),
+            PortableText::block('A paragraph of body text.'),
+            PortableText::block('Second section', 'h2'),
+            PortableText::block('Another paragraph of body text.'),
+        ],
+    ]);
+
+    $url = $article->occurred_at->format('Y/m/d').'/'.$article->slug();
+
+    get("/{$url}")->assertOk()->assertInertia(fn ($page) => $page
+        ->component('Entry')
+        ->where('entry.content.0._type', 'block')
+        ->where('entry.content.2.style', 'h2')
+    );
+});
+
 it('shows a timeline card excerpt matching the plain text of the article content', function () {
     $article = Article::factory()->create([
         'occurred_at' => '2026-03-15 09:00:00',
