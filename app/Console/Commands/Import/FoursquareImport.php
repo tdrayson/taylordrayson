@@ -16,9 +16,9 @@ class FoursquareImport extends Command
     public function handle(Foursquare $foursquare): int
     {
         $existingIds = Checkin::query()
-            ->where('platform_type', 'swarm')
-            ->whereNotNull('platform_id')
-            ->pluck('platform_id')
+            ->where('source', 'swarm')
+            ->whereNotNull('source_id')
+            ->pluck('source_id')
             ->flip()
             ->all();
 
@@ -39,7 +39,7 @@ class FoursquareImport extends Command
                 $category = $venue['categories'][0]['name'] ?? null;
 
                 Checkin::updateOrCreate(
-                    ['platform_type' => 'swarm', 'platform_id' => $item['id']],
+                    ['source' => 'swarm', 'source_id' => $item['id']],
                     [
                         'occurred_at' => date('Y-m-d H:i:s', $item['createdAt']),
                         'venue_name' => $venue['name'] ?? 'Unknown',

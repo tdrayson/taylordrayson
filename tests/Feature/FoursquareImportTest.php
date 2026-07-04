@@ -26,7 +26,7 @@ it('imports checkins from the foursquare api', function () {
 
     $this->artisan('foursquare:import')->assertSuccessful();
 
-    $checkin = Checkin::where('platform_id', 'abc')->first();
+    $checkin = Checkin::where('source_id', 'abc')->first();
     expect($checkin)->not->toBeNull();
     expect($checkin->venue_name)->toBe('Coffee Bar');
     expect($checkin->category)->toBe('Café');
@@ -35,7 +35,7 @@ it('imports checkins from the foursquare api', function () {
 });
 
 it('skips checkins that already exist', function () {
-    Checkin::factory()->create(['platform_type' => 'swarm', 'platform_id' => 'dupe']);
+    Checkin::factory()->create(['source' => 'swarm', 'source_id' => 'dupe']);
 
     Http::fake([
         '*users/self/checkins*' => Http::sequence()
@@ -49,7 +49,7 @@ it('skips checkins that already exist', function () {
 
     $this->artisan('foursquare:import')->assertSuccessful();
 
-    expect(Checkin::where('platform_id', 'dupe')->count())->toBe(1);
+    expect(Checkin::where('source_id', 'dupe')->count())->toBe(1);
 });
 
 it('fails when the api errors', function () {

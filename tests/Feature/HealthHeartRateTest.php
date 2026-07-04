@@ -130,7 +130,7 @@ it('attaches heart-rate to the matching activity and mirrors only its CSV row', 
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:02:00 +0000', 'avg' => 120, 'max' => 160],
     ])));
 
-    $header = 'occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,platform_type,platform_id,meta';
+    $header = 'occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta';
     file_put_contents($csvPath, implode("\n", [
         $header,
         '"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,,,,strava,1,"[]"',
@@ -171,7 +171,7 @@ it('merges batched payloads into one series and defends the prior peak', functio
         'occurred_at' => '2026-06-23 08:00:00', 'duration' => 900, 'meta' => [], 'heart_rate' => null,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,platform_type,platform_id,meta\n"
+    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
         .'"2026-06-23 08:00:00",run,"Morning Run",900,90,2.5,,,,strava,1,"[]"'."\n");
 
     file_put_contents($firstPath, json_encode(heartRatePayload([
@@ -217,7 +217,7 @@ it('preserves a source-provided average but still attaches the series', function
         'average_heart_rate' => 159, 'max_heart_rate' => 208, 'heart_rate' => null,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,platform_type,platform_id,meta\n"
+    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
         .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,159,208,,strava,1,"[]"'."\n");
 
     file_put_contents($jsonPath, json_encode(heartRatePayload([
@@ -255,7 +255,7 @@ it('fills a missing max from samples while preserving an existing average', func
         'average_heart_rate' => 130, 'max_heart_rate' => null, 'heart_rate' => null,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,platform_type,platform_id,meta\n"
+    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
         .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,130,,,strava,1,"[]"'."\n");
 
     file_put_contents($jsonPath, json_encode(heartRatePayload([
@@ -284,7 +284,7 @@ it('caps the stored series with --max-points while keeping the average from ever
         'occurred_at' => '2026-06-23 08:00:00', 'duration' => 600, 'meta' => [], 'heart_rate' => null,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,platform_type,platform_id,meta\n"
+    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
         .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,,,,strava,1,"[]"'."\n");
 
     $samples = [];

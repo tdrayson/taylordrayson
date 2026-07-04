@@ -1,4 +1,4 @@
-occurred_at,venue_name,category,address,city,county,country,latitude,longitude,description,platform_type,platform_id
+occurred_at,venue_name,category,address,city,county,country,latitude,longitude,description,source,source_id
 "2010-09-10 14:53:54","Drayson Design",Office,,,,"United Kingdom",51.340028882662,-0.092047667110407,,swarm,4c8a4682a92fa09324aa8fbf
 "2010-09-10 14:58:10","Drayson Design",Office,,,,"United Kingdom",51.340028882662,-0.092047667110407,,swarm,4c8a4782a92fa093d1b38fbf
 "2010-09-10 14:58:58","Maywater Close",Road,,,,"United Kingdom",51.339817608015,-0.093088105554595,,swarm,4c8a47b29ef0224bfb46597b

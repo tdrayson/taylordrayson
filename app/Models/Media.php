@@ -19,8 +19,8 @@ use Spatie\MediaLibrary\HasMedia;
     'type',
     'title',
     'rating',
-    'platform_type',
-    'platform_id',
+    'source',
+    'source_id',
     'meta',
 ])]
 class Media extends Model implements HasMedia, Timelineable
@@ -40,8 +40,8 @@ class Media extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->platform_type === 'trakt' && $this->platform_id) {
-            return "https://trakt.tv/{$this->platform_id}";
+        if ($this->source === 'trakt' && $this->source_id) {
+            return "https://trakt.tv/{$this->source_id}";
         }
 
         return null;

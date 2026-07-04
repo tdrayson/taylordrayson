@@ -26,8 +26,8 @@ function fakeStravaDetails(array $descriptionsById): void
 }
 
 it('backfills descriptions and leaves blank ones null', function () {
-    $withNote = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '100', 'description' => null]);
-    $blank = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '200', 'description' => null]);
+    $withNote = Activity::factory()->create(['source' => 'strava', 'source_id' => '100', 'description' => null]);
+    $blank = Activity::factory()->create(['source' => 'strava', 'source_id' => '200', 'description' => null]);
 
     fakeStravaDetails([
         100 => '  Felt strong today  ',
@@ -41,7 +41,7 @@ it('backfills descriptions and leaves blank ones null', function () {
 });
 
 it('does not touch non-strava activities', function () {
-    $health = Activity::factory()->create(['platform_type' => 'health', 'platform_id' => null, 'description' => null]);
+    $health = Activity::factory()->create(['source' => 'health', 'source_id' => null, 'description' => null]);
 
     fakeStravaDetails([]);
 
@@ -53,8 +53,8 @@ it('does not touch non-strava activities', function () {
 });
 
 it('resumes from the cursor across runs', function () {
-    $first = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '100', 'description' => null]);
-    $second = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '200', 'description' => null]);
+    $first = Activity::factory()->create(['source' => 'strava', 'source_id' => '100', 'description' => null]);
+    $second = Activity::factory()->create(['source' => 'strava', 'source_id' => '200', 'description' => null]);
 
     fakeStravaDetails([100 => 'first', 200 => 'second']);
 
@@ -76,7 +76,7 @@ it('resumes from the cursor across runs', function () {
 
 it('stops after consecutive failures without advancing the cursor past them', function () {
     foreach (range(1, 6) as $i) {
-        Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => (string) ($i * 10), 'description' => null]);
+        Activity::factory()->create(['source' => 'strava', 'source_id' => (string) ($i * 10), 'description' => null]);
     }
 
     // Token succeeds, every detail call fails (simulating a 429 storm).
@@ -93,8 +93,8 @@ it('stops after consecutive failures without advancing the cursor past them', fu
 });
 
 it('skips activities already in the export and fetches only new ones', function () {
-    $old = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '100', 'description' => null]);
-    $new = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '200', 'description' => null]);
+    $old = Activity::factory()->create(['source' => 'strava', 'source_id' => '100', 'description' => null]);
+    $new = Activity::factory()->create(['source' => 'strava', 'source_id' => '200', 'description' => null]);
 
     // Old-site export shape: id 100 is covered, id 200 is not.
     $exportPath = sys_get_temp_dir().'/export_'.uniqid().'.csv';
@@ -114,8 +114,8 @@ it('skips activities already in the export and fetches only new ones', function 
 });
 
 it('leaves activities that already have a description untouched', function () {
-    $described = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '100', 'description' => 'Imported note']);
-    $blank = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '200', 'description' => null]);
+    $described = Activity::factory()->create(['source' => 'strava', 'source_id' => '100', 'description' => 'Imported note']);
+    $blank = Activity::factory()->create(['source' => 'strava', 'source_id' => '200', 'description' => null]);
 
     // If 100 were fetched it would be overwritten with this; it must not be.
     fakeStravaDetails([100 => 'fresh from strava', 200 => 'newly fetched']);
@@ -129,7 +129,7 @@ it('leaves activities that already have a description untouched', function () {
 it('restarts from the beginning when --restart is passed', function () {
     Cache::put('strava:desc-backfill:cursor', 99999);
 
-    $activity = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '100', 'description' => null]);
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100', 'description' => null]);
 
     fakeStravaDetails([100 => 'recovered']);
 

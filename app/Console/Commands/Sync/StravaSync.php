@@ -65,9 +65,9 @@ class StravaSync extends Command
         }
 
         $existingIds = Activity::query()
-            ->where('platform_type', 'strava')
-            ->whereNotNull('platform_id')
-            ->pluck('platform_id')
+            ->where('source', 'strava')
+            ->whereNotNull('source_id')
+            ->pluck('source_id')
             ->all();
 
         $newActivities = collect($stravaActivities)
@@ -171,8 +171,8 @@ class StravaSync extends Command
             'distance' => $data['distance'] ? (int) round($data['distance']) : null,
             'average_heart_rate' => $data['average_heartrate'] ?? null,
             'max_heart_rate' => $data['max_heartrate'] ?? null,
-            'platform_type' => 'strava',
-            'platform_id' => (string) $data['id'],
+            'source' => 'strava',
+            'source_id' => (string) $data['id'],
             'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
             'meta' => $meta ?: null,
         ]);

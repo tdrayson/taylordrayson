@@ -61,8 +61,8 @@ it('cites the source with a link back to the platform', function () {
     $activity = Activity::factory()->create([
         'name' => 'Strava Run',
         'type' => 'run',
-        'platform_type' => 'strava',
-        'platform_id' => '12345',
+        'source' => 'strava',
+        'source_id' => '12345',
         'occurred_at' => '2026-03-15 07:30:00',
     ]);
 

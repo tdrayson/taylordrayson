@@ -29,8 +29,8 @@ function oldSiteExport(array $entries): string
 }
 
 it('fills descriptions from the export, matched by strava id', function () {
-    $run = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '111', 'description' => null]);
-    $ride = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '222', 'description' => null]);
+    $run = Activity::factory()->create(['source' => 'strava', 'source_id' => '111', 'description' => null]);
+    $ride = Activity::factory()->create(['source' => 'strava', 'source_id' => '222', 'description' => null]);
 
     $path = oldSiteExport([
         ['strava_id' => '111', 'description' => '  Felt amazing today  '],
@@ -47,7 +47,7 @@ it('fills descriptions from the export, matched by strava id', function () {
 
 it('does not clobber an existing description without --overwrite', function () {
     $activity = Activity::factory()->create([
-        'platform_type' => 'strava', 'platform_id' => '111', 'description' => 'Hand-written note',
+        'source' => 'strava', 'source_id' => '111', 'description' => 'Hand-written note',
     ]);
 
     $path = oldSiteExport([['strava_id' => '111', 'description' => 'From the export']]);

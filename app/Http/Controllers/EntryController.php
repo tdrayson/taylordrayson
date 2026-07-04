@@ -153,7 +153,7 @@ class EntryController extends Controller
      */
     private function source(Model $model): ?array
     {
-        $platform = $model->platform_type ?? $model->source ?? null;
+        $platform = $model->source ?? null;
 
         if (! $platform) {
             return null;

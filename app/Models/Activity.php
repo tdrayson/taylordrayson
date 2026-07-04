@@ -27,8 +27,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'average_heart_rate',
     'max_heart_rate',
     'heart_rate',
-    'platform_type',
-    'platform_id',
+    'source',
+    'source_id',
     'timezone',
     'meta',
 ])]
@@ -51,8 +51,8 @@ class Activity extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->platform_type === 'strava' && $this->platform_id) {
-            return "https://www.strava.com/activities/{$this->platform_id}";
+        if ($this->source === 'strava' && $this->source_id) {
+            return "https://www.strava.com/activities/{$this->source_id}";
         }
 
         return null;

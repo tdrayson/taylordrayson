@@ -14,7 +14,7 @@ class ImportActivityDescriptions extends Command
     /**
      * The old-site export keeps each activity's real description inside the JSON
      * blob in its "Activity data" column (the "Content" column is a placeholder),
-     * keyed by "Activity ID" which is the Strava id we store as platform_id.
+     * keyed by "Activity ID" which is the Strava id we store as source_id.
      * Match on that and fill the description, skipping rows already set unless
      * --overwrite is given. The CSV seed is not written: run
      * `export:csv data/activities.csv activity` afterwards to refresh it.
@@ -41,11 +41,11 @@ class ImportActivityDescriptions extends Command
         $updated = 0;
 
         Activity::query()
-            ->where('platform_type', 'strava')
-            ->whereIn('platform_id', array_keys($descriptions))
+            ->where('source', 'strava')
+            ->whereIn('source_id', array_keys($descriptions))
             ->when(! $overwrite, fn ($query) => $query->whereNull('description'))
             ->each(function (Activity $activity) use ($descriptions, &$updated): void {
-                $activity->update(['description' => $descriptions[$activity->platform_id]]);
+                $activity->update(['description' => $descriptions[$activity->source_id]]);
                 $updated++;
             });
 

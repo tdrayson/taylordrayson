@@ -78,7 +78,7 @@ class BackfillStravaDescriptions extends Command
         $cursorBeforeStreak = $cursor;
 
         foreach ($activities as $activity) {
-            $detail = $strava->activity($activity->platform_id);
+            $detail = $strava->activity($activity->source_id);
 
             if ($detail === null) {
                 if ($consecutiveFailures === 0) {
@@ -86,7 +86,7 @@ class BackfillStravaDescriptions extends Command
                 }
 
                 $consecutiveFailures++;
-                $this->warn("Failed to fetch activity {$activity->platform_id} (id {$activity->id}).");
+                $this->warn("Failed to fetch activity {$activity->source_id} (id {$activity->id}).");
 
                 if ($consecutiveFailures >= self::MAX_CONSECUTIVE_FAILURES) {
                     Cache::put(self::CURSOR_KEY, $cursorBeforeStreak);
@@ -129,11 +129,11 @@ class BackfillStravaDescriptions extends Command
     private function remaining(int $cursor): Builder
     {
         return Activity::query()
-            ->where('platform_type', 'strava')
-            ->whereNotNull('platform_id')
+            ->where('source', 'strava')
+            ->whereNotNull('source_id')
             ->whereNull('description')
             ->where('id', '>', $cursor)
-            ->when($this->skipIds !== [], fn (Builder $query): Builder => $query->whereNotIn('platform_id', $this->skipIds))
+            ->when($this->skipIds !== [], fn (Builder $query): Builder => $query->whereNotIn('source_id', $this->skipIds))
             ->orderBy('id');
     }
 
