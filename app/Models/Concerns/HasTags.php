@@ -8,6 +8,13 @@ use Illuminate\Support\Str;
 
 trait HasTags
 {
+    protected static function bootHasTags(): void
+    {
+        static::deleting(function ($model): void {
+            $model->tags()->detach();
+        });
+    }
+
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');

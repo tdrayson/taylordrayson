@@ -4,6 +4,7 @@ use App\Models\Article;
 use App\Models\Note;
 use App\Models\Project;
 use App\Models\Tag;
+use Illuminate\Support\Facades\DB;
 
 it('syncs tags by name, creating them on first use', function () {
     $article = Article::factory()->create();
@@ -49,4 +50,15 @@ it('ignores blank tag names', function () {
     $project->syncTagNames(['Laravel', '  ', '']);
 
     expect($project->fresh()->tagNames())->toEqualCanonicalizing(['Laravel']);
+});
+
+it('removes taggable pivot rows when a tagged model is deleted', function () {
+    $note = Note::factory()->create();
+    $note->syncTagNames(['Coffee', 'Recipe']);
+
+    expect(DB::table('taggables')->where('taggable_type', Note::class)->count())->toBe(2);
+
+    $note->delete();
+
+    expect(DB::table('taggables')->where('taggable_type', Note::class)->count())->toBe(0);
 });

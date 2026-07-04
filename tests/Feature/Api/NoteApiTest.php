@@ -140,3 +140,16 @@ it('rejects an oversized tag name', function () {
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['tags.0']);
 });
+
+it('clears tags when patching with empty tags array', function () {
+    $note = Note::factory()->create();
+    $note->syncTagNames(['Coffee', 'Recipe']);
+
+    expect($note->fresh()->tagNames())->toEqualCanonicalizing(['Coffee', 'Recipe']);
+
+    $this->withToken('test-token')->patchJson("/api/v1/notes/{$note->id}", ['tags' => []])
+        ->assertOk()
+        ->assertJsonPath('data.tags', []);
+
+    expect($note->fresh()->tagNames())->toBeEmpty();
+});
