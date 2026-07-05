@@ -119,7 +119,7 @@
 
     /* Long-read column widths: prose reads at `max-w-reading`; charts, images and
        other blocks sit a touch wider at `max-w-media`. Reused by stories/articles. */
-    --container-reading: 42rem;
+    --container-reading: 38rem;
     --container-media: 44rem;
 
     /* Elevation — the single shadow tier */

@@ -41,6 +41,9 @@ function buildToc() {
     items.value = headings.map((el) => ({
         id: el.id,
         label: el.getAttribute(props.labelAttr) ?? '',
+        // Heading depth (2 = h2, 3 = h3) drives the indented hierarchy; the
+        // renderer never stamps anything deeper than h3.
+        level: Number(el.getAttribute('data-toc-level') ?? 2),
     }));
 
     observer = new IntersectionObserver(
@@ -120,8 +123,11 @@ onBeforeUnmount(() => {
             <li v-for="item in items" :key="item.id">
                 <button
                     type="button"
-                    class="-ml-px block w-full border-l-2 py-1.5 pl-4 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
-                    :class="activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700'"
+                    class="-ml-px block w-full border-l-2 py-1.5 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
+                    :class="[
+                        activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
+                        item.level >= 3 ? 'pl-8' : 'pl-4',
+                    ]"
                     @click="goTo(item.id)"
                 >{{ item.label }}</button>
             </li>
@@ -163,8 +169,11 @@ onBeforeUnmount(() => {
                         <li v-for="item in items" :key="item.id">
                             <button
                                 type="button"
-                                class="flex w-full items-center rounded-lg px-3 py-2.5 text-left transition-colors"
-                                :class="activeId === item.id ? 'bg-accent-50' : 'hover:bg-neutral-25'"
+                                class="flex w-full items-center rounded-lg py-2.5 pr-3 text-left transition-colors"
+                                :class="[
+                                    activeId === item.id ? 'bg-accent-50' : 'hover:bg-neutral-25',
+                                    item.level >= 3 ? 'pl-7' : 'pl-3',
+                                ]"
                                 @click="goTo(item.id)"
                             >
                                 <span class="text-meta" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>

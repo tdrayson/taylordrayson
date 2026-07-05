@@ -1,4 +1,5 @@
 import { h } from 'vue';
+import CodeBlock from './CodeBlock.vue';
 import ZoomButton from './ZoomButton.vue';
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
@@ -138,11 +139,12 @@ function renderTextBlock(node, headingIds) {
                     : 'text-lg font-semibold font-display text-neutral-900 max-w-reading scroll-mt-24',
             'data-toc': '',
             'data-toc-label': blockText(node).trim(),
+            'data-toc-level': node.style === 'h2' ? '2' : '3',
         }, children);
     }
 
     if (node.style === 'blockquote') {
-        return h('blockquote', { key, class: 'border-l-2 border-accent-200 pl-4 text-neutral-700 max-w-media' }, children);
+        return h('blockquote', { key, class: 'border-l-2 border-accent-500 py-1 pl-6 font-display text-xl leading-relaxed text-neutral-800 max-w-media' }, children);
     }
 
     return h('p', { key, class: 'max-w-reading' }, children);
@@ -166,15 +168,13 @@ function renderImage(node, onImageClick) {
             }, [h(ZoomButton)]),
         ]),
         node.caption
-            ? h('figcaption', { class: 'mt-2 text-center text-meta text-neutral-500' }, node.caption)
+            ? h('figcaption', { class: 'mt-2 text-left text-meta text-neutral-500' }, node.caption)
             : null,
     ]);
 }
 
 function renderCode(node) {
-    return h('pre', { key: node._key, class: 'overflow-x-auto rounded-lg bg-neutral-25 p-4 text-meta max-w-media' }, [
-        h('code', node.code ?? ''),
-    ]);
+    return h(CodeBlock, { key: node._key, code: node.code ?? '', language: node.language ?? null });
 }
 
 function renderNode(node, headingIds, onImageClick) {
