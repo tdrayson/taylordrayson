@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import Tooltip from '../Ui/Tooltip.vue';
 
 const props = defineProps({
     // Real data mode: entries-per-day keyed yyyy-mm-dd, for `year`.
@@ -81,29 +82,30 @@ function color(level) {
 
 <template>
     <div>
-        <!-- Month labels double as year → month navigation. -->
-        <div v-if="yearCells" class="heatmap-months mb-1 text-xs text-neutral-500">
-            <Link
-                v-for="month in monthLabels"
-                :key="month.href"
-                :href="month.href"
-                :style="{ gridColumnStart: month.column }"
-                class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline focus-visible:outline-none"
-            >{{ month.label }}</Link>
-        </div>
+        <!-- Month labels + cell grid scroll together as one unit (GitHub-style) so
+             labels stay aligned over their weeks; the min-width floor lives in <style>. -->
+        <div v-if="yearCells" class="overflow-x-auto">
+            <div class="heatmap-scroll">
+                <!-- Month labels double as year → month navigation. -->
+                <div class="heatmap-months mb-1 text-xs text-neutral-500">
+                    <Link
+                        v-for="month in monthLabels"
+                        :key="month.href"
+                        :href="month.href"
+                        :style="{ gridColumnStart: month.column }"
+                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline focus-visible:outline-none"
+                    >{{ month.label }}</Link>
+                </div>
 
-        <div v-if="yearCells" class="heatmap-grid">
-            <template v-for="(cell, index) in yearCells" :key="cell ? cell.key : `pad-${index}`">
-                <Link
-                    v-if="cell"
-                    :href="cell.href"
-                    :title="cell.title"
-                    :aria-label="cell.title"
-                    class="rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-500"
-                    :style="{ background: color(cell.level) }"
-                />
-                <span v-else />
-            </template>
+                <div class="heatmap-grid">
+                    <template v-for="(cell, index) in yearCells" :key="cell ? cell.key : `pad-${index}`">
+                        <Tooltip v-if="cell" :label="cell.title" placement="top" class="heatmap-cell-wrap">
+                            <Link :href="cell.href" :aria-label="cell.title" class="heatmap-cell rounded" :style="{ background: color(cell.level) }" />
+                        </Tooltip>
+                        <span v-else />
+                    </template>
+                </div>
+            </div>
         </div>
         <div v-else class="heatmap-grid">
             <span v-for="(level, index) in fallbackCells" :key="index" class="rounded" :style="{ background: color(level) }" />
@@ -118,6 +120,12 @@ function color(level) {
 </template>
 
 <style scoped>
+/* Month labels + grid share this floor so cells stay readable instead of shrinking
+   below legibility on small screens; the parent .overflow-x-auto scrolls this unit. */
+.heatmap-scroll {
+    min-width: 40rem;
+}
+
 /* Cells flow column-major into 7 weekday rows → ~53 week columns.
    1fr columns stretch the grid to the container width; aspect-ratio keeps cells square. */
 .heatmap-grid {
@@ -138,5 +146,30 @@ function color(level) {
     grid-auto-columns: 1fr;
     grid-auto-flow: column;
     grid-template-columns: repeat(53, 1fr);
+}
+
+/* Tooltip's root renders inline-flex; stretch it to fill the grid cell so the
+   Link inside can fill it too (mirrors EntriesWidget's .entries__cell-wrap). */
+.heatmap-cell-wrap {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.heatmap-cell {
+    flex: 1;
+    align-self: stretch;
+    transition: transform 0.12s ease;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.18);
+    z-index: 1;
+}
+
+.heatmap-cell:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+    z-index: 1;
 }
 </style>

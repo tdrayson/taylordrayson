@@ -83,7 +83,7 @@ setLayoutProps({
                 class="mt-14"
                 :current-page="currentPage"
                 :last-page="lastPage"
-                :prev-url="currentPage > 1 ? `/${year}?page=${currentPage - 1}` : null"
+                :prev-url="currentPage > 1 ? (currentPage - 1 === 1 ? `/${year}` : `/${year}?page=${currentPage - 1}`) : null"
                 :next-url="currentPage < lastPage ? `/${year}?page=${currentPage + 1}` : null"
             />
         </section>
