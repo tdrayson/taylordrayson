@@ -15,7 +15,7 @@ defineProps({
     <Link
         :href="href"
         :aria-current="active ? 'page' : undefined"
-        class="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition-colors md:py-2 md:text-sm"
+        class="-mx-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition-colors md:py-2 md:text-sm"
         :class="active ? 'bg-neutral-25 font-semibold text-neutral-900' : 'text-neutral-700 hover:bg-neutral-25'"
     >
         <Icon v-if="icon" :icon="icon" class="size-5 flex-none" :class="active ? 'text-accent-500' : 'text-neutral-500'" />
