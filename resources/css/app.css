@@ -287,12 +287,17 @@
     --breakout-size: calc((var(--breakout-max-width) - var(--content-max-width)) / 2);
 
     display: grid;
+    /* The edge gutter is its own fixed track, so `inset` is a real column
+       (full bleed minus gutter) and needs no margin tricks; it follows
+       --padding-inline across breakpoints automatically. */
     grid-template-columns:
-        [full-width-start] minmax(var(--padding-inline), 1fr)
+        [full-width-start] var(--padding-inline)
+        [inset-start] minmax(0, 1fr)
         [breakout-start] minmax(0, var(--breakout-size))
         [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-width)) [content-end]
         minmax(0, var(--breakout-size)) [breakout-end]
-        minmax(var(--padding-inline), 1fr) [full-width-end];
+        minmax(0, 1fr) [inset-end]
+        var(--padding-inline) [full-width-end];
 }
 
 @media (min-width: 768px) {
@@ -325,10 +330,10 @@
     grid-column: full-width;
 }
 
-/* Full bleed, but inset by the gutter (a rounded box that never touches the edge). */
+/* Full bleed, but inset by the gutter (a rounded box that never touches the
+   edge). A real grid column, so no margin/width interactions. */
 @utility full-width-inset {
-    grid-column: full-width;
-    margin-inline: var(--padding-inline);
+    grid-column: inset;
 }
 
 /* Full bleed box whose inner content respects the gutter (ACSS "full width safe"). */
