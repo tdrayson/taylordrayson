@@ -45,14 +45,15 @@ const headingCount = computed(() => contentNodes.value.filter(
         </div>
 
         <!-- Wrapper div (not the img) is the grid item: replaced elements
-             don't stretch to their grid area, block boxes do. -->
-        <div v-if="entry.cover" class="article-cover overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:full-width-inset">
+             don't stretch to their grid area, block boxes do. The image keeps
+             its intrinsic aspect ratio (no fixed height, no cropping). -->
+        <div v-if="entry.cover" class="overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:full-width-inset">
             <img
                 :src="entry.cover.src"
                 :srcset="entry.cover.srcset || undefined"
                 sizes="100vw"
                 alt=""
-                class="size-full object-cover"
+                class="w-full"
             >
         </div>
 
@@ -72,10 +73,3 @@ const headingCount = computed(() => contentNodes.value.filter(
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Same full-bleed height treatment as FlightsMap (see flights-map). */
-.article-cover {
-    height: clamp(20rem, 48vh, 32rem);
-}
-</style>
