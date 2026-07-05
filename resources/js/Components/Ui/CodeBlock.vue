@@ -73,7 +73,9 @@ onBeforeUnmount(() => clearTimeout(timer));
 </script>
 
 <template>
-    <div class="group/code max-w-media overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
+    <!-- not-prose: the code block is a self-contained component; typography
+         plugin defaults must not leak into it. -->
+    <div class="group/code not-prose max-w-media overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
         <!-- Header bar only when there is something to say; the copy button
              floats over the code instead when the header is absent. -->
         <div v-if="hasHeader" class="flex items-center gap-3 border-b border-neutral-50 px-4 py-2">

@@ -165,7 +165,7 @@ function renderTextBlock(node, headingIds) {
     }
 
     if (node.style === 'blockquote') {
-        return h('blockquote', { key, class: 'border-l-2 border-accent-500 py-1 pl-6 font-display text-xl leading-relaxed text-neutral-800 max-w-media' }, children);
+        return h('blockquote', { key, class: 'border-l-2 border-accent-500 py-1 pl-6 font-display text-xl not-italic font-normal leading-relaxed text-neutral-800 max-w-media' }, children);
     }
 
     return h('p', { key, class: 'max-w-prose' }, children);
@@ -180,7 +180,9 @@ function renderImage(node, onImageClick) {
         h('button', {
             type: 'button',
             'aria-label': node.caption ? `View image: ${node.caption}` : 'View image full size',
-            class: 'group/zoom relative block w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
+            // not-prose: the figure keeps prose's block rhythm, but the plugin's
+            // img margins must not apply inside the zoom button wrapper.
+            class: 'group/zoom not-prose relative block w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
             onClick: () => onImageClick(node.url),
         }, [
             h('img', { src: node.url, alt: node.caption || '', class: 'w-full rounded-lg border border-neutral-50' }),

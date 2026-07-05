@@ -38,7 +38,11 @@ function openImage(url) {
 </script>
 
 <template>
-    <div v-if="nodes.length" class="block-content space-y-5 text-body text-neutral-900">
+    <!-- prose supplies the inter-element rhythm (p/heading/list/figure margins);
+         its :where() selectors have zero specificity, so the renderer's explicit
+         classes (widths, blockquote, code) always win. max-w-none: widths are
+         set per node, not on the wrapper. -->
+    <div v-if="nodes.length" class="block-content prose max-w-none text-body text-neutral-900">
         <PortableTextBlocks :nodes="nodes" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
@@ -61,6 +65,13 @@ function openImage(url) {
     background: var(--color-neutral-25);
     padding: 0.1em 0.35em;
     font-size: 0.9em;
+}
+
+/* The typography plugin wraps inline code in literal backtick pseudo-elements;
+   the chip background already marks it as code. */
+.block-content :deep(code)::before,
+.block-content :deep(code)::after {
+    content: none;
 }
 
 .block-content :deep(mark) {
