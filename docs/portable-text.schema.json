@@ -76,7 +76,17 @@
                 "code": { "type": "string", "minLength": 1 },
                 "language": {
                     "type": "string",
-                    "description": "Highlighted when one of: bash, css, javascript, json, php, sql, typescript, xml, yaml. Other values render as plain text."
+                    "minLength": 1,
+                    "description": "Highlighted when one of: bash, css, javascript, json, php, sql, typescript, xml, yaml. Other values render as plain text. Shown as a label in the block header."
+                },
+                "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Optional filename shown in the block header, e.g. app/Models/Article.php."
+                },
+                "lineNumbers": {
+                    "type": "boolean",
+                    "description": "Render a line-number gutter when true. Defaults to false."
                 }
             }
         },

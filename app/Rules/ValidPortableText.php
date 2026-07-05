@@ -60,10 +60,29 @@ class ValidPortableText implements ValidationRule
             'image' => $this->nonEmptyString($node['url'] ?? null) && filter_var($node['url'], FILTER_VALIDATE_URL) !== false
                 ? null
                 : 'image requires a valid url',
-            'code' => $this->nonEmptyString($node['code'] ?? null) ? null : 'code node requires code',
+            'code' => $this->codeError($node),
             'divider' => null,
             default => 'unknown node _type',
         };
+    }
+
+    private function codeError(array $node): ?string
+    {
+        if (! $this->nonEmptyString($node['code'] ?? null)) {
+            return 'code node requires code';
+        }
+
+        foreach (['language', 'filename'] as $optional) {
+            if (array_key_exists($optional, $node) && ! $this->nonEmptyString($node[$optional])) {
+                return "code {$optional} must be a non-empty string when present";
+            }
+        }
+
+        if (array_key_exists('lineNumbers', $node) && ! is_bool($node['lineNumbers'])) {
+            return 'code lineNumbers must be a boolean when present';
+        }
+
+        return null;
     }
 
     private function blockError(array $node): ?string

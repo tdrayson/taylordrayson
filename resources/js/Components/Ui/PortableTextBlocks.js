@@ -174,7 +174,13 @@ function renderImage(node, onImageClick) {
 }
 
 function renderCode(node) {
-    return h(CodeBlock, { key: node._key, code: node.code ?? '', language: node.language ?? null });
+    return h(CodeBlock, {
+        key: node._key,
+        code: node.code ?? '',
+        language: node.language ?? null,
+        filename: node.filename ?? null,
+        lineNumbers: node.lineNumbers ?? false,
+    });
 }
 
 function renderNode(node, headingIds, onImageClick) {

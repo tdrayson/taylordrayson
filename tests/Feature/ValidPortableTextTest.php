@@ -50,3 +50,17 @@ it('accepts every stored article document', function () {
         expect(ptPasses($article->content))->toBeTrue();
     });
 });
+
+it('accepts code nodes with filename and line numbers', function () {
+    expect(ptPasses([
+        ['_type' => 'code', '_key' => 'k1', 'code' => 'echo 1;', 'language' => 'php', 'filename' => 'app/demo.php', 'lineNumbers' => true],
+    ]))->toBeTrue();
+});
+
+it('rejects malformed code node extras', function (mixed $document) {
+    expect(ptPasses($document))->toBeFalse();
+})->with([
+    'non-string filename' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'filename' => 123]]],
+    'empty language' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'language' => '']]],
+    'non-bool lineNumbers' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'lineNumbers' => 'yes']]],
+]);
