@@ -47,7 +47,7 @@ const headingCount = computed(() => contentNodes.value.filter(
         <!-- Wrapper div (not the img) is the grid item: replaced elements
              don't stretch to their grid area, block boxes do. The image keeps
              its intrinsic aspect ratio (no fixed height, no cropping). -->
-        <div v-if="entry.cover" class="overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:full-width-inset">
+        <div v-if="entry.cover" class="mb-6 overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:full-width-inset">
             <img
                 :src="entry.cover.src"
                 :srcset="entry.cover.srcset || undefined"
