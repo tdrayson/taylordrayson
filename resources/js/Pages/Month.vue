@@ -78,21 +78,21 @@ setLayoutProps({
 
         <section v-if="photos.length">
             <SectionHead title="Photos" :meta="`${photos.length}${photos.length === 12 ? '+' : ''} this month`" />
-            <div class="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
-                <button
-                    v-for="(photo, index) in photos"
-                    :key="index"
-                    type="button"
-                    :aria-label="`View photo ${index + 1}`"
-                    class="group/zoom relative aspect-square overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                    @click="lightboxIndex = index"
-                >
-                    <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 16vw, 33vw" alt="" class="size-full object-cover">
-                    <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
-                        <ZoomButton />
-                    </span>
-                </button>
-            </div>
+            <ul class="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
+                <li v-for="(photo, index) in photos" :key="index">
+                    <button
+                        type="button"
+                        :aria-label="`View photo ${index + 1}`"
+                        class="group/zoom relative block aspect-square w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        @click="lightboxIndex = index"
+                    >
+                        <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 16vw, 33vw" alt="" class="size-full object-cover">
+                        <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                            <ZoomButton />
+                        </span>
+                    </button>
+                </li>
+            </ul>
             <Lightbox v-model:index="lightboxIndex" :photos="photos" />
         </section>
 
