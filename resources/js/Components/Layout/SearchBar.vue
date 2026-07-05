@@ -17,7 +17,7 @@ const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navig
     >
         <Icon :icon="Search01Icon" class="size-4 shrink-0" />
         <span class="text-nav text-neutral-700">Search</span>
-        <kbd class="ml-auto flex items-center gap-0.5 rounded border border-neutral-50 bg-neutral-0 px-1.5 py-0.5 text-meta text-neutral-500">
+        <kbd class="ml-auto hidden items-center gap-0.5 rounded border border-neutral-50 bg-neutral-0 px-1.5 py-0.5 text-meta text-neutral-500 md:flex">
             <template v-if="isApple"><Icon :icon="CommandIcon" class="size-3.5" />K</template>
             <template v-else>Ctrl K</template>
         </kbd>
