@@ -214,7 +214,7 @@ function openLightbox(index) {
             <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
         </div>
         <!-- Notes show their full content as body text; everything else gets a display-font title. -->
-        <p v-if="body" class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
+        <p v-if="body" class="e-content mt-1.5 max-w-reading whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
         <!-- Titles keep a headline measure (~40ch) rather than running full width. -->
         <div v-else class="mt-1 max-w-md font-display text-item-title">
             <component
@@ -240,7 +240,7 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <div v-else-if="meta" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</div>
+        <div v-else-if="meta" class="p-summary mt-2 line-clamp-3 max-w-reading text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</div>
         <!-- SVG banner only as a fallback when no generated image is available. -->
         <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
         <!-- Map alone when there is no photo. -->

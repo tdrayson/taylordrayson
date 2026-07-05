@@ -60,7 +60,7 @@ function goToPage(page) {
 
     <header>
         <h1 class="font-display text-display">Search</h1>
-        <p class="mt-2 max-w-prose text-meta text-neutral-500">
+        <p class="mt-2 max-w-reading text-meta text-neutral-500">
             Dig through everything I've logged. Stack a few conditions to get specific — or start from an example below.
         </p>
     </header>
