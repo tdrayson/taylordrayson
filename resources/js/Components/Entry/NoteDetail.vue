@@ -16,7 +16,7 @@ const lightboxIndex = ref(null);
 </script>
 
 <template>
-    <div class="max-w-reading space-y-4">
+    <div class="max-w-prose space-y-4">
         <!-- Notes have no headline, so the content itself is the page's primary text. -->
         <p class="whitespace-pre-line text-lg leading-relaxed">{{ entry.content }}</p>
 

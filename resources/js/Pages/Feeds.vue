@@ -81,7 +81,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
             </span>
             <div class="min-w-0 sm:pl-16 lg:pl-0">
                 <h1 class="font-display text-display">Feeds</h1>
-                <p class="mt-2 max-w-reading text-meta text-neutral-500">
+                <p class="mt-2 max-w-prose text-meta text-neutral-500">
                     Pop me in your feed reader. Grab one of my ready-made mixes, or flip the switches below
                     and build a feed of exactly the bits you care about.
                 </p>

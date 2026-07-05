@@ -117,9 +117,9 @@
     --radius-md: 11px;
     --radius-lg: 14px;
 
-    /* Long-read column widths: prose reads at `max-w-reading`; charts, images and
-       other blocks sit a touch wider at `max-w-media`. Reused by stories/articles. */
-    --container-reading: 38rem;
+    /* Long-read column width: prose reads at Tailwind's built-in `max-w-prose`
+       (65ch); charts, images and other blocks sit a touch wider at
+       `max-w-media`. Reused by stories/articles. */
     --container-media: 44rem;
 
     /* Elevation — the single shadow tier */

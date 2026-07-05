@@ -106,7 +106,7 @@ function buildListTree(items, startIndex, level, listItem, isTop) {
     const classes = [listItem === 'number' ? 'list-decimal' : 'list-disc', 'space-y-1.5', 'pl-5'];
 
     if (isTop) {
-        classes.push('max-w-reading');
+        classes.push('max-w-prose');
     }
 
     return { vnode: h(tag, { class: classes.join(' ') }, children), nextIndex: i };
@@ -157,7 +157,7 @@ function renderTextBlock(node, headingIds) {
         return h(node.style, {
             key,
             id,
-            class: `group/heading ${HEADING_CLASSES[node.style]} font-display text-neutral-900 max-w-reading scroll-mt-24`,
+            class: `group/heading ${HEADING_CLASSES[node.style]} font-display text-neutral-900 max-w-prose scroll-mt-24`,
             'data-toc': inToc ? '' : undefined,
             'data-toc-label': inToc ? label : undefined,
             'data-toc-level': inToc ? node.style.slice(1) : undefined,
@@ -168,7 +168,7 @@ function renderTextBlock(node, headingIds) {
         return h('blockquote', { key, class: 'border-l-2 border-accent-500 py-1 pl-6 font-display text-xl leading-relaxed text-neutral-800 max-w-media' }, children);
     }
 
-    return h('p', { key, class: 'max-w-reading' }, children);
+    return h('p', { key, class: 'max-w-prose' }, children);
 }
 
 function renderImage(node, onImageClick) {

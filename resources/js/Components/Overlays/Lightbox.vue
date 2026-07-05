@@ -362,7 +362,7 @@ onBeforeUnmount(() => {
                     v-if="(caption && current?.caption) || (counter && hasMultiple)"
                     class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"
                 >
-                    <p v-if="caption && current?.caption" class="max-w-reading truncate text-meta font-medium text-neutral-0">{{ current.caption }}</p>
+                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-neutral-0">{{ current.caption }}</p>
                     <p v-if="caption && current?.date" class="text-caption text-neutral-0/70">{{ current.date }}</p>
                     <span v-if="counter && hasMultiple" class="mt-1 text-caption text-neutral-0/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
                 </div>

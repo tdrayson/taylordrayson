@@ -93,7 +93,7 @@ function swatchInk(step) {
     <article class="ds space-y-16 pb-12">
         <header>
             <h1 class="font-display text-display">Design system</h1>
-            <p class="mt-3 max-w-reading text-body text-neutral-500">
+            <p class="mt-3 max-w-prose text-body text-neutral-500">
                 A flat, borderless lifelog. A uniform neutral scale, a single
                 <span class="font-semibold text-accent-500">Blueberry</span> accent, Bricolage Grotesque for display
                 and Inter for body. The reference below is the living source of truth.
@@ -164,7 +164,7 @@ function swatchInk(step) {
                 </div>
             </div>
 
-            <div class="max-w-reading space-y-3 text-body text-neutral-700">
+            <div class="max-w-prose space-y-3 text-body text-neutral-700">
                 <p>
                     Body copy is Inter at 15px with generous leading, tuned for reading a day at a glance. Display
                     weights run loud and tightly tracked so a glance separates the headline from the data.
@@ -228,7 +228,7 @@ function swatchInk(step) {
             </div>
             <div>
                 <div class="ds-sub mb-1.5">In body content</div>
-                <p class="max-w-reading text-body text-neutral-700">
+                <p class="max-w-prose text-body text-neutral-700">
                     Links in prose use the editor style:
                     <a href="#" class="text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">an inline link</a>.
                     They come from the editor content; bare URLs are not auto-linked.

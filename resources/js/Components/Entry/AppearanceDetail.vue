@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p class="max-w-reading whitespace-pre-neutral-100 text-body text-neutral-700">{{ entry.description }}</p>
+            <p class="max-w-prose whitespace-pre-neutral-100 text-body text-neutral-700">{{ entry.description }}</p>
         </div>
 
         <div v-if="entry.url" class="flex flex-wrap gap-x-6 gap-y-3">
