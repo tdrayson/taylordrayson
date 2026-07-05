@@ -57,13 +57,33 @@ class ValidPortableText implements ValidationRule
 
         return match ($node['_type'] ?? null) {
             'block' => $this->blockError($node),
-            'image' => $this->nonEmptyString($node['url'] ?? null) && filter_var($node['url'], FILTER_VALIDATE_URL) !== false
-                ? null
-                : 'image requires a valid url',
+            'image' => $this->imageError($node),
             'code' => $this->codeError($node),
             'divider' => null,
             default => 'unknown node _type',
         };
+    }
+
+    private function imageError(array $node): ?string
+    {
+        $url = $node['url'] ?? null;
+
+        // Absolute URLs or root-relative paths (own-hosted media is stored
+        // domain-portable, e.g. /storage/...).
+        $validUrl = $this->nonEmptyString($url)
+            && (filter_var($url, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $url) === 1);
+
+        if (! $validUrl) {
+            return 'image requires a valid url';
+        }
+
+        foreach (['width', 'height'] as $dimension) {
+            if (array_key_exists($dimension, $node) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
+                return "image {$dimension} must be a positive integer when present";
+            }
+        }
+
+        return null;
     }
 
     private function codeError(array $node): ?string

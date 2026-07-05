@@ -140,14 +140,14 @@ function renderListRun(run) {
     return vnodes;
 }
 
-// Type scale per heading level; h5/h6 share the smallest step so deep
-// nesting stays readable without inventing sub-body sizes.
+// Type scale per heading level: a clean 30/24/20/18/16px ladder so every
+// level sits clearly above body text (15px).
 const HEADING_CLASSES = {
-    h2: 'text-item-title',
-    h3: 'text-lg font-semibold',
-    h4: 'text-base font-semibold',
-    h5: 'text-sm font-semibold',
-    h6: 'text-sm font-semibold',
+    h2: 'text-3xl font-bold',
+    h3: 'text-2xl font-semibold',
+    h4: 'text-xl font-semibold',
+    h5: 'text-lg font-semibold',
+    h6: 'text-base font-semibold',
 };
 
 function renderTextBlock(node, headingIds) {
@@ -166,7 +166,7 @@ function renderTextBlock(node, headingIds) {
         return h(node.style, {
             key,
             id,
-            class: `group/heading ${HEADING_CLASSES[node.style]} font-display text-neutral-900 max-w-prose scroll-mt-24`,
+            class: `group/heading ${HEADING_CLASSES[node.style]} font-display text-neutral-900 max-w-heading scroll-mt-24`,
             'data-toc': inToc ? '' : undefined,
             'data-toc-label': inToc ? label : undefined,
             'data-toc-level': inToc ? node.style.slice(1) : undefined,
@@ -185,19 +185,31 @@ function renderImage(node, onImageClick) {
         return null;
     }
 
+    // Stored intrinsic dimensions drive the layout: portraits (and squares)
+    // sit ratio-true under the height cap; landscapes fill the media column.
+    // Without dimensions we assume landscape, the overwhelmingly common case.
+    const portrait = Boolean(node.width && node.height && node.height >= node.width);
+
     return h('figure', { key: node._key, class: 'max-w-media' }, [
         h('button', {
             type: 'button',
             'aria-label': node.caption ? `View image: ${node.caption}` : 'View image full size',
             // not-prose: the figure keeps prose's block rhythm, but the plugin's
-            // img margins must not apply inside the zoom button wrapper.
-            class: 'group/zoom not-prose relative block w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
+            // img margins must not apply inside the zoom button wrapper. For
+            // portraits the button shrink-wraps so the zoom overlay anchors to
+            // the image corner, not the column edge.
+            class: `group/zoom not-prose relative block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
             onClick: () => onImageClick(node.url),
         }, [
-            // Full column width with the height cap enforced by cropping
-            // (object-cover), so portraits don't tower; the lightbox shows
-            // the uncropped original.
-            h('img', { src: node.url, alt: node.caption || '', class: 'max-h-media w-full rounded-lg border border-neutral-50 object-cover' }),
+            h('img', {
+                src: node.url,
+                alt: node.caption || '',
+                width: node.width || undefined,
+                height: node.height || undefined,
+                class: portrait
+                    ? 'max-h-media w-auto rounded-lg border border-neutral-50'
+                    : 'max-h-media w-full rounded-lg border border-neutral-50 object-cover',
+            }),
             h('span', {
                 class: 'pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-visible/zoom:opacity-100',
             }, [h(ZoomButton)]),

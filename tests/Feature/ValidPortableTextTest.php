@@ -27,6 +27,7 @@ it('accepts documents our builders produce', function () {
         ['_type' => 'code', '_key' => PortableText::key(), 'code' => 'echo 1;', 'language' => 'php'],
         ['_type' => 'divider', '_key' => PortableText::key()],
         ['_type' => 'image', '_key' => PortableText::key(), 'url' => 'https://example.com/a.webp', 'caption' => 'Cap'],
+        ['_type' => 'image', '_key' => PortableText::key(), 'url' => '/storage/1/local.webp', 'width' => 600, 'height' => 900],
     ]))->toBeTrue();
 });
 
@@ -45,6 +46,9 @@ it('rejects malformed documents', function (mixed $document) {
     'code without code' => [[['_type' => 'code', '_key' => 'k1', 'language' => 'php']]],
     'missing _key' => [[['_type' => 'divider']]],
     'markDef with invalid href' => [[['_type' => 'block', '_key' => 'k1', 'style' => 'normal', 'markDefs' => [['_key' => 'l1', '_type' => 'link', 'href' => 'not a url']], 'children' => [['_type' => 'span', '_key' => 'k2', 'text' => 'x', 'marks' => ['l1']]]]]],
+    'image width not an integer' => [[['_type' => 'image', '_key' => 'k1', 'url' => 'https://example.com/a.webp', 'width' => '600']]],
+    'image height zero' => [[['_type' => 'image', '_key' => 'k1', 'url' => 'https://example.com/a.webp', 'height' => 0]]],
+    'image with protocol-relative url' => [[['_type' => 'image', '_key' => 'k1', 'url' => '//example.com/a.webp']]],
 ]);
 
 it('accepts every stored article document', function () {

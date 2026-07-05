@@ -63,8 +63,21 @@
             "properties": {
                 "_type": { "const": "image" },
                 "_key": { "$ref": "#/$defs/key" },
-                "url": { "type": "string", "format": "uri" },
-                "caption": { "type": "string" }
+                "url": {
+                    "type": "string",
+                    "description": "Absolute URL, or a root-relative path (e.g. /storage/...) for own-hosted media."
+                },
+                "caption": { "type": "string" },
+                "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel width. Send when known: lets the renderer branch portrait/landscape layout and reserve space while loading."
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel height. Send together with width."
+                }
             }
         },
         "codeBlock": {
