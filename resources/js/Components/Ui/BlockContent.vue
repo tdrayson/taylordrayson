@@ -23,11 +23,12 @@ const nodes = computed(() => {
     return Array.isArray(doc) ? doc : [];
 });
 
-// Every image in the document forms one lightbox gallery, opened in place.
+// Every image in the document forms one lightbox gallery, opened in place;
+// the node's caption carries through to the lightbox overlay.
 const lightboxItems = computed(() =>
     nodes.value
         .filter((node) => node._type === 'image' && node.url)
-        .map((node) => ({ full: node.url })),
+        .map((node) => ({ full: node.url, caption: node.caption || null })),
 );
 const lightboxIndex = ref(null);
 

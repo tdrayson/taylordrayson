@@ -35,27 +35,28 @@ const headingCount = computed(() => contentNodes.value.filter(
 </script>
 
 <template>
-    <div class="max-w-media space-y-8">
+    <div class="space-y-8">
         <div v-if="!entry.published || tags.length" class="flex flex-wrap gap-2">
             <Pill v-if="!entry.published" label="Draft" variant="accent" />
             <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
         </div>
 
+        <!-- The cover runs the full content column, matching the flight page map. -->
         <img
             v-if="entry.cover"
             :src="entry.cover.src"
             :srcset="entry.cover.srcset || undefined"
-            sizes="(min-width: 768px) 704px, 100vw"
+            sizes="(min-width: 768px) 896px, 100vw"
             alt=""
-            class="aspect-video w-full max-w-media rounded-lg border border-neutral-50 object-cover"
+            class="aspect-video w-full rounded-lg border border-neutral-50 object-cover"
         >
 
-        <!-- relative anchors ContentToc's desktop rail in the gutter to the
-             right of the widest (media) content block, mirroring how Story
-             pages position StoryToc. It wraps only the body content so the
-             rail's top-0 lines up with the first line of prose, not the
+        <!-- relative + max-w-media anchors ContentToc's desktop rail in the
+             gutter to the right of the widest (media) content block, mirroring
+             how Story pages position StoryToc. It wraps only the body content
+             so the rail's top-0 lines up with the first line of prose, not the
              tags row or cover image above. -->
-        <div class="relative space-y-8">
+        <div class="relative max-w-media space-y-8">
             <p v-if="entry.excerpt" class="max-w-reading text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
             <BlockContent :document="entry.content" />

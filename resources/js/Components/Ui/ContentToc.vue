@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
         class="hidden xl:absolute xl:left-full xl:top-0 xl:block xl:h-full xl:pl-10"
         aria-label="Table of contents"
     >
-        <ul class="sticky top-24 flex w-48 flex-col border-l border-neutral-100">
+        <ul class="sticky top-24 flex w-56 flex-col border-l border-neutral-100">
             <li v-for="item in items" :key="item.id">
                 <button
                     type="button"
