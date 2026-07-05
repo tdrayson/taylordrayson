@@ -61,6 +61,11 @@ const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
 const [, year, month, day] = props.dayUrl.split('/');
 const monthName = computed(() => new Date(props.occurredAt).toLocaleDateString('en-GB', { month: 'long' }));
 
+// Title-less entries (notes) render no visible headline, but the page still
+// needs exactly one h1 for the outline: fall back to the type + date, hidden
+// visually (mirrors Timeline.vue's sr-only "Taylor Drayson timeline" h1).
+const fullOccurredLabel = computed(() => `${props.occurredLabel} ${props.occurredOffset}`.trim());
+
 // Aggregate / one-per-day types have a generic slug and a stat-style title, so the
 // type label reads better in the breadcrumb. Everything else uses its title.
 const SINGULAR_TYPES = ['sleep', 'calorie', 'fuel', 'note'];
@@ -89,6 +94,7 @@ setLayoutProps({
             </div>
             <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
             <h1 v-if="title" class="mt-1 max-w-2xl font-display text-display">{{ title }}</h1>
+            <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
             </Link>

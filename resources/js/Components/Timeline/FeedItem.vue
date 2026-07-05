@@ -215,15 +215,18 @@ function openLightbox(index) {
         </div>
         <!-- Notes show their full content as body text; everything else gets a display-font title. -->
         <p v-if="body" class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
-        <!-- Titles keep a headline measure (~40ch) rather than running full width. -->
-        <div v-else class="mt-1 max-w-md font-display text-item-title">
+        <!-- Titles keep a headline measure (~40ch) rather than running full width.
+             Each card is a subsection of its DateGroup date heading, so the title
+             is a real h3, one level under DateGroup's h2/h3 (see the heading-ladder
+             convention: DateGroup h2/h3 -> FeedItem h3). -->
+        <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
                 :href="url || undefined"
                 class="p-name"
                 :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
             >{{ title }}</component>
-        </div>
+        </h3>
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>
@@ -240,7 +243,7 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <div v-else-if="meta" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</div>
+        <p v-else-if="meta" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</p>
         <!-- SVG banner only as a fallback when no generated image is available. -->
         <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
         <!-- Map alone when there is no photo. -->

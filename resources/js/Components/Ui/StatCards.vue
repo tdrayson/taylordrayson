@@ -30,10 +30,13 @@ const columns = computed(() => COLUMNS[props.stats.length] ?? 'grid-cols-2 sm:gr
 </script>
 
 <template>
-    <div class="my-7 grid gap-px overflow-hidden rounded-lg border border-neutral-50 bg-neutral-50" :class="columns">
-        <div v-for="(stat, index) in stats" :key="index" class="px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
-            <div class="font-display text-stat leading-none tnum">{{ stat.value }}</div>
-            <div class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</div>
+    <dl class="my-7 grid gap-px overflow-hidden rounded-lg border border-neutral-50 bg-neutral-50" :class="columns">
+        <!-- dt must precede its dd per the dl content model; flex-col-reverse
+             keeps the value visually on top with the label below, matching the
+             original div order, while the DOM order stays term-first. -->
+        <div v-for="(stat, index) in stats" :key="index" class="flex flex-col-reverse px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
+            <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
+            <dd class="font-display text-stat leading-none tnum">{{ stat.value }}</dd>
         </div>
-    </div>
+    </dl>
 </template>
