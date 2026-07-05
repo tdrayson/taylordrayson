@@ -1,0 +1,92 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://taylordrayson.com/schemas/portable-text.schema.json",
+    "title": "taylordrayson.com Portable Text dialect",
+    "description": "The subset of Portable Text stored in articles.content and pages.content, enforced server-side by App\\Rules\\ValidPortableText. Authoring clients (Glaze, MCP tools, Shortcuts) should produce documents matching this schema.",
+    "type": "array",
+    "items": {
+        "oneOf": [
+            { "$ref": "#/$defs/textBlock" },
+            { "$ref": "#/$defs/image" },
+            { "$ref": "#/$defs/codeBlock" },
+            { "$ref": "#/$defs/divider" }
+        ]
+    },
+    "$defs": {
+        "key": { "type": "string", "minLength": 1 },
+        "textBlock": {
+            "type": "object",
+            "required": ["_type", "_key", "style", "markDefs", "children"],
+            "properties": {
+                "_type": { "const": "block" },
+                "_key": { "$ref": "#/$defs/key" },
+                "style": { "enum": ["normal", "h2", "h3", "blockquote"] },
+                "listItem": { "enum": ["bullet", "number"] },
+                "level": { "type": "integer", "minimum": 1 },
+                "markDefs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["_key", "_type", "href"],
+                        "properties": {
+                            "_key": { "$ref": "#/$defs/key" },
+                            "_type": { "const": "link" },
+                            "href": { "type": "string", "format": "uri" }
+                        }
+                    }
+                },
+                "children": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": ["_type", "_key", "text"],
+                        "properties": {
+                            "_type": { "const": "span" },
+                            "_key": { "$ref": "#/$defs/key" },
+                            "text": { "type": "string" },
+                            "marks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Either a decorator (strong, em, code) or the _key of a markDef on the same block."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "image": {
+            "type": "object",
+            "required": ["_type", "_key", "url"],
+            "properties": {
+                "_type": { "const": "image" },
+                "_key": { "$ref": "#/$defs/key" },
+                "url": { "type": "string", "format": "uri" },
+                "caption": { "type": "string" }
+            }
+        },
+        "codeBlock": {
+            "type": "object",
+            "required": ["_type", "_key", "code"],
+            "properties": {
+                "_type": { "const": "code" },
+                "_key": { "$ref": "#/$defs/key" },
+                "code": { "type": "string", "minLength": 1 },
+                "language": {
+                    "type": "string",
+                    "description": "Highlighted when one of: bash, css, javascript, json, php, sql, typescript, xml, yaml. Other values render as plain text."
+                }
+            }
+        },
+        "divider": {
+            "type": "object",
+            "required": ["_type", "_key"],
+            "properties": {
+                "_type": { "const": "divider" },
+                "_key": { "$ref": "#/$defs/key" }
+            }
+        }
+    }
+}
