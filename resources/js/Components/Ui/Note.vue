@@ -15,7 +15,7 @@ const MARKERS = {
 </script>
 
 <template>
-    <aside class="my-7">
+    <aside :aria-label="label" class="my-7">
         <!-- The diamond hangs in the left margin (like the timeline rail) so the
              label and body align with the rest of the chapter's content. -->
         <div class="relative flex items-center gap-3">

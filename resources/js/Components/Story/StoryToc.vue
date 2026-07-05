@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { Menu01Icon, Cancel01Icon, ArrowUp01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
@@ -14,9 +14,80 @@ const open = ref(false);
 const scrolled = ref(false);
 let observer = null;
 
-// Lock background scrolling while the mobile contents sheet is open.
+// The sheet element, for focus trapping, and whichever element opened it, so
+// focus can be restored on close (mirrors Lightbox.vue's dialog behaviour).
+const sheetEl = ref(null);
+let lastFocused = null;
+
+function focusableInSheet() {
+    if (!sheetEl.value) {
+        return [];
+    }
+
+    return [...sheetEl.value.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')].filter(
+        (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
+    );
+}
+
+/**
+ * Escape closes the sheet; Tab is trapped inside it while open.
+ *
+ * @param {KeyboardEvent} event
+ * @returns {void}
+ */
+function onSheetKeydown(event) {
+    if (event.key === 'Escape') {
+        open.value = false;
+
+        return;
+    }
+
+    if (event.key !== 'Tab') {
+        return;
+    }
+
+    const focusable = focusableInSheet();
+
+    if (focusable.length === 0) {
+        event.preventDefault();
+
+        return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+
+    if (event.shiftKey && (active === first || !sheetEl.value.contains(active))) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+    }
+}
+
+// Lock background scrolling while the mobile contents sheet is open, move
+// focus into the sheet, and restore it to the trigger on close.
 watch(open, (isOpen) => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
+
+    if (isOpen) {
+        lastFocused = document.activeElement;
+        document.addEventListener('keydown', onSheetKeydown);
+        nextTick(() => {
+            const focusable = focusableInSheet();
+            (focusable[0] ?? sheetEl.value)?.focus();
+        });
+    } else {
+        document.removeEventListener('keydown', onSheetKeydown);
+
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+        }
+
+        lastFocused = null;
+    }
 });
 
 /**
@@ -89,6 +160,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
     observer?.disconnect();
     window.removeEventListener('scroll', onScroll);
+    document.removeEventListener('keydown', onSheetKeydown);
     document.body.style.overflow = '';
 });
 </script>
@@ -137,7 +209,15 @@ onBeforeUnmount(() => {
     <!-- The contents sheet that the pill opens. -->
     <Teleport to="body">
         <Transition name="sheet">
-            <div v-if="open" class="fixed inset-0 z-50 flex flex-col justify-end">
+            <div
+                v-if="open"
+                ref="sheetEl"
+                tabindex="-1"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Table of contents"
+                class="fixed inset-0 z-50 flex flex-col justify-end focus:outline-none"
+            >
                 <div class="absolute inset-0 bg-neutral-900/50" @click="open = false" />
                 <div class="relative max-h-svh overflow-y-auto rounded-t-2xl bg-neutral-0 p-5 pb-8">
                     <div class="mb-3 flex items-center justify-between">
