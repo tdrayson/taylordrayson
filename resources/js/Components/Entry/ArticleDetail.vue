@@ -35,21 +35,26 @@ const headingCount = computed(() => contentNodes.value.filter(
 </script>
 
 <template>
-    <div class="space-y-8">
+    <!-- The root spans the page and re-establishes the content grid, so the
+         cover can bleed full width (with the gutter inset, like FlightsMap
+         and the story heroes) while everything else stays in the content column. -->
+    <div class="full-width content-grid gap-y-8">
         <div v-if="!entry.published || tags.length" class="flex flex-wrap gap-2">
             <Pill v-if="!entry.published" label="Draft" variant="accent" />
             <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
         </div>
 
-        <!-- The cover runs the full content column, matching the flight page map. -->
-        <img
-            v-if="entry.cover"
-            :src="entry.cover.src"
-            :srcset="entry.cover.srcset || undefined"
-            sizes="(min-width: 768px) 896px, 100vw"
-            alt=""
-            class="aspect-video w-full rounded-lg border border-neutral-50 object-cover"
-        >
+        <!-- Wrapper div (not the img) is the grid item: replaced elements
+             don't stretch to their grid area, block boxes do. -->
+        <div v-if="entry.cover" class="article-cover overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:full-width-inset">
+            <img
+                :src="entry.cover.src"
+                :srcset="entry.cover.srcset || undefined"
+                sizes="100vw"
+                alt=""
+                class="size-full object-cover"
+            >
+        </div>
 
         <!-- relative + max-w-media anchors ContentToc's desktop rail in the
              gutter to the right of the widest (media) content block, mirroring
@@ -67,3 +72,10 @@ const headingCount = computed(() => contentNodes.value.filter(
         </div>
     </div>
 </template>
+
+<style scoped>
+/* Same full-bleed height treatment as FlightsMap (see flights-map). */
+.article-cover {
+    height: clamp(20rem, 48vh, 32rem);
+}
+</style>
