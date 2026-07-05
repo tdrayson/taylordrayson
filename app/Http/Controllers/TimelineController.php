@@ -15,6 +15,7 @@ use App\Models\Sleep;
 use App\Models\TimelineEntry;
 use App\Support\Distance;
 use App\Support\OgMeta;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Inertia\DeferProp;
@@ -124,6 +125,16 @@ class TimelineController extends Controller
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
 
+        $timelineables = $entries->map(fn (TimelineEntry $entry) => $entry->timelineable);
+
+        /**
+         * Batch-load `media` per model class before galleryPhotos() reads it below,
+         * so this fires one query per class rather than one per entry; loadMissing()
+         * skips the classes cardRelations() already eager-loaded (Appearance, Activity, Article).
+         */
+        $timelineables->groupBy(fn ($model): string => $model::class)
+            ->each(fn (Collection $group): EloquentCollection => EloquentCollection::make($group->values())->loadMissing('media'));
+
         return Inertia::render('Month', [
             'year' => $year,
             'month' => $month,
@@ -131,9 +142,7 @@ class TimelineController extends Controller
             'entriesCount' => $entries->count(),
             'days' => $this->monthDays($entries),
             'stats' => $this->periodStats($start, $end),
-            'photos' => $entries
-                ->map(fn (TimelineEntry $entry) => $entry->timelineable)
-                ->filter(fn ($model): bool => method_exists($model, 'galleryPhotos'))
+            'photos' => $timelineables
                 ->flatMap(fn ($model): array => $model->galleryPhotos())
                 ->take(12)
                 ->values()
