@@ -79,9 +79,24 @@ it('serves the month tail and photos strip', function () {
     get('/2025/05')->assertInertia(fn ($page) => $page
         ->component('Month')
         ->missing('groups')
+        ->where('currentPage', 1)
+        ->where('lastPage', 1)
         ->has('photos', 1)
         ->has('photos.0.src')
         ->loadDeferredProps(fn ($reload) => $reload
             ->has('groups', 1)
             ->where('groups.0.date', '2025-05-03')));
+});
+
+it('caps the month photos strip at 12 even when more are attached', function () {
+    Storage::fake('public');
+    $note = Note::factory()->create(['occurred_at' => '2025-05-03 10:00:00']);
+
+    foreach (range(1, 13) as $i) {
+        $note->addMediaFromString(yearPhotoJpegBytes())->usingFileName("note-{$i}.jpg")->toMediaCollection('photos');
+    }
+
+    get('/2025/05')->assertInertia(fn ($page) => $page
+        ->component('Month')
+        ->has('photos', 12));
 });

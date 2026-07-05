@@ -4,9 +4,9 @@ import { Link } from '@inertiajs/vue3';
 import Tooltip from '../Ui/Tooltip.vue';
 
 const props = defineProps({
-    // Real data mode: entries-per-day keyed yyyy-mm-dd, for `year`.
-    days: { type: Object, default: null },
-    year: { type: Number, default: null },
+    // Entries-per-day keyed yyyy-mm-dd.
+    days: { type: Object, required: true },
+    year: { type: Number, required: true },
 });
 
 const ramp = ['var(--color-neutral-25)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)'];
@@ -25,8 +25,6 @@ const pad = (value) => String(value).padStart(2, '0');
 // Real-data cells: leading nulls pad the first week so columns are true
 // Mon-Sun weeks; each cell carries its date, count and day-page href.
 const yearCells = computed(() => {
-    if (!props.days || !props.year) return null;
-
     const cells = [];
     const first = new Date(props.year, 0, 1);
     const offset = (first.getDay() + 6) % 7;
@@ -51,8 +49,6 @@ const yearCells = computed(() => {
 
 // Month labels positioned by the week column their 1st falls into.
 const monthLabels = computed(() => {
-    if (!props.year) return [];
-
     const first = new Date(props.year, 0, 1);
     const offset = (first.getDay() + 6) % 7;
 
@@ -67,14 +63,6 @@ const monthLabels = computed(() => {
     });
 });
 
-// Fallback: the original procedural texture for hosts without data (/now).
-const fallbackCells = Array.from({ length: 364 }, (_, i) => {
-    const raw = (Math.sin((i + 1) * 43.13) * 4313.13) % 1;
-    const value = raw < 0 ? raw + 1 : raw;
-
-    return value < 0.18 ? 0 : value < 0.42 ? 1 : value < 0.68 ? 2 : value < 0.88 ? 3 : 4;
-});
-
 function color(level) {
     return ramp[level];
 }
@@ -84,7 +72,7 @@ function color(level) {
     <div>
         <!-- Month labels + cell grid scroll together as one unit (GitHub-style) so
              labels stay aligned over their weeks; the min-width floor lives in <style>. -->
-        <div v-if="yearCells" class="heatmap-wrap">
+        <div class="heatmap-wrap">
             <div class="heatmap-scroll">
                 <!-- Month labels double as year → month navigation. -->
                 <div class="heatmap-months mb-1 text-xs text-neutral-500">
@@ -106,9 +94,6 @@ function color(level) {
                     </template>
                 </div>
             </div>
-        </div>
-        <div v-else class="heatmap-grid">
-            <span v-for="(level, index) in fallbackCells" :key="index" class="rounded" :style="{ background: color(level) }" />
         </div>
 
         <div class="mt-3 flex items-center gap-1.5 text-xs text-neutral-500">

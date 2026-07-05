@@ -36,26 +36,31 @@ function updatePosition() {
     };
 }
 
-function show() {
-    updatePosition();
-    visible.value = true;
-}
-
-function hide() {
-    visible.value = false;
-}
-
 // Keep the bubble glued to its trigger while visible, since a teleported
 // `position: fixed` element doesn't move with an ancestor's scroll (e.g. the
 // Heatmap's mobile scroll container) the way an absolutely-positioned
 // descendant would have.
 function reposition() {
-    if (visible.value) updatePosition();
+    updatePosition();
 }
 
-window.addEventListener('scroll', reposition, true);
-window.addEventListener('resize', reposition);
+function show() {
+    updatePosition();
+    visible.value = true;
+    // Only listen while the bubble is actually shown, so idle tooltips (e.g.
+    // ~366 in the year heatmap) don't each register global listeners.
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+}
 
+function hide() {
+    visible.value = false;
+    window.removeEventListener('scroll', reposition, true);
+    window.removeEventListener('resize', reposition);
+}
+
+// Guard against unmounting while still visible (e.g. the trigger's parent
+// list re-renders mid-hover) so the listeners don't leak.
 onBeforeUnmount(() => {
     window.removeEventListener('scroll', reposition, true);
     window.removeEventListener('resize', reposition);
@@ -74,16 +79,34 @@ onBeforeUnmount(() => {
         <slot />
 
         <Teleport to="body">
-            <span
-                role="tooltip"
-                aria-hidden="true"
-                class="pointer-events-none fixed z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-card transition-opacity duration-150"
-                :class="[isTop ? '-translate-y-full' : '', visible ? 'opacity-100' : '']"
-                :style="{ top: `${position.top}px`, left: `${position.left}px` }"
-            >
-                {{ label }}
-                <span class="absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-neutral-900" :class="isTop ? '-bottom-1' : '-top-1'" />
-            </span>
+            <Transition name="tooltip-fade">
+                <span
+                    v-if="visible"
+                    role="tooltip"
+                    aria-hidden="true"
+                    class="pointer-events-none fixed z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white shadow-card"
+                    :class="isTop ? '-translate-y-full' : ''"
+                    :style="{ top: `${position.top}px`, left: `${position.left}px` }"
+                >
+                    {{ label }}
+                    <span class="absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-neutral-900" :class="isTop ? '-bottom-1' : '-top-1'" />
+                </span>
+            </Transition>
         </Teleport>
     </span>
 </template>
+
+<style scoped>
+/* Mirrors the previous always-mounted opacity-0/opacity-100 + transition-opacity
+   duration-150 classes, now driven by v-if via Transition since the bubble only
+   exists in the DOM while visible. */
+.tooltip-fade-enter-active,
+.tooltip-fade-leave-active {
+    transition: opacity 150ms;
+}
+
+.tooltip-fade-enter-from,
+.tooltip-fade-leave-to {
+    opacity: 0;
+}
+</style>
