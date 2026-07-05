@@ -204,9 +204,10 @@ function openLightbox(index) {
                 :href="typeHref || undefined"
                 class="type-color p-category text-label uppercase"
             >{{ displayType }}</component>
-            <!-- For body-style cards (notes) the timestamp is the permalink, like classic microblogs. -->
+            <!-- For body-style cards (notes) the timestamp is the permalink, like
+                 classic microblogs; the standing underline marks it as a link. -->
             <Link v-if="body && url && datetime" :href="url" class="u-url transition-colors hover:text-accent-500 focus-visible:text-accent-500">
-                <time :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
+                <time :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 underline decoration-neutral-300 underline-offset-2 tnum transition-colors hover:text-accent-500 hover:decoration-accent-500">{{ time }}</time>
             </Link>
             <time v-else-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
             <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
