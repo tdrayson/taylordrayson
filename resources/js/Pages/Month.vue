@@ -96,8 +96,7 @@ setLayoutProps({
             <Lightbox v-model:index="lightboxIndex" :photos="photos" />
         </section>
 
-        <section>
-            <SectionHead title="Everything" meta="oldest first" />
+        <section v-if="entriesCount" class="mt-12">
             <Deferred data="groups">
                 <template #fallback>
                     <div class="space-y-6">
@@ -129,5 +128,7 @@ setLayoutProps({
                 :next-url="currentPage < lastPage ? `/${year}/${pad(month)}?page=${currentPage + 1}` : null"
             />
         </section>
+
+        <p v-if="!entriesCount" class="mt-10 text-meta text-neutral-500">Nothing logged in {{ monthName }} {{ year }}.</p>
     </template>
 </template>

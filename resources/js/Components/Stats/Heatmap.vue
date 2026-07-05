@@ -84,7 +84,7 @@ function color(level) {
     <div>
         <!-- Month labels + cell grid scroll together as one unit (GitHub-style) so
              labels stay aligned over their weeks; the min-width floor lives in <style>. -->
-        <div v-if="yearCells" class="overflow-x-auto">
+        <div v-if="yearCells" class="heatmap-wrap">
             <div class="heatmap-scroll">
                 <!-- Month labels double as year → month navigation. -->
                 <div class="heatmap-months mb-1 text-xs text-neutral-500">
@@ -120,10 +120,22 @@ function color(level) {
 </template>
 
 <style scoped>
-/* Month labels + grid share this floor so cells stay readable instead of shrinking
-   below legibility on small screens; the parent .overflow-x-auto scrolls this unit. */
-.heatmap-scroll {
-    min-width: 40rem;
+/* Desktop: the grid renders fluid, fit-to-width, with no scroll behaviour at all
+   (overflow: visible avoids clipping tooltips against this wrapper). Only below the
+   app's md breakpoint (48rem) does the wrapper become a horizontal scroll container,
+   with the inner grid floored at 40rem so cells stay legible instead of shrinking. */
+.heatmap-wrap {
+    overflow: visible;
+}
+
+@media (max-width: 48rem) {
+    .heatmap-wrap {
+        overflow-x: auto;
+    }
+
+    .heatmap-scroll {
+        min-width: 40rem;
+    }
 }
 
 /* Cells flow column-major into 7 weekday rows → ~53 week columns.

@@ -26,6 +26,8 @@ const props = defineProps({
 
 const isFuture = computed(() => props.year > new Date().getFullYear());
 const subtitle = computed(() => `${props.entriesCount.toLocaleString('en-GB')} ${props.entriesCount === 1 ? 'entry' : 'entries'} logged`);
+// The heatmap is still filling in for the current year ("so far"); past years are complete ("at a glance").
+const heatmapTitle = computed(() => (props.year === new Date().getFullYear() ? `${props.year} so far` : `${props.year} at a glance`));
 
 setLayoutProps({
     breadcrumb: [{ label: String(props.year) }],
@@ -53,8 +55,7 @@ setLayoutProps({
             <Heatmap :days="heatmap" :year="year" />
         </section>
 
-        <section v-if="entriesCount">
-            <SectionHead title="Everything" meta="oldest first" />
+        <section v-if="entriesCount" class="mt-12">
             <Deferred data="groups">
                 <template #fallback>
                     <!-- Pulsing skeleton while the tail loads. -->
