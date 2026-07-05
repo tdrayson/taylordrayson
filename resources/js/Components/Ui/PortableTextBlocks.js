@@ -181,11 +181,15 @@ function renderImage(node, onImageClick) {
             type: 'button',
             'aria-label': node.caption ? `View image: ${node.caption}` : 'View image full size',
             // not-prose: the figure keeps prose's block rhythm, but the plugin's
-            // img margins must not apply inside the zoom button wrapper.
-            class: 'group/zoom not-prose relative block w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
+            // img margins must not apply inside the zoom button wrapper. No
+            // w-full: the button shrink-wraps the image so the zoom overlay
+            // anchors to the image corner, not the column edge.
+            class: 'group/zoom not-prose relative block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
             onClick: () => onImageClick(node.url),
         }, [
-            h('img', { src: node.url, alt: node.caption || '', class: 'w-full rounded-lg border border-neutral-50' }),
+            // max-h-media + w-auto: portraits render narrower instead of
+            // towering; landscape images hit the column width first.
+            h('img', { src: node.url, alt: node.caption || '', class: 'max-h-media w-auto max-w-full rounded-lg border border-neutral-50' }),
             h('span', {
                 class: 'pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-visible/zoom:opacity-100',
             }, [h(ZoomButton)]),
