@@ -1,5 +1,6 @@
 import { h } from 'vue';
 import CodeBlock from './CodeBlock.vue';
+import HeadingAnchor from './HeadingAnchor.vue';
 import ZoomButton from './ZoomButton.vue';
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
@@ -17,15 +18,20 @@ function blockText(node) {
     return (node.children ?? []).map((child) => child.text ?? '').join('');
 }
 
-// Walk the whole document once up front so every h2/h3 gets a stable, deduped
-// anchor id keyed by the block's own _key (repeats within one document get
-// -2/-3 suffixes), independent of render order or list grouping below.
+// True for any heading style the dialect supports (h2-h6; h1 is the page title).
+function isHeading(style) {
+    return /^h[2-6]$/.test(style ?? '');
+}
+
+// Walk the whole document once up front so every heading gets a stable,
+// deduped anchor id keyed by the block's own _key (repeats within one document
+// get -2/-3 suffixes), independent of render order or list grouping below.
 function assignHeadingIds(nodes) {
     const seen = new Map();
     const ids = new Map();
 
     for (const node of nodes) {
-        if (node._type !== 'block' || (node.style !== 'h2' && node.style !== 'h3')) {
+        if (node._type !== 'block' || !isHeading(node.style)) {
             continue;
         }
 
@@ -125,22 +131,37 @@ function renderListRun(run) {
     return vnodes;
 }
 
+// Type scale per heading level; h5/h6 share the smallest step so deep
+// nesting stays readable without inventing sub-body sizes.
+const HEADING_CLASSES = {
+    h2: 'text-item-title',
+    h3: 'text-lg font-semibold',
+    h4: 'text-base font-semibold',
+    h5: 'text-sm font-semibold',
+    h6: 'text-sm font-semibold',
+};
+
 function renderTextBlock(node, headingIds) {
     const key = node._key;
     const children = renderChildren(node);
 
-    if (node.style === 'h2' || node.style === 'h3') {
+    if (isHeading(node.style)) {
+        const id = headingIds.get(node);
+        const label = blockText(node).trim();
+        // Only h2/h3 carry data-toc attributes: deeper levels get anchor ids
+        // and copy-link buttons but stay out of the table of contents.
+        const inToc = node.style === 'h2' || node.style === 'h3';
+
+        // group/heading lets the trailing HeadingAnchor button reveal itself
+        // on hover anywhere over the heading (it also reveals on its own focus).
         return h(node.style, {
             key,
-            id: headingIds.get(node),
-            class:
-                node.style === 'h2'
-                    ? 'font-display text-item-title text-neutral-900 max-w-reading scroll-mt-24'
-                    : 'text-lg font-semibold font-display text-neutral-900 max-w-reading scroll-mt-24',
-            'data-toc': '',
-            'data-toc-label': blockText(node).trim(),
-            'data-toc-level': node.style === 'h2' ? '2' : '3',
-        }, children);
+            id,
+            class: `group/heading ${HEADING_CLASSES[node.style]} font-display text-neutral-900 max-w-reading scroll-mt-24`,
+            'data-toc': inToc ? '' : undefined,
+            'data-toc-label': inToc ? label : undefined,
+            'data-toc-level': inToc ? node.style.slice(1) : undefined,
+        }, [...children, h(HeadingAnchor, { targetId: id, label })]);
     }
 
     if (node.style === 'blockquote') {

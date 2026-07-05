@@ -15,6 +15,8 @@ it('accepts documents our builders produce', function () {
 
     expect(ptPasses([
         PortableText::block('Heading', 'h2'),
+        PortableText::block('Deep heading', 'h4'),
+        PortableText::block('Deeper heading', 'h6'),
         PortableText::block('Prose'),
         PortableText::block('Item', 'normal', 'bullet', 2),
         [

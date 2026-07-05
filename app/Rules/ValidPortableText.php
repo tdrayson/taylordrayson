@@ -8,14 +8,14 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**
  * Validates a document against the site's Portable Text dialect: `block`
- * nodes (styles normal/h2/h3/blockquote, spans carrying strong/em/code or
+ * nodes (styles normal/h2-h6/blockquote, spans carrying strong/em/code or
  * link-markDef marks, optional bullet/number list items) plus the custom
  * `image`, `code` and `divider` nodes. Mirrors docs/portable-text.schema.json,
  * which is the shareable contract for authoring clients.
  */
 class ValidPortableText implements ValidationRule
 {
-    private const STYLES = ['normal', 'h2', 'h3', 'blockquote'];
+    private const STYLES = ['normal', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote'];
 
     private const DECORATORS = ['strong', 'em', 'code'];
 
