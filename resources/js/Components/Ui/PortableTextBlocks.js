@@ -1,6 +1,8 @@
 import { h } from 'vue';
+import { ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
+import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
@@ -62,11 +64,18 @@ function renderSpan(span, markDefs) {
             const def = (markDefs ?? []).find((markDef) => markDef._key === mark);
 
             if (def?._type === 'link' && def.href) {
-                // Match the site's external-link convention (see SocialLinks.vue):
-                // only absolute URLs open in a new tab.
+                // Match the site's external-link convention (see ExternalLink.vue):
+                // absolute URLs open in a new tab with the arrow icon and the
+                // ", opens in a new tab" screen-reader suffix, in prose typography.
                 const external = def.href.startsWith('http');
 
-                node = h('a', { href: def.href, rel: 'noopener', target: external ? '_blank' : undefined }, node);
+                node = external
+                    ? h('a', { href: def.href, rel: 'noopener noreferrer', target: '_blank' }, [
+                        node,
+                        h('span', { class: 'sr-only' }, ', opens in a new tab'),
+                        h(Icon, { icon: ArrowUpRight01Icon, class: 'mb-0.5 ml-0.5 inline size-3.5 align-middle' }),
+                    ])
+                    : h('a', { href: def.href }, node);
             }
         }
     }
