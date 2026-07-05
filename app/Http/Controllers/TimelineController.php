@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
 use App\Models\Activity;
+use App\Models\Article;
 use App\Models\Calorie;
+use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Media;
+use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
@@ -66,9 +69,15 @@ class TimelineController extends Controller
 
     public function year(int $year): Response
     {
+        $start = Carbon::create($year, 1, 1)->startOfDay();
+        $end = (clone $start)->endOfYear()->endOfDay();
+
         return Inertia::render('Year', [
             'year' => $year,
             'og' => OgMeta::year($year),
+            'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
+            'stats' => $this->periodStats($start, $end),
+            'heatmap' => $this->heatmapDays($start, $end),
         ]);
     }
 
@@ -91,7 +100,7 @@ class TimelineController extends Controller
             'og' => OgMeta::month($year, $month),
             'entriesCount' => $entries->count(),
             'days' => $this->monthDays($entries),
-            'stats' => $this->monthStats($entries, $start, $end),
+            'stats' => $this->periodStats($start, $end),
         ]);
     }
 
@@ -135,47 +144,80 @@ class TimelineController extends Controller
     }
 
     /**
-     * Monthly roll-up stats.
+     * Entries per day for the contribution heatmap, keyed yyyy-mm-dd.
      *
-     * @param  Collection<int, TimelineEntry>  $entries
+     * @return array<string, int>
+     */
+    private function heatmapDays(Carbon $start, Carbon $end): array
+    {
+        return TimelineEntry::query()
+            ->toBase()
+            ->selectRaw('DATE(occurred_at) as date, COUNT(*) as total')
+            ->whereBetween('occurred_at', [$start, $end])
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->map(fn ($total): int => (int) $total)
+            ->all();
+    }
+
+    /**
+     * Roll-up stat row shared by the year and month pages. Every stat
+     * self-hides at zero, so sparse periods just show fewer numbers.
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function monthStats(Collection $entries, Carbon $start, Carbon $end): array
+    private function periodStats(Carbon $start, Carbon $end): array
     {
-        $models = $entries->map->timelineable;
-        $activities = $models->filter(fn ($model): bool => $model instanceof Activity);
-        $sleeps = $models->filter(fn ($model): bool => $model instanceof Sleep);
-        $flights = $models->filter(fn ($model): bool => $model instanceof Flight);
-        $films = $models->filter(fn ($model): bool => $model instanceof Media && $model->type === 'film');
+        $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
 
         $stats = [];
 
-        if ($activities->isNotEmpty()) {
-            $stats[] = ['label' => 'Activities', 'value' => (string) $activities->count()];
+        $activities = $between(Activity::query())->count();
 
-            $distanceKm = Distance::km((int) round($activities->sum('distance'))) ?? 0.0;
+        if ($activities > 0) {
+            $stats[] = ['label' => 'Activities', 'value' => number_format($activities)];
+
+            $distanceKm = Distance::km((int) $between(Activity::query())->sum('distance')) ?? 0.0;
 
             if ($distanceKm > 0) {
                 $stats[] = ['label' => 'Distance', 'value' => number_format($distanceKm), 'unit' => 'km'];
             }
         }
 
-        if ($sleeps->isNotEmpty()) {
-            $stats[] = ['label' => 'Avg sleep', 'seconds' => (int) round($sleeps->avg('duration'))];
+        $avgSleep = (int) round($between(Sleep::query())->avg('duration') ?? 0);
+
+        if ($avgSleep > 0) {
+            $stats[] = ['label' => 'Avg sleep', 'seconds' => $avgSleep];
         }
 
-        if ($flights->isNotEmpty()) {
-            $stats[] = ['label' => 'Flights', 'value' => (string) $flights->count()];
+        $foodDays = (int) $between(Calorie::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
+
+        if ($foodDays > 0) {
+            $stats[] = ['label' => 'Days of food', 'value' => number_format($foodDays)];
         }
 
-        if ($films->isNotEmpty()) {
-            $stats[] = ['label' => 'Films', 'value' => (string) $films->count()];
+        $films = $between(Media::query())->whereIn('type', ['film', 'show'])->count();
+
+        if ($films > 0) {
+            $stats[] = ['label' => 'Watched', 'value' => number_format($films)];
         }
 
-        $calories = (int) Calorie::query()->whereBetween('occurred_at', [$start, $end])->sum('calories');
+        $flights = $between(Flight::query())->count();
 
-        if ($calories > 0) {
-            $stats[] = ['label' => 'Calories', 'value' => number_format($calories), 'unit' => 'kcal'];
+        if ($flights > 0) {
+            $stats[] = ['label' => 'Flights', 'value' => number_format($flights)];
+        }
+
+        $written = $between(Article::query())->where('published', true)->count() + $between(Note::query())->count();
+
+        if ($written > 0) {
+            $stats[] = ['label' => 'Written', 'value' => number_format($written)];
+        }
+
+        $places = $between(Checkin::query())->count();
+
+        if ($places > 0) {
+            $stats[] = ['label' => 'Places', 'value' => number_format($places)];
         }
 
         return $stats;
