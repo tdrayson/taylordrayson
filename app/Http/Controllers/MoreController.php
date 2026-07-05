@@ -32,7 +32,6 @@ class MoreController extends Controller
 
         return Inertia::render('More', [
             'tracked' => $tracked,
-            'currentYear' => now()->format('Y'),
         ]);
     }
 }

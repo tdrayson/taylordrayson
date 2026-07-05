@@ -3,22 +3,23 @@ import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import {
     Home01Icon,
-    Clock01Icon,
     Image01Icon,
     BookOpen01Icon,
+    UserIcon,
     GridViewIcon,
 } from '@hugeicons-pro/core-stroke-rounded';
 import { entryTypes } from '../../entryTypes.js';
 import SidebarNavItem from './SidebarNavItem.vue';
 
 // Front-of-house only: the destinations with an audience. Every data type
-// is reachable from timeline cards, search, and the /more directory.
+// is reachable from timeline cards, search, and the /more directory; Now
+// stays reachable from the status bar's time link.
 const links = [
     { label: 'Timeline', href: '/', icon: Home01Icon },
-    { label: 'Now', href: '/now', icon: Clock01Icon },
     { label: 'Articles', href: entryTypes.article.href, icon: entryTypes.article.icon },
     { label: 'Stories', href: '/stories', icon: BookOpen01Icon },
     { label: 'Photos', href: '/photos', icon: Image01Icon },
+    { label: 'About', href: '/about', icon: UserIcon },
     { label: 'More', href: '/more', icon: GridViewIcon },
 ];
 

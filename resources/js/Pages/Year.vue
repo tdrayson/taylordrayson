@@ -83,8 +83,8 @@ const highlights = [
     <FutureNote v-if="isFuture" unit="year" />
 
     <template v-else>
+    <!-- Not a data-type page: plain H1, no eyebrow. -->
     <ViewHeader
-        eyebrow="Year in numbers"
         :title="String(year)"
         subtitle="76 days in · 186 activities, 31 places, 8 flights, 9 films and 2,184 meals logged."
         :prev="{ label: String(year - 1), href: `/${year - 1}` }"
