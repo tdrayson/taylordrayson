@@ -35,10 +35,7 @@ const headingCount = computed(() => contentNodes.value.filter(
 </script>
 
 <template>
-    <!-- relative + max-w-media anchors ContentToc's desktop rail in the gutter
-         to the right of the widest (media) content block, mirroring how
-         Story pages position StoryToc. -->
-    <div class="relative max-w-media space-y-8">
+    <div class="max-w-media space-y-8">
         <div v-if="!entry.published || tags.length" class="flex flex-wrap gap-2">
             <Pill v-if="!entry.published" label="Draft" variant="accent" />
             <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
@@ -53,12 +50,19 @@ const headingCount = computed(() => contentNodes.value.filter(
             class="aspect-video w-full max-w-media rounded-lg border border-neutral-50 object-cover"
         >
 
-        <p v-if="entry.excerpt" class="max-w-reading text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
+        <!-- relative anchors ContentToc's desktop rail in the gutter to the
+             right of the widest (media) content block, mirroring how Story
+             pages position StoryToc. It wraps only the body content so the
+             rail's top-0 lines up with the first line of prose, not the
+             tags row or cover image above. -->
+        <div class="relative space-y-8">
+            <p v-if="entry.excerpt" class="max-w-reading text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
-        <BlockContent :document="entry.content" />
+            <BlockContent :document="entry.content" />
 
-        <!-- Mounted after BlockContent so its headings are already in the DOM
-             when ContentToc's onMounted queries for them. -->
-        <ContentToc v-if="headingCount >= 2" />
+            <!-- Mounted after BlockContent so its headings are already in the DOM
+                 when ContentToc's onMounted queries for them. -->
+            <ContentToc v-if="headingCount >= 2" />
+        </div>
     </div>
 </template>
