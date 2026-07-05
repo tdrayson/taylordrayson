@@ -77,8 +77,9 @@ onBeforeUnmount(() => clearTimeout(timer));
         <!-- Header bar only when there is something to say; the copy button
              floats over the code instead when the header is absent. -->
         <div v-if="hasHeader" class="flex items-center gap-3 border-b border-neutral-50 px-4 py-2">
-            <span v-if="filename" class="min-w-0 truncate font-mono text-caption text-neutral-700">{{ filename }}</span>
             <span v-if="language" class="text-caption font-medium uppercase text-neutral-400">{{ language }}</span>
+            <span v-if="language && filename" aria-hidden="true" class="text-caption text-neutral-200">|</span>
+            <span v-if="filename" class="min-w-0 truncate font-mono text-caption text-neutral-700">{{ filename }}</span>
             <button
                 type="button"
                 class="ml-auto flex items-center gap-1.5 text-caption font-medium text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
