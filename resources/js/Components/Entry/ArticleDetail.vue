@@ -39,10 +39,19 @@ const headingCount = computed(() => contentNodes.value.filter(
          to the right of the widest (media) content block, mirroring how
          Story pages position StoryToc. -->
     <div class="relative max-w-media space-y-8">
-        <div v-if="entry.draft || tags.length" class="flex flex-wrap gap-2">
-            <Pill v-if="entry.draft" label="Draft" variant="accent" />
+        <div v-if="!entry.published || tags.length" class="flex flex-wrap gap-2">
+            <Pill v-if="!entry.published" label="Draft" variant="accent" />
             <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
         </div>
+
+        <img
+            v-if="entry.cover"
+            :src="entry.cover.src"
+            :srcset="entry.cover.srcset || undefined"
+            sizes="(min-width: 768px) 704px, 100vw"
+            alt=""
+            class="aspect-video w-full max-w-media rounded-lg border border-neutral-50 object-cover"
+        >
 
         <p v-if="entry.excerpt" class="max-w-reading text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 

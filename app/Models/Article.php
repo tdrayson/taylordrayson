@@ -55,6 +55,27 @@ class Article extends Model implements HasMedia, Timelineable
         return (bool) ($this->attributes['published'] ?? false);
     }
 
+    /**
+     * The featured image in the card/lightbox payload shape shared with
+     * activity photos, or null when no cover is attached.
+     *
+     * @return array{src: string, srcset: ?string, full: string}|null
+     */
+    public function coverPhoto(): ?array
+    {
+        $media = $this->getFirstMedia('cover');
+
+        if ($media === null) {
+            return null;
+        }
+
+        return [
+            'src' => $media->getUrl('card'),
+            'srcset' => $media->getSrcset('card') ?: null,
+            'full' => $media->getUrl(),
+        ];
+    }
+
     public function card(): array
     {
         return [
@@ -64,7 +85,9 @@ class Article extends Model implements HasMedia, Timelineable
             'subtitle' => Text::excerpt(PortableText::plainText($this->content), 240) ?: $this->excerpt,
             'occurred_at' => $this->occurred_at,
             'accent' => 'article',
-            'meta' => [],
+            'meta' => [
+                'photos' => array_values(array_filter([$this->coverPhoto()])),
+            ],
         ];
     }
 }

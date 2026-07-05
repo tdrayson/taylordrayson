@@ -123,6 +123,10 @@ class EntryController extends Controller
             $data['thumbnailSrcset'] = $model->thumbnailSrcset();
         }
 
+        if ($model instanceof Article) {
+            $data['cover'] = $model->coverPhoto();
+        }
+
         if ($model instanceof Activity) {
             $data['photos'] = $model->galleryPhotos();
         }

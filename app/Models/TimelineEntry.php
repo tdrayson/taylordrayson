@@ -50,6 +50,7 @@ class TimelineEntry extends Model implements Feedable
             Flight::class => ['origin', 'destination', 'airline'],
             Appearance::class => ['media'],
             Activity::class => ['media'],
+            Article::class => ['media'],
         ];
     }
 

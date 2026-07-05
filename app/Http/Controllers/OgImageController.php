@@ -248,7 +248,7 @@ class OgImageController extends Controller
             }
         }
 
-        if ($type === 'media' && method_exists($model, 'getFirstMediaUrl')) {
+        if (in_array($type, ['media', 'article'], true) && method_exists($model, 'getFirstMediaUrl')) {
             $cover = $model->getFirstMediaUrl('cover');
 
             if ($cover !== '') {
