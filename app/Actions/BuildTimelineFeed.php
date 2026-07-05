@@ -43,7 +43,7 @@ class BuildTimelineFeed
         $entry->timelineable->setRelation('timelineEntry', $entry);
 
         $card = $entry->timelineable->card();
-        $local = LocalTime::for($entry->occurred_at, $entry->timelineable->timezone(), LocalTime::isDayLevel($card['type']));
+        $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
 
         return [
             'iconKey' => $card['type'],

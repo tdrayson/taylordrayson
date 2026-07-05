@@ -28,20 +28,3 @@ it('falls back to the configured home timezone when null', function () {
 
     expect(LocalTime::for(CarbonImmutable::parse('2026-07-01 09:30:00'), null)['offset'])->toBe('+01:00');
 });
-
-it('returns a bare date with no time or offset for day-level entries', function () {
-    $result = LocalTime::for(CarbonImmutable::parse('2026-07-01 00:00:00'), 'Europe/London', true);
-
-    expect($result['time'])->toBe('');
-    expect($result['offset'])->toBe('');
-    expect($result['label'])->toBe('Wed 1 Jul 2026');
-    expect($result['iso'])->toBe('2026-07-01');
-});
-
-it('flags only calorie and sleep as day-level', function () {
-    expect(LocalTime::isDayLevel('calorie'))->toBeTrue();
-    expect(LocalTime::isDayLevel('sleep'))->toBeTrue();
-    expect(LocalTime::isDayLevel('fuel'))->toBeFalse();
-    expect(LocalTime::isDayLevel('note'))->toBeFalse();
-    expect(LocalTime::isDayLevel('activity'))->toBeFalse();
-});

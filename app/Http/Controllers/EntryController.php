@@ -7,6 +7,7 @@ use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Flight;
+use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Support\LocalTime;
@@ -55,7 +56,7 @@ class EntryController extends Controller
             $model->load('airline', 'origin', 'destination');
         }
 
-        if ($model instanceof Appearance || $model instanceof Activity) {
+        if ($model instanceof Appearance || $model instanceof Activity || $model instanceof Note) {
             $model->load('media');
         }
 
@@ -67,7 +68,7 @@ class EntryController extends Controller
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
             'title' => $card['type'] === 'note' ? null : $card['title'],
-            ...$this->occurredFields($model->occurred_at, $model->timezone(), LocalTime::isDayLevel($card['type'])),
+            ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
             'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
@@ -83,9 +84,9 @@ class EntryController extends Controller
      *
      * @return array{occurredAt: string, occurredLabel: string, occurredOffset: string}
      */
-    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone, bool $dateOnly): array
+    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone): array
     {
-        $local = LocalTime::for($occurredAt, $timezone, $dateOnly);
+        $local = LocalTime::for($occurredAt, $timezone);
 
         return [
             'occurredAt' => $local['iso'],
@@ -127,7 +128,7 @@ class EntryController extends Controller
             $data['cover'] = $model->coverPhoto();
         }
 
-        if ($model instanceof Activity) {
+        if ($model instanceof Activity || $model instanceof Note) {
             $data['photos'] = $model->galleryPhotos();
         }
 

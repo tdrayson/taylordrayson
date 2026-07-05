@@ -55,6 +55,7 @@ class Note extends Model implements HasMedia, Timelineable
             'accent' => 'note',
             'meta' => [
                 'body' => $this->content,
+                'photos' => $this->galleryPhotos(),
             ],
         ];
     }

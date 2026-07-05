@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\TimelineEntry;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 trait HasTimelineEntry
@@ -38,5 +39,15 @@ trait HasTimelineEntry
     public function shouldAppearOnTimeline(): bool
     {
         return true;
+    }
+
+    /**
+     * The moment shown as the entry's timestamp. Defaults to occurred_at;
+     * day-granular types with a more meaningful clock time (e.g. Sleep's
+     * wake time) override this.
+     */
+    public function occurredAtForDisplay(): CarbonInterface
+    {
+        return $this->occurred_at;
     }
 }

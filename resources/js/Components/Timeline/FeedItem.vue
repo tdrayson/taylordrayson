@@ -203,11 +203,12 @@ function openLightbox(index) {
                 :is="typeHref ? Link : 'div'"
                 :href="typeHref || undefined"
                 class="type-color p-category text-label uppercase"
+                :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
             >{{ displayType }}</component>
-            <!-- For body-style cards (notes) the timestamp is the permalink, like
-                 classic microblogs; the standing underline marks it as a link. -->
-            <Link v-if="body && url && datetime" :href="url" class="u-url transition-colors hover:text-accent-500 focus-visible:text-accent-500">
-                <time :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 underline decoration-neutral-300 underline-offset-2 tnum transition-colors hover:text-accent-500 hover:decoration-accent-500">{{ time }}</time>
+            <!-- The timestamp is every card's permalink, like classic microblogs;
+                 like every card link it underlines on hover/focus. -->
+            <Link v-if="url && datetime" :href="url" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
+                <time :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
             </Link>
             <time v-else-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
             <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
@@ -220,7 +221,7 @@ function openLightbox(index) {
                 :is="url ? Link : 'span'"
                 :href="url || undefined"
                 class="p-name"
-                :class="url ? 'type-link u-url transition-colors' : ''"
+                :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
             >{{ title }}</component>
         </div>
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
