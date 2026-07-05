@@ -2,6 +2,7 @@
 import { ref, onBeforeUnmount } from 'vue';
 import { Link04Icon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
+import Tooltip from './Tooltip.vue';
 
 const props = defineProps({
     // The id of the heading this button copies a link to.
@@ -46,13 +47,15 @@ onBeforeUnmount(() => clearTimeout(timer));
 <template>
     <!-- Revealed by the heading's group hover (see PortableTextBlocks.js) or
          by keyboard focus on the button itself. -->
-    <button
-        type="button"
-        class="ml-2 inline-flex rounded align-baseline text-neutral-400 opacity-0 transition-opacity hover:text-neutral-700 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/heading:opacity-100"
-        :class="copied ? 'opacity-100 text-accent-500 hover:text-accent-500' : ''"
-        :aria-label="copied ? 'Link copied' : `Copy link to section: ${label || targetId}`"
-        @click="copy"
-    >
-        <Icon :icon="copied ? Tick02Icon : Link04Icon" class="size-4" />
-    </button>
+    <Tooltip :label="copied ? 'Copied' : 'Copy link'" placement="top" class="ml-2 align-baseline">
+        <button
+            type="button"
+            class="inline-flex rounded text-neutral-400 opacity-0 transition-opacity hover:text-neutral-700 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/heading:opacity-100"
+            :class="copied ? 'opacity-100 text-accent-500 hover:text-accent-500' : ''"
+            :aria-label="copied ? 'Link copied' : `Copy link to section: ${label || targetId}`"
+            @click="copy"
+        >
+            <Icon :icon="copied ? Tick02Icon : Link04Icon" class="size-4" />
+        </button>
+    </Tooltip>
 </template>
