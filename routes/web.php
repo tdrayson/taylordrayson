@@ -4,6 +4,7 @@ use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
@@ -20,6 +21,8 @@ use Inertia\Inertia;
 
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
+Route::get('/more', MoreController::class)->name('more');
+Route::get('/pages', [PageController::class, 'index'])->name('pages');
 Route::get('/og.png', [OgImageController::class, 'show'])->middleware('throttle:60,1')->name('og');
 Route::get('/og/entry/{entry}.png', [OgImageController::class, 'entry'])
     ->where('entry', '[0-9]+')->middleware('throttle:120,1')->name('og.entry');
