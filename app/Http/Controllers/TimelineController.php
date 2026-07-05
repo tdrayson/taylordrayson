@@ -17,6 +17,7 @@ use App\Support\Distance;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Inertia\DeferProp;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,16 +56,44 @@ class TimelineController extends Controller
      *
      * @return array<int, array{label: string, href: string, items: array<int, array<string, mixed>>}>
      */
-    private function groupsForDates(string $newest, string $oldest): array
+    private function groupsForDates(string $newest, string $oldest, bool $ascending = false): array
     {
         $entries = TimelineEntry::query()
             ->withCardRelations()
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
-            ->orderByDesc('occurred_at')
+            ->orderBy('occurred_at', $ascending ? 'asc' : 'desc')
             ->get();
 
         return $this->feed->groupByDay($entries);
+    }
+
+    /**
+     * Day-paginated, chronological timeline tail for a period. Returns the
+     * pagination metadata immediately and the (expensive) hydrated groups as
+     * a deferred closure, so the archive's stats paint before its feed.
+     *
+     * @return array{groups: DeferProp, currentPage: int, lastPage: int}
+     */
+    private function periodTail(Carbon $start, Carbon $end): array
+    {
+        $days = TimelineEntry::query()
+            ->toBase()
+            ->selectRaw('DATE(occurred_at) as date')
+            ->whereBetween('occurred_at', [$start, $end])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->paginate(self::DAYS_PER_PAGE);
+
+        $dates = collect($days->items())->pluck('date');
+
+        return [
+            'groups' => Inertia::defer(fn (): array => $dates->isEmpty()
+                ? []
+                : $this->groupsForDates($dates->last(), $dates->first(), true)),
+            'currentPage' => $days->currentPage(),
+            'lastPage' => $days->lastPage(),
+        ];
     }
 
     public function year(int $year): Response
@@ -78,6 +107,7 @@ class TimelineController extends Controller
             'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
             'stats' => $this->periodStats($start, $end),
             'heatmap' => $this->heatmapDays($start, $end),
+            ...$this->periodTail($start, $end),
         ]);
     }
 
@@ -101,6 +131,14 @@ class TimelineController extends Controller
             'entriesCount' => $entries->count(),
             'days' => $this->monthDays($entries),
             'stats' => $this->periodStats($start, $end),
+            'photos' => $entries
+                ->map(fn (TimelineEntry $entry) => $entry->timelineable)
+                ->filter(fn ($model): bool => method_exists($model, 'galleryPhotos'))
+                ->flatMap(fn ($model): array => $model->galleryPhotos())
+                ->take(12)
+                ->values()
+                ->all(),
+            ...$this->periodTail($start, $end),
         ]);
     }
 

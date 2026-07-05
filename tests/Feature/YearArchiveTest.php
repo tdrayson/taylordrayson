@@ -5,8 +5,19 @@ use App\Models\Article;
 use App\Models\Flight;
 use App\Models\Note;
 use App\Models\Sleep;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
+
+function yearPhotoJpegBytes(): string
+{
+    $image = imagecreatetruecolor(640, 480);
+    imagefilledrectangle($image, 0, 0, 639, 479, imagecolorallocate($image, 90, 120, 40));
+    ob_start();
+    imagejpeg($image, null, 80);
+
+    return (string) ob_get_clean();
+}
 
 it('serves real year numbers, entry count and heatmap', function () {
     Activity::factory()->create(['occurred_at' => '2025-03-10 09:00:00', 'distance' => 5000]);
@@ -34,4 +45,43 @@ it('excludes other years from the aggregates', function () {
         ->where('entriesCount', 0)
         ->where('stats', [])
         ->where('heatmap', []));
+});
+
+it('serves the year timeline tail ascending, day-paginated and deferred', function () {
+    foreach (range(1, 12) as $day) {
+        Note::factory()->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
+    }
+
+    // Initial load: deferred prop absent, pagination metadata present. Loading the
+    // deferred prop group performs the follow-up partial reload the client would
+    // make, resolving the tail: page 1 = oldest 10 days, ascending.
+    get('/2025')->assertInertia(fn ($page) => $page
+        ->missing('groups')
+        ->where('currentPage', 1)
+        ->where('lastPage', 2)
+        ->loadDeferredProps(fn ($reload) => $reload
+            ->has('groups', 10)
+            ->where('groups.0.date', '2025-05-01')
+            ->where('groups.9.date', '2025-05-10')));
+
+    get('/2025?page=2')->assertInertia(fn ($page) => $page
+        ->where('currentPage', 2)
+        ->loadDeferredProps(fn ($reload) => $reload
+            ->has('groups', 2)
+            ->where('groups.0.date', '2025-05-11')));
+});
+
+it('serves the month tail and photos strip', function () {
+    Storage::fake('public');
+    $note = Note::factory()->create(['occurred_at' => '2025-05-03 10:00:00']);
+    $note->addMediaFromString(yearPhotoJpegBytes())->usingFileName('note.jpg')->toMediaCollection('photos');
+
+    get('/2025/05')->assertInertia(fn ($page) => $page
+        ->component('Month')
+        ->missing('groups')
+        ->has('photos', 1)
+        ->has('photos.0.src')
+        ->loadDeferredProps(fn ($reload) => $reload
+            ->has('groups', 1)
+            ->where('groups.0.date', '2025-05-03')));
 });
