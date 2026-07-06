@@ -16,16 +16,20 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
+    'ends_at',
+    'all_day',
     'type',
     'name',
+    'company',
     'venue_name',
-    'address',
     'city',
     'country',
     'latitude',
     'longitude',
-    'ticket_price',
-    'notes',
+    'url',
+    'description',
+    'timezone',
+    'meta',
 ])]
 class Event extends Model implements HasMedia, Timelineable
 {
@@ -38,6 +42,9 @@ class Event extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'all_day' => 'boolean',
+            'meta' => 'array',
         ];
     }
 
