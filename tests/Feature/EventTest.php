@@ -36,3 +36,11 @@ it('drops the retired event columns', function () {
         ->and(Schema::hasColumn('events', 'address'))->toBeFalse()
         ->and(Schema::hasColumn('events', 'notes'))->toBeFalse();
 });
+
+it('builds events across the expanded category set', function () {
+    foreach (['musical', 'magic', 'sport', 'convention', 'conference'] as $type) {
+        $event = Event::factory()->create(['type' => $type]);
+        expect($event->type)->toBe($type)
+            ->and($event->timezone)->toBe('Europe/London');
+    }
+});
