@@ -28,7 +28,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('events', function (Blueprint $table): void {
-            $table->text('address')->nullable()->after('venue_name');
+            $table->string('address')->nullable()->after('venue_name');
             $table->decimal('ticket_price', 8, 2)->nullable()->after('longitude');
         });
 

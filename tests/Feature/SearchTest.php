@@ -3,9 +3,13 @@
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Checkin;
+use App\Models\Event;
 use App\Models\Note;
 use App\Models\User;
+use App\Search\SearchSchema;
+use Illuminate\Support\Facades\Schema;
 
+use function Pest\Laravel\get;
 use function Pest\Laravel\getJson;
 
 it('returns matching entries with a navigable url', function () {
@@ -45,10 +49,22 @@ it('suggests taxonomy destination pages drawn live from the registry', function 
 
     $destinations = getJson('/search/suggest?q=run')->assertOk()->json('destinations');
 
+    // The section is the taxonomy's kind ("Type"), not the owning type's label
+    // ("Activities"), so a run reads as an activity type, not an entry.
     expect(collect($destinations)->firstWhere('url', '/activities/run'))
-        ->toMatchArray(['label' => 'Run', 'section' => 'Activities', 'type' => 'activity']);
+        ->toMatchArray(['label' => 'Run', 'section' => 'Type', 'type' => 'activity', 'tag' => false]);
 
     expect(collect($destinations)->pluck('url'))->not->toContain('/activities/walk');
+});
+
+it('labels tag destinations as tags, not the owning type', function () {
+    $article = Article::factory()->create(['published' => true, 'occurred_at' => now()]);
+    $article->syncTagNames(['Fluent Forms']);
+
+    $destinations = getJson('/search/suggest?q=fluent')->assertOk()->json('destinations');
+
+    expect(collect($destinations)->firstWhere('url', '/tags/fluent-forms'))
+        ->toMatchArray(['label' => 'Fluent Forms', 'section' => 'Tag', 'tag' => true]);
 });
 
 it('hides unpublished articles from guest search suggestions', function () {
@@ -74,4 +90,48 @@ it('shows published articles in suggestions to guests', function () {
     getJson('/search/suggest?q=Public announcement')
         ->assertOk()
         ->assertJsonFragment(['title' => 'Public announcement post']);
+});
+
+it('filters events by the renamed description column via the advanced search builder', function () {
+    Event::factory()->create(['name' => 'Arctic Monkeys', 'description' => 'General admission standing', 'occurred_at' => now()]);
+    Event::factory()->create(['name' => 'Hamilton', 'description' => 'Balcony seats', 'occurred_at' => now()]);
+
+    $filter = [[
+        'type' => 'event',
+        'conditions' => [['field' => 'description', 'operator' => 'contains', 'value' => 'standing']],
+    ]];
+
+    // Guards against the SQL error that followed the notes -> description rename:
+    // the schema previously still pointed the "notes" field at a dropped column.
+    get('/search?'.http_build_query(['filter' => json_encode($filter)]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('filters events by the new company column via the advanced search builder', function () {
+    Event::factory()->create(['name' => 'Conference talk', 'company' => 'Acme Corp', 'occurred_at' => now()]);
+    Event::factory()->create(['name' => 'Gig', 'company' => 'Other Co', 'occurred_at' => now()]);
+
+    $filter = [[
+        'type' => 'event',
+        'conditions' => [['field' => 'company', 'operator' => 'contains', 'value' => 'Acme']],
+    ]];
+
+    get('/search?'.http_build_query(['filter' => json_encode($filter)]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('only references columns that actually exist on the events table in the search schema', function () {
+    $eventFields = collect(SearchSchema::types()['event']['fields']);
+
+    $columns = $eventFields
+        ->pluck('column')
+        ->filter()
+        ->unique();
+
+    expect($columns)->not->toBeEmpty();
+
+    $columns->each(fn (string $column) => expect(Schema::hasColumn('events', $column))
+        ->toBeTrue("Expected events table to have column [{$column}] referenced by SearchSchema."));
 });
