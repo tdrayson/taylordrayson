@@ -27,7 +27,7 @@ class TimelineEntryObserver
 
         $entry = $model->timelineEntry()->updateOrCreate(
             ['timelineable_type' => $model->getMorphClass(), 'timelineable_id' => $model->getKey()],
-            ['occurred_at' => $model->occurred_at],
+            ['occurred_at' => $model->occurred_at, 'ends_at' => $model->getAttribute('ends_at')],
         );
 
         $this->ensureUrlSlug($model, $entry);

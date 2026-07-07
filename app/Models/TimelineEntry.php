@@ -17,6 +17,7 @@ use Spatie\Feed\FeedItem;
     'timelineable_type',
     'timelineable_id',
     'occurred_at',
+    'ends_at',
     'url_slug',
 ])]
 class TimelineEntry extends Model implements Feedable
@@ -30,6 +31,7 @@ class TimelineEntry extends Model implements Feedable
     {
         return [
             'occurred_at' => 'datetime',
+            'ends_at' => 'datetime',
         ];
     }
 
@@ -61,6 +63,31 @@ class TimelineEntry extends Model implements Feedable
     public function scopeWithCardRelations(Builder $query): Builder
     {
         return $query->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith(self::cardRelations())]);
+    }
+
+    /**
+     * Entries whose date span covers the given Y-m-d. Single-day entries
+     * (ends_at null) collapse to their occurred_at day; multi-day events
+     * match every day from occurred_at through ends_at inclusive.
+     */
+    public function scopeCoveringDate(Builder $query, string $date): Builder
+    {
+        return $query
+            ->whereRaw('DATE(occurred_at) <= ?', [$date])
+            ->whereRaw('DATE(COALESCE(ends_at, occurred_at)) >= ?', [$date]);
+    }
+
+    /**
+     * Entries whose date span covers the given m-d in any year (for on-this-day).
+     * Handles ranges within a single calendar year; a range crossing a month
+     * boundary matches each covered month-day. Multi-year-spanning ranges are an
+     * accepted edge (no current data spans them).
+     */
+    public function scopeCoveringAnniversary(Builder $query, string $monthDay): Builder
+    {
+        return $query
+            ->whereRaw("strftime('%m-%d', occurred_at) <= ?", [$monthDay])
+            ->whereRaw("strftime('%m-%d', COALESCE(ends_at, occurred_at)) >= ?", [$monthDay]);
     }
 
     public function toFeedItem(): FeedItem
