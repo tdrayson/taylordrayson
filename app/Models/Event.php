@@ -53,6 +53,35 @@ class Event extends Model implements HasMedia, Timelineable
         return Str::slug($this->name);
     }
 
+    /**
+     * The event's day span for multi-day display, or null when it is a single
+     * day. `label` compacts a same-month range to "2-4 Jun 2022" and a
+     * cross-month range to "30 Jun - 2 Jul 2022".
+     *
+     * @return array{start: string, end: string, days: int, label: string}|null
+     */
+    public function dateRange(): ?array
+    {
+        if ($this->ends_at === null || $this->ends_at->toDateString() === $this->occurred_at->toDateString()) {
+            return null;
+        }
+
+        $start = $this->occurred_at;
+        $end = $this->ends_at;
+        $days = $start->startOfDay()->diffInDays($end->startOfDay()) + 1;
+
+        $label = $start->format('n') === $end->format('n')
+            ? $start->format('j').'-'.$end->format('j M Y')
+            : $start->format('j M').' - '.$end->format('j M Y');
+
+        return [
+            'start' => $start->toDateString(),
+            'end' => $end->toDateString(),
+            'days' => (int) $days,
+            'label' => $label,
+        ];
+    }
+
     public function card(): array
     {
         $parts = array_filter([$this->venue_name, $this->city]);
@@ -64,6 +93,7 @@ class Event extends Model implements HasMedia, Timelineable
             'subtitle' => $parts ? implode(', ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'event',
+            'range' => $this->dateRange(),
             'meta' => [],
         ];
     }
