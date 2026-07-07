@@ -82,7 +82,5 @@ onBeforeUnmount(() => {
         ref="container"
         :class="heightClass"
         class="w-full overflow-hidden rounded-lg border border-neutral-100"
-        role="img"
-        :aria-label="label ? `Map showing ${label}` : 'Location map'"
     />
 </template>

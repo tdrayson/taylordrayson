@@ -134,12 +134,14 @@ class EntryController extends Controller
         }
 
         if ($model instanceof Event) {
+            $address = $this->eventAddress($model);
+
             $data['location'] = $model->latitude !== null && $model->longitude !== null
                 ? [
                     'lat' => (float) $model->latitude,
                     'lng' => (float) $model->longitude,
-                    'address' => $this->eventAddress($model),
-                    'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->eventAddress($model)),
+                    'address' => $address,
+                    'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($address),
                 ]
                 : null;
 
@@ -158,8 +160,8 @@ class EntryController extends Controller
      */
     private function eventAddress(Event $event): string
     {
-        return $event->meta['address']
-            ?? collect([$event->venue_name, $event->city, $event->country])->filter()->implode(', ');
+        return data_get($event->meta, 'address')
+            ?: collect([$event->venue_name, $event->city, $event->country])->filter()->implode(', ');
     }
 
     /**

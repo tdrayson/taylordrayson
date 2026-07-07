@@ -44,7 +44,7 @@ const rows = computed(() => [
         />
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />
 
-        <LocationMap v-if="location" :lat="location.lat" :lng="location.lng" :label="entry.venue_name" />
+        <LocationMap v-if="location" :lat="location.lat" :lng="location.lng" :label="entry.venue_name || location.address" />
 
         <DetailList :rows="rows" />
 
