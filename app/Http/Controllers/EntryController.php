@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Calorie;
+use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Note;
 use App\Models\Tag;
@@ -128,11 +129,32 @@ class EntryController extends Controller
             $data['cover'] = $model->coverPhoto();
         }
 
-        if ($model instanceof Activity || $model instanceof Note) {
+        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event) {
             $data['photos'] = $model->galleryPhotos();
         }
 
+        if ($model instanceof Event) {
+            $data['location'] = $model->latitude !== null && $model->longitude !== null
+                ? [
+                    'lat' => (float) $model->latitude,
+                    'lng' => (float) $model->longitude,
+                    'address' => $this->eventAddress($model),
+                    'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->eventAddress($model)),
+                ]
+                : null;
+        }
+
         return $data;
+    }
+
+    /**
+     * Best available address string for maps: the geocoded address stored in
+     * meta, else the venue/city/country the event carries.
+     */
+    private function eventAddress(Event $event): string
+    {
+        return $event->meta['address']
+            ?? collect([$event->venue_name, $event->city, $event->country])->filter()->implode(', ');
     }
 
     /**
