@@ -142,6 +142,11 @@ class EntryController extends Controller
                     'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->eventAddress($model)),
                 ]
                 : null;
+
+            // Multi-day badge data ({label, days}), null for single-day events.
+            // toArray() only serialises DB columns, so dateRange() (a computed
+            // method, not an accessor) needs adding to the payload explicitly.
+            $data['range'] = $model->dateRange();
         }
 
         return $data;
