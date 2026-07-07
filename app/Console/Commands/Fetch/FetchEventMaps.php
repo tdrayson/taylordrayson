@@ -25,10 +25,6 @@ class FetchEventMaps extends Command
                 continue;
             }
 
-            if ($this->option('force')) {
-                $event->clearMediaCollection('map');
-            }
-
             if ($generate($event)) {
                 $done++;
                 $this->components->task("{$event->name}");

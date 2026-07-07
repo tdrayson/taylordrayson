@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
@@ -32,7 +33,11 @@ class GenerateLocationMap
 
         $url = "https://api.mapbox.com/styles/v1/mapbox/light-v11/static/{$marker}/{$center}/800x500@2x?access_token={$token}";
 
-        $response = Http::get($url);
+        try {
+            $response = Http::get($url);
+        } catch (ConnectionException) {
+            return null;
+        }
 
         if ($response->failed()) {
             return null;
