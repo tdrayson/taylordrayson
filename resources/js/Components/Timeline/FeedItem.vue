@@ -33,6 +33,11 @@ const props = defineProps({
     media: { type: Object, default: null },
     photos: { type: Array, default: null },
     polyline: { type: String, default: null },
+    // A pre-generated static map (e.g. an event's location map), shown in the
+    // same banner slot as an activity/flight's live-rendered route map.
+    map: { type: String, default: null },
+    // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
+    range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
     url: { type: String, default: null },
     label: { type: String, default: '' },
@@ -147,8 +152,9 @@ const routePath = computed(() => {
     return points.length > 1 ? points : null;
 });
 
-// Generated static map image: an activity's GPS trace, or a flight's great-circle
-// arc. INTERIM: rendered live from Mapbox; will move to a stored
+// Generated static map image: an activity's GPS trace, a flight's great-circle
+// arc, or a pre-generated stored map (e.g. an event's location pin). INTERIM:
+// the GPS/arc variants render live from Mapbox; will move to a stored
 // (Cloudflare-hosted) URL. See lib/staticMap.js.
 const routeImageUrl = computed(() => {
     if (props.polyline) {
@@ -162,7 +168,7 @@ const routeImageUrl = computed(() => {
         return staticArcMap(origin, destination);
     }
 
-    return null;
+    return props.map ?? null;
 });
 
 const banner = computed(() => {
@@ -232,6 +238,8 @@ function openLightbox(index) {
             <span>{{ airline.name }}</span>
             <span v-if="airline.number" class="text-neutral-400 tnum">· {{ airline.number }}</span>
         </div>
+        <!-- Multi-day badge, e.g. a festival or conference spanning several days. -->
+        <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} &middot; {{ range.days }} days</span>
         <FlightRoute
             v-if="routeView"
             compact

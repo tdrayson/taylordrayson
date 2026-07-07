@@ -56,6 +56,8 @@ class BuildTimelineFeed
             'media' => $card['meta']['media'] ?? null,
             'photos' => $card['meta']['photos'] ?? null,
             'polyline' => $card['meta']['polyline'] ?? null,
+            'map' => $card['meta']['map'] ?? null,
+            'range' => $card['range'] ?? null,
             'time' => $local['time'],
             'datetime' => $local['iso'],
             'label' => $local['label'],

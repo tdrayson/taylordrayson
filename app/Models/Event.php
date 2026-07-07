@@ -85,6 +85,7 @@ class Event extends Model implements HasMedia, Timelineable
     public function card(): array
     {
         $parts = array_filter([$this->venue_name, $this->city]);
+        $photos = $this->galleryPhotos();
 
         return [
             'type' => 'event',
@@ -94,7 +95,12 @@ class Event extends Model implements HasMedia, Timelineable
             'occurred_at' => $this->occurred_at,
             'accent' => 'event',
             'range' => $this->dateRange(),
-            'meta' => [],
+            'meta' => [
+                'photos' => $photos,
+                // Fall back to the generated static location map only when there
+                // is no photo to show instead (mirrors the activity route map).
+                'map' => $photos === [] ? $this->getFirstMediaUrl('map') ?: null : null,
+            ],
         ];
     }
 }

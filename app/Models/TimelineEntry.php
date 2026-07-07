@@ -53,6 +53,7 @@ class TimelineEntry extends Model implements Feedable
             Appearance::class => ['media'],
             Activity::class => ['media'],
             Article::class => ['media'],
+            Event::class => ['media'],
         ];
     }
 
