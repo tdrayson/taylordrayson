@@ -66,8 +66,8 @@ class Event extends Model implements HasMedia, Timelineable
             return null;
         }
 
-        $start = $this->occurred_at;
-        $end = $this->ends_at;
+        $start = $this->occurred_at->copy();
+        $end = $this->ends_at->copy();
         $days = $start->startOfDay()->diffInDays($end->startOfDay()) + 1;
 
         $label = $start->format('n') === $end->format('n')

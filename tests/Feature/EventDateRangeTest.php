@@ -31,3 +31,16 @@ it('returns null when ends_at is the same day', function () {
 
     expect($event->dateRange())->toBeNull();
 });
+
+it('does not mutate occurred_at when building the card range', function () {
+    $event = Event::factory()->create([
+        'occurred_at' => '2022-06-02 09:00:00',
+        'ends_at' => '2022-06-04 18:00:00',
+    ]);
+
+    $card = $event->card();
+
+    expect($card['range']['days'])->toBe(3)
+        ->and($card['occurred_at']->format('H:i'))->toBe('09:00')
+        ->and($event->occurred_at->format('H:i'))->toBe('09:00');
+});
