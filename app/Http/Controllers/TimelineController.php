@@ -278,7 +278,7 @@ class TimelineController extends Controller
         // the inverse of the home timeline, which leads with the latest entry.
         $entries = TimelineEntry::query()
             ->withCardRelations()
-            ->whereDate('occurred_at', $date->toDateString())
+            ->coveringDate($date->toDateString())
             ->orderBy('occurred_at', 'asc')
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
