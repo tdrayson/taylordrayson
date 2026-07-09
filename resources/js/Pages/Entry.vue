@@ -85,9 +85,9 @@ setLayoutProps({
     <AppHead :og="og" />
 
     <header class="relative">
-        <div class="min-w-0 sm:pl-16 lg:pl-0">
+        <div class="min-w-0">
             <div class="relative">
-                <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 sm:flex" :style="accentStyle">
+                <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
                     <Icon :icon="meta.icon" class="size-6" />
                 </span>
                 <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>

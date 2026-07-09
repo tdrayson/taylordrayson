@@ -1,11 +1,12 @@
 <script setup>
 import { computed, ref } from 'vue';
-import DetailList from '../Ui/DetailList.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
+import Pill from '../Ui/Pill.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import LocationMap from '../Maps/LocationMap.vue';
+import StatGrid from '../Stats/StatGrid.vue';
 import { titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -19,23 +20,45 @@ const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.p
 const location = computed(() => props.entry.location ?? null);
 // Multi-day range badge data, null for single-day events.
 const range = computed(() => props.entry.range ?? null);
-const lightboxIndex = ref(null);
+// Organiser is only worth showing when it adds something beyond the event name.
+const organiser = computed(() => {
+    const value = props.entry.organiser;
 
-const rows = computed(() => [
-    { label: 'Type', value: titleCase(props.entry.type) },
-    { label: 'Organiser', value: props.entry.organiser },
-    { label: 'Venue', value: props.entry.venue_name },
-    { label: 'City', value: props.entry.city },
-    { label: 'Country', value: props.entry.country },
-    { label: 'Seat', value: seat.value },
-]);
+    return value && value !== props.entry.name ? value : null;
+});
+// Short categorical facts, shown as display-figure stats rather than a table. Blanks are dropped by StatGrid.
+const facts = computed(() =>
+    [
+        { label: 'Organiser', value: organiser.value },
+        { label: 'Seat', value: seat.value },
+    ].filter((fact) => fact.value),
+);
+const lightboxIndex = ref(null);
 </script>
 
 <template>
     <div class="space-y-8">
-        <p v-if="range" class="inline-flex items-center gap-1.5 rounded-full bg-event/10 px-3 py-1 text-meta font-medium text-event">
-            {{ range.label }} &middot; {{ range.days }} days
-        </p>
+        <div class="space-y-2">
+            <Pill :label="titleCase(entry.type)" :href="`/events/${entry.type}`" />
+            <p v-if="range" class="text-meta text-neutral-500">
+                {{ range.long }} ({{ range.days }} days)
+            </p>
+        </div>
+
+        <div v-if="location" class="space-y-3">
+            <LocationMap
+                :lat="location.lat"
+                :lng="location.lng"
+                :label="entry.venue_name || location.address"
+                color="var(--color-event)"
+            />
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <p class="text-meta text-neutral-600">
+                    <span v-if="entry.venue_name" class="font-medium text-neutral-900">{{ entry.venue_name }}</span><span v-if="entry.city">{{ entry.venue_name ? ', ' : '' }}{{ entry.city }}</span><span v-if="entry.country">, {{ entry.country }}</span>
+                </p>
+                <ExternalLink :href="location.mapsUrl" label="View on Google Maps" />
+            </div>
+        </div>
 
         <ActivityMedia
             v-if="photos.length"
@@ -44,17 +67,11 @@ const rows = computed(() => [
         />
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />
 
-        <LocationMap v-if="location" :lat="location.lat" :lng="location.lng" :label="entry.venue_name || location.address" />
-
-        <DetailList :rows="rows" />
+        <StatGrid v-if="facts.length" :stats="facts" />
 
         <div v-if="entry.description">
             <SectionHead title="Notes" />
             <p class="text-body text-neutral-700">{{ entry.description }}</p>
-        </div>
-
-        <div v-if="location">
-            <ExternalLink :href="location.mapsUrl" label="View on Google Maps" />
         </div>
 
         <div v-if="entry.url">

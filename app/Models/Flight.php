@@ -133,7 +133,7 @@ class Flight extends Model implements HasMedia, Timelineable
             'type' => 'flight',
             'icon' => 'plane',
             'title' => $this->routeTitle(),
-            'subtitle' => $this->distance ? sprintf('%s mi · %s', number_format(Distance::miles($this->distance)), $this->cabin_class) : null,
+            'subtitle' => $this->distance ? sprintf('%s mi, %s', number_format(Distance::miles($this->distance)), $this->cabin_class) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
             'meta' => [

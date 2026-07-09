@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
         class="hidden xl:absolute xl:left-full xl:top-0 xl:block xl:h-full xl:pl-10"
         aria-label="Table of contents"
     >
-        <ul class="sticky top-24 flex w-48 flex-col border-l border-neutral-100">
+        <ul class="toc-rail sticky top-10 flex w-48 flex-col border-l border-neutral-100">
             <li v-for="chapter in chapters" :key="chapter.id">
                 <button
                     type="button"
@@ -246,6 +246,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* Long TOCs scroll inside the rail instead of running off short viewports:
+   cap at the viewport minus the sticky top-10 offset plus a bottom gap. */
+.toc-rail {
+    max-height: calc(100svh - 3.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 .pill-enter-active,
 .pill-leave-active {
     transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);

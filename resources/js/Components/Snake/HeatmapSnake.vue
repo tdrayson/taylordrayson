@@ -312,11 +312,11 @@ onBeforeUnmount(() => {
             </span>
             <span v-else-if="state === 'over'" class="snake-prompt">
                 <span class="font-display text-section">Game over</span>
-                <span class="text-meta text-neutral-500">You logged {{ score }} {{ score === 1 ? 'day' : 'days' }} · tap to retry</span>
+                <span class="text-meta text-neutral-500">You logged {{ score }} {{ score === 1 ? 'day' : 'days' }}, tap to retry</span>
             </span>
             <span v-else class="snake-prompt">
                 <span class="font-display text-section">Full house! 🎉</span>
-                <span class="text-meta text-neutral-500">You filled the entire log · tap to play again</span>
+                <span class="text-meta text-neutral-500">You filled the entire log, tap to play again</span>
             </span>
         </button>
     </div>

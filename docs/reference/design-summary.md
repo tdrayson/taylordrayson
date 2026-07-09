@@ -1,5 +1,12 @@
 # Design Summary: Taylor Drayson Personal Site
 
+> **Superseded in parts.** This is an early comprehensive brief. Its database
+> and data-type sections are stale (they predate the `attachments` rename, the
+> events/checkins restructure, and the move from Editor.js to Portable Text) -
+> for those, `docs/reference/data-types.md` and `docs/reference/project-brief.md`
+> are canonical, and `design.md` is the canonical design system. Kept for its
+> bio/profile copy and design narrative, which are not captured elsewhere.
+
 ## Database Overview
 
 Data is consolidated into logical tables for easier maintenance:

@@ -9,7 +9,7 @@ import CalendarMonth from '../Components/Stats/CalendarMonth.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
-import ZoomButton from '../Components/Ui/ZoomButton.vue';
+import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
 import FutureNote from '../Components/Timeline/FutureNote.vue';
 
@@ -55,7 +55,7 @@ const nextMonth = computed(() => new Date(props.year, props.month, 1));
 setLayoutProps({
     breadcrumb: [
         { label: String(props.year), href: `/${props.year}` },
-        { label: monthName.value },
+        { label: monthName.value, ariaLabel: `${monthName.value} ${props.year}` },
     ],
 });
 </script>
@@ -78,21 +78,8 @@ setLayoutProps({
 
         <section v-if="photos.length">
             <SectionHead title="Photos" :meta="`${photos.length}${photos.length === 12 ? '+' : ''} this month`" />
-            <ul class="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
-                <li v-for="(photo, index) in photos" :key="index">
-                    <button
-                        type="button"
-                        :aria-label="`View photo ${index + 1}`"
-                        class="group/zoom relative block aspect-square w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                        @click="lightboxIndex = index"
-                    >
-                        <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 16vw, 33vw" alt="" class="size-full object-cover">
-                        <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
-                            <ZoomButton />
-                        </span>
-                    </button>
-                </li>
-            </ul>
+            <!-- Same masonry + hover-context tiles and column count as /photos. -->
+            <PhotoGrid :photos="photos" @open="lightboxIndex = $event" />
             <Lightbox v-model:index="lightboxIndex" :photos="photos" />
         </section>
 

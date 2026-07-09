@@ -55,7 +55,7 @@ class SearchSchema
             'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Event'],
             'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Event'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Event'],
-            'company' => ['label' => 'Company', 'dataType' => 'text', 'column' => 'company', 'category' => 'Event'],
+            'organiser' => ['label' => 'Organiser', 'dataType' => 'text', 'column' => 'organiser', 'category' => 'Event'],
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Location'],
             'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
             'country' => ['label' => 'Country', 'dataType' => 'text', 'column' => 'country', 'category' => 'Location'],

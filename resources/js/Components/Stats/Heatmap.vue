@@ -7,16 +7,36 @@ const props = defineProps({
     // Entries-per-day keyed yyyy-mm-dd.
     days: { type: Object, required: true },
     year: { type: Number, required: true },
+    // Optional hex to theme the ramp (e.g. an activity green); defaults to the
+    // site's blue heat scale.
+    accent: { type: String, default: null },
+    // Scale buckets to the busiest day rather than fixed GitHub thresholds, so
+    // the darkest shade always appears even when daily counts are low.
+    relative: { type: Boolean, default: false },
 });
 
-const ramp = ['var(--color-neutral-25)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)'];
+// The busiest day's count, for relative bucketing.
+const peak = computed(() => Math.max(0, ...Object.values(props.days)));
 
-// GitHub-style buckets: 0, 1-2, 3-5, 6-9, 10+.
+// When an accent hex is given, build the ramp from it with rising alpha so a
+// per-type dashboard heatmap reads in that type's colour.
+const ramp = computed(() => (props.accent
+    ? ['var(--color-neutral-25)', `${props.accent}40`, `${props.accent}70`, `${props.accent}b0`, props.accent]
+    : ['var(--color-neutral-25)', 'var(--color-heat-1)', 'var(--color-heat-2)', 'var(--color-heat-3)', 'var(--color-heat-4)']));
+
+// Relative mode scales the 4 levels to the busiest day; otherwise GitHub-style
+// fixed buckets: 0, 1-2, 3-5, 6-9, 10+.
 function bucket(count) {
     if (count <= 0) return 0;
+
+    if (props.relative) {
+        return peak.value <= 1 ? 4 : Math.min(4, Math.max(1, Math.ceil((count / peak.value) * 4)));
+    }
+
     if (count <= 2) return 1;
     if (count <= 5) return 2;
     if (count <= 9) return 3;
+
     return 4;
 }
 
@@ -38,7 +58,7 @@ const yearCells = computed(() => {
         cells.push({
             key,
             href: `/${props.year}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`,
-            title: `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'short' })} · ${count} ${count === 1 ? 'entry' : 'entries'}`,
+            title: `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'short' })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
             level: bucket(count),
         });
         date.setDate(date.getDate() + 1);
@@ -64,7 +84,7 @@ const monthLabels = computed(() => {
 });
 
 function color(level) {
-    return ramp[level];
+    return ramp.value[level];
 }
 </script>
 

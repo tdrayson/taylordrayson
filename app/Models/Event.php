@@ -20,7 +20,7 @@ use Spatie\MediaLibrary\HasMedia;
     'all_day',
     'type',
     'name',
-    'company',
+    'organiser',
     'venue_name',
     'city',
     'country',
@@ -55,10 +55,10 @@ class Event extends Model implements HasMedia, Timelineable
 
     /**
      * The event's day span for multi-day display, or null when it is a single
-     * day. `label` compacts a same-month range to "2-4 Jun 2022" and a
-     * cross-month range to "30 Jun - 2 Jul 2022".
+     * day. `label` is the compact card form ("2-4 Jun 2022"); `long` is the
+     * spelled-out detail form ("4th to 6th June 2026").
      *
-     * @return array{start: string, end: string, days: int, label: string}|null
+     * @return array{start: string, end: string, days: int, label: string, long: string}|null
      */
     public function dateRange(): ?array
     {
@@ -70,15 +70,27 @@ class Event extends Model implements HasMedia, Timelineable
         $end = $this->ends_at->copy();
         $days = $start->startOfDay()->diffInDays($end->startOfDay()) + 1;
 
-        $label = $start->format('n') === $end->format('n')
+        $sameMonth = $start->format('n') === $end->format('n') && $start->format('Y') === $end->format('Y');
+        $sameYear = $start->format('Y') === $end->format('Y');
+
+        $label = $sameMonth
             ? $start->format('j').'-'.$end->format('j M Y')
             : $start->format('j M').' - '.$end->format('j M Y');
+
+        if ($sameMonth) {
+            $long = $start->format('jS').' to '.$end->format('jS F Y');
+        } elseif ($sameYear) {
+            $long = $start->format('jS F').' to '.$end->format('jS F Y');
+        } else {
+            $long = $start->format('jS F Y').' to '.$end->format('jS F Y');
+        }
 
         return [
             'start' => $start->toDateString(),
             'end' => $end->toDateString(),
             'days' => (int) $days,
             'label' => $label,
+            'long' => $long,
         ];
     }
 

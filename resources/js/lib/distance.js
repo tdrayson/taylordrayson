@@ -1,13 +1,9 @@
 const METRES_PER_MILE = 1609.344;
 
-// Metres to kilometres for display, one decimal place.
-export function metresToKm(metres) {
+// Metres to miles for display. Whole miles by default; pass a precision
+// for short distances where tenths matter (e.g. a 5k run is 3.1 mi).
+export function metresToMiles(metres, precision = 0) {
     if (metres === null || metres === undefined) return null;
-    return Math.round(metres / 100) / 10;
-}
-
-// Metres to whole miles for display.
-export function metresToMiles(metres) {
-    if (metres === null || metres === undefined) return null;
-    return Math.round(metres / METRES_PER_MILE);
+    const factor = 10 ** precision;
+    return Math.round((metres / METRES_PER_MILE) * factor) / factor;
 }

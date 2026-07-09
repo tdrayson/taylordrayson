@@ -143,7 +143,7 @@ class StravaPhotos extends Command
             $count = $sync($activity, $photos);
             $stored += $count;
 
-            $this->info("[{$stored}] {$activity->name} — {$count} photo(s)");
+            $this->info("[{$stored}] {$activity->name} - {$count} photo(s)");
         }
 
         $this->info("Done. Stored {$stored} photo(s).");

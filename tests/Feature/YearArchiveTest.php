@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use App\Models\Article;
+use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Note;
 use App\Models\Sleep;
@@ -36,6 +37,39 @@ it('serves real year numbers, entry count and heatmap', function () {
             ->where('stats', fn ($stats) => collect($stats)->pluck('label')->contains('Written'))
             ->where('heatmap.2025-03-10', 2)
             ->where('heatmap.2025-06-01', 1));
+});
+
+it('splits distance by discipline, averages daily food, and adds a year-only superlative', function () {
+    // Metres chosen to land on clean mile values.
+    Activity::factory()->create(['type' => 'walk', 'distance' => 16093, 'occurred_at' => '2025-06-05 08:00:00']); // 10 mi
+    Activity::factory()->create(['type' => 'run', 'distance' => 8047, 'occurred_at' => '2025-06-06 08:00:00']);   // 5 mi (longest)
+    Activity::factory()->create(['type' => 'run', 'distance' => 4828, 'occurred_at' => '2025-06-07 08:00:00']);   // 3 mi
+    Activity::factory()->create(['type' => 'ride', 'distance' => 32187, 'occurred_at' => '2025-06-08 08:00:00']); // 20 mi
+
+    // 6000 kcal across 3 logged days -> 2000 kcal/day.
+    Calorie::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 08:00:00']);
+    Calorie::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 12:00:00']);
+    Calorie::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-02 12:00:00']);
+    Calorie::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-03 12:00:00']);
+
+    get('/2025')->assertInertia(fn ($page) => $page
+        ->component('Year')
+        ->where('stats', function ($stats) {
+            $by = collect($stats)->keyBy('label');
+
+            return $by['Walked']['value'] === '10'
+                && $by['Ran']['value'] === '8'
+                && $by['Cycled']['value'] === '20'
+                && $by['Food']['value'] === '2,000'
+                && $by['Food']['unit'] === 'kcal/day'
+                && $by['Longest run']['value'] === '5.0';
+        }));
+
+    // The same month shows the disciplines but omits the year-only superlative.
+    get('/2025/06')->assertInertia(fn ($page) => $page
+        ->component('Month')
+        ->where('stats', fn ($stats) => collect($stats)->pluck('label')->contains('Walked')
+            && collect($stats)->pluck('label')->doesntContain('Longest run')));
 });
 
 it('excludes other years from the aggregates', function () {

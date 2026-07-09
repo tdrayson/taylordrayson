@@ -16,6 +16,7 @@ import DetailList from '../Components/Ui/DetailList.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import ExternalLink from '../Components/Ui/ExternalLink.vue';
 import SocialLinks from '../Components/Profile/SocialLinks.vue';
+import BlockContent from '../Components/Ui/BlockContent.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -32,6 +33,19 @@ const note = ref('');
 const checked = ref(true);
 const toggled = ref(true);
 const page = ref(2);
+
+// One Portable Text callout per variant, so the set is reviewable in one place.
+const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant, i) => ({
+    _type: 'callout',
+    _key: `ds-callout-${variant}`,
+    variant,
+    markDefs: [],
+    children: [
+        { _type: 'span', _key: `ds-callout-${variant}-a`, text: 'Set ', marks: [] },
+        { _type: 'span', _key: `ds-callout-${variant}-b`, text: "'pro' => true", marks: ['code'] },
+        { _type: 'span', _key: `ds-callout-${variant}-c`, text: ` in config to use every ${variant} feature while in development, like unlimited users and permissions. (${i + 1}/5)`, marks: [] },
+    ],
+}));
 
 const neutral = [0, 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 const accent = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -54,9 +68,9 @@ const typeScale = [
     { cls: 'text-item-title', display: true, label: 'item-title', sample: 'Morning Run' },
     { cls: 'text-section', display: true, label: 'section', sample: 'Movement' },
     { cls: 'text-body', display: false, label: 'body', sample: 'I build stuff and track everything.' },
-    { cls: 'text-nav', display: false, label: 'nav', sample: 'Timeline · Calendar · Stats' },
+    { cls: 'text-nav', display: false, label: 'nav', sample: 'Timeline, Calendar, Stats' },
     { cls: 'text-meta', display: false, label: 'meta', sample: '86% sleep efficiency' },
-    { cls: 'text-caption', display: false, label: 'caption', sample: 'Croydon · 12th visit' },
+    { cls: 'text-caption', display: false, label: 'caption', sample: 'Croydon, 12th visit' },
     { cls: 'text-label', display: false, upper: true, label: 'label', sample: 'Calories' },
     { cls: 'text-eyebrow', display: false, upper: true, label: 'eyebrow', sample: 'Streak' },
 ];
@@ -64,9 +78,9 @@ const typeScale = [
 const buttonVariants = ['primary', 'secondary', 'ghost', 'chip', 'destructive', 'link'];
 
 const detailRows = [
-    { label: 'Distance', value: '5.42 km' },
+    { label: 'Distance', value: '3.4 mi' },
     { label: 'Duration', value: '39 min' },
-    { label: 'Avg pace', value: '7:12 / km' },
+    { label: 'Avg pace', value: '11:35 / mi' },
 ];
 
 const videoEl = ref(null);
@@ -149,11 +163,11 @@ function swatchInk(step) {
             <div class="flex gap-10">
                 <div>
                     <div class="font-display text-stat">Aa</div>
-                    <div class="ds-sub mt-1">Bricolage · display</div>
+                    <div class="ds-sub mt-1">Bricolage, display</div>
                 </div>
                 <div>
                     <div class="text-stat">Aa</div>
-                    <div class="ds-sub mt-1">Inter · body</div>
+                    <div class="ds-sub mt-1">Inter, body</div>
                 </div>
             </div>
 
@@ -186,6 +200,12 @@ function swatchInk(step) {
             <div class="flex flex-wrap items-center gap-3">
                 <Button v-for="v in buttonVariants" :key="v" :variant="v">{{ v }}</Button>
             </div>
+        </section>
+
+        <!-- Callouts (Portable Text nodes) -->
+        <section class="space-y-3">
+            <h2 class="ds-label">Callouts</h2>
+            <BlockContent :document="callouts" />
         </section>
 
         <!-- Pills -->
@@ -257,7 +277,7 @@ function swatchInk(step) {
             <h2 class="ds-label">Figure</h2>
             <figure class="max-w-sm">
                 <img src="/headshot-taylor.jpg" alt="Taylor Drayson" class="w-full rounded-lg" />
-                <figcaption class="mt-2 text-caption text-neutral-500">Taylor Drayson · Croydon.</figcaption>
+                <figcaption class="mt-2 text-caption text-neutral-500">Taylor Drayson, Croydon.</figcaption>
             </figure>
         </section>
 
@@ -280,7 +300,7 @@ function swatchInk(step) {
                     <Icon :icon="PlayIcon" class="size-5" />
                 </Button>
                 <div class="min-w-0 flex-1">
-                    <div class="block truncate text-meta font-semibold text-neutral-900">This Week With · Episode 12</div>
+                    <div class="block truncate text-meta font-semibold text-neutral-900">This Week With, Episode 12</div>
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-label text-neutral-500 tnum">1:24</span>
                         <div class="relative h-1.5 flex-1 rounded-full bg-neutral-100">

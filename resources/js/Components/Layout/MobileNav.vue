@@ -53,7 +53,7 @@ onUnmounted(() => {
 
 <template>
     <div class="md:hidden" :class="shellFixed ? 'fixed inset-0 z-50 flex flex-col bg-neutral-0' : ''">
-        <header class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
+        <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
@@ -68,7 +68,7 @@ onUnmounted(() => {
             >
                 <Icon :icon="open ? Cancel01Icon : Menu01Icon" class="size-6" />
             </button>
-        </header>
+        </div>
 
         <Transition name="menu-body" @after-leave="onAfterLeave">
             <div v-if="open" id="mobile-menu" class="flex flex-1 flex-col overflow-y-auto px-5 py-6">

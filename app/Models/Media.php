@@ -72,7 +72,7 @@ class Media extends Model implements HasMedia, Timelineable
             'type' => 'media',
             'icon' => 'film',
             'title' => $this->title,
-            'subtitle' => $parts ? implode(' · ', $parts) : null,
+            'subtitle' => $parts ? implode(', ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'media',
             'meta' => [],

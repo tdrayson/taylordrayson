@@ -20,8 +20,8 @@ it('imports the events dataset from data/events.csv', function () {
         ->and($wceu->timezone)->toBe('Europe/Zurich');
 
     $panto = Event::where('type', 'theatre')
-        ->whereNotNull('company')
-        ->where('company', 'Sanderstead Dramatic Club')
+        ->whereNotNull('organiser')
+        ->where('organiser', 'Sanderstead Dramatic Club')
         ->first();
     expect($panto)->not->toBeNull();
 

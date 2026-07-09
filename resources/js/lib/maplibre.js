@@ -112,11 +112,16 @@ export function greatCircle(a, b, segments = 128) {
     return points;
 }
 
-/** Build an IATA-code label marker element styled like a small pill. */
-export function iataLabel(maplibregl, point) {
+/** Build a small pill label marker (e.g. an airport code or a venue name) that floats above its pin. */
+export function placeLabel(maplibregl, point, text) {
     const element = document.createElement('div');
-    element.textContent = point.iata;
-    element.className = 'pointer-events-none rounded-md border border-neutral-100 bg-neutral-0 px-1.5 py-0.5 text-label font-bold text-neutral-700 shadow-card';
+    element.textContent = text;
+    element.className = 'pointer-events-none max-w-48 truncate rounded-md border border-neutral-100 bg-neutral-0 px-1.5 py-0.5 text-label font-bold text-neutral-700 shadow-card';
 
     return new maplibregl.Marker({ element, anchor: 'bottom', offset: [0, -9] }).setLngLat([point.lng, point.lat]);
+}
+
+/** Build an IATA-code label marker element styled like a small pill. */
+export function iataLabel(maplibregl, point) {
+    return placeLabel(maplibregl, point, point.iata);
 }

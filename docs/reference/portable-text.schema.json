@@ -9,6 +9,8 @@
             { "$ref": "#/$defs/textBlock" },
             { "$ref": "#/$defs/image" },
             { "$ref": "#/$defs/codeBlock" },
+            { "$ref": "#/$defs/callout" },
+            { "$ref": "#/$defs/video" },
             { "$ref": "#/$defs/divider" }
         ]
     },
@@ -100,6 +102,73 @@
                 "lineNumbers": {
                     "type": "boolean",
                     "description": "Render a line-number gutter when true. Defaults to false."
+                }
+            }
+        },
+        "callout": {
+            "type": "object",
+            "required": ["_type", "_key", "variant", "markDefs", "children"],
+            "properties": {
+                "_type": { "const": "callout" },
+                "_key": { "$ref": "#/$defs/key" },
+                "variant": {
+                    "enum": ["note", "tip", "important", "warning", "caution"],
+                    "description": "GitHub-alert style variant set. Renders as a tinted panel with a bold uppercase label for the variant name."
+                },
+                "markDefs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["_key", "_type", "href"],
+                        "properties": {
+                            "_key": { "$ref": "#/$defs/key" },
+                            "_type": { "const": "link" },
+                            "href": { "type": "string", "format": "uri" }
+                        }
+                    }
+                },
+                "children": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": ["_type", "_key", "text"],
+                        "properties": {
+                            "_type": { "const": "span" },
+                            "_key": { "$ref": "#/$defs/key" },
+                            "text": { "type": "string" },
+                            "marks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Either a decorator (strong, em, code) or the _key of a markDef on the same node."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "video": {
+            "type": "object",
+            "required": ["_type", "_key", "url"],
+            "properties": {
+                "_type": { "const": "video" },
+                "_key": { "$ref": "#/$defs/key" },
+                "url": {
+                    "type": "string",
+                    "description": "Absolute URL, or a root-relative path (e.g. /storage/...) for own-hosted media. Rendered as a native <video controls> element, not an embed/iframe."
+                },
+                "caption": { "type": "string" },
+                "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel width. Send when known, same as image."
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel height. Send together with width."
                 }
             }
         },

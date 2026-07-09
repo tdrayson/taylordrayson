@@ -23,17 +23,17 @@ const nodes = computed(() => {
     return Array.isArray(doc) ? doc : [];
 });
 
-// Every image in the document forms one lightbox gallery, opened in place;
-// the node's caption carries through to the lightbox overlay.
-const lightboxItems = computed(() =>
-    nodes.value
-        .filter((node) => node._type === 'image' && node.url)
-        .map((node) => ({ full: node.url, caption: node.caption || null })),
-);
+// The clicked image opens alone: article images are standalone illustrations,
+// not a connected gallery, so the lightbox gets no prev/next between them.
+// The node's caption still carries through to the overlay.
+const activeImage = ref(null);
 const lightboxIndex = ref(null);
 
 function openImage(url) {
-    lightboxIndex.value = lightboxItems.value.findIndex((item) => item.full === url);
+    const node = nodes.value.find((item) => item._type === 'image' && item.url === url);
+
+    activeImage.value = { full: url, caption: node?.caption || null };
+    lightboxIndex.value = 0;
 }
 </script>
 
@@ -45,11 +45,18 @@ function openImage(url) {
     <div v-if="nodes.length" class="block-content prose max-w-none text-body text-neutral-900">
         <PortableTextBlocks :nodes="nodes" @image-click="openImage" />
 
-        <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
+        <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
     </div>
 </template>
 
 <style scoped>
+/* Unbroken strings (polylines, long tokens, URLs) wrap instead of overflowing
+   the column. Inherited everywhere; <pre> is unaffected (no soft wrap + its
+   own horizontal scroll). */
+.block-content {
+    overflow-wrap: anywhere;
+}
+
 .block-content :deep(a) {
     color: var(--color-accent-500);
     text-decoration: underline;
@@ -60,7 +67,8 @@ function openImage(url) {
     color: var(--color-accent-700);
 }
 
-.block-content :deep(code) {
+/* Inline-code chips only — code inside <pre> belongs to CodeBlock's own styling. */
+.block-content :deep(:not(pre) > code) {
     border-radius: 4px;
     background: var(--color-neutral-25);
     padding: 0.1em 0.35em;

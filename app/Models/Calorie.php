@@ -60,6 +60,7 @@ class Calorie extends Model implements HasMedia, Timelineable
             'type' => 'calorie',
             'icon' => 'utensils',
             'title' => number_format($dailyTotal).' kcal',
+            'titleLabel' => 'Food log, '.number_format($dailyTotal).' kcal for the day',
             'subtitle' => $this->cardSubtitle(),
             'occurred_at' => $this->occurred_at,
             'accent' => 'food',
@@ -87,6 +88,6 @@ class Calorie extends Model implements HasMedia, Timelineable
             $parts[] = round($totals->fat).'g fat';
         }
 
-        return $parts ? implode(' · ', $parts) : null;
+        return $parts ? implode(', ', $parts) : null;
     }
 }

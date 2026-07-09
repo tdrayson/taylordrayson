@@ -89,7 +89,7 @@ class Activity extends Model implements HasMedia, Timelineable
         $parts = [];
 
         if ($isCardio && $this->distance) {
-            $parts[] = Distance::km($this->distance).' km';
+            $parts[] = Distance::miles($this->distance, 1).' mi';
         }
 
         if ($this->duration) {
@@ -100,7 +100,7 @@ class Activity extends Model implements HasMedia, Timelineable
             $parts[] = number_format($this->calories).' kcal';
         }
 
-        return $parts ? implode(' · ', $parts) : null;
+        return $parts ? implode(', ', $parts) : null;
     }
 
     /**
@@ -120,7 +120,7 @@ class Activity extends Model implements HasMedia, Timelineable
             $parts[] = number_format($volume).' kg';
         }
 
-        return implode(' · ', $parts);
+        return implode(', ', $parts);
     }
 
     private function durationForHumans(int $seconds): string

@@ -9,9 +9,21 @@
 
     <title inertia>{{ config('app.name', 'Taylor Drayson') }}</title>
 
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Drayson">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
     <link rel="alternate" type="application/atom+xml" title="Taylor Drayson (Atom)" href="/feed">
     <link rel="alternate" type="application/rss+xml" title="Taylor Drayson (RSS)" href="/feed/rss">
     <link rel="alternate" type="application/feed+json" title="Taylor Drayson (JSON)" href="/feed/json">
+    @foreach ($contextualFeeds ?? [] as $feed)
+        <link rel="alternate" type="{{ $feed['type'] }}" title="{{ $feed['title'] }}" href="{{ $feed['href'] }}">
+    @endforeach
     <link rel="me" href="https://github.com/tdrayson">
 
     @vite(['resources/js/app.js'])

@@ -219,6 +219,21 @@ class OgMeta
     /**
      * @return OgPayload
      */
+    public static function onThisDay(Carbon $date): array
+    {
+        $label = $date->format('j F');
+
+        return self::make([
+            'title' => 'On this day',
+            'eyebrow' => 'On This Day',
+            'heading' => "On this day: {$label}",
+            'description' => "Everything I've logged on {$label}, across every year.",
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
     public static function day(Carbon $date): array
     {
         $label = $date->format('j F Y');
@@ -247,6 +262,22 @@ class OgMeta
             'heading' => $isTaxonomy ? $title : (OgPhrases::pick("archive.{$type}", [], $type) ?? $title),
             'accent' => TypeColors::hex($accentToken),
             'description' => $subtitle ?: 'All my '.Str::lower($title).'.',
+        ]);
+    }
+
+    /**
+     * @param  string  $label  The type's display label (e.g. "Activities").
+     * @param  string  $accentToken  The card accent token (e.g. "activity").
+     * @return OgPayload
+     */
+    public static function stats(string $label, string $accentToken): array
+    {
+        return self::make([
+            'title' => "{$label} stats",
+            'eyebrow' => $label,
+            'heading' => "{$label} stats",
+            'accent' => TypeColors::hex($accentToken),
+            'description' => 'The numbers behind my '.Str::lower($label).': totals, trends and records.',
         ]);
     }
 

@@ -11,6 +11,7 @@ interface Timelineable
      *     type: string,
      *     icon: string,
      *     title: string,
+     *     titleLabel?: string,
      *     subtitle: ?string,
      *     occurred_at: Carbon,
      *     accent: string,

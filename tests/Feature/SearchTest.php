@@ -108,13 +108,13 @@ it('filters events by the renamed description column via the advanced search bui
         ->assertInertia(fn ($page) => $page->where('total', 1));
 });
 
-it('filters events by the new company column via the advanced search builder', function () {
-    Event::factory()->create(['name' => 'Conference talk', 'company' => 'Acme Corp', 'occurred_at' => now()]);
-    Event::factory()->create(['name' => 'Gig', 'company' => 'Other Co', 'occurred_at' => now()]);
+it('filters events by the new organiser column via the advanced search builder', function () {
+    Event::factory()->create(['name' => 'Conference talk', 'organiser' => 'Acme Corp', 'occurred_at' => now()]);
+    Event::factory()->create(['name' => 'Gig', 'organiser' => 'Other Co', 'occurred_at' => now()]);
 
     $filter = [[
         'type' => 'event',
-        'conditions' => [['field' => 'company', 'operator' => 'contains', 'value' => 'Acme']],
+        'conditions' => [['field' => 'organiser', 'operator' => 'contains', 'value' => 'Acme']],
     ]];
 
     get('/search?'.http_build_query(['filter' => json_encode($filter)]))

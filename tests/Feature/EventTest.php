@@ -13,7 +13,7 @@ it('stores the restructured event fields', function () {
         'all_day' => true,
         'type' => 'conference',
         'name' => 'WordCamp Europe 2025',
-        'company' => null,
+        'organiser' => null,
         'venue_name' => 'Congress Center Basel',
         'city' => 'Basel',
         'country' => 'Switzerland',

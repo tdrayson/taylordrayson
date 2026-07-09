@@ -10,8 +10,9 @@ use Illuminate\Translation\PotentiallyTranslatedString;
  * Validates a document against the site's Portable Text dialect: `block`
  * nodes (styles normal/h2-h6/blockquote, spans carrying strong/em/code or
  * link-markDef marks, optional bullet/number list items) plus the custom
- * `image`, `code` and `divider` nodes. Mirrors docs/portable-text.schema.json,
- * which is the shareable contract for authoring clients.
+ * `image`, `code`, `callout`, `video` and `divider` nodes. Mirrors
+ * docs/reference/portable-text.schema.json, which is the shareable contract for
+ * authoring clients.
  */
 class ValidPortableText implements ValidationRule
 {
@@ -20,6 +21,8 @@ class ValidPortableText implements ValidationRule
     private const DECORATORS = ['strong', 'em', 'code'];
 
     private const LIST_ITEMS = ['bullet', 'number'];
+
+    private const CALLOUT_VARIANTS = ['note', 'tip', 'important', 'warning', 'caution'];
 
     /**
      * Run the validation rule.
@@ -59,6 +62,8 @@ class ValidPortableText implements ValidationRule
             'block' => $this->blockError($node),
             'image' => $this->imageError($node),
             'code' => $this->codeError($node),
+            'callout' => $this->calloutError($node),
+            'video' => $this->videoError($node),
             'divider' => null,
             default => 'unknown node _type',
         };
@@ -84,6 +89,37 @@ class ValidPortableText implements ValidationRule
         }
 
         return null;
+    }
+
+    private function videoError(array $node): ?string
+    {
+        $url = $node['url'] ?? null;
+
+        // Same rule as image: absolute URLs or root-relative paths (own-hosted
+        // media is stored domain-portable, e.g. /storage/...).
+        $validUrl = $this->nonEmptyString($url)
+            && (filter_var($url, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $url) === 1);
+
+        if (! $validUrl) {
+            return 'video requires a valid url';
+        }
+
+        foreach (['width', 'height'] as $dimension) {
+            if (array_key_exists($dimension, $node) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
+                return "video {$dimension} must be a positive integer when present";
+            }
+        }
+
+        return null;
+    }
+
+    private function calloutError(array $node): ?string
+    {
+        if (! in_array($node['variant'] ?? null, self::CALLOUT_VARIANTS, true)) {
+            return 'callout requires a valid variant';
+        }
+
+        return $this->richTextError($node, 'callout');
     }
 
     private function codeError(array $node): ?string
@@ -115,6 +151,15 @@ class ValidPortableText implements ValidationRule
             return 'unknown listItem';
         }
 
+        return $this->richTextError($node, 'block');
+    }
+
+    /**
+     * Shared markDefs + children validation for any node that carries one
+     * rich-text paragraph (currently `block` and `callout`).
+     */
+    private function richTextError(array $node, string $label): ?string
+    {
         $markDefs = $node['markDefs'] ?? [];
 
         if (! is_array($markDefs) || ! array_is_list($markDefs)) {
@@ -137,7 +182,7 @@ class ValidPortableText implements ValidationRule
         $children = $node['children'] ?? [];
 
         if (! is_array($children) || ! array_is_list($children) || $children === []) {
-            return 'block requires at least one span child';
+            return "{$label} requires at least one span child";
         }
 
         foreach ($children as $child) {

@@ -47,7 +47,7 @@ const nightCells = computed(() => {
 
         return {
             href: `/${year}/${month}/${day}`,
-            label: `${date} · ${parts.hours}h ${parts.minutes}m`,
+            label: `${date}, ${parts.hours}h ${parts.minutes}m`,
             heightPct: `${(h / MAX) * 100}%`,
             today: i === props.nights.length - 1,
         };

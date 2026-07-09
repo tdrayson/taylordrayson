@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('events', function (Blueprint $table): void {
             $table->timestamp('ends_at')->nullable()->after('occurred_at');
             $table->boolean('all_day')->default(false)->after('ends_at');
-            $table->string('company')->nullable()->after('name');
+            $table->string('organiser')->nullable()->after('name');
             $table->string('url')->nullable()->after('country');
             $table->json('meta')->nullable()->after('url');
         });
@@ -37,7 +37,7 @@ return new class extends Migration
         });
 
         Schema::table('events', function (Blueprint $table): void {
-            $table->dropColumn(['ends_at', 'all_day', 'company', 'url', 'meta']);
+            $table->dropColumn(['ends_at', 'all_day', 'organiser', 'url', 'meta']);
         });
     }
 };

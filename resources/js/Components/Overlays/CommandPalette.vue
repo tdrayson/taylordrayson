@@ -3,7 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
-import { Search01Icon, Calendar03Icon, SparklesIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { Search01Icon, Calendar03Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 import { pageCommands, archiveCommands } from '../../navigation.js';
@@ -20,6 +20,9 @@ const listEl = ref(null);
 // taxonomy destination pages drawn live from the registry.
 const entryResults = ref([]);
 const destinationResults = ref([]);
+// True from the keystroke until the debounced server fetch resolves, so the
+// "No matches" empty state never flashes in the gap before async results land.
+const searching = ref(false);
 let searchTimer = null;
 let searchController = null;
 
@@ -143,7 +146,9 @@ const sections = computed(() => {
                 label: destination.label,
                 meta: destination.section,
                 href: destination.url,
-                icon: entryType(destination.type).icon,
+                // Tags are cross-type, so they get a tag icon; other taxonomy jumps
+                // keep their owning type's icon (a flight for an airline, etc.).
+                icon: destination.tag ? Tag01Icon : entryType(destination.type).icon,
             })),
         });
     }
@@ -190,11 +195,14 @@ watch(query, (value) => {
     }
 
     if (term.length < 2) {
+        searching.value = false;
         entryResults.value = [];
         destinationResults.value = [];
 
         return;
     }
+
+    searching.value = true;
 
     searchTimer = setTimeout(async () => {
         searchController = new AbortController();
@@ -208,10 +216,12 @@ watch(query, (value) => {
             const payload = response.ok ? await response.json() : {};
             entryResults.value = payload.results ?? [];
             destinationResults.value = payload.destinations ?? [];
+            searching.value = false;
         } catch (error) {
             if (error.name !== 'AbortError') {
                 entryResults.value = [];
                 destinationResults.value = [];
+                searching.value = false;
             }
         }
     }, 180);
@@ -231,6 +241,7 @@ watch(isOpen, (open) => {
 
         searchController?.abort();
         searchController = null;
+        searching.value = false;
         entryResults.value = [];
         destinationResults.value = [];
     }
@@ -356,7 +367,10 @@ onUnmounted(() => {
                             </button>
                         </template>
 
-                        <p v-if="flatItems.length === 0" class="px-4 py-6 text-center text-meta text-neutral-500">
+                        <p v-if="flatItems.length === 0 && searching" class="px-4 py-6 text-center text-meta text-neutral-500">
+                            Searching…
+                        </p>
+                        <p v-else-if="flatItems.length === 0" class="px-4 py-6 text-center text-meta text-neutral-500">
                             No matches for &ldquo;{{ query }}&rdquo;
                         </p>
                     </div>

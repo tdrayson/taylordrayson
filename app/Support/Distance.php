@@ -15,11 +15,18 @@ class Distance
     }
 
     /**
-     * Metres to whole miles for display.
+     * Metres to miles for display. Whole miles by default; pass a precision
+     * for short distances where tenths matter (e.g. a 5k run is 3.1 mi).
      */
-    public static function miles(?int $metres): ?int
+    public static function miles(?int $metres, int $precision = 0): float|int|null
     {
-        return $metres === null ? null : (int) round($metres / self::METRES_PER_MILE);
+        if ($metres === null) {
+            return null;
+        }
+
+        $miles = round($metres / self::METRES_PER_MILE, $precision);
+
+        return $precision === 0 ? (int) $miles : $miles;
     }
 
     /**

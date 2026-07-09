@@ -124,6 +124,9 @@
        (ch-based, so it scales with the heading's own size). */
     --container-media: 44rem;
     --container-heading: 35ch;
+    /* Wide dashboards (e.g. the stats pages) cap here and centre, so cards
+       don't stretch awkwardly on very wide screens (`max-w-dashboard`). */
+    --container-dashboard: 90rem;
 
     /* Elevation — the single shadow tier */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
@@ -285,7 +288,7 @@
    margins. See https://docs.automaticcss.com/3.0/grids/content-grid */
 .content-grid {
     --content-max-width: 56rem;
-    --breakout-max-width: 72rem;
+    --breakout-max-width: 75rem;
     --padding-inline: 1.25rem;
     --breakout-size: calc((var(--breakout-max-width) - var(--content-max-width)) / 2);
 
@@ -425,4 +428,14 @@
 .now-grid .grid-stack-item-content,
 .now-grid .grid-stack-placeholder > .placeholder-content {
     border-radius: 1.5rem;
+}
+
+/* iOS Safari zooms the page when a focused control's font-size is under 16px.
+   Hold a 16px floor on touch devices; unlayered so it beats text-size utilities. */
+@media (pointer: coarse) {
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+    }
 }

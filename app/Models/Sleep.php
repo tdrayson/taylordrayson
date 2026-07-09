@@ -74,6 +74,7 @@ class Sleep extends Model implements HasMedia, Timelineable
             'type' => 'sleep',
             'icon' => 'bed',
             'title' => "{$formatted} sleep",
+            'titleLabel' => "Sleep log, {$formatted}",
             'subtitle' => $this->bedtime->format('g:ia').' → '.$this->wake_time->format('g:ia'),
             'occurred_at' => $this->occurred_at,
             'accent' => 'sleep',

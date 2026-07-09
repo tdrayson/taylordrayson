@@ -76,10 +76,10 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         <AppHead :og="og" />
 
         <header class="relative mb-10">
-            <span class="absolute left-0 top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 sm:flex lg:-left-16">
+            <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 lg:-left-16 lg:flex">
                 <Icon :icon="RssIcon" class="size-6" />
             </span>
-            <div class="min-w-0 sm:pl-16 lg:pl-0">
+            <div class="min-w-0">
                 <h1 class="font-display text-display">Feeds</h1>
                 <p class="mt-2 max-w-prose text-meta text-neutral-500">
                     Pop me in your feed reader. Grab one of my ready-made mixes, or flip the switches below

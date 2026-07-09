@@ -154,7 +154,7 @@ vehicle_id (config/vehicles.php), litres, cost, fuel_card_cost,
 price_per_litre, odometer, fuel_station_id
 ```
 
-**`events`**, **`appearances`**, **`projects`**, **`articles`**, **`notes`** are flat-column tables. `articles` and `notes` store their body as Editor.js block content (see `app/Support/EditorJs.php`).
+**`events`**, **`appearances`**, **`projects`**, **`articles`**, **`notes`** are flat-column tables. `articles` and `notes` store their body as Portable Text (see `app/Support/PortableText.php`), validated against `docs/reference/portable-text.schema.json`.
 
 **Supporting tables:** `airlines`, `airports`, `fuel_stations` (lookups), `leaderboard_entries` (Snake game), plus framework `users` / `cache` / `jobs`.
 

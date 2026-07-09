@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
+import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
@@ -24,6 +25,8 @@ const props = defineProps({
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
+    // Accessible name for the title when the visible text lacks context (e.g. "3,145 kcal").
+    titleLabel: { type: String, default: null },
     // Full note content: title-less types render this as body text instead of
     // the display-font title, with the timestamp acting as the permalink.
     body: { type: String, default: null },
@@ -204,20 +207,24 @@ function openLightbox(index) {
         <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 lg:-left-12">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
-        <div class="flex min-h-9 items-center gap-2.5">
-            <component
-                :is="typeHref ? Link : 'div'"
-                :href="typeHref || undefined"
-                class="type-color p-category text-label uppercase"
-                :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
-            >{{ displayType }}</component>
-            <!-- The timestamp is every card's permalink, like classic microblogs;
-                 like every card link it underlines on hover/focus. -->
-            <Link v-if="url && datetime" :href="url" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
-                <time :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
-            </Link>
-            <time v-else-if="datetime" :datetime="datetime" :title="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
-            <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
+        <!-- Outer row centres against the icon rail; inner group baseline-aligns the label and time. -->
+        <div class="flex min-h-9 items-center">
+            <div class="flex items-baseline gap-2.5">
+                <component
+                    :is="typeHref ? Link : 'div'"
+                    :href="typeHref || undefined"
+                    class="type-color p-category text-label uppercase"
+                    :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
+                >{{ displayType }}</component>
+                <!-- Timestamp is the card's permalink; full date shows as a tooltip and is the link's aria-label. -->
+                <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
+                    <Link v-if="url" :href="url" :aria-label="fullTimestamp" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
+                        <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
+                    </Link>
+                    <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
+                </Tooltip>
+                <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
+            </div>
         </div>
         <!-- Notes show their full content as body text; everything else gets a display-font title. -->
         <p v-if="body" class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
@@ -229,6 +236,7 @@ function openLightbox(index) {
             <component
                 :is="url ? Link : 'span'"
                 :href="url || undefined"
+                :aria-label="titleLabel || undefined"
                 class="p-name"
                 :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
             >{{ title }}</component>
@@ -236,10 +244,10 @@ function openLightbox(index) {
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>
-            <span v-if="airline.number" class="text-neutral-400 tnum">· {{ airline.number }}</span>
+            <span v-if="airline.number" class="text-neutral-400 tnum">{{ airline.number }}</span>
         </div>
         <!-- Multi-day badge, e.g. a festival or conference spanning several days. -->
-        <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} &middot; {{ range.days }} days</span>
+        <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
         <FlightRoute
             v-if="routeView"
             compact
@@ -257,41 +265,61 @@ function openLightbox(index) {
         <!-- Map alone when there is no photo. -->
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover">
 
-        <!-- The cover shown on its own: on small screens (to avoid cramming both),
-             and whenever the activity has no route map. -->
-        <component
+        <!-- Cover on its own (small screens, or no route map). Image link and zoom button are
+             siblings, not nested; the image link duplicates the text permalink so it is aria-hidden. -->
+        <div
             v-if="coverPhoto"
-            :is="url ? Link : 'div'"
-            :href="url || undefined"
             class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
             :class="routeImageUrl ? 'lg:hidden' : ''"
         >
-            <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
-            <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click.prevent.stop="openLightbox(0)">
+            <component
+                :is="url ? Link : 'div'"
+                :href="url || undefined"
+                :tabindex="url ? -1 : undefined"
+                :aria-hidden="url ? 'true' : undefined"
+                class="block size-full"
+            >
+                <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
+            </component>
+            <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                 <ZoomButton />
             </button>
             <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
-        </component>
+        </div>
 
         <!-- A wide route map (aspect-video, the same 512x288 as a video thumbnail)
              beside a square cover of the same height, like Strava, on lg+ screens.
              Both are sized by a fixed height plus their aspect, so widths follow
              cleanly without flex height-matching. -->
-        <component
+        <div
             v-if="routeImageUrl && coverPhoto"
-            :is="url ? Link : 'div'"
-            :href="url || undefined"
             class="mt-3 hidden gap-2 lg:flex"
         >
-            <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+            <component
+                :is="url ? Link : 'div'"
+                :href="url || undefined"
+                :tabindex="url ? -1 : undefined"
+                :aria-hidden="url ? 'true' : undefined"
+                class="block"
+            >
+                <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+            </component>
             <div class="group/zoom relative">
-                <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
-                <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click.prevent.stop="openLightbox(0)">
+                <component
+                    :is="url ? Link : 'div'"
+                    :href="url || undefined"
+                    :tabindex="url ? -1 : undefined"
+                    :aria-hidden="url ? 'true' : undefined"
+                    class="block"
+                >
+                    <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+                </component>
+                <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                     <ZoomButton />
                 </button>
                 <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
             </div>
-        </component>
+        </div>
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div
             v-if="media?.thumbnail && media?.videoUrl"

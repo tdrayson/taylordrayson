@@ -35,7 +35,7 @@ it('rejects malformed documents', function (mixed $document) {
     expect(ptPasses($document))->toBeFalse();
 })->with([
     'not a list' => [['blocks' => []]],
-    'unknown node type' => [[['_type' => 'video', '_key' => 'k1']]],
+    'unknown node type' => [[['_type' => 'embed', '_key' => 'k1']]],
     'block without children' => [[['_type' => 'block', '_key' => 'k1', 'style' => 'normal', 'markDefs' => [], 'children' => []]]],
     'unknown style' => [[['_type' => 'block', '_key' => 'k1', 'style' => 'h1', 'markDefs' => [], 'children' => [['_type' => 'span', '_key' => 'k2', 'text' => 'x', 'marks' => []]]]]],
     'span missing text' => [[['_type' => 'block', '_key' => 'k1', 'style' => 'normal', 'markDefs' => [], 'children' => [['_type' => 'span', '_key' => 'k2', 'marks' => []]]]]],
@@ -69,4 +69,50 @@ it('rejects malformed code node extras', function (mixed $document) {
     'non-string filename' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'filename' => 123]]],
     'empty language' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'language' => '']]],
     'non-bool lineNumbers' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'lineNumbers' => 'yes']]],
+]);
+
+it('accepts a valid callout node', function () {
+    $link = PortableText::key();
+
+    expect(ptPasses([
+        [
+            '_type' => 'callout', '_key' => PortableText::key(), 'variant' => 'tip',
+            'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => 'https://example.com']],
+            'children' => [PortableText::span('Bold '), PortableText::span('link', ['strong', $link])],
+        ],
+    ]))->toBeTrue();
+
+    foreach (['note', 'tip', 'important', 'warning', 'caution'] as $variant) {
+        expect(ptPasses([
+            ['_type' => 'callout', '_key' => PortableText::key(), 'variant' => $variant, 'markDefs' => [], 'children' => [PortableText::span('Body text')]],
+        ]))->toBeTrue();
+    }
+});
+
+it('rejects malformed callout nodes', function (mixed $document) {
+    expect(ptPasses($document))->toBeFalse();
+})->with([
+    'bad variant' => [[['_type' => 'callout', '_key' => 'k1', 'variant' => 'danger', 'markDefs' => [], 'children' => [['_type' => 'span', '_key' => 'k2', 'text' => 'x', 'marks' => []]]]]],
+    'missing variant' => [[['_type' => 'callout', '_key' => 'k1', 'markDefs' => [], 'children' => [['_type' => 'span', '_key' => 'k2', 'text' => 'x', 'marks' => []]]]]],
+    'no children' => [[['_type' => 'callout', '_key' => 'k1', 'variant' => 'note', 'markDefs' => [], 'children' => []]]],
+    'bad mark on child' => [[['_type' => 'callout', '_key' => 'k1', 'variant' => 'note', 'markDefs' => [], 'children' => [['_type' => 'span', '_key' => 'k2', 'text' => 'x', 'marks' => ['underline-nope']]]]]],
+]);
+
+it('accepts a valid video node', function () {
+    expect(ptPasses([
+        ['_type' => 'video', '_key' => 'k1', 'url' => 'https://example.com/clip.mp4', 'caption' => 'Demo', 'width' => 1280, 'height' => 720],
+    ]))->toBeTrue();
+
+    expect(ptPasses([
+        ['_type' => 'video', '_key' => 'k1', 'url' => '/storage/1/clip.mp4'],
+    ]))->toBeTrue();
+});
+
+it('rejects malformed video nodes', function (mixed $document) {
+    expect(ptPasses($document))->toBeFalse();
+})->with([
+    'missing url' => [[['_type' => 'video', '_key' => 'k1']]],
+    'protocol-relative url' => [[['_type' => 'video', '_key' => 'k1', 'url' => '//example.com/clip.mp4']]],
+    'width not an integer' => [[['_type' => 'video', '_key' => 'k1', 'url' => 'https://example.com/clip.mp4', 'width' => '1280']]],
+    'width zero' => [[['_type' => 'video', '_key' => 'k1', 'url' => 'https://example.com/clip.mp4', 'width' => 0]]],
 ]);

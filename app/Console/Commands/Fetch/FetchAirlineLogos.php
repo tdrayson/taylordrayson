@@ -57,9 +57,9 @@ class FetchAirlineLogos extends Command
                 }
 
                 match ($this->download($logoStream, $iata, $variant, $path)) {
-                    'saved' => [$this->components->task("{$iata} · {$type}"), $downloaded++],
-                    'unavailable' => [$this->components->warn("{$iata} · {$type} — no logo available"), $unavailable++],
-                    default => [$this->components->error("{$iata} · {$type} — request failed"), $failed++],
+                    'saved' => [$this->components->task("{$iata}, {$type}"), $downloaded++],
+                    'unavailable' => [$this->components->warn("{$iata}, {$type} - no logo available"), $unavailable++],
+                    default => [$this->components->error("{$iata}, {$type} - request failed"), $failed++],
                 };
             }
         }

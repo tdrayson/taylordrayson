@@ -10,6 +10,7 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
+use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
@@ -67,13 +68,22 @@ foreach (TypeRegistry::all() as $type => $definition) {
     Route::get($definition['slug'], [ArchiveController::class, 'index'])
         ->defaults('type', $type)->name("archive.{$definition['slug']}");
 
+    // Two-way support: /{slug}/stats resolves to the canonical /stats/{slug}.
+    // Registered before the taxonomy route below so "stats" is not matched as a
+    // taxonomy value (e.g. /activities/{value}).
+    Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
+
     if ($taxonomy = $definition['taxonomy']) {
         Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
             ->defaults('type', $type)->name("archive.{$taxonomy['base']}");
     }
 }
 
+Route::get('/stats/{type}', [StatsController::class, 'show'])
+    ->where('type', '[a-z][a-z0-9-]*')->name('stats.show');
+
 Route::get('/', [TimelineController::class, 'index'])->name('timeline');
+Route::get('/on-this-day', [TimelineController::class, 'onThisDay'])->name('on-this-day');
 Route::get('/{year}', [TimelineController::class, 'year'])
     ->where(['year' => '\d{4}'])->name('year');
 Route::get('/{year}/{month}', [TimelineController::class, 'month'])

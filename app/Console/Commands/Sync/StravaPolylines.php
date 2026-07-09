@@ -89,7 +89,7 @@ class StravaPolylines extends Command
                 $fetched++;
             }
 
-            $this->info("[{$fetched}/{$activities->count()}] {$activity->name} — ".($polyline ? 'polyline saved' : 'no polyline'));
+            $this->info("[{$fetched}/{$activities->count()}] {$activity->name} - ".($polyline ? 'polyline saved' : 'no polyline'));
         }
 
         $this->writeCsv($csvPath, $csvData);

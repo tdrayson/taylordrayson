@@ -47,7 +47,7 @@ const origin = computed(() => {
 });
 
 const canonical = computed(() => `${origin.value}${page.url}`);
-const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} · ${SITE_NAME}` : SITE_NAME));
+const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME}` : SITE_NAME));
 
 // An explicit image wins; otherwise build the generated OG card URL from the
 // card heading (falling back to the title), eyebrow, accent, and variant.

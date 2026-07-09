@@ -56,11 +56,12 @@ function dayUrl(day) {
             <Link
                 v-if="cell"
                 :href="dayUrl(cell)"
-                class="flex min-h-24 flex-col rounded-md border-2 border-transparent bg-neutral-25 p-2 transition-colors hover:border-accent-500 focus-visible:border-accent-500 focus-visible:outline-none"
+                class="flex min-h-24 flex-col rounded-md border-2 border-transparent bg-neutral-25 p-2 transition-colors hover:border-accent-500 focus-visible:border-accent-500 focus-visible:outline-none sm:aspect-square"
                 :class="isCurrentMonth && cell === today.getDate() ? 'outline outline-2 outline-accent-500' : ''"
             >
                 <span class="text-sm font-semibold" :class="isCurrentMonth && cell === today.getDate() ? 'text-accent-500' : 'text-neutral-900'">{{ cell }}</span>
-                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-neutral-500 tnum">
+                <!-- Sleep and food stack on their own lines so every cell reads consistently. -->
+                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 flex flex-col gap-0.5 text-xs text-neutral-500 tnum">
                     <span v-if="days[cell]?.sleep" class="inline-flex items-center gap-1">
                         <Icon :icon="sleepIcon" class="size-3" />{{ sleepHours(days[cell].sleep) }}
                     </span>

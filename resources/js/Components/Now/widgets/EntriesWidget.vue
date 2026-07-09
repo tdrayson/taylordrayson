@@ -40,7 +40,7 @@ const cells = computed(() => {
         return {
             href: `/${year}/${month}/${day}`,
             color: COLORS[level(c)],
-            title: `${date} · ${fmtCount(c)}`,
+            title: `${date}, ${fmtCount(c)}`,
         };
     });
 });

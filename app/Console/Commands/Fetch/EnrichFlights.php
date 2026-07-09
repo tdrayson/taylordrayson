@@ -170,7 +170,7 @@ class EnrichFlights extends Command
                 'arrival_timezone' => $this->timezoneFor($arrival),
                 'distance' => $distance !== null ? Distance::fromMiles($distance) : null,
             ];
-            $this->components->warn("{$departure} → {$arrival} not in aviation API — used coordinate/timezone fallback");
+            $this->components->warn("{$departure} → {$arrival} not in aviation API - used coordinate/timezone fallback");
         } else {
             $this->components->task("{$departure} → {$arrival}");
         }

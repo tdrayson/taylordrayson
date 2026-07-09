@@ -5,6 +5,27 @@ import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 
+// Callout tint per variant (GitHub-alert set). The neutral ramp covers
+// 'note'; 'important' reuses the accent/blueberry brand ramp; 'tip'
+// (green), 'warning' (amber) and 'caution' borrow the closest-hue timeline
+// data-type tokens (activity, fuel, media) since the palette has no
+// dedicated success/warning/danger scale of its own. Chip text stays
+// neutral-900/accent-700 (both proven-contrast pairs elsewhere in the
+// design system) rather than colouring text with the single-value hue
+// tokens, which have no dark shade to guarantee contrast.
+// Statamic-hot-tip flavour: a flat pastel panel (no border) with a chunky
+// tilted label overlapping the panel's top edge. Chips are OPAQUE solids in
+// the full-strength hue so they pop against the panel and nothing shows
+// through where they overlap its edge. Hues reuse existing tokens:
+// neutral / activity green / accent / fuel amber / media red.
+const CALLOUT_VARIANTS = {
+    note: { label: 'Note', panel: 'bg-neutral-25', chip: 'bg-neutral-900 text-neutral-0' },
+    tip: { label: 'Tip', panel: 'bg-activity/10', chip: 'bg-activity text-neutral-0' },
+    important: { label: 'Important', panel: 'bg-accent-50', chip: 'bg-accent-500 text-neutral-0' },
+    warning: { label: 'Warning', panel: 'bg-fuel/10', chip: 'bg-fuel text-neutral-900' },
+    caution: { label: 'Caution', panel: 'bg-media/10', chip: 'bg-media text-neutral-0' },
+};
+
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
 // collapsed to single hyphens, leading/trailing hyphens trimmed.
 function slugify(text) {
@@ -230,6 +251,50 @@ function renderCode(node) {
     });
 }
 
+function renderCallout(node) {
+    const variant = CALLOUT_VARIANTS[node.variant] ?? CALLOUT_VARIANTS.note;
+
+    // not-prose: a self-contained panel, like CodeBlock; prose's paragraph
+    // rhythm must not leak in. max-w-media (the image width) keeps the panel
+    // edge-aligned with images/videos while its padding brings the text
+    // inside back to roughly the prose measure. The outer pt-3 reserves
+    // headroom for the label, which sits half above the panel (Statamic
+    // hot-tip style) via absolute -top.
+    // my-8 puts the breathing room OUTSIDE the panel; interior padding stays
+    // compact (pt-7 just clears the overlapping chip).
+    return h('div', { key: node._key, class: 'not-prose my-8 max-w-media pt-3' }, [
+        h('div', { class: `relative rounded-2xl px-6 pb-5 pt-7 ${variant.panel}` }, [
+            h('span', {
+                class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
+            }, variant.label),
+            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node)),
+        ]),
+    ]);
+}
+
+function renderVideo(node) {
+    if (!node.url) {
+        return null;
+    }
+
+    return h('figure', { key: node._key, class: 'max-w-media' }, [
+        h('video', {
+            src: node.url,
+            controls: true,
+            preload: 'metadata',
+            width: node.width || undefined,
+            height: node.height || undefined,
+            // block: replaced elements are inline by default, which leaves a
+            // stray gap below them in a grid/flex ancestor; block avoids that
+            // the same way the image's button wrapper does for <img>.
+            class: 'block max-h-media w-full rounded-lg border border-neutral-50',
+        }),
+        node.caption
+            ? h('figcaption', { class: 'mt-2 text-left text-meta text-neutral-500' }, node.caption)
+            : null,
+    ]);
+}
+
 function renderNode(node, headingIds, onImageClick) {
     if (node._type === 'block') {
         return renderTextBlock(node, headingIds);
@@ -241,6 +306,14 @@ function renderNode(node, headingIds, onImageClick) {
 
     if (node._type === 'code') {
         return renderCode(node);
+    }
+
+    if (node._type === 'callout') {
+        return renderCallout(node);
+    }
+
+    if (node._type === 'video') {
+        return renderVideo(node);
     }
 
     if (node._type === 'divider') {

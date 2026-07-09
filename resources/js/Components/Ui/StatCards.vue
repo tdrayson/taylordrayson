@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from 'vue';
+import { unitTitle } from '../../lib/units.js';
 
 const props = defineProps({
-    // Each: { value, label, tone? } where tone is 'default', 'accent' or 'fuel'.
+    // Each: { value, label, unit?, tone? } where tone is 'default', 'accent',
+    // 'fuel', 'food', 'flight' or 'activity'.
     stats: { type: Array, default: () => [] },
 });
 
@@ -12,6 +14,7 @@ const TONES = {
     fuel: 'bg-fuel/10 text-neutral-900',
     food: 'bg-food/10 text-neutral-900',
     flight: 'bg-flight/10 text-neutral-900',
+    activity: 'bg-activity/10 text-neutral-900',
 };
 
 // Match the column count to the number of stats so there's never an empty cell.
@@ -36,7 +39,7 @@ const columns = computed(() => COLUMNS[props.stats.length] ?? 'grid-cols-2 sm:gr
              original div order, while the DOM order stays term-first. -->
         <div v-for="(stat, index) in stats" :key="index" class="flex flex-col-reverse px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
             <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
-            <dd class="font-display text-stat leading-none tnum">{{ stat.value }}</dd>
+            <dd class="font-display text-stat leading-none tnum">{{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ stat.unit }}</abbr></dd>
         </div>
     </dl>
 </template>

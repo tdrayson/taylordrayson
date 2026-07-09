@@ -66,7 +66,7 @@ class Checkin extends Model implements HasMedia, Timelineable
             'type' => 'checkin',
             'icon' => 'map-pin',
             'title' => $this->venue_name,
-            'subtitle' => $parts ? implode(' · ', $parts) : null,
+            'subtitle' => $parts ? implode(', ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'checkin',
             'meta' => [],

@@ -11,7 +11,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class GenerateLocationMap
 {
-    private const ZOOM = 14;
+    private const ZOOM = 15;
+
+    private const MARKER_COLOR = '8541C8';
 
     public function __invoke(Model&HasMedia $model): ?Media
     {
@@ -28,7 +30,7 @@ class GenerateLocationMap
             return null;
         }
 
-        $marker = "pin-s+2E9E6A({$lng},{$lat})";
+        $marker = 'pin-l+'.self::MARKER_COLOR."({$lng},{$lat})";
         $center = "{$lng},{$lat},".self::ZOOM;
 
         $url = "https://api.mapbox.com/styles/v1/mapbox/light-v11/static/{$marker}/{$center}/800x500@2x?access_token={$token}";

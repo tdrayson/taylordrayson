@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { cn } from '../../lib/cn.js';
+import { unitTitle } from '../../lib/units.js';
 import Duration from '../Timeline/Duration.vue';
 
 const props = defineProps({
@@ -27,7 +28,7 @@ const big = computed(() => props.size === 'lg');
             <dd class="font-display font-extrabold leading-none tracking-tight tnum" :class="big ? 'text-stat-lg' : 'text-stat'">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />
                 <template v-else>
-                    {{ stat.value }}<span v-if="stat.unit" class="ml-1 font-semibold text-neutral-500" :class="big ? 'text-lg' : 'text-base'">{{ stat.unit }}</span>
+                    {{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 font-semibold text-neutral-500 no-underline" :class="big ? 'text-lg' : 'text-base'">{{ stat.unit }}</abbr>
                 </template>
             </dd>
         </div>

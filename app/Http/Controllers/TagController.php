@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Actions\BuildTimelineFeed;
 use App\Models\Article;
 use App\Models\Tag;
+use App\Models\Taggable;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -53,7 +53,7 @@ class TagController extends Controller
      */
     private function resolveEntries(Tag $tag): Collection
     {
-        $taggables = DB::table('taggables')->where('tag_id', $tag->id)->get(['taggable_type', 'taggable_id']);
+        $taggables = Taggable::query()->where('tag_id', $tag->id)->get(['taggable_type', 'taggable_id']);
 
         if ($taggables->isEmpty()) {
             return collect();
@@ -83,7 +83,7 @@ class TagController extends Controller
      * articles so an authenticated preview sees them despite there being no
      * spine row to resolve through.
      *
-     * @param  Collection<int, object{taggable_type: string, taggable_id: int}>  $taggables
+     * @param  Collection<int, Taggable>  $taggables
      * @return Collection<int, TimelineEntry>
      */
     private function unpublishedArticlePreviews(Collection $taggables): Collection

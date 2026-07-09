@@ -48,10 +48,10 @@ setLayoutProps({
             :next="{ label: String(year + 1), href: `/${year + 1}` }"
         />
 
-        <StatGrid v-if="stats.length" :stats="stats" size="lg" class="mt-8" />
+        <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
 
         <section v-if="entriesCount">
-            <SectionHead title="The year" :meta="`${Object.keys(heatmap).length} days logged`" />
+            <SectionHead :title="heatmapTitle" :meta="`${Object.keys(heatmap).length} days logged`" />
             <Heatmap :days="heatmap" :year="year" />
         </section>
 

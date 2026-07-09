@@ -57,7 +57,7 @@ class FoursquareImport extends Command
 
                 $imported++;
                 $venueName = $venue['name'] ?? 'Unknown';
-                $this->info("[{$imported}] {$venueName} — ".date('Y-m-d', $item['createdAt']));
+                $this->info("[{$imported}] {$venueName} - ".date('Y-m-d', $item['createdAt']));
 
                 if ($limit > 0 && $imported >= $limit) {
                     break;

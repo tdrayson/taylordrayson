@@ -100,7 +100,7 @@ function onMove(event) {
                 class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card tnum"
                 :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%` }"
             >
-                {{ hovered.bpm }} bpm<template v-if="hovered.time"> · {{ hovered.time }}</template>
+                {{ hovered.bpm }} bpm<template v-if="hovered.time">, {{ hovered.time }}</template>
             </div>
         </template>
     </div>

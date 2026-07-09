@@ -45,15 +45,15 @@ const headingCount = computed(() => contentNodes.value.filter(
         </div>
 
         <!-- Wrapper div (not the img) is the grid item: replaced elements
-             don't stretch to their grid area, block boxes do. The image keeps
-             its intrinsic aspect ratio (no fixed height, no cropping). -->
-        <div v-if="entry.cover" class="mb-6 overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:full-width-inset">
+             don't stretch to their grid area, block boxes do. Covers always
+             present as a 16:9 banner, cropping via object-cover. -->
+        <div v-if="entry.cover" class="mb-6 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
             <img
                 :src="entry.cover.src"
                 :srcset="entry.cover.srcset || undefined"
                 sizes="100vw"
                 alt=""
-                class="w-full"
+                class="size-full object-cover"
             >
         </div>
 
