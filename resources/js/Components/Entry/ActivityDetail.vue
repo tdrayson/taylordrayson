@@ -6,6 +6,7 @@ import HeartRateChart from '../Stats/HeartRateChart.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { number, titleCase } from '../../lib/format.js';
+import { metresToMiles } from '../../lib/distance.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -51,7 +52,7 @@ function setWeight(set) {
 }
 
 const stats = computed(() => [
-    { label: 'Distance', value: number(props.entry.distance_km, 2), unit: 'km' },
+    { label: 'Distance', value: number(metresToMiles(props.entry.distance, 1), 1), unit: 'mi' },
     { label: 'Duration', seconds: props.entry.duration ?? null },
     { label: 'Calories', value: number(props.entry.calories), unit: 'kcal' },
     { label: 'Avg HR', value: number(props.entry.average_heart_rate), unit: 'bpm' },
@@ -122,14 +123,14 @@ function weightLabel(value) {
                     <div class="flex items-baseline justify-between gap-4 bg-neutral-25 px-4 py-2.5">
                         <span class="min-w-0 truncate font-display text-section">{{ exercise.name }}</span>
                         <span class="shrink-0 text-meta font-semibold text-neutral-700 tnum">
-                            {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume"> · {{ number(exercise.volume) }} kg</template>
+                            {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume">, {{ number(exercise.volume) }} kg</template>
                         </span>
                     </div>
                     <div class="divide-y divide-neutral-50">
                         <div v-for="(set, index) in exercise.sets" :key="index" class="flex items-center justify-between gap-4 px-4 py-2">
                             <span class="text-label uppercase text-neutral-500">Set {{ index + 1 }}</span>
                             <span class="text-meta text-neutral-900 tnum">
-                                <span class="font-semibold">{{ set.reps }}</span> <span class="text-neutral-500">reps</span> · {{ weightLabel(set.weight) }}
+                                <span class="font-semibold">{{ set.reps }}</span> <span class="text-neutral-500">reps</span>, {{ weightLabel(set.weight) }}
                             </span>
                         </div>
                     </div>

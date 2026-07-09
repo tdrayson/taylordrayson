@@ -30,4 +30,24 @@ trait HasAttachments
             ->performOnCollections('cover', 'photos')
             ->withResponsiveImages();
     }
+
+    /**
+     * The entry's photos in display order (cover first, then the gallery),
+     * each with the optimised card source, its responsive srcset, and the
+     * full-size original for the lightbox.
+     *
+     * @return array<int, array{src: string, srcset: ?string, full: string}>
+     */
+    public function galleryPhotos(): array
+    {
+        return $this->getMedia('cover')
+            ->merge($this->getMedia('photos'))
+            ->map(fn (Media $media): array => [
+                'src' => $media->getUrl('card'),
+                'srcset' => $media->getSrcset('card') ?: null,
+                'full' => $media->getUrl(),
+            ])
+            ->values()
+            ->all();
+    }
 }

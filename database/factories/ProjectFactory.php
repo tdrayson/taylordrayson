@@ -36,7 +36,6 @@ class ProjectFactory extends Factory
     {
         $title = fake()->randomElement(self::PROJECT_NAMES);
         $occurredAt = fake()->dateTimeBetween('-6 months');
-        $startedAt = fake()->dateTimeBetween('-2 years', $occurredAt);
 
         return [
             'occurred_at' => $occurredAt,
@@ -47,11 +46,6 @@ class ProjectFactory extends Factory
             'github_url' => fake()->optional(0.6)->url(),
             'status' => fake()->randomElement(['active', 'maintained', 'archived', 'on_hold']),
             'featured' => fake()->boolean(20),
-            'tags' => fake()->randomElements(
-                ['Laravel', 'PHP', 'JavaScript', 'Tailwind', 'Vue', 'WordPress', 'API'],
-                fake()->numberBetween(1, 3),
-            ),
-            'started_at' => $startedAt,
         ];
     }
 }

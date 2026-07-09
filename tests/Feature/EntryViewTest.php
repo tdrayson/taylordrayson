@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
 use App\Models\Note;
@@ -17,7 +18,7 @@ it('renders an activity entry via Inertia', function () {
     $activity = Activity::factory()->create([
         'name' => 'Morning Run',
         'type' => 'run',
-        'distance_km' => 5.42,
+        'distance' => 5420,
         'duration' => 2340,
         'occurred_at' => '2026-03-15 07:30:00',
     ]);
@@ -29,7 +30,7 @@ it('renders an activity entry via Inertia', function () {
             ->where('type', 'activity')
             ->where('accent', 'activity')
             ->where('title', 'Morning Run')
-            ->where('entry.distance_km', fn ($value) => (float) $value === 5.42)
+            ->where('entry.distance', fn ($value) => (int) $value === 5420)
         );
 });
 
@@ -41,7 +42,10 @@ it('renders a note entry via Inertia', function () {
 
     get('/'.entryUrl($note))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Entry')->where('type', 'note'));
+        ->assertInertia(fn ($page) => $page->component('Entry')
+            ->where('type', 'note')
+            ->where('title', null)
+            ->where('og.title', fn ($title) => str_contains((string) $title, 'Finished the migration')));
 });
 
 it('exposes the polyline when present', function () {
@@ -61,8 +65,8 @@ it('cites the source with a link back to the platform', function () {
     $activity = Activity::factory()->create([
         'name' => 'Strava Run',
         'type' => 'run',
-        'platform_type' => 'strava',
-        'platform_id' => '12345',
+        'source' => 'strava',
+        'source_id' => '12345',
         'occurred_at' => '2026-03-15 07:30:00',
     ]);
 
@@ -90,6 +94,19 @@ it('aggregates the whole day for a food entry', function () {
         ->where('type', 'calorie')
         ->where('entry.totals.calories', 770)
         ->has('entry.meals', 2)
+    );
+});
+
+it('exposes tags as linkable {name, slug} objects on an article entry', function () {
+    $article = Article::factory()->create(['published' => true, 'occurred_at' => '2026-03-15 09:00:00']);
+    $article->syncTagNames(['Laravel', 'PHP']);
+
+    get('/'.entryUrl($article))->assertInertia(fn ($page) => $page
+        ->component('Entry')
+        ->where('entry.tags', fn ($tags) => collect($tags)->sortBy('name')->values()->all() === [
+            ['name' => 'Laravel', 'slug' => 'laravel'],
+            ['name' => 'PHP', 'slug' => 'php'],
+        ])
     );
 });
 

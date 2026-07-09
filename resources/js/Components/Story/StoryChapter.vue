@@ -23,7 +23,7 @@ defineProps({
         </h2>
         <!-- Prose paragraphs stay a readable width; charts, stats and notes fill
              the column so the section never looks narrower than its separator. -->
-        <div class="mt-4 space-y-4 text-body text-neutral-600 [&>p]:max-w-reading [&_strong]:font-semibold [&_strong]:text-neutral-900">
+        <div class="mt-4 space-y-4 text-body text-neutral-600 [&>p]:max-w-prose [&_strong]:font-semibold [&_strong]:text-neutral-900">
             <slot />
         </div>
     </section>

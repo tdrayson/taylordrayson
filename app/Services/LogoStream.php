@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Distance;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -52,8 +53,8 @@ class LogoStream
     /**
      * Route metadata (duration, timezones, distance) for a departure/arrival pair.
      *
-     * @return array{duration: int|null, departure_timezone: string|null, arrival_timezone: string|null, distance_miles: int|null}|null
-     *                                                                                                                                  Null when the route is unknown or the request fails.
+     * @return array{duration: int|null, departure_timezone: string|null, arrival_timezone: string|null, distance: int|null}|null
+     *                                                                                                                            Null when the route is unknown or the request fails.
      */
     public function route(string $departureIata, string $arrivalIata): ?array
     {
@@ -78,7 +79,7 @@ class LogoStream
             'duration' => isset($route['duration_min']) ? (int) $route['duration_min'] * 60 : null,
             'departure_timezone' => $route['departure_timezone'] ?? null,
             'arrival_timezone' => $route['arrival_timezone'] ?? null,
-            'distance_miles' => isset($route['distance_km']) ? (int) round($route['distance_km'] * 0.621371) : null,
+            'distance' => isset($route['distance_km']) ? Distance::fromKm($route['distance_km']) : null,
         ];
     }
 }

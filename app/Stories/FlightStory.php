@@ -5,6 +5,7 @@ namespace App\Stories;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Flight;
+use App\Support\Distance;
 use App\Support\OgMeta;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -164,7 +165,7 @@ class FlightStory implements Story
             return $origin && $destination && $origin->country === $destination->country;
         })->count();
 
-        $miles = (int) $flights->sum('distance_miles');
+        $miles = Distance::miles((int) $flights->sum('distance')) ?? 0;
         $seconds = (int) $flights->sum('duration');
 
         return [
@@ -201,7 +202,7 @@ class FlightStory implements Story
             ->map(fn (Collection $year, int $key): array => [
                 'year' => $key,
                 'flights' => $year->count(),
-                'miles' => (int) $year->sum('distance_miles'),
+                'miles' => Distance::miles((int) $year->sum('distance')) ?? 0,
             ]);
 
         // Fill the empty years between the first and last so the gaps (covid 2021,
@@ -221,8 +222,8 @@ class FlightStory implements Story
      */
     private function extremes(Collection $flights): array
     {
-        $longest = $flights->sortByDesc('distance_miles')->first();
-        $shortest = $flights->sortBy('distance_miles')->first();
+        $longest = $flights->sortByDesc('distance')->first();
+        $shortest = $flights->sortBy('distance')->first();
 
         return [
             'longest' => $this->leg($longest),
@@ -239,7 +240,7 @@ class FlightStory implements Story
             'origin' => $flight->origin_iata,
             'destination' => $flight->destination_iata,
             'route' => "{$flight->origin_iata} to {$flight->destination_iata}",
-            'miles' => (int) $flight->distance_miles,
+            'miles' => Distance::miles($flight->distance) ?? 0,
             'when' => $flight->occurred_at->format('F Y'),
             'date' => $flight->occurred_at->format('Y-m-d'),
         ];

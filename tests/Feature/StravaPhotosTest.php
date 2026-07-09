@@ -33,7 +33,7 @@ beforeEach(function () {
 it('stores the first photo as cover and the rest in the gallery', function () {
     Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
 
-    $activity = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '1']);
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '1']);
 
     $count = app(SyncStravaPhotos::class)($activity, [
         ['unique_id' => 'a', 'urls' => ['2048' => 'https://cdn.example/a.jpg']],
@@ -49,7 +49,7 @@ it('stores the first photo as cover and the rest in the gallery', function () {
 it('clears existing photos so re-running is idempotent', function () {
     Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
 
-    $activity = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '1']);
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '1']);
 
     $photos = [
         ['unique_id' => 'a', 'urls' => ['2048' => 'https://cdn.example/a.jpg']],
@@ -64,8 +64,8 @@ it('clears existing photos so re-running is idempotent', function () {
 });
 
 it('backfills photos only for activities that have them on strava', function () {
-    $withPhotos = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '777', 'name' => 'Sunset run']);
-    $withoutPhotos = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '888']);
+    $withPhotos = Activity::factory()->create(['source' => 'strava', 'source_id' => '777', 'name' => 'Sunset run']);
+    $withoutPhotos = Activity::factory()->create(['source' => 'strava', 'source_id' => '888']);
 
     Http::fake([
         '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
@@ -92,7 +92,7 @@ it('backfills photos only for activities that have them on strava', function () 
 });
 
 it('skips activities that already have photos unless forced', function () {
-    $activity = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '777']);
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
     $activity->addMediaFromString(fakeJpeg())->usingFileName('existing.jpg')->toMediaCollection('cover');
 
     Http::fake([
@@ -112,7 +112,7 @@ it('skips activities that already have photos unless forced', function () {
 });
 
 it('includes the photos gallery in the activity feed card', function () {
-    $activity = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '777']);
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
 
     expect($activity->card()['meta']['photos'])->toBe([]);
 
@@ -125,7 +125,7 @@ it('includes the photos gallery in the activity feed card', function () {
 });
 
 it('exposes the activity photos in the entry payload, cover first', function () {
-    $activity = Activity::factory()->create(['platform_type' => 'strava', 'platform_id' => '777', 'occurred_at' => '2026-06-20 09:00:00']);
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777', 'occurred_at' => '2026-06-20 09:00:00']);
     $activity->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
     $activity->addMediaFromString(fakeJpeg())->usingFileName('extra.jpg')->toMediaCollection('photos');
 

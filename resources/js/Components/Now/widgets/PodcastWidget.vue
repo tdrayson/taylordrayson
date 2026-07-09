@@ -20,7 +20,7 @@ const seasonEpisode = computed(() => {
     if (!props.episode) {
         return null;
     }
-    return `S${props.episode.season} · E${props.episode.episode}`;
+    return `S${props.episode.season}, E${props.episode.episode}`;
 });
 
 function relativeDate(iso) {
@@ -61,7 +61,7 @@ const metaLine = computed(() => {
     if (!props.episode) {
         return null;
     }
-    return [relativeDate(props.episode.publishedAt), durationLabel(props.episode.duration)].filter(Boolean).join(' · ');
+    return [relativeDate(props.episode.publishedAt), durationLabel(props.episode.duration)].filter(Boolean).join(', ');
 });
 
 const track = computed(() => props.episode?.media ?? null);

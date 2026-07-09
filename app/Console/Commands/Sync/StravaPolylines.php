@@ -27,8 +27,8 @@ class StravaPolylines extends Command
         }
 
         $query = Activity::query()
-            ->where('platform_type', 'strava')
-            ->whereNotNull('platform_id')
+            ->where('source', 'strava')
+            ->whereNotNull('source_id')
             ->whereIn('type', self::POLYLINE_TYPES);
 
         if (! $this->option('force')) {
@@ -68,12 +68,12 @@ class StravaPolylines extends Command
                 $windowStart = time();
             }
 
-            $data = $strava->activity($activity->platform_id);
+            $data = $strava->activity($activity->source_id);
 
             $requestsInWindow++;
 
             if ($data === null) {
-                $this->warn("Failed to fetch {$activity->platform_id}");
+                $this->warn("Failed to fetch {$activity->source_id}");
 
                 continue;
             }
@@ -85,11 +85,11 @@ class StravaPolylines extends Command
                 $meta['polyline'] = $polyline;
                 $activity->update(['meta' => $meta]);
 
-                $this->updateCsvRow($csvData, $activity->platform_id, $meta);
+                $this->updateCsvRow($csvData, $activity->source_id, $meta);
                 $fetched++;
             }
 
-            $this->info("[{$fetched}/{$activities->count()}] {$activity->name} — ".($polyline ? 'polyline saved' : 'no polyline'));
+            $this->info("[{$fetched}/{$activities->count()}] {$activity->name} - ".($polyline ? 'polyline saved' : 'no polyline'));
         }
 
         $this->writeCsv($csvPath, $csvData);
@@ -117,17 +117,17 @@ class StravaPolylines extends Command
     /**
      * @param  array{headers: string[], rows: array<int, array<int, string>>}  $csvData
      */
-    private function updateCsvRow(array &$csvData, string $platformId, array $meta): void
+    private function updateCsvRow(array &$csvData, string $sourceId, array $meta): void
     {
-        $platformIdIndex = array_search('platform_id', $csvData['headers']);
+        $sourceIdIndex = array_search('source_id', $csvData['headers']);
         $metaIndex = array_search('meta', $csvData['headers']);
 
-        if ($platformIdIndex === false || $metaIndex === false) {
+        if ($sourceIdIndex === false || $metaIndex === false) {
             return;
         }
 
         foreach ($csvData['rows'] as &$row) {
-            if (($row[$platformIdIndex] ?? null) === $platformId) {
+            if (($row[$sourceIdIndex] ?? null) === $sourceId) {
                 $row[$metaIndex] = json_encode($meta);
                 break;
             }

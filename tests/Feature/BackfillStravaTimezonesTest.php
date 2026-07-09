@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Http;
 
 it('backfills timezone and local occurred_at on existing activities', function () {
     Activity::factory()->create([
-        'platform_type' => 'strava',
-        'platform_id' => '12345',
+        'source' => 'strava',
+        'source_id' => '12345',
         'occurred_at' => '2018-02-20 18:02:13', // stored UTC originally
         'timezone' => null,
     ]);
@@ -25,7 +25,7 @@ it('backfills timezone and local occurred_at on existing activities', function (
 
     $this->artisan('strava:backfill-timezones')->assertSuccessful();
 
-    $activity = Activity::where('platform_id', '12345')->first();
+    $activity = Activity::where('source_id', '12345')->first();
     expect($activity->timezone)->toBe('America/Los_Angeles');
     expect($activity->occurred_at->format('Y-m-d H:i:s'))->toBe('2018-02-20 10:02:13');
 });

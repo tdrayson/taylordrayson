@@ -2,10 +2,13 @@
 
 namespace App\Search;
 
+use App\Models\Article;
+use App\Support\Distance;
 use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Compiles a validated filter (groups OR-ed, each holding AND-ed conditions over
@@ -65,7 +68,27 @@ class SearchCompiler
         }
 
         $method = $isFirstGroup ? 'whereHasMorph' : 'orWhereHasMorph';
-        $outer->{$method}('timelineable', [$type['model']], fn (Builder $morph) => $this->applyConditions($morph, $group, $type));
+        $outer->{$method}('timelineable', [$type['model']], function (Builder $morph) use ($group, $type): void {
+            $this->guardPublished($morph, $type['model']);
+            $this->applyConditions($morph, $group, $type);
+        });
+    }
+
+    /**
+     * Defence in depth against a stale timeline_entries row (e.g. a mass update
+     * that bypassed model observers): guests never see an unpublished article
+     * in search results. Public so other search entry points (e.g. the command
+     * palette's free-text suggest endpoint) share this single gate rather than
+     * duplicating the guard logic.
+     *
+     * @param  Builder  $query  The (possibly morphed) model query to constrain.
+     * @param  class-string|null  $model  The model class this query targets.
+     */
+    public function guardPublished(Builder $query, ?string $model): void
+    {
+        if ($model === Article::class && ! Auth::check()) {
+            $query->where('published', true);
+        }
     }
 
     /**
@@ -137,6 +160,8 @@ class SearchCompiler
             ->all();
 
         $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($registry, $value): void {
+            $this->guardPublished($morph, $modelClass);
+
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
             $columns = SearchSchema::TEXT_COLUMNS[$key] ?? [];
 
@@ -205,7 +230,8 @@ class SearchCompiler
     {
         $models = collect(TypeRegistry::all())->pluck('model')->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph) use ($operator, $value): void {
+        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
+            $this->guardPublished($morph, $modelClass);
             $this->mediaClause($morph, $operator, $value);
         });
     }
@@ -233,13 +259,13 @@ class SearchCompiler
         if (isset($field['relation'])) {
             $query->whereHas(
                 $field['relation'],
-                fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value)
+                fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null)
             );
 
             return;
         }
 
-        $this->clause($query, $field['column'], $field['dataType'], $operator, $value);
+        $this->clause($query, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
     }
 
     /**
@@ -250,13 +276,15 @@ class SearchCompiler
      * @param  string  $dataType  One of text|enum|number|date.
      * @param  string  $operator  The whitelisted operator.
      * @param  mixed  $value  The filter value.
+     * @param  string|null  $unit  The schema's display unit (e.g. km/mi) for a number field, used to
+     *                             scale the human-entered value to the column's storage unit.
      */
-    private function clause(Builder $query, string $column, string $dataType, string $operator, mixed $value): void
+    private function clause(Builder $query, string $column, string $dataType, string $operator, mixed $value, ?string $unit = null): void
     {
         match ($dataType) {
             'text' => $this->textClause($query, $column, $operator, (string) $value),
             'enum' => $this->enumClause($query, $column, $operator, $value),
-            'number', 'duration' => $this->numberClause($query, $column, $operator, $value),
+            'number', 'duration' => $this->numberClause($query, $column, $operator, $value, $unit),
             'day' => $this->dayClause($query, $column, $operator, $value),
             'month' => $this->periodClause($query, $column, $operator, $value, fn (string $bound): ?array => $this->monthBounds($bound)),
             'year' => $this->periodClause($query, $column, $operator, $value, fn (string $bound): ?array => $this->yearBounds($bound)),
@@ -314,15 +342,20 @@ class SearchCompiler
     }
 
     /**
-     * Apply a numeric comparison (equality, ordering, or a range).
+     * Apply a numeric comparison (equality, ordering, or a range). When the field
+     * declares a display unit (km/mi), the human-entered value(s) are scaled to the
+     * column's storage unit (integer metres) before the comparison is built.
      *
      * @param  Builder  $query  The query to constrain.
      * @param  string  $column  The numeric column.
      * @param  string  $operator  The number operator.
      * @param  mixed  $value  A scalar, or a [min, max] array for "between".
+     * @param  string|null  $unit  The schema's display unit (km/mi), or null for no scaling.
      */
-    private function numberClause(Builder $query, string $column, string $operator, mixed $value): void
+    private function numberClause(Builder $query, string $column, string $operator, mixed $value, ?string $unit = null): void
     {
+        $value = $this->scaleToStorageUnit($value, $unit);
+
         if ($operator === 'between' || $operator === 'not_between') {
             $this->applyBetween($query, $column, $this->numberRange($value), $operator === 'not_between');
 
@@ -334,6 +367,35 @@ class SearchCompiler
         if (isset($comparators[$operator])) {
             $query->where($column, $comparators[$operator], $value);
         }
+    }
+
+    /**
+     * Scale a human-entered value (or [min, max] pair) from its display unit to the
+     * column's storage unit (integer metres), leaving it untouched when the field
+     * carries no unit, or the value is missing.
+     *
+     * @param  mixed  $value  A scalar, or a [min, max] array for "between".
+     * @param  string|null  $unit  The schema's display unit (km/mi), or null for no scaling.
+     */
+    private function scaleToStorageUnit(mixed $value, ?string $unit): mixed
+    {
+        if ($unit === null) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            return array_map(fn (mixed $item): mixed => $this->scaleToStorageUnit($item, $unit), $value);
+        }
+
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        return match ($unit) {
+            'km' => Distance::fromKm((float) $value),
+            'mi' => Distance::fromMiles((float) $value),
+            default => $value,
+        };
     }
 
     /**

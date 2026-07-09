@@ -1,11 +1,16 @@
 <script setup>
-import { computed } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { setLayoutProps, Deferred } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import StatGrid from '../Components/Stats/StatGrid.vue';
 import CalendarMonth from '../Components/Stats/CalendarMonth.vue';
+import SectionHead from '../Components/Ui/SectionHead.vue';
+import Pagination from '../Components/Ui/Pagination.vue';
+import DateGroup from '../Components/Timeline/DateGroup.vue';
+import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
+import Lightbox from '../Components/Overlays/Lightbox.vue';
 import FutureNote from '../Components/Timeline/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -17,7 +22,14 @@ const props = defineProps({
     entriesCount: { type: Number, default: 0 },
     days: { type: Object, default: () => ({}) },
     stats: { type: Array, default: () => [] },
+    photos: { type: Array, default: () => [] },
+    groups: { type: Array, default: null }, // deferred
+    currentPage: { type: Number, default: 1 },
+    lastPage: { type: Number, default: 1 },
 });
+
+// Which photo the lightbox is showing (null = closed).
+const lightboxIndex = ref(null);
 
 const pad = (value) => String(value).padStart(2, '0');
 const date = computed(() => new Date(props.year, props.month - 1, 1));
@@ -43,7 +55,7 @@ const nextMonth = computed(() => new Date(props.year, props.month, 1));
 setLayoutProps({
     breadcrumb: [
         { label: String(props.year), href: `/${props.year}` },
-        { label: monthName.value },
+        { label: monthName.value, ariaLabel: `${monthName.value} ${props.year}` },
     ],
 });
 </script>
@@ -63,5 +75,47 @@ setLayoutProps({
         <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
 
         <CalendarMonth :year="year" :month="month" :days="days" />
+
+        <section v-if="photos.length">
+            <SectionHead title="Photos" :meta="`${photos.length}${photos.length === 12 ? '+' : ''} this month`" />
+            <!-- Same masonry + hover-context tiles and column count as /photos. -->
+            <PhotoGrid :photos="photos" @open="lightboxIndex = $event" />
+            <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+        </section>
+
+        <section v-if="entriesCount" class="mt-12">
+            <Deferred data="groups">
+                <template #fallback>
+                    <div class="space-y-6">
+                        <div v-for="i in 3" :key="i" class="animate-pulse space-y-3">
+                            <div class="h-6 w-48 rounded-md bg-neutral-25" />
+                            <div class="h-24 rounded-lg bg-neutral-25" />
+                        </div>
+                    </div>
+                </template>
+
+                <div class="flex flex-col gap-14">
+                    <DateGroup
+                        v-for="group in groups"
+                        :key="group.date"
+                        :label="group.label"
+                        :date="group.date"
+                        :href="group.href"
+                        :items="group.items"
+                    />
+                </div>
+            </Deferred>
+
+            <Pagination
+                v-if="lastPage > 1"
+                class="mt-14"
+                :current-page="currentPage"
+                :last-page="lastPage"
+                :prev-url="currentPage > 1 ? (currentPage - 1 === 1 ? `/${year}/${pad(month)}` : `/${year}/${pad(month)}?page=${currentPage - 1}`) : null"
+                :next-url="currentPage < lastPage ? `/${year}/${pad(month)}?page=${currentPage + 1}` : null"
+            />
+        </section>
+
+        <p v-if="!entriesCount" class="mt-10 text-meta text-neutral-500">Nothing logged in {{ monthName }} {{ year }}.</p>
     </template>
 </template>

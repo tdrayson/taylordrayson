@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use App\Support\EditorJs;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,10 +18,12 @@ use Spatie\MediaLibrary\HasMedia;
 #[Fillable([
     'occurred_at',
     'content',
+    'slug',
+    'timezone',
 ])]
 class Note extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -30,13 +32,16 @@ class Note extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'content' => 'array',
         ];
     }
 
+    /**
+     * The author-set slug when given, read from the raw attribute so unsaved
+     * models fall back cleanly under strict attribute access.
+     */
     public function slug(): string
     {
-        return "note-{$this->id}";
+        return $this->attributes['slug'] ?? 'note';
     }
 
     public function card(): array
@@ -44,11 +49,14 @@ class Note extends Model implements HasMedia, Timelineable
         return [
             'type' => 'note',
             'icon' => 'message-circle',
-            'title' => Str::limit(EditorJs::plainText($this->content), 80),
+            'title' => Str::limit($this->content, 80),
             'subtitle' => null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'note',
-            'meta' => [],
+            'meta' => [
+                'body' => $this->content,
+                'photos' => $this->galleryPhotos(),
+            ],
         ];
     }
 }

@@ -12,7 +12,7 @@ defineProps({
 </script>
 
 <template>
-    <aside class="mt-14 flex flex-col gap-5 rounded-xl border border-neutral-50 bg-neutral-25 p-6 sm:flex-row sm:items-start sm:gap-6 sm:p-8">
+    <aside aria-label="About the author" class="mt-14 flex flex-col gap-5 rounded-xl border border-neutral-50 bg-neutral-25 p-6 sm:flex-row sm:items-start sm:gap-6 sm:p-8">
         <Avatar size="size-14" alt="" class="shrink-0" />
         <div class="min-w-0">
             <p class="text-label uppercase text-neutral-400">Written by</p>

@@ -4,14 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Appearance;
+use App\Models\Article;
 use App\Models\Calorie;
+use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Note;
+use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -22,26 +27,37 @@ class EntryController extends Controller
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
-        $entries = TimelineEntry::query()
+        $entry = TimelineEntry::query()
             ->with('timelineable')
             ->whereDate('occurred_at', $date)
-            ->get();
+            ->where('url_slug', $slug)
+            ->first();
 
-        $entry = $entries->first(function (TimelineEntry $entry) use ($slug) {
-            return $entry->timelineable?->slug() === $slug;
-        });
+        $model = $entry?->timelineable;
+        $model?->setRelation('timelineEntry', $entry);
 
-        if (! $entry?->timelineable) {
+        // Unpublished articles have no timeline entry (TimelineEntryObserver
+        // removes it), so an authenticated preview needs a direct lookup.
+        if ($model === null && Auth::check()) {
+            $model = Article::query()
+                ->whereDate('occurred_at', $date)
+                ->where('slug', $slug)
+                ->first();
+        }
+
+        if ($model === null) {
             throw new NotFoundHttpException;
         }
 
-        $model = $entry->timelineable;
+        if ($model instanceof Article && ! $model->published && ! Auth::check()) {
+            throw new NotFoundHttpException;
+        }
 
         if ($model instanceof Flight) {
             $model->load('airline', 'origin', 'destination');
         }
 
-        if ($model instanceof Appearance || $model instanceof Activity) {
+        if ($model instanceof Appearance || $model instanceof Activity || $model instanceof Note) {
             $model->load('media');
         }
 
@@ -50,8 +66,10 @@ class EntryController extends Controller
         return Inertia::render('Entry', [
             'type' => $card['type'],
             'accent' => $card['accent'],
-            'title' => $card['title'],
-            ...$this->occurredFields($entry->occurred_at, $model->timezone(), LocalTime::isDayLevel($card['type'])),
+            // Notes are title-less by definition; their card title is just
+            // truncated content, which the detail body already shows in full.
+            'title' => $card['type'] === 'note' ? null : $card['title'],
+            ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
             'og' => OgMeta::entry($entry, $card['title']),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
@@ -67,9 +85,9 @@ class EntryController extends Controller
      *
      * @return array{occurredAt: string, occurredLabel: string, occurredOffset: string}
      */
-    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone, bool $dateOnly): array
+    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone): array
     {
-        $local = LocalTime::for($occurredAt, $timezone, $dateOnly);
+        $local = LocalTime::for($occurredAt, $timezone);
 
         return [
             'occurredAt' => $local['iso'],
@@ -86,18 +104,64 @@ class EntryController extends Controller
      */
     private function entryPayload(Model $model): array
     {
+        // Tags are now a relation rather than a plain attribute; models using
+        // HasTags need a {name, slug} shape so entry pages can link each chip
+        // to its /tags/{slug} page, not the serialised Tag models toArray()
+        // would otherwise produce.
+        if (method_exists($model, 'tagNames')) {
+            $model->loadMissing('tags');
+        }
+
         $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
+
+        if (method_exists($model, 'tagNames')) {
+            $data['tags'] = $model->tags
+                ->map(fn (Tag $tag): array => ['name' => $tag->name, 'slug' => $tag->slug])
+                ->all();
+        }
 
         if ($model instanceof Appearance) {
             $data['thumbnail'] = $model->thumbnailUrl();
             $data['thumbnailSrcset'] = $model->thumbnailSrcset();
         }
 
-        if ($model instanceof Activity) {
+        if ($model instanceof Article) {
+            $data['cover'] = $model->coverPhoto();
+        }
+
+        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event) {
             $data['photos'] = $model->galleryPhotos();
         }
 
+        if ($model instanceof Event) {
+            $address = $this->eventAddress($model);
+
+            $data['location'] = $model->latitude !== null && $model->longitude !== null
+                ? [
+                    'lat' => (float) $model->latitude,
+                    'lng' => (float) $model->longitude,
+                    'address' => $address,
+                    'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($address),
+                ]
+                : null;
+
+            // Multi-day badge data ({label, days}), null for single-day events.
+            // toArray() only serialises DB columns, so dateRange() (a computed
+            // method, not an accessor) needs adding to the payload explicitly.
+            $data['range'] = $model->dateRange();
+        }
+
         return $data;
+    }
+
+    /**
+     * Best available address string for maps: the geocoded address stored in
+     * meta, else the venue/city/country the event carries.
+     */
+    private function eventAddress(Event $event): string
+    {
+        return data_get($event->meta, 'address')
+            ?: collect([$event->venue_name, $event->city, $event->country])->filter()->implode(', ');
     }
 
     /**
@@ -153,7 +217,7 @@ class EntryController extends Controller
      */
     private function source(Model $model): ?array
     {
-        $platform = $model->platform_type ?? $model->source ?? null;
+        $platform = $model->source ?? null;
 
         if (! $platform) {
             return null;

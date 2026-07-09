@@ -89,7 +89,7 @@ onMounted(() => {
             @click="autoPlay"
         />
         <div class="max-w-xl space-y-4">
-            <p class="font-display text-stat">Hold your horses — I'm not a time traveller.</p>
+            <p class="font-display text-stat">Hold your horses, I'm not a time traveller.</p>
             <p class="text-lg text-neutral-500">
                 This {{ unit }} hasn't happened yet, and my flux capacitor's on the fritz. I only log life as
                 it actually happens, so there's genuinely nothing here. Come back once we've hit 88&nbsp;mph.

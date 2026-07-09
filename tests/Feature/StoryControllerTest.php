@@ -3,6 +3,7 @@
 use App\Models\Calorie;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Support\Distance;
 
 use function Pest\Laravel\get;
 
@@ -33,8 +34,8 @@ it('renders the food story by slug', function () {
 });
 
 it('renders the flights story by slug', function () {
-    Flight::factory()->create(['occurred_at' => '2023-05-15 09:00:00', 'distance_miles' => 600]);
-    Flight::factory()->create(['occurred_at' => '2023-05-17 09:00:00', 'distance_miles' => 600]);
+    Flight::factory()->create(['occurred_at' => '2023-05-15 09:00:00', 'distance' => Distance::fromMiles(600)]);
+    Flight::factory()->create(['occurred_at' => '2023-05-17 09:00:00', 'distance' => Distance::fromMiles(600)]);
 
     get('/stories/flights')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Stories/Flights')

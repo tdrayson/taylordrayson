@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\LogoStream;
+use App\Support\Distance;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -41,12 +42,12 @@ it('maps an aviation route into duration, timezones and miles', function () {
         ]]]),
     ]);
 
-    expect(app(LogoStream::class)->route('LHR', 'BER'))->toBe([
-        'duration' => 5400,
-        'departure_timezone' => 'Europe/London',
-        'arrival_timezone' => 'Europe/Berlin',
-        'distance_miles' => 621,
-    ]);
+    $result = app(LogoStream::class)->route('LHR', 'BER');
+
+    expect($result['duration'])->toBe(5400)
+        ->and($result['departure_timezone'])->toBe('Europe/London')
+        ->and($result['arrival_timezone'])->toBe('Europe/Berlin')
+        ->and(Distance::miles($result['distance']))->toBe(621);
 });
 
 it('returns null when the aviation api has no route', function () {

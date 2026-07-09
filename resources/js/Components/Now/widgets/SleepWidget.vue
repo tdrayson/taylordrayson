@@ -47,7 +47,7 @@ const nightCells = computed(() => {
 
         return {
             href: `/${year}/${month}/${day}`,
-            label: `${date} · ${parts.hours}h ${parts.minutes}m`,
+            label: `${date}, ${parts.hours}h ${parts.minutes}m`,
             heightPct: `${(h / MAX) * 100}%`,
             today: i === props.nights.length - 1,
         };
@@ -70,7 +70,7 @@ const days = computed(() => {
     <div class="sleep rounded-3xl" :class="{ 'sleep--has-aspect': !fill }">
         <div class="sleep__inner">
             <div class="sleep__summary">
-                <div class="sleep__label"><Icon class="sleep__label-icon" :icon="Moon02Icon" />Sleep</div>
+                <h2 class="sleep__label"><Icon class="sleep__label-icon" :icon="Moon02Icon" />Sleep</h2>
                 <div class="sleep__duration">{{ bigParts.hours }}h <small class="sleep__minutes">{{ bigParts.minutes }}m</small></div>
                 <div class="sleep__caption">Last night</div>
                 <div class="sleep__stages">
@@ -85,7 +85,7 @@ const days = computed(() => {
 
             <div class="sleep__chart">
                 <div class="sleep__chart-header">
-                    <span class="sleep__chart-title">LAST 7 NIGHTS</span>
+                    <h3 class="sleep__chart-title">LAST 7 NIGHTS</h3>
                     <span class="sleep__chart-average">avg {{ averageParts.hours }}h {{ averageParts.minutes }}m</span>
                 </div>
                 <div class="sleep__bars">

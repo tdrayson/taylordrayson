@@ -104,13 +104,13 @@ function aspect(photo) {
         </p>
     </header>
 
-    <div
+    <ul
         v-if="photos.length"
         ref="grid"
         class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
         style="grid-auto-rows: 8px"
     >
-        <div
+        <li
             v-for="(photo, index) in photos"
             :key="index"
             :data-index="index"
@@ -145,8 +145,8 @@ function aspect(photo) {
             >
                 <Icon :icon="ArrowUpRight01Icon" class="size-4" />
             </Link>
-        </div>
-    </div>
+        </li>
+    </ul>
 
     <p v-else class="mt-8 text-meta text-neutral-500">No photos yet.</p>
 

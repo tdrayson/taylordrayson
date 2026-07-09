@@ -1,0 +1,184 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://taylordrayson.com/schemas/portable-text.schema.json",
+    "title": "taylordrayson.com Portable Text dialect",
+    "description": "The subset of Portable Text stored in articles.content and pages.content, enforced server-side by App\\Rules\\ValidPortableText. Authoring clients (Glaze, MCP tools, Shortcuts) should produce documents matching this schema.",
+    "type": "array",
+    "items": {
+        "oneOf": [
+            { "$ref": "#/$defs/textBlock" },
+            { "$ref": "#/$defs/image" },
+            { "$ref": "#/$defs/codeBlock" },
+            { "$ref": "#/$defs/callout" },
+            { "$ref": "#/$defs/video" },
+            { "$ref": "#/$defs/divider" }
+        ]
+    },
+    "$defs": {
+        "key": { "type": "string", "minLength": 1 },
+        "textBlock": {
+            "type": "object",
+            "required": ["_type", "_key", "style", "markDefs", "children"],
+            "properties": {
+                "_type": { "const": "block" },
+                "_key": { "$ref": "#/$defs/key" },
+                "style": { "enum": ["normal", "h2", "h3", "h4", "h5", "h6", "blockquote"] },
+                "listItem": { "enum": ["bullet", "number"] },
+                "level": { "type": "integer", "minimum": 1 },
+                "markDefs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["_key", "_type", "href"],
+                        "properties": {
+                            "_key": { "$ref": "#/$defs/key" },
+                            "_type": { "const": "link" },
+                            "href": { "type": "string", "format": "uri" }
+                        }
+                    }
+                },
+                "children": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": ["_type", "_key", "text"],
+                        "properties": {
+                            "_type": { "const": "span" },
+                            "_key": { "$ref": "#/$defs/key" },
+                            "text": { "type": "string" },
+                            "marks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Either a decorator (strong, em, code) or the _key of a markDef on the same block."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "image": {
+            "type": "object",
+            "required": ["_type", "_key", "url"],
+            "properties": {
+                "_type": { "const": "image" },
+                "_key": { "$ref": "#/$defs/key" },
+                "url": {
+                    "type": "string",
+                    "description": "Absolute URL, or a root-relative path (e.g. /storage/...) for own-hosted media."
+                },
+                "caption": { "type": "string" },
+                "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel width. Send when known: lets the renderer branch portrait/landscape layout and reserve space while loading."
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel height. Send together with width."
+                }
+            }
+        },
+        "codeBlock": {
+            "type": "object",
+            "required": ["_type", "_key", "code"],
+            "properties": {
+                "_type": { "const": "code" },
+                "_key": { "$ref": "#/$defs/key" },
+                "code": { "type": "string", "minLength": 1 },
+                "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Highlighted when one of: bash, css, javascript, json, php, sql, typescript, xml, yaml. Other values render as plain text. Shown as a label in the block header."
+                },
+                "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Optional filename shown in the block header, e.g. app/Models/Article.php."
+                },
+                "lineNumbers": {
+                    "type": "boolean",
+                    "description": "Render a line-number gutter when true. Defaults to false."
+                }
+            }
+        },
+        "callout": {
+            "type": "object",
+            "required": ["_type", "_key", "variant", "markDefs", "children"],
+            "properties": {
+                "_type": { "const": "callout" },
+                "_key": { "$ref": "#/$defs/key" },
+                "variant": {
+                    "enum": ["note", "tip", "important", "warning", "caution"],
+                    "description": "GitHub-alert style variant set. Renders as a tinted panel with a bold uppercase label for the variant name."
+                },
+                "markDefs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["_key", "_type", "href"],
+                        "properties": {
+                            "_key": { "$ref": "#/$defs/key" },
+                            "_type": { "const": "link" },
+                            "href": { "type": "string", "format": "uri" }
+                        }
+                    }
+                },
+                "children": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": ["_type", "_key", "text"],
+                        "properties": {
+                            "_type": { "const": "span" },
+                            "_key": { "$ref": "#/$defs/key" },
+                            "text": { "type": "string" },
+                            "marks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Either a decorator (strong, em, code) or the _key of a markDef on the same node."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "video": {
+            "type": "object",
+            "required": ["_type", "_key", "url"],
+            "properties": {
+                "_type": { "const": "video" },
+                "_key": { "$ref": "#/$defs/key" },
+                "url": {
+                    "type": "string",
+                    "description": "Absolute URL, or a root-relative path (e.g. /storage/...) for own-hosted media. Rendered as a native <video controls> element, not an embed/iframe."
+                },
+                "caption": { "type": "string" },
+                "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel width. Send when known, same as image."
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Intrinsic pixel height. Send together with width."
+                }
+            }
+        },
+        "divider": {
+            "type": "object",
+            "required": ["_type", "_key"],
+            "properties": {
+                "_type": { "const": "divider" },
+                "_key": { "$ref": "#/$defs/key" }
+            }
+        }
+    }
+}

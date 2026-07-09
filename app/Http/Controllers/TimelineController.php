@@ -4,15 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
 use App\Models\Activity;
+use App\Models\Appearance;
+use App\Models\Article;
 use App\Models\Calorie;
+use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Media;
+use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Support\Distance;
+use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Inertia\DeferProp;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,23 +59,86 @@ class TimelineController extends Controller
      *
      * @return array<int, array{label: string, href: string, items: array<int, array<string, mixed>>}>
      */
-    private function groupsForDates(string $newest, string $oldest): array
+    private function groupsForDates(string $newest, string $oldest, bool $ascending = false): array
     {
         $entries = TimelineEntry::query()
             ->withCardRelations()
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
-            ->orderByDesc('occurred_at')
+            ->orderBy('occurred_at', $ascending ? 'asc' : 'desc')
             ->get();
 
         return $this->feed->groupByDay($entries);
     }
 
+    /**
+     * Day-paginated, chronological timeline tail for a period. Returns the
+     * pagination metadata immediately and the (expensive) hydrated groups as
+     * a deferred closure, so the archive's stats paint before its feed.
+     *
+     * @return array{groups: DeferProp, currentPage: int, lastPage: int}
+     */
+    private function periodTail(Carbon $start, Carbon $end): array
+    {
+        $days = TimelineEntry::query()
+            ->toBase()
+            ->selectRaw('DATE(occurred_at) as date')
+            ->whereBetween('occurred_at', [$start, $end])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->paginate(self::DAYS_PER_PAGE);
+
+        $dates = collect($days->items())->pluck('date');
+
+        return [
+            'groups' => Inertia::defer(fn (): array => $dates->isEmpty()
+                ? []
+                : $this->groupsForDates($dates->last(), $dates->first(), true)),
+            'currentPage' => $days->currentPage(),
+            'lastPage' => $days->lastPage(),
+        ];
+    }
+
+    /**
+     * "On this day": every entry that shares today's month and day, across all
+     * years. groupByDay keys on Y-m-d, so each year lands in its own group and
+     * the date headers link back to that specific day.
+     */
+    public function onThisDay(): Response
+    {
+        $today = Carbon::today();
+
+        $entries = TimelineEntry::query()
+            ->withCardRelations()
+            ->coveringAnniversary($today->format('m-d'))
+            ->orderByDesc('occurred_at')
+            ->get()
+            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->values();
+
+        $years = $entries->map(fn (TimelineEntry $entry): string => $entry->occurred_at->format('Y'))->unique();
+
+        return Inertia::render('OnThisDay', [
+            'og' => OgMeta::onThisDay($today),
+            'date' => $today->format('j F'),
+            'entriesCount' => $entries->count(),
+            'yearsCount' => $years->count(),
+            'groups' => $this->feed->groupByDay($entries),
+        ]);
+    }
+
     public function year(int $year): Response
     {
+        $start = Carbon::create($year, 1, 1)->startOfDay();
+        $end = (clone $start)->endOfYear()->endOfDay();
+
         return Inertia::render('Year', [
             'year' => $year,
             'og' => OgMeta::year($year),
+            'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
+            'stats' => $this->periodStats($start, $end, withSuperlative: true),
+            'heatmap' => $this->heatmapDays($start, $end),
+            ...$this->periodTail($start, $end),
         ]);
     }
 
@@ -84,13 +155,33 @@ class TimelineController extends Controller
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
 
+        $timelineables = $entries->map(fn (TimelineEntry $entry) => $entry->timelineable);
+
+        /**
+         * Batch-load `media` per model class before the photos payload reads it below,
+         * so this fires one query per class rather than one per entry; loadMissing()
+         * skips the classes cardRelations() already eager-loaded (Appearance, Activity, Article).
+         */
+        $timelineables->groupBy(fn ($model): string => $model::class)
+            ->each(fn (Collection $group): EloquentCollection => EloquentCollection::make($group->values())->loadMissing('media'));
+
         return Inertia::render('Month', [
             'year' => $year,
             'month' => $month,
             'og' => OgMeta::month($year, $month),
             'entriesCount' => $entries->count(),
-            'days' => $this->monthDays($entries),
-            'stats' => $this->monthStats($entries, $start, $end),
+            'days' => $this->monthDays($entries, $start, $end),
+            'stats' => $this->periodStats($start, $end),
+            // Same shaped payload as the /photos gallery (masonry dimensions,
+            // caption/accent, entry link) so the month strip shares its markup.
+            // Appearance covers are derived video thumbnails, excluded like /photos does.
+            'photos' => $timelineables
+                ->reject(fn ($model): bool => $model instanceof Appearance)
+                ->flatMap(fn ($model): array => GalleryPhotos::shape($model, $model->getMedia('cover')->merge($model->getMedia('photos'))))
+                ->take(12)
+                ->values()
+                ->all(),
+            ...$this->periodTail($start, $end),
         ]);
     }
 
@@ -103,12 +194,20 @@ class TimelineController extends Controller
      * @param  Collection<int, TimelineEntry>  $entries
      * @return array<int, array{sleep: ?int, calories: ?int, types: array<int, string>}>
      */
-    private function monthDays(Collection $entries): array
+    private function monthDays(Collection $entries, Carbon $start, Carbon $end): array
     {
+        // Calories store one row per food item but only one spine entry per day,
+        // so day totals must come straight from the calories table.
+        $calorieTotals = Calorie::query()
+            ->toBase()
+            ->selectRaw('DATE(occurred_at) as date, SUM(calories) as total')
+            ->whereBetween('occurred_at', [$start, $end])
+            ->groupBy('date')
+            ->pluck('total', 'date');
+
         return $entries->groupBy(fn (TimelineEntry $entry): int => (int) $entry->occurred_at->format('j'))
-            ->map(function (Collection $group): array {
+            ->map(function (Collection $group) use ($calorieTotals): array {
                 $sleep = null;
-                $calories = 0;
                 $types = [];
 
                 foreach ($group as $entry) {
@@ -121,60 +220,126 @@ class TimelineController extends Controller
                     }
 
                     if ($model instanceof Calorie) {
-                        $calories += $model->calories;
-
                         continue;
                     }
 
                     $types[] = $model->card()['type'];
                 }
 
+                $calories = (int) ($calorieTotals[$group->first()->occurred_at->toDateString()] ?? 0);
+
                 return ['sleep' => $sleep, 'calories' => $calories ?: null, 'types' => $types];
             })->all();
     }
 
     /**
-     * Monthly roll-up stats.
+     * Entries per day for the contribution heatmap, keyed yyyy-mm-dd.
      *
-     * @param  Collection<int, TimelineEntry>  $entries
+     * @return array<string, int>
+     */
+    private function heatmapDays(Carbon $start, Carbon $end): array
+    {
+        return TimelineEntry::query()
+            ->toBase()
+            ->selectRaw('DATE(occurred_at) as date, COUNT(*) as total')
+            ->whereBetween('occurred_at', [$start, $end])
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->map(fn ($total): int => (int) $total)
+            ->all();
+    }
+
+    /**
+     * Roll-up stat row for the year and month pages. Every stat self-hides at
+     * zero, so sparse periods just show fewer numbers. The year page passes
+     * $withSuperlative to append a standout (e.g. the longest run), which reads
+     * as a headline over a year but not over a single month.
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function monthStats(Collection $entries, Carbon $start, Carbon $end): array
+    private function periodStats(Carbon $start, Carbon $end, bool $withSuperlative = false): array
     {
-        $models = $entries->map->timelineable;
-        $activities = $models->filter(fn ($model): bool => $model instanceof Activity);
-        $sleeps = $models->filter(fn ($model): bool => $model instanceof Sleep);
-        $flights = $models->filter(fn ($model): bool => $model instanceof Flight);
-        $films = $models->filter(fn ($model): bool => $model instanceof Media && $model->type === 'film');
+        $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
 
         $stats = [];
 
-        if ($activities->isNotEmpty()) {
-            $stats[] = ['label' => 'Activities', 'value' => (string) $activities->count()];
+        $activities = $between(Activity::query())->count();
 
-            $distance = round((float) $activities->sum('distance_km'));
+        if ($activities > 0) {
+            $stats[] = ['label' => 'Activities', 'value' => number_format($activities)];
+        }
 
-            if ($distance > 0) {
-                $stats[] = ['label' => 'Distance', 'value' => number_format($distance), 'unit' => 'km'];
+        /**
+         * Distance split by discipline: a single lumped total hid that walking,
+         * running and cycling are wildly different distances and efforts. Each
+         * self-hides, so a period with only walks shows only "Walked".
+         *
+         * @var array<string, list<string>> $disciplines
+         */
+        $disciplines = [
+            'Walked' => ['walk'],
+            'Ran' => ['run'],
+            'Cycled' => ['ride', 'e-bike-ride'],
+        ];
+
+        foreach ($disciplines as $label => $types) {
+            $miles = Distance::miles((int) $between(Activity::query())->whereIn('type', $types)->sum('distance')) ?? 0;
+
+            if ($miles > 0) {
+                $stats[] = ['label' => $label, 'value' => number_format($miles), 'unit' => 'mi'];
             }
         }
 
-        if ($sleeps->isNotEmpty()) {
-            $stats[] = ['label' => 'Avg sleep', 'seconds' => (int) round($sleeps->avg('duration'))];
+        $avgSleep = (int) round($between(Sleep::query())->avg('duration') ?? 0);
+
+        if ($avgSleep > 0) {
+            $stats[] = ['label' => 'Avg sleep', 'seconds' => $avgSleep];
         }
 
-        if ($flights->isNotEmpty()) {
-            $stats[] = ['label' => 'Flights', 'value' => (string) $flights->count()];
+        // Food as a daily rhythm (avg calories per logged day) rather than the
+        // contextless "365 days logged": averaged over days that were logged, so
+        // a partial period isn't diluted by untracked days.
+        $foodDays = (int) $between(Calorie::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
+
+        if ($foodDays > 0) {
+            $avgCalories = (int) round($between(Calorie::query())->sum('calories') / $foodDays);
+
+            if ($avgCalories > 0) {
+                $stats[] = ['label' => 'Food', 'value' => number_format($avgCalories), 'unit' => 'kcal/day'];
+            }
         }
 
-        if ($films->isNotEmpty()) {
-            $stats[] = ['label' => 'Films', 'value' => (string) $films->count()];
+        $films = $between(Media::query())->whereIn('type', ['film', 'show'])->count();
+
+        if ($films > 0) {
+            $stats[] = ['label' => 'Watched', 'value' => number_format($films)];
         }
 
-        $calories = (int) Calorie::query()->whereBetween('occurred_at', [$start, $end])->sum('calories');
+        $flights = $between(Flight::query())->count();
 
-        if ($calories > 0) {
-            $stats[] = ['label' => 'Calories', 'value' => number_format($calories), 'unit' => 'kcal'];
+        if ($flights > 0) {
+            $stats[] = ['label' => 'Flights', 'value' => number_format($flights)];
+        }
+
+        $places = $between(Checkin::query())->count();
+
+        if ($places > 0) {
+            $stats[] = ['label' => 'Places', 'value' => number_format($places)];
+        }
+
+        $written = $between(Article::query())->where('published', true)->count() + $between(Note::query())->count();
+
+        if ($written > 0) {
+            $stats[] = ['label' => 'Written', 'value' => number_format($written)];
+        }
+
+        // Year-scale superlative: the standout single run of the period.
+        if ($withSuperlative) {
+            $longestRunMiles = Distance::miles((int) $between(Activity::query())->where('type', 'run')->max('distance'), 1) ?? 0.0;
+
+            if ($longestRunMiles > 0) {
+                $stats[] = ['label' => 'Longest run', 'value' => number_format($longestRunMiles, 1), 'unit' => 'mi'];
+            }
         }
 
         return $stats;
@@ -188,7 +353,7 @@ class TimelineController extends Controller
         // the inverse of the home timeline, which leads with the latest entry.
         $entries = TimelineEntry::query()
             ->withCardRelations()
-            ->whereDate('occurred_at', $date->toDateString())
+            ->coveringDate($date->toDateString())
             ->orderBy('occurred_at', 'asc')
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
@@ -228,10 +393,10 @@ class TimelineController extends Controller
         if ($activities->isNotEmpty()) {
             $stats[] = ['label' => 'Activities', 'value' => (string) $activities->count()];
 
-            $distance = (float) $activities->sum('distance_km');
+            $distanceMiles = Distance::miles((int) round($activities->sum('distance')), 1) ?? 0.0;
 
-            if ($distance > 0) {
-                $stats[] = ['label' => 'Distance', 'value' => number_format($distance, 1), 'unit' => 'km'];
+            if ($distanceMiles > 0) {
+                $stats[] = ['label' => 'Distance', 'value' => number_format($distanceMiles, 1), 'unit' => 'mi'];
             }
         }
 

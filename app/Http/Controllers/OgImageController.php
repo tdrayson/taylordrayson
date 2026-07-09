@@ -248,7 +248,7 @@ class OgImageController extends Controller
             }
         }
 
-        if ($type === 'media' && method_exists($model, 'getFirstMediaUrl')) {
+        if (in_array($type, ['media', 'article'], true) && method_exists($model, 'getFirstMediaUrl')) {
             $cover = $model->getFirstMediaUrl('cover');
 
             if ($cover !== '') {
@@ -446,15 +446,15 @@ class OgImageController extends Controller
     private function sampleCards(): array
     {
         return [
-            'activity' => ['layout' => 'media', 'accent' => TypeColors::hex('activity'), 'eyebrow' => 'Activity', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '5.2 km · 42 min', 'image' => $this->sampleMap('activity')],
-            'flight' => ['layout' => 'media', 'accent' => TypeColors::hex('flight'), 'eyebrow' => 'Flight', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117 · LHR to JFK', 'image' => $this->sampleMap('flight')],
+            'activity' => ['layout' => 'media', 'accent' => TypeColors::hex('activity'), 'eyebrow' => 'Activity', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '3.2 mi, 42 min', 'image' => $this->sampleMap('activity')],
+            'flight' => ['layout' => 'media', 'accent' => TypeColors::hex('flight'), 'eyebrow' => 'Flight', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
             'checkin' => ['layout' => 'media', 'accent' => TypeColors::hex('checkin'), 'eyebrow' => 'Places', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('checkin'))],
             'media' => ['layout' => 'cover', 'accent' => TypeColors::hex('media'), 'eyebrow' => 'Books', 'title' => 'Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear', 'image' => 'https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg'],
             'appearance' => ['layout' => 'text', 'accent' => TypeColors::hex('appearance'), 'eyebrow' => 'Appearance', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
-            'podcast' => ['layout' => 'text', 'accent' => TypeColors::hex('podcast'), 'eyebrow' => 'This Week With', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min · Taylor & Gordon'],
+            'podcast' => ['layout' => 'text', 'accent' => TypeColors::hex('podcast'), 'eyebrow' => 'This Week With', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
             'article' => ['layout' => 'text', 'accent' => TypeColors::hex('article'), 'eyebrow' => 'Article', 'title' => 'Why I track absolutely everything', 'date' => 'Mon 12 May 2025', 'meta' => '6 min read'],
             'note' => ['layout' => 'text', 'accent' => TypeColors::hex('note'), 'eyebrow' => 'Note', 'title' => 'A quick thought on building in public', 'date' => 'Tue 24 Jun 2026', 'meta' => null],
-            'project' => ['layout' => 'text', 'accent' => TypeColors::hex('project'), 'eyebrow' => 'Project', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel · Inertia · Vue'],
+            'project' => ['layout' => 'text', 'accent' => TypeColors::hex('project'), 'eyebrow' => 'Project', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel, Inertia, Vue'],
             'event' => ['layout' => 'text', 'accent' => TypeColors::hex('event'), 'eyebrow' => 'Event', 'title' => 'Laracon EU', 'date' => 'Tue 28 Jan 2026', 'meta' => 'Amsterdam'],
             'sleep' => ['layout' => 'text', 'accent' => TypeColors::hex('sleep'), 'eyebrow' => 'Sleep', 'title' => 'I slept 7h 32m', 'date' => 'Wed 25 Jun 2026', 'stages' => $this->sleepStages([
                 ['label' => 'Awake', 'stage' => 'awake', 'seconds' => 1620],

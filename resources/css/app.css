@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -117,10 +118,15 @@
     --radius-md: 11px;
     --radius-lg: 14px;
 
-    /* Long-read column widths: prose reads at `max-w-reading`; charts, images and
-       other blocks sit a touch wider at `max-w-media`. Reused by stories/articles. */
-    --container-reading: 42rem;
+    /* Long-read column width: prose reads at Tailwind's built-in `max-w-prose`
+       (65ch); charts, images and other blocks sit a touch wider at
+       `max-w-media`; headings keep a tighter `max-w-heading` measure
+       (ch-based, so it scales with the heading's own size). */
     --container-media: 44rem;
+    --container-heading: 35ch;
+    /* Wide dashboards (e.g. the stats pages) cap here and centre, so cards
+       don't stretch awkwardly on very wide screens (`max-w-dashboard`). */
+    --container-dashboard: 90rem;
 
     /* Elevation — the single shadow tier */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
@@ -282,17 +288,22 @@
    margins. See https://docs.automaticcss.com/3.0/grids/content-grid */
 .content-grid {
     --content-max-width: 56rem;
-    --breakout-max-width: 72rem;
+    --breakout-max-width: 75rem;
     --padding-inline: 1.25rem;
     --breakout-size: calc((var(--breakout-max-width) - var(--content-max-width)) / 2);
 
     display: grid;
+    /* The edge gutter is its own fixed track, so `inset` is a real column
+       (full bleed minus gutter) and needs no margin tricks; it follows
+       --padding-inline across breakpoints automatically. */
     grid-template-columns:
-        [full-width-start] minmax(var(--padding-inline), 1fr)
+        [full-width-start] var(--padding-inline)
+        [inset-start] minmax(0, 1fr)
         [breakout-start] minmax(0, var(--breakout-size))
         [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-width)) [content-end]
         minmax(0, var(--breakout-size)) [breakout-end]
-        minmax(var(--padding-inline), 1fr) [full-width-end];
+        minmax(0, 1fr) [inset-end]
+        var(--padding-inline) [full-width-end];
 }
 
 @media (min-width: 768px) {
@@ -313,6 +324,13 @@
 
 /* Column-placement utilities — defined with @utility so responsive variants
    (e.g. md:breakout, lg:full-width) and other modifiers work. */
+/* Content images: cap the rendered height so portrait images don't tower
+   over the prose; width follows the ratio (pair with w-auto). Companion to
+   max-w-media. The lightbox shows the full size. */
+@utility max-h-media {
+    max-height: clamp(20rem, 75vh, 34rem);
+}
+
 @utility content-width {
     grid-column: content;
 }
@@ -325,10 +343,10 @@
     grid-column: full-width;
 }
 
-/* Full bleed, but inset by the gutter (a rounded box that never touches the edge). */
+/* Full bleed, but inset by the gutter (a rounded box that never touches the
+   edge). A real grid column, so no margin/width interactions. */
 @utility full-width-inset {
-    grid-column: full-width;
-    margin-inline: var(--padding-inline);
+    grid-column: inset;
 }
 
 /* Full bleed box whose inner content respects the gutter (ACSS "full width safe"). */
@@ -410,4 +428,14 @@
 .now-grid .grid-stack-item-content,
 .now-grid .grid-stack-placeholder > .placeholder-content {
     border-radius: 1.5rem;
+}
+
+/* iOS Safari zooms the page when a focused control's font-size is under 16px.
+   Hold a 16px floor on touch devices; unlayered so it beats text-size utilities. */
+@media (pointer: coarse) {
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+    }
 }

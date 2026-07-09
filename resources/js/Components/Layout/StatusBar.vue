@@ -27,13 +27,13 @@ const { time, date } = useClock();
 
 const ringsLabel = `${props.steps} steps`;
 const weatherLabel = `${props.condition} in ${props.location}`;
-const batteryLabel = `${Math.round(props.batteryLevel * 100)}% · ${props.charging ? 'charging' : 'on battery'}`;
+const batteryLabel = `${Math.round(props.batteryLevel * 100)}%, ${props.charging ? 'charging' : 'on battery'}`;
 </script>
 
 <template>
     <Link
         href="/now"
-        aria-label="Today's status — open the Now page"
+        aria-label="Today's status - open the Now page"
         class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
         :class="compact ? 'gap-3 text-xs' : 'gap-4 text-sm'"
     >

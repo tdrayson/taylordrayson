@@ -66,7 +66,7 @@ setLayoutProps({
     breadcrumb: [
         { label: String(props.year), href: `/${props.year}` },
         { label: monthName.value, href: `/${props.year}/${pad(props.month)}` },
-        { label: String(props.day) },
+        { label: String(props.day), ariaLabel: `${props.day} ${monthName.value} ${props.year}` },
     ],
 });
 </script>

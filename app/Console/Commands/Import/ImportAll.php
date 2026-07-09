@@ -21,6 +21,7 @@ class ImportAll extends Command
         ['file' => 'data/podcasts.csv', 'type' => 'podcast'],
         ['file' => 'data/flights.csv', 'type' => 'flight'],
         ['file' => 'data/fuel.csv', 'type' => 'fuel'],
+        ['file' => 'data/events.csv', 'type' => 'event'],
     ];
 
     public function handle(): int

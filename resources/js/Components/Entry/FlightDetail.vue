@@ -4,6 +4,7 @@ import FlightRoute from '../Maps/FlightRoute.vue';
 import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
 import { number, titleCase, time, duration, flightDurationLabel } from '../../lib/format.js';
+import { metresToMiles } from '../../lib/distance.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -16,8 +17,10 @@ const destination = computed(() => props.entry.destination || {});
 
 const departAt = computed(() => props.entry.departed_local);
 const arriveAt = computed(() => props.entry.arrived_local);
-const durationLabel = computed(() => (props.entry.duration ? duration(props.entry.duration) : flightDurationLabel(props.entry.distance_miles)));
-const distanceLabel = computed(() => (props.entry.distance_miles ? `${number(props.entry.distance_miles)} mi` : null));
+// Raw distance is stored in metres; convert once here for the duration estimate and the label.
+const distanceMiles = computed(() => metresToMiles(props.entry.distance));
+const durationLabel = computed(() => (props.entry.duration ? duration(props.entry.duration) : flightDurationLabel(distanceMiles.value)));
+const distanceLabel = computed(() => (distanceMiles.value ? `${number(distanceMiles.value)} mi` : null));
 
 const hasCoordinates = computed(() => origin.value.latitude != null && destination.value.latitude != null);
 

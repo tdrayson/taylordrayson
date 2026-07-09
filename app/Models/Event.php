@@ -16,16 +16,20 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
+    'ends_at',
+    'all_day',
     'type',
     'name',
+    'organiser',
     'venue_name',
-    'address',
     'city',
     'country',
     'latitude',
     'longitude',
-    'ticket_price',
-    'notes',
+    'url',
+    'description',
+    'timezone',
+    'meta',
 ])]
 class Event extends Model implements HasMedia, Timelineable
 {
@@ -38,6 +42,9 @@ class Event extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'all_day' => 'boolean',
+            'meta' => 'array',
         ];
     }
 
@@ -46,9 +53,51 @@ class Event extends Model implements HasMedia, Timelineable
         return Str::slug($this->name);
     }
 
+    /**
+     * The event's day span for multi-day display, or null when it is a single
+     * day. `label` is the compact card form ("2-4 Jun 2022"); `long` is the
+     * spelled-out detail form ("4th to 6th June 2026").
+     *
+     * @return array{start: string, end: string, days: int, label: string, long: string}|null
+     */
+    public function dateRange(): ?array
+    {
+        if ($this->ends_at === null || $this->ends_at->toDateString() === $this->occurred_at->toDateString()) {
+            return null;
+        }
+
+        $start = $this->occurred_at->copy();
+        $end = $this->ends_at->copy();
+        $days = $start->startOfDay()->diffInDays($end->startOfDay()) + 1;
+
+        $sameMonth = $start->format('n') === $end->format('n') && $start->format('Y') === $end->format('Y');
+        $sameYear = $start->format('Y') === $end->format('Y');
+
+        $label = $sameMonth
+            ? $start->format('j').'-'.$end->format('j M Y')
+            : $start->format('j M').' - '.$end->format('j M Y');
+
+        if ($sameMonth) {
+            $long = $start->format('jS').' to '.$end->format('jS F Y');
+        } elseif ($sameYear) {
+            $long = $start->format('jS F').' to '.$end->format('jS F Y');
+        } else {
+            $long = $start->format('jS F Y').' to '.$end->format('jS F Y');
+        }
+
+        return [
+            'start' => $start->toDateString(),
+            'end' => $end->toDateString(),
+            'days' => (int) $days,
+            'label' => $label,
+            'long' => $long,
+        ];
+    }
+
     public function card(): array
     {
         $parts = array_filter([$this->venue_name, $this->city]);
+        $photos = $this->galleryPhotos();
 
         return [
             'type' => 'event',
@@ -57,7 +106,13 @@ class Event extends Model implements HasMedia, Timelineable
             'subtitle' => $parts ? implode(', ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'event',
-            'meta' => [],
+            'range' => $this->dateRange(),
+            'meta' => [
+                'photos' => $photos,
+                // Fall back to the generated static location map only when there
+                // is no photo to show instead (mirrors the activity route map).
+                'map' => $photos === [] ? $this->getFirstMediaUrl('map') ?: null : null,
+            ],
         ];
     }
 }

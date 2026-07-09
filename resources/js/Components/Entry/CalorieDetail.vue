@@ -76,7 +76,7 @@ function quantity(item) {
                     <span class="size-2.5 rounded-full" :style="{ background: macro.color }" />
                     <div>
                         <div class="font-display text-stat leading-none tnum">{{ number(macro.grams) }}<span class="ml-0.5 text-base font-semibold text-neutral-500">g</span></div>
-                        <div class="mt-1 text-label uppercase text-neutral-500">{{ macro.label }} · {{ Math.round(macro.percent) }}%</div>
+                        <div class="mt-1 text-label uppercase text-neutral-500">{{ macro.label }}, {{ Math.round(macro.percent) }}%</div>
                     </div>
                 </div>
             </div>

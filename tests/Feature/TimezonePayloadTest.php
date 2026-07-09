@@ -17,11 +17,15 @@ it('exposes local label, offset and offset-aware iso on the entry page', functio
         ->where('occurredLabel', 'Wed 1 Jul 2026, 9:30am'));
 });
 
-it('shows a bare date with no time or offset on a day-level (sleep) entry', function () {
-    $sleep = Sleep::factory()->create(['occurred_at' => '2026-07-01 00:00:00']);
+it('shows the wake time on a day-granular (sleep) entry', function () {
+    $sleep = Sleep::factory()->create([
+        'occurred_at' => '2026-07-01 00:00:00',
+        'bedtime' => '2026-06-30 23:00:00',
+        'wake_time' => '2026-07-01 06:45:00',
+    ]);
 
     $this->get($sleep->url())->assertInertia(fn ($page) => $page
-        ->where('occurredOffset', '')
-        ->where('occurredAt', '2026-07-01')
-        ->where('occurredLabel', 'Wed 1 Jul 2026'));
+        ->where('occurredOffset', '+01:00')
+        ->where('occurredAt', '2026-07-01T06:45:00+01:00')
+        ->where('occurredLabel', 'Wed 1 Jul 2026, 6:45am'));
 });

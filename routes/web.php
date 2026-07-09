@@ -4,12 +4,15 @@ use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnakeScoreController;
+use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Models\LeaderboardEntry;
 use App\Support\OgMeta;
@@ -19,6 +22,8 @@ use Inertia\Inertia;
 
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
+Route::get('/more', MoreController::class)->name('more');
+Route::get('/pages', [PageController::class, 'index'])->name('pages');
 Route::get('/og.png', [OgImageController::class, 'show'])->middleware('throttle:60,1')->name('og');
 Route::get('/og/entry/{entry}.png', [OgImageController::class, 'entry'])
     ->where('entry', '[0-9]+')->middleware('throttle:120,1')->name('og.entry');
@@ -63,13 +68,22 @@ foreach (TypeRegistry::all() as $type => $definition) {
     Route::get($definition['slug'], [ArchiveController::class, 'index'])
         ->defaults('type', $type)->name("archive.{$definition['slug']}");
 
+    // Two-way support: /{slug}/stats resolves to the canonical /stats/{slug}.
+    // Registered before the taxonomy route below so "stats" is not matched as a
+    // taxonomy value (e.g. /activities/{value}).
+    Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
+
     if ($taxonomy = $definition['taxonomy']) {
         Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
             ->defaults('type', $type)->name("archive.{$taxonomy['base']}");
     }
 }
 
+Route::get('/stats/{type}', [StatsController::class, 'show'])
+    ->where('type', '[a-z][a-z0-9-]*')->name('stats.show');
+
 Route::get('/', [TimelineController::class, 'index'])->name('timeline');
+Route::get('/on-this-day', [TimelineController::class, 'onThisDay'])->name('on-this-day');
 Route::get('/{year}', [TimelineController::class, 'year'])
     ->where(['year' => '\d{4}'])->name('year');
 Route::get('/{year}/{month}', [TimelineController::class, 'month'])
@@ -78,6 +92,10 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('day');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
+
+// Cross-type tag feed. Registered above the page catch-all so /tags/{slug}
+// never falls through to PageController.
+Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.

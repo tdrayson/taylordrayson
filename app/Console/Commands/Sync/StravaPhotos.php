@@ -59,11 +59,11 @@ class StravaPhotos extends Command
     private function resolveTargets(Strava $strava): ?Collection
     {
         $ours = Activity::query()
-            ->where('platform_type', 'strava')
-            ->whereNotNull('platform_id')
+            ->where('source', 'strava')
+            ->whereNotNull('source_id')
             ->with('media')
             ->get()
-            ->keyBy('platform_id');
+            ->keyBy('source_id');
 
         $force = (bool) $this->option('force');
         $targets = collect();
@@ -131,11 +131,11 @@ class StravaPhotos extends Command
                 $windowStart = time();
             }
 
-            $photos = $strava->activityPhotos($activity->platform_id);
+            $photos = $strava->activityPhotos($activity->source_id);
             $requestsInWindow++;
 
             if ($photos === null) {
-                $this->warn("Failed to fetch photos for {$activity->platform_id}");
+                $this->warn("Failed to fetch photos for {$activity->source_id}");
 
                 continue;
             }
@@ -143,7 +143,7 @@ class StravaPhotos extends Command
             $count = $sync($activity, $photos);
             $stored += $count;
 
-            $this->info("[{$stored}] {$activity->name} — {$count} photo(s)");
+            $this->info("[{$stored}] {$activity->name} - {$count} photo(s)");
         }
 
         $this->info("Done. Stored {$stored} photo(s).");

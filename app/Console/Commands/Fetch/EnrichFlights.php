@@ -6,6 +6,7 @@ use App\Models\Airport;
 use App\Models\Flight;
 use App\Services\LogoStream;
 use App\Services\TimeApi;
+use App\Support\Distance;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -142,7 +143,9 @@ class EnrichFlights extends Command
             ];
         }
 
-        return $this->routeInfo($row['origin_iata'], $row['destination_iata'], (int) ($row['distance_miles'] ?: 0));
+        $miles = ($row['distance'] ?? '') !== '' ? Distance::miles((int) $row['distance']) : null;
+
+        return $this->routeInfo($row['origin_iata'], $row['destination_iata'], $miles ?? 0);
     }
 
     /**
@@ -165,9 +168,9 @@ class EnrichFlights extends Command
                 'duration' => $this->estimateDuration((int) ($distance ?? 0)),
                 'departure_timezone' => $this->timezoneFor($departure),
                 'arrival_timezone' => $this->timezoneFor($arrival),
-                'distance_miles' => $distance,
+                'distance' => $distance !== null ? Distance::fromMiles($distance) : null,
             ];
-            $this->components->warn("{$departure} → {$arrival} not in aviation API — used coordinate/timezone fallback");
+            $this->components->warn("{$departure} → {$arrival} not in aviation API - used coordinate/timezone fallback");
         } else {
             $this->components->task("{$departure} → {$arrival}");
         }

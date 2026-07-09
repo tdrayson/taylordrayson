@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
     'slug',
     'excerpt',
     'content',
-    'draft',
+    'published',
 ])]
 class Page extends Model
 {
@@ -30,7 +30,7 @@ class Page extends Model
     {
         return [
             'content' => 'array',
-            'draft' => 'boolean',
+            'published' => 'boolean',
         ];
     }
 }

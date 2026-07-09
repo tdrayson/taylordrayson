@@ -40,7 +40,7 @@ const cells = computed(() => {
         return {
             href: `/${year}/${month}/${day}`,
             color: COLORS[level(c)],
-            title: `${date} · ${fmtCount(c)}`,
+            title: `${date}, ${fmtCount(c)}`,
         };
     });
 });
@@ -50,7 +50,7 @@ const cells = computed(() => {
     <div class="entries rounded-3xl">
         <div class="entries__inner">
             <div class="entries__header">
-                <span class="entries__title">Last 30 days</span>
+                <h2 class="entries__title">Last 30 days</h2>
                 <span class="entries__total">{{ total }}</span>
             </div>
 

@@ -219,6 +219,21 @@ class OgMeta
     /**
      * @return OgPayload
      */
+    public static function onThisDay(Carbon $date): array
+    {
+        $label = $date->format('j F');
+
+        return self::make([
+            'title' => 'On this day',
+            'eyebrow' => 'On This Day',
+            'heading' => "On this day: {$label}",
+            'description' => "Everything I've logged on {$label}, across every year.",
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
     public static function day(Carbon $date): array
     {
         $label = $date->format('j F Y');
@@ -251,16 +266,48 @@ class OgMeta
     }
 
     /**
-     * @param  TimelineEntry  $entry  The entry whose pre-rendered card to point at.
+     * @param  string  $label  The type's display label (e.g. "Activities").
+     * @param  string  $accentToken  The card accent token (e.g. "activity").
+     * @return OgPayload
+     */
+    public static function stats(string $label, string $accentToken): array
+    {
+        return self::make([
+            'title' => "{$label} stats",
+            'eyebrow' => $label,
+            'heading' => "{$label} stats",
+            'accent' => TypeColors::hex($accentToken),
+            'description' => 'The numbers behind my '.Str::lower($label).': totals, trends and records.',
+        ]);
+    }
+
+    /**
+     * @param  string  $name  The tag's display name.
+     * @return OgPayload
+     */
+    public static function tag(string $name): array
+    {
+        return self::make([
+            'title' => "Tagged {$name}",
+            'eyebrow' => 'Tag',
+            'heading' => "Tagged {$name}",
+            'description' => "Everything tagged {$name}.",
+        ]);
+    }
+
+    /**
+     * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
+     *                                     the model has no spine row (e.g. an unpublished article
+     *                                     previewed by its author), in which case the OG image is omitted.
      * @param  string  $title  The entry's display title.
      * @return OgPayload
      */
-    public static function entry(TimelineEntry $entry, string $title): array
+    public static function entry(?TimelineEntry $entry, string $title): array
     {
         return self::make([
             'title' => $title,
             'description' => $title,
-            'image' => route('og.entry', $entry),
+            'image' => $entry !== null ? route('og.entry', $entry) : null,
         ]);
     }
 

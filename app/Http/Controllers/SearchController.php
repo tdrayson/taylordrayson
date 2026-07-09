@@ -241,7 +241,7 @@ class SearchController extends Controller
      * no code change. Prefix hits rank above mid-word hits, then shorter labels.
      *
      * @param  string  $term  The free-text query.
-     * @return array<int, array{label: string, section: string, type: string, url: string}>
+     * @return array<int, array{label: string, section: string, type: string, tag: bool, url: string}>
      */
     private function matchDestinations(string $term): array
     {
@@ -259,19 +259,32 @@ class SearchController extends Controller
                     ->filter(fn (array $value): bool => str_contains(Str::lower($value['label']), $needle))
                     ->map(fn (array $value): array => [
                         'label' => $value['label'],
-                        'section' => $definition['label'],
+                        // The taxonomy's own kind label ("Tag", "Type", "Category", …),
+                        // not the owning type's label: a tag jump is a "Tag", not an
+                        // "Articles" entry, and a run is an activity "Type", not an "Activities" one.
+                        'section' => $taxonomy['label'],
                         'type' => $type,
-                        'url' => '/'.$taxonomy['base'].'/'.$value['value'],
+                        // Tags span every type, so the palette shows them with a tag
+                        // icon rather than the owning model's icon.
+                        'tag' => $taxonomy['param'] === 'tag',
+                        // Tags jump to the cross-type /tags feed, not a per-type filter,
+                        // so the same tag on several types collapses to one destination
+                        // (deduped by url below). Other taxonomies keep their type page.
+                        'url' => $taxonomy['param'] === 'tag'
+                            ? '/tags/'.$value['value']
+                            : '/'.$taxonomy['base'].'/'.$value['value'],
                         'rank' => str_starts_with(Str::lower($value['label']), $needle) ? 0 : 1,
                     ])
                     ->all();
             })
             ->sortBy(fn (array $destination): string => sprintf('%d %03d %s', $destination['rank'], mb_strlen($destination['label']), Str::lower($destination['label'])))
+            ->unique('url')
             ->take(self::DESTINATION_LIMIT)
             ->map(fn (array $destination): array => [
                 'label' => $destination['label'],
                 'section' => $destination['section'],
                 'type' => $destination['type'],
+                'tag' => $destination['tag'],
                 'url' => $destination['url'],
             ])
             ->values()
@@ -287,12 +300,15 @@ class SearchController extends Controller
      */
     private function searchType(string $model, string $type, array $columns, string $term): array
     {
-        $query = $model::query()
-            ->where(function (Builder $builder) use ($columns, $term): void {
-                foreach ($columns as $column) {
-                    $builder->orWhere($column, 'like', "%{$term}%");
-                }
-            })
+        $query = $model::query();
+
+        $this->compiler->guardPublished($query, $model);
+
+        $query->where(function (Builder $builder) use ($columns, $term): void {
+            foreach ($columns as $column) {
+                $builder->orWhere($column, 'like', "%{$term}%");
+            }
+        })
             ->orderByDesc('occurred_at')
             ->limit(self::PER_TYPE);
 

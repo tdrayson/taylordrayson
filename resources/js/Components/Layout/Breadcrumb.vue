@@ -46,7 +46,8 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
             :class="ancestors.length ? 'hidden md:flex' : 'flex'"
         >
             <span class="mx-2 shrink-0 text-neutral-100" aria-hidden="true">/</span>
-            <span class="min-w-0 truncate" aria-current="page">{{ current.label }}</span>
+            <!-- aria-label gives a short crumb ("29") a self-describing name ("29 June 2026"). -->
+            <span class="min-w-0 truncate" aria-current="page" :aria-label="current.ariaLabel || undefined">{{ current.label }}</span>
         </div>
     </nav>
 </template>

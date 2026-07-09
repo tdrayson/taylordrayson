@@ -1,30 +1,81 @@
 <script setup>
-import { computed } from 'vue';
-import DetailList from '../Ui/DetailList.vue';
+import { computed, ref } from 'vue';
 import SectionHead from '../Ui/SectionHead.vue';
-import { number, titleCase } from '../../lib/format.js';
+import ExternalLink from '../Ui/ExternalLink.vue';
+import Pill from '../Ui/Pill.vue';
+import ActivityMedia from './ActivityMedia.vue';
+import Lightbox from '../Overlays/Lightbox.vue';
+import LocationMap from '../Maps/LocationMap.vue';
+import StatGrid from '../Stats/StatGrid.vue';
+import { titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-const rows = computed(() => [
-    { label: 'Type', value: titleCase(props.entry.type) },
-    { label: 'Venue', value: props.entry.venue_name },
-    { label: 'Address', value: props.entry.address },
-    { label: 'City', value: props.entry.city },
-    { label: 'Country', value: props.entry.country },
-    { label: 'Ticket price', value: props.entry.ticket_price ? `£${number(props.entry.ticket_price, 2)}` : null },
-]);
+// Loose, display-only details live in the meta JSON column (seat, geocoding extras).
+const seat = computed(() => props.entry.meta?.seat ?? null);
+// Photo gallery in {src,srcset,full} shape; empty when the event has no photos.
+const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
+const location = computed(() => props.entry.location ?? null);
+// Multi-day range badge data, null for single-day events.
+const range = computed(() => props.entry.range ?? null);
+// Organiser is only worth showing when it adds something beyond the event name.
+const organiser = computed(() => {
+    const value = props.entry.organiser;
+
+    return value && value !== props.entry.name ? value : null;
+});
+// Short categorical facts, shown as display-figure stats rather than a table. Blanks are dropped by StatGrid.
+const facts = computed(() =>
+    [
+        { label: 'Organiser', value: organiser.value },
+        { label: 'Seat', value: seat.value },
+    ].filter((fact) => fact.value),
+);
+const lightboxIndex = ref(null);
 </script>
 
 <template>
     <div class="space-y-8">
-        <DetailList :rows="rows" />
+        <div class="space-y-2">
+            <Pill :label="titleCase(entry.type)" :href="`/events/${entry.type}`" />
+            <p v-if="range" class="text-meta text-neutral-500">
+                {{ range.long }} ({{ range.days }} days)
+            </p>
+        </div>
 
-        <div v-if="entry.notes">
+        <div v-if="location" class="space-y-3">
+            <LocationMap
+                :lat="location.lat"
+                :lng="location.lng"
+                :label="entry.venue_name || location.address"
+                color="var(--color-event)"
+            />
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <p class="text-meta text-neutral-600">
+                    <span v-if="entry.venue_name" class="font-medium text-neutral-900">{{ entry.venue_name }}</span><span v-if="entry.city">{{ entry.venue_name ? ', ' : '' }}{{ entry.city }}</span><span v-if="entry.country">, {{ entry.country }}</span>
+                </p>
+                <ExternalLink :href="location.mapsUrl" label="View on Google Maps" />
+            </div>
+        </div>
+
+        <ActivityMedia
+            v-if="photos.length"
+            :photos="photos"
+            @open="lightboxIndex = $event"
+        />
+        <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+
+        <StatGrid v-if="facts.length" :stats="facts" />
+
+        <div v-if="entry.description">
             <SectionHead title="Notes" />
-            <p class="text-body text-neutral-700">{{ entry.notes }}</p>
+            <p class="text-body text-neutral-700">{{ entry.description }}</p>
+        </div>
+
+        <div v-if="entry.url">
+            <ExternalLink :href="entry.url" label="More about this event" />
         </div>
     </div>
 </template>

@@ -1,16 +1,15 @@
 <script setup>
 import { computed, ref } from 'vue';
-import EditorList from './EditorList.vue';
-import ZoomButton from './ZoomButton.vue';
+import PortableTextBlocks from './PortableTextBlocks.js';
 import Lightbox from '../Overlays/Lightbox.vue';
 
-// Read-only renderer for an Editor.js document. Accepts the parsed document
-// object (content is cast to an array server-side) or a raw JSON string.
+// Read-only renderer for a Portable Text document. Accepts the bare node
+// array (content is cast to an array server-side) or a raw JSON string.
 const props = defineProps({
-    document: { type: [Object, Array, String], default: null },
+    document: { type: [Array, String], default: null },
 });
 
-const blocks = computed(() => {
+const nodes = computed(() => {
     let doc = props.document;
 
     if (typeof doc === 'string') {
@@ -21,86 +20,43 @@ const blocks = computed(() => {
         }
     }
 
-    return Array.isArray(doc?.blocks) ? doc.blocks : [];
+    return Array.isArray(doc) ? doc : [];
 });
 
-const headingTag = (level) => `h${Math.min(Math.max(Number(level) || 2, 1), 6)}`;
-const imageUrl = (data) => data?.file?.url ?? data?.url ?? null;
-
-// Every image in the document forms one lightbox gallery, clicked open in place.
-const lightboxItems = computed(() =>
-    blocks.value
-        .filter((block) => block.type === 'image' && imageUrl(block.data))
-        .map((block) => ({ full: imageUrl(block.data) })),
-);
+// The clicked image opens alone: article images are standalone illustrations,
+// not a connected gallery, so the lightbox gets no prev/next between them.
+// The node's caption still carries through to the overlay.
+const activeImage = ref(null);
 const lightboxIndex = ref(null);
 
 function openImage(url) {
-    lightboxIndex.value = lightboxItems.value.findIndex((item) => item.full === url);
+    const node = nodes.value.find((item) => item._type === 'image' && item.url === url);
+
+    activeImage.value = { full: url, caption: node?.caption || null };
+    lightboxIndex.value = 0;
 }
 </script>
 
 <template>
-    <div v-if="blocks.length" class="block-content space-y-5 text-body text-neutral-900">
-        <template v-for="(block, i) in blocks" :key="i">
-            <component
-                :is="headingTag(block.data.level)"
-                v-if="block.type === 'header'"
-                class="font-display text-neutral-900"
-                :class="(Number(block.data.level) || 2) <= 2 ? 'text-item-title' : 'text-lg font-semibold'"
-                v-html="block.data.text"
-            ></component>
+    <!-- prose supplies the inter-element rhythm (p/heading/list/figure margins);
+         its :where() selectors have zero specificity, so the renderer's explicit
+         classes (widths, blockquote, code) always win. max-w-none: widths are
+         set per node, not on the wrapper. -->
+    <div v-if="nodes.length" class="block-content prose max-w-none text-body text-neutral-900">
+        <PortableTextBlocks :nodes="nodes" @image-click="openImage" />
 
-            <p v-else-if="block.type === 'paragraph'" v-html="block.data.text"></p>
-
-            <EditorList
-                v-else-if="block.type === 'list' || block.type === 'nestedlist'"
-                :items="block.data.items"
-                :ordered="block.data.style === 'ordered'"
-            />
-
-            <ul v-else-if="block.type === 'checklist'" class="space-y-1.5">
-                <li v-for="(item, j) in block.data.items" :key="j" class="flex items-start gap-2">
-                    <span
-                        class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border"
-                        :class="item.checked ? 'border-accent-500 bg-accent-500 text-neutral-0' : 'border-neutral-50'"
-                    >
-                        <svg v-if="item.checked" viewBox="0 0 16 16" class="size-3" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3.5 3.5L13 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                    </span>
-                    <span :class="item.checked ? 'text-neutral-500 line-through' : ''" v-html="item.text"></span>
-                </li>
-            </ul>
-
-            <blockquote v-else-if="block.type === 'quote'" class="border-l-2 border-accent-200 pl-4 text-neutral-700">
-                <span v-html="block.data.text"></span>
-                <cite v-if="block.data.caption" class="mt-1 block text-meta not-italic text-neutral-500" v-html="block.data.caption"></cite>
-            </blockquote>
-
-            <pre v-else-if="block.type === 'code'" class="overflow-x-auto rounded-lg bg-neutral-25 p-4 text-meta"><code>{{ block.data.code }}</code></pre>
-
-            <hr v-else-if="block.type === 'delimiter'" class="border-neutral-50" />
-
-            <figure v-else-if="block.type === 'image' && imageUrl(block.data)">
-                <button
-                    type="button"
-                    :aria-label="block.data.caption ? `View image: ${block.data.caption}` : 'View image full size'"
-                    class="group/zoom relative block w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
-                    @click="openImage(imageUrl(block.data))"
-                >
-                    <img :src="imageUrl(block.data)" :alt="block.data.caption || ''" class="w-full rounded-lg border border-neutral-50">
-                    <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-visible/zoom:opacity-100">
-                        <ZoomButton />
-                    </span>
-                </button>
-                <figcaption v-if="block.data.caption" class="mt-2 text-center text-meta text-neutral-500" v-html="block.data.caption"></figcaption>
-            </figure>
-        </template>
-
-        <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
+        <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
     </div>
 </template>
 
 <style scoped>
+/* Unbroken strings (polylines, long tokens, URLs) wrap instead of overflowing
+   the column. Inherited everywhere; <pre> is unaffected (no soft wrap + its
+   own horizontal scroll). */
+.block-content {
+    overflow-wrap: anywhere;
+}
+
 .block-content :deep(a) {
     color: var(--color-accent-500);
     text-decoration: underline;
@@ -111,11 +67,19 @@ function openImage(url) {
     color: var(--color-accent-700);
 }
 
-.block-content :deep(code) {
+/* Inline-code chips only — code inside <pre> belongs to CodeBlock's own styling. */
+.block-content :deep(:not(pre) > code) {
     border-radius: 4px;
     background: var(--color-neutral-25);
     padding: 0.1em 0.35em;
     font-size: 0.9em;
+}
+
+/* The typography plugin wraps inline code in literal backtick pseudo-elements;
+   the chip background already marks it as code. */
+.block-content :deep(code)::before,
+.block-content :deep(code)::after {
+    content: none;
 }
 
 .block-content :deep(mark) {

@@ -8,6 +8,11 @@ const props = defineProps({
     href: { type: String, default: null },
     date: { type: String, default: null }, // yyyy-mm-dd
     items: { type: Array, default: () => [] },
+    // Heading rank for the date label: 2 when DateGroup sits directly under the
+    // page's own h1 (Timeline, Tag, Search, Archive), 3 when nested inside a
+    // SectionHead-led <section> so the outline steps down a level instead of
+    // colliding with SectionHead's own h2.
+    headingLevel: { type: [String, Number], default: 2 },
 });
 
 function toKey(value) {
@@ -37,20 +42,22 @@ const relative = computed(() => {
 
 const isToday = computed(() => relative.value === 'Today');
 const displayLabel = computed(() => relative.value ?? props.label);
+// The tag name for the date heading, so callers can pass a numeric or string level.
+const headingTag = computed(() => `h${props.headingLevel}`);
 </script>
 
 <template>
     <section>
-        <h2 class="mb-6 flex items-center gap-2.5 font-display text-item-title">
+        <component :is="headingTag" class="mb-6 flex items-center gap-2.5 font-display text-item-title">
             <span v-if="isToday" class="relative flex size-2.5 shrink-0" aria-hidden="true">
                 <span class="absolute inline-flex size-full animate-ping rounded-full bg-accent-500 opacity-75" />
                 <span class="relative inline-flex size-2.5 rounded-full bg-accent-500" />
             </span>
-            <component :is="href ? Link : 'span'" :href="href || undefined" class="transition-colors" :class="href ? 'hover:text-accent-500 focus-visible:text-accent-500' : ''">
+            <component :is="href ? Link : 'span'" :href="href || undefined" class="transition-colors" :class="href ? 'underline-offset-4 hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline' : ''">
                 <time v-if="date" :datetime="date">{{ displayLabel }}</time>
                 <template v-else>{{ displayLabel }}</template>
             </component>
-        </h2>
+        </component>
         <TimelineFeed :items="items" />
     </section>
 </template>

@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { Menu01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import StatusBar from './StatusBar.vue';
+import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
 import SocialLinks from '../Profile/SocialLinks.vue';
 import Avatar from '../Profile/Avatar.vue';
@@ -52,7 +53,7 @@ onUnmounted(() => {
 
 <template>
     <div class="md:hidden" :class="shellFixed ? 'fixed inset-0 z-50 flex flex-col bg-neutral-0' : ''">
-        <header class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
+        <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
@@ -67,10 +68,11 @@ onUnmounted(() => {
             >
                 <Icon :icon="open ? Cancel01Icon : Menu01Icon" class="size-6" />
             </button>
-        </header>
+        </div>
 
         <Transition name="menu-body" @after-leave="onAfterLeave">
             <div v-if="open" id="mobile-menu" class="flex flex-1 flex-col overflow-y-auto px-5 py-6">
+                <SearchBar class="menu-search mb-5" />
                 <SidebarNav />
                 <div class="menu-foot mt-auto space-y-5 border-t border-neutral-50 pt-6">
                     <StatusBar />
@@ -94,41 +96,40 @@ onUnmounted(() => {
     transform: translateY(-8px);
 }
 
-#mobile-menu :deep(nav > a),
+/* Stagger the search pill, each nav group (top links + sections), and the
+   footer as they enter. */
+.menu-search,
+#mobile-menu :deep(nav > *),
 #mobile-menu .menu-foot {
     animation: menu-item-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-#mobile-menu :deep(nav > a:nth-child(1)) {
+#mobile-menu :deep(nav > *:nth-child(1)) {
     animation-delay: 0.04s;
 }
 
-#mobile-menu :deep(nav > a:nth-child(2)) {
+#mobile-menu :deep(nav > *:nth-child(2)) {
     animation-delay: 0.08s;
 }
 
-#mobile-menu :deep(nav > a:nth-child(3)) {
+#mobile-menu :deep(nav > *:nth-child(3)) {
     animation-delay: 0.12s;
 }
 
-#mobile-menu :deep(nav > a:nth-child(4)) {
+#mobile-menu :deep(nav > *:nth-child(4)) {
     animation-delay: 0.16s;
 }
 
-#mobile-menu :deep(nav > a:nth-child(5)) {
+#mobile-menu :deep(nav > *:nth-child(5)) {
     animation-delay: 0.2s;
 }
 
-#mobile-menu :deep(nav > a:nth-child(6)) {
+#mobile-menu :deep(nav > *:nth-child(6)) {
     animation-delay: 0.24s;
 }
 
-#mobile-menu :deep(nav > a:nth-child(7)) {
-    animation-delay: 0.28s;
-}
-
 #mobile-menu .menu-foot {
-    animation-delay: 0.32s;
+    animation-delay: 0.28s;
 }
 
 @keyframes menu-item-in {

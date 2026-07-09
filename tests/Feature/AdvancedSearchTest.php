@@ -3,9 +3,12 @@
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
+use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\User;
 use App\Search\SearchPresets;
+use App\Support\Distance;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -37,7 +40,7 @@ function makeFlight(string $airlineIcao, int $miles, string $occurredAt): void
         'airline_icao' => $airlineIcao,
         'origin_iata' => 'LHR',
         'destination_iata' => 'JFK',
-        'distance_miles' => $miles,
+        'distance' => Distance::fromMiles($miles),
         'occurred_at' => $occurredAt,
     ]);
 }
@@ -62,6 +65,7 @@ it('ANDs conditions within a group (flights over 300mi with easyJet)', function 
     makeFlight('EZY', 200, '2026-05-02 09:00:00'); // fails distance
     makeFlight('BAW', 400, '2026-05-03 09:00:00'); // fails airline
 
+    // 300 is what the UI sends (miles); the server scales it to metres before comparing.
     $url = searchUrl([[
         'type' => 'flight',
         'conditions' => [
@@ -292,9 +296,9 @@ it('exposes ready-made example searches', function () {
 });
 
 it('runs a preset filter to real results', function () {
-    Activity::factory()->create(['type' => 'run', 'distance_km' => 12, 'occurred_at' => now()]); // matches (>= 5km run)
-    Activity::factory()->create(['type' => 'run', 'distance_km' => 3, 'occurred_at' => now()]);  // too short
-    Activity::factory()->create(['type' => 'walk', 'distance_km' => 15, 'occurred_at' => now()]); // not a run
+    Activity::factory()->create(['type' => 'run', 'distance' => Distance::fromKm(12), 'occurred_at' => now()]); // matches (>= 5km run)
+    Activity::factory()->create(['type' => 'run', 'distance' => Distance::fromKm(3), 'occurred_at' => now()]);  // too short
+    Activity::factory()->create(['type' => 'walk', 'distance' => Distance::fromKm(15), 'occurred_at' => now()]); // not a run
 
     $preset = collect(SearchPresets::all())->firstWhere('key', 'long-runs');
 
@@ -316,6 +320,27 @@ it('orders results newest or oldest first', function () {
         ->where('order', 'oldest')
         ->where('groups.0.items.0.title', 'Older')
     );
+});
+
+it('never surfaces a stale unpublished article to a guest via the advanced search filter', function () {
+    $article = Article::factory()->create(['published' => true, 'title' => 'Now hidden post', 'occurred_at' => now()]);
+
+    // A mass update via the query builder bypasses the TimelineEntryObserver,
+    // so the timeline_entries row is left behind stale (not deleted) even
+    // though the article is now unpublished. guardPublished() is the only
+    // thing standing between this stale row and a guest search result.
+    Article::query()->where('id', $article->id)->update(['published' => false]);
+
+    $url = searchUrl([[
+        'type' => 'article',
+        'conditions' => [['field' => 'title', 'operator' => 'contains', 'value' => 'hidden']],
+    ]]);
+
+    get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 0));
+
+    $this->actingAs(User::factory()->create());
+
+    get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
 });
 
 it('drops unknown fields and disallowed operators', function () {

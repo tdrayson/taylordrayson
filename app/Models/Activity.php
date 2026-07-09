@@ -6,13 +6,13 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\Distance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
@@ -22,12 +22,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'description',
     'duration',
     'calories',
-    'distance_km',
+    'distance',
     'average_heart_rate',
     'max_heart_rate',
     'heart_rate',
-    'platform_type',
-    'platform_id',
+    'source',
+    'source_id',
     'timezone',
     'meta',
 ])]
@@ -44,13 +44,14 @@ class Activity extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'heart_rate' => 'array',
             'meta' => 'array',
+            'distance' => 'integer',
         ];
     }
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->platform_type === 'strava' && $this->platform_id) {
-            return "https://www.strava.com/activities/{$this->platform_id}";
+        if ($this->source === 'strava' && $this->source_id) {
+            return "https://www.strava.com/activities/{$this->source_id}";
         }
 
         return null;
@@ -59,31 +60,6 @@ class Activity extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return Str::slug($this->name ?? $this->type);
-    }
-
-    /**
-     * The activity's photos in display order (cover first, then the gallery),
-     * each with the optimised card source, its responsive srcset, and the
-     * full-size original for the lightbox.
-     *
-     * @return array<int, array{src: string, srcset: ?string, full: string}>
-     */
-    public function galleryPhotos(): array
-    {
-        return $this->getMedia('cover')
-            ->merge($this->getMedia('photos'))
-            ->map(fn (Media $media): array => [
-                'src' => $media->getUrl('card'),
-                'srcset' => $media->getSrcset('card') ?: null,
-                'full' => $media->getUrl(),
-            ])
-            ->values()
-            ->all();
-    }
-
-    public function timezone(): ?string
-    {
-        return $this->timezone;
     }
 
     public function card(): array
@@ -112,8 +88,8 @@ class Activity extends Model implements HasMedia, Timelineable
 
         $parts = [];
 
-        if ($isCardio && $this->distance_km) {
-            $parts[] = round($this->distance_km, 2).' km';
+        if ($isCardio && $this->distance) {
+            $parts[] = Distance::miles($this->distance, 1).' mi';
         }
 
         if ($this->duration) {
@@ -124,7 +100,7 @@ class Activity extends Model implements HasMedia, Timelineable
             $parts[] = number_format($this->calories).' kcal';
         }
 
-        return $parts ? implode(' · ', $parts) : null;
+        return $parts ? implode(', ', $parts) : null;
     }
 
     /**
@@ -144,7 +120,7 @@ class Activity extends Model implements HasMedia, Timelineable
             $parts[] = number_format($volume).' kg';
         }
 
-        return implode(' · ', $parts);
+        return implode(', ', $parts);
     }
 
     private function durationForHumans(int $seconds): string

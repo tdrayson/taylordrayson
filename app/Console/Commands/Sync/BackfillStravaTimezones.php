@@ -18,7 +18,7 @@ class BackfillStravaTimezones extends Command
      * Execute the console command.
      *
      * Pages all Strava summary activities, finds matching local Activity rows by
-     * platform_id, and updates occurred_at (to local wall-clock) and timezone
+     * source_id, and updates occurred_at (to local wall-clock) and timezone
      * (IANA name). Does not write the CSV seed file.
      *
      * @return int Command exit code
@@ -46,8 +46,8 @@ class BackfillStravaTimezones extends Command
 
             foreach ($batch as $summary) {
                 $activity = Activity::query()
-                    ->where('platform_type', 'strava')
-                    ->where('platform_id', (string) $summary['id'])
+                    ->where('source', 'strava')
+                    ->where('source_id', (string) $summary['id'])
                     ->first();
 
                 if ($activity === null) {

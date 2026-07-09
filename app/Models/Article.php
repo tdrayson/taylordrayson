@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\PortableText;
+use App\Support\Text;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,12 +22,12 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'draft',
-    'tags',
+    'published',
+    'timezone',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -34,8 +37,7 @@ class Article extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'content' => 'array',
-            'tags' => 'array',
-            'draft' => 'boolean',
+            'published' => 'boolean',
         ];
     }
 
@@ -44,16 +46,48 @@ class Article extends Model implements HasMedia, Timelineable
         return $this->getAttribute('slug');
     }
 
+    /**
+     * Read from the raw attribute so unsaved models resolve to false rather
+     * than throwing under strict attribute access.
+     */
+    public function shouldAppearOnTimeline(): bool
+    {
+        return (bool) ($this->attributes['published'] ?? false);
+    }
+
+    /**
+     * The featured image in the card/lightbox payload shape shared with
+     * activity photos, or null when no cover is attached.
+     *
+     * @return array{src: string, srcset: ?string, full: string}|null
+     */
+    public function coverPhoto(): ?array
+    {
+        $media = $this->getFirstMedia('cover');
+
+        if ($media === null) {
+            return null;
+        }
+
+        return [
+            'src' => $media->getUrl('card'),
+            'srcset' => $media->getSrcset('card') ?: null,
+            'full' => $media->getUrl(),
+        ];
+    }
+
     public function card(): array
     {
         return [
             'type' => 'article',
             'icon' => 'file-text',
             'title' => $this->title,
-            'subtitle' => $this->excerpt,
+            'subtitle' => Text::excerpt(PortableText::plainText($this->content), 240) ?: $this->excerpt,
             'occurred_at' => $this->occurred_at,
             'accent' => 'article',
-            'meta' => [],
+            'meta' => [
+                'photos' => array_values(array_filter([$this->coverPhoto()])),
+            ],
         ];
     }
 }

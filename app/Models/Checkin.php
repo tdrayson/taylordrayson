@@ -26,8 +26,8 @@ use Spatie\MediaLibrary\HasMedia;
     'longitude',
     'description',
     'is_mayor',
-    'platform_type',
-    'platform_id',
+    'source',
+    'source_id',
 ])]
 class Checkin extends Model implements HasMedia, Timelineable
 {
@@ -46,8 +46,8 @@ class Checkin extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->platform_type === 'swarm' && $this->platform_id) {
-            return "https://www.swarmapp.com/checkin/{$this->platform_id}";
+        if ($this->source === 'swarm' && $this->source_id) {
+            return "https://www.swarmapp.com/checkin/{$this->source_id}";
         }
 
         return null;
@@ -66,7 +66,7 @@ class Checkin extends Model implements HasMedia, Timelineable
             'type' => 'checkin',
             'icon' => 'map-pin',
             'title' => $this->venue_name,
-            'subtitle' => $parts ? implode(' · ', $parts) : null,
+            'subtitle' => $parts ? implode(', ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'checkin',
             'meta' => [],

@@ -50,16 +50,8 @@ class FlightFactory extends Factory
         $destinationCodes = array_values(array_diff($codes, [$originIata]));
         $destinationIata = fake()->randomElement($destinationCodes);
 
-        $origin = self::AIRPORTS[$originIata];
-        $destination = self::AIRPORTS[$destinationIata];
-
         $airlineIcao = fake()->randomElement(array_keys(self::AIRLINES));
         $flightNumber = $airlineIcao.fake()->numberBetween(100, 9999);
-
-        $distanceMiles = $this->calculateDistance(
-            $origin['lat'], $origin['lon'],
-            $destination['lat'], $destination['lon'],
-        );
 
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
@@ -67,31 +59,12 @@ class FlightFactory extends Factory
             'airline_icao' => $airlineIcao,
             'origin_iata' => $originIata,
             'destination_iata' => $destinationIata,
-            'distance_miles' => $distanceMiles,
+            'distance' => fake()->numberBetween(300000, 9000000),
             'cabin_class' => fake()->randomElement(['economy', 'business', null]),
             'reason' => fake()->randomElement(['personal', 'business']),
             'meta' => [
                 'aircraft' => fake()->randomElement(['Boeing 737-800', 'Airbus A320', 'Boeing 777-300ER']),
             ],
         ];
-    }
-
-    /**
-     * Calculate rough distance in miles using the Haversine formula.
-     */
-    private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): int
-    {
-        $earthRadiusMiles = 3959;
-
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2)
-            + cos(deg2rad($lat1)) * cos(deg2rad($lat2))
-            * sin($dLon / 2) * sin($dLon / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return (int) round($earthRadiusMiles * $c);
     }
 }

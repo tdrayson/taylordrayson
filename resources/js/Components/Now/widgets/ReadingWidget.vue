@@ -20,7 +20,7 @@ const onCoverError = (event) => {
 
         <div class="reading__info">
             <div class="reading__eyebrow">Currently reading</div>
-            <div class="reading__title">{{ title }}</div>
+            <h2 class="reading__title">{{ title }}</h2>
             <div class="reading__author">{{ author }}</div>
         </div>
     </div>

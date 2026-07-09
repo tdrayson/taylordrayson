@@ -11,6 +11,7 @@ interface Timelineable
      *     type: string,
      *     icon: string,
      *     title: string,
+     *     titleLabel?: string,
      *     subtitle: ?string,
      *     occurred_at: Carbon,
      *     accent: string,
@@ -24,4 +25,10 @@ interface Timelineable
     public function url(): string;
 
     public function timezone(): ?string;
+
+    /**
+     * Whether this model's timeline entry should exist on the public spine.
+     * Models with their own publication gate (e.g. Article) override this.
+     */
+    public function shouldAppearOnTimeline(): bool;
 }

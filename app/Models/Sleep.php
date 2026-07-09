@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,6 +54,15 @@ class Sleep extends Model implements HasMedia, Timelineable
         return 'sleep';
     }
 
+    /**
+     * Sleep rows are stored at day granularity (midnight); the wake time is
+     * the meaningful clock time for the timeline card and entry page.
+     */
+    public function occurredAtForDisplay(): CarbonInterface
+    {
+        return $this->wake_time ?? $this->occurred_at;
+    }
+
     public function card(): array
     {
         $totalMinutes = intdiv($this->duration, 60);
@@ -64,6 +74,7 @@ class Sleep extends Model implements HasMedia, Timelineable
             'type' => 'sleep',
             'icon' => 'bed',
             'title' => "{$formatted} sleep",
+            'titleLabel' => "Sleep log, {$formatted}",
             'subtitle' => $this->bedtime->format('g:ia').' → '.$this->wake_time->format('g:ia'),
             'occurred_at' => $this->occurred_at,
             'accent' => 'sleep',

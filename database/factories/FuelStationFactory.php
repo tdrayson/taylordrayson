@@ -21,6 +21,8 @@ class FuelStationFactory extends Factory
                 fake()->randomElement(['Shell', 'BP', 'Esso', 'Tesco', "Sainsbury's"]),
                 fake()->streetSuffix(),
             ),
+            'brand' => fake()->randomElement(['BP', 'Shell', 'Esso', 'Texaco', 'Tesco']),
+            'address' => fake()->streetAddress(),
             'city' => fake()->city(),
             'country' => fake()->country(),
             'latitude' => fake()->latitude(49.8, 58.7),
