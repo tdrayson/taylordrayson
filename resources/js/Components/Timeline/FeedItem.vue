@@ -15,7 +15,7 @@ import { clock, duration, flightDurationLabel, number } from '../../lib/format.j
 import { greatCircle } from '../../lib/maplibre.js';
 import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
-import { staticRouteMap, staticArcMap } from '../../lib/staticMap.js';
+import { staticRouteMap, staticArcMap, MAPBOX_DARK } from '../../lib/staticMap.js';
 
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
@@ -177,18 +177,19 @@ const routeImageUrl = computed(() => {
     return props.map ?? null;
 });
 
-// Dark twin of routeImageUrl, only populated for the pre-generated stored map
-// case (a live polyline/arc render has no separate dark asset yet).
+// Dark twin of routeImageUrl: the live polyline/arc maps re-render on the
+// dark Mapbox style, and the stored map (e.g. an event pin) uses its
+// pre-generated dark asset. The two <img> swap via dark:hidden / dark:block.
 const routeImageDarkUrl = computed(() => {
     if (props.polyline) {
-        return null;
+        return staticRouteMap(props.polyline, { style: MAPBOX_DARK });
     }
 
     const origin = props.route?.origin;
     const destination = props.route?.destination;
 
     if (origin?.lat != null && destination?.lat != null) {
-        return null;
+        return staticArcMap(origin, destination, { style: MAPBOX_DARK });
     }
 
     return props.mapDark ?? null;

@@ -1,11 +1,11 @@
 const MAPLIBRE_VERSION = '4.7.1';
 
-export const OPENFREEMAP_POSITRON = 'https://tiles.openfreemap.org/styles/positron';
-export const OPENFREEMAP_DARK = 'https://tiles.openfreemap.org/styles/dark-matter';
+export const OPENFREEMAP_LIGHT = 'https://tiles.openfreemap.org/styles/positron';
+export const OPENFREEMAP_DARK = 'https://tiles.openfreemap.org/styles/dark';
 
 // Pick the basemap style that matches the active colour scheme.
 export function mapStyleForTheme(resolved) {
-    return resolved === 'dark' ? OPENFREEMAP_DARK : OPENFREEMAP_POSITRON;
+    return resolved === 'dark' ? OPENFREEMAP_DARK : OPENFREEMAP_LIGHT;
 }
 
 function loadStylesheet(href) {

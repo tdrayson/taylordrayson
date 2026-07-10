@@ -8,7 +8,11 @@ import { decodePolyline, encodePolyline } from "./geo.js";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-const STYLE = "mapbox/light-v11";
+// Mapbox base styles for the generated route maps; pass one as the `style`
+// option so a caller can render a light or dark variant of the same route.
+export const MAPBOX_LIGHT = "mapbox/light-v11";
+export const MAPBOX_DARK = "mapbox/dark-v11";
+
 const TILE = 512; // Web Mercator tile size, the basis for zoom -> pixel scale.
 
 // Cap how far a route map zooms in, so short, tightly-clustered activities
@@ -35,7 +39,7 @@ function pathOverlay(polyline, width, color, opacity) {
  */
 export function staticRouteMap(
     polyline,
-    { color = "2e9e6a", padding = 64, width = 1280, height = 720 } = {},
+    { color = "2e9e6a", padding = 64, width = 1280, height = 720, style = MAPBOX_LIGHT } = {},
 ) {
     if (!polyline) {
         return null;
@@ -77,7 +81,7 @@ export function staticRouteMap(
     );
 
     return (
-        `https://api.mapbox.com/styles/v1/${STYLE}/static/${pathOverlay(polyline, 5, color, "0.85")}` +
+        `https://api.mapbox.com/styles/v1/${style}/static/${pathOverlay(polyline, 5, color, "0.85")}` +
         `/${centerLng.toFixed(5)},${centerLat.toFixed(5)},${zoom.toFixed(2)}/${width}x${height}@2x` +
         `?attribution=false&logo=false&access_token=${MAPBOX_TOKEN}`
     );
@@ -146,7 +150,7 @@ function worldDash(a, b) {
 export function staticArcMap(
     origin,
     destination,
-    { color = "209fdf", padding = 60, width = 1280, height = 720 } = {},
+    { color = "209fdf", padding = 60, width = 1280, height = 720, style = MAPBOX_LIGHT } = {},
 ) {
     const from = { lat: Number(origin?.lat), lng: Number(origin?.lng) };
     const to = { lat: Number(destination?.lat), lng: Number(destination?.lng) };
@@ -265,7 +269,7 @@ export function staticArcMap(
     );
 
     return (
-        `https://api.mapbox.com/styles/v1/${STYLE}/static/${overlays.join(",")}` +
+        `https://api.mapbox.com/styles/v1/${style}/static/${overlays.join(",")}` +
         `/${centerLng.toFixed(5)},${centerLat.toFixed(5)},${zoom.toFixed(2)}/${width}x${height}@2x` +
         `?attribution=false&logo=false&access_token=${MAPBOX_TOKEN}`
     );
