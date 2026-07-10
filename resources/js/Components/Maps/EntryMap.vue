@@ -1,7 +1,9 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { mapStyleForTheme } from '../../lib/maplibre.js';
+import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
     polyline: { type: String, required: true },
@@ -10,7 +12,8 @@ const props = defineProps({
 });
 
 const MAPLIBRE_VERSION = '4.7.1';
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+
+const { resolved } = useTheme();
 
 // maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
 // activities (e.g. padel) keep surrounding map context instead of filling the
@@ -138,22 +141,9 @@ onMounted(async () => {
         new maplibregl.LngLatBounds(coords[0], coords[0]),
     );
 
-    map = new maplibregl.Map({
-        container: container.value,
-        style: STYLE_URL,
-        bounds,
-        fitBoundsOptions: FIT_OPTIONS,
-        attributionControl: false,
-    });
-
-    savedBounds = bounds;
-    ready.value = true;
-
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
-
-    map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
-
-    map.on('load', () => {
+    // Adds the route source/layer; re-run after setStyle since maplibre
+    // drops custom sources/layers whenever the style is replaced.
+    function addRouteLayer() {
         map.addSource('route', {
             type: 'geojson',
             data: {
@@ -169,6 +159,30 @@ onMounted(async () => {
             layout: { 'line-join': 'round', 'line-cap': 'round' },
             paint: { 'line-color': resolveColor(props.color), 'line-width': 3.5 },
         });
+    }
+
+    map = new maplibregl.Map({
+        container: container.value,
+        style: mapStyleForTheme(resolved.value),
+        bounds,
+        fitBoundsOptions: FIT_OPTIONS,
+        attributionControl: false,
+    });
+
+    savedBounds = bounds;
+    ready.value = true;
+
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+    map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
+
+    map.on('load', addRouteLayer);
+
+    // Switch basemap when the colour scheme changes, then re-add the custom
+    // layer once the new style has finished loading (setStyle clears it).
+    watch(resolved, (value) => {
+        map.setStyle(mapStyleForTheme(value));
+        map.once('style.load', addRouteLayer);
     });
 });
 

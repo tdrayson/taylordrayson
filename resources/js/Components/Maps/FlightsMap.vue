@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import { loadMaplibre, resolveColor, greatCircle, iataLabel, OPENFREEMAP_POSITRON } from '../../lib/maplibre.js';
+import { loadMaplibre, resolveColor, greatCircle, iataLabel, mapStyleForTheme } from '../../lib/maplibre.js';
+import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
     // [{ origin: { lat, lng, iata }, destination: { lat, lng, iata } }]
@@ -21,6 +22,8 @@ const layoutClass = computed(() =>
 );
 let map = null;
 let markers = [];
+
+const { resolved } = useTheme();
 
 /** Build great-circle arcs and the unique set of endpoints across every route. */
 function buildGeometry() {
@@ -68,23 +71,9 @@ onMounted(async () => {
         new maplibregl.LngLatBounds(arcs[0][0], arcs[0][0]),
     );
 
-    map = new maplibregl.Map({
-        container: container.value,
-        style: OPENFREEMAP_POSITRON,
-        bounds,
-        fitBoundsOptions: { padding: 64, maxZoom: 7 },
-        attributionControl: false,
-    });
-
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
-
-    endpoints.forEach((point) => {
-        if (point.iata) {
-            markers.push(iataLabel(maplibregl, point).addTo(map));
-        }
-    });
-
-    map.on('load', () => {
+    // Adds the arc + endpoint sources/layers; re-run after setStyle since
+    // maplibre drops custom sources/layers whenever the style is replaced.
+    function addRouteLayers() {
         map.addSource('arcs', {
             type: 'geojson',
             data: {
@@ -126,6 +115,31 @@ onMounted(async () => {
                 'circle-stroke-width': 2.5,
             },
         });
+    }
+
+    map = new maplibregl.Map({
+        container: container.value,
+        style: mapStyleForTheme(resolved.value),
+        bounds,
+        fitBoundsOptions: { padding: 64, maxZoom: 7 },
+        attributionControl: false,
+    });
+
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+    endpoints.forEach((point) => {
+        if (point.iata) {
+            markers.push(iataLabel(maplibregl, point).addTo(map));
+        }
+    });
+
+    map.on('load', addRouteLayers);
+
+    // Switch basemap when the colour scheme changes, then re-add the custom
+    // layers once the new style has finished loading (setStyle clears them).
+    watch(resolved, (value) => {
+        map.setStyle(mapStyleForTheme(value));
+        map.once('style.load', addRouteLayers);
     });
 });
 
