@@ -156,4 +156,22 @@ onBeforeUnmount(() => clearTimeout(timer));
 .code-highlight :deep(.hljs-subst) {
     color: hsl(340 55% 42%);
 }
+
+:global(.dark) .code-highlight :deep(.hljs-string),
+:global(.dark) .code-highlight :deep(.hljs-addition),
+:global(.dark) .code-highlight :deep(.hljs-attr) {
+    color: hsl(150 50% 62%);
+}
+
+:global(.dark) .code-highlight :deep(.hljs-number),
+:global(.dark) .code-highlight :deep(.hljs-literal),
+:global(.dark) .code-highlight :deep(.hljs-built_in) {
+    color: hsl(28 80% 62%);
+}
+
+:global(.dark) .code-highlight :deep(.hljs-variable),
+:global(.dark) .code-highlight :deep(.hljs-template-variable),
+:global(.dark) .code-highlight :deep(.hljs-subst) {
+    color: hsl(340 60% 68%);
+}
 </style>
