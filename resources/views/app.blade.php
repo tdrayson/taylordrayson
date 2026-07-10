@@ -20,7 +20,7 @@
             try {
                 var stored = localStorage.getItem('theme'); // 'system' | 'light' | 'dark' | null
                 var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var dark = stored === 'dark' || ((stored === 'system' || !stored) && systemDark);
+                var dark = stored === 'dark' || (stored !== 'light' && systemDark);
                 if (dark) {
                     document.documentElement.classList.add('dark');
                 }
