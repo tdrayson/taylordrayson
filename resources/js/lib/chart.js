@@ -102,12 +102,19 @@ export function baseOptions(overrides = {}) {
             ...plugins,
         },
         scales: {
-            x: { grid: { display: false }, ticks: { color: () => getPalette().mid }, ...(scales.x ?? {}) },
+            x: {
+                grid: { display: false },
+                ...(scales.x ?? {}),
+                // Merge the caller's ticks on top of the defaults, but force the
+                // scriptable colour last so it always re-reads the live theme
+                // instead of being clobbered by a caller's static ticks object.
+                ticks: { ...(scales.x?.ticks ?? {}), color: () => getPalette().mid },
+            },
             y: {
                 grid: { color: () => getPalette().grid },
-                ticks: { color: () => getPalette().mid },
                 border: { display: false },
                 ...(scales.y ?? {}),
+                ticks: { ...(scales.y?.ticks ?? {}), color: () => getPalette().mid },
             },
         },
         ...rest,
