@@ -10,7 +10,23 @@
     <title inertia>{{ config('app.name', 'Taylor Drayson') }}</title>
 
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+
+    <script>
+        // Resolve the theme before first paint so there's no flash of the wrong
+        // colour scheme (the app is client-rendered, so nothing else runs this early).
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme'); // 'system' | 'light' | 'dark' | null
+                var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var dark = stored === 'dark' || ((stored === 'system' || !stored) && systemDark);
+                if (dark) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
