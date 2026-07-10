@@ -24,6 +24,7 @@ const container = ref(null);
 const ready = ref(false);
 let map = null;
 let savedBounds = null;
+let stopThemeWatch;
 
 // Re-fit the view to the route's bounds after the visitor has panned or zoomed.
 function recenter() {
@@ -180,14 +181,24 @@ onMounted(async () => {
 
     // Switch basemap when the colour scheme changes, then re-add the custom
     // layer once the new style has finished loading (setStyle clears it).
-    watch(resolved, (value) => {
+    stopThemeWatch = watch(resolved, (value) => {
+        if (!map) {
+            return;
+        }
+
         map.setStyle(mapStyleForTheme(value));
+        // Dedupe: drop any pending re-add from a previous toggle before
+        // registering a fresh one, otherwise rapid toggles stack handlers
+        // and both fire, throwing on the second addSource/addLayer call.
+        map.off('style.load', addRouteLayer);
         map.once('style.load', addRouteLayer);
     });
 });
 
 onBeforeUnmount(() => {
+    stopThemeWatch?.();
     map?.remove();
+    map = null;
 });
 </script>
 

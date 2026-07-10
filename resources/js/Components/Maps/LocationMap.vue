@@ -15,6 +15,7 @@ const props = defineProps({
 const container = ref(null);
 let map = null;
 let marker = null;
+let stopThemeWatch;
 
 const { resolved } = useTheme();
 
@@ -68,13 +69,22 @@ onMounted(async () => {
 
     // Switch basemap when the colour scheme changes, then re-add the custom
     // layer once the new style has finished loading (setStyle clears it).
-    watch(resolved, (value) => {
+    stopThemeWatch = watch(resolved, (value) => {
+        if (!map) {
+            return;
+        }
+
         map.setStyle(mapStyleForTheme(value));
+        // Dedupe: drop any pending re-add from a previous toggle before
+        // registering a fresh one, otherwise rapid toggles stack handlers
+        // and both fire, throwing on the second addSource/addLayer call.
+        map.off('style.load', addPlaceLayer);
         map.once('style.load', addPlaceLayer);
     });
 });
 
 onBeforeUnmount(() => {
+    stopThemeWatch?.();
     marker?.remove();
     map?.remove();
     map = null;
