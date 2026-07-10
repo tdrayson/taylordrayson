@@ -9,6 +9,7 @@ import SidebarNav from './SidebarNav.vue';
 import SocialLinks from '../Profile/SocialLinks.vue';
 import Avatar from '../Profile/Avatar.vue';
 import StreakBadge from '../Now/StreakBadge.vue';
+import ThemeToggle from './ThemeToggle.vue';
 
 const open = ref(false);
 
@@ -78,6 +79,7 @@ onUnmounted(() => {
                     <StatusBar />
                     <SocialLinks />
                     <StreakBadge />
+                    <ThemeToggle />
                 </div>
             </div>
         </Transition>
