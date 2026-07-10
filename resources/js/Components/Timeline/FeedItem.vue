@@ -284,7 +284,7 @@ function openLightbox(index) {
             <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                 <ZoomButton />
             </button>
-            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
+            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
         </div>
 
         <!-- A wide route map (aspect-video, the same 512x288 as a video thumbnail)
@@ -317,7 +317,7 @@ function openLightbox(index) {
                 <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                     <ZoomButton />
                 </button>
-                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
+                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
             </div>
         </div>
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
@@ -340,7 +340,9 @@ function openLightbox(index) {
                     alt=""
                     class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                 >
-                <span class="absolute inset-0 flex items-center justify-center bg-neutral-900/20 transition-colors group-hover:bg-neutral-900/30">
+                <!-- Fixed bg-black (not bg-neutral-900): this dims the thumbnail behind
+                     the play button in both themes, so it must not invert. -->
+                <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-12 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon :icon="PlayIcon" class="size-5" />
                     </span>

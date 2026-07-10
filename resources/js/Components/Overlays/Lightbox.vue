@@ -290,14 +290,18 @@ onBeforeUnmount(() => {
                 @pointerup="onPointerUp"
                 @pointercancel="onPointerCancel"
             >
-                <div class="absolute inset-0 bg-neutral-900/95" @click="closeUnlessDrag" />
+                <!-- Fixed bg-black (not bg-neutral-900): the lightbox is an intentional
+                     dark scrim in both themes, so it must not invert with the neutral
+                     ramp. Every neutral-0 chrome element below is pinned to white to
+                     match (neutral-0 would otherwise invert to a dark, invisible tone). -->
+                <div class="absolute inset-0 bg-black/90" @click="closeUnlessDrag" />
 
                 <!-- Top bar: entry link and close. -->
                 <div class="relative flex shrink-0 items-center justify-between gap-3">
                     <Link
                         v-if="link && current?.url"
                         :href="current.url"
-                        class="flex items-center gap-1.5 rounded-full bg-neutral-0/10 py-2 pl-4 pr-3 text-meta text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-meta text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
@@ -307,7 +311,7 @@ onBeforeUnmount(() => {
 
                     <button
                         type="button"
-                        class="flex size-10 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         aria-label="Close"
                         @click="close"
                     >
@@ -340,7 +344,7 @@ onBeforeUnmount(() => {
                     <button
                         v-if="hasMultiple"
                         type="button"
-                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         aria-label="Previous photo"
                         @click="slideTo(-1)"
                     >
@@ -349,7 +353,7 @@ onBeforeUnmount(() => {
                     <button
                         v-if="hasMultiple"
                         type="button"
-                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         aria-label="Next photo"
                         @click="slideTo(1)"
                     >
@@ -362,9 +366,9 @@ onBeforeUnmount(() => {
                     v-if="(caption && current?.caption) || (counter && hasMultiple)"
                     class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"
                 >
-                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-neutral-0">{{ current.caption }}</p>
-                    <p v-if="caption && current?.date" class="text-caption text-neutral-0/70">{{ current.date }}</p>
-                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-neutral-0/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
+                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
+                    <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
+                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
                 </div>
             </div>
         </Transition>

@@ -54,3 +54,18 @@ const metaLines = computed(() => {
         </div>
     </header>
 </template>
+
+<style scoped>
+/* The story hero is an intentional dark surface in BOTH themes (unlike most
+   of the site, which relies on the neutral ramp inverting under .dark). Pin
+   its local neutral tokens to the light-theme values so the header keeps its
+   dark background and light text instead of washing out to a light header
+   with dark text when .dark is active (Task 10). */
+[data-story-hero] {
+    --color-neutral-0: #ffffff;
+    --color-neutral-300: #aeaeae;
+    --color-neutral-400: #8c8c8c;
+    --color-neutral-800: #2e2e2e;
+    --color-neutral-900: #222222;
+}
+</style>
