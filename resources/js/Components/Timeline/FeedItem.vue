@@ -39,6 +39,9 @@ const props = defineProps({
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
+    // Dark-mode twin of `map` (mapbox/dark-v11). Older data without a dark
+    // variant simply omits this and the light PNG shows in both themes.
+    mapDark: { type: String, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -174,6 +177,23 @@ const routeImageUrl = computed(() => {
     return props.map ?? null;
 });
 
+// Dark twin of routeImageUrl, only populated for the pre-generated stored map
+// case (a live polyline/arc render has no separate dark asset yet).
+const routeImageDarkUrl = computed(() => {
+    if (props.polyline) {
+        return null;
+    }
+
+    const origin = props.route?.origin;
+    const destination = props.route?.destination;
+
+    if (origin?.lat != null && destination?.lat != null) {
+        return null;
+    }
+
+    return props.mapDark ?? null;
+});
+
 const banner = computed(() => {
     if (flightArc.value) {
         return { points: flightArc.value, endpoints: true };
@@ -262,8 +282,10 @@ function openLightbox(index) {
         <p v-else-if="meta" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</p>
         <!-- SVG banner only as a fallback when no generated image is available. -->
         <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
-        <!-- Map alone when there is no photo. -->
-        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover">
+        <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
+             and the `dark:` class picks the right one, no JS needed. -->
+        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+        <img v-if="routeImageDarkUrl && !coverPhoto" :src="routeImageDarkUrl" alt="" class="mt-3 hidden aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover dark:block">
 
         <!-- Cover on its own (small screens, or no route map). Image link and zoom button are
              siblings, not nested; the image link duplicates the text permalink so it is aria-hidden. -->
@@ -302,7 +324,8 @@ function openLightbox(index) {
                 :aria-hidden="url ? 'true' : undefined"
                 class="block"
             >
-                <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+                <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+                <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover dark:block">
             </component>
             <div class="group/zoom relative">
                 <component
