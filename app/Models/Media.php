@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
@@ -36,6 +37,11 @@ class Media extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'meta' => 'array',
         ];
+    }
+
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(Series::class);
     }
 
     public function getPlatformUrlAttribute(): ?string
