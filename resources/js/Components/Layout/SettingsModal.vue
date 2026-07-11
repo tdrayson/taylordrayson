@@ -28,7 +28,7 @@ function onOpenChange(open) {
 </script>
 
 <template>
-    <Modal :open="settingsOpen" title="Settings" @update:open="onOpenChange">
+    <Modal :open="settingsOpen" title="Settings" close-label="Close settings" @update:open="onOpenChange">
         <div class="space-y-6">
             <section class="space-y-3">
                 <h3 class="text-label uppercase tracking-wide text-neutral-500">Appearance</h3>
