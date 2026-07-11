@@ -21,9 +21,11 @@ function focusableWithin(el) {
  * @param {() => void} options.onClose     Called when the dialog requests close (Escape).
  * @param {boolean} [options.closeOnEsc=true]  Set false when the consumer owns Escape itself.
  * @param {(event: KeyboardEvent) => void} [options.onKeydown]  Extra key handling (arrows) on the same listener.
+ * @param {boolean} [options.trapFocus=true]  Set false when the consumer owns its own Tab handling
+ *   (e.g. CommandPalette, which deliberately keeps Tab on its search input instead of wrapping).
  * @returns {{ panelEl: import('vue').Ref }}  Bind panelEl to the dialog element.
  */
-export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown }) {
+export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapFocus = true }) {
     const panelEl = ref(null);
     let lastFocused = null;
 
@@ -33,7 +35,7 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown }) {
             return;
         }
 
-        if (event.key === 'Tab') {
+        if (trapFocus && event.key === 'Tab') {
             const focusable = focusableWithin(panelEl.value);
 
             if (focusable.length === 0) {
@@ -58,17 +60,29 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown }) {
         onKeydown?.(event);
     }
 
+    // Only listen for keydown when there's actually work to do: closing on
+    // Escape, trapping Tab, or a consumer-supplied handler. Consumers that
+    // pass none of these (none currently do) still get scroll-lock and
+    // focus save/restore from the watcher below.
+    const needsKeydownListener = closeOnEsc || Boolean(onKeydown) || trapFocus;
+
     watch(isOpen, (open) => {
         document.body.style.overflow = open ? 'hidden' : '';
 
         if (open) {
             lastFocused = document.activeElement;
-            document.addEventListener('keydown', handleKeydown);
+
+            if (needsKeydownListener) {
+                document.addEventListener('keydown', handleKeydown);
+            }
+
             nextTick(() => {
                 (focusableWithin(panelEl.value)[0] ?? panelEl.value)?.focus();
             });
         } else {
-            document.removeEventListener('keydown', handleKeydown);
+            if (needsKeydownListener) {
+                document.removeEventListener('keydown', handleKeydown);
+            }
 
             if (lastFocused && typeof lastFocused.focus === 'function') {
                 lastFocused.focus();
