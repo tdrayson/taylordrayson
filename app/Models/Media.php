@@ -20,6 +20,8 @@ use Spatie\MediaLibrary\HasMedia;
     'type',
     'title',
     'rating',
+    'series_id',
+    'timezone',
     'source',
     'source_id',
     'meta',

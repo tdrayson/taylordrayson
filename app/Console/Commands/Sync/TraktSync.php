@@ -115,8 +115,7 @@ class TraktSync extends Command
     {
         $movie = $item['movie'];
 
-        $media = new Media;
-        $media->forceFill([
+        $media = Media::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'type' => 'film',
@@ -128,7 +127,7 @@ class TraktSync extends Command
                 'runtime' => $movie['runtime'] ?? null,
                 'ids' => $movie['ids'] ?? [],
             ],
-        ])->save();
+        ]);
 
         $poster = $movie['images']['poster'][0] ?? null;
         $summary = $poster ? null : $trakt->movie($movie['ids']['trakt'] ?? null);
@@ -150,8 +149,7 @@ class TraktSync extends Command
 
         [$series, $wasNew] = $this->resolveSeries($show, $summary);
 
-        $media = new Media;
-        $media->forceFill([
+        $media = Media::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'type' => 'episode',
@@ -168,7 +166,7 @@ class TraktSync extends Command
                 'runtime' => $episode['runtime'] ?? null,
                 'ids' => $episode['ids'] ?? [],
             ],
-        ])->save();
+        ]);
 
         if ($wasNew) {
             $posterUrl = $this->posterUrl($show, $summary);
@@ -223,9 +221,9 @@ class TraktSync extends Command
     }
 
     /**
-     * Fetch (and memoise for the rest of this run) the show summary, unless
-     * the history item's inline `show` object already has everything we
-     * need (no episode count, since that's not part of the history payload).
+     * Fetch the show summary from `/shows/{id}`, memoising the result for
+     * the rest of this run so a batch with dozens of episodes of the same
+     * show only triggers one request per show.
      *
      * @return array<string, mixed>|null
      */
