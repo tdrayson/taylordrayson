@@ -4,34 +4,37 @@ import { Link } from '@inertiajs/vue3';
 import { ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
-const props = defineProps({
-    photos: { type: Array, required: true },
-    // 'default' matches the full /photos gallery; 'dense' packs more, smaller
-    // columns for a short strip (e.g. a month's 12-photo cap).
-    variant: { type: String, default: 'default' }, // 'default' | 'dense'
-});
-
-const emit = defineEmits(['open']);
-
 // Masonry via CSS grid row spans: photos stay in document order so keyboard
 // focus moves across rows in that order, while each tile spans the rows
 // needed for its aspect ratio, giving the staggered masonry look.
 const GAP = 12; // matches gap-3
 const ROW = 8; // grid-auto-rows base unit
 
-// Column counts per breakpoint, matched to the static Tailwind classes below
-// so the JS row-span math agrees with what the grid actually renders.
-const columnsByBreakpoint = computed(() => (
-    props.variant === 'dense'
-        ? { base: 3, sm: 4, lg: 6 }
-        : { base: 2, sm: 3, lg: 4 }
-));
+// Presets keyed by the desktop (lg) column count: the per-breakpoint counts
+// drive the JS row-span math, and `cols` is the matching static Tailwind class
+// string (Tailwind needs literal classes, so these are enumerated, not built).
+// Smaller breakpoints collapse automatically. Add a key here to support a new
+// column count; an unknown `columns` value falls back to 4.
+const PRESETS = {
+    2: { counts: { base: 1, sm: 2, lg: 2 }, cols: 'grid-cols-1 sm:grid-cols-2' },
+    3: { counts: { base: 2, sm: 2, lg: 3 }, cols: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3' },
+    4: { counts: { base: 2, sm: 3, lg: 4 }, cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' },
+    5: { counts: { base: 2, sm: 3, lg: 5 }, cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' },
+    6: { counts: { base: 3, sm: 4, lg: 6 }, cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6' },
+};
 
-const gridColsClass = computed(() => (
-    props.variant === 'dense'
-        ? 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6'
-        : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
-));
+const props = defineProps({
+    photos: { type: Array, required: true },
+    // Desktop column count; smaller screens collapse to fewer columns via the
+    // matching preset. Supported: 2-6 (default 4). Unknown values fall back to 4.
+    columns: { type: Number, default: 4, validator: (value) => Number.isInteger(value) && value >= 2 && value <= 6 },
+});
+
+const emit = defineEmits(['open']);
+
+const preset = computed(() => PRESETS[props.columns] ?? PRESETS[4]);
+const columnsByBreakpoint = computed(() => preset.value.counts);
+const gridColsClass = computed(() => preset.value.cols);
 
 const grid = ref(null);
 const columnWidth = ref(0);
@@ -96,10 +99,6 @@ function rowSpan(photo) {
 
     return Math.max(1, Math.round((height + GAP) / (ROW + GAP)));
 }
-
-function aspect(photo) {
-    return photo.width && photo.height ? { aspectRatio: `${photo.width} / ${photo.height}` } : {};
-}
 </script>
 
 <template>
@@ -120,18 +119,20 @@ function aspect(photo) {
         >
             <button
                 type="button"
-                class="block w-full focus:outline-none"
+                class="block size-full focus:outline-none"
                 :aria-label="`View photo from ${photo.caption}, ${photo.date}`"
                 @click="emit('open', index)"
             >
+                <!-- The tile height comes from the row span (photo aspect); the
+                     image fills it with object-cover so a slightly-off span crops
+                     a hair rather than leaving dead space below a landscape shot. -->
                 <img
                     :src="photo.src"
                     :srcset="photo.srcset || undefined"
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                    :style="aspect(photo)"
                     alt=""
                     loading="lazy"
-                    class="w-full"
+                    class="size-full object-cover"
                 >
                 <!-- Fixed from-black/text-white (not neutral-900/neutral-0): the hover
                      caption scrim is an intentional dark overlay on the photo in both
