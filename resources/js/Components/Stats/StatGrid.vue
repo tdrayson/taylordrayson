@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { unitTitle } from '../../lib/units.js';
+import { useFormat } from '../../composables/useFormat';
 import Duration from '../Timeline/Duration.vue';
 
 const props = defineProps({
@@ -10,10 +11,24 @@ const props = defineProps({
     class: { type: [String, Array, Object], default: '' },
 });
 
-// Drop blank stats so callers can pass a sparse list without gaps.
+const { distanceParts } = useFormat();
+
+// Drop blank stats so callers can pass a sparse list without gaps. A distance
+// stat carries `distanceM` instead of a static `value`, so it counts as
+// present here even before it's formatted below.
 const visible = computed(() =>
-    props.stats.filter((stat) => stat.seconds != null || (stat.value !== null && stat.value !== undefined && stat.value !== '')),
+    props.stats.filter((stat) => stat.seconds != null || stat.distanceM != null || (stat.value !== null && stat.value !== undefined && stat.value !== '')),
 );
+
+// Resolve each visible stat's value/unit; a stat carrying raw `distanceM`
+// formats through the unit toggle, others use their static value/unit.
+const resolved = computed(() => visible.value.map((stat) => {
+    if (stat.distanceM !== null && stat.distanceM !== undefined) {
+        const parts = distanceParts(stat.distanceM, stat.precision ?? 0);
+        return { ...stat, value: parts.value, unit: parts.unit };
+    }
+    return stat;
+}));
 
 const big = computed(() => props.size === 'lg');
 </script>
@@ -23,7 +38,7 @@ const big = computed(() => props.size === 'lg');
         <!-- dt must precede its dd per the dl content model; flex-col-reverse
              keeps the big value visually on top with the label caption below,
              matching the original div order, while the DOM order stays term-first. -->
-        <div v-for="(stat, index) in visible" :key="index" class="flex flex-col-reverse">
+        <div v-for="(stat, index) in resolved" :key="index" class="flex flex-col-reverse">
             <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
             <dd class="font-display font-extrabold leading-none tracking-tight tnum" :class="big ? 'text-stat-lg' : 'text-stat'">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />

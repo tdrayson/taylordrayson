@@ -97,3 +97,73 @@ it('reformats timeline card subtitles live when distance unit changes', function
             false,
         );
 });
+
+it('reformats year timeline aggregate stats live when distance unit changes', function () {
+    // Server now sends raw distanceM + precision for these StatGrid stats
+    // (TimelineController::periodStats); the client formats them via useFormat.
+    Activity::factory()->create([
+        'name' => 'Year Run',
+        'type' => 'run',
+        'distance' => 8047, // 5.0 mi / 8.0 km
+        'duration' => 1800,
+        'occurred_at' => '2026-06-01 07:30:00',
+    ]);
+    Activity::factory()->create([
+        'name' => 'Year Ride',
+        'type' => 'ride',
+        'distance' => 16093, // 10 mi / 16.1 km
+        'duration' => 3600,
+        'occurred_at' => '2026-06-02 07:30:00',
+    ]);
+
+    $page = visit('/2026')->resize(1280, 800);
+
+    // Scope to the year page's own StatGrid (rendered with class "mt-8") so a
+    // reactive <abbr> from the deferred timeline feed cards below it can't
+    // produce a false positive/negative on the same page.
+    $page->assertScript(
+        "[...document.querySelectorAll('dl.mt-8 abbr')].some(a => a.textContent.trim() === 'mi')",
+        true,
+    );
+
+    $page->click('[aria-label="Open settings"]')
+        ->click('[aria-label="Distance unit"] [aria-label="km"]')
+        ->assertScript(
+            "[...document.querySelectorAll('dl.mt-8 abbr')].some(a => a.textContent.trim() === 'km')",
+            true,
+        )
+        ->assertScript(
+            "[...document.querySelectorAll('dl.mt-8 abbr')].some(a => a.textContent.trim() === 'mi')",
+            false,
+        );
+});
+
+it('reformats stats-page metric cards live when distance unit changes', function () {
+    // Server now sends raw distanceM + precision for distance metrics
+    // (StatsController::metrics); MetricCard formats them via useFormat.
+    Activity::factory()->create([
+        'name' => 'Stats Run',
+        'type' => 'run',
+        'distance' => 8047, // 5.0 mi / 8.0 km
+        'duration' => 1800,
+        'occurred_at' => '2026-03-15 07:30:00',
+    ]);
+
+    $page = visit('/stats/activities')->resize(1280, 800);
+
+    $page->assertScript(
+        "[...document.querySelectorAll('abbr')].some(a => a.textContent.trim() === 'mi')",
+        true,
+    );
+
+    $page->click('[aria-label="Open settings"]')
+        ->click('[aria-label="Distance unit"] [aria-label="km"]')
+        ->assertScript(
+            "[...document.querySelectorAll('abbr')].some(a => a.textContent.trim() === 'km')",
+            true,
+        )
+        ->assertScript(
+            "[...document.querySelectorAll('abbr')].some(a => a.textContent.trim() === 'mi')",
+            false,
+        );
+});
