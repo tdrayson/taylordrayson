@@ -57,9 +57,9 @@ const headingCount = computed(() => contentNodes.value.filter(
             >
         </div>
 
-        <!-- relative + max-w-media anchors ContentToc's desktop rail in the
-             gutter to the right of the widest (media) content block, mirroring
-             how Story pages position StoryToc. It wraps only the body content
+        <!-- relative + max-w-media anchors the TableOfContents desktop rail in
+             the gutter to the right of the widest (media) content block, the
+             same way the story pages position it. It wraps only the body content
              so the rail's top-0 lines up with the first line of prose, not the
              tags row or cover image above. -->
         <div class="relative max-w-media space-y-8">
