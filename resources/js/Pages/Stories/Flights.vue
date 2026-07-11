@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue';
 import { setLayoutProps } from '@inertiajs/vue3';
-import { AirplaneTakeOff01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import StoryHero from '../../Components/Story/StoryHero.vue';
@@ -156,7 +155,7 @@ const seatsOptions = baseOptions({
 <template>
     <AppHead :og="og" />
 
-    <StoryHero :meta="dateline" :kpis="heroKpis" :icon="AirplaneTakeOff01Icon" accent="var(--color-flight)">
+    <StoryHero :meta="dateline" :kpis="heroKpis" icon="AirplaneTakeOff01Icon" accent="var(--color-flight)">
         <template #title>The year I flew somewhere new every month</template>
         <template #lead>
             This is every flight I can still dig up a record of, going back to {{ s.kpis.fromYear }}. It comes to

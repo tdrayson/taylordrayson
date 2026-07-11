@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
-import { RssIcon, SourceCodeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import OptionCard from '../Components/Ui/OptionCard.vue';
@@ -121,8 +120,8 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         <section>
             <h2 class="mb-4 text-label uppercase text-neutral-500">Your feed URLs</h2>
             <div v-if="hasFeed" class="space-y-5">
-                <FeedUrlField label="RSS Feed" :icon="RssIcon" :url="rssUrl" />
-                <FeedUrlField label="JSON Feed" :icon="SourceCodeIcon" :url="jsonUrl" />
+                <FeedUrlField label="RSS Feed" icon="RssIcon" :url="rssUrl" />
+                <FeedUrlField label="JSON Feed" icon="SourceCodeIcon" :url="jsonUrl" />
                 <p class="text-caption text-neutral-500">
                     Team Atom? Swap <code class="text-neutral-700">/feed/rss</code> for
                     <code class="text-neutral-700">/feed/atom</code> and you're sorted.
