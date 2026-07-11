@@ -100,7 +100,7 @@ class Series extends Model implements HasMedia
 
     /**
      * Human-readable span between the first and last watched episode, e.g.
-     * "8 months". Null when there's no watch history yet.
+     * "over 8 months". Null when there's no watch history yet.
      */
     public function watchSpan(): ?string
     {
@@ -111,8 +111,8 @@ class Series extends Model implements HasMedia
         }
 
         return $first->equalTo($last)
-            ? 'in one day'
-            : $first->diffForHumans($last, ['syntax' => CarbonInterface::DIFF_ABSOLUTE, 'parts' => 1]);
+            ? 'in a single day'
+            : 'over '.$first->diffForHumans($last, ['syntax' => CarbonInterface::DIFF_ABSOLUTE, 'parts' => 1]);
     }
 
     /**
