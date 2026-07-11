@@ -96,10 +96,6 @@ function rowSpan(photo) {
 
     return Math.max(1, Math.round((height + GAP) / (ROW + GAP)));
 }
-
-function aspect(photo) {
-    return photo.width && photo.height ? { aspectRatio: `${photo.width} / ${photo.height}` } : {};
-}
 </script>
 
 <template>
@@ -120,18 +116,20 @@ function aspect(photo) {
         >
             <button
                 type="button"
-                class="block w-full focus:outline-none"
+                class="block size-full focus:outline-none"
                 :aria-label="`View photo from ${photo.caption}, ${photo.date}`"
                 @click="emit('open', index)"
             >
+                <!-- The tile height comes from the row span (photo aspect); the
+                     image fills it with object-cover so a slightly-off span crops
+                     a hair rather than leaving dead space below a landscape shot. -->
                 <img
                     :src="photo.src"
                     :srcset="photo.srcset || undefined"
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                    :style="aspect(photo)"
                     alt=""
                     loading="lazy"
-                    class="w-full"
+                    class="size-full object-cover"
                 >
                 <!-- Fixed from-black/text-white (not neutral-900/neutral-0): the hover
                      caption scrim is an intentional dark overlay on the photo in both
