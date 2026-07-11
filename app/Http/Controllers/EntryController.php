@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildLinkPreviews;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -77,6 +78,9 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
+            'linkPreviews' => $model instanceof Article
+                ? (new BuildLinkPreviews)($model->content)
+                : [],
         ]);
     }
 

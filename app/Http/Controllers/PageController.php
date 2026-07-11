@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildLinkPreviews;
 use App\Models\Page;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -47,6 +48,7 @@ class PageController extends Controller
             'content' => $page->content,
             'published' => $page->published,
             'og' => ['title' => $page->title, 'description' => $page->excerpt],
+            'linkPreviews' => (new BuildLinkPreviews)($page->content),
         ]);
     }
 }

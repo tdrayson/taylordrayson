@@ -37,6 +37,9 @@ const props = defineProps({
     og: { type: Object, default: () => ({}) },
     occurredLabel: { type: String, default: '' },
     occurredOffset: { type: String, default: '' },
+    // Map of href -> preview data for internal content links; only ArticleDetail
+    // consumes it, so it's bound conditionally below rather than on every type.
+    linkPreviews: { type: Object, default: () => ({}) },
 });
 
 const DETAIL_COMPONENTS = {
@@ -103,7 +106,13 @@ setLayoutProps({
 
     <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
-    <component :is="detailComponent" v-if="detailComponent" :entry="entry" class="mt-10" />
+    <component
+        :is="detailComponent"
+        v-if="detailComponent"
+        :entry="entry"
+        v-bind="type === 'article' ? { linkPreviews } : {}"
+        class="mt-10"
+    />
 
     <Source v-if="source" :platform="source.platform" :url="source.url" class="mt-10" />
 </template>

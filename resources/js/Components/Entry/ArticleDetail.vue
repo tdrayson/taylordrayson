@@ -6,6 +6,8 @@ import TableOfContents from '../Ui/TableOfContents.vue';
 
 const props = defineProps({
     entry: { type: Object, required: true },
+    // Map of href -> preview data for internal content links, forwarded to BlockContent.
+    linkPreviews: { type: Object, default: () => ({}) },
 });
 
 const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
@@ -65,7 +67,7 @@ const headingCount = computed(() => contentNodes.value.filter(
         <div class="relative max-w-media space-y-8">
             <p v-if="entry.excerpt" class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
-            <BlockContent :document="entry.content" />
+            <BlockContent :document="entry.content" :link-previews="linkPreviews" />
 
             <!-- Mounted after BlockContent so its headings are already in the DOM
                  when TableOfContents's onMounted queries for them. -->
