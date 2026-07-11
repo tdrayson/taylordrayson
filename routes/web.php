@@ -9,6 +9,7 @@ use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
@@ -61,6 +62,15 @@ Route::get('/leaderboard', fn () => Inertia::render('Leaderboard', [
     'og' => OgMeta::leaderboard(),
     'entries' => LeaderboardEntry::topEntries(null),
 ]))->name('leaderboard');
+
+// TV show pages, registered above the generic archive/taxonomy loop so
+// /media/tv wins over the /media/{value} taxonomy route for the 'tv' value.
+Route::get('/media/tv', [SeriesController::class, 'index'])->name('series.index');
+Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
+Route::get('/media/tv/{series:slug}/season-{season}', [SeriesController::class, 'season'])
+    ->where('season', '[0-9]+')->name('series.season');
+Route::get('/media/tv/{series:slug}/season-{season}/episode-{episode}', [SeriesController::class, 'episode'])
+    ->where(['season' => '[0-9]+', 'episode' => '[0-9]+'])->name('series.episode');
 
 // Per-type archive pages and their taxonomy sub-routes. Slugs are literal segments,
 // so they never collide with the digit-constrained /{year}/... routes below.
