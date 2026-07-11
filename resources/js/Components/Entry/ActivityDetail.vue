@@ -6,11 +6,15 @@ import HeartRateChart from '../Stats/HeartRateChart.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { number, titleCase } from '../../lib/format.js';
-import { metresToMiles } from '../../lib/distance.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
+
+// Unit-aware distance/weight formatters; reading their settings reactively
+// keeps stats/labels live when a visitor toggles units in Settings.
+const { distanceParts, weight } = useFormat();
 
 const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
 const polyline = computed(() => props.entry.meta?.polyline ?? null);
@@ -52,7 +56,7 @@ function setWeight(set) {
 }
 
 const stats = computed(() => [
-    { label: 'Distance', value: number(metresToMiles(props.entry.distance, 1), 1), unit: 'mi' },
+    { label: 'Distance', ...(distanceParts(props.entry.distance, 1) ?? { value: null, unit: '' }) },
     { label: 'Duration', seconds: props.entry.duration ?? null },
     { label: 'Calories', value: number(props.entry.calories), unit: 'kcal' },
     { label: 'Avg HR', value: number(props.entry.average_heart_rate), unit: 'bpm' },
@@ -89,7 +93,7 @@ const exercises = computed(() => {
 const totalVolume = computed(() => exercises.value.reduce((sum, exercise) => sum + exercise.volume, 0));
 
 function weightLabel(value) {
-    return value > 0 ? `${number(value, value % 1 ? 1 : 0)} kg` : 'Bodyweight';
+    return value > 0 ? weight(value) : 'Bodyweight';
 }
 </script>
 
@@ -117,13 +121,13 @@ function weightLabel(value) {
         </div>
 
         <div v-if="exercises.length">
-            <SectionHead title="Exercises" :meta="totalVolume ? `${number(totalVolume)} kg volume` : ''" />
+            <SectionHead title="Exercises" :meta="totalVolume ? `${weight(totalVolume, 0)} volume` : ''" />
             <div class="space-y-3">
                 <div v-for="exercise in exercises" :key="exercise.name" class="overflow-hidden rounded-lg border border-neutral-50">
                     <div class="flex items-baseline justify-between gap-4 bg-neutral-25 px-4 py-2.5">
                         <span class="min-w-0 truncate font-display text-section">{{ exercise.name }}</span>
                         <span class="shrink-0 text-meta font-semibold text-neutral-700 tnum">
-                            {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume">, {{ number(exercise.volume) }} kg</template>
+                            {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume">, {{ weight(exercise.volume, 0) }}</template>
                         </span>
                     </div>
                     <div class="divide-y divide-neutral-50">

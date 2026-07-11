@@ -11,11 +11,12 @@ import FlightRoute from '../Maps/FlightRoute.vue';
 import RouteThumb from '../Maps/RouteThumb.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration, flightDurationLabel, number } from '../../lib/format.js';
+import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { greatCircle } from '../../lib/maplibre.js';
 import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { staticRouteMap, staticArcMap, MAPBOX_DARK } from '../../lib/staticMap.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
@@ -49,6 +50,9 @@ const props = defineProps({
     label: { type: String, default: '' },
     offset: { type: String, default: '' },
 });
+
+// Unit-aware distance formatter; route.distance is already in miles.
+const { distanceFromMiles } = useFormat();
 
 const videoSlot = ref(null);
 
@@ -126,7 +130,7 @@ const routeView = computed(() => {
         departTime: clockOf(props.route.depart),
         arriveTime: clockOf(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
-        note: props.route.distance ? `${number(props.route.distance)} mi` : null,
+        note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
     };
 });
 
