@@ -4,7 +4,6 @@ import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
-import { PlayIcon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Components/Ui/Icon.vue';
 import Button from '../Components/Ui/Button.vue';
 import Pill from '../Components/Ui/Pill.vue';
@@ -297,7 +296,7 @@ function swatchInk(step) {
             <div class="flex max-w-md items-center gap-4">
                 <img src="/logos/this-week-with.jpg" alt="" class="size-11 shrink-0 rounded-md object-cover">
                 <Button variant="primary" size="icon" pill class="size-10 shrink-0" aria-label="Play">
-                    <Icon :icon="PlayIcon" class="size-5" />
+                    <Icon name="PlayIcon" class="size-5" />
                 </Button>
                 <div class="min-w-0 flex-1">
                     <div class="block truncate text-meta font-semibold text-neutral-900">This Week With, Episode 12</div>
@@ -309,7 +308,7 @@ function swatchInk(step) {
                         <span class="text-label text-neutral-500 tnum">42:10</span>
                     </div>
                 </div>
-                <Icon :icon="Cancel01Icon" class="size-5 shrink-0 text-neutral-500" />
+                <Icon name="Cancel01Icon" class="size-5 shrink-0 text-neutral-500" />
             </div>
         </section>
     </article>

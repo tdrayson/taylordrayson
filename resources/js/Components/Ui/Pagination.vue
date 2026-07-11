@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
 const props = defineProps({
@@ -34,7 +33,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             :class="prevUrl || hasPrev ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'cursor-default text-neutral-500/40'"
             @click="!prevUrl && hasPrev && emit('navigate', currentPage - 1)"
         >
-            <Icon :icon="ArrowLeft01Icon" class="size-4" />
+            <Icon name="ArrowLeft01Icon" class="size-4" />
             Previous
         </component>
 
@@ -51,7 +50,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             @click="!nextUrl && hasNext && emit('navigate', currentPage + 1)"
         >
             Next
-            <Icon :icon="ArrowRight01Icon" class="size-4" />
+            <Icon name="ArrowRight01Icon" class="size-4" />
         </component>
     </nav>
 </template>

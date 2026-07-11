@@ -1,5 +1,4 @@
 <script setup>
-import { ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 defineOptions({ inheritAttrs: false });
@@ -25,6 +24,6 @@ const emit = defineEmits(['update:modelValue']);
             <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
             <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
         </select>
-        <Icon :icon="ArrowDown01Icon" class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-neutral-500" />
+        <Icon name="ArrowDown01Icon" class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-neutral-500" />
     </div>
 </template>

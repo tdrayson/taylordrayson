@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
 
@@ -65,7 +64,7 @@ onUnmounted(() => {
                 :aria-expanded="open"
                 @click="open = !open"
             >
-                <Icon :icon="ArrowDown01Icon" class="size-3.5 transition-transform" :class="open ? 'rotate-180' : ''" />
+                <Icon name="ArrowDown01Icon" class="size-3.5 transition-transform" :class="open ? 'rotate-180' : ''" />
             </Button>
         </div>
 

@@ -77,7 +77,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
 
         <header class="relative mb-10">
             <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 lg:-left-16 lg:flex">
-                <Icon :icon="RssIcon" class="size-6" />
+                <Icon name="RssIcon" class="size-6" />
             </span>
             <div class="min-w-0">
                 <h1 class="font-display text-display">Feeds</h1>

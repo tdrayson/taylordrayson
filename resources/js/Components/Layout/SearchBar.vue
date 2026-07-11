@@ -1,5 +1,4 @@
 <script setup>
-import { Search01Icon, CommandIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 
@@ -16,10 +15,10 @@ const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navig
         class="flex h-10 w-full items-center gap-2.5 rounded-md border border-neutral-100 bg-neutral-0 px-3 text-neutral-500 transition-colors hover:border-neutral-200 focus-visible:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
         @click="open"
     >
-        <Icon :icon="Search01Icon" class="size-4 shrink-0" />
+        <Icon name="Search01Icon" class="size-4 shrink-0" />
         <span class="text-nav text-neutral-700">Search</span>
         <kbd class="ml-auto hidden items-center gap-0.5 rounded border border-neutral-50 bg-neutral-0 px-1.5 py-0.5 text-meta text-neutral-500 md:flex">
-            <template v-if="isApple"><Icon :icon="CommandIcon" class="size-3.5" />K</template>
+            <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
             <template v-else>Ctrl K</template>
         </kbd>
     </button>

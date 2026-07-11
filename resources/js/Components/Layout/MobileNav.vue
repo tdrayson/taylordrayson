@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Menu01Icon, Cancel01Icon, Settings01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { Menu01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import StatusBar from './StatusBar.vue';
 import SearchBar from './SearchBar.vue';
@@ -93,7 +93,7 @@ onUnmounted(() => {
                         class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-nav text-neutral-500 transition hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                         @click="openSettingsFromMenu"
                     >
-                        <Icon :icon="Settings01Icon" class="size-5" />
+                        <Icon name="Settings01Icon" class="size-5" />
                         Settings
                     </button>
                 </div>

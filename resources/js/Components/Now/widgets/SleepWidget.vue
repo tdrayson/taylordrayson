@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { Moon02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../../Ui/Icon.vue';
 import Tooltip from '../../Ui/Tooltip.vue';
 
@@ -73,7 +72,7 @@ const days = computed(() => {
     <div class="sleep rounded-3xl" :class="{ 'sleep--has-aspect': !fill }">
         <div class="sleep__inner">
             <div class="sleep__summary">
-                <h2 class="sleep__label"><Icon class="sleep__label-icon" :icon="Moon02Icon" />Sleep</h2>
+                <h2 class="sleep__label"><Icon class="sleep__label-icon" name="Moon02Icon" />Sleep</h2>
                 <div class="sleep__duration">{{ bigParts.hours }}h <small class="sleep__minutes">{{ bigParts.minutes }}m</small></div>
                 <div class="sleep__caption">Last night</div>
                 <div class="sleep__stages">

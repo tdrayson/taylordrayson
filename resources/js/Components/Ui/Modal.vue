@@ -1,6 +1,5 @@
 <script setup>
 import { useId } from 'vue';
-import { Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 
@@ -58,7 +57,7 @@ const titleId = useId();
                             class="rounded-md p-1 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                             @click="close"
                         >
-                            <Icon :icon="Cancel01Icon" class="size-5" />
+                            <Icon name="Cancel01Icon" class="size-5" />
                         </button>
                     </div>
 

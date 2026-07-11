@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
-import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { loadMaplibre, resolveColor, greatCircle, iataLabel, mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 
@@ -141,7 +140,7 @@ onBeforeUnmount(() => {
             aria-label="Re-center map"
             @click="recenter"
         >
-            <Icon :icon="CenterFocusIcon" class="size-4" />
+            <Icon name="CenterFocusIcon" class="size-4" />
         </button>
     </div>
 </template>

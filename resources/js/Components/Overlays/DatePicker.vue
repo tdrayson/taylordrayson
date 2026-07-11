@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Calendar03Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -156,7 +155,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             :class="display ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
-            <Icon :icon="Calendar03Icon" class="size-4 shrink-0 text-neutral-500" />
+            <Icon name="Calendar03Icon" class="size-4 shrink-0 text-neutral-500" />
             <span class="flex-1 truncate">{{ display ?? defaultPlaceholder }}</span>
         </button>
 
@@ -165,13 +164,13 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <template v-if="pickerView === 'days'">
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(-1)">
-                        <Icon :icon="ArrowLeft01Icon" class="size-4" />
+                        <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
                     <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="pickerView = 'months'">
                         {{ monthNames[view.month] }} {{ view.year }}
                     </button>
                     <button type="button" aria-label="Next month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(1)">
-                        <Icon :icon="ArrowRight01Icon" class="size-4" />
+                        <Icon name="ArrowRight01Icon" class="size-4" />
                     </button>
                 </div>
                 <div class="mt-3 grid grid-cols-7 gap-1 text-center">
@@ -195,13 +194,13 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <template v-else-if="pickerView === 'months'">
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous year" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepYear(-1)">
-                        <Icon :icon="ArrowLeft01Icon" class="size-4" />
+                        <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
                     <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="pickerView = 'years'">
                         {{ view.year }}
                     </button>
                     <button type="button" aria-label="Next year" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepYear(1)">
-                        <Icon :icon="ArrowRight01Icon" class="size-4" />
+                        <Icon name="ArrowRight01Icon" class="size-4" />
                     </button>
                 </div>
                 <div class="mt-3 grid grid-cols-3 gap-1.5 text-center">
@@ -222,11 +221,11 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <template v-else>
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(-1)">
-                        <Icon :icon="ArrowLeft01Icon" class="size-4" />
+                        <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
                     <span class="text-meta font-semibold text-neutral-900 tnum">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
                     <button type="button" aria-label="Next years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(1)">
-                        <Icon :icon="ArrowRight01Icon" class="size-4" />
+                        <Icon name="ArrowRight01Icon" class="size-4" />
                     </button>
                 </div>
                 <div class="mt-3 grid grid-cols-3 gap-1.5 text-center">

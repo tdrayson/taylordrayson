@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Calendar03Icon, ArrowDown01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -174,9 +173,9 @@ function choosePreset(preset) {
             class="inline-flex items-center gap-2 rounded-lg border border-neutral-50 px-3 py-2 text-nav font-medium text-neutral-900 transition-colors hover:border-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="open = !open"
         >
-            <Icon :icon="Calendar03Icon" class="size-4 text-neutral-500" />
+            <Icon name="Calendar03Icon" class="size-4 text-neutral-500" />
             {{ label }}
-            <Icon :icon="ArrowDown01Icon" class="size-4 text-neutral-500" />
+            <Icon name="ArrowDown01Icon" class="size-4 text-neutral-500" />
         </button>
 
         <template v-if="open">
@@ -195,14 +194,14 @@ function choosePreset(preset) {
                 <div class="w-64 p-3">
                     <div class="mb-2 flex items-center justify-between">
                         <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Previous" @click="stepNav(-1)">
-                            <Icon :icon="ArrowLeft01Icon" class="size-4" />
+                            <Icon name="ArrowLeft01Icon" class="size-4" />
                         </button>
                         <!-- Click to jump up a level: month -> months, year -> years. -->
                         <button type="button" class="rounded-md px-2 py-1 text-nav font-medium text-neutral-900 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="openHeader">
                             {{ headerLabel }}
                         </button>
                         <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Next" @click="stepNav(1)">
-                            <Icon :icon="ArrowRight01Icon" class="size-4" />
+                            <Icon name="ArrowRight01Icon" class="size-4" />
                         </button>
                     </div>
 

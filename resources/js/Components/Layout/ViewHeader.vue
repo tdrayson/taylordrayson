@@ -1,5 +1,4 @@
 <script setup>
-import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 
@@ -21,10 +20,10 @@ defineProps({
         </div>
         <div class="flex gap-4 text-sm font-semibold text-neutral-500">
             <Link v-if="prev" :href="prev.href" class="inline-flex items-center gap-1 hover:text-accent-500 focus-visible:text-accent-500">
-                <Icon :icon="ArrowLeft01Icon" class="size-4" /> {{ prev.label }}
+                <Icon name="ArrowLeft01Icon" class="size-4" /> {{ prev.label }}
             </Link>
             <Link v-if="next" :href="next.href" class="inline-flex items-center gap-1 hover:text-accent-500 focus-visible:text-accent-500">
-                {{ next.label }} <Icon :icon="ArrowRight01Icon" class="size-4" />
+                {{ next.label }} <Icon name="ArrowRight01Icon" class="size-4" />
             </Link>
         </div>
     </div>

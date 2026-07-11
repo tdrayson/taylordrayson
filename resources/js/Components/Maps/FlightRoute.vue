@@ -1,5 +1,4 @@
 <script setup>
-import { Airplane01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 defineProps({
@@ -29,7 +28,7 @@ defineProps({
             <div class="relative flex w-full items-center justify-center">
                 <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
                 <span class="relative bg-neutral-0 px-2 text-neutral-500">
-                    <Icon :icon="Airplane01Icon" class="size-4" />
+                    <Icon name="Airplane01Icon" class="size-4" />
                 </span>
             </div>
             <div v-if="note" class="text-label uppercase text-neutral-500 tnum">{{ note }}</div>

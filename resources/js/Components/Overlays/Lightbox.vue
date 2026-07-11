@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 
@@ -249,7 +248,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
-                        <Icon :icon="ArrowUpRight01Icon" class="size-4" />
+                        <Icon name="ArrowUpRight01Icon" class="size-4" />
                     </Link>
                     <span v-else />
 
@@ -259,7 +258,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         aria-label="Close"
                         @click="close"
                     >
-                        <Icon :icon="Cancel01Icon" class="size-5" />
+                        <Icon name="Cancel01Icon" class="size-5" />
                     </button>
                 </div>
 
@@ -292,7 +291,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         aria-label="Previous photo"
                         @click="slideTo(-1)"
                     >
-                        <Icon :icon="ArrowLeft01Icon" class="size-5" />
+                        <Icon name="ArrowLeft01Icon" class="size-5" />
                     </button>
                     <button
                         v-if="hasMultiple"
@@ -301,7 +300,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         aria-label="Next photo"
                         @click="slideTo(1)"
                     >
-                        <Icon :icon="ArrowRight01Icon" class="size-5" />
+                        <Icon name="ArrowRight01Icon" class="size-5" />
                     </button>
                 </div>
 
