@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -59,5 +60,66 @@ class Series extends Model implements HasMedia
         }
 
         return $candidate;
+    }
+
+    /**
+     * Count distinct season+episode combinations watched, so rewatches of the
+     * same episode don't inflate progress.
+     */
+    public function watchedEpisodeCount(): int
+    {
+        return $this->episodes
+            ->map(fn (Media $m): string => ($m->meta['season'] ?? '?').'x'.($m->meta['episode'] ?? '?'))
+            ->unique()
+            ->count();
+    }
+
+    /**
+     * Percentage of aired episodes watched, clamped to 100. Null when the
+     * total aired episode count isn't known yet.
+     */
+    public function progress(): ?int
+    {
+        $aired = $this->meta['aired_episodes'] ?? null;
+        if (! $aired) {
+            return null;
+        }
+
+        return (int) min(100, round($this->watchedEpisodeCount() / $aired * 100));
+    }
+
+    public function firstWatchedAt(): ?CarbonInterface
+    {
+        return $this->episodes->min('occurred_at');
+    }
+
+    public function lastWatchedAt(): ?CarbonInterface
+    {
+        return $this->episodes->max('occurred_at');
+    }
+
+    /**
+     * Human-readable span between the first and last watched episode, e.g.
+     * "8 months". Null when there's no watch history yet.
+     */
+    public function watchSpan(): ?string
+    {
+        $first = $this->firstWatchedAt();
+        $last = $this->lastWatchedAt();
+        if (! $first || ! $last) {
+            return null;
+        }
+
+        return $first->equalTo($last)
+            ? 'in one day'
+            : $first->diffForHumans($last, ['syntax' => CarbonInterface::DIFF_ABSOLUTE, 'parts' => 1]);
+    }
+
+    /**
+     * Sum of episode runtimes across all watched rows, including rewatches.
+     */
+    public function totalRuntimeMinutes(): int
+    {
+        return (int) $this->episodes->sum(fn (Media $m): int => (int) ($m->meta['runtime'] ?? 0));
     }
 }
