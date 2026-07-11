@@ -2,7 +2,7 @@
 import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import { Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
-import ThemeToggle from './ThemeToggle.vue';
+import ThemeCards from './ThemeCards.vue';
 import { useSettings } from '../../useSettings';
 
 const { settingsOpen, closeSettings } = useSettings();
@@ -111,10 +111,10 @@ onBeforeUnmount(() => {
 
                     <div class="space-y-6 p-5">
                         <section class="space-y-3">
-                            <h3 class="text-label uppercase text-neutral-500">Appearance</h3>
-                            <div class="flex items-center justify-between gap-4">
+                            <h3 class="text-label uppercase tracking-wide text-neutral-500">Appearance</h3>
+                            <div class="space-y-2">
                                 <span class="text-body text-neutral-900">Theme</span>
-                                <ThemeToggle />
+                                <ThemeCards />
                             </div>
                         </section>
                     </div>
