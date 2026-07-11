@@ -56,6 +56,32 @@ export function dateLong(value) {
     });
 }
 
+/**
+ * Full date without time from a date-only 'YYYY-MM-DD' string, e.g. a watch-date
+ * group anchor. Parses the parts manually rather than `new Date('YYYY-MM-DD')`,
+ * which JS treats as UTC midnight and can render as the PREVIOUS day once
+ * converted to a negative-UTC-offset local time.
+ */
+export function dateLongFromYmd(value) {
+    if (!value) {
+        return null;
+    }
+
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return date.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
+}
+
 /** Canonical clock format used everywhere: 6:55am, 9:00pm, 12:30pm. */
 export function clock(date) {
     const hours = date.getHours();
