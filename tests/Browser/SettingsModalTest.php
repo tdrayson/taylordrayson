@@ -23,4 +23,9 @@ it('opens the settings modal from the gear and toggles theme', function () {
         "document.querySelector('[aria-label=\"Dark\"]').getAttribute('aria-checked')",
         'true',
     );
+
+    // Select Light and assert it reverts.
+    $page->click('[aria-label="Light"]')
+        ->assertScript("document.documentElement.classList.contains('dark')", false)
+        ->assertScript("localStorage.getItem('theme')", 'light');
 });
