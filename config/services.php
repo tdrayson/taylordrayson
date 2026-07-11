@@ -71,4 +71,9 @@ return [
         'token' => env('API_TOKEN'),
     ],
 
+    'trakt' => [
+        'client_id' => env('TRAKT_CLIENT_ID'),
+        'username' => env('TRAKT_USERNAME'),
+    ],
+
 ];
