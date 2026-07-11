@@ -14,7 +14,6 @@ use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
-use App\Support\Distance;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -283,10 +282,10 @@ class TimelineController extends Controller
         ];
 
         foreach ($disciplines as $label => $types) {
-            $miles = Distance::miles((int) $between(Activity::query())->whereIn('type', $types)->sum('distance')) ?? 0;
+            $distanceM = (int) $between(Activity::query())->whereIn('type', $types)->sum('distance');
 
-            if ($miles > 0) {
-                $stats[] = ['label' => $label, 'value' => number_format($miles), 'unit' => 'mi'];
+            if ($distanceM > 0) {
+                $stats[] = ['label' => $label, 'distanceM' => $distanceM, 'precision' => 0];
             }
         }
 
@@ -335,10 +334,10 @@ class TimelineController extends Controller
 
         // Year-scale superlative: the standout single run of the period.
         if ($withSuperlative) {
-            $longestRunMiles = Distance::miles((int) $between(Activity::query())->where('type', 'run')->max('distance'), 1) ?? 0.0;
+            $longestRun = (int) $between(Activity::query())->where('type', 'run')->max('distance');
 
-            if ($longestRunMiles > 0) {
-                $stats[] = ['label' => 'Longest run', 'value' => number_format($longestRunMiles, 1), 'unit' => 'mi'];
+            if ($longestRun > 0) {
+                $stats[] = ['label' => 'Longest run', 'distanceM' => $longestRun, 'precision' => 1];
             }
         }
 
@@ -376,7 +375,7 @@ class TimelineController extends Controller
      * Summary stats for a day, derived from the entries we actually store.
      *
      * @param  Collection<int, TimelineEntry>  $entries
-     * @return array<int, array{label: string, value?: string, unit?: string, seconds?: int}>
+     * @return array<int, array{label: string, value?: string, unit?: string, seconds?: int, distanceM?: int, precision?: int}>
      */
     private function dayStats(Collection $entries, Carbon $date): array
     {
@@ -393,10 +392,10 @@ class TimelineController extends Controller
         if ($activities->isNotEmpty()) {
             $stats[] = ['label' => 'Activities', 'value' => (string) $activities->count()];
 
-            $distanceMiles = Distance::miles((int) round($activities->sum('distance')), 1) ?? 0.0;
+            $distanceM = (int) round($activities->sum('distance'));
 
-            if ($distanceMiles > 0) {
-                $stats[] = ['label' => 'Distance', 'value' => number_format($distanceMiles, 1), 'unit' => 'mi'];
+            if ($distanceM > 0) {
+                $stats[] = ['label' => 'Distance', 'distanceM' => $distanceM, 'precision' => 1];
             }
         }
 

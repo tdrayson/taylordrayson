@@ -57,12 +57,15 @@ it('splits distance by discipline, averages daily food, and adds a year-only sup
         ->where('stats', function ($stats) {
             $by = collect($stats)->keyBy('label');
 
-            return $by['Walked']['value'] === '10'
-                && $by['Ran']['value'] === '8'
-                && $by['Cycled']['value'] === '20'
+            // Distance stats now send raw metres (client formats via useFormat); the
+            // walk is a single 16093 m activity, "Ran" sums both runs, and the
+            // year-only superlative takes the single longest run.
+            return $by['Walked']['distanceM'] === 16093
+                && $by['Ran']['distanceM'] === 12875
+                && $by['Cycled']['distanceM'] === 32187
                 && $by['Food']['value'] === '2,000'
                 && $by['Food']['unit'] === 'kcal/day'
-                && $by['Longest run']['value'] === '5.0';
+                && $by['Longest run']['distanceM'] === 8047;
         }));
 
     // The same month shows the disciplines but omits the year-only superlative.

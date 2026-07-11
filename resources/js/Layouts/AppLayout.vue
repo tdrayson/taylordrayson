@@ -6,6 +6,7 @@ import MobileNav from '../Components/Layout/MobileNav.vue';
 import MediaPlayer from '../Components/Overlays/MediaPlayer.vue';
 import Breadcrumb from '../Components/Layout/Breadcrumb.vue';
 import CommandPalette from '../Components/Overlays/CommandPalette.vue';
+import SettingsModal from '../Components/Layout/SettingsModal.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: () => [] },
@@ -40,5 +41,6 @@ const page = usePage();
         </div>
         <MediaPlayer />
         <CommandPalette />
+        <SettingsModal />
     </div>
 </template>

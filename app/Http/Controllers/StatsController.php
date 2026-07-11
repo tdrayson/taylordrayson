@@ -268,10 +268,10 @@ class StatsController extends Controller
         return [
             ['label' => 'Sessions', 'value' => number_format($totals['sessions']), 'spark' => $spark['sessions'], 'delta' => $delta($totals['sessions'], $compare['sessions'] ?? null)],
             ['label' => 'Duration', 'value' => number_format($hours), 'unit' => 'h', 'spark' => array_map(fn (int $s): int => (int) round($s / 3600), $spark['secs']), 'delta' => $delta($totals['secs'], $compare['secs'] ?? null)],
-            ['label' => 'Walked', 'value' => number_format(round($mi($totals['walk_m']))), 'unit' => 'mi', 'spark' => $spark['walkMi'], 'delta' => $delta($mi($totals['walk_m']), $compare ? $mi($compare['walk_m']) : null)],
-            ['label' => 'Ran', 'value' => number_format(round($mi($totals['run_m']))), 'unit' => 'mi', 'spark' => $spark['runMi'], 'delta' => $delta($mi($totals['run_m']), $compare ? $mi($compare['run_m']) : null)],
-            ['label' => 'Cycled', 'value' => number_format(round($mi($totals['ride_m']))), 'unit' => 'mi', 'spark' => $spark['rideMi'], 'delta' => $delta($mi($totals['ride_m']), $compare ? $mi($compare['ride_m']) : null)],
-            ['label' => 'Longest run', 'value' => number_format($longest, 1), 'unit' => 'mi', 'spark' => $spark['longestRunMi'], 'delta' => $delta($longest, $compare ? $mi($compare['run_max_m']) : null)],
+            ['label' => 'Walked', 'distanceM' => $totals['walk_m'], 'precision' => 0, 'spark' => $spark['walkMi'], 'delta' => $delta($mi($totals['walk_m']), $compare ? $mi($compare['walk_m']) : null)],
+            ['label' => 'Ran', 'distanceM' => $totals['run_m'], 'precision' => 0, 'spark' => $spark['runMi'], 'delta' => $delta($mi($totals['run_m']), $compare ? $mi($compare['run_m']) : null)],
+            ['label' => 'Cycled', 'distanceM' => $totals['ride_m'], 'precision' => 0, 'spark' => $spark['rideMi'], 'delta' => $delta($mi($totals['ride_m']), $compare ? $mi($compare['ride_m']) : null)],
+            ['label' => 'Longest run', 'distanceM' => $totals['run_max_m'], 'precision' => 1, 'spark' => $spark['longestRunMi'], 'delta' => $delta($longest, $compare ? $mi($compare['run_max_m']) : null)],
         ];
     }
 
@@ -279,17 +279,16 @@ class StatsController extends Controller
      * Averages per the range's natural unit (day / week / month).
      *
      * @param  array<string, int>  $totals
-     * @return list<array{label: string, display: string}>
+     * @return list<array{label: string, display?: string, distanceM?: int, precision?: int}>
      */
     private function averages(array $totals, float $divisor): array
     {
-        $mi = fn (int $metres): float => Distance::miles($metres, 1) ?? 0.0;
-        $miles = ($mi($totals['walk_m']) + $mi($totals['run_m']) + $mi($totals['ride_m'])) / $divisor;
+        $distanceM = (int) round(($totals['walk_m'] + $totals['run_m'] + $totals['ride_m']) / $divisor);
 
         return [
             ['label' => 'Sessions', 'display' => (string) round($totals['sessions'] / $divisor, 1)],
             ['label' => 'Duration', 'display' => round(($totals['secs'] / 3600) / $divisor, 1).'h'],
-            ['label' => 'Distance', 'display' => round($miles, 1).' mi'],
+            ['label' => 'Distance', 'distanceM' => $distanceM, 'precision' => 1],
         ];
     }
 
@@ -362,7 +361,7 @@ class StatsController extends Controller
     /**
      * Personal bests within the range.
      *
-     * @return list<array{value: string, label: string}>
+     * @return list<array{label: string, value?: string, distanceM?: int, precision?: int}>
      */
     private function records(Carbon $start, Carbon $end): array
     {
@@ -372,9 +371,9 @@ class StatsController extends Controller
         $longestSession = (int) $between(Activity::query())->max('duration');
 
         return [
-            ['value' => number_format(Distance::miles($longestRun, 1) ?? 0.0, 1).' mi', 'label' => 'Longest run'],
-            ['value' => number_format(Distance::miles($longestRide, 1) ?? 0.0, 1).' mi', 'label' => 'Longest ride'],
-            ['value' => $longestSession > 0 ? Carbon::now()->subSeconds($longestSession)->diffForHumans(Carbon::now(), ['parts' => 2, 'short' => true, 'syntax' => Carbon::DIFF_ABSOLUTE]) : '0m', 'label' => 'Longest session'],
+            ['label' => 'Longest run', 'distanceM' => $longestRun, 'precision' => 1],
+            ['label' => 'Longest ride', 'distanceM' => $longestRide, 'precision' => 1],
+            ['label' => 'Longest session', 'value' => $longestSession > 0 ? Carbon::now()->subSeconds($longestSession)->diffForHumans(Carbon::now(), ['parts' => 2, 'short' => true, 'syntax' => Carbon::DIFF_ABSOLUTE]) : '0m'],
         ];
     }
 

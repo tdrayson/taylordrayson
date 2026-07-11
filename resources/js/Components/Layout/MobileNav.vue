@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Menu01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { Menu01Icon, Cancel01Icon, Settings01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import StatusBar from './StatusBar.vue';
 import SearchBar from './SearchBar.vue';
@@ -9,9 +9,17 @@ import SidebarNav from './SidebarNav.vue';
 import SocialLinks from '../Profile/SocialLinks.vue';
 import Avatar from '../Profile/Avatar.vue';
 import StreakBadge from '../Now/StreakBadge.vue';
-import ThemeToggle from './ThemeToggle.vue';
+import { useSettings } from '../../useSettings';
 
+const { openSettings } = useSettings();
 const open = ref(false);
+
+// Close the mobile menu before the settings modal opens on top of it, so only
+// one overlay is ever visible at a time.
+function openSettingsFromMenu() {
+    open.value = false;
+    openSettings();
+}
 
 // The shell becomes the full-screen overlay while the menu is open, and stays
 // fixed through the closing animation so the body can ease out without the
@@ -79,7 +87,15 @@ onUnmounted(() => {
                     <StatusBar />
                     <SocialLinks />
                     <StreakBadge />
-                    <ThemeToggle />
+                    <button
+                        type="button"
+                        aria-label="Open settings"
+                        class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-nav text-neutral-500 transition hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        @click="openSettingsFromMenu"
+                    >
+                        <Icon :icon="Settings01Icon" class="size-5" />
+                        Settings
+                    </button>
                 </div>
             </div>
         </Transition>

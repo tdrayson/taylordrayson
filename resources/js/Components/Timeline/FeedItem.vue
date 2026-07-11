@@ -11,11 +11,12 @@ import FlightRoute from '../Maps/FlightRoute.vue';
 import RouteThumb from '../Maps/RouteThumb.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration, flightDurationLabel, number } from '../../lib/format.js';
+import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { greatCircle } from '../../lib/maplibre.js';
 import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { staticRouteMap, staticArcMap, MAPBOX_DARK } from '../../lib/staticMap.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
@@ -31,6 +32,9 @@ const props = defineProps({
     // the display-font title, with the timestamp acting as the permalink.
     body: { type: String, default: null },
     meta: { type: String, default: '' },
+    // Structured subtitle tokens (raw metres/kg + literal text) composed reactively
+    // via useFormat; null falls back to the plain `meta` string (e.g. notes).
+    metaTokens: { type: Array, default: null },
     segments: { type: Array, default: null },
     route: { type: Object, default: null },
     media: { type: Object, default: null },
@@ -49,6 +53,9 @@ const props = defineProps({
     label: { type: String, default: '' },
     offset: { type: String, default: '' },
 });
+
+// Unit-aware distance formatter; route.distance is already in miles.
+const { distance, weight, distanceFromMiles } = useFormat();
 
 const videoSlot = ref(null);
 
@@ -101,6 +108,27 @@ function listen() {
 // Leaving the page releases the inline dock, popping the video to the corner.
 onBeforeUnmount(() => undockVideo(videoSlot.value));
 
+// Timeline card subtitle. When the server sends structured tokens, compose them
+// through useFormat so distance/weight react to the unit toggle; otherwise fall
+// back to the plain server string (e.g. notes have no unit-bearing subtitle).
+const metaText = computed(() => {
+    if (!props.metaTokens) {
+        return props.meta;
+    }
+    return props.metaTokens
+        .map((token) => {
+            if (token.t === 'dist') {
+                return distance(token.m, token.p);
+            }
+            if (token.t === 'wt') {
+                return weight(token.kg, token.p);
+            }
+            return token.v;
+        })
+        .filter(Boolean)
+        .join(', ');
+});
+
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
 const typeHref = computed(() => entryType(props.iconKey).href ?? null);
@@ -126,7 +154,7 @@ const routeView = computed(() => {
         departTime: clockOf(props.route.depart),
         arriveTime: clockOf(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
-        note: props.route.distance ? `${number(props.route.distance)} mi` : null,
+        note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
     };
 });
 
@@ -280,7 +308,7 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="meta" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</p>
+        <p v-else-if="metaText" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- SVG banner only as a fallback when no generated image is available. -->
         <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
         <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
