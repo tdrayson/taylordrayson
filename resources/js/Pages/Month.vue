@@ -77,7 +77,7 @@ setLayoutProps({
         <CalendarMonth :year="year" :month="month" :days="days" />
 
         <section v-if="photos.length">
-            <SectionHead title="Photos" :meta="`${photos.length}${photos.length === 12 ? '+' : ''} this month`" />
+            <SectionHead title="Photos" size="title" :meta="`${photos.length}${photos.length === 12 ? '+' : ''} this month`" />
             <!-- Same masonry + hover-context tiles and column count as /photos. -->
             <PhotoGrid :photos="photos" :columns="3" @open="lightboxIndex = $event" />
             <Lightbox v-model:index="lightboxIndex" :photos="photos" />
