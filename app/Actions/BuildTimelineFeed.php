@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Models\Media;
 use App\Models\TimelineEntry;
 use App\Support\LocalTime;
 use App\Support\Text;
@@ -25,10 +26,87 @@ class BuildTimelineFeed
                 'label' => $group->first()->occurred_at->format('l j F Y'),
                 'date' => $group->first()->occurred_at->format('Y-m-d'),
                 'href' => '/'.$group->first()->occurred_at->format('Y/m/d'),
-                'items' => $group->map(fn (TimelineEntry $entry): array => $this->cardItem($entry))->values()->all(),
+                'items' => $this->collapseEpisodes($group, $group->first()->occurred_at->format('Y-m-d')),
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Fold a day's group of timeline entries into feed cards, collapsing
+     * multiple same-show episode watches into a single synthesized "binge"
+     * card. Everything else (films, single episodes, non-media entries)
+     * renders through the normal cardItem() path unchanged.
+     *
+     * @param  Collection<int, TimelineEntry>  $group
+     * @return array<int, array<string, mixed>>
+     */
+    private function collapseEpisodes(Collection $group, string $date): array
+    {
+        [$episodes, $rest] = $group->partition(
+            fn (TimelineEntry $entry): bool => $entry->timelineable instanceof Media
+                && $entry->timelineable->type === 'episode'
+                && $entry->timelineable->series_id !== null,
+        );
+
+        $items = $rest->map(fn (TimelineEntry $entry): array => $this->cardItem($entry))->all();
+
+        foreach ($episodes->groupBy(fn (TimelineEntry $entry): int => $entry->timelineable->series_id) as $seriesEntries) {
+            if ($seriesEntries->count() === 1) {
+                $items[] = $this->cardItem($seriesEntries->first());
+
+                continue;
+            }
+
+            $items[] = $this->synthesiseSeriesCard($seriesEntries, $date);
+        }
+
+        return collect($items)->sortByDesc('datetime')->values()->all();
+    }
+
+    /**
+     * Build one feed card summarising N same-day watches of the same show,
+     * mirroring cardItem()'s key shape (so FeedItem.vue renders it unchanged)
+     * plus a `count`. Links to the series page anchored at this day's watch
+     * section rather than any single episode.
+     *
+     * Note: reads $entry->timelineable->series lazily per collapsed group
+     * (not eager-loaded), which is acceptable given the small number of
+     * entries per day.
+     *
+     * @param  Collection<int, TimelineEntry>  $entries
+     * @return array<string, mixed>
+     */
+    private function synthesiseSeriesCard(Collection $entries, string $date): array
+    {
+        $first = $entries->first()->timelineable;
+        $series = $first->series;
+        $count = $entries->count();
+        $local = LocalTime::for($first->occurredAtForDisplay(), $first->timezone());
+
+        return [
+            'iconKey' => 'media',
+            'accent' => 'media',
+            'title' => $series?->title ?? $first->meta['show_title'] ?? $first->title,
+            'titleLabel' => null,
+            'meta' => "{$count} episodes",
+            'metaTokens' => null,
+            'body' => null,
+            'segments' => null,
+            'route' => null,
+            'media' => null,
+            'photos' => null,
+            'polyline' => null,
+            'map' => null,
+            'mapDark' => null,
+            'range' => null,
+            'count' => $count,
+            'time' => $local['time'],
+            'datetime' => $local['iso'],
+            'label' => $local['label'],
+            'offset' => $local['offset'],
+            'url' => $series ? "/media/tv/{$series->slug}#watch-{$date}" : null,
+        ];
     }
 
     /**
