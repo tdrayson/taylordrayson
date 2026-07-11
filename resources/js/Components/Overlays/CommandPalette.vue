@@ -324,7 +324,9 @@ onUnmounted(() => {
                 class="overlay fixed inset-0 flex items-start justify-center px-4"
                 @click.self="close"
             >
-                <div class="backdrop absolute inset-0 bg-neutral-900/45" @click="close" />
+                <!-- Fixed bg-black (not bg-neutral-900): the palette backdrop is an
+                     intentional dim scrim in both themes, so it must not invert. -->
+                <div class="backdrop absolute inset-0 bg-black/45" @click="close" />
 
                 <div
                     class="panel relative flex w-full max-w-xl flex-col overflow-hidden rounded-lg border border-neutral-50 bg-neutral-0 shadow-card"

@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
-import { loadMaplibre, resolveColor, placeLabel, OPENFREEMAP_POSITRON } from '../../lib/maplibre.js';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { loadMaplibre, resolveColor, placeLabel, mapStyleForTheme } from '../../lib/maplibre.js';
+import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
     lat: { type: Number, required: true },
@@ -14,6 +15,9 @@ const props = defineProps({
 const container = ref(null);
 let map = null;
 let marker = null;
+let stopThemeWatch;
+
+const { resolved } = useTheme();
 
 onMounted(async () => {
     const maplibregl = await loadMaplibre();
@@ -24,23 +28,9 @@ onMounted(async () => {
 
     const color = resolveColor(props.color);
 
-    map = new maplibregl.Map({
-        container: container.value,
-        style: OPENFREEMAP_POSITRON,
-        center: [props.lng, props.lat],
-        zoom: props.zoom,
-        // Attribution control off: its opaque corner block breaks the map's rounded corner (matches FlightMap).
-        attributionControl: false,
-    });
-
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
-
-    // Floating pill label above the pin, mirroring the flight map's IATA markers.
-    if (props.label) {
-        marker = placeLabel(maplibregl, { lat: props.lat, lng: props.lng }, props.label).addTo(map);
-    }
-
-    map.on('load', () => {
+    // Adds the point source/layer; re-run after setStyle since maplibre
+    // drops custom sources/layers whenever the style is replaced.
+    function addPlaceLayer() {
         map.addSource('place', {
             type: 'geojson',
             data: { type: 'Feature', geometry: { type: 'Point', coordinates: [props.lng, props.lat] } },
@@ -57,10 +47,44 @@ onMounted(async () => {
                 'circle-stroke-width': 3,
             },
         });
+    }
+
+    map = new maplibregl.Map({
+        container: container.value,
+        style: mapStyleForTheme(resolved.value),
+        center: [props.lng, props.lat],
+        zoom: props.zoom,
+        // Attribution control off: its opaque corner block breaks the map's rounded corner (matches FlightMap).
+        attributionControl: false,
+    });
+
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+    // Floating pill label above the pin, mirroring the flight map's IATA markers.
+    if (props.label) {
+        marker = placeLabel(maplibregl, { lat: props.lat, lng: props.lng }, props.label).addTo(map);
+    }
+
+    map.on('load', addPlaceLayer);
+
+    // Switch basemap when the colour scheme changes, then re-add the custom
+    // layer once the new style has finished loading (setStyle clears it).
+    stopThemeWatch = watch(resolved, (value) => {
+        if (!map) {
+            return;
+        }
+
+        map.setStyle(mapStyleForTheme(value));
+        // Dedupe: drop any pending re-add from a previous toggle before
+        // registering a fresh one, otherwise rapid toggles stack handlers
+        // and both fire, throwing on the second addSource/addLayer call.
+        map.off('style.load', addPlaceLayer);
+        map.once('style.load', addPlaceLayer);
     });
 });
 
 onBeforeUnmount(() => {
+    stopThemeWatch?.();
     marker?.remove();
     map?.remove();
     map = null;

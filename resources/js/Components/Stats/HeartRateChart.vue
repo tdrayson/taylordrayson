@@ -96,8 +96,11 @@ function onMove(event) {
 
         <template v-if="hovered">
             <div class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-0" :style="{ left: `${hovered.left}%`, top: `${hovered.top}%`, background: color }" />
+            <!-- Fixed bg-black/text-white (not neutral-900/neutral-0): this hover
+                 tooltip is an intentional dark chip in both themes (same pattern as
+                 Tooltip.vue), so it must not invert with the neutral ramp. -->
             <div
-                class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card tnum"
+                class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-card tnum"
                 :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%` }"
             >
                 {{ hovered.bpm }} bpm<template v-if="hovered.time">, {{ hovered.time }}</template>

@@ -133,14 +133,17 @@ function aspect(photo) {
                     loading="lazy"
                     class="w-full"
                 >
-                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-neutral-900/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover/photo:opacity-100 group-focus-within/photo:opacity-100">
-                    <p class="truncate text-meta font-medium text-neutral-0">{{ photo.caption }}</p>
-                    <p class="text-caption text-neutral-0/80">{{ photo.date }}</p>
+                <!-- Fixed from-black/text-white (not neutral-900/neutral-0): the hover
+                     caption scrim is an intentional dark overlay on the photo in both
+                     themes, so it must not invert with the neutral ramp. -->
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover/photo:opacity-100 group-focus-within/photo:opacity-100">
+                    <p class="truncate text-meta font-medium text-white">{{ photo.caption }}</p>
+                    <p class="text-caption text-white/80">{{ photo.date }}</p>
                 </div>
             </button>
             <Link
                 :href="photo.url"
-                class="absolute right-2 top-2 flex size-8 items-center justify-center rounded-md bg-neutral-900/55 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900/75 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0 group-hover/photo:opacity-100 group-focus-within/photo:opacity-100"
+                class="absolute right-2 top-2 flex size-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition-opacity hover:bg-black/75 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white group-hover/photo:opacity-100 group-focus-within/photo:opacity-100"
                 :aria-label="`Go to ${photo.caption}`"
             >
                 <Icon :icon="ArrowUpRight01Icon" class="size-4" />

@@ -3,6 +3,7 @@ import '../css/app.css';
 
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
+import { applyTheme } from './useTheme';
 
 createInertiaApp({
     title: (title) => (title ? `${title} | Taylor Drayson` : 'Taylor Drayson'),
@@ -11,6 +12,7 @@ createInertiaApp({
         return pages[`./Pages/${name}.vue`];
     },
     setup({ el, App, props, plugin }) {
+        applyTheme();
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .mount(el);

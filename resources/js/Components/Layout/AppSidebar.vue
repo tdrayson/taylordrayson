@@ -3,6 +3,7 @@ import ProfileCard from '../Profile/ProfileCard.vue';
 import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
 import StreakBadge from '../Now/StreakBadge.vue';
+import ThemeToggle from './ThemeToggle.vue';
 </script>
 
 <template>
@@ -10,8 +11,9 @@ import StreakBadge from '../Now/StreakBadge.vue';
         <ProfileCard class="mb-5" />
         <SearchBar class="mb-5" />
         <SidebarNav />
-        <div class="mt-auto hidden pt-8 md:block">
+        <div class="mt-auto hidden space-y-4 pt-8 md:block">
             <StreakBadge />
+            <ThemeToggle />
         </div>
     </aside>
 </template>

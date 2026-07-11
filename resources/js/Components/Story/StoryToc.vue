@@ -193,7 +193,7 @@ onBeforeUnmount(() => {
         <Transition name="pill">
             <div
                 v-if="chapters.length && scrolled"
-                class="flex items-stretch overflow-hidden rounded-full bg-neutral-900/60 text-neutral-0 shadow-card ring-1 ring-white/10 backdrop-blur-xl"
+                class="flex items-stretch overflow-hidden rounded-full bg-black/60 text-white shadow-card ring-1 ring-white/10 backdrop-blur-xl"
             >
                 <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="toTop">
                     <Icon :icon="ArrowUp01Icon" class="size-4" /> Top
@@ -218,7 +218,9 @@ onBeforeUnmount(() => {
                 aria-label="Table of contents"
                 class="fixed inset-0 z-50 flex flex-col justify-end focus:outline-none"
             >
-                <div class="absolute inset-0 bg-neutral-900/50" @click="open = false" />
+                <!-- Fixed bg-black (not bg-neutral-900): the floating glass pill and
+                     its sheet backdrop are intentional dark surfaces in both themes. -->
+                <div class="absolute inset-0 bg-black/50" @click="open = false" />
                 <div class="relative max-h-svh overflow-y-auto rounded-t-2xl bg-neutral-0 p-5 pb-8">
                     <div class="mb-3 flex items-center justify-between">
                         <h2 class="text-label uppercase text-neutral-500">Contents</h2>
