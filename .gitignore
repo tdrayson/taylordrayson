@@ -24,3 +24,7 @@ Homestead.yaml
 Thumbs.db
 .superpowers/
 /todo.md
+
+# Self-hosted twemoji SVGs: regenerated from the npm package at build time if
+# the emoji feature is used, so they are never committed (3,700+ files).
+/public/twemoji/
