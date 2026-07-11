@@ -7,16 +7,25 @@ const props = defineProps({
     // Reference a registered icon by its export name (<Icon name="Settings01Icon" />)
     // so callers don't import from hugeicons themselves.
     name: { type: String, default: null },
-    // Or pass a raw icon object, for dynamically-chosen icons (e.g. per entry type).
-    icon: { type: [Array, Object], default: null },
+    // A raw icon object, or a registry-name string (for data-driven icons whose
+    // value comes from a map, e.g. per entry type). Strings resolve via the registry.
+    icon: { type: [Array, Object, String], default: null },
     strokeWidth: { type: [Number, String], default: 1.7 },
 });
 
-// Prefer an explicit icon object; otherwise resolve the name from the registry.
-const resolved = computed(() => props.icon ?? icons[props.name] ?? null);
+// A string in either prop is a registry name; a non-string `icon` is a raw icon.
+const resolved = computed(() => {
+    const source = props.icon ?? props.name;
 
-if (import.meta.env.DEV && !props.icon && props.name && !icons[props.name]) {
-    console.warn(`[Icon] "${props.name}" is not in the icon registry (resources/js/icons.js).`);
+    return typeof source === 'string' ? (icons[source] ?? null) : (source ?? null);
+});
+
+if (import.meta.env.DEV) {
+    const source = props.icon ?? props.name;
+
+    if (typeof source === 'string' && !icons[source]) {
+        console.warn(`[Icon] "${source}" is not in the icon registry (resources/js/icons.js).`);
+    }
 }
 </script>
 
