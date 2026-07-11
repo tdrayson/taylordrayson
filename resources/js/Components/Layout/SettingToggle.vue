@@ -10,6 +10,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+// A unique radio-group name per instance so native radios group correctly
+// (which gives free arrow-key roving between options).
+const groupName = `setting-${props.ariaLabel.toLowerCase().replace(/\s+/g, '-')}`;
 </script>
 
 <template>
@@ -20,21 +24,26 @@ const emit = defineEmits(['update:modelValue']);
             :aria-label="ariaLabel"
             class="inline-flex rounded-lg border border-neutral-100 p-0.5"
         >
-            <button
+            <label
                 v-for="option in options"
                 :key="option.value"
-                type="button"
-                role="radio"
-                :aria-checked="modelValue === option.value"
                 :aria-label="option.label"
-                class="rounded-md px-3 py-1 text-caption font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                :class="modelValue === option.value
-                    ? 'bg-neutral-900 text-neutral-0'
-                    : 'text-neutral-500 hover:text-neutral-900'"
-                @click="emit('update:modelValue', option.value)"
+                class="cursor-pointer"
             >
-                {{ option.label }}
-            </button>
+                <!-- Real radio input, visually hidden; the styled span below is
+                     its `peer`, so it reflects checked/hover/focus state. -->
+                <input
+                    type="radio"
+                    class="peer sr-only"
+                    :name="groupName"
+                    :value="option.value"
+                    :checked="modelValue === option.value"
+                    @change="emit('update:modelValue', option.value)"
+                >
+                <span
+                    class="block rounded-md px-3 py-1 text-caption font-semibold text-neutral-500 transition-colors duration-150 peer-hover:text-neutral-900 peer-checked:bg-accent-500 peer-checked:text-neutral-0 peer-focus-visible:ring-2 peer-focus-visible:ring-accent-500"
+                >{{ option.label }}</span>
+            </label>
         </div>
     </div>
 </template>

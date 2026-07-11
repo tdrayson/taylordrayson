@@ -9,20 +9,20 @@ it('toggles distance and weight units from the settings modal', function () {
     $page->click('[aria-label="Open settings"]')
         ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
 
-    // Distance: default mi, switch to km, assert persisted + reflected on the control.
+    // Distance: default mi, switch to km, assert persisted + the native radio checked.
     $page->click('[aria-label="Distance unit"] [aria-label="km"]')
         ->assertScript("localStorage.getItem('pref:distanceUnit')", 'km')
         ->assertScript(
-            "document.querySelector('[aria-label=\"Distance unit\"] [aria-label=\"km\"]').getAttribute('aria-checked')",
-            'true',
+            "document.querySelector('[aria-label=\"Distance unit\"] input[value=\"km\"]').checked",
+            true,
         );
 
     // Weight: default kg, switch to lbs.
     $page->click('[aria-label="Weight unit"] [aria-label="lbs"]')
         ->assertScript("localStorage.getItem('pref:weightUnit')", 'lbs')
         ->assertScript(
-            "document.querySelector('[aria-label=\"Weight unit\"] [aria-label=\"lbs\"]').getAttribute('aria-checked')",
-            'true',
+            "document.querySelector('[aria-label=\"Weight unit\"] input[value=\"lbs\"]').checked",
+            true,
         );
 });
 
