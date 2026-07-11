@@ -13,22 +13,34 @@ const props = defineProps({
 
 const { distanceParts } = useFormat();
 
-// Drop blank stats so callers can pass a sparse list without gaps. A distance
-// stat carries `distanceM` instead of a static `value`, so it counts as
-// present here even before it's formatted below.
-const visible = computed(() =>
-    props.stats.filter((stat) => stat.seconds != null || stat.distanceM != null || (stat.value !== null && stat.value !== undefined && stat.value !== '')),
-);
-
-// Resolve each visible stat's value/unit; a stat carrying raw `distanceM`
-// formats through the unit toggle, others use their static value/unit.
-const resolved = computed(() => visible.value.map((stat) => {
+// Format BEFORE filtering: a stat carrying raw `distanceM` resolves its
+// value/unit through the active unit setting here, others pass through with
+// their static value/unit unchanged. Reading distanceUnit's setting inside
+// this computed (via distanceParts) is what makes the zero-hide below
+// reactive to the mi/km toggle rather than a one-off snapshot.
+const formatted = computed(() => props.stats.map((stat) => {
     if (stat.distanceM !== null && stat.distanceM !== undefined) {
         const parts = distanceParts(stat.distanceM, stat.precision ?? 0);
-        return { ...stat, value: parts.value, unit: parts.unit };
+        return { ...stat, value: parts.value, unit: parts.unit, isDistance: true };
     }
     return stat;
 }));
+
+// Drop blank stats so callers can pass a sparse list without gaps, and drop
+// distance-origin stats whose FORMATTED value rounds to zero in the current
+// unit (e.g. a 400m day total renders "0 mi", which is more misleading than
+// just hiding the stat). Non-distance stats keep the original blank check.
+const resolved = computed(() =>
+    formatted.value.filter((stat) => {
+        if (stat.isDistance) {
+            // number() returns a locale string ("0", "0.0", "1,234.5"); strip
+            // thousands separators before the numeric zero comparison.
+            return Number(stat.value.replace(/,/g, '')) !== 0;
+        }
+
+        return stat.seconds != null || (stat.value !== null && stat.value !== undefined && stat.value !== '');
+    }),
+);
 
 const big = computed(() => props.size === 'lg');
 </script>

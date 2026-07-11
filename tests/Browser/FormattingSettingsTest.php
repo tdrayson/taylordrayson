@@ -138,6 +138,38 @@ it('reformats year timeline aggregate stats live when distance unit changes', fu
         );
 });
 
+it('hides a year aggregate distance stat that rounds to zero, in both units', function () {
+    // A single 400m walk is the only "Walked" activity for the year: at
+    // precision 0 that's 0.25 mi / 0.4 km, i.e. it rounds to "0" in either
+    // unit. StatGrid must hide the stat rather than render the misleading
+    // "0 mi" (the server used to only hide it when raw metres was exactly 0,
+    // so a small nonzero total like this previously rendered as "0 mi").
+    Activity::factory()->create([
+        'name' => 'Tiny Walk',
+        'type' => 'walk',
+        'distance' => 400,
+        'duration' => 300,
+        'occurred_at' => '2026-06-01 07:30:00',
+    ]);
+
+    $page = visit('/2026')->resize(1280, 800);
+
+    // Scope to the year page's own StatGrid (rendered with class "mt-8"), same
+    // as the reactive-aggregate test above, so the deferred timeline feed
+    // below it can't produce a false positive/negative.
+    $page->assertScript(
+        "[...document.querySelectorAll('dl.mt-8 dd')].every(dd => !dd.textContent.trim().includes('0 mi'))",
+        true,
+    );
+
+    $page->click('[aria-label="Open settings"]')
+        ->click('[aria-label="Distance unit"] [aria-label="km"]')
+        ->assertScript(
+            "[...document.querySelectorAll('dl.mt-8 dd')].every(dd => !dd.textContent.trim().includes('0 km'))",
+            true,
+        );
+});
+
 it('reformats stats-page metric cards live when distance unit changes', function () {
     // Server now sends raw distanceM + precision for distance metrics
     // (StatsController::metrics); MetricCard formats them via useFormat.
