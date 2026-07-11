@@ -61,9 +61,9 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapF
     }
 
     // Only listen for keydown when there's actually work to do: closing on
-    // Escape, trapping Tab, or a consumer-supplied handler. Consumers that
-    // pass none of these (none currently do) still get scroll-lock and
-    // focus save/restore from the watcher below.
+    // Escape, trapping Tab, or a consumer-supplied handler. A consumer that
+    // owns its own keydown model (e.g. CommandPalette) passes none of these
+    // and still gets scroll-lock and focus save/restore from the watcher below.
     const needsKeydownListener = closeOnEsc || Boolean(onKeydown) || trapFocus;
 
     watch(isOpen, (open) => {
