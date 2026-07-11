@@ -13,6 +13,8 @@ const props = defineProps({
     content: { type: [Object, Array, String], default: null },
     published: { type: Boolean, default: true },
     og: { type: Object, default: () => ({}) },
+    // Map of href -> preview data for internal content links.
+    linkPreviews: { type: Object, default: () => ({}) },
 });
 
 setLayoutProps({ breadcrumb: [{ label: props.title }] });
@@ -32,6 +34,6 @@ setLayoutProps({ breadcrumb: [{ label: props.title }] });
             <p v-if="excerpt" class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
         </header>
 
-        <BlockContent :document="content" class="mt-8" />
+        <BlockContent :document="content" :link-previews="linkPreviews" class="mt-8" />
     </article>
 </template>

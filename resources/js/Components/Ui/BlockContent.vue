@@ -2,11 +2,15 @@
 import { computed, ref } from 'vue';
 import PortableTextBlocks from './PortableTextBlocks.js';
 import Lightbox from '../Overlays/Lightbox.vue';
+import LinkPreviewLayer from './LinkPreviewLayer.vue';
 
 // Read-only renderer for a Portable Text document. Accepts the bare node
 // array (content is cast to an array server-side) or a raw JSON string.
 const props = defineProps({
     document: { type: [Array, String], default: null },
+    // Map of href -> preview data for internal content links (page prop from
+    // the entry/page controller), forwarded to LinkPreviewLayer.
+    linkPreviews: { type: Object, default: () => ({}) },
 });
 
 const nodes = computed(() => {
@@ -35,6 +39,10 @@ function openImage(url) {
     activeImage.value = { full: url, caption: node?.caption || null };
     lightboxIndex.value = 0;
 }
+
+// LinkPreviewLayer queries this element's rendered <a> tags on mount, after
+// PortableTextBlocks has turned the Portable Text link marks into real anchors.
+const contentEl = ref(null);
 </script>
 
 <template>
@@ -42,10 +50,12 @@ function openImage(url) {
          its :where() selectors have zero specificity, so the renderer's explicit
          classes (widths, blockquote, code) always win. max-w-none: widths are
          set per node, not on the wrapper. -->
-    <div v-if="nodes.length" class="block-content prose max-w-none text-body text-neutral-900">
+    <div v-if="nodes.length" ref="contentEl" class="block-content prose max-w-none text-body text-neutral-900">
         <PortableTextBlocks :nodes="nodes" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
+
+        <LinkPreviewLayer :previews="linkPreviews" :container="contentEl" />
     </div>
 </template>
 
