@@ -99,8 +99,8 @@ it('reformats timeline card subtitles live when distance unit changes', function
     // The day page renders that day's timeline feed (FeedItem cards). Scope the
     // assertion to the card's own subtitle paragraph (.p-summary inside
     // .timeline-feed) rather than the whole page: the day page's summary stat
-    // block also renders a hardcoded, non-reactive "mi" unit <abbr>, which would
-    // make a body-wide 'mi'/'km' check a false positive/negative.
+    // block also renders a distance <abbr> (now reactive too), which would make
+    // a body-wide 'mi'/'km' check ambiguous.
     $page = visit('/2026/03/15')->resize(1280, 800);
 
     // Card subtitle starts in miles.
@@ -177,19 +177,21 @@ it('hides a year aggregate distance stat that rounds to zero, in both units', fu
 
     $page = visit('/2026')->resize(1280, 800);
 
-    // Scope to the year page's own StatGrid (rendered with class "mt-8"), same
-    // as the reactive-aggregate test above, so the deferred timeline feed
-    // below it can't produce a false positive/negative.
+    // The stat is hidden entirely (StatGrid renders value+unit with no space,
+    // so it never shows a "0 mi"); assert there is no distance <abbr> at all in
+    // the year page's own StatGrid (class "mt-8"), in either unit. Scoped to
+    // that StatGrid so a reactive <abbr> from the deferred feed below can't
+    // produce a false positive/negative.
     $page->assertScript(
-        "[...document.querySelectorAll('dl.mt-8 dd')].every(dd => !dd.textContent.trim().includes('0 mi'))",
-        true,
+        "[...document.querySelectorAll('dl.mt-8 abbr')].some(a => a.textContent.trim() === 'mi')",
+        false,
     );
 
     $page->click('[aria-label="Open settings"]')
         ->click('[aria-label="Distance unit"] [aria-label="km"]')
         ->assertScript(
-            "[...document.querySelectorAll('dl.mt-8 dd')].every(dd => !dd.textContent.trim().includes('0 km'))",
-            true,
+            "[...document.querySelectorAll('dl.mt-8 abbr')].some(a => a.textContent.trim() === 'km')",
+            false,
         );
 });
 

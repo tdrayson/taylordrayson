@@ -129,7 +129,7 @@ class Activity extends Model implements HasMedia, Timelineable
      * tokens (metres/kg) instead of pre-formatted strings, so FeedItem.vue can
      * compose them through useFormat() and react to the visitor's unit toggle.
      *
-     * @return array<int, array<string, mixed>>|null
+     * @return list<array{t: 'dist', m: int, p: int}|array{t: 'wt', kg: float, p: int}|array{t: 'text', v: string}>|null
      */
     private function subtitleTokens(): ?array
     {
@@ -158,7 +158,7 @@ class Activity extends Model implements HasMedia, Timelineable
 
     /**
      * @param  array<int, array{exercise: string, reps: int, weight: float}>  $sets
-     * @return array<int, array<string, mixed>>
+     * @return list<array{t: 'text', v: string}|array{t: 'wt', kg: float, p: int}>
      */
     private function strengthTokens(array $sets): array
     {
