@@ -14,3 +14,15 @@ it('downloads a poster into the cover collection', function () {
 
     expect($series->fresh()->getFirstMedia('cover'))->not->toBeNull();
 });
+
+it('throws on a failed download so the queue retries', function () {
+    Storage::fake(config('media-library.disk_name'));
+    Http::fake(['*' => Http::response('', 500)]);
+
+    $series = Series::factory()->create();
+
+    expect(fn () => (new FetchTraktPoster($series, 'https://walter-r2.trakt.tv/posters/x.jpg.webp'))->handle())
+        ->toThrow(RuntimeException::class);
+
+    expect($series->fresh()->getFirstMedia('cover'))->toBeNull();
+});

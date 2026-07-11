@@ -21,7 +21,17 @@ class FetchTraktPoster implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+
     public function __construct(private Model&HasMedia $subject, private string $posterUrl) {}
+
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [30, 120];
+    }
 
     public function handle(): void
     {
@@ -29,7 +39,7 @@ class FetchTraktPoster implements ShouldQueue
         $response = Http::get($url);
 
         if ($response->failed()) {
-            return;
+            throw new \RuntimeException("Poster download failed: {$url} ({$response->status()})");
         }
 
         $this->subject->clearMediaCollection('cover');
