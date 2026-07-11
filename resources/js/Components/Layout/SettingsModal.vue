@@ -30,7 +30,11 @@ function focusableInPanel() {
         return [];
     }
 
-    return [...panelEl.value.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')].filter(
+    // Include form controls (input/select/textarea), not just buttons/links, so
+    // the Formatting section's native radio toggles are inside the Tab trap.
+    // sr-only radios are position:absolute, so offsetParent stays non-null and
+    // they survive the visibility filter.
+    return [...panelEl.value.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(
         (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
     );
 }

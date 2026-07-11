@@ -26,6 +26,29 @@ it('toggles distance and weight units from the settings modal', function () {
         );
 });
 
+it('keeps the unit toggles keyboard-reachable and operable inside the modal', function () {
+    $page = visit('/')->resize(1280, 800);
+
+    $page->click('[aria-label="Open settings"]')
+        ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
+
+    // Regression guard: the modal's Tab focus trap must include the native radio
+    // inputs (its selector previously matched only buttons/links, so the last-in-
+    // DOM Formatting toggles were unreachable — Tab wrapped before reaching them).
+    $page->assertScript(
+        "[...document.querySelector('[role=\"dialog\"]').querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])')].some(el => el.matches('input[value=\"km\"]'))",
+        true,
+    );
+
+    // Native keyboard operation: ArrowRight on the checked (mi) radio selects km.
+    $page->keys('[aria-label="Distance unit"] input[value="mi"]', 'ArrowRight')
+        ->assertScript("localStorage.getItem('pref:distanceUnit')", 'km')
+        ->assertScript(
+            "document.querySelector('[aria-label=\"Distance unit\"] input[value=\"km\"]').checked",
+            true,
+        );
+});
+
 it('updates rendered distance and weight live when units change', function () {
     // 5000 m -> 3.1 mi / 5.0 km; a 100 kg set -> 220.5 lbs.
     $activity = Activity::factory()->create([
