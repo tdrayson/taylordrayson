@@ -81,15 +81,16 @@ class Activity extends Model implements HasMedia, Timelineable
 
     private function cardSubtitle(): ?string
     {
-        $isCardio = in_array($this->type, ['run', 'cycle', 'ride', 'swim', 'walk', 'hike']);
-
-        if (! $isCardio && is_array($this->meta['sets'] ?? null)) {
+        // Data-driven, not a hardcoded cardio type list: strength activities
+        // carry sets; everything else describes itself by whatever metrics it
+        // recorded, so new distance-based types scale in without an allow-list.
+        if (is_array($this->meta['sets'] ?? null)) {
             return $this->strengthSubtitle($this->meta['sets']);
         }
 
         $parts = [];
 
-        if ($isCardio && $this->distance) {
+        if ($this->distance) {
             $parts[] = Distance::miles($this->distance, 1).' mi';
         }
 
@@ -133,15 +134,15 @@ class Activity extends Model implements HasMedia, Timelineable
      */
     private function subtitleTokens(): ?array
     {
-        $isCardio = in_array($this->type, ['run', 'cycle', 'ride', 'swim', 'walk', 'hike']);
-
-        if (! $isCardio && is_array($this->meta['sets'] ?? null)) {
+        // Data-driven (see cardSubtitle): sets => strength; otherwise show
+        // whatever metrics exist, so new distance types need no allow-list.
+        if (is_array($this->meta['sets'] ?? null)) {
             return $this->strengthTokens($this->meta['sets']);
         }
 
         $tokens = [];
 
-        if ($isCardio && $this->distance) {
+        if ($this->distance) {
             $tokens[] = ['t' => 'dist', 'm' => (int) $this->distance, 'p' => 1];
         }
 
