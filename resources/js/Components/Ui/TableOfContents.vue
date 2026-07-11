@@ -1,17 +1,31 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Menu01Icon, Cancel01Icon, ArrowUp01Icon } from '@hugeicons-pro/core-stroke-rounded';
-import Icon from '../Ui/Icon.vue';
+import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 
-// Chapters discovered from the rendered story: [{ id, number, kicker }].
-const chapters = ref([]);
-// The id of the chapter currently in view (drives the active highlight).
+// One table of contents for any long document: a desktop rail plus a mobile
+// pill and sheet with scroll-spy. Collects `{ id, label, number, level }` from
+// the elements matching `selector`; `number` (story chapters) shows in the
+// sheet only when `numberAttr` is given. Merged from the former ContentToc and
+// StoryToc, which shared all mechanics and differed only in item shape/accent.
+const props = defineProps({
+    // Selector matching the headings/chapters to collect.
+    selector: { type: String, default: '[data-toc]' },
+    // Attribute each matched element carries its display label in.
+    labelAttr: { type: String, default: 'data-toc-label' },
+    // Attribute holding an optional leading number (story chapters); when null
+    // the sheet shows the label alone.
+    numberAttr: { type: String, default: null },
+});
+
+// Items discovered in the document: [{ id, label, number, level }].
+const items = ref([]);
+// The id of the item currently in view (drives the active highlight).
 const activeId = ref(null);
 // Whether the mobile contents sheet is open.
 const open = ref(false);
-// Whether the hero has scrolled away (gates the mobile pill so the full header
-// is unobstructed on first load).
+// Whether the reader has scrolled far enough to reveal the mobile pill.
 const scrolled = ref(false);
 let observer = null;
 
@@ -20,18 +34,22 @@ let observer = null;
 const { panelEl } = useDialog({ isOpen: () => open.value, onClose: () => { open.value = false; } });
 
 /**
- * Read every chapter section from the page and start a scroll-spy that marks
- * the one near the top of the viewport as active.
+ * Read every element matching `selector` and start a scroll-spy that marks the
+ * one near the top of the viewport as active.
  *
  * @returns {void}
  */
 function buildToc() {
-    const sections = [...document.querySelectorAll('[data-story-chapter]')];
+    const elements = [...document.querySelectorAll(props.selector)];
 
-    chapters.value = sections.map((el) => ({
+    items.value = elements.map((el) => ({
         id: el.id,
-        number: el.dataset.number,
-        kicker: el.dataset.kicker,
+        label: el.getAttribute(props.labelAttr) ?? '',
+        // Optional leading number for story chapters; null for plain headings.
+        number: props.numberAttr ? el.getAttribute(props.numberAttr) : null,
+        // Heading depth (2 = h2, 3 = h3) drives the indented hierarchy; anything
+        // without the attribute (e.g. story chapters) sits at the base level.
+        level: Number(el.getAttribute('data-toc-level') ?? 2),
     }));
 
     observer = new IntersectionObserver(
@@ -42,17 +60,17 @@ function buildToc() {
                 }
             });
         },
-        // Treat a chapter as active once it reaches the upper third of the viewport.
+        // Treat an item as active once it reaches the upper third of the viewport.
         { rootMargin: '-15% 0px -70% 0px' },
     );
 
-    sections.forEach((el) => observer.observe(el));
+    elements.forEach((el) => observer.observe(el));
 }
 
 /**
- * Smooth-scroll to a chapter and close the mobile sheet.
+ * Smooth-scroll to an item and close the mobile sheet.
  *
- * @param {string} id The chapter element id to scroll to.
+ * @param {string} id The element id to scroll to.
  * @returns {void}
  */
 function goTo(id) {
@@ -70,8 +88,9 @@ function toTop() {
 }
 
 /**
- * Reveal the mobile pill only once the hero has largely scrolled off the top,
- * so the reader sees the full header before it appears.
+ * Reveal the mobile pill once the reader has scrolled down: past a story hero
+ * if present, otherwise past a fixed offset, so it never obscures the header on
+ * first load.
  *
  * @returns {void}
  */
@@ -81,6 +100,9 @@ function onScroll() {
 }
 
 onMounted(() => {
+    // The headings/chapters must already be rendered when this runs; place
+    // TableOfContents AFTER the content in the host template so the DOM query
+    // here sees them (Vue fires mounted hooks in template order).
     buildToc();
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -93,33 +115,34 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!-- Desktop: a clean line-and-text list. It is placed in the gutter by the
-         article's flex layout and sticks via CSS (no JS measuring), so its top
-         starts level with the first chapter's heading. -->
+    <!-- Desktop: a clean line-and-text list, placed in the gutter by the host's
+         relative-positioned wrapper and stuck via CSS (no JS measuring). -->
     <nav
-        v-if="chapters.length"
+        v-if="items.length"
         class="hidden xl:absolute xl:left-full xl:top-0 xl:block xl:h-full xl:pl-10"
         aria-label="Table of contents"
     >
-        <ul class="toc-rail sticky top-10 flex w-48 flex-col border-l border-neutral-100">
-            <li v-for="chapter in chapters" :key="chapter.id">
+        <ul class="toc-rail sticky top-10 flex w-56 flex-col border-l border-neutral-100">
+            <li v-for="item in items" :key="item.id">
                 <button
                     type="button"
-                    class="-ml-px block w-full border-l-2 py-1.5 pl-4 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
-                    :class="activeId === chapter.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700'"
-                    @click="goTo(chapter.id)"
-                >{{ chapter.kicker }}</button>
+                    class="-ml-px block w-full border-l-2 py-1.5 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
+                    :class="[
+                        activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
+                        item.level >= 3 ? 'pl-8' : 'pl-4',
+                    ]"
+                    @click="goTo(item.id)"
+                >{{ item.label }}</button>
             </li>
         </ul>
     </nav>
 
-    <!-- Smaller screens: a floating glass pill (top + contents). It slides up
-         into view once the hero has scrolled away, and back down at the top.
-         Centering lives on the wrapper so the slide transform is conflict-free. -->
+    <!-- Smaller screens: a floating glass pill (top + contents) that slides up
+         once the reader has scrolled a way down, and back down at the top. -->
     <div class="fixed bottom-5 left-1/2 z-30 -translate-x-1/2 xl:hidden">
         <Transition name="pill">
             <div
-                v-if="chapters.length && scrolled"
+                v-if="items.length && scrolled"
                 class="flex items-stretch overflow-hidden rounded-full bg-black/60 text-white shadow-card ring-1 ring-white/10 backdrop-blur-xl"
             >
                 <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="toTop">
@@ -133,7 +156,7 @@ onBeforeUnmount(() => {
         </Transition>
     </div>
 
-    <!-- The contents sheet that the pill opens. -->
+    <!-- The contents sheet the pill opens. -->
     <Teleport to="body">
         <Transition name="sheet">
             <div
@@ -156,15 +179,18 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
                     <ul class="flex flex-col">
-                        <li v-for="chapter in chapters" :key="chapter.id">
+                        <li v-for="item in items" :key="item.id">
                             <button
                                 type="button"
-                                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
-                                :class="activeId === chapter.id ? 'bg-fuel/10' : 'hover:bg-neutral-25'"
-                                @click="goTo(chapter.id)"
+                                class="flex w-full items-center gap-3 rounded-lg py-2.5 pr-3 text-left transition-colors"
+                                :class="[
+                                    activeId === item.id ? 'bg-neutral-50' : 'hover:bg-neutral-25',
+                                    item.level >= 3 ? 'pl-7' : 'pl-3',
+                                ]"
+                                @click="goTo(item.id)"
                             >
-                                <span class="text-label tnum text-neutral-400">{{ chapter.number }}</span>
-                                <span class="text-meta" :class="activeId === chapter.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ chapter.kicker }}</span>
+                                <span v-if="item.number" class="text-label tnum text-neutral-400">{{ item.number }}</span>
+                                <span class="text-meta" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
                             </button>
                         </li>
                     </ul>
