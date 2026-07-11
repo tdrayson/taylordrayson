@@ -20,7 +20,7 @@ const cards = [
             role="radio"
             :aria-checked="theme === card.value"
             :aria-label="card.label"
-            class="group flex flex-col gap-2 rounded-lg p-1.5 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            class="group flex flex-col gap-2 rounded-lg p-1.5 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="setTheme(card.value)"
         >
             <!-- Stylised theme preview thumbnail. -->
