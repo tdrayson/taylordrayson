@@ -51,6 +51,7 @@ class BuildTimelineFeed
             'title' => $card['title'],
             'titleLabel' => $card['titleLabel'] ?? null,
             'meta' => Text::excerpt($card['subtitle'], 240),
+            'metaTokens' => $card['subtitleTokens'] ?? null,
             'body' => $card['meta']['body'] ?? null,
             'segments' => $card['meta']['segments'] ?? null,
             'route' => $card['meta']['route'] ?? null,
