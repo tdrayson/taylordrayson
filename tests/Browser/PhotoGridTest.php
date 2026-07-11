@@ -41,3 +41,27 @@ it('fills each masonry tile with the photo, leaving no dead space for landscape 
         true,
     );
 });
+
+it('renders the /photos gallery through the shared PhotoGrid component', function () {
+    config(['queue.default' => 'sync']);
+    Storage::fake('public');
+
+    $note = Note::factory()->create([
+        'content' => 'A photo',
+        'occurred_at' => '2019-05-15 12:00:00',
+    ]);
+    $note->addMediaFromString(photoGridJpeg(1600, 1200))->usingFileName('landscape.jpg')->toMediaCollection('photos');
+
+    $page = visit('/photos');
+
+    // The page delegates to PhotoGrid, so the same cover-filled tile is present.
+    $page->assertScript(
+        "(() => {
+            const img = document.querySelector('ul.grid img');
+            if (!img) return false;
+            const gap = img.closest('li').getBoundingClientRect().height - img.getBoundingClientRect().height;
+            return getComputedStyle(img).objectFit === 'cover' && gap <= 4;
+        })()",
+        true,
+    );
+});
