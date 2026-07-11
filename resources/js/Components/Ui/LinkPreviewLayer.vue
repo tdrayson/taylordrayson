@@ -57,27 +57,91 @@ function keepOpen() {
     clearTimeout(closeTimer);
 }
 
-// Attach listeners to each internal <a> whose href has a preview.
+// The <a> currently hovered/focused with an open (or opening) preview, so
+// repeated bubbled events on the same link don't retrigger the open timer.
+let openLink = null;
+
+// Delegated handlers on the container: they resolve the target link and
+// look up `props.previews` live on every event, so they stay correct across
+// Inertia navigations that patch the container's content in place rather
+// than remounting it (per-anchor listeners would otherwise go stale).
+function handleMouseOver(event) {
+    const link = event.target.closest('a[href]');
+    if (!link || link === openLink) {
+        return;
+    }
+    const preview = props.previews[link.getAttribute('href')];
+    if (!preview) {
+        return;
+    }
+    openLink = link;
+    open(link, preview);
+}
+
+function handleMouseOut(event) {
+    const link = event.target.closest('a[href]');
+    if (!link || link !== openLink) {
+        return;
+    }
+    // Ignore moves between the link's own children; only close when the
+    // pointer actually leaves the link's subtree.
+    if (event.relatedTarget && link.contains(event.relatedTarget)) {
+        return;
+    }
+    openLink = null;
+    scheduleClose();
+}
+
+function handleFocusIn(event) {
+    const link = event.target.closest('a[href]');
+    if (!link) {
+        return;
+    }
+    const preview = props.previews[link.getAttribute('href')];
+    if (!preview) {
+        return;
+    }
+    openLink = link;
+    open(link, preview, true);
+}
+
+function handleFocusOut(event) {
+    const link = event.target.closest('a[href]');
+    if (!link || link !== openLink) {
+        return;
+    }
+    openLink = null;
+    scheduleClose();
+}
+
+// Attach delegated listeners once to the container itself, not to
+// individual <a> nodes, so the binding survives Inertia patching the
+// container's inner content.
 function bind() {
     if (!canHover || !props.container) {
         return;
     }
-    props.container.querySelectorAll('a[href]').forEach((link) => {
-        const preview = props.previews[link.getAttribute('href')];
-        if (!preview) {
-            return;
-        }
-        link.addEventListener('mouseenter', () => open(link, preview));
-        link.addEventListener('mouseleave', scheduleClose);
-        link.addEventListener('focus', () => open(link, preview, true));
-        link.addEventListener('blur', scheduleClose);
-    });
+    props.container.addEventListener('mouseover', handleMouseOver);
+    props.container.addEventListener('mouseout', handleMouseOut);
+    props.container.addEventListener('focusin', handleFocusIn);
+    props.container.addEventListener('focusout', handleFocusOut);
+}
+
+function unbind() {
+    if (!canHover || !props.container) {
+        return;
+    }
+    props.container.removeEventListener('mouseover', handleMouseOver);
+    props.container.removeEventListener('mouseout', handleMouseOut);
+    props.container.removeEventListener('focusin', handleFocusIn);
+    props.container.removeEventListener('focusout', handleFocusOut);
 }
 
 onMounted(bind);
 onBeforeUnmount(() => {
     clearTimeout(openTimer);
     clearTimeout(closeTimer);
+    unbind();
 });
 </script>
 

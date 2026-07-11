@@ -8,14 +8,14 @@ defineProps({
 <template>
     <article
         class="overflow-hidden rounded-lg border border-neutral-100 bg-neutral-0 shadow-card"
-        :style="{ '--type-color': `var(--color-${preview.accent ?? preview.type})` }"
+        :style="{ '--type-color': `var(--color-${preview.accent ?? preview.type}, var(--color-neutral-400))` }"
     >
         <img
             v-if="preview.cover"
             :src="preview.cover"
             alt=""
             loading="lazy"
-            class="aspect-[16/9] w-full object-cover"
+            class="aspect-video w-full object-cover"
         >
         <div class="space-y-1.5 p-3">
             <div class="flex items-center gap-2 text-label uppercase tracking-wide">
