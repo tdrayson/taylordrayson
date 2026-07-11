@@ -23,6 +23,25 @@ it('collapses a same-show same-day binge into one card', function () {
         ->and($day['items'])->toHaveCount(1);
 });
 
+it('preserves the caller order when collapsing (ascending is not reversed)', function () {
+    // The year/month pages feed entries oldest-first via groupsForDates(ascending: true);
+    // collapsing must not silently flip a day into descending order.
+    $series = Series::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
+    Media::factory()->create(['type' => 'film', 'title' => 'Morning Film', 'occurred_at' => '2024-05-01 08:00:00', 'meta' => ['year' => 2020]]);
+    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-05-01 10:00:00', 'meta' => ['season' => 1, 'episode' => 1, 'show_title' => 'Severance']]);
+    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-05-01 11:00:00', 'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance']]);
+    Media::factory()->create(['type' => 'film', 'title' => 'Night Film', 'occurred_at' => '2024-05-01 20:00:00', 'meta' => ['year' => 2021]]);
+
+    // Supplied oldest-first, mirroring groupsForDates(ascending: true).
+    $entries = TimelineEntry::query()->orderBy('occurred_at')->with('timelineable')->get();
+    $day = app(BuildTimelineFeed::class)->groupByDay($entries)[0];
+
+    expect($day['items'])->toHaveCount(3)
+        ->and($day['items'][0]['title'])->toBe('Morning Film')
+        ->and($day['items'][1]['count'])->toBe(2)
+        ->and($day['items'][2]['title'])->toBe('Night Film');
+});
+
 it('leaves a single episode and a film as their own cards', function () {
     $series = Series::factory()->create();
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-04-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);

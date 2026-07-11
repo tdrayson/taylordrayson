@@ -43,25 +43,45 @@ class BuildTimelineFeed
      */
     private function collapseEpisodes(Collection $group, string $date): array
     {
-        [$episodes, $rest] = $group->partition(
-            fn (TimelineEntry $entry): bool => $entry->timelineable instanceof Media
+        // Count episode watches per series this day, so a series with more than
+        // one becomes a single "binge" card while singletons stay normal.
+        $episodeCounts = $group
+            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable instanceof Media
                 && $entry->timelineable->type === 'episode'
-                && $entry->timelineable->series_id !== null,
-        );
+                && $entry->timelineable->series_id !== null)
+            ->countBy(fn (TimelineEntry $entry): int => $entry->timelineable->series_id);
 
-        $items = $rest->map(fn (TimelineEntry $entry): array => $this->cardItem($entry))->all();
+        // Walk the group in its original order so the caller's sort direction
+        // (ascending on the year/month pages, descending on the main feed) is
+        // preserved. The binge card lands where the show's first episode was.
+        $emitted = [];
+        $items = [];
 
-        foreach ($episodes->groupBy(fn (TimelineEntry $entry): int => $entry->timelineable->series_id) as $seriesEntries) {
-            if ($seriesEntries->count() === 1) {
-                $items[] = $this->cardItem($seriesEntries->first());
+        foreach ($group as $entry) {
+            $media = $entry->timelineable;
+            $seriesId = $media instanceof Media && $media->type === 'episode' ? $media->series_id : null;
+            $isBinge = $seriesId !== null && ($episodeCounts[$seriesId] ?? 0) > 1;
+
+            if (! $isBinge) {
+                $items[] = $this->cardItem($entry);
 
                 continue;
             }
 
-            $items[] = $this->synthesiseSeriesCard($seriesEntries, $date);
+            if (isset($emitted[$seriesId])) {
+                continue;
+            }
+
+            $emitted[$seriesId] = true;
+            $items[] = $this->synthesiseSeriesCard(
+                $group->filter(fn (TimelineEntry $candidate): bool => $candidate->timelineable instanceof Media
+                    && $candidate->timelineable->type === 'episode'
+                    && $candidate->timelineable->series_id === $seriesId),
+                $date,
+            );
         }
 
-        return collect($items)->sortByDesc('datetime')->values()->all();
+        return $items;
     }
 
     /**
