@@ -3,6 +3,7 @@ import { ref, onBeforeUnmount } from 'vue';
 import { Link04Icon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 import Tooltip from './Tooltip.vue';
+import { copyText } from '../../lib/clipboard';
 
 const props = defineProps({
     // The id of the heading this button copies a link to.
@@ -25,16 +26,7 @@ let timer = null;
 async function copy() {
     const url = `${window.location.origin}${window.location.pathname}#${props.targetId}`;
 
-    try {
-        await navigator.clipboard.writeText(url);
-    } catch {
-        const scratch = document.createElement('textarea');
-        scratch.value = url;
-        document.body.appendChild(scratch);
-        scratch.select();
-        document.execCommand('copy');
-        scratch.remove();
-    }
+    await copyText(url);
 
     copied.value = true;
     clearTimeout(timer);

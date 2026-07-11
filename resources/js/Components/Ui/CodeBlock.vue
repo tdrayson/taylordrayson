@@ -2,6 +2,7 @@
 import { computed, ref, onBeforeUnmount } from 'vue';
 import { Copy01Icon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
+import { copyText } from '../../lib/clipboard';
 import hljs from 'highlight.js/lib/core';
 import bash from 'highlight.js/lib/languages/bash';
 import css from 'highlight.js/lib/languages/css';
@@ -52,17 +53,7 @@ const copied = ref(false);
 let timer = null;
 
 async function copy() {
-    try {
-        await navigator.clipboard.writeText(props.code);
-    } catch {
-        // Non-secure context (e.g. http://*.test): fall back to a transient textarea.
-        const scratch = document.createElement('textarea');
-        scratch.value = props.code;
-        document.body.appendChild(scratch);
-        scratch.select();
-        document.execCommand('copy');
-        scratch.remove();
-    }
+    await copyText(props.code);
 
     copied.value = true;
     clearTimeout(timer);

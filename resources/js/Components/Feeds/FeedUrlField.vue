@@ -2,6 +2,7 @@
 import { ref, onBeforeUnmount } from 'vue';
 import { Tick02Icon, Copy01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import { copyText } from '../../lib/clipboard';
 
 const props = defineProps({
     label: { type: String, required: true },
@@ -9,18 +10,11 @@ const props = defineProps({
     url: { type: String, required: true },
 });
 
-const input = ref(null);
 const copied = ref(false);
 let timer = null;
 
 async function copy() {
-    try {
-        await navigator.clipboard.writeText(props.url);
-    } catch {
-        // Non-secure context (e.g. http://*.test): fall back to selecting the input.
-        input.value?.select();
-        document.execCommand('copy');
-    }
+    await copyText(props.url);
 
     copied.value = true;
     clearTimeout(timer);
@@ -38,7 +32,6 @@ onBeforeUnmount(() => clearTimeout(timer));
         </div>
         <div class="flex items-stretch gap-2">
             <input
-                ref="input"
                 :value="url"
                 type="text"
                 readonly
