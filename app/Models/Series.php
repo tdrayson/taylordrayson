@@ -110,7 +110,7 @@ class Series extends Model implements HasMedia
             return null;
         }
 
-        return $first->equalTo($last)
+        return $first->isSameDay($last)
             ? 'in a single day'
             : 'over '.$first->diffForHumans($last, ['syntax' => CarbonInterface::DIFF_ABSOLUTE, 'parts' => 1]);
     }

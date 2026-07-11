@@ -46,8 +46,9 @@ it('returns null progress when aired_episodes is missing or zero', function () {
 
 it('describes a single-day watch span as "in a single day"', function () {
     $series = Series::factory()->create();
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 10:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 10:00:00', 'meta' => ['season' => 1, 'episode' => 2]]);
+    // Same calendar day, different times: a one-evening binge still reads as a single day.
+    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
+    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 22:30:00', 'meta' => ['season' => 1, 'episode' => 2]]);
 
     expect($series->watchSpan())->toBe('in a single day');
 });
