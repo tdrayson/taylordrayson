@@ -203,7 +203,7 @@ function closeUnlessDrag() {
 }
 
 // Reset the carousel's drag/animation state whenever the open state changes
-// (dialog plumbing itself — scroll lock, focus trap, focus restore — is
+// (dialog plumbing itself, i.e. scroll lock, focus trap, focus restore, is
 // handled by useDialog).
 watch(isOpen, () => {
     clearTimeout(settleTimer);
