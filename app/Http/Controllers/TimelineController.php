@@ -308,7 +308,7 @@ class TimelineController extends Controller
             }
         }
 
-        $films = $between(Media::query())->whereIn('type', ['film', 'show'])->count();
+        $films = $between(Media::query())->whereIn('type', ['film'])->count();
 
         if ($films > 0) {
             $stats[] = ['label' => 'Watched', 'value' => number_format($films)];

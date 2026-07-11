@@ -46,8 +46,19 @@ class Media extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source === 'trakt' && $this->source_id) {
-            return "https://trakt.tv/{$this->source_id}";
+        if ($this->source !== 'trakt') {
+            return null;
+        }
+
+        $slug = $this->meta['ids']['slug'] ?? null;
+
+        if ($this->type === 'film' && $slug) {
+            return "https://trakt.tv/movies/{$slug}";
+        }
+
+        $showSlug = $this->meta['show_slug'] ?? null;
+        if ($this->type === 'episode' && $showSlug && isset($this->meta['season'], $this->meta['episode'])) {
+            return "https://trakt.tv/shows/{$showSlug}/seasons/{$this->meta['season']}/episodes/{$this->meta['episode']}";
         }
 
         return null;
@@ -62,7 +73,7 @@ class Media extends Model implements HasMedia, Timelineable
     {
         $detail = match ($this->type) {
             'film' => $this->meta['year'] ?? null,
-            'tv' => isset($this->meta['season'], $this->meta['episode'])
+            'episode' => isset($this->meta['season'], $this->meta['episode'])
                 ? sprintf('S%02dE%02d', $this->meta['season'], $this->meta['episode'])
                 : null,
             'book' => $this->meta['author'] ?? null,

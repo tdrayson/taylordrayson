@@ -15,7 +15,7 @@ class MediaFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(['film', 'tv_episode', 'book']);
+        $type = fake()->randomElement(['film', 'episode', 'book']);
 
         $meta = match ($type) {
             'film' => [
@@ -26,10 +26,10 @@ class MediaFactory extends Factory
                     fake()->numberBetween(1, 3),
                 ),
             ],
-            'tv_episode' => [
+            'episode' => [
                 'show_title' => fake()->words(fake()->numberBetween(2, 4), true),
-                'season_number' => fake()->numberBetween(1, 8),
-                'episode_number' => fake()->numberBetween(1, 24),
+                'season' => fake()->numberBetween(1, 8),
+                'episode' => fake()->numberBetween(1, 24),
                 'episode_title' => fake()->words(fake()->numberBetween(2, 4), true),
                 'runtime' => fake()->numberBetween(25, 65),
             ],

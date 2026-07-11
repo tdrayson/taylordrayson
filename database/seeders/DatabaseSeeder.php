@@ -264,12 +264,12 @@ class DatabaseSeeder extends Seeder
         for ($i = 0; $i < $episodeCount; $i++) {
             $episode = Media::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 23), fake()->numberBetween(0, 59)),
-                'type' => 'tv_episode',
+                'type' => 'episode',
                 'title' => $showTitle,
                 'meta' => [
                     'show_title' => $showTitle,
-                    'season_number' => $seasonNumber,
-                    'episode_number' => $startEpisode + $i,
+                    'season' => $seasonNumber,
+                    'episode' => $startEpisode + $i,
                     'episode_title' => fake()->words(fake()->numberBetween(2, 4), true),
                     'runtime' => fake()->numberBetween(25, 65),
                 ],
