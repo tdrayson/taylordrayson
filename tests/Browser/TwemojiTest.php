@@ -23,3 +23,18 @@ it('renders content emoji as a Twemoji image on the timeline', function () {
             true,
         );
 });
+
+it('renders content emoji as a Twemoji image on a note detail page', function () {
+    $note = Note::factory()->create([
+        'content' => 'Great workout today 👍',
+        'occurred_at' => now()->subDay(),
+    ]);
+
+    $page = visit($note->fresh()->url());
+
+    $page->assertScript("document.querySelectorAll('img.emoji').length > 0", true)
+        ->assertScript(
+            "!!document.querySelector('img.emoji') && document.querySelector('img.emoji').src.includes('/twemoji/')",
+            true,
+        );
+});

@@ -42,7 +42,7 @@ function openImage(url) {
          its :where() selectors have zero specificity, so the renderer's explicit
          classes (widths, blockquote, code) always win. max-w-none: widths are
          set per node, not on the wrapper. -->
-    <div v-if="nodes.length" class="block-content prose max-w-none text-body text-neutral-900">
+    <div v-if="nodes.length" v-twemoji class="block-content prose max-w-none text-body text-neutral-900">
         <PortableTextBlocks :nodes="nodes" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
