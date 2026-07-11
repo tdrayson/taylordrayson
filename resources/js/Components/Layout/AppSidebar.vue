@@ -1,9 +1,13 @@
 <script setup>
+import { Settings01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import Icon from '../Ui/Icon.vue';
 import ProfileCard from '../Profile/ProfileCard.vue';
 import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
 import StreakBadge from '../Now/StreakBadge.vue';
-import ThemeToggle from './ThemeToggle.vue';
+import { useSettings } from '../../useSettings';
+
+const { openSettings } = useSettings();
 </script>
 
 <template>
@@ -13,7 +17,15 @@ import ThemeToggle from './ThemeToggle.vue';
         <SidebarNav />
         <div class="mt-auto hidden space-y-4 pt-8 md:block">
             <StreakBadge />
-            <ThemeToggle />
+            <button
+                type="button"
+                aria-label="Open settings"
+                class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-nav text-neutral-500 transition hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                @click="openSettings"
+            >
+                <Icon :icon="Settings01Icon" class="size-5" />
+                Settings
+            </button>
         </div>
     </aside>
 </template>

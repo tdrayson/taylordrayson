@@ -1,10 +1,13 @@
 <?php
 
 it('applies the dark class when Dark is selected and reverts on Light', function () {
-    // Desktop width so the sidebar ThemeToggle (md:flex) is visible; the
-    // mobile nav's copy is v-if'd out of the DOM until the menu is opened,
-    // so [aria-label="Dark"]/[aria-label="Light"] resolve uniquely here.
+    // Desktop width so the sidebar gear (md:flex) is visible; the mobile
+    // nav's copy is v-if'd out of the DOM until the menu is opened, so
+    // [aria-label="Open settings"] resolves uniquely here.
     $page = visit('/')->resize(1280, 800);
+
+    // ThemeToggle now lives inside the settings modal, opened via the gear.
+    $page->click('[aria-label="Open settings"]');
 
     // Select Dark and assert the root carries the dark scope.
     $page->click('[aria-label="Dark"]')
