@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import Pill from '../Ui/Pill.vue';
 import BlockContent from '../Ui/BlockContent.vue';
-import ContentToc from '../Ui/ContentToc.vue';
+import TableOfContents from '../Ui/TableOfContents.vue';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -68,8 +68,8 @@ const headingCount = computed(() => contentNodes.value.filter(
             <BlockContent :document="entry.content" />
 
             <!-- Mounted after BlockContent so its headings are already in the DOM
-                 when ContentToc's onMounted queries for them. -->
-            <ContentToc v-if="headingCount >= 2" />
+                 when TableOfContents's onMounted queries for them. -->
+            <TableOfContents v-if="headingCount >= 2" />
         </div>
     </div>
 </template>

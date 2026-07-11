@@ -12,7 +12,7 @@ import Blockquote from '../../Components/Ui/Blockquote.vue';
 import Chart from '../../Components/Ui/Chart.vue';
 import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
-import StoryToc from '../../Components/Story/StoryToc.vue';
+import TableOfContents from '../../Components/Ui/TableOfContents.vue';
 import DateLink from '../../Components/Ui/DateLink.vue';
 import { PALETTE, baseOptions, tooltip } from '../../lib/chart.js';
 
@@ -444,6 +444,6 @@ const topFoodsOptions = baseOptions({
 
         <StoryAuthor />
 
-        <StoryToc />
+        <TableOfContents selector="[data-story-chapter]" label-attr="data-kicker" number-attr="data-number" />
     </div>
 </template>
