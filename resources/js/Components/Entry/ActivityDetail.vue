@@ -95,7 +95,7 @@ function weightLabel(value) {
 
 <template>
     <div class="space-y-8">
-        <p v-if="entry.description" class="text-balance whitespace-pre-line text-neutral-700">
+        <p v-if="entry.description" v-twemoji class="text-balance whitespace-pre-line text-neutral-700">
             {{ entry.description }}
         </p>
 

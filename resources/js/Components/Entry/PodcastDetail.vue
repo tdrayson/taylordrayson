@@ -110,7 +110,7 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.topic">
             <SectionHead title="This Week's Topics" />
-            <p class="max-w-prose text-body text-neutral-700">{{ entry.topic }}</p>
+            <p v-twemoji class="max-w-prose text-body text-neutral-700">{{ entry.topic }}</p>
         </div>
 
         <Accordion v-if="entry.show_notes" title="Show Notes">
