@@ -1,7 +1,8 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Menu01Icon, Cancel01Icon, ArrowUp01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
+import { useDialog } from '../../composables/useDialog';
 
 // Generalised from Story/StoryToc.vue: same scroll-spy/rail/sheet behaviour,
 // but reads plain `{ id, label }` entries from any matching elements instead
@@ -24,81 +25,9 @@ const open = ref(false);
 const scrolled = ref(false);
 let observer = null;
 
-// The sheet element, for focus trapping, and whichever element opened it, so
-// focus can be restored on close (mirrors Lightbox.vue's dialog behaviour).
-const sheetEl = ref(null);
-let lastFocused = null;
-
-function focusableInSheet() {
-    if (!sheetEl.value) {
-        return [];
-    }
-
-    return [...sheetEl.value.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')].filter(
-        (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
-    );
-}
-
-/**
- * Escape closes the sheet; Tab is trapped inside it while open.
- *
- * @param {KeyboardEvent} event
- * @returns {void}
- */
-function onSheetKeydown(event) {
-    if (event.key === 'Escape') {
-        open.value = false;
-
-        return;
-    }
-
-    if (event.key !== 'Tab') {
-        return;
-    }
-
-    const focusable = focusableInSheet();
-
-    if (focusable.length === 0) {
-        event.preventDefault();
-
-        return;
-    }
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const active = document.activeElement;
-
-    if (event.shiftKey && (active === first || !sheetEl.value.contains(active))) {
-        event.preventDefault();
-        last.focus();
-    } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-    }
-}
-
-// Lock background scrolling while the mobile contents sheet is open, move
-// focus into the sheet, and restore it to the trigger on close.
-watch(open, (isOpen) => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-
-    if (isOpen) {
-        lastFocused = document.activeElement;
-        document.addEventListener('keydown', onSheetKeydown);
-        nextTick(() => {
-            const focusable = focusableInSheet();
-            (focusable[0] ?? sheetEl.value)?.focus();
-        });
-    } else {
-        document.removeEventListener('keydown', onSheetKeydown);
-
-        if (lastFocused && typeof lastFocused.focus === 'function') {
-            lastFocused.focus();
-        }
-
-        lastFocused = null;
-    }
-});
+// Shared dialog behaviour (focus trap, Escape-to-close, scroll lock, focus
+// save/restore); panelEl binds to the sheet element in the template.
+const { panelEl } = useDialog({ isOpen: () => open.value, onClose: () => { open.value = false; } });
 
 /**
  * Read every heading matching `selector` from the rendered document and start
@@ -177,8 +106,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
     observer?.disconnect();
     window.removeEventListener('scroll', onScroll);
-    document.removeEventListener('keydown', onSheetKeydown);
-    document.body.style.overflow = '';
 });
 </script>
 
@@ -230,7 +157,7 @@ onBeforeUnmount(() => {
         <Transition name="sheet">
             <div
                 v-if="open"
-                ref="sheetEl"
+                ref="panelEl"
                 tabindex="-1"
                 role="dialog"
                 aria-modal="true"
