@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onBeforeUnmount } from 'vue';
 import LinkPreviewCard from './LinkPreviewCard.vue';
 
 const props = defineProps({
@@ -114,34 +114,53 @@ function handleFocusOut(event) {
     scheduleClose();
 }
 
-// Attach delegated listeners once to the container itself, not to
-// individual <a> nodes, so the binding survives Inertia patching the
-// container's inner content.
-function bind() {
-    if (!canHover || !props.container) {
+// Attach delegated listeners to the given element, not to individual <a>
+// nodes, so the binding survives Inertia patching the container's inner
+// content.
+function bind(el) {
+    if (!canHover || !el) {
         return;
     }
-    props.container.addEventListener('mouseover', handleMouseOver);
-    props.container.addEventListener('mouseout', handleMouseOut);
-    props.container.addEventListener('focusin', handleFocusIn);
-    props.container.addEventListener('focusout', handleFocusOut);
+    el.addEventListener('mouseover', handleMouseOver);
+    el.addEventListener('mouseout', handleMouseOut);
+    el.addEventListener('focusin', handleFocusIn);
+    el.addEventListener('focusout', handleFocusOut);
 }
 
-function unbind() {
-    if (!canHover || !props.container) {
+function unbind(el) {
+    if (!canHover || !el) {
         return;
     }
-    props.container.removeEventListener('mouseover', handleMouseOver);
-    props.container.removeEventListener('mouseout', handleMouseOut);
-    props.container.removeEventListener('focusin', handleFocusIn);
-    props.container.removeEventListener('focusout', handleFocusOut);
+    el.removeEventListener('mouseover', handleMouseOver);
+    el.removeEventListener('mouseout', handleMouseOut);
+    el.removeEventListener('focusin', handleFocusIn);
+    el.removeEventListener('focusout', handleFocusOut);
 }
 
-onMounted(bind);
+// `props.container` is a template ref owned by the parent (BlockContent.vue),
+// which is itself the element the layer is mounted inside of. At the moment
+// this component's onMounted would fire, the parent's ref is still null (its
+// element hasn't been assigned yet), so binding once on mount misses it
+// entirely. Watching the prop instead binds as soon as the element becomes
+// available, and re-binds if it ever changes (e.g. a different container is
+// passed in), regardless of ref-assignment timing.
+watch(
+    () => props.container,
+    (el, prev) => {
+        if (prev) {
+            unbind(prev);
+        }
+        if (el) {
+            bind(el);
+        }
+    },
+    { immediate: true },
+);
+
 onBeforeUnmount(() => {
     clearTimeout(openTimer);
     clearTimeout(closeTimer);
-    unbind();
+    unbind(props.container);
 });
 </script>
 
