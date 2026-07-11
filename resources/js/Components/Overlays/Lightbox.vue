@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import { useDialog } from '../../composables/useDialog';
 
 const props = defineProps({
     photos: { type: Array, required: true },
@@ -19,20 +20,6 @@ const emit = defineEmits(['update:index']);
 const isOpen = computed(() => props.index !== null && props.index >= 0 && props.index < props.photos.length);
 const current = computed(() => (isOpen.value ? props.photos[props.index] : null));
 const hasMultiple = computed(() => props.photos.length > 1);
-
-// Focus management: the element that opened the lightbox, restored on close.
-const dialogEl = ref(null);
-let lastFocused = null;
-
-function focusableInDialog() {
-    if (!dialogEl.value) {
-        return [];
-    }
-
-    return [...dialogEl.value.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')].filter(
-        (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
-    );
-}
 
 function close() {
     emit('update:index', null);
@@ -59,40 +46,17 @@ function preloadNeighbours(idx) {
     }
 }
 
-function onKeydown(event) {
-    if (!isOpen.value) {
-        return;
-    }
-
-    if (event.key === 'Escape') {
-        close();
-    } else if (event.key === 'ArrowLeft') {
+// Arrow-key navigation; Escape and Tab are handled by useDialog.
+function onArrowKeys(event) {
+    if (event.key === 'ArrowLeft') {
         slideTo(-1);
     } else if (event.key === 'ArrowRight') {
         slideTo(1);
-    } else if (event.key === 'Tab') {
-        // Trap focus inside the dialog.
-        const focusable = focusableInDialog();
-
-        if (focusable.length === 0) {
-            event.preventDefault();
-
-            return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        const active = document.activeElement;
-
-        if (event.shiftKey && (active === first || !dialogEl.value.contains(active))) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && active === last) {
-            event.preventDefault();
-            first.focus();
-        }
     }
 }
+
+// Focus trap, Esc-to-close, body scroll lock, and focus save/restore.
+const { panelEl } = useDialog({ isOpen: () => isOpen.value, onClose: close, onKeydown: onArrowKeys });
 
 // Drag / swipe carousel. Three slides (previous, current, next) ride in a track;
 // the track follows the pointer, then animates fully to the neighbour past a
@@ -238,40 +202,20 @@ function closeUnlessDrag() {
     close();
 }
 
-watch(isOpen, (open) => {
-    document.body.style.overflow = open ? 'hidden' : '';
+// Reset the carousel's drag/animation state whenever the open state changes
+// (dialog plumbing itself, i.e. scroll lock, focus trap, focus restore, is
+// handled by useDialog).
+watch(isOpen, () => {
     clearTimeout(settleTimer);
     dragPx.value = 0;
     extra.value = 0;
     animating.value = false;
     dragging = false;
     pendingStep = 0;
-
-    if (open) {
-        lastFocused = document.activeElement;
-        document.addEventListener('keydown', onKeydown);
-        nextTick(() => {
-            const focusable = focusableInDialog();
-            (focusable[0] ?? dialogEl.value)?.focus();
-        });
-    } else {
-        document.removeEventListener('keydown', onKeydown);
-        // Restore focus to whatever opened the lightbox.
-        if (lastFocused && typeof lastFocused.focus === 'function') {
-            lastFocused.focus();
-        }
-
-        lastFocused = null;
-    }
 });
 
 // Preload neighbours whenever the open photo changes.
 watch(() => props.index, (idx) => preloadNeighbours(idx));
-
-onBeforeUnmount(() => {
-    document.removeEventListener('keydown', onKeydown);
-    document.body.style.overflow = '';
-});
 </script>
 
 <template>
@@ -279,7 +223,7 @@ onBeforeUnmount(() => {
         <Transition name="lightbox">
             <div
                 v-if="isOpen"
-                ref="dialogEl"
+                ref="panelEl"
                 tabindex="-1"
                 class="fixed inset-0 z-50 flex flex-col gap-3 p-3 focus:outline-none sm:p-5"
                 role="dialog"
