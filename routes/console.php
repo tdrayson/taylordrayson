@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 // Keep the recent food diary fresh in near real time, re-checking the last few
 // days so food logged late for an earlier day is picked up.
 Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping();
+
+// Pull new Trakt watch history once a day; the default --days=7 window
+// comfortably covers any gap since the previous run.
+Schedule::command('trakt:sync')->daily()->withoutOverlapping();
