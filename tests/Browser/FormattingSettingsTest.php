@@ -49,6 +49,24 @@ it('keeps the unit toggles keyboard-reachable and operable inside the modal', fu
         );
 });
 
+it('keeps Tab trapped after the last radio group, when its checked radio is not DOM-last', function () {
+    // Regression: the Weight toggle is the last control; its default checked
+    // radio is "kg" (the FIRST radio in that group, not the DOM-last). The trap
+    // must treat the checked radio as the group's tab stop, or Tab from it
+    // escapes the modal. Repro: focus the checked weight radio, Tab, stay inside.
+    $page = visit('/')->resize(1280, 800);
+
+    $page->click('[aria-label="Open settings"]')
+        ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
+
+    // Focus the checked weight radio (kg) and Tab; focus must stay in the dialog.
+    $page->keys('[aria-label="Weight unit"] input[value="kg"]', 'Tab')
+        ->assertScript(
+            "document.querySelector('[role=\"dialog\"]').contains(document.activeElement)",
+            true,
+        );
+});
+
 it('updates rendered distance and weight live when units change', function () {
     // 5000 m -> 3.1 mi / 5.0 km; a 100 kg set -> 220.5 lbs.
     $activity = Activity::factory()->create([

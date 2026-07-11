@@ -6,9 +6,24 @@ function focusableWithin(el) {
     if (!el) {
         return [];
     }
-    return [...el.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(
+    const nodes = [...el.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(
         (node) => !node.hasAttribute('disabled') && node.offsetParent !== null,
     );
+
+    // Within a native radio group only ONE radio is a real tab stop: the checked
+    // one, or the first when none is checked. Keep just that representative so the
+    // trap's first/last match the actual tab sequence - otherwise, when the
+    // focused radio isn't the DOM-last radio, Tab escapes the trap.
+    return nodes.filter((node) => {
+        if (node.tagName === 'INPUT' && node.type === 'radio' && node.name) {
+            const group = [...el.querySelectorAll(`input[type="radio"][name="${CSS.escape(node.name)}"]`)];
+            const representative = group.find((radio) => radio.checked) ?? group[0];
+
+            return node === representative;
+        }
+
+        return true;
+    });
 }
 
 /**
