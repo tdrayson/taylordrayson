@@ -30,3 +30,11 @@ it('filters to a season and to a single episode across all its watches', functio
     $this->get('/media/tv/the-good-doctor/season-6/episode-8')->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesEpisode')->has('watches', 2));
 });
+
+it('404s for a season or episode with no watches', function () {
+    $series = Series::factory()->create(['slug' => 'the-good-doctor']);
+    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 6, 'episode' => 8]]);
+
+    $this->get('/media/tv/the-good-doctor/season-99')->assertNotFound();
+    $this->get('/media/tv/the-good-doctor/season-1/episode-99')->assertNotFound();
+});
