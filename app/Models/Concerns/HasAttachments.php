@@ -34,6 +34,20 @@ trait HasAttachments
     }
 
     /**
+     * Relative photo filenames for flat-file frontmatter (cover first, then gallery).
+     *
+     * @return list<string>
+     */
+    public function flatFilePhotoNames(): array
+    {
+        return $this->getMedia('cover')
+            ->merge($this->getMedia('photos'))
+            ->map(fn (Media $media): string => $media->file_name)
+            ->values()
+            ->all();
+    }
+
+    /**
      * The entry's photos in display order (cover first, then the gallery),
      * each with the optimised card source, its responsive srcset, and the
      * full-size original for the lightbox.

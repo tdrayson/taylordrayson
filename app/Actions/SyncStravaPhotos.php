@@ -4,7 +4,6 @@ namespace App\Actions;
 
 use App\Models\Activity;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 /**
  * Download an activity's Strava photos and store them as media: the first photo
@@ -37,8 +36,12 @@ class SyncStravaPhotos
                 continue;
             }
 
+            $fileName = $stored === 0
+                ? 'cover.jpg'
+                : 'photo-'.$stored.'.jpg';
+
             $activity->addMediaFromString($response->body())
-                ->usingFileName(($photo['unique_id'] ?? Str::uuid()).'.jpg')
+                ->usingFileName($fileName)
                 ->toMediaCollection($stored === 0 ? 'cover' : 'photos');
 
             $stored++;

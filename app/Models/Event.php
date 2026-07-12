@@ -2,19 +2,24 @@
 
 namespace App\Models;
 
+use App\Contracts\DefinesContentSchema;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasFlatFile;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
+    'ulid',
     'occurred_at',
     'ends_at',
     'all_day',
@@ -31,9 +36,10 @@ use Spatie\MediaLibrary\HasMedia;
     'timezone',
     'meta',
 ])]
-class Event extends Model implements HasMedia, Timelineable
+class Event extends Model implements DefinesContentSchema, HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    /** @use HasFactory<EventFactory> */
+    use HasAttachments, HasFactory, HasFlatFile, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -48,9 +54,81 @@ class Event extends Model implements HasMedia, Timelineable
         ];
     }
 
+    public static function schema(Blueprint $table): void
+    {
+        $table->id();
+        $table->ulid('ulid')->nullable()->unique();
+        $table->timestamp('occurred_at')->index();
+        $table->timestamp('ends_at')->nullable();
+        $table->string('timezone')->nullable();
+        $table->string('type');
+        $table->string('name');
+        $table->boolean('all_day')->default(false);
+        $table->string('organiser')->nullable();
+        $table->string('venue_name')->nullable();
+        $table->string('city')->nullable();
+        $table->string('country')->nullable();
+        $table->decimal('latitude', 10, 7)->nullable();
+        $table->decimal('longitude', 10, 7)->nullable();
+        $table->string('url')->nullable();
+        $table->json('meta')->nullable();
+        $table->text('description')->nullable();
+        $table->timestamps();
+    }
+
     public function slug(): string
     {
         return Str::slug($this->name);
+    }
+
+    public function flatFileType(): string
+    {
+        return 'event';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function flatFilePathAttributes(): array
+    {
+        return ['occurred_at', 'name'];
+    }
+
+    public function flatFileBaseSlug(bool $original = false): string
+    {
+        $name = $original
+            ? ($this->getOriginal('name') ?? $this->name)
+            : $this->name;
+
+        return Str::slug((string) $name);
+    }
+
+    public function flatFileBody(): string
+    {
+        return (string) ($this->getAttributes()['description'] ?? '');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function flatFileMeta(): array
+    {
+        $attributes = $this->getAttributes();
+
+        return [
+            'kind' => $attributes['type'] ?? null,
+            'name' => $attributes['name'] ?? null,
+            'ends_at' => $this->ends_at?->toIso8601String(),
+            'all_day' => (bool) ($attributes['all_day'] ?? false),
+            'organiser' => $attributes['organiser'] ?? null,
+            'venue_name' => $attributes['venue_name'] ?? null,
+            'city' => $attributes['city'] ?? null,
+            'country' => $attributes['country'] ?? null,
+            'latitude' => $attributes['latitude'] ?? null,
+            'longitude' => $attributes['longitude'] ?? null,
+            'url' => $attributes['url'] ?? null,
+            'meta' => $this->meta,
+        ];
     }
 
     /**

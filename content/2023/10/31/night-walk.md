@@ -1,0 +1,38 @@
+---
+id: 01KXBTARYAV9JKEBCNN0YJ70CC
+type: activity
+occurred_at: '2023-10-31T20:40:57+00:00'
+timezone: Europe/London
+slug: night-walk
+kind: walk
+name: 'Night Walk'
+duration: 1976
+calories: 187
+distance: 2949
+average_heart_rate: 107
+max_heart_rate: 133
+heart_rate:
+  -
+    time: '2023-10-31 20:43:34'
+    bpm: 92
+  -
+    time: '2023-10-31 20:50:54'
+    bpm: 106
+  -
+    time: '2023-10-31 20:53:30'
+    bpm: 133
+  -
+    time: '2023-10-31 20:58:20'
+    bpm: 97
+source: strava
+source_id: '10138571742'
+meta:
+  elapsed_time: 2095
+  total_elevation_gain: 59.5
+  elev_high: 119.2
+  elev_low: 74.9
+  average_speed: 1.493
+  max_speed: 3.826
+  polyline: 'ohjxHfcQRh@DBNZIZC?@@GDE\Qf@MdACBSd@GT?TELGDIZCX_@bAALGP?JSdACXUz@SfB?BEA?BC|@E\GLGDMCKIGKg@e@]a@GSOOAME?W[KMIC_@a@WBGE[e@i@g@AEIEYg@KEOUEMGGEHEAEQEAYUeAkAKAa@FUAEEAMUHUOKAICO_@ACM@MQQ_@WaAIIS]GBa@h@]x@EBAFMLS\Sd@?AALACCDCHIEMCM[OCE@WICBGME?EBYMC@OIAEWIMICE_@[CIEH]Ku@_@IO[MI@ECO?m@f@WVE@?D]JAJQPGEO?ICh@t@}@wAFBEID@RL?D@E@L@IGAFHAEA@AAFH@G?DEGBLA@?ACDCQBD@E@@E?DEC?BJGA?ID@CDAGBJBM@L@E?FBCN\IHKEHCABD?JSHKFUPKT?VBLGHIHYRWN?BGLM?CRXDNNL@CFLJHFJB?NJPBRV@?DD@CHDJHHADFNAJHH?VVH@FLHAFHJDHCRNHCHOPKDUFOB?FMVWJYHEFUNYTSDIH?AK@AD?Tx@FHB?DFPXj@xAd@RDJB@BELHHADCD@?AVIT?ZD\f@DR?CHDTTFJ@ADFHDTVJBPZAFl@b@LRJH?FHJ?BD@RNRXHDVXVPBJHJB?DJ|@fA@HB??HH@BF\PDJD@FNDBJBHEBIRqBLe@@a@BCDMCMBQNo@DKFk@DK?EDE@UFWBIFEFe@HKPcAHGD]FODYHG@GDC@WFOFa@BAHMDOBGAEBGBE@WAIMWC?IOGUS[CMm@aAASFMBI'
+---
+

@@ -1,0 +1,23 @@
+---
+id: 01KXBTARFR0SX47SXVW1TR5VBX
+type: activity
+occurred_at: '2022-11-14T18:07:34+00:00'
+timezone: Europe/London
+slug: evening-walk
+kind: walk
+name: 'Evening Walk'
+duration: 2812
+calories: 267
+distance: 4520
+source: strava
+source_id: '8118017107'
+meta:
+  elapsed_time: 2851
+  total_elevation_gain: 28.3
+  elev_high: 15.3
+  elev_low: 4.4
+  average_speed: 1.607
+  max_speed: 15.118
+  polyline: 'mzjyHxyO@NEL?BHFGFKB?HIB?FDC@@@DE@AHD\QXIh@?HFH@F?LKFERIJHCEDE?D?XZJF@VCHKJE@UWGAMG]CSIMAg@MECK?IGMAWKiAWk@SUAWKKAMGM?YIWM{C|@D?FG?@NECBhBc@y@Jr@AJHuBw@N}CDvCKkA?tC?qA?dA]d@GVIt@Ez@?FB??JEO?`@GXALEv@BXJDBJX@LC^LPA\DNGFPHAPD?XCBSp@IjADHAHKzAED?LEFG??FEF?JEC?Ng@nCZR?^YdBAt@CTSz@?PMl@CB?GIGEc@@ACHPtA?NF\D^ELE@Kh@H_@c@`AOp@EJCTWh@GDIAA@IG@??CC@@@AA?FMEBB?EE?@Ak@Mk@?_@HGF?DW~@CR?TRLDLA@?CAD?EAJAb@ADBHGVCf@CJFp@HFZ?XJJJPDHLAAJ@KBAANABA@d@Kj@At@ED@E?DMv@Az@DZAPKzBGTBvACzA@d@Ad@@VAH?REHFBCNB^Ed@?j@ALC`B@^Cz@@N?^B`@Cj@CBBDEH?HGPAJ@JFHDNCNGN@NCF?HCR@T?ZADBJAVBLGLQAs@XGFCT\fB@\H^Af@Bb@Fl@Cr@@l@Cd@CP@PC`@B`ACXBBDVHNB@J@FH@JCd@Rp@CL@TCl@B^CDAn@B`@If@@XFf@Cp@?VBDAN@h@Cf@@d@BN?RBn@At@FXBV@bAGNJr@Cz@Fh@?f@Jp@AX?TJz@DjA\hBBf@T|ANlA\tBDf@Nl@I^FTHJFVHN@^DPFHFVANKDI?GHCADECAGJo@xAh@eBD@CIBAA??GFKr@g@NOFMNEHMh@a@v@y@LGp@i@fCyBLQfBuAV[j@a@HANICEE\OEIJQ@?DBP?RBTCRJNF^HZJTHH?FFLPVFTD?JVJJNVVVb@p@HFJ?PLPGNVFA?G@?CA@DCGGAI?@D?ACBCCE@DA'
+---
+

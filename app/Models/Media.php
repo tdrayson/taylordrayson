@@ -2,19 +2,24 @@
 
 namespace App\Models;
 
+use App\Contracts\DefinesContentSchema;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasFlatFile;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
+    'ulid',
     'occurred_at',
     'type',
     'title',
@@ -22,10 +27,12 @@ use Spatie\MediaLibrary\HasMedia;
     'source',
     'source_id',
     'meta',
+    'timezone',
 ])]
-class Media extends Model implements HasMedia, Timelineable
+class Media extends Model implements DefinesContentSchema, HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    /** @use HasFactory<MediaFactory> */
+    use HasAttachments, HasFactory, HasFlatFile, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -36,6 +43,22 @@ class Media extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'meta' => 'array',
         ];
+    }
+
+    public static function schema(Blueprint $table): void
+    {
+        $table->id();
+        $table->ulid('ulid')->nullable()->unique();
+        $table->timestamp('occurred_at')->index();
+        $table->string('timezone')->nullable();
+        $table->string('type');
+        $table->string('title');
+        $table->integer('rating')->nullable();
+        $table->string('source')->nullable();
+        $table->string('source_id')->nullable();
+        $table->unsignedBigInteger('series_id')->nullable();
+        $table->json('meta')->nullable();
+        $table->timestamps();
     }
 
     public function getPlatformUrlAttribute(): ?string
@@ -50,6 +73,50 @@ class Media extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return Str::slug($this->title);
+    }
+
+    public function flatFileType(): string
+    {
+        return 'media';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function flatFilePathAttributes(): array
+    {
+        return ['occurred_at', 'title'];
+    }
+
+    public function flatFileBaseSlug(bool $original = false): string
+    {
+        $title = $original
+            ? ($this->getOriginal('title') ?? $this->title)
+            : $this->title;
+
+        return Str::slug((string) $title);
+    }
+
+    public function flatFileBody(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function flatFileMeta(): array
+    {
+        $attributes = $this->getAttributes();
+
+        return [
+            'kind' => $attributes['type'] ?? null,
+            'title' => $attributes['title'] ?? null,
+            'rating' => $attributes['rating'] ?? null,
+            'source' => $attributes['source'] ?? null,
+            'source_id' => $attributes['source_id'] ?? null,
+            'meta' => $this->meta,
+        ];
     }
 
     public function card(): array

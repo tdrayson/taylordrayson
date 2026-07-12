@@ -2,21 +2,26 @@
 
 namespace App\Models;
 
+use App\Contracts\DefinesContentSchema;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasFlatFile;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
 use App\Support\Distance;
+use Database\Factories\FlightFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Schema\Blueprint;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
+    'ulid',
     'occurred_at',
     'flight_number',
     'airline_icao',
@@ -30,10 +35,13 @@ use Spatie\MediaLibrary\HasMedia;
     'reason',
     'meta',
 ])]
-class Flight extends Model implements HasMedia, Timelineable
+class Flight extends Model implements DefinesContentSchema, HasMedia, Timelineable
 {
+    /** @use HasFactory<FlightFactory> */
     use HasAttachments;
+
     use HasFactory;
+    use HasFlatFile;
     use HasTimelineEntry;
 
     /** @var list<string> */
@@ -50,6 +58,25 @@ class Flight extends Model implements HasMedia, Timelineable
             'duration' => 'integer',
             'distance' => 'integer',
         ];
+    }
+
+    public static function schema(Blueprint $table): void
+    {
+        $table->id();
+        $table->ulid('ulid')->nullable()->unique();
+        $table->timestamp('occurred_at')->index();
+        $table->string('flight_number');
+        $table->string('airline_icao')->nullable();
+        $table->string('origin_iata')->nullable();
+        $table->string('destination_iata')->nullable();
+        $table->integer('distance')->nullable();
+        $table->integer('duration')->nullable();
+        $table->string('departure_timezone')->nullable();
+        $table->string('arrival_timezone')->nullable();
+        $table->string('cabin_class')->nullable();
+        $table->string('reason')->nullable();
+        $table->json('meta')->nullable();
+        $table->timestamps();
     }
 
     /**
@@ -113,6 +140,58 @@ class Flight extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return strtolower("{$this->origin_iata}-{$this->destination_iata}");
+    }
+
+    public function flatFileType(): string
+    {
+        return 'flight';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function flatFilePathAttributes(): array
+    {
+        return ['occurred_at', 'origin_iata', 'destination_iata'];
+    }
+
+    public function flatFileBaseSlug(bool $original = false): string
+    {
+        if ($original) {
+            $origin = $this->getOriginal('origin_iata') ?? $this->origin_iata;
+            $destination = $this->getOriginal('destination_iata') ?? $this->destination_iata;
+
+            return strtolower("{$origin}-{$destination}");
+        }
+
+        return $this->slug();
+    }
+
+    public function flatFileBody(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function flatFileMeta(): array
+    {
+        $attributes = $this->getAttributes();
+
+        return [
+            'flight_number' => $attributes['flight_number'] ?? null,
+            'airline_icao' => $attributes['airline_icao'] ?? null,
+            'origin_iata' => $attributes['origin_iata'] ?? null,
+            'destination_iata' => $attributes['destination_iata'] ?? null,
+            'distance' => $attributes['distance'] ?? null,
+            'duration' => $attributes['duration'] ?? null,
+            'departure_timezone' => $attributes['departure_timezone'] ?? null,
+            'arrival_timezone' => $attributes['arrival_timezone'] ?? null,
+            'cabin_class' => $attributes['cabin_class'] ?? null,
+            'reason' => $attributes['reason'] ?? null,
+            'meta' => $this->meta,
+        ];
     }
 
     /**

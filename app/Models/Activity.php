@@ -2,20 +2,25 @@
 
 namespace App\Models;
 
+use App\Contracts\DefinesContentSchema;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasFlatFile;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
 use App\Support\Distance;
+use Database\Factories\ActivityFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
+    'ulid',
     'occurred_at',
     'type',
     'name',
@@ -31,9 +36,10 @@ use Spatie\MediaLibrary\HasMedia;
     'timezone',
     'meta',
 ])]
-class Activity extends Model implements HasMedia, Timelineable
+class Activity extends Model implements DefinesContentSchema, HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    /** @use HasFactory<ActivityFactory> */
+    use HasAttachments, HasFactory, HasFlatFile, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -48,6 +54,27 @@ class Activity extends Model implements HasMedia, Timelineable
         ];
     }
 
+    public static function schema(Blueprint $table): void
+    {
+        $table->id();
+        $table->ulid('ulid')->nullable()->unique();
+        $table->timestamp('occurred_at')->index();
+        $table->string('timezone')->nullable();
+        $table->string('type');
+        $table->string('name')->nullable();
+        $table->text('description')->nullable();
+        $table->integer('duration')->nullable();
+        $table->integer('calories')->nullable();
+        $table->integer('distance')->nullable();
+        $table->integer('average_heart_rate')->nullable();
+        $table->integer('max_heart_rate')->nullable();
+        $table->json('heart_rate')->nullable();
+        $table->string('source')->nullable();
+        $table->string('source_id')->nullable();
+        $table->json('meta')->nullable();
+        $table->timestamps();
+    }
+
     public function getPlatformUrlAttribute(): ?string
     {
         if ($this->source === 'strava' && $this->source_id) {
@@ -60,6 +87,57 @@ class Activity extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return Str::slug($this->name ?? $this->type);
+    }
+
+    public function flatFileType(): string
+    {
+        return 'activity';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function flatFilePathAttributes(): array
+    {
+        return ['occurred_at', 'name', 'type'];
+    }
+
+    public function flatFileBaseSlug(bool $original = false): string
+    {
+        if ($original) {
+            $name = $this->getOriginal('name') ?? $this->getOriginal('type');
+
+            return Str::slug((string) ($name ?? $this->type));
+        }
+
+        return $this->slug();
+    }
+
+    public function flatFileBody(): string
+    {
+        return (string) ($this->getAttributes()['description'] ?? '');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function flatFileMeta(): array
+    {
+        $attributes = $this->getAttributes();
+
+        return [
+            'kind' => $attributes['type'] ?? null,
+            'name' => $attributes['name'] ?? null,
+            'duration' => $attributes['duration'] ?? null,
+            'calories' => $attributes['calories'] ?? null,
+            'distance' => $attributes['distance'] ?? null,
+            'average_heart_rate' => $attributes['average_heart_rate'] ?? null,
+            'max_heart_rate' => $attributes['max_heart_rate'] ?? null,
+            'heart_rate' => $this->heart_rate,
+            'source' => $attributes['source'] ?? null,
+            'source_id' => $attributes['source_id'] ?? null,
+            'meta' => $this->meta,
+        ];
     }
 
     public function card(): array

@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Content\UrlSlugAllocator;
 use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
 use App\Models\TimelineEntry;
@@ -41,42 +42,16 @@ class TimelineEntryObserver
      */
     private function ensureUrlSlug(Model $model, TimelineEntry $entry): void
     {
-        $base = $model->slug();
-        $pattern = '/^'.preg_quote($base, '/').'(-\d+)?$/';
+        $model->setRelation('timelineEntry', $entry);
 
-        if ($entry->url_slug !== null
-            && preg_match($pattern, $entry->url_slug) === 1
-            && ! $this->takenByAnother($entry, $entry->url_slug)) {
+        $candidate = app(UrlSlugAllocator::class)->allocate($model);
+
+        if ($entry->url_slug === $candidate) {
             return;
-        }
-
-        $taken = TimelineEntry::query()
-            ->whereKeyNot($entry->getKey())
-            ->whereDate('occurred_at', $entry->occurred_at->toDateString())
-            ->where(fn ($query) => $query->where('url_slug', $base)->orWhere('url_slug', 'like', "{$base}-%"))
-            ->pluck('url_slug')
-            ->filter(fn (?string $slug): bool => $slug !== null && preg_match($pattern, $slug) === 1)
-            ->all();
-
-        $candidate = $base;
-        $suffix = 1;
-
-        while (in_array($candidate, $taken, true)) {
-            $suffix++;
-            $candidate = "{$base}-{$suffix}";
         }
 
         $entry->url_slug = $candidate;
         $entry->save();
-    }
-
-    private function takenByAnother(TimelineEntry $entry, string $slug): bool
-    {
-        return TimelineEntry::query()
-            ->whereKeyNot($entry->getKey())
-            ->whereDate('occurred_at', $entry->occurred_at->toDateString())
-            ->where('url_slug', $slug)
-            ->exists();
     }
 
     public function deleted(Model $model): void

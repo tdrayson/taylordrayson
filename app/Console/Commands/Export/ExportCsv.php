@@ -2,21 +2,7 @@
 
 namespace App\Console\Commands\Export;
 
-use App\Models\Activity;
-use App\Models\Airline;
-use App\Models\Airport;
-use App\Models\Appearance;
-use App\Models\Article;
-use App\Models\Calorie;
-use App\Models\Checkin;
-use App\Models\Event;
-use App\Models\Flight;
-use App\Models\Fuel;
-use App\Models\Media;
-use App\Models\Note;
-use App\Models\Podcast;
-use App\Models\Project;
-use App\Models\Sleep;
+use App\Content\ContentTypes;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -26,36 +12,18 @@ use Illuminate\Database\Eloquent\Model;
 #[Description('Export a database table back to a CSV whose headers are the model fillable columns')]
 class ExportCsv extends Command
 {
-    /** @var array<string, class-string<Model>> */
-    private array $models = [
-        'activity' => Activity::class,
-        'airline' => Airline::class,
-        'airport' => Airport::class,
-        'appearance' => Appearance::class,
-        'article' => Article::class,
-        'calorie' => Calorie::class,
-        'checkin' => Checkin::class,
-        'event' => Event::class,
-        'flight' => Flight::class,
-        'fuel' => Fuel::class,
-        'media' => Media::class,
-        'note' => Note::class,
-        'podcast' => Podcast::class,
-        'project' => Project::class,
-        'sleep' => Sleep::class,
-    ];
-
     public function handle(): int
     {
         $type = $this->argument('type');
+        $models = ContentTypes::csvTypes();
 
-        if (! isset($this->models[$type])) {
-            $this->error("Unknown type: {$type}. Available: ".implode(', ', array_keys($this->models)));
+        if (! isset($models[$type])) {
+            $this->error('Unknown type: '.$type.'. Available: '.implode(', ', array_keys($models)));
 
             return self::FAILURE;
         }
 
-        $modelClass = $this->models[$type];
+        $modelClass = $models[$type];
         $headers = (new $modelClass)->getFillable();
 
         $handle = fopen($this->argument('file'), 'w');

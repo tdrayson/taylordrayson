@@ -1,0 +1,47 @@
+---
+id: 01KXBTAS0C3WT1YDFZSGGXSAJ2
+type: activity
+occurred_at: '2023-12-26T11:55:38+00:00'
+timezone: Europe/London
+slug: afternoon-walk
+kind: walk
+name: 'Afternoon Walk'
+duration: 5287
+calories: 477
+distance: 7506
+average_heart_rate: 79
+max_heart_rate: 99
+heart_rate:
+  -
+    time: '2023-12-26 12:05:14'
+    bpm: 79
+  -
+    time: '2023-12-26 12:10:07'
+    bpm: 79
+  -
+    time: '2023-12-26 12:55:43'
+    bpm: 99
+  -
+    time: '2023-12-26 13:11:55'
+    bpm: 95
+  -
+    time: '2023-12-26 13:14:52'
+    bpm: 65
+  -
+    time: '2023-12-26 13:21:55'
+    bpm: 71
+  -
+    time: '2023-12-26 13:23:39'
+    bpm: 64
+source: strava
+source_id: '10444206481'
+meta:
+  elapsed_time: 5585
+  total_elevation_gain: 110.8
+  elev_high: 168.7
+  elev_low: 101.8
+  average_speed: 1.42
+  max_speed: 11.956
+  polyline: 'kdhxH|wQFHVJ@CAA@EZSTFDD@ADUFEDMJGLo@BC@DBOJWLo@HKDS?W^uAN]DFDCJ@DEDU@Db@^PTLFVZZRTXTLX^@@DIHALFLBBI@MHIHWLs@JMV{@FGLe@@MHKNYRm@BOC?BABE?CZy@`AeCDQT[bAsBbAiCFYn@oANa@EFEC@Cb@o@Na@j@iA`AgBj@s@HEDAROpA}Ar@s@lByAf@[n@i@RGf@g@\S?[HEXi@HGD]@A?IDEF_@HkAZY@SE]BGGBHMFELCLMJEHKNG@C@SIWGK?MMg@ByBC@XqAFi@C}@CMAW?a@H}@?c@B_@@GDCHc@`@_A@K^i@^iAl@oAn@_BJODQd@{@JY?KAEIG[BGCa@@m@Ca@?UCFA@EEoA?mCP_CHeD?WEUBsABQ?}@CIDYCm@BgB?kANaEA[Be@Cw@@m@Dy@AK@yADgA@s@EWBMG[CXIHK`@MV?DGFAHGD@AeApBQT]p@MNmAfCMREPUd@C?GJCP@\DVHRZ|B`@hCVbDNj@BZFnACdCDx@TvADn@BLJDHLHFRPTLO~@Wv@CTMXGXSXMj@SXERC@IVMJMZETW`@AHCBCJc@p@m@hAKXIFKXALIHITIDGLGh@QRITEBMP?AGXQTSh@C@Q\?FUXCLYb@YZKVA?CNKDGJI@HGA?GFAHQb@Wb@Uf@IZCBC?_@t@IHEHGD@JOJKVAJGJOHU`@IF?FOXIZUZANMLEPBHEB@BGHOf@QTMJQb@APGJWlAMNSt@A??CAB@RCLGF?DKPIb@IHOt@@NMRIf@MVEX?B@?AZLN?GLRVX?A?LUX?FEFCTU^CPBBE@CLGd@Qp@EBEHI^?ACF@EEEELGBGJ?NGJAHMRI`@IL@?CPKVAJIHCJKN@BHAIJIRCPIH?NMP?PQRE`@KVCTM`@ANKPCNMV]lAMZGDETIMMIE`@@CD?@CG@EEMOQICKSKOSI?MMAEQBQREVSl@UbAO^q@hC[|@C?SU[PSK_@KA@@BQJGAGAEI@KF@?@BAFDTDLH`@JFAPIJBHRAPGVEBE@KIEI?OISIEqAa@_@Ge@S_@E]@e@RSRIIEIAUBgEGoEBwBEuBAQEIGCIB_@NYRWREJoA~ASHu@PoBBIEGO?UDg@BqBG_EU}DIoCCMIKIEg@HUF}@?[JWPKDOEi@g@c@Qm@GiCi@}@E_CL}@GUESKQOOUi@kAMQQMw@]g@IQ?i@KG?QNCLg@vFM~@Qx@o@jB{CxH{@hCEJIDG@OOWi@_@g@GUY]IOCOBQFM?B?EBADBAKFE?AE??CF@GA?FHACA@ABBAFK@GKCABIEC@?'
+---
+

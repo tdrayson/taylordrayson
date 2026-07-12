@@ -44,6 +44,22 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        /*
+        | Rebuildable content index (Orbit/Stache-style). During the notes
+        | pilot, models still use the default connection; this file is ready
+        | for the full cutover.
+        */
+        'content' => [
+            'driver' => 'sqlite',
+            'database' => env('CONTENT_DB_DATABASE', database_path('content.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),

@@ -1,0 +1,19 @@
+---
+id: 01KXBT4807F7XGT43SMPPQXFDH
+type: checkin
+occurred_at: '2022-09-25T16:08:30+00:00'
+slug: david-lloyd
+venue_name: 'David Lloyd'
+category: 'Gym and Studio'
+address: 'Hannibal Way'
+city: Croydon
+county: 'Greater London'
+country: 'United Kingdom'
+latitude: 51.357142317141
+longitude: -0.12212066640328
+is_mayor: false
+source: swarm
+source_id: 63307cfe0e09f54b1cefcf29
+---
+
+Sunday Tennis with Mum 🎾

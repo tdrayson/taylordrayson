@@ -1,0 +1,23 @@
+---
+id: 01KXBTASC13RWA7FAE019HDBSZ
+type: activity
+occurred_at: '2024-10-28T08:11:07+00:00'
+timezone: Europe/London
+slug: morning-walk
+kind: walk
+name: 'Morning Walk'
+duration: 2819
+calories: 198
+distance: 3118
+source: strava
+source_id: '12763331987'
+meta:
+  elapsed_time: 2857
+  total_elevation_gain: 65.5
+  elev_high: 119
+  elev_low: 95
+  average_speed: 1.106
+  max_speed: 5.88
+  polyline: 'ojjxHv~PAXBLB@JTFFGx@IP@X?f@EDSf@GFEKGEGMGEGMYOAEOIGKG?AI?WCKDs@BINS@u@Hm@FKJ[FIL[FYDEB?FIBQZ{@?IKUa@OGBMCMG?GK?GMQKGKGA?CYNW\KZAf@Un@[Z]z@QVIXa@j@k@`AM^G\EJMBMJ?BYPKHc@`AEPATHZNFBDFDDPB@HVNLDLJJHDHAHFLAJLBNPVHTNLNCNGT]`@_@DQBi@HWVg@HGFMNSL[H[Da@?@@C@?@ECSAm@@E@?B[J[FoAZmA[~@Eb@BYXu@DEPq@LWLOZ{@?KIQe@QICG@IA?KCAG@AAKOKICGICI?a@TSd@Gt@QZMb@KHOR_@v@GViAlBIXGD?JOXEN]ZMNMJa@j@KVCTDRHJLFFHBJLRPd@TVb@HR^LHJVJLP@NCHGFMPMFKJGHUB[?KDSLUL_@HEj@iAH}@EU?gADSHOJm@?WHc@L[JODQB@FSHGTs@HUJOBI?OMSYIM?[GAIMCQSYISHu@lAGfAgArBCJYf@Yp@g@t@Ol@a@^_@TQb@IHKPEPARHRRPn@pARJXBRLBTTLBNHNTDPEJSJI@?DGJILQFOAEBe@Le@x@kAFOJy@DGFENP^Xj@n@@ARa@P_AHQ@KC_@]u@BACKDI'
+---
+

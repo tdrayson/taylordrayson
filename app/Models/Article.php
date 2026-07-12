@@ -2,21 +2,26 @@
 
 namespace App\Models;
 
+use App\Contracts\DefinesContentSchema;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasFlatFile;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
 use App\Support\PortableText;
 use App\Support\Text;
+use Database\Factories\ArticleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
+    'ulid',
     'occurred_at',
     'title',
     'slug',
@@ -25,9 +30,10 @@ use Spatie\MediaLibrary\HasMedia;
     'published',
     'timezone',
 ])]
-class Article extends Model implements HasMedia, Timelineable
+class Article extends Model implements DefinesContentSchema, HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
+    /** @use HasFactory<ArticleFactory> */
+    use HasAttachments, HasFactory, HasFlatFile, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -41,9 +47,53 @@ class Article extends Model implements HasMedia, Timelineable
         ];
     }
 
+    public static function schema(Blueprint $table): void
+    {
+        $table->id();
+        $table->ulid('ulid')->nullable()->unique();
+        $table->timestamp('occurred_at')->index();
+        $table->string('timezone')->nullable();
+        $table->string('title');
+        $table->string('slug');
+        $table->text('excerpt')->nullable();
+        $table->text('content');
+        $table->boolean('published')->default(false);
+        $table->timestamps();
+    }
+
     public function slug(): string
     {
         return $this->getAttribute('slug');
+    }
+
+    public function flatFileType(): string
+    {
+        return 'article';
+    }
+
+    public function flatFileExtension(): string
+    {
+        return 'json';
+    }
+
+    public function flatFileBody(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function flatFileMeta(): array
+    {
+        $attributes = $this->getAttributes();
+
+        return [
+            'title' => $attributes['title'] ?? null,
+            'excerpt' => $attributes['excerpt'] ?? null,
+            'published' => (bool) ($attributes['published'] ?? false),
+            'content' => $this->content,
+        ];
     }
 
     /**

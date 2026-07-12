@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\DefinesContentSchema;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Schema\Blueprint;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 
@@ -20,7 +22,7 @@ use Spatie\Feed\FeedItem;
     'ends_at',
     'url_slug',
 ])]
-class TimelineEntry extends Model implements Feedable
+class TimelineEntry extends Model implements DefinesContentSchema, Feedable
 {
     use HasFactory;
 
@@ -33,6 +35,18 @@ class TimelineEntry extends Model implements Feedable
             'occurred_at' => 'datetime',
             'ends_at' => 'datetime',
         ];
+    }
+
+    public static function schema(Blueprint $table): void
+    {
+        $table->id();
+        $table->string('timelineable_type');
+        $table->unsignedBigInteger('timelineable_id');
+        $table->timestamp('occurred_at')->index();
+        $table->timestamp('ends_at')->nullable();
+        $table->string('url_slug')->nullable();
+        $table->timestamps();
+        $table->index(['timelineable_type', 'timelineable_id']);
     }
 
     public function timelineable(): MorphTo

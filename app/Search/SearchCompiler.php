@@ -2,11 +2,13 @@
 
 namespace App\Search;
 
+use App\Models\Airline;
 use App\Models\Article;
 use App\Support\Distance;
 use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -257,6 +259,20 @@ class SearchCompiler
         }
 
         if (isset($field['relation'])) {
+            if ($field['relation'] === 'airline') {
+                $this->lookupRelationClause(
+                    $query,
+                    Airline::class,
+                    'airline_icao',
+                    'icao_code',
+                    $field,
+                    $operator,
+                    $value,
+                );
+
+                return;
+            }
+
             $query->whereHas(
                 $field['relation'],
                 fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null)
@@ -266,6 +282,30 @@ class SearchCompiler
         }
 
         $this->clause($query, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
+    }
+
+    /**
+     * Resolve a Sushi/cross-connection relation filter by matching related rows
+     * first, then constraining the local foreign key (whereHas cannot join).
+     *
+     * @param  class-string<Model>  $relatedClass
+     * @param  array<string, mixed>  $field
+     */
+    private function lookupRelationClause(
+        Builder $query,
+        string $relatedClass,
+        string $localKey,
+        string $relatedKey,
+        array $field,
+        string $operator,
+        mixed $value,
+    ): void {
+        $related = $relatedClass::query();
+        $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
+
+        $keys = $related->pluck($relatedKey)->filter()->values()->all();
+
+        $query->whereIn($localKey, $keys !== [] ? $keys : ['__none__']);
     }
 
     /**
