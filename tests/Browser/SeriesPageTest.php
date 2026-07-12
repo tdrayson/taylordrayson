@@ -21,18 +21,13 @@ it('renders the tv index as a poster grid', function () {
     visit('/media/tv')->assertPresent('[data-testid="poster-card"]');
 });
 
-it('renders the backdrop hero, rating badges, and season overview from TMDB/OMDB enrichment', function () {
+it('renders the backdrop hero and season overview from TMDB enrichment', function () {
     $series = Series::factory()->create([
         'title' => 'Severance',
         'slug' => 'severance',
         'meta' => [
             'aired_episodes' => 9,
             'seasons' => 2,
-            'ratings' => [
-                'imdb' => '8.7',
-                'rotten_tomatoes' => '97%',
-                'certification' => 'TV-MA',
-            ],
             'season_list' => [
                 ['number' => 1, 'name' => 'Season 1', 'episode_count' => 9, 'air_date' => '2022-02-18'],
                 ['number' => 2, 'name' => 'Season 2', 'episode_count' => 10, 'air_date' => '2025-01-17'],
@@ -47,6 +42,5 @@ it('renders the backdrop hero, rating badges, and season overview from TMDB/OMDB
     $page = visit('/media/tv/severance');
 
     $page->assertPresent('[data-testid="series-backdrop"]')
-        ->assertPresent('[data-testid="rating-badge"]')
         ->assertPresent('[data-testid="season-overview"]');
 });

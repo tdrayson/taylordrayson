@@ -60,7 +60,6 @@ class SeriesController extends Controller
             ],
             'stats' => $this->stats($series),
             'seasons' => $this->seasons($series->episodes),
-            'ratings' => $series->meta['ratings'] ?? null,
             'seasonList' => $this->seasonList($series),
         ]);
     }

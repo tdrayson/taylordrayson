@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Services\Omdb;
 use App\Services\Tmdb;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,10 +15,10 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * Enriches a newly synced Trakt series or film with TMDB structure (seasons,
- * genres, tagline) and OMDB ratings, and upgrades its artwork from TMDB's
- * poster/backdrop/logo to R2 (Trakt's poster remains the fallback when TMDB
- * has none). Best-effort throughout: a missing id or a failed metadata fetch
- * degrades gracefully, only a failed image download retries the job.
+ * genres, tagline) and upgrades its artwork from TMDB's poster/backdrop/logo
+ * to R2 (Trakt's poster remains the fallback when TMDB has none). Best-effort
+ * throughout: a missing id or a failed metadata fetch degrades gracefully,
+ * only a failed image download retries the job.
  */
 class EnrichMedia implements ShouldQueue
 {
@@ -31,7 +30,6 @@ class EnrichMedia implements ShouldQueue
         private Model&HasMedia $subject,
         private string $kind,
         private ?int $tmdbId,
-        private ?string $imdbId,
         private ?string $fallbackPosterUrl,
     ) {}
 
@@ -43,7 +41,7 @@ class EnrichMedia implements ShouldQueue
         return [30, 120];
     }
 
-    public function handle(Tmdb $tmdb, Omdb $omdb): void
+    public function handle(Tmdb $tmdb): void
     {
         $meta = $this->subject->meta ?? [];
         $posterDownloaded = false;
@@ -54,10 +52,6 @@ class EnrichMedia implements ShouldQueue
 
         if (! $posterDownloaded && $this->fallbackPosterUrl !== null) {
             $this->downloadImage('cover', $this->fallbackPosterUrl);
-        }
-
-        if ($this->imdbId !== null) {
-            $meta = $this->applyOmdb($omdb, $meta);
         }
 
         $this->subject->meta = $meta;
@@ -130,43 +124,6 @@ class EnrichMedia implements ShouldQueue
         $preferred = collect($logos)->first(fn (array $logo): bool => in_array($logo['iso_639_1'] ?? null, [null, 'en'], true));
 
         return ($preferred ?? $logos[0])['file_path'] ?? null;
-    }
-
-    /**
-     * Fetch OMDB ratings by imdb id and map them into `meta.ratings`. Rotten
-     * Tomatoes and Metacritic scores are parsed out of the `Ratings[]` array
-     * by source name; every value is omitted when null or OMDB's `"N/A"`.
-     *
-     * @param  array<string, mixed>  $meta
-     * @return array<string, mixed>
-     */
-    private function applyOmdb(Omdb $omdb, array $meta): array
-    {
-        $body = $omdb->byImdb($this->imdbId);
-
-        if ($body === null) {
-            return $meta;
-        }
-
-        $ratings = collect($body['Ratings'] ?? []);
-        $rottenTomatoes = $ratings->firstWhere('Source', 'Rotten Tomatoes')['Value'] ?? null;
-        $metacritic = $ratings->firstWhere('Source', 'Metacritic')['Value'] ?? null;
-
-        $ratingsBlock = array_filter([
-            'imdb' => $body['imdbRating'] ?? null,
-            'imdb_votes' => $body['imdbVotes'] ?? null,
-            'rotten_tomatoes' => $rottenTomatoes,
-            'metacritic' => $metacritic,
-            'certification' => $body['Rated'] ?? null,
-            'awards' => $body['Awards'] ?? null,
-            'box_office' => $this->kind === 'movie' ? ($body['BoxOffice'] ?? null) : null,
-        ], fn ($value): bool => $value !== null && $value !== 'N/A');
-
-        if ($ratingsBlock !== []) {
-            $meta['ratings'] = $ratingsBlock;
-        }
-
-        return $meta;
     }
 
     /**

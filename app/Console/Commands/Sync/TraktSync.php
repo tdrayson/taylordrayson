@@ -133,7 +133,7 @@ class TraktSync extends Command
         $summary = $poster ? null : $trakt->movie($movie['ids']['trakt'] ?? null);
         $posterUrl = $this->posterUrl($movie, $summary);
 
-        EnrichMedia::dispatch($media, 'movie', $movie['ids']['tmdb'] ?? null, $movie['ids']['imdb'] ?? null, $posterUrl);
+        EnrichMedia::dispatch($media, 'movie', $movie['ids']['tmdb'] ?? null, $posterUrl);
     }
 
     /**
@@ -168,7 +168,7 @@ class TraktSync extends Command
         if ($wasNew) {
             $posterUrl = $this->posterUrl($show, $summary);
 
-            EnrichMedia::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $show['ids']['imdb'] ?? null, $posterUrl);
+            EnrichMedia::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
         }
     }
 

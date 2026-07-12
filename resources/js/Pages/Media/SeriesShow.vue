@@ -9,7 +9,6 @@ import SectionHead from '../../Components/Ui/SectionHead.vue';
 import SeriesStats from '../../Components/Ui/SeriesStats.vue';
 import WatchDateGroup from '../../Components/Ui/WatchDateGroup.vue';
 import BackdropHero from '../../Components/Ui/BackdropHero.vue';
-import RatingBadges from '../../Components/Ui/RatingBadges.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -19,8 +18,6 @@ const props = defineProps({
     stats: { type: Object, required: true },
     // [{ season, dates: [{ date, anchor, episodes }] }]
     seasons: { type: Array, default: () => [] },
-    // { imdb, rotten_tomatoes, metacritic, certification, ... } or null.
-    ratings: { type: Object, default: null },
     // TMDB's season structure: [{ number, name, episodeCount, airDate }].
     seasonList: { type: Array, default: () => [] },
 });
@@ -86,8 +83,6 @@ setLayoutProps({
                 <span v-if="series.year">{{ series.year }}</span>
                 <span v-if="series.network">{{ series.network }}</span>
             </div>
-
-            <RatingBadges :ratings="ratings" class="mt-3" />
 
             <p v-if="series.overview" class="mt-4 max-w-prose text-body text-neutral-700">{{ series.overview }}</p>
 

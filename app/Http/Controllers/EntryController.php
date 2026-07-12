@@ -140,7 +140,6 @@ class EntryController extends Controller
 
         if ($model instanceof Media && $model->type === 'film') {
             $data['backdrop'] = $model->getFirstMediaUrl('backdrop') ?: null;
-            $data['ratings'] = $model->meta['ratings'] ?? null;
         }
 
         if ($model instanceof Event) {

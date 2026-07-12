@@ -3,7 +3,6 @@
 use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
-use App\Services\Omdb;
 use App\Services\Tmdb;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -11,14 +10,13 @@ use Illuminate\Support\Facades\Storage;
 beforeEach(function () {
     config()->set('services.tmdb.key', 'test-tmdb-key');
     config()->set('services.tmdb.image_base', 'https://image.tmdb.org/t/p/');
-    config()->set('services.omdb.key', 'test-omdb-key');
     Storage::fake(config('media-library.disk_name'));
 });
 
 /**
  * A single fake covering every endpoint EnrichMedia can call: TMDB tv/movie
- * detail, TMDB images, the TMDB image CDN (returns the shared pixel fixture),
- * and OMDB. Order matters: `/images` must be checked before the bare detail
+ * detail, TMDB images, and the TMDB image CDN (returns the shared pixel
+ * fixture). Order matters: `/images` must be checked before the bare detail
  * path since it's a substring match.
  */
 function fakeEnrichmentApis(): void
@@ -58,28 +56,16 @@ function fakeEnrichmentApis(): void
             ], 200),
             str_contains($url, 'image.tmdb.org') => Http::response(file_get_contents(base_path('tests/Fixtures/pixel.webp')), 200),
             str_contains($url, 'trakt.tv') => Http::response(file_get_contents(base_path('tests/Fixtures/pixel.webp')), 200),
-            str_contains($url, 'omdbapi.com') => Http::response([
-                'Response' => 'True',
-                'Rated' => 'TV-MA',
-                'Awards' => 'Nominated for 1 Primetime Emmy.',
-                'imdbRating' => '8.1',
-                'imdbVotes' => '150,000',
-                'Ratings' => [
-                    ['Source' => 'Internet Movie Database', 'Value' => '8.1/10'],
-                    ['Source' => 'Rotten Tomatoes', 'Value' => '85%'],
-                    ['Source' => 'Metacritic', 'Value' => '74/100'],
-                ],
-            ], 200),
             default => Http::response([], 404),
         };
     });
 }
 
-it('enriches a series with tmdb structure, ratings, and downloaded art', function () {
+it('enriches a series with tmdb structure and downloaded art', function () {
     fakeEnrichmentApis();
 
     $series = Series::factory()->create();
-    (new EnrichMedia($series, 'tv', 71712, 'tt6470478', null))->handle(app(Tmdb::class), app(Omdb::class));
+    (new EnrichMedia($series, 'tv', 71712, null))->handle(app(Tmdb::class));
 
     $fresh = $series->fresh();
 
@@ -98,9 +84,6 @@ it('enriches a series with tmdb structure, ratings, and downloaded art', functio
             'tagline' => 'The end is nigh',
             'vote' => 8.1,
         ])
-        ->and($fresh->meta['ratings']['rotten_tomatoes'])->toBe('85%')
-        ->and($fresh->meta['ratings']['metacritic'])->toBe('74/100')
-        ->and($fresh->meta['ratings']['certification'])->toBe('TV-MA')
         ->and($fresh->getFirstMedia('cover'))->not->toBeNull()
         ->and($fresh->getFirstMedia('backdrop'))->not->toBeNull()
         ->and($fresh->getFirstMedia('logo'))->not->toBeNull();
@@ -110,26 +93,8 @@ it('falls back to the trakt poster when tmdb has no poster', function () {
     fakeEnrichmentApis();
 
     $media = Media::factory()->create(['type' => 'film']);
-    (new EnrichMedia($media, 'movie', 438631, null, 'walter-r2.trakt.tv/posters/dune-2021.jpg'))
-        ->handle(app(Tmdb::class), app(Omdb::class));
+    (new EnrichMedia($media, 'movie', 438631, 'walter-r2.trakt.tv/posters/dune-2021.jpg'))
+        ->handle(app(Tmdb::class));
 
     expect($media->fresh()->getFirstMedia('cover'))->not->toBeNull();
-});
-
-it('skips ratings gracefully when omdb reports no match', function () {
-    Http::fake(function ($request) {
-        $url = $request->url();
-
-        return match (true) {
-            str_contains($url, 'omdbapi.com') => Http::response(['Response' => 'False', 'Error' => 'Incorrect IMDb ID.'], 200),
-            default => Http::response([], 404),
-        };
-    });
-
-    $series = Series::factory()->create();
-
-    (new EnrichMedia($series, 'tv', null, 'tt0000000', null))
-        ->handle(app(Tmdb::class), app(Omdb::class));
-
-    expect($series->fresh()->meta['ratings'] ?? null)->toBeNull();
 });
