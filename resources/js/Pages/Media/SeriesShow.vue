@@ -62,6 +62,7 @@ setLayoutProps({
         :backdrop="series.backdrop"
         :logo="series.logo"
         :title="series.title"
+        :bleed="false"
         class="mb-8"
     />
 
@@ -124,7 +125,6 @@ setLayoutProps({
         <WatchDateGroup
             v-for="dateGroup in seasonGroup.dates"
             :key="dateGroup.anchor"
-            :series-slug="series.slug"
             :anchor="dateGroup.anchor"
             :date="dateGroup.date"
             :episodes="dateGroup.episodes"

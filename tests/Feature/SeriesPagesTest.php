@@ -20,21 +20,12 @@ it('shows a series with its episodes and stats', function () {
         ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesShow')->where('series.slug', 'severance')->has('stats'));
 });
 
-it('filters to a season and to a single episode across all its watches', function () {
-    $series = Series::factory()->create(['slug' => 'the-good-doctor']);
-    Media::factory()->count(2)->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 6, 'episode' => 8]]); // watched twice
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 7, 'episode' => 1]]);
+it('gives each grouped episode its standard entry url', function () {
+    $series = Series::factory()->create(['slug' => 'severance']);
+    $episode = Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-03-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
 
-    $this->get('/media/tv/the-good-doctor/season-6')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesSeason'));
-    $this->get('/media/tv/the-good-doctor/season-6/episode-8')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesEpisode')->has('watches', 2));
-});
-
-it('404s for a season or episode with no watches', function () {
-    $series = Series::factory()->create(['slug' => 'the-good-doctor']);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 6, 'episode' => 8]]);
-
-    $this->get('/media/tv/the-good-doctor/season-99')->assertNotFound();
-    $this->get('/media/tv/the-good-doctor/season-1/episode-99')->assertNotFound();
+    $this->get('/media/tv/severance')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesShow')
+            ->where('seasons.0.dates.0.episodes.0.url', $episode->url())
+        );
 });

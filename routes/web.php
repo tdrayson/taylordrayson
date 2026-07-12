@@ -67,10 +67,6 @@ Route::get('/leaderboard', fn () => Inertia::render('Leaderboard', [
 // /media/tv wins over the /media/{value} taxonomy route for the 'tv' value.
 Route::get('/media/tv', [SeriesController::class, 'index'])->name('series.index');
 Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
-Route::get('/media/tv/{series:slug}/season-{season}', [SeriesController::class, 'season'])
-    ->where('season', '[0-9]+')->name('series.season');
-Route::get('/media/tv/{series:slug}/season-{season}/episode-{episode}', [SeriesController::class, 'episode'])
-    ->where(['season' => '[0-9]+', 'episode' => '[0-9]+'])->name('series.episode');
 
 // Per-type archive pages and their taxonomy sub-routes. Slugs are literal segments,
 // so they never collide with the digit-constrained /{year}/... routes below.

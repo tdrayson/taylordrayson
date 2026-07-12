@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Media;
 use App\Models\Series;
-use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -66,64 +65,6 @@ class SeriesController extends Controller
     }
 
     /**
-     * A single season's watched episodes, plus stats scoped to that season.
-     */
-    public function season(Series $series, int $season): Response
-    {
-        $series->load('episodes');
-
-        $episodes = $series->episodes->filter(
-            fn (Media $episode): bool => (int) ($episode->meta['season'] ?? null) === $season
-        )->values();
-
-        abort_if($episodes->isEmpty(), 404);
-
-        return Inertia::render('Media/SeriesSeason', [
-            'series' => [
-                'slug' => $series->slug,
-                'title' => $series->title,
-                'backdrop' => $series->getFirstMediaUrl('backdrop') ?: null,
-                'logo' => $series->getFirstMediaUrl('logo') ?: null,
-            ],
-            'season' => $season,
-            'stats' => $this->seasonStats($episodes),
-            'dates' => $this->groupByWatchDate($episodes),
-        ]);
-    }
-
-    /**
-     * Every watch instance of one episode (rewatches included), ordered
-     * oldest to newest.
-     */
-    public function episode(Series $series, int $season, int $episode): Response
-    {
-        $series->load('episodes');
-
-        $watches = $series->episodes
-            ->filter(fn (Media $watch): bool => (int) ($watch->meta['season'] ?? null) === $season
-                && (int) ($watch->meta['episode'] ?? null) === $episode)
-            ->values()
-            ->map(fn (Media $watch): array => [
-                'id' => $watch->id,
-                'occurredAt' => $watch->occurred_at->toIso8601String(),
-                'title' => $watch->title,
-                'rating' => $watch->rating,
-            ]);
-
-        abort_if($watches->isEmpty(), 404);
-
-        return Inertia::render('Media/SeriesEpisode', [
-            'series' => [
-                'slug' => $series->slug,
-                'title' => $series->title,
-            ],
-            'season' => $season,
-            'episode' => $episode,
-            'watches' => $watches,
-        ]);
-    }
-
-    /**
      * @return array{episodesWatched: int, seasons: int|null, progress: int|null, watchSpan: string|null, totalHours: float}
      */
     private function stats(Series $series): array
@@ -154,46 +95,6 @@ class SeriesController extends Controller
                 'airDate' => $season['air_date'] ?? null,
             ])
             ->all();
-    }
-
-    /**
-     * Watch stats scoped to a single season's episodes, mirroring the
-     * series-wide stats() shape without the series-level `seasons`/`progress`
-     * fields, which don't make sense at season scope.
-     *
-     * @param  Collection<int, Media>  $episodes
-     * @return array{episodesWatched: int, watchSpan: string|null, totalHours: float}
-     */
-    private function seasonStats(Collection $episodes): array
-    {
-        return [
-            'episodesWatched' => $episodes
-                ->map(fn (Media $episode): string => ($episode->meta['season'] ?? '?').'x'.($episode->meta['episode'] ?? '?'))
-                ->unique()
-                ->count(),
-            'watchSpan' => $this->watchSpanFor($episodes),
-            'totalHours' => round($episodes->sum(fn (Media $episode): int => (int) ($episode->meta['runtime'] ?? 0)) / 60),
-        ];
-    }
-
-    /**
-     * Human-readable span between the first and last watch in the given
-     * collection, mirroring Series::watchSpan() but scoped to a subset of
-     * episodes (e.g. a single season) rather than the whole series.
-     *
-     * @param  Collection<int, Media>  $episodes
-     */
-    private function watchSpanFor(Collection $episodes): ?string
-    {
-        $first = $episodes->min('occurred_at');
-        $last = $episodes->max('occurred_at');
-        if (! $first || ! $last) {
-            return null;
-        }
-
-        return $first->isSameDay($last)
-            ? 'in a single day'
-            : 'over '.$first->diffForHumans($last, ['syntax' => CarbonInterface::DIFF_ABSOLUTE, 'parts' => 1]);
     }
 
     /**
@@ -235,6 +136,7 @@ class SeriesController extends Controller
                     'title' => $episode->title,
                     'occurredAt' => $episode->occurred_at->toIso8601String(),
                     'rating' => $episode->rating,
+                    'url' => $episode->url(),
                 ])->values()->all(),
             ])
             ->sortBy('date')
