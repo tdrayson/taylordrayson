@@ -133,3 +133,61 @@ it('imports personal star ratings onto films, episodes, and series, staying idem
         ->and($episode->fresh()->rating)->toBe(8)
         ->and($series->fresh()->meta['rating'])->toBe(10);
 });
+
+it('nudges episodes that share an exact watched_at into season/episode order, idempotently, and leaves distinct timestamps alone', function () {
+    // No new history this run; only the normalization pass over already-imported rows matters here.
+    fakeTraktHistory(movies: [], episodes: []);
+
+    $series = Series::factory()->create();
+
+    // Real Trakt data: bulk-marking watched gives S1E6 and S1E7 the exact
+    // same second, seeded here already out of order (E7 row created first).
+    $e7 = Media::create([
+        'occurred_at' => '2026-01-02 07:32:00',
+        'type' => 'episode',
+        'title' => 'Seven',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'e7',
+        'meta' => ['season' => 1, 'episode' => 7],
+    ]);
+    $e6 = Media::create([
+        'occurred_at' => '2026-01-02 07:32:00',
+        'type' => 'episode',
+        'title' => 'Six',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'e6',
+        'meta' => ['season' => 1, 'episode' => 6],
+    ]);
+    $e1 = Media::create([
+        'occurred_at' => '2026-01-01 20:00:00',
+        'type' => 'episode',
+        'title' => 'One',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'e1',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    $e6 = $e6->fresh();
+    $e7 = $e7->fresh();
+    $e1 = $e1->fresh();
+
+    // The lower (season, episode) keeps the original shared timestamp; the
+    // higher one is pushed one second later, so a plain time-sort is correct.
+    expect($e6->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:00')
+        ->and($e7->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:01')
+        ->and($e6->occurred_at->isBefore($e7->occurred_at))->toBeTrue()
+        ->and($e6->occurred_at->diffInSeconds($e7->occurred_at))->toBe(1.0)
+        ->and($e1->occurred_at->toDateTimeString())->toBe('2026-01-01 20:00:00');
+
+    // Second run must be a no-op: the group is no longer tied, so nothing changes.
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    expect($e6->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:00')
+        ->and($e7->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:01')
+        ->and($e1->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-01 20:00:00');
+});

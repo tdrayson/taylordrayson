@@ -41,11 +41,90 @@ class TraktSync extends Command
         $filmsCreated = $this->importMovies($trakt, $startAt, $existing);
         $episodesCreated = $this->importEpisodes($trakt, $startAt, $existing);
 
+        $this->normalizeEpisodeOrder();
         $this->syncRatings($trakt);
 
         $this->info("Synced {$filmsCreated} film(s) and {$episodesCreated} episode(s).");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Trakt bulk-marks episodes as watched with the exact same `watched_at`
+     * second, so ties between episodes of the same series sort in whatever
+     * arbitrary order the database returns them (e.g. S1E7 before S1E6).
+     * Nudge each tied episode apart by one second, ordered by
+     * (season, episode), so a plain time-sort is correct everywhere.
+     *
+     * This walks every synced episode on every run (not just ones created
+     * this run), so it also backfills previously-imported rows the first
+     * time it runs. It's idempotent: once a group has been nudged its
+     * timestamps are no longer identical, so a re-run finds no ties there
+     * and leaves it untouched.
+     */
+    private function normalizeEpisodeOrder(): void
+    {
+        Media::query()
+            ->where('source', 'trakt')
+            ->where('type', 'episode')
+            ->whereNotNull('series_id')
+            ->get()
+            ->groupBy('series_id')
+            ->each(function (Collection $seriesEpisodes): void {
+                $seriesEpisodes
+                    ->groupBy(fn (Media $media): string => $media->occurred_at->format('Y-m-d H:i:s'))
+                    ->each(fn (Collection $group) => $this->nudgeTiedGroup($group));
+            });
+    }
+
+    /**
+     * Reassign `occurred_at` for a group of episodes that all share the same
+     * timestamp: the (season, episode) sorted first keeps the shared base
+     * time, and each subsequent one gets base + its 0-based rank in seconds.
+     * The base is captured once, before any row in the group is reassigned,
+     * so every offset in the group is computed from the original shared
+     * moment rather than a previously-nudged row.
+     *
+     * @param  Collection<int, Media>  $group  Episodes sharing one exact `occurred_at`.
+     */
+    private function nudgeTiedGroup(Collection $group): void
+    {
+        if ($group->count() < 2) {
+            return;
+        }
+
+        $base = $group->first()->occurred_at->copy();
+
+        $group
+            ->sort(function (Media $a, Media $b): int {
+                $seasonA = $a->meta['season'] ?? 0;
+                $seasonB = $b->meta['season'] ?? 0;
+
+                if ($seasonA !== $seasonB) {
+                    return $seasonA <=> $seasonB;
+                }
+
+                $episodeA = $a->meta['episode'] ?? 0;
+                $episodeB = $b->meta['episode'] ?? 0;
+
+                if ($episodeA !== $episodeB) {
+                    return $episodeA <=> $episodeB;
+                }
+
+                // Stable, deterministic tie-break for genuine duplicates
+                // (e.g. a rewatch logged at the identical second) so re-runs
+                // don't reshuffle ranks based on incidental query order.
+                return $a->id <=> $b->id;
+            })
+            ->values()
+            ->each(function (Media $media, int $rank) use ($base): void {
+                $target = $base->copy()->addSeconds($rank);
+
+                if (! $media->occurred_at->equalTo($target)) {
+                    $media->occurred_at = $target;
+                    $media->save();
+                }
+            });
     }
 
     /**
