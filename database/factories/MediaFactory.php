@@ -30,7 +30,6 @@ class MediaFactory extends Factory
                 'show_title' => fake()->words(fake()->numberBetween(2, 4), true),
                 'season' => fake()->numberBetween(1, 8),
                 'episode' => fake()->numberBetween(1, 24),
-                'episode_title' => fake()->words(fake()->numberBetween(2, 4), true),
                 'runtime' => fake()->numberBetween(25, 65),
             ],
             'book' => [

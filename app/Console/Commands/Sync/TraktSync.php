@@ -160,7 +160,6 @@ class TraktSync extends Command
             'meta' => [
                 'season' => $episode['season'],
                 'episode' => $episode['number'],
-                'episode_title' => $episode['title'] ?? null,
                 'show_title' => $show['title'],
                 'show_slug' => $show['ids']['slug'] ?? null,
                 'runtime' => $episode['runtime'] ?? null,

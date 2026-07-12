@@ -99,7 +99,7 @@ class SeriesController extends Controller
             ->map(fn (Media $watch): array => [
                 'id' => $watch->id,
                 'occurredAt' => $watch->occurred_at->toIso8601String(),
-                'title' => $watch->meta['episode_title'] ?? $watch->title,
+                'title' => $watch->title,
                 'rating' => $watch->rating,
             ]);
 
@@ -206,7 +206,7 @@ class SeriesController extends Controller
                     'id' => $episode->id,
                     'season' => $episode->meta['season'] ?? null,
                     'episode' => $episode->meta['episode'] ?? null,
-                    'title' => $episode->meta['episode_title'] ?? $episode->title,
+                    'title' => $episode->title,
                     'occurredAt' => $episode->occurred_at->toIso8601String(),
                     'rating' => $episode->rating,
                 ])->values()->all(),

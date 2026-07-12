@@ -307,13 +307,12 @@ class DatabaseSeeder extends Seeder
             $episode = Media::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 23), fake()->numberBetween(0, 59)),
                 'type' => 'episode',
-                'title' => $showTitle,
+                'title' => fake()->words(fake()->numberBetween(2, 4), true),
                 'series_id' => $series->id,
                 'meta' => [
                     'show_title' => $showTitle,
                     'season' => $seasonNumber,
                     'episode' => $startEpisode + $i,
-                    'episode_title' => fake()->words(fake()->numberBetween(2, 4), true),
                     'runtime' => fake()->numberBetween(25, 65),
                 ],
             ]);
