@@ -4,6 +4,8 @@ import { StarIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import DetailList from '../Ui/DetailList.vue';
 import Pill from '../Ui/Pill.vue';
+import BackdropHero from '../Ui/BackdropHero.vue';
+import RatingBadges from '../Ui/RatingBadges.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -28,11 +30,17 @@ const rows = computed(() => [
 
 <template>
     <div class="space-y-8">
+        <!-- Decorative only (bleed off, no title overlay): the entry page's
+             own <h1> above already carries the title. -->
+        <BackdropHero v-if="entry.backdrop" testid="media-backdrop" :backdrop="entry.backdrop" :bleed="false" />
+
         <div v-if="entry.rating" class="flex items-center gap-2">
             <Icon :icon="StarIcon" class="size-5 text-accent-500" />
             <span class="font-display text-stat tnum">{{ entry.rating }}</span>
             <span class="text-meta text-neutral-500">/ 10</span>
         </div>
+
+        <RatingBadges :ratings="entry.ratings" />
 
         <div v-if="genres.length" class="flex flex-wrap gap-2">
             <Pill v-for="genre in genres" :key="genre" :label="genre" />

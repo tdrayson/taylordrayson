@@ -51,12 +51,17 @@ class SeriesController extends Controller
                 'year' => $series->year,
                 'overview' => $series->overview,
                 'poster' => $series->getFirstMediaUrl('cover', 'card') ?: null,
+                'backdrop' => $series->getFirstMediaUrl('backdrop') ?: null,
+                'logo' => $series->getFirstMediaUrl('logo') ?: null,
+                'network' => $series->meta['tmdb']['network'] ?? null,
                 'platformUrl' => $series->meta['ids']['slug'] ?? null
                     ? "https://trakt.tv/shows/{$series->meta['ids']['slug']}"
                     : null,
             ],
             'stats' => $this->stats($series),
             'seasons' => $this->seasons($series->episodes),
+            'ratings' => $series->meta['ratings'] ?? null,
+            'seasonList' => $this->seasonList($series),
         ]);
     }
 
@@ -77,6 +82,8 @@ class SeriesController extends Controller
             'series' => [
                 'slug' => $series->slug,
                 'title' => $series->title,
+                'backdrop' => $series->getFirstMediaUrl('backdrop') ?: null,
+                'logo' => $series->getFirstMediaUrl('logo') ?: null,
             ],
             'season' => $season,
             'stats' => $this->seasonStats($episodes),
@@ -128,6 +135,25 @@ class SeriesController extends Controller
             'watchSpan' => $series->watchSpan(),
             'totalHours' => round($series->totalRuntimeMinutes() / 60),
         ];
+    }
+
+    /**
+     * TMDB's season structure (`meta.season_list`), camelCased for the show
+     * page's season overview. Independent of which episodes we've actually
+     * watched, unlike seasons()/groupByWatchDate() below.
+     *
+     * @return array<int, array{number: ?int, name: ?string, episodeCount: ?int, airDate: ?string}>
+     */
+    private function seasonList(Series $series): array
+    {
+        return collect($series->meta['season_list'] ?? [])
+            ->map(fn (array $season): array => [
+                'number' => $season['number'] ?? null,
+                'name' => $season['name'] ?? null,
+                'episodeCount' => $season['episode_count'] ?? null,
+                'airDate' => $season['air_date'] ?? null,
+            ])
+            ->all();
     }
 
     /**

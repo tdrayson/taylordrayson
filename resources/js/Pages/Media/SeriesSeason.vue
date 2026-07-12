@@ -4,11 +4,12 @@ import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import SeriesStats from '../../Components/Ui/SeriesStats.vue';
 import WatchDateGroup from '../../Components/Ui/WatchDateGroup.vue';
+import BackdropHero from '../../Components/Ui/BackdropHero.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    // { slug, title }
+    // { slug, title, backdrop, logo }
     series: { type: Object, required: true },
     season: { type: Number, required: true },
     // { episodesWatched, watchSpan, totalHours } - season-scoped, no seasons/progress.
@@ -30,7 +31,11 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="{ title: `${series.title}, Season ${season}`, heading: `Season ${season}`, eyebrow: series.title, accent: 'media' }" />
+    <AppHead :og="{ title: `${series.title}, Season ${season}`, heading: `Season ${season}`, eyebrow: series.title, accent: 'media', image: series.backdrop }" />
+
+    <!-- Decorative only, no title overlay: the "Season N" heading below stays
+         the page's single h1. -->
+    <BackdropHero v-if="series.backdrop" testid="season-backdrop" :backdrop="series.backdrop" class="mb-8" />
 
     <header>
         <span class="text-eyebrow uppercase" :style="accentStyle">{{ series.title }}</span>

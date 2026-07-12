@@ -9,6 +9,7 @@ use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Media;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
@@ -135,6 +136,11 @@ class EntryController extends Controller
 
         if ($model instanceof Activity || $model instanceof Note || $model instanceof Event) {
             $data['photos'] = $model->galleryPhotos();
+        }
+
+        if ($model instanceof Media && $model->type === 'film') {
+            $data['backdrop'] = $model->getFirstMediaUrl('backdrop') ?: null;
+            $data['ratings'] = $model->meta['ratings'] ?? null;
         }
 
         if ($model instanceof Event) {
