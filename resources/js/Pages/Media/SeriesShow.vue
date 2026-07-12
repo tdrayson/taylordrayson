@@ -1,6 +1,6 @@
 <script setup>
 import { setLayoutProps } from '@inertiajs/vue3';
-import { Film01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { Film01Icon, StarIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
@@ -13,7 +13,7 @@ import BackdropHero from '../../Components/Ui/BackdropHero.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    // { slug, title, year, overview, poster, backdrop, logo, network, platformUrl }
+    // { slug, title, year, overview, poster, backdrop, logo, network, rating, platformUrl }
     series: { type: Object, required: true },
     stats: { type: Object, required: true },
     // [{ season, dates: [{ date, anchor, episodes }] }]
@@ -82,6 +82,11 @@ setLayoutProps({
             <div v-if="series.year || series.network" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-neutral-500" :class="series.backdrop ? '' : 'mt-1'">
                 <span v-if="series.year">{{ series.year }}</span>
                 <span v-if="series.network">{{ series.network }}</span>
+            </div>
+
+            <div v-if="series.rating" data-testid="series-rating" class="mt-2 flex items-center gap-1.5 text-meta text-neutral-500">
+                <Icon :icon="StarIcon" class="size-4 text-accent-500" />
+                <span>{{ series.rating }} / 10</span>
             </div>
 
             <p v-if="series.overview" class="mt-4 max-w-prose text-body text-neutral-700">{{ series.overview }}</p>

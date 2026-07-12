@@ -54,6 +54,7 @@ class SeriesController extends Controller
                 'backdrop' => $series->getFirstMediaUrl('backdrop') ?: null,
                 'logo' => $series->getFirstMediaUrl('logo') ?: null,
                 'network' => $series->meta['tmdb']['network'] ?? null,
+                'rating' => $series->meta['rating'] ?? null,
                 'platformUrl' => $series->meta['ids']['slug'] ?? null
                     ? "https://trakt.tv/shows/{$series->meta['ids']['slug']}"
                     : null,

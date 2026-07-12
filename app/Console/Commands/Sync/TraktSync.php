@@ -41,9 +41,126 @@ class TraktSync extends Command
         $filmsCreated = $this->importMovies($trakt, $startAt, $existing);
         $episodesCreated = $this->importEpisodes($trakt, $startAt, $existing);
 
+        $this->syncRatings($trakt);
+
         $this->info("Synced {$filmsCreated} film(s) and {$episodesCreated} episode(s).");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Pull the user's personal star ratings (1-10) for movies, shows, and
+     * episodes, and apply them onto the matching Media/Series rows. This is
+     * Taylor's own opinion, not an aggregate external score, so it's synced
+     * separately from watch history and applied by matching each item's
+     * `meta.ids.trakt` (or `Series.trakt_id`) against the ratings payload.
+     */
+    private function syncRatings(Trakt $trakt): void
+    {
+        $movieRatings = $this->fetchAllRatingPages($trakt, 'movies');
+        $episodeRatings = $this->fetchAllRatingPages($trakt, 'episodes');
+        $showRatings = $this->fetchAllRatingPages($trakt, 'shows');
+
+        $this->applyMediaRatings('film', 'movie', $movieRatings);
+        $this->applyMediaRatings('episode', 'episode', $episodeRatings);
+        $this->applySeriesRatings($showRatings);
+    }
+
+    /**
+     * Apply ratings onto every Media row of the given type whose
+     * `meta.ids.trakt` matches an id in the ratings map. Matching happens in
+     * PHP against the loaded collection (not a JSON-path `where`) since
+     * production isn't SQLite. A film/episode watched (and rated) multiple
+     * times has multiple rows sharing the same Trakt id, so every matching
+     * row gets the rating.
+     *
+     * @param  array<int|string, int>  $ratings  Trakt id => rating.
+     */
+    private function applyMediaRatings(string $mediaType, string $idsKey, array $ratings): void
+    {
+        if ($ratings === []) {
+            return;
+        }
+
+        Media::query()->where('source', 'trakt')->where('type', $mediaType)->get()
+            ->each(function (Media $media) use ($ratings): void {
+                $traktId = $media->meta['ids']['trakt'] ?? null;
+
+                if ($traktId === null || ! array_key_exists($traktId, $ratings)) {
+                    return;
+                }
+
+                $rating = $ratings[$traktId];
+
+                if ($media->rating !== $rating) {
+                    $media->rating = $rating;
+                    $media->save();
+                }
+            });
+    }
+
+    /**
+     * @param  array<int|string, int>  $ratings  Trakt id => rating.
+     */
+    private function applySeriesRatings(array $ratings): void
+    {
+        if ($ratings === []) {
+            return;
+        }
+
+        Series::all()->each(function (Series $series) use ($ratings): void {
+            if ($series->trakt_id === null || ! array_key_exists($series->trakt_id, $ratings)) {
+                return;
+            }
+
+            $rating = $ratings[$series->trakt_id];
+
+            if (($series->meta['rating'] ?? null) === $rating) {
+                return;
+            }
+
+            $series->meta = array_merge($series->meta ?? [], ['rating' => $rating]);
+            $series->save();
+        });
+    }
+
+    /**
+     * Page through a ratings endpoint until an empty batch signals the end,
+     * building a flat map of Trakt id => rating. A null return from
+     * `ratingsPage` (request failed, or nothing rated in that category) just
+     * means an empty map, not an error.
+     *
+     * @return array<int|string, int>
+     */
+    private function fetchAllRatingPages(Trakt $trakt, string $type): array
+    {
+        $ratings = [];
+        $page = 1;
+
+        while (true) {
+            $batch = $trakt->ratingsPage($type, $page);
+
+            if ($batch === null || $batch === []) {
+                break;
+            }
+
+            foreach ($batch as $item) {
+                $key = match ($type) {
+                    'movies' => $item['movie']['ids']['trakt'] ?? null,
+                    'shows' => $item['show']['ids']['trakt'] ?? null,
+                    'episodes' => $item['episode']['ids']['trakt'] ?? null,
+                    default => null,
+                };
+
+                if ($key !== null) {
+                    $ratings[$key] = $item['rating'];
+                }
+            }
+
+            $page++;
+        }
+
+        return $ratings;
     }
 
     /**

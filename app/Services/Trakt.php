@@ -34,6 +34,20 @@ class Trakt
     }
 
     /**
+     * Fetch one page of the user's personal star ratings for a given media type.
+     *
+     * @param  string  $type  One of "movies", "shows", or "episodes".
+     * @return array<int, array<string, mixed>>|null
+     */
+    public function ratingsPage(string $type, int $page, int $limit = 100): ?array
+    {
+        return $this->get('/users/'.config('services.trakt.username')."/ratings/{$type}", [
+            'page' => $page,
+            'limit' => $limit,
+        ]);
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function show(int|string $traktId): ?array
