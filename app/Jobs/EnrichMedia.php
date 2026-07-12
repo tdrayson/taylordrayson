@@ -83,13 +83,15 @@ class EnrichMedia implements ShouldQueue
         $meta['tmdb'] = array_filter([
             'id' => $detail['id'] ?? $this->tmdbId,
             'status' => $detail['status'] ?? null,
+            'network' => ! empty($detail['networks']) ? ($detail['networks'][0]['name'] ?? null) : null,
             'genres' => ! empty($detail['genres']) ? array_column($detail['genres'], 'name') : null,
             'tagline' => $detail['tagline'] ?? null,
             'vote' => $detail['vote_average'] ?? null,
         ], fn ($value): bool => $value !== null && $value !== [] && $value !== '');
 
         if ($this->kind === 'tv') {
-            $meta['seasons'] = $detail['number_of_seasons'] ?? null;
+            // Keep any existing (Trakt-derived) count if TMDB omits number_of_seasons.
+            $meta['seasons'] = $detail['number_of_seasons'] ?? ($meta['seasons'] ?? null);
             $meta['season_list'] = collect($detail['seasons'] ?? [])
                 ->map(fn (array $season): array => [
                     'number' => $season['season_number'] ?? null,
