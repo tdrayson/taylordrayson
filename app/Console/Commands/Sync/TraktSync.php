@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Jobs\FetchTraktPoster;
+use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
 use App\Services\Trakt;
@@ -133,9 +133,7 @@ class TraktSync extends Command
         $summary = $poster ? null : $trakt->movie($movie['ids']['trakt'] ?? null);
         $posterUrl = $this->posterUrl($movie, $summary);
 
-        if ($posterUrl) {
-            FetchTraktPoster::dispatch($media, $posterUrl);
-        }
+        EnrichMedia::dispatch($media, 'movie', $movie['ids']['tmdb'] ?? null, $movie['ids']['imdb'] ?? null, $posterUrl);
     }
 
     /**
@@ -170,9 +168,7 @@ class TraktSync extends Command
         if ($wasNew) {
             $posterUrl = $this->posterUrl($show, $summary);
 
-            if ($posterUrl) {
-                FetchTraktPoster::dispatch($series, $posterUrl);
-            }
+            EnrichMedia::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $show['ids']['imdb'] ?? null, $posterUrl);
         }
     }
 

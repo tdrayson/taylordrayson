@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\FetchTraktPoster;
+use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
 use Illuminate\Support\Facades\Bus;
@@ -73,5 +73,5 @@ it('imports films and episodes, groups same-name shows by distinct trakt id, and
     // One poster per new subject: the film (poster embedded in the history
     // item) and both new shows (poster resolved via the /shows/{id} summary
     // fallback, since the inline `show` payload carries no `images`).
-    Bus::assertDispatched(FetchTraktPoster::class, 3);
+    Bus::assertDispatched(EnrichMedia::class, 3);
 });
