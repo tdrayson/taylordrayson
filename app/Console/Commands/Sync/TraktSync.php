@@ -57,12 +57,17 @@ class TraktSync extends Command
      */
     private function syncRatings(Trakt $trakt): void
     {
+        // Ratings are "last known wins": a title later un-rated on Trakt keeps
+        // its stored value rather than being cleared. This is deliberate. A
+        // ratings fetch can transiently fail (returning an empty map), and
+        // clearing on absence would then wipe every rating, so we only ever
+        // set ratings that are present, never remove them.
         $movieRatings = $this->fetchAllRatingPages($trakt, 'movies');
         $episodeRatings = $this->fetchAllRatingPages($trakt, 'episodes');
         $showRatings = $this->fetchAllRatingPages($trakt, 'shows');
 
-        $this->applyMediaRatings('film', 'movie', $movieRatings);
-        $this->applyMediaRatings('episode', 'episode', $episodeRatings);
+        $this->applyMediaRatings('film', $movieRatings);
+        $this->applyMediaRatings('episode', $episodeRatings);
         $this->applySeriesRatings($showRatings);
     }
 
@@ -76,7 +81,7 @@ class TraktSync extends Command
      *
      * @param  array<int|string, int>  $ratings  Trakt id => rating.
      */
-    private function applyMediaRatings(string $mediaType, string $idsKey, array $ratings): void
+    private function applyMediaRatings(string $mediaType, array $ratings): void
     {
         if ($ratings === []) {
             return;
