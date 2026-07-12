@@ -14,7 +14,12 @@ const props = defineProps({
 
 const meta = computed(() => props.entry.meta || {});
 
-const genres = computed(() => (Array.isArray(meta.value.genres) ? meta.value.genres : []));
+// TMDB enrichment stores genres under meta.tmdb.genres; fall back to a
+// top-level meta.genres for any legacy/other source.
+const genres = computed(() => {
+    const source = meta.value.tmdb?.genres ?? meta.value.genres;
+    return Array.isArray(source) ? source : [];
+});
 
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
