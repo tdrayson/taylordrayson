@@ -81,4 +81,8 @@ return [
         'image_base' => env('TMDB_IMAGE_BASE', 'https://image.tmdb.org/t/p/'),
     ],
 
+    'omdb' => [
+        'key' => env('OMDB_API_KEY'),
+    ],
+
 ];
