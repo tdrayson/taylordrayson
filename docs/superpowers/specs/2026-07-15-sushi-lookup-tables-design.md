@@ -22,9 +22,10 @@ Two findings shaped this design:
 | Canonical data location | `database/lookups/{airlines,airports}.csv`, moved out of `data/` |
 | Why not `data/` | `data/` holds regenerated mirrors of personal timeline data; these two files become canonical and must never be overwritten by an export |
 | Validation | Replace `exists:` with `App\Rules\ExistsOnModel` (model-bound, connection-agnostic) |
-| Test data | `getRows()` returns `[]` under `runningUnitTests()`, with an explicit `$schema` |
+| Test data | `getRows()` returns `[]` under `app()->environment('testing')`, with an explicit `$schema` |
 | Caching | On in dev/prod, **off under test** — a cached empty row set would poison the shared cache file |
 | Test churn | **None.** All five test files keep their inline `Airport::create` / `Airline::create` and factories |
+| Prior art | Lift from the closed `feat/flat-file-storage` branch, which already built this. Diverge deliberately on three points (below) |
 | Timestamps | `$timestamps = false` (CSVs carry none; nothing reads them) |
 | Import/export | `airline` / `airport` entries removed from `ImportCsv` and `ExportCsv` |
 
@@ -49,8 +50,8 @@ A small single-purpose helper that reads a CSV into an array of associative rows
 
 Each gains `use Sushi`, an explicit `$schema`, `$timestamps = false`, and three methods:
 
-- `getRows()` — returns `[]` when `app()->runningUnitTests()`, otherwise reads the canonical CSV via `LookupCsv`.
-- `sushiShouldCache()` — `! app()->runningUnitTests()`. Caching **must** be off under test, see below.
+- `getRows()` — returns `[]` when `app()->environment('testing')`, otherwise reads the canonical CSV via `LookupCsv`. (`phpunit.xml` sets `APP_ENV=testing`, so this is reliable.)
+- `sushiShouldCache()` — `! app()->environment('testing')`. Caching **must** be off under test, see below.
 - `sushiCacheReferencePath()` — points at the CSV, so editing it busts the cache. Without this, Sushi compares against the *model file's* mtime and would serve stale data after a CSV edit.
 
 **Why caching must be disabled under test.** The cache file is per-model, at a fixed path shared by every environment on the machine. If tests cached their empty row set, the file would be written with zero rows; a later dev request would compare the CSV's mtime, find it unchanged, judge the cache fresh, and serve an empty lookup table. Tests would silently poison the dev environment, and the failure would look like missing data rather than a stale cache. With caching off under test, Sushi falls back to in-memory and never touches the shared cache file.
@@ -107,7 +108,7 @@ The test environment returns `[]` rows, so every existing test keeps its inline 
 
 Additions:
 
-- `tests/Pest.php` gains a `beforeEach` truncating both models. Sushi's table persists for the life of the process, so without this, rows leak between tests and duplicate codes violate the unique indexes.
+- **No `beforeEach` truncate.** An earlier draft of this spec mandated one, justified by "duplicate codes violate the unique indexes". That reasoning was wrong: Sushi's `$schema` declares column *types* only and creates no indexes. With caching off under test, Sushi uses an in-memory SQLite database that is rebuilt when the app is, i.e. per test, so rows do not leak. The closed `feat/flat-file-storage` branch shipped this same design with no truncate and a passing suite. Implementation verifies this by running the suite; the truncate is added only if leakage actually appears.
 - A unit test for `LookupCsv`.
 - A test that reads the real `database/lookups/*.csv` **through `LookupCsv` directly, not via the models**, asserting row counts and the presence of required columns. The models' `[]` shortcut hides the real path from every other test, so this is the only thing guarding it.
 
@@ -117,8 +118,32 @@ Additions:
 - Touching the logo accessors or `FetchAirlineLogos`.
 - Any change to `data/` beyond removing the two moved files.
 
+## Prior art — `feat/flat-file-storage` (PR #17, closed)
+
+The closed branch already implemented this exact migration. Leftover cache files (`storage/framework/cache/sushi-app-models-{airline,airport}.sqlite`) are what revealed it. It independently reached the same conclusions, including `sushiShouldCache()` returning `! app()->environment('testing')`, which is strong validation of the caching decision above.
+
+Implementation lifts from that branch (`git show origin/feat/flat-file-storage:<path>`) rather than writing from scratch:
+
+| Component | Action |
+| --- | --- |
+| `composer.json` | `calebporzio/sushi: ^2.5` — the version it used |
+| `app/Rules/ExistsOnModel.php` | lift verbatim |
+| `app/Models/{Airline,Airport}.php` | lift the Sushi additions, adjusting the CSV path |
+| `Store/UpdateFlightRequest` | lift the rule swaps verbatim |
+| `tests/Feature/Content/SushiLookupTest.php` | lift, adjusting paths |
+
+Three deliberate divergences:
+
+1. **CSV location.** It used `base_path('data/...')`; we use `database_path('lookups/...')`, per the Decisions table.
+2. **Missing-file behaviour.** Its `CsvLookupRows::from()` returns `[]` when the file is absent or unreadable. Ours throws. Silently returning `[]` is the exact failure this spec guards against: with caching on, a missing CSV in production would cache an empty lookup table and surface as inexplicable missing data rather than an error.
+3. **Migration `down()`.** Its `down()` is intentionally empty; ours recreates both tables to match `2026_03_18_010000_create_app_tables.php`, keeping the migration reversible.
+
+Naming: our helper is `App\Support\LookupCsv`, not `CsvLookupRows`.
+
 ## Notes
 
 - Verified no code reads `airline->id`, `airport->id`, or their timestamps. `FlightResource` exposes only `icao` / `iata` / `name`.
+- `$timestamps = false` is safe: Sushi only adds timestamp columns when a model uses them, and nothing reads them here.
+- Sushi's `$schema` declares column types only; the unique indexes that existed on the real tables (`airports_iata_code_unique`, `airlines_icao_code_unique`) do not carry over. Nothing depends on them, as all lookups go through `where(...)->first()`.
 - The one piece of magic is `getRows()` behaving differently under test. It is the price of keeping five test files unchanged and preserving their controlled fixtures.
 - `feat/flat-file-storage` (PR #17, closed) remains on origin as the source for `ExistsOnModel`.
