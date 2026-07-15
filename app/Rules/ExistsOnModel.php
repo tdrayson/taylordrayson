@@ -19,7 +19,7 @@ class ExistsOnModel implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! $this->modelClass::query()->where($this->column, $value)->exists()) {
-            $fail(__('validation.exists', ['attribute' => $attribute]));
+            $fail('validation.exists')->translate();
         }
     }
 }

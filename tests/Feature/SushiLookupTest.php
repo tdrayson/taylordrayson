@@ -3,6 +3,7 @@
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Flight;
+use App\Rules\ExistsOnModel;
 use App\Support\LookupCsv;
 
 it('loads the real airline and airport rows from the canonical csvs', function () {
@@ -65,4 +66,21 @@ it('disables airport caching under test to prevent cache poisoning', function ()
 
     expect($reflection->invoke($airport))->toBeFalse('Airport must not cache in test environment')
         ->and($airport->getRows())->toBe([], 'Airport must return empty rows in test environment');
+});
+
+/**
+ * Regression: ExistsOnModel must humanize the attribute name in its error message
+ * the same way Laravel's built-in `exists:` rule does. A previous implementation
+ * interpolated the raw attribute name (e.g. "airline_icao"), producing a message
+ * that read differently from every other field's validation error in the same
+ * response. Asserting only the error key would not have caught this.
+ */
+it('humanizes the attribute name in the exists on model error message', function () {
+    $validator = validator(
+        ['airline_icao' => 'ZZZ'],
+        ['airline_icao' => [new ExistsOnModel(Airline::class, 'icao_code')]],
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('airline_icao'))->toBe('The selected airline icao is invalid.');
 });
