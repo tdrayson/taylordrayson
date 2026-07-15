@@ -38,3 +38,31 @@ it('resolves flight airline and airport relations across the sushi connection', 
         ->and($flight->destination?->city)->toBe('New York')
         ->and($flight->origin?->place)->toBe('London, GB');
 });
+
+/**
+ * Regression: Airline model must NOT cache under test. A cached empty row set
+ * would poison the shared Sushi cache file, causing later dev requests to serve
+ * no airlines even when the CSV is unchanged.
+ */
+it('disables airline caching under test to prevent cache poisoning', function () {
+    $airline = new Airline;
+    $reflection = new ReflectionMethod($airline, 'sushiShouldCache');
+    $reflection->setAccessible(true);
+
+    expect($reflection->invoke($airline))->toBeFalse('Airline must not cache in test environment')
+        ->and($airline->getRows())->toBe([], 'Airline must return empty rows in test environment');
+});
+
+/**
+ * Regression: Airport model must NOT cache under test. A cached empty row set
+ * would poison the shared Sushi cache file, causing later dev requests to serve
+ * no airports even when the CSV is unchanged.
+ */
+it('disables airport caching under test to prevent cache poisoning', function () {
+    $airport = new Airport;
+    $reflection = new ReflectionMethod($airport, 'sushiShouldCache');
+    $reflection->setAccessible(true);
+
+    expect($reflection->invoke($airport))->toBeFalse('Airport must not cache in test environment')
+        ->and($airport->getRows())->toBe([], 'Airport must return empty rows in test environment');
+});
