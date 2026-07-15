@@ -4,7 +4,7 @@
 
 **Goal:** Move `airlines` (5,842 rows) and `airports` (9,070 rows) out of the app database onto Sushi-backed Eloquent models reading canonical CSVs from `database/lookups/`.
 
-**Architecture:** Sushi builds a cached SQLite database per model from CSV, so `Airline` and `Airport` stay ordinary Eloquent models. Caching is on in dev/prod and off under test, where `getRows()` returns `[]` so existing tests keep their own inline fixtures. The six connection-bound `exists:` validation rules become a model-bound `ExistsOnModel` rule.
+**Architecture:** Sushi builds a cached SQLite database per model from CSV, so `Airline` and `Airport` stay ordinary Eloquent models. Caching is on in dev/prod and off under test, where `getRows()` returns `[]` so existing tests keep their own inline fixtures. Two things are connection-bound and must change: the six `exists:` validation rules become a model-bound `ExistsOnModel` rule (Task 4), and advanced search's `whereHas` on the airline relation becomes a two-step key resolution (Task 5).
 
 **Tech Stack:** PHP 8.4, Laravel 13, Pest 4, `calebporzio/sushi` ^2.5, SQLite.
 
@@ -657,7 +657,123 @@ git commit -m "feat: validate airline and airport codes through the model"
 
 ---
 
-### Task 5: Drop the tables and remove the import/export mappings
+### Task 5: Cross-connection relation search in `SearchCompiler`
+
+**Files:**
+- Modify: `app/Search/SearchCompiler.php` (the `applyCondition()` relation branch, around lines 259-266)
+- Test: `tests/Feature/AdvancedSearchTest.php` (run only, do not edit)
+
+**Interfaces:**
+- Consumes: `Airline` as a Sushi model from Task 3.
+- Produces: `applyCondition()` handling relations whose model lives on another connection. No new public API.
+
+**Why:** `SearchSchema` line 80 declares the airline search field as `'relation' => 'airline'`. `applyCondition()` turns any field with a `relation` key into `whereHas`, which compiles to a correlated subquery and cannot reach Sushi's separate connection. `airline` is the only `relation` field in the whole schema, so this is the only affected search. Today it silently returns zero results; after Task 6 drops the table it would throw "no such table: airlines".
+
+- [ ] **Step 1: Run the failing test to see the current red bar**
+
+Run: `php artisan test --compact --filter=AdvancedSearchTest`
+Expected: FAIL, 1 of 25. `it ANDs conditions within a group (flights over 300mi with easyJet)` reports `Failed asserting that 0 is identical to 1` at `tests/Feature/AdvancedSearchTest.php:77`.
+
+- [ ] **Step 2: Add the cross-connection branch**
+
+In `app/Search/SearchCompiler.php`, replace this block inside `applyCondition()`:
+
+```php
+        if (isset($field['relation'])) {
+            $query->whereHas(
+                $field['relation'],
+                fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null)
+            );
+
+            return;
+        }
+```
+
+with:
+
+```php
+        if (isset($field['relation'])) {
+            $this->relationClause($query, $field, $operator, $value);
+
+            return;
+        }
+```
+
+Then add these two methods to the class, directly after `applyCondition()`:
+
+```php
+    /**
+     * Constrain a parent query by a condition on a related model.
+     *
+     * A whereHas compiles to a correlated subquery, which only reaches tables
+     * on the query's own connection. Sushi-backed lookups (Airline, Airport)
+     * live on their own connection, so for those we resolve the matching keys
+     * first and filter the parent by its foreign key instead.
+     *
+     * @param  array<string, mixed>  $field  The field definition (column, dataType, relation).
+     */
+    private function relationClause(Builder $query, array $field, string $operator, mixed $value): void
+    {
+        $relation = $query->getModel()->{$field['relation']}();
+
+        if (! $this->isCrossConnection($query, $relation)) {
+            $query->whereHas(
+                $field['relation'],
+                fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null)
+            );
+
+            return;
+        }
+
+        $related = $relation->getRelated()->newQuery();
+        $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
+
+        $query->whereIn(
+            $relation->getForeignKeyName(),
+            $related->pluck($relation->getOwnerKeyName())->all()
+        );
+    }
+
+    /**
+     * Whether a relation's model resolves to a different database connection
+     * than the query it is being applied to.
+     */
+    private function isCrossConnection(Builder $query, BelongsTo $relation): bool
+    {
+        return $relation->getRelated()->getConnection()->getName()
+            !== $query->getModel()->getConnection()->getName();
+    }
+```
+
+Add to the `use` block at the top of the file:
+
+```php
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+```
+
+**Note on scope:** `airline` is the only `relation` field in the schema and it is a `BelongsTo`. The `isCrossConnection()` signature types that assumption explicitly, so a future non-BelongsTo relation fails loudly at the type boundary rather than silently producing wrong results.
+
+- [ ] **Step 3: Run the test to verify it passes**
+
+Run: `php artisan test --compact --filter=AdvancedSearchTest`
+Expected: PASS, 25 of 25. `tests/Feature/AdvancedSearchTest.php` must NOT be edited to achieve this.
+
+- [ ] **Step 4: Verify the whole search suite still passes**
+
+Run: `php artisan test --compact --filter=Search`
+Expected: PASS. This confirms the non-Sushi relation path (the `whereHas` branch) is untouched for other types.
+
+- [ ] **Step 5: Format and commit**
+
+```bash
+vendor/bin/pint --dirty --format agent
+git add app/Search/SearchCompiler.php
+git commit -m "fix: resolve sushi-backed relation filters without a correlated subquery"
+```
+
+---
+
+### Task 6: Drop the tables and remove the import/export mappings
 
 **Files:**
 - Create: `database/migrations/2026_07_15_120000_drop_airlines_and_airports_tables.php`
@@ -665,7 +781,7 @@ git commit -m "feat: validate airline and airport codes through the model"
 - Modify: `app/Console/Commands/Export/ExportCsv.php:32-33`
 
 **Interfaces:**
-- Consumes: Tasks 3 and 4 must be complete. Dropping the tables before the rule swap would break flight validation.
+- Consumes: Tasks 3, 4 and 5 must be complete. Dropping the tables before the rule swap and the search fix would break flight validation and airline search.
 - Produces: no `airlines`/`airports` tables in the app database; neither command references those models.
 
 - [ ] **Step 1: Create the migration**
@@ -766,7 +882,7 @@ git commit -m "feat: drop airline and airport tables, drop them from csv import/
 
 ---
 
-### Task 6: Full verification
+### Task 7: Full verification
 
 **Files:**
 - Modify: `tests/Pest.php` (only if Step 2 proves it necessary)

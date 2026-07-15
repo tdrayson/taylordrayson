@@ -12,7 +12,7 @@ Moving them to [Sushi](https://github.com/calebporzio/sushi) (Eloquent's array d
 
 Two findings shaped this design:
 
-1. **No `join` or `whereHas`** exists on these relations anywhere. The only eager load is `with(['airline', 'origin', 'destination'])` in `FlightController`, which runs as separate `whereIn` queries and therefore works across connections. This is what makes the migration viable at all.
+1. **One `whereHas` exists**, in advanced search. Eager loading (`with(['airline', 'origin', 'destination'])` in `FlightController`) is fine, because it runs as separate `whereIn` queries that work across connections. But `SearchCompiler::applyCondition()` filters flights by airline *name* through `whereHas($field['relation'], ...)`, a correlated subquery that cannot cross a connection boundary. See "Cross-connection search" below.
 2. **Six `exists:` validation rules** in the flight form requests are connection-bound and would break. The abandoned `feat/flat-file-storage` branch hit this same wall and solved it with an `App\Rules\ExistsOnModel` rule, which we lift verbatim.
 
 ## Decisions
@@ -60,7 +60,29 @@ Each gains `use Sushi`, an explicit `$schema`, `$timestamps = false`, and three 
 
 The existing `Attribute` accessors for `icon_url` / `logo_url` are untouched — they key off `iata_code` and are ordinary Eloquent.
 
-### 4. Validation — `app/Rules/ExistsOnModel.php`
+### 4. Cross-connection search — `SearchCompiler`
+
+**Discovered during implementation, after this spec was first approved.** An earlier draft claimed no `whereHas` existed on these relations. That was wrong. `SearchSchema` line 80 declares the airline search field as `'relation' => 'airline'`, and `SearchCompiler::applyCondition()` turns any field with a `relation` key into a `whereHas`. The relation name is a runtime value, not a literal, which is why a text search for `whereHas('airline'` found nothing. The lesson: trace how config is consumed, do not grep for literals.
+
+Impact is contained to one field. `airline` is the only `relation` in the entire schema; `origin` and `destination` filter on the `origin_iata` / `destination_iata` columns directly, so `Airport` is unaffected. Symptom today is a silent zero-result search; once the tables are dropped it becomes "no such table: airlines".
+
+**Resolution: two queries instead of one nested one.** When a relation's model sits on a different connection from its parent, resolve the matching keys on the related model's own connection, then constrain the parent by its foreign key:
+
+```php
+$codes = Airline::where('name', 'like', '%easyJet%')->pluck('icao_code'); // sushi connection
+$query->whereIn('airline_icao', $codes);                                  // default connection
+```
+
+Rejected alternatives:
+
+- **A plain `whereIn` subquery.** Fails identically. The issue is not correlation, it is that a single SQL statement reaches only the tables in the connection it runs on.
+- **SQLite `ATTACH DATABASE`.** Would allow one real cross-database query, but permanently couples the app to SQLite and requires managing the attach lifecycle around Sushi's cache rebuilds. Too much fragility to save one round trip.
+
+The extra round trip is acceptable: advanced search is low-traffic personal-use, and it hits a small cached table. `pluck` on a name match returns a handful of codes; the pathological worst case is all 5,842, well inside SQLite's variable limit.
+
+The branch is generic rather than airline-specific, so any future Sushi-backed relation is handled.
+
+### 5. Validation — `app/Rules/ExistsOnModel.php`
 
 Lifted verbatim from `origin/feat/flat-file-storage`. Six rules change across `StoreFlightRequest` and `UpdateFlightRequest`:
 
@@ -72,11 +94,11 @@ Lifted verbatim from `origin/feat/flat-file-storage`. Six rules change across `S
 'airline_icao' => ['required', 'string', new ExistsOnModel(Airline::class, 'icao_code')],
 ```
 
-### 5. Dropping the tables
+### 6. Dropping the tables
 
 A migration drops `airlines` and `airports`. Note `2026_03_18_010000_create_app_tables.php` creates them and is left alone; the new migration is the forward path, and its `down()` recreates both to match that original definition.
 
-### 6. Import/export
+### 7. Import/export
 
 `airline` and `airport` are removed from the model maps in `ImportCsv` (which called `$modelClass::create()`) and `ExportCsv`. Once the CSV *is* the table, round-tripping it through the database is redundant and would risk overwriting canonical data.
 
