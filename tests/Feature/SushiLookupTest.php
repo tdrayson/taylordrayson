@@ -16,6 +16,30 @@ it('loads the real airline and airport rows from the canonical csvs', function (
         ->and(collect($airports)->firstWhere('iata_code', 'LHR')['city'] ?? null)->toBe('London');
 });
 
+/**
+ * Regression: Sushi's $schema declares column types only and creates no unique
+ * indexes, unlike the dropped `airlines_icao_code_unique` / `airports_iata_code_unique`
+ * database constraints. If a future CSV edit ever introduces a duplicate key, nothing
+ * would catch it: Eloquent's belongsTo dictionary is last-one-wins, so a flight would
+ * silently resolve to the WRONG airline or airport with no error. This test is the
+ * only guard against that, since it reads the real CSVs directly.
+ */
+it('has no duplicate icao_code or iata_code keys in the canonical csvs', function () {
+    $airlines = collect(LookupCsv::from(database_path('lookups/airlines.csv')));
+    $airports = collect(LookupCsv::from(database_path('lookups/airports.csv')));
+
+    $airlineIcaoCodes = $airlines->pluck('icao_code')->filter();
+    $airportIataCodes = $airports->pluck('iata_code')->filter();
+
+    expect($airlineIcaoCodes->count())->toBe(
+        $airlineIcaoCodes->unique()->count(),
+        'Duplicate airline icao_code values would make flights resolve to the wrong airline (belongsTo is last-one-wins).'
+    )->and($airportIataCodes->count())->toBe(
+        $airportIataCodes->unique()->count(),
+        'Duplicate airport iata_code values would make flights resolve to the wrong airport (belongsTo is last-one-wins).'
+    );
+});
+
 it('starts with empty lookup tables under test', function () {
     expect(Airline::count())->toBe(0)
         ->and(Airport::count())->toBe(0);

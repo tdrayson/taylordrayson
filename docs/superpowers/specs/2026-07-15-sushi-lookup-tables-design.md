@@ -169,3 +169,13 @@ Naming: our helper is `App\Support\LookupCsv`, not `CsvLookupRows`.
 - Sushi's `$schema` declares column types only; the unique indexes that existed on the real tables (`airports_iata_code_unique`, `airlines_icao_code_unique`) do not carry over. Nothing depends on them, as all lookups go through `where(...)->first()`.
 - The one piece of magic is `getRows()` behaving differently under test. It is the price of keeping five test files unchanged and preserving their controlled fixtures.
 - `feat/flat-file-storage` (PR #17, closed) remains on origin as the source for `ExistsOnModel`.
+
+## Deployment
+
+Found during the final whole-branch review, not introduced by this branch: `cacheFileNotFoundOrStale()` in `vendor/calebporzio/sushi/src/Sushi.php` writes an empty cache file **before** calling `getRows()`, and only stamps `touch($cachePath, filemtime($dataPath))` **after** `getRows()` succeeds. If `getRows()` throws (for example, `LookupCsv` throwing on a missing CSV), the empty cache file is left behind with an mtime of now, newer than the CSV. The next boot compares mtimes, judges the cache fresh, and skips the rebuild, so the app serves `no such table: airlines` (or `airports`) until the cache is deleted or the CSV is touched. Sushi also takes no lock around the rebuild, so concurrent PHP-FPM workers on a cold VPS boot can race and truncate each other's cache mid-build. This is upstream Sushi behaviour, not something this branch introduced, but it is a real hazard on the release path described in "Infra/hosting".
+
+**Mitigation, on each release:**
+
+1. Delete the stale caches: `rm -f storage/framework/cache/sushi-*.sqlite`.
+2. Warm the cache single-threaded, before traffic is allowed in: `php artisan tinker --execute="App\Models\Airline::first(); App\Models\Airport::first();"`.
+3. Only then let PHP-FPM start serving requests.

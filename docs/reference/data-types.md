@@ -827,7 +827,7 @@ These do not appear directly in the timeline feed but support other models.
 
 ### Airport
 
-**Table:** `airports` · **Model:** `App\Models\Airport` · **CSV import:** `data/airports.csv`
+**Model:** `App\Models\Airport` · Sushi-backed lookup, no database table · **CSV:** `database/lookups/airports.csv`
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -870,7 +870,7 @@ These do not appear directly in the timeline feed but support other models.
 
 ### Airline
 
-**Table:** `airlines` · **Model:** `App\Models\Airline` · **CSV import:** `data/airlines.csv`
+**Model:** `App\Models\Airline` · Sushi-backed lookup, no database table · **CSV:** `database/lookups/airlines.csv`
 
 | Field | Type | Notes |
 |-------|------|-------|
