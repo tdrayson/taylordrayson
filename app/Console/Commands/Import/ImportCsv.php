@@ -22,7 +22,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 
-#[Signature('import:csv {file : Path to the CSV file} {type : The model type to import (e.g. calorie, activity, sleep)}')]
+#[Signature('import:csv {file : Path to the CSV file} {type : The model type to import (e.g. calorie, activity, sleep)} {--append : Add to the existing rows instead of replacing them}')]
 #[Description('Import data from a CSV file where headers match database columns')]
 class ImportCsv extends Command
 {
@@ -63,6 +63,20 @@ class ImportCsv extends Command
         }
 
         $modelClass = $this->models[$type];
+
+        if (! $this->option('append')) {
+            /**
+             * Replace, don't append: the CSVs are full canonical dumps, so a
+             * re-import should mirror the file rather than duplicate it. Deleted
+             * one model at a time (not a bulk query delete) so each fires its
+             * delete events and the TimelineEntryObserver clears the matching
+             * timeline entry and attached media.
+             */
+            $modelClass::query()->lazyById()->each(function (Model $record): void {
+                $record->delete();
+            });
+        }
+
         $model = new $modelClass;
         $fillable = $model->getFillable();
         $casts = $model->getCasts();
