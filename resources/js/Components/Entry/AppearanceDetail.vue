@@ -113,8 +113,9 @@ onBeforeUnmount(() => {
             <p class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.description }}</p>
         </div>
 
-        <div v-if="entry.url" class="flex flex-wrap gap-x-6 gap-y-3">
-            <ExternalLink :href="entry.url" label="Show page" />
+        <div v-if="entry.url || entry.video_url" class="flex flex-wrap gap-x-6 gap-y-3">
+            <ExternalLink v-if="entry.url" :href="entry.url" label="Show page" />
+            <ExternalLink v-if="entry.video_url" :href="entry.video_url" label="Watch on YouTube" />
         </div>
     </div>
 </template>
