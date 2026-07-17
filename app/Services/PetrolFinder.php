@@ -80,6 +80,24 @@ class PetrolFinder
     }
 
     /**
+     * The web domain for a brand name (e.g. "BP" -> "bp.com"), parsed from the
+     * brands endpoint's logo URL. Null when the brand is unlisted or the entry
+     * has no logo URL.
+     */
+    public function brandDomain(string $brand): ?string
+    {
+        $logo = $this->brands()[mb_strtoupper($brand)]['logo'] ?? null;
+
+        if ($logo === null) {
+            return null;
+        }
+
+        $domain = trim((string) parse_url($logo, PHP_URL_PATH), '/');
+
+        return $domain !== '' ? $domain : null;
+    }
+
+    /**
      * Map a raw API station to a result, standardising casing and resolving the
      * brand (and its logo) against the brands endpoint, falling back to a
      * title-cased brand name when the brand is not listed.
