@@ -75,6 +75,8 @@ class Activity extends Model implements HasMedia, Timelineable
             'meta' => [
                 'polyline' => data_get($this->meta, 'polyline'),
                 'photos' => $this->galleryPhotos(),
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
             ],
         ];
     }
