@@ -125,6 +125,17 @@ photo, and adds to the existing chain:
 
 omitting the properties entirely when interpolation returns `null`.
 
+It also always records `captured_at` (the photo's `created_at`) as a custom
+property, whether or not the photo could be located. Stored media otherwise keeps
+no record of capture time, and without it `strava:photo-locations` could not
+re-derive a position without re-fetching the photos endpoint, which would defeat
+its purpose.
+
+Consequence for the first run: the 134 existing photos predate `captured_at`, so
+they must be re-downloaded once via `strava:photos --force` before the backfill
+can locate them. Every re-derivation after that is free, which is the point of
+the trade-off.
+
 **`strava:photo-locations`** backfills coordinates onto existing media via
 `setCustomProperty()` + `save()`, fetching streams but never re-downloading
 images. Reuses `LocatePhotoOnRoute`.
