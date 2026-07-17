@@ -28,7 +28,7 @@ class StaticMap
      * using Mapbox's own auto-fit since there are no fixed-size markers to keep
      * stable.
      */
-    public static function route(?string $polyline, string $color = '2e9e6a', int $width = 1200, int $height = 630, int $padding = 64): ?string
+    public static function route(?string $polyline, string $color = '2e9e6a', int $width = 1200, int $height = 630, int $padding = 64, string $style = self::STYLE): ?string
     {
         if (! $polyline) {
             return null;
@@ -38,7 +38,7 @@ class StaticMap
 
         return sprintf(
             'https://api.mapbox.com/styles/v1/%s/static/%s/auto/%dx%d@2x?padding=%d&attribution=false&logo=false&access_token=%s',
-            self::STYLE, $overlay, $width, $height, $padding, config('services.mapbox.token')
+            $style, $overlay, $width, $height, $padding, config('services.mapbox.token')
         );
     }
 
