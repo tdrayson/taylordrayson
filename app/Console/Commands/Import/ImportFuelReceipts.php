@@ -18,7 +18,7 @@ class ImportFuelReceipts extends Command
     private const REVIEW_HEADER = [
         'receipt_file', 'receipt_time', 'fuel_id', 'fuel_occurred_at', 'delta_minutes',
         'receipt_lat', 'receipt_lng', 'station_name', 'brand', 'address', 'postcode',
-        'city', 'distance_km', 'alt1_name', 'alt2_name', 'flag',
+        'city', 'station_lat', 'station_lng', 'distance_km', 'alt1_name', 'alt2_name', 'flag',
     ];
 
     public function handle(PetrolFinder $petrolFinder, ExtractReceiptLocation $extract): int
@@ -102,6 +102,8 @@ class ImportFuelReceipts extends Command
                 $station?->address ?? '',
                 $station?->postcode ?? '',
                 $station?->city ?? '',
+                $station?->latitude ?? '',
+                $station?->longitude ?? '',
                 $station?->distance ?? '',
                 $stations[1]->stationName ?? '',
                 $stations[2]->stationName ?? '',
@@ -151,8 +153,8 @@ class ImportFuelReceipts extends Command
                 'postcode' => $data['postcode'] ?: null,
                 'city' => $data['city'] ?: null,
                 'country' => 'United Kingdom',
-                'latitude' => $data['receipt_lat'] ?: null,
-                'longitude' => $data['receipt_lng'] ?: null,
+                'latitude' => ($data['station_lat'] ?: $data['receipt_lat']) ?: null,
+                'longitude' => ($data['station_lng'] ?: $data['receipt_lng']) ?: null,
             ]);
             $updated++;
         }

@@ -45,6 +45,7 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
     $contents = File::get($this->review);
     expect($contents)->toContain('ASDA WALLINGTON');
     expect($contents)->toContain(','.$fuel->id.',');
+    expect($contents)->toContain('51.3767');
     // dry run writes nothing to the database
     expect($fuel->fresh()->station_name)->toBeNull();
 });
@@ -52,8 +53,8 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
 it('applies a reviewed csv onto fuel rows and regenerates the backup csv', function () {
     $fuel = Fuel::factory()->create(['station_name' => null]);
     File::ensureDirectoryExists(dirname($this->review));
-    $header = 'receipt_file,receipt_time,fuel_id,fuel_occurred_at,delta_minutes,receipt_lat,receipt_lng,station_name,brand,address,postcode,city,distance_km,alt1_name,alt2_name,flag';
-    $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,ASDA WALLINGTON,ASDA,MARLOW WAY,CR0 4XS,CROYDON,0.4,,,ok";
+    $header = 'receipt_file,receipt_time,fuel_id,fuel_occurred_at,delta_minutes,receipt_lat,receipt_lng,station_name,brand,address,postcode,city,station_lat,station_lng,distance_km,alt1_name,alt2_name,flag';
+    $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,ASDA WALLINGTON,ASDA,MARLOW WAY,CR0 4XS,CROYDON,51.3767,-0.1313,0.4,,,ok";
     File::put($this->review, $header."\n".$row."\n");
 
     $export = storage_path('app/test-fuel.csv');
@@ -69,5 +70,7 @@ it('applies a reviewed csv onto fuel rows and regenerates the backup csv', funct
     expect($fuel->station_name)->toBe('ASDA WALLINGTON');
     expect($fuel->brand)->toBe('ASDA');
     expect($fuel->country)->toBe('United Kingdom');
+    expect((float) $fuel->latitude)->toBe(51.3767);
+    expect((float) $fuel->longitude)->toBe(-0.1313);
     expect(File::get($export))->toContain('ASDA WALLINGTON');
 });
