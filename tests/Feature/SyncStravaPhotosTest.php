@@ -79,3 +79,27 @@ it('stores photos when the stream has no latlng key, as on an indoor activity', 
     expect($stored)->toBe(1)
         ->and($activity->refresh()->getFirstMedia('cover')->hasCustomProperty('latitude'))->toBeFalse();
 });
+
+it('stores a photo with malformed created_at and continues syncing subsequent photos', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    $stored = (new SyncStravaPhotos(new LocatePhotoOnRoute))(
+        $activity,
+        [
+            stravaPhotoPayload('photo-bad-date', 'not-a-valid-date'),
+            stravaPhotoPayload('photo-good-date', '2023-10-31T21:00:10Z'),
+        ],
+        syncStreams(),
+        CarbonImmutable::parse('2023-10-31T21:00:00Z'),
+    );
+
+    expect($stored)->toBe(2);
+
+    $cover = $activity->refresh()->getFirstMedia('cover');
+    $photos = $activity->getMedia('photos');
+
+    expect($cover)->not->toBeNull()
+        ->and($cover->hasCustomProperty('latitude'))->toBeFalse()
+        ->and($photos)->toHaveCount(1)
+        ->and($photos[0]->hasCustomProperty('latitude'))->toBeTrue();
+});

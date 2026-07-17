@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Activity;
 use Carbon\CarbonImmutable;
+use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -77,7 +78,7 @@ class SyncStravaPhotos
 
     /**
      * The route coordinate for a single photo, or null when it has no capture
-     * time or falls outside the activity's stream.
+     * time, an unparseable capture time, or falls outside the activity's stream.
      *
      * @param  array<string, mixed>  $photo
      * @param  array<int, int>  $timeStream
@@ -96,8 +97,14 @@ class SyncStravaPhotos
             return null;
         }
 
+        try {
+            $capturedTime = CarbonImmutable::parse($capturedAt);
+        } catch (InvalidFormatException) {
+            return null;
+        }
+
         return ($this->locate)(
-            CarbonImmutable::parse($capturedAt),
+            $capturedTime,
             $activityStart,
             $timeStream,
             $latlngStream,
