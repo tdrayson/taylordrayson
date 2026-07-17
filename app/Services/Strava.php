@@ -94,6 +94,20 @@ class Strava
     }
 
     /**
+     * The requested streams for an activity, keyed by stream type.
+     *
+     * @param  array<int, string>  $keys
+     * @return array<string, array{data: array<int, mixed>}>|null Null on a request failure.
+     */
+    public function activityStreams(int|string $id, array $keys = ['time', 'latlng']): ?array
+    {
+        return $this->getJson(self::BASE."/api/v3/activities/{$id}/streams", [
+            'keys' => implode(',', $keys),
+            'key_by_type' => 'true',
+        ]);
+    }
+
+    /**
      * GET a Strava endpoint with the bearer token attached, re-authenticating
      * once and retrying when the token has expired (a 401 response).
      *
