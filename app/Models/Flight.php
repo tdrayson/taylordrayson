@@ -151,6 +151,8 @@ class Flight extends Model implements HasMedia, Timelineable
                     'duration' => $this->duration,
                     'airline' => $this->relationLoaded('airline') && $this->airline ? ['name' => $this->airline->name, 'icon' => $this->airline->icon_url, 'number' => trim(($this->airline->iata_code ?: $this->airline_icao).' '.$this->flight_number)] : null,
                 ],
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
             ],
         ];
     }
