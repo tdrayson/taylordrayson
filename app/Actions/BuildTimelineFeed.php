@@ -60,6 +60,7 @@ class BuildTimelineFeed
             'polyline' => $card['meta']['polyline'] ?? null,
             'map' => $card['meta']['map'] ?? null,
             'mapDark' => $card['meta']['mapDark'] ?? null,
+            'brandLogo' => $card['meta']['brandLogo'] ?? null,
             'range' => $card['range'] ?? null,
             'time' => $local['time'],
             'datetime' => $local['iso'],
