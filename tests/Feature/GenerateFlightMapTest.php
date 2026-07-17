@@ -4,9 +4,11 @@ use App\Actions\GenerateFlightMap;
 use App\Models\Airport;
 use App\Models\Flight;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     config(['services.mapbox.token' => 'test-token']);
+    Storage::fake('public');
 });
 
 it('stores light and dark arc maps from the flight endpoints', function () {

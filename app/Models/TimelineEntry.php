@@ -49,11 +49,13 @@ class TimelineEntry extends Model implements Feedable
     public static function cardRelations(): array
     {
         return [
-            Flight::class => ['origin', 'destination', 'airline'],
+            Flight::class => ['origin', 'destination', 'airline', 'media'],
             Appearance::class => ['media'],
             Activity::class => ['media'],
             Article::class => ['media'],
             Event::class => ['media'],
+            Fuel::class => ['media'],
+            Checkin::class => ['media'],
         ];
     }
 

@@ -3,9 +3,11 @@
 use App\Actions\GenerateStaticMap;
 use App\Models\Activity;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     config(['services.mapbox.token' => 'test-token']);
+    Storage::fake('public');
 });
 
 it('stores light and dark route maps from the activity polyline', function () {

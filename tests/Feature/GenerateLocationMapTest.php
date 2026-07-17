@@ -4,6 +4,11 @@ use App\Actions\GenerateLocationMap;
 use App\Models\Checkin;
 use App\Models\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+
+beforeEach(function () {
+    Storage::fake('public');
+});
 
 it('generates and attaches a static pin map for an event with coordinates', function () {
     config()->set('services.mapbox.token', 'test-token');
