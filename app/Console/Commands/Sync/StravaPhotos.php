@@ -115,7 +115,7 @@ class StravaPhotos extends Command
         foreach ($targets as $target) {
             $activity = $target['activity'];
 
-            if ($requestsInWindow >= self::RATE_LIMIT) {
+            if ($requestsInWindow >= self::RATE_LIMIT - 1) {
                 $wait = self::RATE_WINDOW - (time() - $windowStart);
 
                 if ($wait > 0) {
@@ -136,7 +136,14 @@ class StravaPhotos extends Command
                 continue;
             }
 
-            $count = $sync($activity, $photos);
+            $streams = $strava->activityStreams($activity->source_id);
+            $requestsInWindow++;
+
+            if ($streams === null) {
+                $this->warn("Failed to fetch streams for {$activity->source_id}, storing photos without map positions.");
+            }
+
+            $count = $sync($activity, $photos, $streams, $target['start']);
             $stored += $count;
 
             $this->info("[{$stored}] {$activity->name} - {$count} photo(s)");
