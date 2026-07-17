@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
 use App\Services\Strava;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -14,13 +16,11 @@ use Illuminate\Support\Collection;
 #[Description('Backfill Strava photos for existing activities, stored as cover + photo gallery media')]
 class StravaPhotos extends Command
 {
-    private const PER_PAGE = 200;
-
     private const RATE_LIMIT = 95;
 
     private const RATE_WINDOW = 900;
 
-    public function handle(Strava $strava, SyncStravaPhotos $sync): int
+    public function handle(Strava $strava, SyncStravaPhotos $sync, FetchStravaActivitySummaries $summaries): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -28,7 +28,7 @@ class StravaPhotos extends Command
             return self::FAILURE;
         }
 
-        $targets = $this->resolveTargets($strava);
+        $targets = $this->resolveTargets($summaries);
 
         if ($targets === null) {
             return self::FAILURE;
@@ -51,13 +51,21 @@ class StravaPhotos extends Command
     }
 
     /**
-     * Page the Strava activity list and resolve the local activities that have
-     * photos on Strava but (unless forced) no stored photo media yet.
+     * The local activities that have photos on Strava but (unless forced) no
+     * stored photo media yet, each paired with the activity's UTC start.
      *
-     * @return Collection<int, Activity>|null Null on a request failure.
+     * @return Collection<int, array{activity: Activity, start: ?CarbonImmutable}>|null Null on a request failure.
      */
-    private function resolveTargets(Strava $strava): ?Collection
+    private function resolveTargets(FetchStravaActivitySummaries $summaries): ?Collection
     {
+        $remote = $summaries();
+
+        if ($remote === null) {
+            $this->error('Strava request failed while listing activities.');
+
+            return null;
+        }
+
         $ours = Activity::query()
             ->where('source', 'strava')
             ->whereNotNull('source_id')
@@ -67,40 +75,26 @@ class StravaPhotos extends Command
 
         $force = (bool) $this->option('force');
         $targets = collect();
-        $page = 1;
 
-        while (true) {
-            $batch = $strava->activitiesPage($page, self::PER_PAGE);
-
-            if ($batch === null) {
-                $this->error("Strava request failed on page {$page}.");
-
-                return null;
+        foreach ($remote as $sourceId => $summary) {
+            if ($summary['total_photo_count'] < 1) {
+                continue;
             }
 
-            if ($batch === []) {
-                break;
+            $activity = $ours->get($sourceId);
+
+            if (! $activity) {
+                continue;
             }
 
-            foreach ($batch as $summary) {
-                if ((int) ($summary['total_photo_count'] ?? 0) < 1) {
-                    continue;
-                }
-
-                $activity = $ours->get((string) $summary['id']);
-
-                if (! $activity) {
-                    continue;
-                }
-
-                if (! $force && $activity->getMedia('cover')->isNotEmpty()) {
-                    continue;
-                }
-
-                $targets->push($activity);
+            if (! $force && $activity->getMedia('cover')->isNotEmpty()) {
+                continue;
             }
 
-            $page++;
+            $targets->push([
+                'activity' => $activity,
+                'start' => filled($summary['start_date']) ? CarbonImmutable::parse($summary['start_date']) : null,
+            ]);
         }
 
         return $targets;
@@ -110,7 +104,7 @@ class StravaPhotos extends Command
      * Fetch and store photos for each target activity, pausing when the Strava
      * rate-limit window fills up.
      *
-     * @param  Collection<int, Activity>  $targets
+     * @param  Collection<int, array{activity: Activity, start: ?CarbonImmutable}>  $targets
      */
     private function fetchPhotos(Strava $strava, SyncStravaPhotos $sync, Collection $targets): int
     {
@@ -118,7 +112,9 @@ class StravaPhotos extends Command
         $requestsInWindow = 0;
         $windowStart = time();
 
-        foreach ($targets as $activity) {
+        foreach ($targets as $target) {
+            $activity = $target['activity'];
+
             if ($requestsInWindow >= self::RATE_LIMIT) {
                 $wait = self::RATE_WINDOW - (time() - $windowStart);
 
