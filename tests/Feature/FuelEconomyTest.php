@@ -23,6 +23,7 @@ it('computes range and mpg from the next fill (leading method)', function () {
         ->assertInertia(fn ($page) => $page
             ->where('entry.miles_this_tank', 400)
             ->where('entry.mpg', fn ($value) => round((float) $value, 1) === 45.5)
+            ->where('entry.vehicle', 'Toyota Aygo')
         );
 });
 

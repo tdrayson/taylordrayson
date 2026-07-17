@@ -187,6 +187,7 @@ class EntryController extends Controller
             $economy = $this->fuelEconomy($model);
             $data['miles_this_tank'] = $economy['miles'];
             $data['mpg'] = $economy['mpg'];
+            $data['vehicle'] = $model->vehicle['name'] ?? null;
         }
 
         return $data;

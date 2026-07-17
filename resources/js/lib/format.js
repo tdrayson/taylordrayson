@@ -76,6 +76,18 @@ export function number(value, fractionDigits = 0) {
     });
 }
 
+/**
+ * GBP money, always to two decimal places: 45.6 becomes "£45.60", 45 becomes
+ * "£45.00". Returns null for blank values so callers can drop empty stats.
+ * (Per-litre fuel price is the one deliberate exception - it stays at three
+ * decimals via number(value, 3), matching how pumps price fuel.)
+ */
+export function money(value) {
+    const formatted = number(value, 2);
+
+    return formatted === null ? null : `£${formatted}`;
+}
+
 // Kilograms to pounds. Returns the unrounded value; the formatter applies
 // display rounding via number(), matching how raw kg is rounded at render.
 export function kgToLbs(kg) {
