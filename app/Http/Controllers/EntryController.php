@@ -81,6 +81,17 @@ class EntryController extends Controller
             'linkPreviews' => $model instanceof Article
                 ? (new BuildLinkPreviews)($model->content)
                 : [],
+            // Stream series are large, so they're excluded from the main
+            // entry payload and only sent once a profile chart is scrolled
+            // into view and requests this deferred prop.
+            'profile' => $model instanceof Activity
+                ? Inertia::defer(fn (): array => [
+                    'heart_rate' => $model->heart_rate,
+                    'altitude' => $model->altitude,
+                    'speed' => $model->speed,
+                    'track' => $model->track,
+                ])
+                : null,
         ]);
     }
 
@@ -116,7 +127,7 @@ class EntryController extends Controller
             $model->loadMissing('tags');
         }
 
-        $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
+        $data = Arr::except($model->toArray(), ['created_at', 'updated_at', 'heart_rate', 'altitude', 'speed', 'track']);
 
         if (method_exists($model, 'tagNames')) {
             $data['tags'] = $model->tags
