@@ -92,6 +92,17 @@ class ImportHealthHeartRate extends Command
      */
     private function apply(Activity $activity, array $aggregate, int $cap): array
     {
+        // A non-null altitude series means Strava already streamed this activity,
+        // which includes its own heart-rate stream. Apple Health's window-matched
+        // samples are a lower-fidelity fallback, so they must not clobber it.
+        if ($activity->altitude !== null && ! $this->option('overwrite')) {
+            return [
+                'average_heart_rate' => $activity->average_heart_rate,
+                'max_heart_rate' => $activity->max_heart_rate,
+                'heart_rate' => $this->storedSeries($activity),
+            ];
+        }
+
         $merged = [];
 
         foreach ([...$this->storedSeries($activity), ...$aggregate['series']] as $point) {
