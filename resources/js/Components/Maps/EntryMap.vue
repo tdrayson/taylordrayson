@@ -1,19 +1,32 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { mapStyleForTheme } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
+import PhotoMarker from './PhotoMarker.vue';
 
 const props = defineProps({
     polyline: { type: String, required: true },
     color: { type: String, default: '#3858e9' },
     heightClass: { type: String, default: 'h-72 sm:h-96' },
+    photos: { type: Array, default: () => [] },
 });
+
+const emit = defineEmits(['open-photo']);
 
 const MAPLIBRE_VERSION = '4.7.1';
 
 const { resolved } = useTheme();
+
+// Photos that have a coordinate, each keeping its index in the ORIGINAL photos
+// array. The Lightbox opens by that index, so mapping must happen before
+// filtering: filtering first would renumber them and open the wrong photo.
+const locatedPhotos = computed(() =>
+    props.photos
+        .map((photo, index) => ({ ...photo, index }))
+        .filter((photo) => photo.latitude !== null && photo.longitude !== null),
+);
 
 // maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
 // activities (e.g. padel) keep surrounding map context instead of filling the
@@ -22,9 +35,11 @@ const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
 const ready = ref(false);
+const markerRefs = ref([]);
 let map = null;
 let savedBounds = null;
 let stopThemeWatch;
+let markers = [];
 
 // Re-fit the view to the route's bounds after the visitor has panned or zoomed.
 function recenter() {
@@ -162,6 +177,24 @@ onMounted(async () => {
         });
     }
 
+    // Attach a MapLibre marker per located photo. Strava gives [lat, lng] and
+    // maplibre wants [lng, lat], so the pair flips here and only here.
+    function addPhotoMarkers() {
+        locatedPhotos.value.forEach((photo, position) => {
+            const element = markerRefs.value[position];
+
+            if (!element) {
+                return;
+            }
+
+            markers.push(
+                new maplibregl.Marker({ element })
+                    .setLngLat([photo.longitude, photo.latitude])
+                    .addTo(map),
+            );
+        });
+    }
+
     map = new maplibregl.Map({
         container: container.value,
         style: mapStyleForTheme(resolved.value),
@@ -174,6 +207,8 @@ onMounted(async () => {
     ready.value = true;
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+    addPhotoMarkers();
 
     map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
@@ -197,6 +232,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     stopThemeWatch?.();
+    markers.forEach((marker) => marker.remove());
+    markers = [];
     map?.remove();
     map = null;
 });
@@ -214,5 +251,16 @@ onBeforeUnmount(() => {
         >
             <Icon :icon="CenterFocusIcon" class="size-4" />
         </button>
+
+        <div class="hidden">
+            <PhotoMarker
+                v-for="(photo, position) in locatedPhotos"
+                :key="photo.index"
+                :ref="(el) => (markerRefs[position] = el?.$el)"
+                :photo="photo"
+                :label="`View photo ${photo.index + 1}`"
+                @select="emit('open-photo', photo.index)"
+            />
+        </div>
     </div>
 </template>
