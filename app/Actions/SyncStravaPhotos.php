@@ -57,15 +57,24 @@ class SyncStravaPhotos
             $media = $activity->addMediaFromString($response->body())
                 ->usingFileName(($photo['unique_id'] ?? Str::uuid()).'.jpg');
 
+            $properties = [];
+            $capturedAt = $photo['created_at'] ?? null;
+
+            if (is_string($capturedAt) && $capturedAt !== '') {
+                $properties['captured_at'] = $capturedAt;
+            }
+
             $coordinate = $canLocate
                 ? $this->coordinateFor($photo, $activityStart, $timeStream, $latlngStream)
                 : null;
 
             if ($coordinate !== null) {
-                $media->withCustomProperties([
-                    'latitude' => $coordinate[0],
-                    'longitude' => $coordinate[1],
-                ]);
+                $properties['latitude'] = $coordinate[0];
+                $properties['longitude'] = $coordinate[1];
+            }
+
+            if ($properties !== []) {
+                $media->withCustomProperties($properties);
             }
 
             $media->toMediaCollection($stored === 0 ? 'cover' : 'photos');
