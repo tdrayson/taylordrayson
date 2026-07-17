@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Fetch;
 
 use App\Models\Activity;
+use App\Support\Downsample;
 use App\Support\Health\HeartRateMatcher;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -143,20 +144,10 @@ class ImportHealthHeartRate extends Command
      */
     private function downsample(array $series, int $cap): array
     {
-        $total = count($series);
-
-        if ($cap === 0 || $total <= $cap) {
-            return $series;
-        }
-
-        $step = ($total - 1) / ($cap - 1);
-        $reduced = [];
-
-        for ($index = 0; $index < $cap; $index++) {
-            $reduced[] = $series[(int) round($index * $step)];
-        }
-
-        return $reduced;
+        return array_map(
+            fn (int $index): mixed => $series[$index],
+            Downsample::indices(count($series), $cap),
+        );
     }
 
     /**
