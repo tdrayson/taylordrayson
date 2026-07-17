@@ -37,6 +37,24 @@ it('stores a located photo with latitude and longitude custom properties', funct
         ->and($media->getCustomProperty('longitude'))->toBe(-0.1);
 });
 
+it('clamps a finish-line photo taken shortly after the stream ended to the last point', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    // Stream ends at 21:00:20Z; taken 2 minutes later, inside the 180s grace window
+    // but outside the raw stream, like a finish-line photo taken after recording stopped.
+    (new SyncStravaPhotos(new LocatePhotoOnRoute))(
+        $activity,
+        [stravaPhotoPayload('photo-a', '2023-10-31T21:02:20Z')],
+        syncStreams(),
+        CarbonImmutable::parse('2023-10-31T21:00:00Z'),
+    );
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media->getCustomProperty('latitude'))->toBe(51.2)
+        ->and($media->getCustomProperty('longitude'))->toBe(-0.2);
+});
+
 it('stores an out-of-window photo with no coordinate properties', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
 

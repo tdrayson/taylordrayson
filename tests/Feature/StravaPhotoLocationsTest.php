@@ -63,6 +63,27 @@ it('writes coordinates onto existing media without re-downloading the image', fu
     Http::assertNotSent(fn ($request) => str_contains($request->url(), 'cloudfront.net'));
 });
 
+it('clamps a finish-line photo taken shortly after the stream ended to the last point', function () {
+    // Stream ends at 21:00:20Z; taken 2 minutes later, inside the 180s grace window
+    // but outside the raw stream, like a finish-line photo taken after recording stopped.
+    $activity = activityWithStoredPhoto('100', '2023-10-31T21:02:20Z');
+
+    fakeStravaLocations(
+        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
+        [
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ],
+    );
+
+    $this->artisan('strava:photo-locations')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media->getCustomProperty('latitude'))->toBe(51.2)
+        ->and($media->getCustomProperty('longitude'))->toBe(-0.2);
+});
+
 it('leaves an out-of-window photo without coordinates', function () {
     $activity = activityWithStoredPhoto('100', '2023-10-31T22:00:00Z');
 

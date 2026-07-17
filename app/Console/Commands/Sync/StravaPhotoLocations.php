@@ -191,7 +191,7 @@ class StravaPhotoLocations extends Command
                 continue;
             }
 
-            $coordinate = $locate($capturedAt, $start, $timeStream, $latlngStream);
+            $coordinate = $locate($capturedAt, $start, $timeStream, $latlngStream, LocatePhotoOnRoute::GRACE_SECONDS);
 
             if ($coordinate === null) {
                 continue;

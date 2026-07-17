@@ -19,13 +19,14 @@ function lpor_latlngStream(): array
     return [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2], [51.3, -0.3], [51.4, -0.4]];
 }
 
-function lpor_locate(string $capturedAt, ?array $time = null, ?array $latlng = null): ?array
+function lpor_locate(string $capturedAt, ?array $time = null, ?array $latlng = null, int $toleranceSeconds = 0): ?array
 {
     return (new LocatePhotoOnRoute)(
         CarbonImmutable::parse($capturedAt),
         lpor_routeStart(),
         $time ?? lpor_timeStream(),
         $latlng ?? lpor_latlngStream(),
+        $toleranceSeconds,
     );
 }
 
@@ -77,4 +78,27 @@ it('handles a single-point stream without breaking the search', function () {
 
 it('returns null when the latlng stream is shorter than the time stream', function () {
     expect(lpor_locate('2023-10-31T21:00:40Z', [0, 10, 20, 30, 40], [[51.0, -0.0]]))->toBeNull();
+});
+
+it('clamps a photo taken shortly after the stream ended to the last point, within the grace window', function () {
+    // Stream ends at 21:00:40Z; this photo is 30s later, inside the 180s grace window.
+    expect(lpor_locate('2023-10-31T21:01:10Z', toleranceSeconds: LocatePhotoOnRoute::GRACE_SECONDS))
+        ->toBe([51.4, -0.4]);
+});
+
+it('clamps a photo taken shortly before the stream started to the first point, within the grace window', function () {
+    // Stream starts at 21:00:00Z; this photo is 30s earlier, inside the 180s grace window.
+    expect(lpor_locate('2023-10-31T20:59:30Z', toleranceSeconds: LocatePhotoOnRoute::GRACE_SECONDS))
+        ->toBe([51.0, -0.0]);
+});
+
+it('returns null for a photo beyond the grace window after the stream ended', function () {
+    // Stream ends at 21:00:40Z; this photo is 200s later, outside the 180s grace window.
+    expect(lpor_locate('2023-10-31T21:04:00Z', toleranceSeconds: LocatePhotoOnRoute::GRACE_SECONDS))
+        ->toBeNull();
+});
+
+it('returns null for a photo just after the stream ended with the default tolerance, unchanged from before', function () {
+    // Regression guard: with no tolerance argument supplied, behaviour is exactly as before.
+    expect(lpor_locate('2023-10-31T21:00:41Z'))->toBeNull();
 });

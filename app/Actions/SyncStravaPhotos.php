@@ -117,6 +117,7 @@ class SyncStravaPhotos
             $activityStart,
             $timeStream,
             $latlngStream,
+            LocatePhotoOnRoute::GRACE_SECONDS,
         );
     }
 }
