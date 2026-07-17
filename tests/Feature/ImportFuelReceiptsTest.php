@@ -30,11 +30,16 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
         }
     });
 
-    Http::fake(['*/api/search*' => Http::response(['stations' => [[
-        'name' => 'ASDA WALLINGTON', 'brand' => 'ASDA', 'address' => 'MARLOW WAY',
-        'postcode' => 'CR0 4XS', 'city' => 'CROYDON',
-        'latitude' => 51.3767, 'longitude' => -0.1313, 'distance' => 0.4,
-    ]]])]);
+    Http::fake([
+        '*/api/brands*' => Http::response(['brands' => [
+            ['brand' => 'Asda', 'logo' => 'https://cdn.brandfetch.io/asda.com'],
+        ]]),
+        '*/api/search*' => Http::response(['stations' => [[
+            'name' => 'ASDA WALLINGTON', 'brand' => 'ASDA', 'address' => 'MARLOW WAY',
+            'postcode' => 'CR0 4XS', 'city' => 'CROYDON',
+            'latitude' => 51.3767, 'longitude' => -0.1313, 'distance' => 0.4,
+        ]]]),
+    ]);
 
     $fuel = Fuel::factory()->create(['occurred_at' => '2026-05-07 20:52:23', 'station_name' => null]);
 
@@ -43,7 +48,7 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
 
     expect(File::exists($this->review))->toBeTrue();
     $contents = File::get($this->review);
-    expect($contents)->toContain('ASDA WALLINGTON');
+    expect($contents)->toContain('Asda Wallington');
     expect($contents)->toContain(','.$fuel->id.',');
     expect($contents)->toContain('51.3767');
     // dry run writes nothing to the database
