@@ -104,9 +104,12 @@ it('backfills photos only for activities that have them on strava', function () 
     Http::assertNotSent(fn ($request) => str_contains($request->url(), '/activities/888/photos'));
 });
 
-it('skips activities that already have photos unless forced', function () {
+it('skips activities whose photos are already migrated unless forced', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
-    $activity->addMediaFromString(fakeJpeg())->usingFileName('existing.jpg')->toMediaCollection('cover');
+    $activity->addMediaFromString(fakeJpeg())
+        ->usingFileName('existing.jpg')
+        ->withCustomProperties(['captured_at' => '2026-04-28T17:34:35Z'])
+        ->toMediaCollection('cover');
 
     Http::fake([
         '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
@@ -122,6 +125,57 @@ it('skips activities that already have photos unless forced', function () {
     $this->artisan('strava:photos')->assertSuccessful();
 
     Http::assertNotSent(fn ($request) => str_contains($request->url(), '/photos'));
+});
+
+it('reprocesses an activity whose photos predate captured_at', function () {
+    // A legacy cover with no captured_at was downloaded before the current sync
+    // code existed. The default (unforced) run must still refetch it so it can
+    // be backfilled, rather than treating "has a cover" as "done".
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '500']);
+    $activity->addMediaFromString(fakeJpeg())->usingFileName('legacy.jpg')->toMediaCollection('cover');
+
+    fakeStravaPhotos(
+        [['id' => 500, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
+        ['500' => [stravaPhotoPayload('photo-new', '2023-10-31T21:00:10Z')]],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/activities/500/photos'));
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media->hasCustomProperty('captured_at'))->toBeTrue();
+});
+
+it('resumes without redoing already-migrated activities', function () {
+    // Direct regression guard for the reported bug: an interrupted default run,
+    // re-run later, must continue from the first unmigrated activity rather
+    // than restarting from scratch or skipping legacy activities forever.
+    $migrated = Activity::factory()->create(['source' => 'strava', 'source_id' => '601']);
+    $migrated->addMediaFromString(fakeJpeg())
+        ->usingFileName('migrated.jpg')
+        ->withCustomProperties(['captured_at' => '2026-04-28T17:34:35Z'])
+        ->toMediaCollection('cover');
+
+    $legacy = Activity::factory()->create(['source' => 'strava', 'source_id' => '602']);
+    $legacy->addMediaFromString(fakeJpeg())->usingFileName('legacy.jpg')->toMediaCollection('cover');
+
+    fakeStravaPhotos(
+        [
+            ['id' => 601, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1],
+            ['id' => 602, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1],
+        ],
+        [
+            '601' => [stravaPhotoPayload('photo-601', '2023-10-31T21:00:10Z')],
+            '602' => [stravaPhotoPayload('photo-602', '2023-10-31T21:00:10Z')],
+        ],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/activities/602/photos'));
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/activities/601/photos'));
 });
 
 it('includes the photos gallery in the activity feed card', function () {

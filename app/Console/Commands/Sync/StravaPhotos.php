@@ -13,7 +13,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
-#[Signature('strava:photos {--limit=0 : Max activities to fetch photos for (0 = all)} {--force : Re-download photos for activities that already have them}')]
+#[Signature('strava:photos {--limit=0 : Max activities to fetch photos for (0 = all)} {--force : Re-download photos even for activities already backfilled}')]
 #[Description('Backfill Strava photos for existing activities, stored as cover + photo gallery media')]
 class StravaPhotos extends Command
 {
@@ -52,8 +52,9 @@ class StravaPhotos extends Command
     }
 
     /**
-     * The local activities that have photos on Strava but (unless forced) no
-     * stored photo media yet, each paired with the activity's UTC start.
+     * The local activities that have photos on Strava but are not yet
+     * backfilled by the current sync code (unless forced), each paired with
+     * the activity's UTC start.
      *
      * @return Collection<int, array{activity: Activity, start: ?CarbonImmutable}>|null Null on a request failure.
      */
@@ -88,7 +89,7 @@ class StravaPhotos extends Command
                 continue;
             }
 
-            if (! $force && $activity->getMedia('cover')->isNotEmpty()) {
+            if (! $force && $this->isMigrated($activity)) {
                 continue;
             }
 
@@ -99,6 +100,20 @@ class StravaPhotos extends Command
         }
 
         return $targets;
+    }
+
+    /**
+     * Whether an activity's photos have already been backfilled by the current
+     * sync code. The distinguishing mark is the `captured_at` custom property,
+     * which only the coordinate-aware sync path writes; a cover that predates it
+     * still needs processing. Keying the skip off this makes an interrupted
+     * backfill resumable: a re-run continues from the first unmigrated activity.
+     */
+    private function isMigrated(Activity $activity): bool
+    {
+        $cover = $activity->getFirstMedia('cover');
+
+        return $cover !== null && $cover->hasCustomProperty('captured_at');
     }
 
     /**
