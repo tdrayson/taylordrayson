@@ -342,28 +342,42 @@ git commit -m "feat: add LocatePhotoOnRoute to interpolate photo position from a
 
 ---
 
-### Task 3: Characterization tests for StravaPhotos
+### Task 3: Shared test fixtures
 
-`StravaPhotos` has no tests today and Tasks 4 and 6 both refactor it. Pin its current behaviour first, so those refactors have a safety net. No production code changes in this task.
+Four test files across this plan need the same two fixtures. This task puts them
+in one place.
+
+**Context that overrides the original plan:** `tests/Feature/StravaPhotosTest.php`
+already exists (added 4 July, commit 5e7e0371) with 6 tests, including the three
+this task originally planned to write as characterization tests. That safety net
+for Tasks 4 and 6 is already in place, so those three tests were dropped as
+duplicates. What remains is fixture consolidation only.
+
+That file already defines a global `fakeJpeg(int $width = 800, int $height = 600): string`
+helper. Move it to `tests/Pest.php` rather than adding a second near-identical
+JPEG fixture.
 
 **Files:**
 - Modify: `tests/Pest.php` (add the shared fixtures)
-- Test: `tests/Feature/StravaPhotosTest.php`
+- Modify: `tests/Feature/StravaPhotosTest.php:11-21` (remove the moved helper)
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `stravaJpeg(): string` and `stravaPhotoPayload(string $uniqueId, string $createdAt): array` in `tests/Pest.php`, used by Tasks 5, 6, 7 and 8. The `fakeStravaPhotos()` helper stays local to `StravaPhotosTest.php`, since only Task 6 reuses it.
+- Produces: `fakeJpeg(int $width = 800, int $height = 600): string` and
+  `stravaPhotoPayload(string $uniqueId, string $createdAt): array` in
+  `tests/Pest.php`, used by Tasks 5, 6, 7, 8 and 9.
 
-- [ ] **Step 1: Add the shared fixtures to tests/Pest.php**
+- [ ] **Step 1: Move fakeJpeg into tests/Pest.php and add the payload fixture**
 
-Four test files across this plan need these, so they live in `tests/Pest.php` rather than in one test file that the others implicitly depend on being loaded. Append to `tests/Pest.php`:
+Cut the `fakeJpeg()` function and its docblock from
+`tests/Feature/StravaPhotosTest.php` (lines 11-21) and append it to
+`tests/Pest.php`, unchanged, along with a new fixture:
 
 ```php
-/** A solid-colour JPEG, so the media pipeline has real bytes to convert. */
-function stravaJpeg(): string
+/** A real JPEG of the given size, so the media library can process it. */
+function fakeJpeg(int $width = 800, int $height = 600): string
 {
-    $image = imagecreatetruecolor(400, 300);
-    imagefill($image, 0, 0, imagecolorallocate($image, 120, 120, 120));
+    $image = imagecreatetruecolor($width, $height);
     ob_start();
     imagejpeg($image);
     $bytes = ob_get_clean();
@@ -389,122 +403,21 @@ function stravaPhotoPayload(string $uniqueId, string $createdAt): array
 }
 ```
 
-- [ ] **Step 2: Write the tests against current behaviour**
+Leave the Pest scaffold's default `function something()` stub alone.
 
-Create `tests/Feature/StravaPhotosTest.php`:
+- [ ] **Step 2: Run the existing suite to prove the move broke nothing**
 
-```php
-<?php
+Run: `php artisan test --compact --filter="StravaPhotosTest|PhotoGrid"`
+Expected: PASS. `StravaPhotosTest`'s 6 existing tests must still pass, now
+resolving `fakeJpeg()` from `tests/Pest.php`. A "cannot redeclare fakeJpeg"
+error means the original was not fully removed from the test file.
 
-use App\Models\Activity;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-
-beforeEach(function () {
-    config([
-        'services.strava.client_id' => 'cid',
-        'services.strava.client_secret' => 'secret',
-        'services.strava.refresh_token' => 'refresh',
-        'queue.default' => 'sync',
-    ]);
-    Cache::flush();
-    Storage::fake('public');
-});
-
-/**
- * Fake the whole Strava surface: token, one page of summaries, per-activity
- * photos, and the CloudFront image download.
- *
- * `stravaJpeg()` and `stravaPhotoPayload()` come from tests/Pest.php.
- *
- * @param  array<int, array<string, mixed>>  $summaries
- * @param  array<string, array<int, array<string, mixed>>>  $photosById
- */
-function fakeStravaPhotos(array $summaries, array $photosById, array $extra = []): void
-{
-    $responses = [
-        '*/oauth/token*' => Http::response(['access_token' => 'token']),
-        '*dgtzuqphqg23d.cloudfront.net*' => Http::response(stravaJpeg()),
-        '*/athlete/activities*' => Http::sequence()
-            ->push($summaries)
-            ->push([]),
-    ];
-
-    foreach ($photosById as $id => $photos) {
-        $responses["*/activities/{$id}/photos*"] = Http::response($photos);
-    }
-
-    Http::fake(array_merge($responses, $extra));
-}
-
-it('downloads photos for a strava activity, first as cover and the rest as gallery', function () {
-    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
-
-    fakeStravaPhotos(
-        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 2]],
-        ['100' => [
-            stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z'),
-            stravaPhotoPayload('photo-b', '2023-10-31T21:00:20Z'),
-        ]],
-    );
-
-    $this->artisan('strava:photos')->assertSuccessful();
-
-    $activity->refresh();
-
-    expect($activity->getMedia('cover'))->toHaveCount(1)
-        ->and($activity->getMedia('photos'))->toHaveCount(1);
-});
-
-it('skips activities that have no photos on strava', function () {
-    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
-
-    fakeStravaPhotos(
-        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 0]],
-        [],
-    );
-
-    $this->artisan('strava:photos')
-        ->expectsOutputToContain('No activities with photos to backfill.')
-        ->assertSuccessful();
-
-    expect($activity->refresh()->getMedia('cover'))->toHaveCount(0);
-});
-
-it('skips activities that already have a cover unless forced', function () {
-    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
-    $activity->addMediaFromString(stravaJpeg())->usingFileName('existing.jpg')->toMediaCollection('cover');
-
-    fakeStravaPhotos(
-        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
-        ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
-    );
-
-    $this->artisan('strava:photos')
-        ->expectsOutputToContain('No activities with photos to backfill.')
-        ->assertSuccessful();
-
-    expect($activity->refresh()->getFirstMedia('cover')->file_name)->toBe('existing.jpg');
-});
-```
-
-- [ ] **Step 3: Run the tests to verify they pass against current code**
-
-Run: `php artisan test --compact --filter=StravaPhotosTest`
-Expected: PASS (3 tests).
-
-These are characterization tests and passing immediately is the point: they
-describe behaviour that already exists, so that Tasks 4 and 6 have a safety net
-when they refactor `StravaPhotos`. This is the one deliberate exception to
-red-first TDD in this plan. A failure here means the fakes are wrong, not the
-app; fix the test until it passes before moving on.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Format and commit**
 
 ```bash
+vendor/bin/pint --dirty --format agent
 git add tests/Pest.php tests/Feature/StravaPhotosTest.php
-git commit -m "test: pin existing strava:photos behaviour before refactor"
+git commit -m "test: move shared strava fixtures into tests/Pest.php"
 ```
 
 ---
@@ -787,10 +700,10 @@ use App\Actions\FetchStravaActivitySummaries;
 use Carbon\CarbonImmutable;
 ```
 
-- [ ] **Step 6: Run the characterization tests to prove nothing broke**
+- [ ] **Step 6: Run the existing StravaPhotos tests to prove nothing broke**
 
 Run: `php artisan test --compact --filter="StravaPhotosTest|FetchStravaActivitySummariesTest"`
-Expected: PASS (5 tests). The Task 3 tests must still pass unchanged.
+Expected: PASS. The 6 pre-existing StravaPhotosTest tests must still pass unchanged.
 
 - [ ] **Step 7: Format and commit**
 
@@ -828,7 +741,7 @@ use Illuminate\Support\Facades\Storage;
 beforeEach(function () {
     config(['queue.default' => 'sync']);
     Storage::fake('public');
-    Http::fake(['*dgtzuqphqg23d.cloudfront.net*' => Http::response(stravaJpeg())]);
+    Http::fake(['*dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg())]);
 });
 
 function syncStreams(): array
@@ -899,7 +812,7 @@ it('stores photos when the stream has no latlng key, as on an indoor activity', 
 });
 ```
 
-`stravaJpeg()` and `stravaPhotoPayload()` come from `tests/Pest.php` (Task 3), so they need no redeclaring here.
+`fakeJpeg()` and `stravaPhotoPayload()` come from `tests/Pest.php` (Task 3), so they need no redeclaring here.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -1024,10 +937,10 @@ class SyncStravaPhotos
 Run: `php artisan test --compact --filter=SyncStravaPhotosTest`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Run the characterization tests to prove the default path still works**
+- [ ] **Step 5: Run the existing StravaPhotos tests to prove the default path still works**
 
 Run: `php artisan test --compact --filter=StravaPhotosTest`
-Expected: PASS (3 tests). `SyncStravaPhotos` is resolved from the container in `StravaPhotos`, so the new constructor argument is auto-injected.
+Expected: PASS. `SyncStravaPhotos` is resolved from the container in `StravaPhotos`, so the new constructor argument is auto-injected. Note two of these tests call `app(SyncStravaPhotos::class)($activity, $photos)` directly with 2 arguments, which the new optional parameters keep working.
 
 - [ ] **Step 6: Format and commit**
 
@@ -1045,15 +958,48 @@ The rule from the spec: a stream problem must never cost us a photo.
 
 **Files:**
 - Modify: `app/Console/Commands/Sync/StravaPhotos.php` (`fetchPhotos()`)
-- Test: `tests/Feature/StravaPhotosTest.php` (add to the Task 3 file)
+- Test: `tests/Feature/StravaPhotosTest.php` (append to the existing file, which already has 6 tests)
 
 **Interfaces:**
-- Consumes: `Strava::activityStreams()` (Task 1), `SyncStravaPhotos::__invoke()` 4-argument form (Task 5).
+- Consumes: `Strava::activityStreams()` (Task 1), `SyncStravaPhotos::__invoke()` 4-argument form (Task 5), `fakeJpeg()` and `stravaPhotoPayload()` from `tests/Pest.php` (Task 3).
 - Produces: nothing new.
+
+The existing file's `beforeEach` already sets the Strava config, flushes the
+cache and fakes the `public` disk, so appended tests inherit all of it.
 
 - [ ] **Step 1: Write the failing tests**
 
-Append to `tests/Feature/StravaPhotosTest.php`:
+Append to `tests/Feature/StravaPhotosTest.php`. First the local helper, which
+only this file needs, placed after the existing `beforeEach` block:
+
+```php
+/**
+ * Fake the whole Strava surface: token, one page of summaries, per-activity
+ * photos, and the CloudFront image download.
+ *
+ * @param  array<int, array<string, mixed>>  $summaries
+ * @param  array<string, array<int, array<string, mixed>>>  $photosById
+ * @param  array<string, mixed>  $extra
+ */
+function fakeStravaPhotos(array $summaries, array $photosById, array $extra = []): void
+{
+    $responses = [
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg()),
+        '*/athlete/activities*' => Http::sequence()
+            ->push($summaries)
+            ->push([]),
+    ];
+
+    foreach ($photosById as $id => $photos) {
+        $responses["*/activities/{$id}/photos*"] = Http::response($photos);
+    }
+
+    Http::fake(array_merge($responses, $extra));
+}
+```
+
+Then the three tests:
 
 ```php
 it('stores photos with coordinates interpolated from the stream', function () {
@@ -1203,7 +1149,7 @@ beforeEach(function () {
 function activityWithStoredPhoto(string $sourceId, string $capturedAt): Activity
 {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => $sourceId]);
-    $activity->addMediaFromString(stravaJpeg())
+    $activity->addMediaFromString(fakeJpeg())
         ->usingFileName('photo-a.jpg')
         ->withCustomProperties(['captured_at' => $capturedAt])
         ->toMediaCollection('cover');
@@ -1539,7 +1485,7 @@ beforeEach(function () {
 
 it('exposes latitude and longitude for a located photo', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
-    $activity->addMediaFromString(stravaJpeg())
+    $activity->addMediaFromString(fakeJpeg())
         ->usingFileName('located.jpg')
         ->withCustomProperties(['latitude' => 51.1, 'longitude' => -0.1])
         ->toMediaCollection('cover');
@@ -1552,7 +1498,7 @@ it('exposes latitude and longitude for a located photo', function () {
 
 it('exposes null coordinates for an unlocated photo', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
-    $activity->addMediaFromString(stravaJpeg())->usingFileName('plain.jpg')->toMediaCollection('cover');
+    $activity->addMediaFromString(fakeJpeg())->usingFileName('plain.jpg')->toMediaCollection('cover');
 
     $photos = $activity->refresh()->galleryPhotos();
 
@@ -1562,8 +1508,8 @@ it('exposes null coordinates for an unlocated photo', function () {
 
 it('keeps cover first so photo indexes stay stable for the lightbox', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
-    $activity->addMediaFromString(stravaJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
-    $activity->addMediaFromString(stravaJpeg())
+    $activity->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
+    $activity->addMediaFromString(fakeJpeg())
         ->usingFileName('gallery.jpg')
         ->withCustomProperties(['latitude' => 51.2, 'longitude' => -0.2])
         ->toMediaCollection('photos');
