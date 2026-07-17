@@ -33,11 +33,10 @@ const location = computed(() => props.entry.location ?? null);
 
 <template>
     <div class="space-y-8">
-        <div v-if="entry.logo_url || entry.station_name" class="flex items-center gap-3">
-            <span v-if="entry.logo_url" class="inline-flex size-12 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
+        <div v-if="entry.logo_url" class="flex items-center gap-3">
+            <span class="inline-flex size-12 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
                 <img :src="entry.logo_url" :alt="entry.brand ? `${entry.brand} logo` : ''" class="size-full object-contain p-1.5">
             </span>
-            <span v-if="entry.station_name" class="font-display text-section">{{ entry.station_name }}</span>
         </div>
         <div v-if="location" class="space-y-3">
             <LocationMap
