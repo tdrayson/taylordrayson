@@ -33,6 +33,12 @@ const location = computed(() => props.entry.location ?? null);
 
 <template>
     <div class="space-y-8">
+        <div v-if="entry.logo_url || entry.station_name" class="flex items-center gap-3">
+            <span v-if="entry.logo_url" class="inline-flex size-12 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
+                <img :src="entry.logo_url" :alt="entry.brand ? `${entry.brand} logo` : ''" class="size-full object-contain p-1.5">
+            </span>
+            <span v-if="entry.station_name" class="font-display text-section">{{ entry.station_name }}</span>
+        </div>
         <div v-if="location" class="space-y-3">
             <LocationMap
                 :lat="location.lat"
@@ -41,8 +47,8 @@ const location = computed(() => props.entry.location ?? null);
                 color="var(--color-fuel)"
             />
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <p class="text-meta text-neutral-600">
-                    <span v-if="entry.station_name" class="font-medium text-neutral-900">{{ entry.station_name }}</span><span v-if="entry.city">{{ entry.station_name ? ', ' : '' }}{{ entry.city }}</span>
+                <p v-if="entry.city" class="text-meta text-neutral-600">
+                    <span>{{ entry.city }}</span>
                 </p>
                 <ExternalLink :href="location.mapsUrl" label="View on Google Maps" />
             </div>
