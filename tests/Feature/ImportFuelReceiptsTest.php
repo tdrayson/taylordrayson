@@ -20,6 +20,7 @@ afterEach(function () {
     File::delete(storage_path('app/fuel/test-review.csv'));
     File::delete(storage_path('app/test-fuel.csv'));
     File::delete(public_path('logos/brands/shell.png'));
+    File::delete(public_path('logos/brands/asda.png'));
 });
 
 it('writes a review csv matching a receipt to the nearest fuel entry and station', function () {
@@ -57,6 +58,13 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
 });
 
 it('applies a reviewed csv onto fuel rows and regenerates the backup csv', function () {
+    Http::fake([
+        '*/api/brands*' => Http::response(['brands' => [
+            ['brand' => 'ASDA', 'logo' => 'https://cdn.brandfetch.io/asda.com'],
+        ]]),
+        '*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png']),
+    ]);
+
     $fuel = Fuel::factory()->create(['station_name' => null]);
     File::ensureDirectoryExists(dirname($this->review));
     $header = 'receipt_file,receipt_time,fuel_id,fuel_occurred_at,delta_minutes,receipt_lat,receipt_lng,station_name,brand,address,postcode,city,station_lat,station_lng,distance_km,alt1_name,alt2_name,flag';
