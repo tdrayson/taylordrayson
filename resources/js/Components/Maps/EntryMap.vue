@@ -14,8 +14,8 @@ const props = defineProps({
     // Track points ({time, lat, lng}) for the scrub dot; empty on non-activity
     // maps and until the deferred activity profile prop resolves.
     track: { type: Array, default: () => [] },
-    // Shared cursor from useActivityCursor (index ref + set/clear); null on
-    // maps that don't wire one up, which keeps the dot/scrub fully inert.
+    // Shared cursor from useActivityCursor; EntryMap only reads its fraction to
+    // position the dot (the activity profile charts drive it). Null means no dot.
     cursor: { type: Object, default: null },
 });
 
@@ -134,26 +134,6 @@ function decodePolyline(value) {
     return coordinates;
 }
 
-// Nearest track point to a pointer's lngLat, by simple squared-distance scan
-// (tracks top out around a few hundred points, so this stays cheap).
-function nearestTrackIndex(lngLat) {
-    let nearestIndex = 0;
-    let nearestDistance = Infinity;
-
-    props.track.forEach((point, index) => {
-        const dLat = point.lat - lngLat.lat;
-        const dLng = point.lng - lngLat.lng;
-        const distance = (dLat * dLat) + (dLng * dLng);
-
-        if (distance < nearestDistance) {
-            nearestDistance = distance;
-            nearestIndex = index;
-        }
-    });
-
-    return nearestIndex;
-}
-
 onMounted(async () => {
     loadStylesheet(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`);
 
@@ -186,8 +166,8 @@ onMounted(async () => {
         new maplibregl.LngLatBounds(coords[0], coords[0]),
     );
 
-    // Builds the scrub-dot marker the first time a non-empty track arrives, so
-    // the element exists in the DOM (hidden) even before the visitor hovers.
+    // Builds the dot marker the first time a non-empty track arrives, so the
+    // element exists in the DOM (hidden) even before the visitor scrubs a chart.
     function ensureRouteDot() {
         if (routeDot || props.track.length === 0) {
             return;
@@ -197,8 +177,8 @@ onMounted(async () => {
         element.dataset.testid = 'route-dot';
         element.className = 'invisible size-3 rounded-full border-2 border-neutral-0';
         element.style.backgroundColor = resolveColor(props.color);
-        // Let pointer moves that land on the dot pass through to the map canvas,
-        // so scrubbing never stalls when the pointer is over the dot itself.
+        // The dot is purely a readout of the chart cursor, so it must not capture
+        // pointer events meant for the map beneath it (panning, photo markers).
         element.style.pointerEvents = 'none';
 
         routeDot = new maplibregl.Marker({ element }).setLngLat([props.track[0].lng, props.track[0].lat]).addTo(map);
@@ -228,22 +208,6 @@ onMounted(async () => {
 
         routeDot.setLngLat([point.lng, point.lat]);
         routeDot.getElement().classList.remove('invisible');
-    }
-
-    // Scrub handler shared by mouse and touch move: drive the shared cursor
-    // to whichever track point is nearest the pointer.
-    function onRouteMove(event) {
-        if (!props.cursor || props.track.length === 0) {
-            return;
-        }
-
-        const index = nearestTrackIndex(event.lngLat);
-        props.cursor.set(props.track.length > 1 ? index / (props.track.length - 1) : 0);
-    }
-
-    // Clear the shared cursor when the pointer leaves the map (mouse) or lifts (touch).
-    function onRouteLeave() {
-        props.cursor?.clear();
     }
 
     // Adds the route source/layer; re-run after setStyle since maplibre
@@ -302,14 +266,6 @@ onMounted(async () => {
     map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
     map.on('load', addRouteLayer);
-
-    // Route scrub: mouse + touch move both drive the shared cursor; mouseout
-    // (pointer) and touchend (finger lift) both clear it. No-ops when this
-    // map has no cursor/track wired up (non-activity uses of EntryMap).
-    map.on('mousemove', onRouteMove);
-    map.on('touchmove', onRouteMove);
-    map.on('mouseout', onRouteLeave);
-    map.on('touchend', onRouteLeave);
 
     // Build/hide the dot for whatever track + cursor state already exists,
     // then keep it in sync as the deferred track arrives and the cursor moves.
