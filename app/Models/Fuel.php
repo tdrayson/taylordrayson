@@ -101,6 +101,7 @@ class Fuel extends Model implements HasMedia, Timelineable
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',
             'meta' => [
+                'brand' => $this->brand,
                 'brandLogo' => $this->logo_url,
                 'map' => $this->getFirstMediaUrl('map') ?: null,
                 'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,

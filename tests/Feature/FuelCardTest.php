@@ -34,6 +34,7 @@ it('exposes the brand logo url on the card when the file exists', function () {
     $fuel = Fuel::factory()->create(['brand' => 'Testco']);
 
     expect($fuel->card()['meta']['brandLogo'])->toBe('/logos/brands/testco.png');
+    expect($fuel->card()['meta']['brand'])->toBe('Testco');
     expect($fuel->logo_url)->toBe('/logos/brands/testco.png');
 });
 

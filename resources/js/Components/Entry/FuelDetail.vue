@@ -46,8 +46,8 @@ const location = computed(() => props.entry.location ?? null);
                 color="var(--color-fuel)"
             />
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <p v-if="entry.city" class="text-meta text-neutral-600">
-                    <span>{{ entry.city }}</span>
+                <p v-if="entry.station_name || entry.city" class="text-meta text-neutral-600">
+                    <span v-if="entry.station_name" class="font-medium text-neutral-900">{{ entry.station_name }}</span><span v-if="entry.city">{{ entry.station_name ? ', ' : '' }}{{ entry.city }}</span>
                 </p>
                 <ExternalLink :href="location.mapsUrl" label="View on Google Maps" />
             </div>
