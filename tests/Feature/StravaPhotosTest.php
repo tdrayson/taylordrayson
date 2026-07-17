@@ -8,18 +8,6 @@ use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
 
-/** A real JPEG of the given size, so the media library can process it. */
-function fakeJpeg(int $width = 800, int $height = 600): string
-{
-    $image = imagecreatetruecolor($width, $height);
-    ob_start();
-    imagejpeg($image);
-    $bytes = ob_get_clean();
-    imagedestroy($image);
-
-    return $bytes;
-}
-
 beforeEach(function () {
     config([
         'services.strava.client_id' => 'cid',
