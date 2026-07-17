@@ -26,6 +26,9 @@ use Spatie\MediaLibrary\HasMedia;
     'average_heart_rate',
     'max_heart_rate',
     'heart_rate',
+    'altitude',
+    'speed',
+    'track',
     'source',
     'source_id',
     'timezone',
@@ -43,9 +46,26 @@ class Activity extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'heart_rate' => 'array',
+            'altitude' => 'array',
+            'speed' => 'array',
+            'track' => 'array',
             'meta' => 'array',
             'distance' => 'integer',
         ];
+    }
+
+    /**
+     * Preserve whole-number floats (e.g. 10.0) in the stream columns; without
+     * this flag json_encode() drops the trailing zero and round-trips them
+     * back as integers, silently changing the stored value's type.
+     *
+     * @param  string  $key
+     */
+    protected function getJsonCastFlags($key): int
+    {
+        return in_array($key, ['heart_rate', 'altitude', 'speed', 'track'], true)
+            ? JSON_PRESERVE_ZERO_FRACTION
+            : parent::getJsonCastFlags($key);
     }
 
     public function getPlatformUrlAttribute(): ?string
@@ -75,6 +95,8 @@ class Activity extends Model implements HasMedia, Timelineable
             'meta' => [
                 'polyline' => data_get($this->meta, 'polyline'),
                 'photos' => $this->galleryPhotos(),
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
             ],
         ];
     }

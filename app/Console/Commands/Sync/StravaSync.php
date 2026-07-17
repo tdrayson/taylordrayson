@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Sync;
 
 use App\Actions\GenerateStaticMap;
+use App\Actions\StoreActivityStreams;
 use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
 use App\Services\Strava;
@@ -90,6 +91,7 @@ class StravaSync extends Command
             $activity = $this->createActivity($detail);
             $this->downloadPhotos($strava, $detail, $activity);
             app(GenerateStaticMap::class)($activity);
+            app(StoreActivityStreams::class)($activity, $strava);
 
             $created[] = $activity;
             $this->info('['.count($created).'] '.$activity->name);

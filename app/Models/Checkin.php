@@ -69,7 +69,10 @@ class Checkin extends Model implements HasMedia, Timelineable
             'subtitle' => $parts ? implode(', ', $parts) : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'checkin',
-            'meta' => [],
+            'meta' => [
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
+            ],
         ];
     }
 }

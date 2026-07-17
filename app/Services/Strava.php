@@ -94,7 +94,7 @@ class Strava
     }
 
     /**
-     * The requested streams for an activity, keyed by stream type.
+     * The requested data streams for an activity, keyed by stream type.
      *
      * @param  array<int, string>  $keys
      * @return array<string, array{data: array<int, mixed>}>|null Null on a request failure.

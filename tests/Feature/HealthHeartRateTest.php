@@ -274,6 +274,47 @@ it('fills a missing max from samples while preserving an existing average', func
     rmdir($dir);
 });
 
+it('keeps a Strava-streamed heart-rate series when altitude is present, unless --overwrite is passed', function () {
+    $dir = sys_get_temp_dir().'/health_hr_strava_'.uniqid();
+    mkdir($dir);
+    $jsonPath = "{$dir}/payload.json";
+    $csvPath = "{$dir}/activities.csv";
+
+    // Already has a Strava-sourced altitude series, so it also has Strava heart_rate.
+    $stravaHeartRate = [['time' => '2026-06-23 08:00:00', 'bpm' => 150]];
+    $activity = Activity::factory()->create([
+        'occurred_at' => '2026-06-23 08:00:00', 'duration' => 600, 'meta' => [],
+        'altitude' => [['time' => '2026-06-23 08:00:00', 'value' => 10.0]],
+        'average_heart_rate' => 150, 'max_heart_rate' => 160, 'heart_rate' => $stravaHeartRate,
+    ]);
+
+    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
+        .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,150,160,,strava,1,"[]"'."\n");
+
+    file_put_contents($jsonPath, json_encode(heartRatePayload([
+        ['source' => 'Apple Watch', 'at' => '2026-06-23 08:00:00 +0000', 'avg' => 100, 'max' => 105],
+        ['source' => 'Apple Watch', 'at' => '2026-06-23 08:01:00 +0000', 'avg' => 110, 'max' => 115],
+    ])));
+
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath])->assertSuccessful();
+
+    $activity->refresh();
+    expect($activity->heart_rate)->toBe($stravaHeartRate)
+        ->and((int) $activity->average_heart_rate)->toBe(150)
+        ->and((int) $activity->max_heart_rate)->toBe(160);
+
+    // --overwrite lets Apple Health take precedence after all.
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath, '--overwrite' => true])->assertSuccessful();
+    $activity->refresh();
+    expect($activity->heart_rate)->toHaveCount(2)
+        ->and((int) $activity->average_heart_rate)->toBe(105)
+        // the recompute defends the prior stored peak, so 160 is kept over 115.
+        ->and((int) $activity->max_heart_rate)->toBe(160);
+
+    array_map('unlink', glob("{$dir}/*"));
+    rmdir($dir);
+});
+
 it('caps the stored series with --max-points while keeping the average from every sample', function () {
     $dir = sys_get_temp_dir().'/health_hr_cap_'.uniqid();
     mkdir($dir);

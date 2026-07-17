@@ -11,6 +11,12 @@ const props = defineProps({
     color: { type: String, default: '#3858e9' },
     heightClass: { type: String, default: 'h-72 sm:h-96' },
     photos: { type: Array, default: () => [] },
+    // Track points ({time, lat, lng}) for the scrub dot; empty on non-activity
+    // maps and until the deferred activity profile prop resolves.
+    track: { type: Array, default: () => [] },
+    // Shared cursor from useActivityCursor (index ref + set/clear); null on
+    // maps that don't wire one up, which keeps the dot/scrub fully inert.
+    cursor: { type: Object, default: null },
 });
 
 const emit = defineEmits(['open-photo']);
@@ -40,6 +46,9 @@ let map = null;
 let savedBounds = null;
 let stopThemeWatch;
 let markers = [];
+let stopTrackWatch;
+let stopCursorWatch;
+let routeDot = null;
 
 // Re-fit the view to the route's bounds after the visitor has panned or zoomed.
 function recenter() {
@@ -125,6 +134,26 @@ function decodePolyline(value) {
     return coordinates;
 }
 
+// Nearest track point to a pointer's lngLat, by simple squared-distance scan
+// (tracks top out around a few hundred points, so this stays cheap).
+function nearestTrackIndex(lngLat) {
+    let nearestIndex = 0;
+    let nearestDistance = Infinity;
+
+    props.track.forEach((point, index) => {
+        const dLat = point.lat - lngLat.lat;
+        const dLng = point.lng - lngLat.lng;
+        const distance = (dLat * dLat) + (dLng * dLng);
+
+        if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = index;
+        }
+    });
+
+    return nearestIndex;
+}
+
 onMounted(async () => {
     loadStylesheet(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`);
 
@@ -156,6 +185,66 @@ onMounted(async () => {
         (box, coordinate) => box.extend(coordinate),
         new maplibregl.LngLatBounds(coords[0], coords[0]),
     );
+
+    // Builds the scrub-dot marker the first time a non-empty track arrives, so
+    // the element exists in the DOM (hidden) even before the visitor hovers.
+    function ensureRouteDot() {
+        if (routeDot || props.track.length === 0) {
+            return;
+        }
+
+        const element = document.createElement('div');
+        element.dataset.testid = 'route-dot';
+        element.className = 'invisible size-3 rounded-full border-2 border-neutral-0';
+        element.style.backgroundColor = resolveColor(props.color);
+        // Let pointer moves that land on the dot pass through to the map canvas,
+        // so scrubbing never stalls when the pointer is over the dot itself.
+        element.style.pointerEvents = 'none';
+
+        routeDot = new maplibregl.Marker({ element }).setLngLat([props.track[0].lng, props.track[0].lat]).addTo(map);
+    }
+
+    // Moves the dot to the cursor's current track point, hiding it whenever
+    // there's no active index (pointer left, or the track hasn't loaded yet).
+    function updateRouteDot() {
+        ensureRouteDot();
+
+        if (!routeDot) {
+            return;
+        }
+
+        // Map the shared 0..1 fraction to this track's own nearest index.
+        const fraction = props.cursor?.fraction?.value;
+        const index = fraction != null && props.track.length > 0
+            ? Math.round(fraction * (props.track.length - 1))
+            : null;
+        const point = index != null ? props.track[index] : null;
+
+        if (!point) {
+            routeDot.getElement().classList.add('invisible');
+
+            return;
+        }
+
+        routeDot.setLngLat([point.lng, point.lat]);
+        routeDot.getElement().classList.remove('invisible');
+    }
+
+    // Scrub handler shared by mouse and touch move: drive the shared cursor
+    // to whichever track point is nearest the pointer.
+    function onRouteMove(event) {
+        if (!props.cursor || props.track.length === 0) {
+            return;
+        }
+
+        const index = nearestTrackIndex(event.lngLat);
+        props.cursor.set(props.track.length > 1 ? index / (props.track.length - 1) : 0);
+    }
+
+    // Clear the shared cursor when the pointer leaves the map (mouse) or lifts (touch).
+    function onRouteLeave() {
+        props.cursor?.clear();
+    }
 
     // Adds the route source/layer; re-run after setStyle since maplibre
     // drops custom sources/layers whenever the style is replaced.
@@ -214,6 +303,23 @@ onMounted(async () => {
 
     map.on('load', addRouteLayer);
 
+    // Route scrub: mouse + touch move both drive the shared cursor; mouseout
+    // (pointer) and touchend (finger lift) both clear it. No-ops when this
+    // map has no cursor/track wired up (non-activity uses of EntryMap).
+    map.on('mousemove', onRouteMove);
+    map.on('touchmove', onRouteMove);
+    map.on('mouseout', onRouteLeave);
+    map.on('touchend', onRouteLeave);
+
+    // Build/hide the dot for whatever track + cursor state already exists,
+    // then keep it in sync as the deferred track arrives and the cursor moves.
+    updateRouteDot();
+    stopTrackWatch = watch(() => props.track, updateRouteDot);
+
+    if (props.cursor) {
+        stopCursorWatch = watch(props.cursor.fraction, updateRouteDot);
+    }
+
     // Switch basemap when the colour scheme changes, then re-add the custom
     // layer once the new style has finished loading (setStyle clears it).
     stopThemeWatch = watch(resolved, (value) => {
@@ -234,6 +340,10 @@ onBeforeUnmount(() => {
     stopThemeWatch?.();
     markers.forEach((marker) => marker.remove());
     markers = [];
+    stopTrackWatch?.();
+    stopCursorWatch?.();
+    routeDot?.remove();
+    routeDot = null;
     map?.remove();
     map = null;
 });

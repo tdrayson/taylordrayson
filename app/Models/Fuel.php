@@ -10,19 +10,26 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
     'vehicle_id',
+    'station_name',
+    'brand',
+    'address',
+    'postcode',
+    'city',
+    'county',
+    'country',
+    'latitude',
+    'longitude',
     'litres',
     'cost',
     'fuel_card_cost',
     'price_per_litre',
     'odometer',
-    'fuel_station_id',
 ])]
 class Fuel extends Model implements HasMedia, Timelineable
 {
@@ -40,11 +47,6 @@ class Fuel extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
         ];
-    }
-
-    public function fuelStation(): BelongsTo
-    {
-        return $this->belongsTo(FuelStation::class);
     }
 
     public function getVehicleAttribute(): mixed
@@ -67,12 +69,15 @@ class Fuel extends Model implements HasMedia, Timelineable
         return [
             'type' => 'fuel',
             'icon' => 'fuel',
-            'title' => ($this->relationLoaded('fuelStation') ? $this->fuelStation?->name : null) ?? 'Fuel',
-            'titleLabel' => 'Fuel stop'.(($station = ($this->relationLoaded('fuelStation') ? $this->fuelStation?->name : null)) ? ', '.$station : ''),
+            'title' => $this->station_name ?? 'Fuel',
+            'titleLabel' => 'Fuel stop'.($this->station_name ? ', '.$this->station_name : ''),
             'subtitle' => implode(', ', $parts),
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',
-            'meta' => [],
+            'meta' => [
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
+            ],
         ];
     }
 }
