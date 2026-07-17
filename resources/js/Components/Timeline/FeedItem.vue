@@ -231,7 +231,7 @@ function openLightbox(index) {
             <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
                 <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
             </span>
-            <span v-if="brand">{{ brand }}</span>
+            <span v-if="brand">{{ brand }} garage</span>
         </div>
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">

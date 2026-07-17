@@ -9,6 +9,7 @@ use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
@@ -182,7 +183,44 @@ class EntryController extends Controller
             ];
         }
 
+        if ($model instanceof Fuel) {
+            $economy = $this->fuelEconomy($model);
+            $data['miles_this_tank'] = $economy['miles'];
+            $data['mpg'] = $economy['mpg'];
+        }
+
         return $data;
+    }
+
+    /**
+     * Fuel economy for the tank this fill starts, using the leading method:
+     * the miles driven until the next fill divided by the imperial gallons put
+     * in here. Null for the most recent fill (no next fill yet) or when either
+     * odometer reading is missing.
+     *
+     * @return array{miles: int|null, mpg: float|null}
+     */
+    private function fuelEconomy(Fuel $fuel): array
+    {
+        $next = Fuel::query()
+            ->where('vehicle_id', $fuel->vehicle_id)
+            ->where('occurred_at', '>', $fuel->occurred_at)
+            ->orderBy('occurred_at')
+            ->first();
+
+        if ($next === null || $fuel->odometer === null || $next->odometer === null) {
+            return ['miles' => null, 'mpg' => null];
+        }
+
+        $miles = (int) $next->odometer - (int) $fuel->odometer;
+
+        if ($miles <= 0 || ! $fuel->litres) {
+            return ['miles' => null, 'mpg' => null];
+        }
+
+        $gallons = (float) $fuel->litres / 4.54609;
+
+        return ['miles' => $miles, 'mpg' => round($miles / $gallons, 1)];
     }
 
     /**
