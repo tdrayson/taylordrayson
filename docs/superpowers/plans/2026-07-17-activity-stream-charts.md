@@ -586,18 +586,21 @@ git commit -m "feat: expose deferred activity profile prop"
 
 ---
 
-### Task 6: Shared cursor + ActivityProfile charts
+### Task 6: Shared cursor + ProfileChart + ActivityProfile (replaces the HR chart)
+
+**Reality this task must fit (discovered during execution):** activities already render a bespoke SVG `HeartRateChart.vue` (line+area, avg line, hover vertical-line + dot + floating chip, `touch-none`, pointer events) inside `ActivityDetail.vue`, sourced from `entry.heart_rate`. Task 5 moved the series to a deferred `profile` prop, so that chart is currently broken. This task GENERALISES `HeartRateChart` into a reusable `ProfileChart` driven by a shared cursor, renders three of them (HR, elevation, speed) from the deferred `profile`, and replaces the old HR block. Do NOT use Chart.js — match the existing SVG style.
 
 **Files:**
 - Create: `resources/js/composables/useActivityCursor.js`
-- Create: `resources/js/lib/crosshairPlugin.js`
-- Modify: `resources/js/Components/Ui/Chart.vue` (accept `plugins`, emit `hover`)
+- Create: `resources/js/Components/Stats/ProfileChart.vue`
 - Create: `resources/js/Components/Entry/ActivityProfile.vue`
+- Modify: `resources/js/Components/Entry/ActivityDetail.vue`
 - Test: `tests/Browser/ActivityProfileTest.php`
 
 **Interfaces:**
-- Produces: `useActivityCursor()` returning `{ index (ref, null when inactive), set(i), clear() }`.
-- Produces: `ActivityProfile.vue` props `{ profile: Object, cursor: Object }` (cursor from the composable) rendering up to three charts.
+- `useActivityCursor()` → `{ index (ref, null when inactive), set(i), clear() }`.
+- `ProfileChart` props `{ points: Array<number>, duration: Number, color: String, unit: String, cursor: Object, fill: Boolean }` — renders the SVG trace, a vertical line + dot at `cursor.index`, and a floating `{value unit, time}` chip; on `pointermove` sets the cursor to the nearest index, on `pointerleave` clears it.
+- `ActivityProfile` props `{ profile: Object, duration: Number, cursor: Object }` — renders a `ProfileChart` for each present series (heart rate bpm, elevation m, speed mph), keeping the existing HR density gate.
 
 - [ ] **Step 1: Write the failing browser test**
 
@@ -608,28 +611,32 @@ Create `tests/Browser/ActivityProfileTest.php`:
 
 use App\Models\Activity;
 
-it('renders profile chart canvases on an activity with streams', function () {
+it('renders the profile charts on an activity with streams', function () {
+    $points = fn (callable $v) => collect(range(0, 20))->map(fn ($i) => ['time' => now()->addSeconds($i)->format('Y-m-d H:i:s')] + $v($i))->all();
+
     $activity = Activity::factory()->create([
         'type' => 'run',
         'occurred_at' => now(),
-        'meta' => ['polyline' => 'ki~mHvfyL...'],
-        'altitude' => collect(range(0, 20))->map(fn ($i) => ['time' => now()->addSeconds($i)->format('Y-m-d H:i:s'), 'value' => 10 + $i])->all(),
-        'speed' => collect(range(0, 20))->map(fn ($i) => ['time' => now()->addSeconds($i)->format('Y-m-d H:i:s'), 'value' => 2 + $i / 10])->all(),
+        'duration' => 1200,
+        'meta' => ['polyline' => 'ki~mHvfyLPKLA'],
+        'heart_rate' => $points(fn ($i) => ['bpm' => 120 + $i]),
+        'altitude' => $points(fn ($i) => ['value' => 10 + $i]),
+        'speed' => $points(fn ($i) => ['value' => 2 + $i / 10]),
     ]);
 
     $page = visit($activity->url());
 
-    // Rendered DOM: a chart canvas for the profile section.
-    $page->assertPresent('[data-testid="activity-profile"] canvas');
+    // Rendered DOM: the profile section renders three SVG charts (one per series).
+    $page->assertPresent('[data-testid="activity-profile"] svg');
 });
 ```
 
-Adjust the polyline to a valid short encoded string and confirm `$activity->url()` reaches the activity page. The test asserts a rendered `<canvas>`, not props JSON.
+Confirm the polyline is a valid short encoded string and `$activity->url()` reaches the activity page.
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `php artisan test --compact tests/Browser/ActivityProfileTest.php`
-Expected: FAIL (no profile section).
+Expected: FAIL.
 
 - [ ] **Step 3: Create the cursor composable**
 
@@ -638,17 +645,17 @@ Create `resources/js/composables/useActivityCursor.js`:
 ```js
 import { ref } from 'vue';
 
-// A single shared cursor index across the profile charts and the route map.
-// null means "not hovering" (hide the crosshair line and the map dot).
+// One shared cursor index across the profile charts and the route map.
+// null means "not hovering" — the crosshair line, dot, and map dot all hide.
 export function useActivityCursor() {
     const index = ref(null);
 
-    // Set the active point index (clamped by callers to their series length).
+    // Set the active point index (callers clamp to their series length).
     function set(value) {
         index.value = value;
     }
 
-    // Clear on pointer leave so the line and dot disappear together.
+    // Clear on pointer leave so line and dot disappear together.
     function clear() {
         index.value = null;
     }
@@ -657,152 +664,219 @@ export function useActivityCursor() {
 }
 ```
 
-- [ ] **Step 4: Create the crosshair plugin**
+- [ ] **Step 4: Create ProfileChart (generalised from HeartRateChart)**
 
-Create `resources/js/lib/crosshairPlugin.js`:
+Create `resources/js/Components/Stats/ProfileChart.vue` by generalising `HeartRateChart.vue`: the same SVG line/area math and pointer handling, but reading/writing the SHARED `cursor` prop instead of an internal `hoverIndex`, and with a configurable `unit` and optional `fill`.
 
-```js
-// A Chart.js inline plugin that draws a vertical line at a shared cursor index.
-// The index is read from the chart's `options.plugins.crosshair.index` so all
-// charts sharing one reactive cursor draw the line at the same x.
-export const crosshairPlugin = {
-    id: 'crosshair',
-    afterDatasetsDraw(chart) {
-        const cfg = chart.options.plugins?.crosshair;
-        const index = cfg?.index;
+```vue
+<script setup>
+import { computed, ref } from 'vue';
 
-        if (index == null || index < 0) {
-            return;
-        }
+const props = defineProps({
+    // Evenly-spaced numeric samples across the activity (already in display units).
+    points: { type: Array, required: true },
+    duration: { type: Number, default: null },
+    color: { type: String, default: 'var(--color-activity)' },
+    unit: { type: String, default: '' },
+    // Shared cursor (useActivityCursor): index ref + set/clear.
+    cursor: { type: Object, required: true },
+    fill: { type: Boolean, default: true },
+});
 
-        const meta = chart.getDatasetMeta(0);
-        const point = meta?.data?.[index];
+const container = ref(null);
+const count = computed(() => props.points.length);
+const TOP = 16;
 
-        if (!point) {
-            return;
-        }
+// Padded value domain so the trace never touches the top/bottom edges.
+const domain = computed(() => {
+    const lo = Math.min(...props.points);
+    const hi = Math.max(...props.points);
+    const pad = (hi - lo) * 0.1 || 1;
 
-        const { ctx, chartArea } = chart;
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(point.x, chartArea.top);
-        ctx.lineTo(point.x, chartArea.bottom);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = cfg.color || 'rgba(120,120,120,0.6)';
-        ctx.stroke();
-        ctx.restore();
-    },
-};
-```
+    return { lo: lo - pad, hi: hi + pad, span: (hi - lo) + 2 * pad || 1 };
+});
 
-- [ ] **Step 5: Extend Chart.vue to accept plugins and emit hover**
-
-In `resources/js/Components/Ui/Chart.vue`:
-
-- Add a prop `plugins: { type: Array, default: () => [] }`.
-- Pass it into the Chart config: `new Chart(canvas.value, { type: props.type, data: props.data, options: props.options, plugins: props.plugins })`.
-- Add `const emit = defineEmits(['hover']);` and set an `onHover` in the merged options that emits the nearest index:
-
-```js
-// Emit the data index under the pointer so a parent can drive a shared cursor.
-function handleHover(event, _elements, chart) {
-    const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, false);
-    emit('hover', points.length ? points[0].index : null);
+// SVG x for a point index and y for a value (viewBox 0..100).
+function x(index) {
+    return count.value <= 1 ? 0 : (index / (count.value - 1)) * 100;
 }
+function y(value) {
+    return 95 - ((value - domain.value.lo) / domain.value.span) * (95 - TOP);
+}
+
+const linePath = computed(() => props.points.map((value, index) => `${index === 0 ? 'M' : 'L'} ${x(index).toFixed(2)} ${y(value).toFixed(2)}`).join(' '));
+const areaPath = computed(() => `${linePath.value} L 100 100 L 0 100 Z`);
+
+function clock(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
+}
+
+// The hovered point derived from the SHARED cursor index (null when inactive).
+const hovered = computed(() => {
+    const index = props.cursor.index.value;
+
+    if (index == null || index < 0 || index >= count.value) {
+        return null;
+    }
+
+    const value = props.points[index];
+
+    return {
+        value,
+        left: x(index),
+        top: y(value),
+        time: props.duration ? clock((index / (count.value - 1)) * props.duration) : null,
+    };
+});
+
+// Map the pointer's x within the chart to the nearest point index, shared via the cursor.
+function onMove(event) {
+    const rect = container.value.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    props.cursor.set(Math.round(ratio * (count.value - 1)));
+}
+</script>
+
+<template>
+    <div
+        ref="container"
+        class="relative h-40 w-full touch-none select-none"
+        @pointermove="onMove"
+        @pointerleave="cursor.clear()"
+    >
+        <svg class="absolute inset-0 size-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+                <linearGradient :id="`profile-fill-${unit}`" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" :stop-color="color" stop-opacity="0.22" />
+                    <stop offset="100%" :stop-color="color" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+
+            <path v-if="fill" :d="areaPath" :fill="`url(#profile-fill-${unit})`" />
+            <path :d="linePath" fill="none" :stroke="color" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+            <line v-if="hovered" :x1="hovered.left" y1="0" :x2="hovered.left" y2="100" stroke="var(--color-neutral-500)" stroke-width="1" stroke-opacity="0.4" vector-effect="non-scaling-stroke" />
+        </svg>
+
+        <template v-if="hovered">
+            <div class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-0" :style="{ left: `${hovered.left}%`, top: `${hovered.top}%`, background: color }" />
+            <!-- Intentional dark chip in both themes (same pattern as Tooltip.vue / HeartRateChart). -->
+            <div
+                class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-card tnum"
+                :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%` }"
+            >
+                {{ Math.round(hovered.value) }} {{ unit }}<template v-if="hovered.time">, {{ hovered.time }}</template>
+            </div>
+        </template>
+    </div>
+</template>
 ```
 
-Merge `onHover: handleHover` into the options passed to Chart.js (without mutating `props.options`). Because `rebuildChart` reads `props.options`, compose the final options as `{ ...props.options, onHover: handleHover }` at construction.
-
-- [ ] **Step 6: Create ActivityProfile.vue**
+- [ ] **Step 5: Create ActivityProfile**
 
 Create `resources/js/Components/Entry/ActivityProfile.vue`:
 
 ```vue
 <script setup>
 import { computed } from 'vue';
-import Chart from '../Ui/Chart.vue';
-import { crosshairPlugin } from '../../lib/crosshairPlugin.js';
+import SectionHead from '../Ui/SectionHead.vue';
+import ProfileChart from '../Stats/ProfileChart.vue';
 
 const props = defineProps({
-    // { heart_rate, altitude, speed, track } arrays of {time, value|bpm|lat/lng}.
+    // { heart_rate, altitude, speed, track } series of {time, bpm|value|lat/lng}.
     profile: { type: Object, required: true },
-    // Shared cursor from useActivityCursor (index ref + set/clear).
+    duration: { type: Number, default: null },
+    // Shared cursor from useActivityCursor.
     cursor: { type: Object, required: true },
 });
 
-// Each metric that actually has data, in display order, with its colour and value key.
-const metrics = computed(() =>
+// Bare-number series for a stream key, or [] when absent.
+function values(key, field) {
+    const series = props.profile?.[key];
+    return Array.isArray(series) ? series.map((point) => point[field]) : [];
+}
+
+const heartRate = computed(() => values('heart_rate', 'bpm'));
+const elevation = computed(() => values('altitude', 'value'));
+// Stored m/s -> mph for display (British default; a later pass can honour the unit toggle).
+const speed = computed(() => values('speed', 'value').map((v) => v * 2.23694));
+
+// HR density gate carried over from ActivityDetail: only show a dense-enough trace.
+const MIN_HR_POINTS = 5;
+const MAX_HR_GAP_SECONDS = 120;
+const showHeartRate = computed(() => {
+    const points = heartRate.value.length;
+    if (points < MIN_HR_POINTS) {
+        return false;
+    }
+    const duration = Number(props.duration) || 0;
+    return duration <= 0 || points >= duration / MAX_HR_GAP_SECONDS;
+});
+
+// The charts to render, in order, each only when it has data.
+const charts = computed(() =>
     [
-        { key: 'heart_rate', label: 'Heart rate', unit: 'bpm', valueKey: 'bpm', color: 'var(--color-run)' },
-        { key: 'altitude', label: 'Elevation', unit: 'm', valueKey: 'value', color: 'var(--color-walk)' },
-        { key: 'speed', label: 'Speed', unit: 'm/s', valueKey: 'value', color: 'var(--color-ride)' },
-    ].filter((metric) => Array.isArray(props.profile[metric.key]) && props.profile[metric.key].length > 0),
+        showHeartRate.value ? { key: 'hr', label: 'Heart rate', unit: 'bpm', color: 'var(--color-run)', points: heartRate.value } : null,
+        elevation.value.length ? { key: 'elevation', label: 'Elevation', unit: 'm', color: 'var(--color-walk)', points: elevation.value } : null,
+        speed.value.length ? { key: 'speed', label: 'Speed', unit: 'mph', color: 'var(--color-ride)', points: speed.value } : null,
+    ].filter(Boolean),
 );
-
-// Chart.js data for one metric: elapsed-time labels (shared index) + its values.
-function chartData(metric) {
-    const series = props.profile[metric.key];
-    return {
-        labels: series.map((_, index) => index),
-        datasets: [{ data: series.map((point) => point[metric.valueKey]), borderColor: metric.color, fill: metric.key === 'altitude', tension: 0.3, pointRadius: 0 }],
-    };
-}
-
-// Options carry the shared cursor index so the crosshair plugin draws in sync.
-function chartOptions(metric) {
-    return {
-        animation: false,
-        scales: { x: { display: false }, y: { title: { display: true, text: metric.unit } } },
-        plugins: { legend: { display: false }, crosshair: { index: props.cursor.index.value, color: metric.color } },
-    };
-}
 </script>
 
 <template>
-    <div data-testid="activity-profile" class="space-y-4">
-        <div v-for="metric in metrics" :key="metric.key">
-            <p class="text-label uppercase text-neutral-500">{{ metric.label }}</p>
-            <Chart
-                type="line"
-                :data="chartData(metric)"
-                :options="chartOptions(metric)"
-                :plugins="[crosshairPlugin]"
-                :height="140"
-                @hover="cursor.set($event)"
-                @pointerleave="cursor.clear()"
-            />
+    <div v-if="charts.length" data-testid="activity-profile" class="space-y-6">
+        <div v-for="chart in charts" :key="chart.key">
+            <SectionHead :title="chart.label" :meta="`${chart.unit} over the activity`" />
+            <ProfileChart :points="chart.points" :duration="duration" :color="chart.color" :unit="chart.unit" :cursor="cursor" :fill="chart.key !== 'speed'" />
         </div>
     </div>
 </template>
 ```
 
-Note: `@pointerleave` must reach the chart canvas — if `Chart.vue`'s root doesn't forward it, add a wrapping element with `@pointerleave` in ActivityProfile (the wrapper `div` around each `<Chart>` can carry it). Verify against `Chart.vue`'s root element.
+- [ ] **Step 6: Rewire ActivityDetail to the deferred profile + shared cursor**
+
+In `resources/js/Components/Entry/ActivityDetail.vue`:
+- Import `usePage` and `Deferred` from `@inertiajs/vue3`, `useActivityCursor`, and `ActivityProfile`.
+- Remove the `HeartRateChart` import and the `heartRate`/`showHeartRate`/`MIN_HR_POINTS`/`MAX_HR_GAP_SECONDS` logic (it now lives in `ActivityProfile`).
+- Add `const page = usePage(); const profile = computed(() => page.props.profile);` and `const cursor = useActivityCursor();` (the cursor is shared with the map in Task 7).
+- Replace the `<div v-if="!exercises.length && showHeartRate">…HeartRateChart…</div>` block with:
+
+```vue
+        <Deferred v-if="!exercises.length" data="profile">
+            <template #fallback>
+                <div class="h-40 w-full animate-pulse rounded-lg bg-neutral-25" />
+            </template>
+            <ActivityProfile v-if="profile" :profile="profile" :duration="entry.duration" :cursor="cursor" />
+        </Deferred>
+```
+
+Keep the `Avg HR`/`Max HR` stats (they read `entry.average_heart_rate`/`max_heart_rate`, still in the payload). Read the file first to place the block where the HR chart was.
 
 - [ ] **Step 7: Build and run the test**
 
 Run: `npm run build && php artisan test --compact tests/Browser/ActivityProfileTest.php`
-Expected: PASS (canvas rendered). If the cursor reactivity needs `chartOptions` to re-run on `cursor.index` change, confirm `Chart.vue`'s `watch(() => [props.data, props.options], ...)` picks up the changed options object (ActivityProfile passes a fresh options object as `cursor.index.value` changes).
-
-**PERFORMANCE (important):** driving the crosshair by passing `cursor.index.value` through `options` (Step 6) makes `Chart.vue`'s `watch(props.options)` rebuild the whole chart on every pointer move — three chart rebuilds per mousemove, which is janky on mobile. Drive the crosshair WITHOUT a rebuild instead: have the `crosshair` plugin read the index from a shared mutable object (e.g. a module-level ref or a value stored on the chart instance) and, when `cursor.index` changes, call the chart's `render()` (a cheap redraw) rather than reconstructing it. Expose the chart instance from `Chart.vue` (e.g. `defineExpose({ redraw })`) or register the plugin so it reads the reactive cursor directly. Verify pointer moves redraw only (no `new Chart()` per move) before committing.
+Expected: PASS (three SVG charts render under the profile section).
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add resources/js/composables/useActivityCursor.js resources/js/lib/crosshairPlugin.js resources/js/Components/Ui/Chart.vue resources/js/Components/Entry/ActivityProfile.vue tests/Browser/ActivityProfileTest.php
-git commit -m "feat: activity profile charts with shared cursor"
+git add resources/js/composables/useActivityCursor.js resources/js/Components/Stats/ProfileChart.vue resources/js/Components/Entry/ActivityProfile.vue resources/js/Components/Entry/ActivityDetail.vue tests/Browser/ActivityProfileTest.php
+git commit -m "feat: activity profile charts (hr/elevation/speed) with shared cursor"
 ```
 
 ---
 
-### Task 7: EntryMap route dot + bidirectional scrub, wired in ActivityDetail
+### Task 7: EntryMap route dot + bidirectional scrub
 
 **Files:**
 - Modify: `resources/js/Components/Maps/EntryMap.vue` (dot + pointer scrub)
-- Modify: `resources/js/Components/Entry/ActivityDetail.vue` (mount ActivityProfile + share cursor with the map)
+- Modify: `resources/js/Components/Entry/ActivityMedia.vue` (pass `track` + `cursor` through to EntryMap)
+- Modify: `resources/js/Components/Entry/ActivityDetail.vue` (pass the shared `cursor` + `profile.track` into ActivityMedia)
 - Test: `tests/Browser/ActivityScrubTest.php`
 
 **Interfaces:**
-- `EntryMap` gains props `track: { type: Array, default: () => [] }` and `cursor: { type: Object, default: null }` (the composable). It renders a dot at `track[cursor.index]` and, on pointer move over the map, sets `cursor` to the nearest track point's index.
+- `EntryMap` gains props `track: { type: Array, default: () => [] }` and `cursor: { type: Object, default: null }`. It renders a dot at `track[cursor.index]` (hidden when the index is null) and, on pointer move over the route, sets `cursor` to the nearest track point's index.
+- `ActivityMedia` gains `track` and `cursor` props and forwards them to `EntryMap`.
 
 - [ ] **Step 1: Write the failing browser test**
 
@@ -813,20 +887,25 @@ Create `tests/Browser/ActivityScrubTest.php`:
 
 use App\Models\Activity;
 
-it('renders the route map dot element for an activity with a track', function () {
+it('renders the route scrub dot for an activity with a track', function () {
     $activity = Activity::factory()->create([
         'type' => 'run',
         'occurred_at' => now(),
-        'meta' => ['polyline' => 'ki~mHvfyL...'],
-        'track' => [['time' => now()->format('Y-m-d H:i:s'), 'lat' => 51.5, 'lng' => -0.1]],
+        'meta' => ['polyline' => 'ki~mHvfyLPKLA'],
+        'track' => [
+            ['time' => now()->format('Y-m-d H:i:s'), 'lat' => 51.50, 'lng' => -0.10],
+            ['time' => now()->addSecond()->format('Y-m-d H:i:s'), 'lat' => 51.51, 'lng' => -0.11],
+        ],
     ]);
 
     $page = visit($activity->url());
 
-    // Rendered DOM: the scrub dot element exists in the map container.
+    // Rendered DOM: the scrub dot marker element exists (hidden until hover, but present).
     $page->assertPresent('[data-testid="route-dot"]');
 });
 ```
+
+Note: `track` is on the deferred `profile` prop, so the dot depends on the profile resolving; if the marker element is only created after `profile` loads, assert after a short wait or ensure EntryMap creates the (hidden) marker element as soon as a non-empty `track` arrives. Adjust the assertion/timing to the real behaviour; keep it a rendered-DOM assertion.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -835,24 +914,17 @@ Expected: FAIL.
 
 - [ ] **Step 3: Add the dot + scrub to EntryMap.vue**
 
-In `resources/js/Components/Maps/EntryMap.vue`:
-
-- Add props `track` (array of `{time, lat, lng}`) and `cursor` (the shared composable or null).
-- After the map/route are ready, add a MapLibre `Marker` (an element with `data-testid="route-dot"`, a small coloured circle styled with standard Tailwind classes) that is shown only when `cursor?.index` is non-null, positioned at `[track[index].lng, track[index].lat]`. Watch `cursor.index` to move/hide it.
-- Add a `map.on('mousemove', ...)` and `map.on('touchmove', ...)` (or a single pointer handler on the canvas) that projects the pointer to lng/lat, finds the nearest `track` point (linear scan over the ~240 downsampled points is fine), and calls `cursor.set(nearestIndex)`; clear on `mouseout`/`touchend`.
+Read the existing `onMounted` map setup and the photo-marker pattern first, then:
+- Add props `track` and `cursor`.
+- Create a MapLibre `Marker` from a small element carrying `data-testid="route-dot"` (a coloured circle, standard Tailwind classes, e.g. `size-3 rounded-full border-2 border-neutral-0`), added to the map. Show it only when `cursor?.index` is non-null and a `track[index]` exists, positioned at `[track[index].lng, track[index].lat]`. Watch `cursor.index` (and `track`) to move/toggle it.
+- Add pointer scrub: on `map.on('mousemove', …)` and touch (`map.on('touchmove', …)`, or a unified pointer handler on `map.getCanvas()`), project the event to `lngLat`, find the nearest `track` point (linear scan over ~240 points), and `cursor.set(nearestIndex)`; on `mouseout`/`touchend` call `cursor.clear()`.
+- Guard everything so a map with no `track`/`cursor` (non-activity uses of EntryMap) behaves exactly as today.
 - Comment each new function per the Vue-comment convention.
 
-Read the existing `onMounted` map setup and the photo-marker pattern first; reuse the same MapLibre marker approach for the dot.
+- [ ] **Step 4: Thread track + cursor through ActivityMedia and ActivityDetail**
 
-- [ ] **Step 4: Wire ActivityProfile + shared cursor into ActivityDetail.vue**
-
-In `resources/js/Components/Entry/ActivityDetail.vue`:
-
-- Import `useActivityCursor`, `ActivityProfile`, and (if not already) `EntryMap`; import `Deferred` from `@inertiajs/vue3`.
-- Create one `const cursor = useActivityCursor();` and pass it to BOTH the `EntryMap` (with `:track` from the profile) and `ActivityProfile` so they share the cursor.
-- Wrap the profile in `<Deferred data="profile">` with a pulsing skeleton fallback (per the deferred-prop convention); render `EntryMap` with the route polyline (as ActivityDetail already does) plus `:track` and `:cursor`, and `ActivityProfile` with `:profile` and `:cursor` once loaded.
-
-Read ActivityDetail.vue first to see how it currently renders the map and where the profile section should sit (below the map).
+- `ActivityMedia.vue`: add `track` and `cursor` props and pass them to `<EntryMap :track="track" :cursor="cursor" … />`.
+- `ActivityDetail.vue`: pass `:cursor="cursor"` and `:track="profile?.track ?? []"` to `<ActivityMedia …>` (the same `cursor` created in Task 6, so the charts and the map dot move together). Since `track` comes from the deferred `profile`, it will be empty until the prop resolves and then reactively populate the map — that's fine.
 
 - [ ] **Step 5: Build and run the tests**
 
@@ -862,8 +934,8 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add resources/js/Components/Maps/EntryMap.vue resources/js/Components/Entry/ActivityDetail.vue tests/Browser/ActivityScrubTest.php
-git commit -m "feat: route scrub dot synced with activity profile cursor"
+git add resources/js/Components/Maps/EntryMap.vue resources/js/Components/Entry/ActivityMedia.vue resources/js/Components/Entry/ActivityDetail.vue tests/Browser/ActivityScrubTest.php
+git commit -m "feat: route scrub dot synced with the activity profile cursor"
 ```
 
 ---
