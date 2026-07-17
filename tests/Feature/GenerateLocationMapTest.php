@@ -1,8 +1,14 @@
 <?php
 
 use App\Actions\GenerateLocationMap;
+use App\Models\Checkin;
 use App\Models\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+
+beforeEach(function () {
+    Storage::fake('public');
+});
 
 it('generates and attaches a static pin map for an event with coordinates', function () {
     config()->set('services.mapbox.token', 'test-token');
@@ -50,4 +56,27 @@ it('returns null when the model has no coordinates', function () {
     $event = Event::factory()->create(['latitude' => null, 'longitude' => null]);
 
     expect((new GenerateLocationMap)($event))->toBeNull();
+});
+
+it('stores light and dark pins using the given marker colour', function () {
+    config(['services.mapbox.token' => 'test-token']);
+    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+
+    $checkin = Checkin::factory()->create(['latitude' => 51.5, 'longitude' => -0.1]);
+
+    app(GenerateLocationMap::class)($checkin, 'ff8800');
+
+    expect($checkin->getFirstMediaUrl('map'))->not->toBe('');
+    expect($checkin->getFirstMediaUrl('map_dark'))->not->toBe('');
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'pin-l+ff8800')
+        && str_contains($request->url(), 'light-v11'));
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'dark-v11'));
+});
+
+it('returns null when the checkin has no coordinates', function () {
+    config(['services.mapbox.token' => 'test-token']);
+    $checkin = Checkin::factory()->create(['latitude' => null, 'longitude' => null]);
+
+    expect(app(GenerateLocationMap::class)($checkin, 'ff8800'))->toBeNull();
 });

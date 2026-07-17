@@ -15,8 +15,9 @@ class GenerateLocationMap
 
     private const MARKER_COLOR = '8541C8';
 
-    public function __invoke(Model&HasMedia $model): ?Media
+    public function __invoke(Model&HasMedia $model, ?string $markerColor = null): ?Media
     {
+        $color = $markerColor ?? self::MARKER_COLOR;
         $lat = $model->getAttribute('latitude');
         $lng = $model->getAttribute('longitude');
 
@@ -38,7 +39,7 @@ class GenerateLocationMap
         $last = null;
 
         foreach ($styles as $style => $collection) {
-            $marker = 'pin-l+'.self::MARKER_COLOR."({$lng},{$lat})";
+            $marker = 'pin-l+'.$color."({$lng},{$lat})";
             $center = "{$lng},{$lat},".self::ZOOM;
             $url = "https://api.mapbox.com/styles/v1/{$style}/static/{$marker}/{$center}/800x500@2x?access_token={$token}";
 

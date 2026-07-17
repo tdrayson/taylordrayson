@@ -155,6 +155,22 @@ class EntryController extends Controller
             $data['range'] = $model->dateRange();
         }
 
+        if (! $model instanceof Event && $model->getAttribute('latitude') !== null && $model->getAttribute('longitude') !== null) {
+            $address = trim(implode(', ', array_filter([
+                $model->getAttribute('station_name') ?? $model->getAttribute('venue_name'),
+                $model->getAttribute('address'),
+                $model->getAttribute('postcode'),
+                $model->getAttribute('city'),
+            ])));
+
+            $data['location'] = [
+                'lat' => (float) $model->getAttribute('latitude'),
+                'lng' => (float) $model->getAttribute('longitude'),
+                'address' => $address,
+                'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($address !== '' ? $address : $model->getAttribute('latitude').','.$model->getAttribute('longitude')),
+            ];
+        }
+
         return $data;
     }
 

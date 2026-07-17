@@ -74,7 +74,10 @@ class Fuel extends Model implements HasMedia, Timelineable
             'subtitle' => implode(', ', $parts),
             'occurred_at' => $this->occurred_at,
             'accent' => 'fuel',
-            'meta' => [],
+            'meta' => [
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
+            ],
         ];
     }
 }
