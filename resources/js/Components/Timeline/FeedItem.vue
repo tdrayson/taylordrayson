@@ -8,12 +8,9 @@ import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
-import RouteThumb from '../Maps/RouteThumb.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
-import { greatCircle } from '../../lib/maplibre.js';
-import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { useFormat } from '../../composables/useFormat';
 
@@ -161,29 +158,6 @@ const airline = computed(() => props.route?.airline ?? null);
 
 // The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
-const bannerColor = typeColor;
-
-// A full-width map banner: the flight's great-circle arc, or an activity's route.
-const flightArc = computed(() => {
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
-
-    if (origin?.lat == null || destination?.lat == null) {
-        return null;
-    }
-
-    return greatCircle(
-        { lat: Number(origin.lat), lng: Number(origin.lng) },
-        { lat: Number(destination.lat), lng: Number(destination.lng) },
-        64,
-    );
-});
-
-const routePath = computed(() => {
-    const points = props.polyline ? decodePolyline(props.polyline) : [];
-
-    return points.length > 1 ? points : null;
-});
 
 // Stored static map for this entry (activity route, flight arc, event/fuel/checkin
 // pin), pre-generated server-side. Shown only when there is no cover photo.
@@ -191,18 +165,6 @@ const routeImageUrl = computed(() => props.map ?? null);
 
 // Dark twin of the stored map; the two <img> swap via dark:hidden / dark:block.
 const routeImageDarkUrl = computed(() => props.mapDark ?? null);
-
-const banner = computed(() => {
-    if (flightArc.value) {
-        return { points: flightArc.value, endpoints: true };
-    }
-
-    if (routePath.value) {
-        return { points: routePath.value, endpoints: false };
-    }
-
-    return null;
-});
 
 const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
 
@@ -278,8 +240,6 @@ function openLightbox(index) {
             class="mt-3 max-w-sm"
         />
         <p v-else-if="metaText" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
-        <!-- SVG banner only as a fallback when no generated image is available. -->
-        <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
         <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
              and the `dark:` class picks the right one, no JS needed. -->
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
