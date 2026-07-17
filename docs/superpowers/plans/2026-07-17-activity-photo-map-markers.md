@@ -1056,7 +1056,41 @@ it('still stores the photo for an indoor activity with no latlng stream', functi
 
     expect($activity->refresh()->getFirstMedia('cover'))->not->toBeNull();
 });
+
+// Closes a Task 4 review finding. resolveTargets() must leave `start` null when
+// Strava sends no start_date, never fabricate one: CarbonImmutable::parse('')
+// silently returns NOW rather than throwing. The photo's capture time is
+// deliberately set to now, so a fabricated now-start would land at offset ~0,
+// inside the stream, and produce coordinates. Only a genuinely null start
+// produces none. An older capture time could not tell the two apart, because
+// both would fall outside the stream bounds and yield no coordinates either way.
+it('does not fabricate a start when the strava summary has no start date', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', now()->toIso8601ZuluString())]],
+        ['*/streams*' => Http::response([
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ])],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media)->not->toBeNull()
+        ->and($media->hasCustomProperty('latitude'))->toBeFalse();
+});
 ```
+
+**Verify this test has teeth before committing.** Temporarily change
+`resolveTargets()` to `'start' => CarbonImmutable::parse($summary['start_date'] ?? '')`.
+The last test above MUST then fail (it would find coordinates). Revert the change
+and confirm it passes again. A reviewer proved at Task 4 that a weaker version of
+this test passed under that exact regression, so this check is the point of the
+test, not a formality.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
