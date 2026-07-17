@@ -198,7 +198,11 @@ onMounted(async () => {
             return;
         }
 
-        const index = props.cursor?.index?.value;
+        // Map the shared 0..1 fraction to this track's own nearest index.
+        const fraction = props.cursor?.fraction?.value;
+        const index = fraction != null && props.track.length > 0
+            ? Math.round(fraction * (props.track.length - 1))
+            : null;
         const point = index != null ? props.track[index] : null;
 
         if (!point) {
@@ -218,7 +222,8 @@ onMounted(async () => {
             return;
         }
 
-        props.cursor.set(nearestTrackIndex(event.lngLat));
+        const index = nearestTrackIndex(event.lngLat);
+        props.cursor.set(props.track.length > 1 ? index / (props.track.length - 1) : 0);
     }
 
     // Clear the shared cursor when the pointer leaves the map (mouse) or lifts (touch).
@@ -277,7 +282,7 @@ onMounted(async () => {
     stopTrackWatch = watch(() => props.track, updateRouteDot);
 
     if (props.cursor) {
-        stopCursorWatch = watch(props.cursor.index, updateRouteDot);
+        stopCursorWatch = watch(props.cursor.fraction, updateRouteDot);
     }
 
     // Switch basemap when the colour scheme changes, then re-add the custom

@@ -41,29 +41,31 @@ function clock(seconds) {
     return `${minutes}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
 }
 
-// The hovered point derived from the SHARED cursor index (null when inactive).
+// The hovered point derived from the SHARED cursor fraction (null when inactive).
+// The 0..1 fraction is mapped to THIS chart's own index, so charts of different
+// lengths stay in sync by position along the activity.
 const hovered = computed(() => {
-    const index = props.cursor.index.value;
+    const fraction = props.cursor.fraction.value;
 
-    if (index == null || index < 0 || index >= count.value) {
+    if (fraction == null || count.value === 0) {
         return null;
     }
 
+    const index = Math.round(fraction * (count.value - 1));
     const value = props.points[index];
 
     return {
         value,
         left: x(index),
         top: y(value),
-        time: props.duration ? clock((index / (count.value - 1)) * props.duration) : null,
+        time: props.duration ? clock(fraction * props.duration) : null,
     };
 });
 
-// Map the pointer's x within the chart to the nearest point index, shared via the cursor.
+// Map the pointer's x within the chart to a 0..1 fraction shared via the cursor.
 function onMove(event) {
     const rect = container.value.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-    props.cursor.set(Math.round(ratio * (count.value - 1)));
+    props.cursor.set(Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)));
 }
 </script>
 
