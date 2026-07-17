@@ -1,0 +1,24 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('activities', function (Blueprint $table): void {
+            $table->json('altitude')->nullable()->after('heart_rate');
+            $table->json('speed')->nullable()->after('altitude');
+            $table->json('track')->nullable()->after('speed');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('activities', function (Blueprint $table): void {
+            $table->dropColumn(['altitude', 'speed', 'track']);
+        });
+    }
+};
