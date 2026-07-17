@@ -17,7 +17,15 @@ defineEmits(['open']);
 
 <template>
     <div v-if="polyline || photos.length" class="space-y-2.5">
-        <EntryMap v-if="polyline" :polyline="polyline" :color="color" :track="track" :cursor="cursor" />
+        <EntryMap
+            v-if="polyline"
+            :polyline="polyline"
+            :photos="photos"
+            :color="color"
+            :track="track"
+            :cursor="cursor"
+            @open-photo="$emit('open', $event)"
+        />
 
         <div v-if="photos.length" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <button

@@ -103,7 +103,7 @@ class Strava
     {
         return $this->getJson(self::BASE."/api/v3/activities/{$id}/streams", [
             'keys' => implode(',', $keys),
-            'key_by_type' => true,
+            'key_by_type' => 'true',
         ]);
     }
 
