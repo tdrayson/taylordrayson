@@ -12,8 +12,6 @@ class ExportAll extends Command
 {
     /** @var list<array{file: string, type: string}> */
     private array $exports = [
-        ['file' => 'data/airports.csv', 'type' => 'airport'],
-        ['file' => 'data/airlines.csv', 'type' => 'airline'],
         ['file' => 'data/calories.csv', 'type' => 'calorie'],
         ['file' => 'data/appearances.csv', 'type' => 'appearance'],
         ['file' => 'data/sleep.csv', 'type' => 'sleep'],

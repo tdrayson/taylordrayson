@@ -7,6 +7,7 @@ use App\Support\Distance;
 use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -257,6 +258,29 @@ class SearchCompiler
         }
 
         if (isset($field['relation'])) {
+            $this->relationClause($query, $field, $operator, $value);
+
+            return;
+        }
+
+        $this->clause($query, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
+    }
+
+    /**
+     * Constrain a parent query by a condition on a related model.
+     *
+     * A whereHas compiles to a correlated subquery, which only reaches tables
+     * on the query's own connection. Sushi-backed lookups (Airline, Airport)
+     * live on their own connection, so for those we resolve the matching keys
+     * first and filter the parent by its foreign key instead.
+     *
+     * @param  array<string, mixed>  $field  The field definition (column, dataType, relation).
+     */
+    private function relationClause(Builder $query, array $field, string $operator, mixed $value): void
+    {
+        $relation = $query->getModel()->{$field['relation']}();
+
+        if (! $this->isCrossConnection($query, $relation)) {
             $query->whereHas(
                 $field['relation'],
                 fn (Builder $related) => $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null)
@@ -265,7 +289,23 @@ class SearchCompiler
             return;
         }
 
-        $this->clause($query, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
+        $related = $relation->getRelated()->newQuery();
+        $this->clause($related, $field['column'], $field['dataType'], $operator, $value, $field['unit'] ?? null);
+
+        $query->whereIn(
+            $relation->getForeignKeyName(),
+            $related->pluck($relation->getOwnerKeyName())->all()
+        );
+    }
+
+    /**
+     * Whether a relation's model resolves to a different database connection
+     * than the query it is being applied to.
+     */
+    private function isCrossConnection(Builder $query, BelongsTo $relation): bool
+    {
+        return $relation->getRelated()->getConnection()->getName()
+            !== $query->getModel()->getConnection()->getName();
     }
 
     /**
