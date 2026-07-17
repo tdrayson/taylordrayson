@@ -28,6 +28,13 @@ onMounted(async () => {
 
     const color = resolveColor(props.color);
 
+    // Inner fill of the point marker: white on light maps, near-black on dark
+    // maps, so the coloured ring keeps a legible centre in both themes. Read
+    // at layer-add time, which re-runs on theme toggle (see the resolved watch).
+    function markerInnerColor() {
+        return resolved.value === 'dark' ? '#0a0a0a' : '#ffffff';
+    }
+
     // Adds the point source/layer; re-run after setStyle since maplibre
     // drops custom sources/layers whenever the style is replaced.
     function addPlaceLayer() {
@@ -42,7 +49,7 @@ onMounted(async () => {
             source: 'place',
             paint: {
                 'circle-radius': 6,
-                'circle-color': '#ffffff',
+                'circle-color': markerInnerColor(),
                 'circle-stroke-color': color,
                 'circle-stroke-width': 3,
             },
