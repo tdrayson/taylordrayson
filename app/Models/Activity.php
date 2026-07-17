@@ -54,6 +54,20 @@ class Activity extends Model implements HasMedia, Timelineable
         ];
     }
 
+    /**
+     * Preserve whole-number floats (e.g. 10.0) in the stream columns; without
+     * this flag json_encode() drops the trailing zero and round-trips them
+     * back as integers, silently changing the stored value's type.
+     *
+     * @param  string  $key
+     */
+    protected function getJsonCastFlags($key): int
+    {
+        return in_array($key, ['heart_rate', 'altitude', 'speed', 'track'], true)
+            ? JSON_PRESERVE_ZERO_FRACTION
+            : parent::getJsonCastFlags($key);
+    }
+
     public function getPlatformUrlAttribute(): ?string
     {
         if ($this->source === 'strava' && $this->source_id) {
