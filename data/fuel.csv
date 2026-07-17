@@ -78,48 +78,48 @@ occurred_at,vehicle_id,station_name,brand,address,postcode,city,county,country,l
 "2023-08-23 12:02:00",hn14wxp,,,,,,,,,,35.323,50.83,,1.439,54336
 "2023-08-31 09:32:00",hn14wxp,,,,,,,,,,33.903,51.16,,1.509,54768
 "2023-09-21 12:00:00",hn14wxp,,,,,,,,,,35.794,59.74,,1.669,55141
-"2023-10-19 19:30:00",hn14wxp,"MFG HAYLING DOWN",ESSO,"628-630 BRIGHTON ROAD, PURLEY, GREATER LONDON","CR8 2BA",PURLEY,,"United Kingdom",51.345,-0.105485,32.87,49.93,,1.519,55515
-"2023-11-05 23:07:00",hn14wxp,"MFG HORLEY",ESSO,"POVEY CROSS ROAD, HORLEY, SURREY","RH6 0AD",HORLEY,,"United Kingdom",51.167177,-0.17832,33.322,50.95,,1.529,55901
-"2023-11-28 21:08:00",hn14wxp,"GATWICK SOUTH SF CONNECT",BP,"RING ROAD NORTH (A23), LONDON GATWICK AIRPORT, WEST SUSSEX","RH6 0NN","LONDON GATWICK AIRPORT",,"United Kingdom",51.15838,-0.15529,31.623,46.77,,1.479,56236
-"2023-12-21 15:28:00",hn14wxp,"MITCHAM ROAD SF CONNECT",BP,"3 MITCHAM ROAD, CROYDON, SURREY","CR0 3RU",CROYDON,,"United Kingdom",51.37882,-0.111,32.309,45.2,,1.399,56567
-"2024-01-25 22:34:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,31.078,44.1,41.33,1.419,56875
-"2024-02-13 22:43:00",hn14wxp,"Crawley Service Station",BP,"CRAWLEY AUTOPOINT, WOODFIELD ROAD, CRAWLEY, RH10 8EP, CRAWLEY","RH10 8EP",CRAWLEY,,"United Kingdom",51.1212388,-0.1801607,32.64,45.01,44.28,1.379,57204
-"2024-02-25 11:45:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,32.391,46.61,,1.439,57575
-"2024-03-21 06:22:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,32.623,50.86,45.46,1.559,57932
-"2024-04-18 09:06:00",hn14wxp,"GODDINGTON SF CONNECT",BP,"318 COURT ROAD, ORPINGTON, KENT","BR6 9DA",ORPINGTON,,"United Kingdom",51.36425,0.1109,32.59,49.83,47.33,1.529,58307
-"2024-05-14 08:03:00",hn14wxp,"SHELL COBHAM",SHELL,"M25 JUNCTION 9/10, COBHAM, SURREY","KT11 3JS",COBHAM,,"United Kingdom",51.305064,-0.409766,33.048,57.47,,1.739,58691
-"2024-06-05 23:05:00",hn14wxp,"Crawley Service Station",BP,"CRAWLEY AUTOPOINT, WOODFIELD ROAD, CRAWLEY, RH10 8EP, CRAWLEY","RH10 8EP",CRAWLEY,,"United Kingdom",51.1212388,-0.1801607,32.763,46.49,45.6,1.419,59073
-"2024-06-27 06:38:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,33.009,50.47,45.55,1.529,59452
-"2024-07-19 10:24:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,32.907,48.67,45.88,1.479,59829
-"2024-08-14 23:07:00",hn14wxp,"GATWICK SOUTH SF CONNECT",BP,"RING ROAD NORTH (A23), LONDON GATWICK AIRPORT, WEST SUSSEX","RH6 0NN","LONDON GATWICK AIRPORT",,"United Kingdom",51.15838,-0.15529,32.283,45.81,43.31,1.419,60222
-"2024-09-05 05:52:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,33.201,48.44,43.1,1.459,60591
-"2024-09-19 13:22:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,32.023,44.8,39.89,1.399,60990
-"2024-10-03 05:46:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,32.789,44.56,40.94,1.359,61389
-"2024-10-28 07:54:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,32.723,45.78,42.13,1.399,61750
+"2023-10-19 19:30:00",hn14wxp,"MFG Hayling Down",Esso,"628-630 Brighton Road, Purley, Greater London","CR8 2BA",Purley,,"United Kingdom",51.345,-0.105485,32.87,49.93,,1.519,55515
+"2023-11-05 23:07:00",hn14wxp,"MFG Horley",Esso,"Povey Cross Road, Horley, Surrey","RH6 0AD",Horley,,"United Kingdom",51.167177,-0.17832,33.322,50.95,,1.529,55901
+"2023-11-28 21:08:00",hn14wxp,"Gatwick South SF Connect",BP,"Ring Road North (A23), London Gatwick Airport, West Sussex","RH6 0NN","London Gatwick Airport",,"United Kingdom",51.15838,-0.15529,31.623,46.77,,1.479,56236
+"2023-12-21 15:28:00",hn14wxp,"Mitcham Road SF Connect",BP,"3 Mitcham Road, Croydon, Surrey","CR0 3RU",Croydon,,"United Kingdom",51.37882,-0.111,32.309,45.2,,1.399,56567
+"2024-01-25 22:34:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,31.078,44.1,41.33,1.419,56875
+"2024-02-13 22:43:00",hn14wxp,"Crawley Service Station",BP,"Crawley Autopoint, Woodfield Road, Crawley, RH10 8EP, Crawley","RH10 8EP",Crawley,,"United Kingdom",51.1212388,-0.1801607,32.64,45.01,44.28,1.379,57204
+"2024-02-25 11:45:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,32.391,46.61,,1.439,57575
+"2024-03-21 06:22:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,32.623,50.86,45.46,1.559,57932
+"2024-04-18 09:06:00",hn14wxp,"Goddington SF Connect",BP,"318 Court Road, Orpington, Kent","BR6 9DA",Orpington,,"United Kingdom",51.36425,0.1109,32.59,49.83,47.33,1.529,58307
+"2024-05-14 08:03:00",hn14wxp,"Shell Cobham",Shell,"M25 Junction 9/10, Cobham, Surrey","KT11 3JS",Cobham,,"United Kingdom",51.305064,-0.409766,33.048,57.47,,1.739,58691
+"2024-06-05 23:05:00",hn14wxp,"Crawley Service Station",BP,"Crawley Autopoint, Woodfield Road, Crawley, RH10 8EP, Crawley","RH10 8EP",Crawley,,"United Kingdom",51.1212388,-0.1801607,32.763,46.49,45.6,1.419,59073
+"2024-06-27 06:38:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,33.009,50.47,45.55,1.529,59452
+"2024-07-19 10:24:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,32.907,48.67,45.88,1.479,59829
+"2024-08-14 23:07:00",hn14wxp,"Gatwick South SF Connect",BP,"Ring Road North (A23), London Gatwick Airport, West Sussex","RH6 0NN","London Gatwick Airport",,"United Kingdom",51.15838,-0.15529,32.283,45.81,43.31,1.419,60222
+"2024-09-05 05:52:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,33.201,48.44,43.1,1.459,60591
+"2024-09-19 13:22:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,32.023,44.8,39.89,1.399,60990
+"2024-10-03 05:46:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,32.789,44.56,40.94,1.359,61389
+"2024-10-28 07:54:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,32.723,45.78,42.13,1.399,61750
 "2024-11-14 05:44:00",hn14wxp,,,,,,,,,,33.031,46.21,,1.399,62109
-"2024-12-05 09:10:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,32.38,45.3,41.36,1.399,62444
-"2024-12-30 10:49:00",hn14wxp,"CLACKET LANE EAST CONNECT MWSA",BP,"M25 EASTBOUND, WESTERHAM, KENT","TN16 2ER",WESTERHAM,,"United Kingdom",51.273376,0.042124,33.071,52.88,42.7,1.599,62788
-"2025-01-22 23:23:00",hn14wxp,"COUNTY OAK",BP,"LONDON ROAD, CRAWLEY, EAST SUSSEX, EAST SUSSEX","RH10 9TA","EAST SUSSEX",,"United Kingdom",51.1320597,-0.1861485,32.87,44.67,43.86,1.359,63140
-"2025-02-09 12:51:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,32.623,45.64,,1.399,63470
-"2025-02-28 16:57:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,33.263,47.2,,1.419,63816
-"2025-03-27 05:46:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,33.108,46.98,42.04,1.419,64147
-"2025-04-23 16:46:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,33.96,47.51,42.68,1.399,64501
-"2025-05-19 16:11:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,33.053,45.25,41.8,1.369,64866
-"2025-06-19 21:46:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,32.199,44.08,40.78,1.369,65255
-"2025-07-20 16:27:00",hn14wxp,"MITCHAM ROAD SF CONNECT",BP,"3 MITCHAM ROAD, CROYDON, SURREY","CR0 3RU",CROYDON,,"United Kingdom",51.37882,-0.111,32.367,44.31,41.17,1.369,65632
-"2025-08-17 19:37:00",hn14wxp,"SHELL SANDERSTEAD",SHELL,"81 LIMPSFIELD ROAD, SANDERSTEAD, SURREY","CR2 9LE",SANDERSTEAD,,"United Kingdom",51.332304,-0.075627,32.801,45.56,,1.389,65996
-"2025-09-10 17:25:00",hn14wxp,"ADDINGTON SF CONNECT",BP,"215 SELSDON PARK ROAD, SOUTH CROYDON, SURREY","CR2 8JH","SOUTH CROYDON",,"United Kingdom",51.35345,-0.03774,33.157,45.06,42.59,1.359,66355
-"2025-10-01 19:14:00",hn14wxp,"Crawley Service Station",BP,"CRAWLEY AUTOPOINT, WOODFIELD ROAD, CRAWLEY, RH10 8EP, CRAWLEY","RH10 8EP",CRAWLEY,,"United Kingdom",51.1212388,-0.1801607,32.199,42.47,41.46,1.319,66723
-"2025-10-26 16:45:00",hn14wxp,"BY-PASS SF CONNECT",BP,"EDGINGTON WAY, SIDCUP, KENT","DA14 5AD",SIDCUP,,"United Kingdom",51.41464,0.1252,31.958,44.07,41.47,1.379,67046
+"2024-12-05 09:10:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,32.38,45.3,41.36,1.399,62444
+"2024-12-30 10:49:00",hn14wxp,"Clacket Lane East Connect MWSA",BP,"M25 Eastbound, Westerham, Kent","TN16 2ER",Westerham,,"United Kingdom",51.273376,0.042124,33.071,52.88,42.7,1.599,62788
+"2025-01-22 23:23:00",hn14wxp,"County Oak",BP,"London Road, Crawley, East Sussex, East Sussex","RH10 9TA","East Sussex",,"United Kingdom",51.1320597,-0.1861485,32.87,44.67,43.86,1.359,63140
+"2025-02-09 12:51:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,32.623,45.64,,1.399,63470
+"2025-02-28 16:57:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,33.263,47.2,,1.419,63816
+"2025-03-27 05:46:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,33.108,46.98,42.04,1.419,64147
+"2025-04-23 16:46:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,33.96,47.51,42.68,1.399,64501
+"2025-05-19 16:11:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,33.053,45.25,41.8,1.369,64866
+"2025-06-19 21:46:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,32.199,44.08,40.78,1.369,65255
+"2025-07-20 16:27:00",hn14wxp,"Mitcham Road SF Connect",BP,"3 Mitcham Road, Croydon, Surrey","CR0 3RU",Croydon,,"United Kingdom",51.37882,-0.111,32.367,44.31,41.17,1.369,65632
+"2025-08-17 19:37:00",hn14wxp,"Shell Sanderstead",Shell,"81 Limpsfield Road, Sanderstead, Surrey","CR2 9LE",Sanderstead,,"United Kingdom",51.332304,-0.075627,32.801,45.56,,1.389,65996
+"2025-09-10 17:25:00",hn14wxp,"Addington SF Connect",BP,"215 Selsdon Park Road, South Croydon, Surrey","CR2 8JH","South Croydon",,"United Kingdom",51.35345,-0.03774,33.157,45.06,42.59,1.359,66355
+"2025-10-01 19:14:00",hn14wxp,"Crawley Service Station",BP,"Crawley Autopoint, Woodfield Road, Crawley, RH10 8EP, Crawley","RH10 8EP",Crawley,,"United Kingdom",51.1212388,-0.1801607,32.199,42.47,41.46,1.319,66723
+"2025-10-26 16:45:00",hn14wxp,"By-Pass SF Connect",BP,"Edgington Way, Sidcup, Kent","DA14 5AD",Sidcup,,"United Kingdom",51.41464,0.1252,31.958,44.07,41.47,1.379,67046
 "2025-11-19 23:13:00",hn14wxp,,,,,,,,,,32.759,45.83,42.92,1.399,67404
-"2025-12-07 09:07:00",hn14wxp,"SHELL WINNALL",SHELL,"EASTON LANE, WINCHESTER, HAMPSHIRE","SO23 7SL",WINCHESTER,,"United Kingdom",51.070252,-1.29602,32.213,44.1,,1.369,67774
-"2025-12-19 14:18:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,31.372,43.89,39,1.399,68131
-"2026-01-09 11:59:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,33.223,45.15,40.64,1.359,68509
-"2026-01-31 12:38:44",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,33.141,43.05,40.73,1.299,68868
-"2026-02-09 22:53:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,32.733,43.83,40.64,1.339,69246
-"2026-02-28 21:27:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,32.127,43.66,40.36,1.359,69612
-"2026-03-28 16:17:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,30.923,47.9,46.1,1.549,69964
-"2026-04-15 16:16:00",hn14wxp,"Crawley Service Station",BP,"CRAWLEY AUTOPOINT, WOODFIELD ROAD, CRAWLEY, RH10 8EP, CRAWLEY","RH10 8EP",CRAWLEY,,"United Kingdom",51.1212388,-0.1801607,32.821,50.84,49.19,1.549,70351
-"2026-05-07 20:52:23",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,32.88,52.18,51.19,1.587,70745
-"2026-05-27 09:15:00",hn14wxp,"GODSTONE ROAD SF CONNECT",BP,"43-47 GODSTONE ROAD, WHYTELEAFE, SURREY","CR3 0EG",WHYTELEAFE,,"United Kingdom",51.31345,-0.08194,32.563,53.37,52.07,1.639,71108
-"2026-06-21 12:28:00",hn14wxp,"Beddington Lane Service Station",BP,"BP MOBIL PETROL STATION, 35,  BEDDINGTON LANE, CROYDON","CR0 4TJ",CROYDON,,"United Kingdom",51.3731758,-0.1320749,31.598,48.63,46.73,1.539,71525
+"2025-12-07 09:07:00",hn14wxp,"Shell Winnall",Shell,"Easton Lane, Winchester, Hampshire","SO23 7SL",Winchester,,"United Kingdom",51.070252,-1.29602,32.213,44.1,,1.369,67774
+"2025-12-19 14:18:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,31.372,43.89,39,1.399,68131
+"2026-01-09 11:59:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,33.223,45.15,40.64,1.359,68509
+"2026-01-31 12:38:44",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,33.141,43.05,40.73,1.299,68868
+"2026-02-09 22:53:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,32.733,43.83,40.64,1.339,69246
+"2026-02-28 21:27:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,32.127,43.66,40.36,1.359,69612
+"2026-03-28 16:17:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,30.923,47.9,46.1,1.549,69964
+"2026-04-15 16:16:00",hn14wxp,"Crawley Service Station",BP,"Crawley Autopoint, Woodfield Road, Crawley, RH10 8EP, Crawley","RH10 8EP",Crawley,,"United Kingdom",51.1212388,-0.1801607,32.821,50.84,49.19,1.549,70351
+"2026-05-07 20:52:23",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,32.88,52.18,51.19,1.587,70745
+"2026-05-27 09:15:00",hn14wxp,"Godstone Road SF Connect",BP,"43-47 Godstone Road, Whyteleafe, Surrey","CR3 0EG",Whyteleafe,,"United Kingdom",51.31345,-0.08194,32.563,53.37,52.07,1.639,71108
+"2026-06-21 12:28:00",hn14wxp,"Beddington Lane Service Station",BP,"BP Mobil Petrol Station, 35,  Beddington Lane, Croydon","CR0 4TJ",Croydon,,"United Kingdom",51.3731758,-0.1320749,31.598,48.63,46.73,1.539,71525
