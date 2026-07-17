@@ -80,3 +80,40 @@ it('opens the lightbox at the right photo when a marker is clicked', function ()
         true,
     );
 });
+
+it('keeps the hover scale off the positioned marker element so it cannot jump', function () {
+    config(['queue.default' => 'sync']);
+    Storage::fake('public');
+
+    $activity = Activity::factory()->create([
+        'type' => 'walk',
+        'occurred_at' => '2026-07-12 12:00:00',
+        'meta' => ['polyline' => MARKER_POLYLINE],
+    ]);
+
+    $activity->addMediaFromString(fakeJpeg())->usingFileName('unlocated.jpg')->toMediaCollection('cover');
+    $activity->addMediaFromString(fakeJpeg())
+        ->usingFileName('located.jpg')
+        ->withCustomProperties(['latitude' => 53.51095, 'longitude' => -2.72895])
+        ->toMediaCollection('photos');
+
+    $page = visit($activity->url());
+
+    // MapLibre positions the marker by writing an inline transform onto the
+    // [data-testid=photo-marker] element itself. A hover scale on that same
+    // element replaces the positioning transform, so the marker jumps to the map
+    // origin on hover. The scale must therefore live on an inner element: the
+    // positioned root must not carry it, and a descendant must. This fails if the
+    // scale utility is ever moved back onto the button.
+    $page->assertScript(
+        "(() => {
+            const root = document.querySelector('[data-testid=\"photo-marker\"]');
+            if (!root) { return false; }
+            const inner = root.querySelector('span');
+            return ! root.className.includes('scale-110')
+                && inner !== null
+                && inner.className.includes('scale-110');
+        })()",
+        true,
+    );
+});
