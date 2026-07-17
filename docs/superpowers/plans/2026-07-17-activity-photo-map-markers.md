@@ -347,13 +347,49 @@ git commit -m "feat: add LocatePhotoOnRoute to interpolate photo position from a
 `StravaPhotos` has no tests today and Tasks 4 and 6 both refactor it. Pin its current behaviour first, so those refactors have a safety net. No production code changes in this task.
 
 **Files:**
+- Modify: `tests/Pest.php` (add the shared fixtures)
 - Test: `tests/Feature/StravaPhotosTest.php`
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: the `fakeStravaPhotos()` helper and `stravaJpeg()` fixture reused by Tasks 4, 6 and 7.
+- Produces: `stravaJpeg(): string` and `stravaPhotoPayload(string $uniqueId, string $createdAt): array` in `tests/Pest.php`, used by Tasks 5, 6, 7 and 8. The `fakeStravaPhotos()` helper stays local to `StravaPhotosTest.php`, since only Task 6 reuses it.
 
-- [ ] **Step 1: Write the tests against current behaviour**
+- [ ] **Step 1: Add the shared fixtures to tests/Pest.php**
+
+Four test files across this plan need these, so they live in `tests/Pest.php` rather than in one test file that the others implicitly depend on being loaded. Append to `tests/Pest.php`:
+
+```php
+/** A solid-colour JPEG, so the media pipeline has real bytes to convert. */
+function stravaJpeg(): string
+{
+    $image = imagecreatetruecolor(400, 300);
+    imagefill($image, 0, 0, imagecolorallocate($image, 120, 120, 120));
+    ob_start();
+    imagejpeg($image);
+    $bytes = ob_get_clean();
+    imagedestroy($image);
+
+    return $bytes;
+}
+
+/**
+ * A Strava photo payload, shaped like the real API response.
+ *
+ * @return array<string, mixed>
+ */
+function stravaPhotoPayload(string $uniqueId, string $createdAt): array
+{
+    return [
+        'unique_id' => $uniqueId,
+        'created_at' => $createdAt,
+        'source' => 1,
+        'urls' => ['2048' => 'https://dgtzuqphqg23d.cloudfront.net/'.$uniqueId.'-1152x2048.jpg'],
+        'sizes' => ['2048' => [1152, 2048]],
+    ];
+}
+```
+
+- [ ] **Step 2: Write the tests against current behaviour**
 
 Create `tests/Feature/StravaPhotosTest.php`:
 
@@ -376,22 +412,11 @@ beforeEach(function () {
     Storage::fake('public');
 });
 
-/** A solid-colour JPEG, so the media pipeline has real bytes to convert. */
-function stravaJpeg(): string
-{
-    $image = imagecreatetruecolor(400, 300);
-    imagefill($image, 0, 0, imagecolorallocate($image, 120, 120, 120));
-    ob_start();
-    imagejpeg($image);
-    $bytes = ob_get_clean();
-    imagedestroy($image);
-
-    return $bytes;
-}
-
 /**
  * Fake the whole Strava surface: token, one page of summaries, per-activity
  * photos, and the CloudFront image download.
+ *
+ * `stravaJpeg()` and `stravaPhotoPayload()` come from tests/Pest.php.
  *
  * @param  array<int, array<string, mixed>>  $summaries
  * @param  array<string, array<int, array<string, mixed>>>  $photosById
@@ -411,18 +436,6 @@ function fakeStravaPhotos(array $summaries, array $photosById, array $extra = []
     }
 
     Http::fake(array_merge($responses, $extra));
-}
-
-/** A Strava photo payload, shaped like the real API response. */
-function stravaPhotoPayload(string $uniqueId, string $createdAt): array
-{
-    return [
-        'unique_id' => $uniqueId,
-        'created_at' => $createdAt,
-        'source' => 1,
-        'urls' => ['2048' => 'https://dgtzuqphqg23d.cloudfront.net/'.$uniqueId.'-1152x2048.jpg'],
-        'sizes' => ['2048' => [1152, 2048]],
-    ];
 }
 
 it('downloads photos for a strava activity, first as cover and the rest as gallery', function () {
@@ -476,15 +489,21 @@ it('skips activities that already have a cover unless forced', function () {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they pass against current code**
+- [ ] **Step 3: Run the tests to verify they pass against current code**
 
 Run: `php artisan test --compact --filter=StravaPhotosTest`
-Expected: PASS (3 tests). These describe behaviour that already exists, so a failure here means the fakes are wrong, not the app. Fix the test until it passes before moving on.
+Expected: PASS (3 tests).
 
-- [ ] **Step 3: Commit**
+These are characterization tests and passing immediately is the point: they
+describe behaviour that already exists, so that Tasks 4 and 6 have a safety net
+when they refactor `StravaPhotos`. This is the one deliberate exception to
+red-first TDD in this plan. A failure here means the fakes are wrong, not the
+app; fix the test until it passes before moving on.
+
+- [ ] **Step 4: Commit**
 
 ```bash
-git add tests/Feature/StravaPhotosTest.php
+git add tests/Pest.php tests/Feature/StravaPhotosTest.php
 git commit -m "test: pin existing strava:photos behaviour before refactor"
 ```
 
@@ -880,7 +899,7 @@ it('stores photos when the stream has no latlng key, as on an indoor activity', 
 });
 ```
 
-Add to the top of the file, after the `beforeEach`, so the helpers from `StravaPhotosTest` are available. Pest shares top-level functions across the suite, so `stravaJpeg()` and `stravaPhotoPayload()` from Task 3 resolve without redeclaring. If the suite errors with "cannot redeclare", move both helpers into `tests/Pest.php` and delete them from `StravaPhotosTest.php`.
+`stravaJpeg()` and `stravaPhotoPayload()` come from `tests/Pest.php` (Task 3), so they need no redeclaring here.
 
 - [ ] **Step 2: Run test to verify it fails**
 
