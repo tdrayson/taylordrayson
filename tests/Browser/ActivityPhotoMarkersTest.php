@@ -117,3 +117,45 @@ it('keeps the hover scale off the positioned marker element so it cannot jump', 
         true,
     );
 });
+
+it('raises a focused marker above its neighbours so an overlapped photo stays reachable', function () {
+    config(['queue.default' => 'sync']);
+    Storage::fake('public');
+
+    $activity = Activity::factory()->create([
+        'type' => 'walk',
+        'occurred_at' => '2026-07-12 12:00:00',
+        'meta' => ['polyline' => MARKER_POLYLINE],
+    ]);
+
+    // Two located photos at distinct points on the decoded polyline, so there are
+    // two markers to compare stacking between.
+    $activity->addMediaFromString(fakeJpeg())
+        ->usingFileName('first.jpg')
+        ->withCustomProperties(['latitude' => 53.51064, 'longitude' => -2.72942])
+        ->toMediaCollection('cover');
+    $activity->addMediaFromString(fakeJpeg())
+        ->usingFileName('second.jpg')
+        ->withCustomProperties(['latitude' => 53.51111, 'longitude' => -2.72873])
+        ->toMediaCollection('photos');
+
+    $page = visit($activity->url());
+
+    $page->assertScript("document.querySelectorAll('[data-testid=\"photo-marker\"]').length", 2);
+
+    // Focusing a marker must lift it above its siblings, so a photo sitting
+    // underneath an overlapping neighbour becomes reachable. Focus is used rather
+    // than hover because a fully-occluded marker can never receive a mouse hover,
+    // and focus() is deterministic in a headless browser.
+    $page->assertScript(
+        "(() => {
+            const markers = [...document.querySelectorAll('[data-testid=\"photo-marker\"]')];
+            if (markers.length < 2) { return false; }
+            markers[0].focus();
+            const focused = parseInt(getComputedStyle(markers[0]).zIndex) || 0;
+            const sibling = parseInt(getComputedStyle(markers[1]).zIndex) || 0;
+            return focused > sibling;
+        })()",
+        true,
+    );
+});

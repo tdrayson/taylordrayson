@@ -36,3 +36,19 @@ defineEmits(['select']);
         </span>
     </button>
 </template>
+
+<style scoped>
+/*
+    MapLibre positions each marker on its true point and, on a flat map, leaves
+    the stacking of overlapping markers to DOM order. When two photos were taken
+    close together their markers overlap; raising the hovered or focused one
+    lifts that photo clear of its neighbours so it is fully visible and
+    clickable. focus-within (not just hover) means a keyboard user can still
+    reach and surface a marker sitting underneath another. !important wins over
+    any inline z-index MapLibre may set on the marker element itself.
+*/
+button:hover,
+button:focus-within {
+    z-index: 10 !important;
+}
+</style>
