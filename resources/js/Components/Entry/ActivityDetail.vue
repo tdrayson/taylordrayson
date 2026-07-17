@@ -27,8 +27,8 @@ const lightboxIndex = ref(null);
 const page = usePage();
 const profile = computed(() => page.props.profile);
 
-// Shared cursor across the profile charts (and the route map, in a later
-// task) so hovering one series highlights the same point everywhere.
+// Shared cursor across the profile charts and the route map, so hovering
+// (or scrubbing) any one of them highlights the same point everywhere.
 const cursor = useActivityCursor();
 
 /** Real data uses weight_kg; the factory/parser use weight. Support both. */
@@ -91,6 +91,8 @@ function weightLabel(value) {
             :polyline="polyline"
             :photos="photos"
             color="var(--color-activity)"
+            :track="profile?.track ?? []"
+            :cursor="cursor"
             @open="lightboxIndex = $event"
         />
 

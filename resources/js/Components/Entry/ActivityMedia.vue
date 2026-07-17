@@ -6,6 +6,10 @@ defineProps({
     polyline: { type: String, default: null },
     photos: { type: Array, default: () => [] },
     color: { type: String, default: 'var(--color-activity)' },
+    // Track points ({time, lat, lng}) for the route scrub dot; forwarded to EntryMap.
+    track: { type: Array, default: () => [] },
+    // Shared cursor from useActivityCursor; forwarded to EntryMap.
+    cursor: { type: Object, default: null },
 });
 
 defineEmits(['open']);
@@ -13,7 +17,7 @@ defineEmits(['open']);
 
 <template>
     <div v-if="polyline || photos.length" class="space-y-2.5">
-        <EntryMap v-if="polyline" :polyline="polyline" :color="color" />
+        <EntryMap v-if="polyline" :polyline="polyline" :color="color" :track="track" :cursor="cursor" />
 
         <div v-if="photos.length" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <button
