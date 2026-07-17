@@ -40,6 +40,10 @@ return [
         'key' => env('LOGOSTREAM_KEY'),
     ],
 
+    'logodev' => [
+        'token' => env('LOGODEV_TOKEN'),
+    ],
+
     'strava' => [
         'client_id' => env('STRAVA_CLIENT_ID'),
         'client_secret' => env('STRAVA_CLIENT_SECRET'),
