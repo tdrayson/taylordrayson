@@ -69,5 +69,14 @@ it('opens the lightbox at the right photo when a marker is clicked', function ()
     );
 
     // The Lightbox dialog is a real element, so its presence proves the click landed.
-    $page->assertScript("document.querySelector('[role=\"dialog\"]') !== null", true);
+    // But presence alone doesn't prove the RIGHT photo opened: the dialog renders
+    // for any valid index (0 or 1, both < photos.length of 2). A filter-then-map
+    // regression would renumber the located photo from its true index 1 down to 0,
+    // and the dialog would still exist. The counter text ("n / total") is the only
+    // rendered signal that reveals which index actually opened, so assert it reads
+    // "2 / 2" (the located photo is the second of two), not "1 / 2".
+    $page->assertScript(
+        "(() => { const dialog = document.querySelector('[role=\"dialog\"]'); return dialog !== null && dialog.textContent.includes('2 / 2'); })()",
+        true,
+    );
 });
