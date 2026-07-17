@@ -214,6 +214,29 @@ it('still stores the photo when the streams request fails', function () {
         ->and($media->hasCustomProperty('latitude'))->toBeFalse();
 });
 
+it('still stores the photo when the strava summary has a malformed start date', function () {
+    // A non-empty but unparseable start_date must not abort resolveTargets():
+    // CarbonImmutable::parse('not-a-date') throws InvalidFormatException, which
+    // would otherwise cost us every activity's photos, not just this one.
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'start_date' => 'not-a-date', 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
+        ['*/streams*' => Http::response([
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ])],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media)->not->toBeNull()
+        ->and($media->hasCustomProperty('latitude'))->toBeFalse();
+});
+
 it('still stores the photo for an indoor activity with no latlng stream', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
 

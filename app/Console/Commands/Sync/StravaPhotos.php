@@ -7,6 +7,7 @@ use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\CarbonImmutable;
+use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -93,11 +94,31 @@ class StravaPhotos extends Command
 
             $targets->push([
                 'activity' => $activity,
-                'start' => filled($summary['start_date']) ? CarbonImmutable::parse($summary['start_date']) : null,
+                'start' => $this->parseStart($summary['start_date'] ?? null),
             ]);
         }
 
         return $targets;
+    }
+
+    /**
+     * The activity's UTC start, or null when Strava sent no start_date or an
+     * unparseable one. A positioning problem must never cost us a photo: the
+     * activity's photos still download, they just can't be located.
+     */
+    private function parseStart(?string $startDate): ?CarbonImmutable
+    {
+        if (! filled($startDate)) {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($startDate);
+        } catch (InvalidFormatException) {
+            $this->warn("Unparseable start_date \"{$startDate}\", storing photos without map positions.");
+
+            return null;
+        }
     }
 
     /**

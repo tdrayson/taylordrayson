@@ -3,7 +3,7 @@
 use App\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 
-/** A short polyline near Aylesby, so markers have a route to sit on. */
+/** A short polyline near Manchester, so markers have a route to sit on. */
 const MARKER_POLYLINE = 'ohreIzatO}@}A_@k@';
 
 it('renders a marker for each located photo and none for unlocated ones', function () {

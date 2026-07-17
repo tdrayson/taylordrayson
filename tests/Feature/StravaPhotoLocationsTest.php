@@ -138,6 +138,26 @@ it('skips a photo with malformed captured_at and continues locating the rest', f
         ->and($gallery->getCustomProperty('latitude'))->toBe(51.1);
 });
 
+// Guards against the same defect as the equivalent StravaPhotos test:
+// CarbonImmutable::parse() throws InvalidFormatException on a non-empty but
+// unparseable start_date, which would otherwise abort the whole backfill run
+// rather than just skipping the one activity it cannot locate.
+it('skips an activity with a malformed start_date rather than crashing', function () {
+    $activity = activityWithStoredPhoto('100', '2023-10-31T21:00:10Z');
+
+    fakeStravaLocations(
+        [['id' => 100, 'start_date' => 'not-a-date', 'total_photo_count' => 1]],
+        [
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ],
+    );
+
+    $this->artisan('strava:photo-locations')->assertSuccessful();
+
+    expect($activity->refresh()->getFirstMedia('cover')->hasCustomProperty('latitude'))->toBeFalse();
+});
+
 // Guards against fabricating a start from CarbonImmutable::parse(null): an
 // activity whose Strava summary carries no start_date cannot be located and
 // must be skipped, without ever spending a streams request on it.

@@ -90,9 +90,11 @@ class StravaPhotoLocations extends Command
      * Fetch each activity's stream and write coordinates onto its photos,
      * pausing when the Strava rate-limit window fills up.
      *
-     * An activity whose summary has no start_date cannot be located (there is
-     * nothing to offset the photo's capture time against), so it is skipped
-     * with a warning rather than fabricating a start from CarbonImmutable::parse(null).
+     * An activity whose summary has no start_date, or an unparseable one,
+     * cannot be located (there is nothing valid to offset the photo's capture
+     * time against), so it is skipped with a warning rather than fabricating a
+     * start from CarbonImmutable::parse(null) or letting InvalidFormatException
+     * abort the whole run.
      *
      * @param  Collection<int, Activity>  $targets
      * @param  array<string, array{start_date: ?string, total_photo_count: int}>  $remote
@@ -141,7 +143,14 @@ class StravaPhotoLocations extends Command
                 continue;
             }
 
-            $start = CarbonImmutable::parse($startDate);
+            try {
+                $start = CarbonImmutable::parse($startDate);
+            } catch (InvalidFormatException) {
+                $this->warn("Unparseable start_date for activity {$activity->source_id}, skipping.");
+
+                continue;
+            }
+
             $count = $this->locatePhotosForActivity($activity, $locate, $start, $timeStream, $latlngStream, $force);
 
             $located += $count;
