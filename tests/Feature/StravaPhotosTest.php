@@ -126,3 +126,27 @@ it('exposes the activity photos in the entry payload, cover first', function () 
         ->has('entry.photos.0.full')
     );
 });
+
+it('still stores photos when the strava summary has no start date', function () {
+    // Missing start_date must leave the start null rather than fabricating "now",
+    // and must not cost us the photo download.
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '999']);
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()
+            ->push([
+                ['id' => 999, 'total_photo_count' => 1],
+                // Note: intentionally no 'start_date' key to test null handling
+            ])
+            ->push([]),
+        '*/activities/999/photos*' => Http::response([
+            ['unique_id' => 'x', 'urls' => ['2048' => 'https://cdn.example/x.jpg']],
+        ]),
+        'https://cdn.example/*' => Http::response(fakeJpeg(), 200),
+    ]);
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    expect($activity->refresh()->getMedia('cover'))->toHaveCount(1);
+});
