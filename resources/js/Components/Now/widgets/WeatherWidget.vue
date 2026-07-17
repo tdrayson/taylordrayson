@@ -161,7 +161,7 @@ const low = computed(() => props.low ?? data.value.lo);
     font-weight: 800;
     line-height: 1.12;
     letter-spacing: -0.02em;
-    color: #16181c;
+    color: var(--color-neutral-900);
 }
 
 .weather__current {
@@ -175,14 +175,14 @@ const low = computed(() => props.low ?? data.value.lo);
     width: 13.7cqw;
     height: 13.7cqw;
     flex: none;
-    color: #545454;
+    color: var(--color-neutral-500);
 }
 
 .weather__temp {
     font-size: 12cqw;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: #1a1a1a;
+    color: var(--color-neutral-900);
 }
 
 .weather__range {

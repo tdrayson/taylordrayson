@@ -78,7 +78,7 @@ const cells = computed(() => {
     aspect-ratio: 1 / 1;
     background: var(--color-neutral-0);
     box-shadow: var(--shadow-card);
-    color: #16181c;
+    color: var(--color-neutral-900);
 }
 
 .entries__inner {
@@ -152,7 +152,7 @@ const cells = computed(() => {
 .entries__footer-label {
     font-size: 5.1cqw;
     font-weight: 600;
-    color: #9298a2;
+    color: var(--color-neutral-500);
 }
 
 .entries__legend {

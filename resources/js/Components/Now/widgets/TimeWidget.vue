@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
     overflow: hidden;
     aspect-ratio: 1 / 1;
     background: var(--color-neutral-0);
-    color: #16181c;
+    color: var(--color-neutral-900);
     box-shadow: var(--shadow-card);
 }
 
@@ -106,14 +106,14 @@ onBeforeUnmount(() => {
     line-height: 1.12;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #1b2030;
+    color: var(--color-neutral-900);
 }
 
 .clock__offset {
     margin-top: 1cqw;
     font-size: 5.5cqw;
     font-weight: 500;
-    color: #a6abb3;
+    color: var(--color-neutral-400);
 }
 
 .clock__baseline {
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
     right: 9%;
     bottom: 13%;
     height: 0.5cqw;
-    background: #eceef1;
+    background: var(--color-neutral-50);
     z-index: 1;
 }
 
@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
     top: 27%;
     bottom: 13%;
     width: 0.5cqw;
-    background: #e4e6ea;
+    background: var(--color-neutral-100);
     transform: translateX(-50%);
     z-index: 1;
 }
@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
     transform: translateX(-50%);
     font-size: 3.9cqw;
     font-weight: 500;
-    color: #c2c6cc;
+    color: var(--color-neutral-400);
 }
 
 .clock__time {
@@ -179,7 +179,7 @@ onBeforeUnmount(() => {
     font-size: 15.5cqw;
     font-weight: 800;
     letter-spacing: -0.035em;
-    color: #14171c;
+    color: var(--color-neutral-900);
     font-variant-numeric: tabular-nums;
 }
 
@@ -187,6 +187,6 @@ onBeforeUnmount(() => {
     font-size: 11cqw;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #c9cdd3;
+    color: var(--color-neutral-400);
 }
 </style>
