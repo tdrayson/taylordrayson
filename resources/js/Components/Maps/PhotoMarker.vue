@@ -45,10 +45,13 @@ defineEmits(['select']);
     lifts that photo clear of its neighbours so it is fully visible and
     clickable. focus-within (not just hover) means a keyboard user can still
     reach and surface a marker sitting underneath another. !important wins over
-    any inline z-index MapLibre may set on the marker element itself.
+    any inline z-index MapLibre may set on the marker element itself. The value
+    stays at 1: enough to lift above sibling markers (which sit at auto), but
+    below MapLibre's own controls (the zoom control is z-index 2) so a raised
+    marker near the corner never covers the map buttons.
 */
 button:hover,
 button:focus-within {
-    z-index: 10 !important;
+    z-index: 1 !important;
 }
 </style>
