@@ -5,7 +5,7 @@ defineProps({
 </script>
 
 <template>
-    <dl class="divide-y divide-neutral-50 border-y border-neutral-50">
+    <dl class="max-w-lg divide-y divide-neutral-50 border-y border-neutral-50">
         <div
             v-for="row in rows.filter((item) => item.value !== null && item.value !== undefined && item.value !== '')"
             :key="row.label"
