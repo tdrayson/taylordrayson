@@ -19,7 +19,7 @@ afterEach(function () {
     File::deleteDirectory(storage_path('app/test-receipts'));
     File::delete(storage_path('app/fuel/test-review.csv'));
     File::delete(storage_path('app/test-fuel.csv'));
-    File::delete(public_path('logos/brands/shell.png'));
+    File::delete(public_path('logos/brands/testco.png'));
     File::delete(public_path('logos/brands/asda.png'));
 });
 
@@ -93,14 +93,14 @@ it('fetches brand logos after applying the reviewed csv', function () {
     config(['services.logodev.token' => 'test-token']);
     Http::fake([
         '*/api/brands*' => Http::response(['brands' => [
-            ['brand' => 'Shell', 'logo' => 'https://cdn.brandfetch.io/shell.com'],
+            ['brand' => 'Testco', 'logo' => 'https://cdn.brandfetch.io/testco.example'],
         ]]),
         '*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png']),
     ]);
 
     $fuel = Fuel::factory()->create(['station_name' => null]);
     $header = 'receipt_file,receipt_time,fuel_id,fuel_occurred_at,delta_minutes,receipt_lat,receipt_lng,station_name,brand,address,postcode,city,station_lat,station_lng,distance_km,alt1_name,alt2_name,flag';
-    $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,SHELL COBHAM,Shell,,,,51.37,-0.13,0.4,,,ok";
+    $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,TESTCO COBHAM,Testco,,,,51.37,-0.13,0.4,,,ok";
     File::put($this->review, $header."\n".$row."\n");
 
     $this->artisan('import:fuel-receipts', [
@@ -110,5 +110,5 @@ it('fetches brand logos after applying the reviewed csv', function () {
         '--export' => storage_path('app/test-fuel.csv'),
     ])->assertSuccessful();
 
-    expect(File::exists(public_path('logos/brands/shell.png')))->toBeTrue();
+    expect(File::exists(public_path('logos/brands/testco.png')))->toBeTrue();
 });

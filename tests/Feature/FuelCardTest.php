@@ -25,19 +25,19 @@ it('falls back to Fuel when no station is set', function () {
 });
 
 afterEach(function () {
-    File::delete(public_path('logos/brands/bp.png'));
+    File::delete(public_path('logos/brands/testco.png'));
 });
 
 it('exposes the brand logo url on the card when the file exists', function () {
     File::ensureDirectoryExists(public_path('logos/brands'));
-    File::put(public_path('logos/brands/bp.png'), 'x');
-    $fuel = Fuel::factory()->create(['brand' => 'BP']);
+    File::put(public_path('logos/brands/testco.png'), 'x');
+    $fuel = Fuel::factory()->create(['brand' => 'Testco']);
 
-    expect($fuel->card()['meta']['brandLogo'])->toBe('/logos/brands/bp.png');
-    expect($fuel->logo_url)->toBe('/logos/brands/bp.png');
+    expect($fuel->card()['meta']['brandLogo'])->toBe('/logos/brands/testco.png');
+    expect($fuel->logo_url)->toBe('/logos/brands/testco.png');
 });
 
 it('has a null brand logo when the file is absent or brand is null', function () {
-    expect(Fuel::factory()->create(['brand' => 'BP'])->card()['meta']['brandLogo'])->toBeNull();
+    expect(Fuel::factory()->create(['brand' => 'Testco'])->card()['meta']['brandLogo'])->toBeNull();
     expect(Fuel::factory()->create(['brand' => null])->logo_url)->toBeNull();
 });
