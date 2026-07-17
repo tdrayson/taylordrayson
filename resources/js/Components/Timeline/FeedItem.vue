@@ -15,7 +15,6 @@ import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { greatCircle } from '../../lib/maplibre.js';
 import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
-import { staticRouteMap, staticArcMap, MAPBOX_DARK } from '../../lib/staticMap.js';
 import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
@@ -186,42 +185,12 @@ const routePath = computed(() => {
     return points.length > 1 ? points : null;
 });
 
-// Generated static map image: an activity's GPS trace, a flight's great-circle
-// arc, or a pre-generated stored map (e.g. an event's location pin). INTERIM:
-// the GPS/arc variants render live from Mapbox; will move to a stored
-// (Cloudflare-hosted) URL. See lib/staticMap.js.
-const routeImageUrl = computed(() => {
-    if (props.polyline) {
-        return staticRouteMap(props.polyline);
-    }
+// Stored static map for this entry (activity route, flight arc, event/fuel/checkin
+// pin), pre-generated server-side. Shown only when there is no cover photo.
+const routeImageUrl = computed(() => props.map ?? null);
 
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
-
-    if (origin?.lat != null && destination?.lat != null) {
-        return staticArcMap(origin, destination);
-    }
-
-    return props.map ?? null;
-});
-
-// Dark twin of routeImageUrl: the live polyline/arc maps re-render on the
-// dark Mapbox style, and the stored map (e.g. an event pin) uses its
-// pre-generated dark asset. The two <img> swap via dark:hidden / dark:block.
-const routeImageDarkUrl = computed(() => {
-    if (props.polyline) {
-        return staticRouteMap(props.polyline, { style: MAPBOX_DARK });
-    }
-
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
-
-    if (origin?.lat != null && destination?.lat != null) {
-        return staticArcMap(origin, destination, { style: MAPBOX_DARK });
-    }
-
-    return props.mapDark ?? null;
-});
+// Dark twin of the stored map; the two <img> swap via dark:hidden / dark:block.
+const routeImageDarkUrl = computed(() => props.mapDark ?? null);
 
 const banner = computed(() => {
     if (flightArc.value) {
