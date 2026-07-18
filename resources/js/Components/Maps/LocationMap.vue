@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import { loadMaplibre, resolveColor, placeLabel, mapStyleForTheme } from '../../lib/maplibre.js';
+import { loadMaplibre, resolveColor, placeLabel, mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
@@ -67,19 +67,14 @@ onMounted(async () => {
 
     map.on('load', addPlaceLayer);
 
-    // Switch basemap when the colour scheme changes, then re-add the custom
-    // layer once the new style has finished loading (setStyle clears it).
+    // Swap the basemap on colour-scheme change, carrying the place layer
+    // across so it stays drawn (setStyle would otherwise drop it).
     stopThemeWatch = watch(resolved, (value) => {
         if (!map) {
             return;
         }
 
-        map.setStyle(mapStyleForTheme(value));
-        // Dedupe: drop any pending re-add from a previous toggle before
-        // registering a fresh one, otherwise rapid toggles stack handlers
-        // and both fire, throwing on the second addSource/addLayer call.
-        map.off('style.load', addPlaceLayer);
-        map.once('style.load', addPlaceLayer);
+        swapBasemapStyle(map, mapStyleForTheme(value), ['place']);
     });
 });
 
