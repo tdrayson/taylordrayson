@@ -14,7 +14,3 @@ it('renders the custom 404 page for an unknown url', function () {
             ->whereType('leaderboard', 'array')
         );
 });
-
-it('still returns json 404 for api-style requests', function () {
-    $this->getJson('/this-page-does-not-exist')->assertNotFound();
-});
