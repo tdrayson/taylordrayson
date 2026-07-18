@@ -14,51 +14,26 @@ function seedCard(string $title, string $eyebrow = '', string $accent = '3858e9'
     Storage::disk('local')->put("og/{$hash}.png", 'fake-png-bytes');
 }
 
-it('serves a cached og card as a png', function () {
-    seedCard('Hello world');
+it('serves a cached og card as a png for each url variant', function (string $url, array $seed) {
+    seedCard(...$seed);
 
-    $this->get('/og.png?title=Hello world')
+    $this->get($url)
         ->assertOk()
         ->assertHeader('content-type', 'image/png');
-});
-
-it('falls back to the default title when none is given', function () {
-    seedCard('Taylor Drayson');
-
-    $this->get('/og.png')
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
-});
-
-it('ignores an invalid accent and uses the brand default', function () {
-    seedCard('Hi');
-
-    $this->get('/og.png?title=Hi&accent=not-a-hex')->assertOk();
-});
-
-it('uses a provided eyebrow and accent in the cache key', function () {
-    seedCard('Morning Run', 'Activity', '2e9e6a');
-
-    $this->get('/og.png?title=Morning Run&eyebrow=Activity&accent=2e9e6a')
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
-});
-
-it('includes the date in the cache key', function () {
-    seedCard('A walk', 'Activity', '2e9e6a', 'text', 'Mon 9 Jun 2025');
-
-    $this->get('/og.png?title=A walk&eyebrow=Activity&accent=2e9e6a&date=Mon 9 Jun 2025')
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
-});
-
-it('serves the branded home variant card', function () {
-    seedCard('Taylor Drayson', '', '3858e9', 'home');
-
-    $this->get('/og.png?variant=home')
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
-});
+})->with([
+    'explicit title' => ['/og.png?title=Hello world', ['title' => 'Hello world']],
+    'default title fallback' => ['/og.png', ['title' => 'Taylor Drayson']],
+    'invalid accent falls back to brand default' => ['/og.png?title=Hi&accent=not-a-hex', ['title' => 'Hi']],
+    'eyebrow and accent in cache key' => [
+        '/og.png?title=Morning Run&eyebrow=Activity&accent=2e9e6a',
+        ['title' => 'Morning Run', 'eyebrow' => 'Activity', 'accent' => '2e9e6a'],
+    ],
+    'date in cache key' => [
+        '/og.png?title=A walk&eyebrow=Activity&accent=2e9e6a&date=Mon 9 Jun 2025',
+        ['title' => 'A walk', 'eyebrow' => 'Activity', 'accent' => '2e9e6a', 'date' => 'Mon 9 Jun 2025'],
+    ],
+    'branded home variant' => ['/og.png?variant=home', ['title' => 'Taylor Drayson', 'layout' => 'home']],
+]);
 
 it('404s the per-entry card for an unknown entry', function () {
     $this->get('/og/entry/999999.png')->assertNotFound();
