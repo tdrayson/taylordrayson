@@ -9,16 +9,19 @@ const props = defineProps({
     fill: { type: Boolean, default: false },
     // Last 7 nights in hours, most recent last.
     nights: { type: Array, default: () => [6.8, 7.4, 6.2, 8.1, 7.0, 5.9, 7.53] },
+    // Last night's stage split in hours. Colours/labels stay presentational here.
+    stageHours: { type: Object, default: () => ({ deep: 1.2, core: 3.9, rem: 1.6, awake: 0.4 }) },
 });
 
 const MAX = 9;
 
-const stages = [
-    { key: 'Deep', hours: 1.2, color: 'var(--color-sleep-deep)' },
-    { key: 'Core', hours: 3.9, color: 'var(--color-sleep)' },
-    { key: 'REM', hours: 1.6, color: 'var(--color-sleep-rem)' },
-    { key: 'Awake', hours: 0.4, color: 'var(--color-sleep-awake)' },
-];
+// Map the raw stage hours to their display label and design-token colour.
+const stages = computed(() => [
+    { key: 'Deep', hours: props.stageHours.deep, color: 'var(--color-sleep-deep)' },
+    { key: 'Core', hours: props.stageHours.core, color: 'var(--color-sleep)' },
+    { key: 'REM', hours: props.stageHours.rem, color: 'var(--color-sleep-rem)' },
+    { key: 'Awake', hours: props.stageHours.awake, color: 'var(--color-sleep-awake)' },
+]);
 
 function fmtParts(h) {
     const whole = Math.floor(h);
@@ -112,7 +115,7 @@ const days = computed(() => {
    px ÷ 4.52). Padding/flex live on .sleep__inner so cqw references the card. */
 .sleep {
     container-type: inline-size;
-    color: #16181c;
+    color: var(--color-neutral-900);
     background: var(--color-neutral-0);
     box-shadow: var(--shadow-card);
 }
@@ -141,7 +144,7 @@ const days = computed(() => {
     gap: 1.5cqw;
     font-size: 2.9cqw;
     font-weight: 700;
-    color: #9298a8;
+    color: var(--color-neutral-500);
 }
 
 .sleep__label-icon {
@@ -163,14 +166,14 @@ const days = computed(() => {
     margin-left: 0.4cqw;
     font-size: 4.2cqw;
     font-weight: 700;
-    color: #a8aebe;
+    color: var(--color-neutral-400);
 }
 
 .sleep__caption {
     margin-top: 0.7cqw;
     font-size: 2.8cqw;
     font-weight: 500;
-    color: #9298a8;
+    color: var(--color-neutral-500);
 }
 
 .sleep__stages {
@@ -197,7 +200,7 @@ const days = computed(() => {
     gap: 0.9cqw;
     font-size: 2.2cqw;
     font-weight: 600;
-    color: #8a90a0;
+    color: var(--color-neutral-500);
 }
 
 .sleep__legend-swatch {
@@ -224,13 +227,13 @@ const days = computed(() => {
     font-size: 2.4cqw;
     font-weight: 700;
     letter-spacing: 0.04em;
-    color: #9298a8;
+    color: var(--color-neutral-500);
 }
 
 .sleep__chart-average {
     font-size: 2.4cqw;
     font-weight: 600;
-    color: #a8aebe;
+    color: var(--color-neutral-400);
 }
 
 .sleep__bars {
@@ -279,7 +282,7 @@ const days = computed(() => {
     text-align: center;
     font-size: 2.4cqw;
     font-weight: 600;
-    color: #bfc3cc;
+    color: var(--color-neutral-400);
 }
 
 .sleep__day--today {

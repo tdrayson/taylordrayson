@@ -25,6 +25,12 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
     episode: { type: Object, default: null },
+    // Real sleep data ({ nights, stageHours }) or null when there is none.
+    sleep: { type: Object, default: null },
+    // Per-day timeline entry counts for the trailing 30 days (oldest first).
+    entryCounts: { type: Array, default: () => [] },
+    // Recent real photos ({ src, srcset, url, caption }) for the "Life lately" deck.
+    photos: { type: Array, default: () => [] },
 });
 
 setLayoutProps({
@@ -33,14 +39,11 @@ setLayoutProps({
 
 const LAYOUT_KEY = 'now-layout-v1';
 
-const latelyPhotos = [
-    { src: 'https://static.photos/people/640x360/47', gradient: 'linear-gradient(135deg, #d6c2b2, #b89a86)' },
-    { src: 'https://static.photos/nature/640x360/204', gradient: 'linear-gradient(135deg, #bcd3e6, #8fb0cf)' },
-    { src: 'https://static.photos/travel/640x360/88', gradient: 'linear-gradient(135deg, #d9c7b0, #c2a47e)' },
-    { src: 'https://static.photos/food/640x360/15', gradient: 'linear-gradient(135deg, #cfe0cd, #9cc09a)' },
-    { src: 'https://static.photos/animals/640x360/33', gradient: 'linear-gradient(135deg, #e6cdd6, #cf9ab0)' },
-    { src: 'https://static.photos/sports/640x360/120', gradient: 'linear-gradient(135deg, #c8c4e6, #9a8fd0)' },
-];
+// Only forward data props to a widget when the backend supplied something, so an
+// empty source falls back to the widget's own placeholder rather than blanking.
+const sleepProps = props.sleep ?? {};
+const entriesProps = props.entryCounts.length ? { counts: props.entryCounts } : {};
+const photosProps = props.photos.length ? { photos: props.photos } : {};
 
 // The default bento, expressed as a 4-column grid. `x`/`y`/`w`/`h` are grid
 // cells; markRaw keeps Vue from making the component definitions reactive.
@@ -51,10 +54,10 @@ const defaultWidgets = [
     { id: 'activity', component: markRaw(ActivityWidget), x: 2, y: 0, w: 2, h: 1, props: { variant: 'dark', fill: true } },
     { id: 'charging', component: markRaw(ChargingWidget), x: 0, y: 1, w: 1, h: 1, props: { device: 'iPhone', percent: 72, timeLeft: '25 min left', charging: true } },
     { id: 'weather', component: markRaw(WeatherWidget), x: 1, y: 1, w: 1, h: 1, props: { condition: 'hot' } },
-    { id: 'photos', component: markRaw(PhotosWidget), x: 2, y: 1, w: 2, h: 2, props: { photos: latelyPhotos } },
-    { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: {} },
+    { id: 'photos', component: markRaw(PhotosWidget), x: 2, y: 1, w: 2, h: 2, props: { ...photosProps } },
+    { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: { ...sleepProps } },
     { id: 'podcast', component: markRaw(PodcastWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
-    { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: {} },
+    { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { ...entriesProps } },
     { id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: { fill: true } },
 ];
 

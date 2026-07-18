@@ -103,7 +103,7 @@ const onCoverError = (event) => {
     font-size: 2.4cqw;
     font-weight: 800;
     letter-spacing: 0.03em;
-    color: #9298a2;
+    color: var(--color-neutral-500);
 }
 
 .reading__title {
@@ -112,7 +112,7 @@ const onCoverError = (event) => {
     font-weight: 800;
     letter-spacing: -0.025em;
     line-height: 1.12;
-    color: #16181c;
+    color: var(--color-neutral-900);
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
@@ -123,7 +123,7 @@ const onCoverError = (event) => {
     margin-top: 2cqw;
     font-size: 3.1cqw;
     font-weight: 500;
-    color: #9298a2;
+    color: var(--color-neutral-500);
 }
 
 @keyframes reading-book-in {

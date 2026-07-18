@@ -130,7 +130,7 @@ const onImageError = (event) => {
     aspect-ratio: 1 / 1;
     background: var(--color-neutral-0);
     box-shadow: var(--shadow-card);
-    color: #16181c;
+    color: var(--color-neutral-900);
 }
 
 .podcast__top {
@@ -147,12 +147,12 @@ const onImageError = (event) => {
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1;
-    color: #16181c;
+    color: var(--color-neutral-900);
 }
 
 .podcast__episode--empty {
     font-size: 8cqw;
-    color: #9298a2;
+    color: var(--color-neutral-500);
 }
 
 .podcast__episode:focus-visible {
@@ -166,7 +166,7 @@ const onImageError = (event) => {
     font-size: 6.25cqw;
     font-weight: 700;
     line-height: 1.2;
-    color: #2a3340;
+    color: var(--color-neutral-800);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
@@ -181,7 +181,7 @@ const onImageError = (event) => {
     margin-top: 3.13cqw;
     font-size: 5.36cqw;
     font-weight: 600;
-    color: #9298a2;
+    color: var(--color-neutral-500);
 }
 
 .podcast__hosts {
@@ -230,7 +230,7 @@ const onImageError = (event) => {
     z-index: 2;
     font-size: 9.38cqw;
     font-weight: 800;
-    color: #16181c;
+    color: var(--color-neutral-900);
 }
 
 /* Headshots sit above both the bubble and the fallback initial. */
