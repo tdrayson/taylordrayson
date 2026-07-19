@@ -220,15 +220,72 @@ class SleepProcessor implements HealthProcessor
 Run: `php artisan test --compact --filter=SleepProcessorTest`
 Expected: PASS (2 passed).
 
-- [ ] **Step 6: Pint + commit**
+- [ ] **Step 6: Slim `ImportHealthSleep` in the same task (keep the suite green)**
+
+Because the methods above moved out of the command, the command must be slimmed now, in this task, or it will reference missing methods. Rewrite `ImportHealthSleep` to delegate ingest to `SleepProcessor` and keep only the maintenance modes.
+
+New signature:
+
+```php
+#[Signature('health:sleep {--file= : Process a specific raw JSON payload path} {--resplit : Re-derive existing rows from stored stages} {--redate : Re-date every row to the Apple sleep-day and resolve collisions} {--score : Recompute the sleep score for every row}')]
+```
+
+New `handle()`:
+
+```php
+public function handle(SleepProcessor $processor, SleepAggregator $aggregator): int
+{
+    if ($this->option('resplit')) {
+        return $this->resplit($aggregator);
+    }
+
+    if ($this->option('redate')) {
+        return $this->redate($aggregator);
+    }
+
+    if ($this->option('score')) {
+        $processor->scoreAll();
+
+        return self::SUCCESS;
+    }
+
+    $file = $this->option('file');
+
+    if (! is_string($file) || $file === '') {
+        $this->components->info('Sleep now ingests from POST /api/health/ingest. Use --file to reprocess a payload, or --resplit/--redate/--score for maintenance.');
+
+        return self::SUCCESS;
+    }
+
+    $payload = json_decode((string) file_get_contents($file), true);
+
+    if (! is_array($payload)) {
+        $this->components->error("Not a JSON payload: {$file}");
+
+        return self::FAILURE;
+    }
+
+    $processor->process($payload);
+    $this->components->info('Processed sleep payload.');
+
+    return self::SUCCESS;
+}
+```
+
+Remove from the command every method now living in `SleepProcessor` (`mirrorToCsv`, `csvRow`, `csvPath`, `score`, `bedtimeMinutes`, `wakeEvents`, `median`, `collectSegments`, `payloads`). Keep `resplit`, `redate`, `sourceRank`, `changedMeaningfully` for the maintenance modes; where `resplit`/`redate` need CSV mirroring, call the injected `$processor`'s public helpers rather than re-adding a private copy. Do NOT leave duplicated method bodies in the command.
+
+- [ ] **Step 7: Run the full suite to confirm nothing is broken mid-refactor**
+
+Run: `php artisan test --compact --filter=Health`
+Expected: PASS (SleepProcessor tests plus any existing health:sleep test still green).
+
+- [ ] **Step 8: Pint + commit**
 
 ```bash
 vendor/bin/pint --dirty --format agent
 git add app/Support/Health/HealthProcessor.php app/Support/Health/SleepProcessor.php app/Console/Commands/Fetch/ImportHealthSleep.php tests/Feature/Health/SleepProcessorTest.php
-git commit -m "refactor: extract SleepProcessor from health:sleep command"
+git commit -m "refactor: extract SleepProcessor, slim health:sleep to a wrapper"
 ```
-
-Note: the command will not compile against removed methods until Task 6 slims it. If PHP complains about missing methods now, leave the moved methods duplicated in the command temporarily and delete them in Task 6, OR do Task 6's command edits alongside this commit. Prefer the latter if the subagent is comfortable; the tests above only exercise the processor.
 
 ---
 
@@ -410,12 +467,53 @@ class HeartRateProcessor implements HealthProcessor
 Run: `php artisan test --compact --filter=HeartRateProcessorTest`
 Expected: PASS (2 passed).
 
-- [ ] **Step 5: Pint + commit**
+- [ ] **Step 5: Slim `ImportHealthHeartRate` in the same task (keep the suite green)**
+
+The moved methods must leave the command now. Rewrite it to delegate to `HeartRateProcessor`:
+
+```php
+#[Signature('health:heart_rate {--file= : Process a specific raw JSON payload path}')]
+```
+
+```php
+public function handle(HeartRateProcessor $processor): int
+{
+    $file = $this->option('file');
+
+    if (! is_string($file) || $file === '') {
+        $this->components->info('Heart-rate now ingests from POST /api/health/ingest. Use --file to reprocess a payload.');
+
+        return self::SUCCESS;
+    }
+
+    $payload = json_decode((string) file_get_contents($file), true);
+
+    if (! is_array($payload)) {
+        $this->components->error("Not a JSON payload: {$file}");
+
+        return self::FAILURE;
+    }
+
+    $processor->process($payload);
+    $this->components->info('Processed heart-rate payload.');
+
+    return self::SUCCESS;
+}
+```
+
+Remove the moved methods from the command (`apply`, `storedSeries`, `downsample`, `samplesFrom`, `loadPayload`, `payloadPaths`, `mirrorToCsv`, `csvPath`). Drop the now-unused imports (`Storage`, `Downsample`, `Carbon`, etc.) that only the removed methods used.
+
+- [ ] **Step 6: Run the full health suite**
+
+Run: `php artisan test --compact --filter=Health`
+Expected: PASS.
+
+- [ ] **Step 7: Pint + commit**
 
 ```bash
 vendor/bin/pint --dirty --format agent
 git add app/Support/Health/HeartRateProcessor.php app/Console/Commands/Fetch/ImportHealthHeartRate.php tests/Feature/Health/HeartRateProcessorTest.php
-git commit -m "refactor: extract HeartRateProcessor from health:heart_rate command"
+git commit -m "refactor: extract HeartRateProcessor, slim health:heart_rate to a wrapper"
 ```
 
 ---
@@ -779,23 +877,33 @@ git commit -m "feat: dispatch health ingest to queue, discard raw, log summary"
 
 ---
 
-### Task 6: Slim the commands, delete `health:inspect`
+### Task 6: Command wrapper tests + delete `health:inspect`
+
+The commands were already slimmed to processor wrappers in Tasks 1 and 2. This task locks that behaviour with command-level tests and removes the now-defunct `health:inspect`.
 
 **Files:**
-- Modify: `app/Console/Commands/Fetch/ImportHealthSleep.php`
-- Modify: `app/Console/Commands/Fetch/ImportHealthHeartRate.php`
 - Delete: `app/Console/Commands/Health/InspectHealthExport.php`
 - Delete (if present): any test referencing `health:inspect`
 - Test: `tests/Feature/Health/HealthCommandsTest.php`
 
 **Interfaces:**
-- Consumes: `SleepProcessor`, `HeartRateProcessor` (Tasks 1-2).
+- Consumes: the slimmed `health:sleep` / `health:heart_rate` commands (Tasks 1-2).
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Delete `health:inspect` and find stray references**
+
+```bash
+git rm app/Console/Commands/Health/InspectHealthExport.php
+grep -rn "health:inspect\|InspectHealthExport" tests app
+```
+
+Delete or update any test that referenced it (expected: none, or a dedicated inspect test to remove).
+
+- [ ] **Step 2: Write the command wrapper tests**
 
 ```php
 <?php
 
+use App\Models\Activity;
 use App\Models\Sleep;
 use Illuminate\Support\Facades\File;
 
@@ -817,120 +925,31 @@ it('processes a supplied payload file via health:sleep --file', function () {
     File::delete($path);
 });
 
-it('prints guidance when run with no file and no maintenance flag', function () {
+it('prints guidance when health:sleep runs with no file and no maintenance flag', function () {
     $this->artisan('health:sleep')->assertSuccessful();
+});
+
+it('prints guidance when health:heart_rate runs with no file', function () {
+    $this->artisan('health:heart_rate')->assertSuccessful();
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 3: Run the command tests**
 
 Run: `php artisan test --compact --filter=HealthCommandsTest`
-Expected: FAIL (command still uses old disk-reading signature).
+Expected: PASS (commands were slimmed in Tasks 1-2, so these validate the wrappers).
 
-- [ ] **Step 3: Rewrite `ImportHealthSleep` as a thin wrapper**
-
-Keep the maintenance modes but delegate ingest to `SleepProcessor`. New signature and `handle()`:
-
-```php
-#[Signature('health:sleep {--file= : Process a specific raw JSON payload path} {--resplit : Re-derive existing rows from stored stages} {--redate : Re-date every row to the Apple sleep-day and resolve collisions} {--score : Recompute the sleep score for every row}')]
-```
-
-```php
-public function handle(SleepProcessor $processor, SleepAggregator $aggregator): int
-{
-    if ($this->option('resplit')) {
-        return $this->resplit($aggregator);
-    }
-
-    if ($this->option('redate')) {
-        return $this->redate($aggregator);
-    }
-
-    if ($this->option('score')) {
-        $processor->scoreAll();
-
-        return self::SUCCESS;
-    }
-
-    $file = $this->option('file');
-
-    if (! is_string($file) || $file === '') {
-        $this->components->info('Sleep now ingests from POST /api/health/ingest. Use --file to reprocess a payload, or --resplit/--redate/--score for maintenance.');
-
-        return self::SUCCESS;
-    }
-
-    $payload = json_decode((string) file_get_contents($file), true);
-
-    if (! is_array($payload)) {
-        $this->components->error("Not a JSON payload: {$file}");
-
-        return self::FAILURE;
-    }
-
-    $processor->process($payload);
-    $this->components->info('Processed sleep payload.');
-
-    return self::SUCCESS;
-}
-```
-
-Remove from the command the methods now living in `SleepProcessor` (`mirrorToCsv`, `csvRow`, `csvPath`, `score`, `bedtimeMinutes`, `wakeEvents`, `median`, `collectSegments`, `payloads`). Keep `resplit`, `redate`, `sourceRank`, `changedMeaningfully` if the maintenance modes still use them; where `resplit`/`redate` need CSV mirroring, call the processor (inject it) or move the shared helper into `SleepProcessor` as `public`. Do NOT leave duplicated private copies.
-
-- [ ] **Step 4: Rewrite `ImportHealthHeartRate` as a thin wrapper**
-
-```php
-#[Signature('health:heart_rate {--file= : Process a specific raw JSON payload path}')]
-```
-
-```php
-public function handle(HeartRateProcessor $processor): int
-{
-    $file = $this->option('file');
-
-    if (! is_string($file) || $file === '') {
-        $this->components->info('Heart-rate now ingests from POST /api/health/ingest. Use --file to reprocess a payload.');
-
-        return self::SUCCESS;
-    }
-
-    $payload = json_decode((string) file_get_contents($file), true);
-
-    if (! is_array($payload)) {
-        $this->components->error("Not a JSON payload: {$file}");
-
-        return self::FAILURE;
-    }
-
-    $processor->process($payload);
-    $this->components->info('Processed heart-rate payload.');
-
-    return self::SUCCESS;
-}
-```
-
-Remove the moved methods (`apply`, `storedSeries`, `downsample`, `samplesFrom`, `loadPayload`, `payloadPaths`, `mirrorToCsv`, `csvPath`) from the command.
-
-- [ ] **Step 5: Delete `health:inspect`**
-
-```bash
-git rm app/Console/Commands/Health/InspectHealthExport.php
-grep -rl "health:inspect\|InspectHealthExport" tests app && echo "remove those references"
-```
-
-Delete or update any test that referenced it.
-
-- [ ] **Step 6: Run the full health suite**
+- [ ] **Step 4: Run the full health suite**
 
 Run: `php artisan test --compact --filter=Health`
-Expected: PASS (all Health tests green).
+Expected: PASS.
 
-- [ ] **Step 7: Pint + commit**
+- [ ] **Step 5: Pint + commit**
 
 ```bash
 vendor/bin/pint --dirty --format agent
 git add -A
-git commit -m "refactor: slim health commands to processor wrappers, drop health:inspect"
+git commit -m "test: cover health command wrappers; drop health:inspect"
 ```
 
 ---
