@@ -87,6 +87,31 @@ it('imports films and episodes, groups same-name shows by distinct trakt id, and
     Bus::assertDispatched(EnrichMedia::class, 3);
 });
 
+it('fails closed and stops importing when a history page request fails mid-pagination', function () {
+    Http::fake(function ($request) {
+        return match (true) {
+            str_contains($request->url(), '/history/movies') => Http::response($request['page'] == 1 ? [[
+                'id' => 501, 'watched_at' => '2024-01-01T20:00:00.000Z', 'action' => 'watch', 'type' => 'movie',
+                'movie' => [
+                    'title' => 'Dune', 'year' => 2021, 'runtime' => 155,
+                    'ids' => ['trakt' => 9, 'slug' => 'dune-2021', 'tmdb' => 438631],
+                    'images' => ['poster' => ['walter-r2.trakt.tv/posters/dune-2021.jpg']],
+                ],
+            ]] : [], 200),
+            str_contains($request->url(), '/history/episodes') => Http::response('server error', 500),
+            default => Http::response([], 200),
+        };
+    });
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertFailed();
+
+    // The movies page succeeded and was imported before the episodes page
+    // failed; the command still reports failure rather than silently
+    // truncating the episode history.
+    expect(Media::where('type', 'film')->count())->toBe(1)
+        ->and(Media::where('type', 'episode')->count())->toBe(0);
+});
+
 it('imports personal star ratings onto films, episodes, and series, staying idempotent on re-run', function () {
     fakeTraktHistory(
         movies: [[

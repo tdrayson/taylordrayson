@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Exceptions\TraktException;
 use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
@@ -38,11 +39,21 @@ class TraktSync extends Command
 
         $existing = Media::query()->where('source', 'trakt')->pluck('source_id')->flip();
 
-        $filmsCreated = $this->importMovies($trakt, $startAt, $existing);
-        $episodesCreated = $this->importEpisodes($trakt, $startAt, $existing);
+        // Fail closed: a mid-pagination Trakt failure throws (see `Trakt::historyPage`/
+        // `ratingsPage`), and any work already imported before the failure stays
+        // (never rolled back), but the command reports failure so a partial sync is
+        // never mistaken for a complete one.
+        try {
+            $filmsCreated = $this->importMovies($trakt, $startAt, $existing);
+            $episodesCreated = $this->importEpisodes($trakt, $startAt, $existing);
 
-        $this->normalizeEpisodeOrder();
-        $this->syncRatings($trakt);
+            $this->normalizeEpisodeOrder();
+            $this->syncRatings($trakt);
+        } catch (TraktException $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info("Synced {$filmsCreated} film(s) and {$episodesCreated} episode(s).");
 
@@ -210,9 +221,10 @@ class TraktSync extends Command
 
     /**
      * Page through a ratings endpoint until an empty batch signals the end,
-     * building a flat map of Trakt id => rating. A null return from
-     * `ratingsPage` (request failed, or nothing rated in that category) just
-     * means an empty map, not an error.
+     * building a flat map of Trakt id => rating. `ratingsPage` fails closed
+     * (throws `TraktException` on a failed request), so an empty batch here
+     * only ever means "nothing rated in that category", never a swallowed
+     * failure.
      *
      * @return array<int|string, int>
      */
@@ -224,7 +236,7 @@ class TraktSync extends Command
         while (true) {
             $batch = $trakt->ratingsPage($type, $page);
 
-            if ($batch === null || $batch === []) {
+            if ($batch === []) {
                 break;
             }
 
@@ -287,6 +299,9 @@ class TraktSync extends Command
 
     /**
      * Page through a history endpoint until an empty batch signals the end.
+     * `historyPage` fails closed (throws `TraktException` on a failed
+     * request), so an empty batch here only ever means "no more pages",
+     * never a swallowed failure.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -298,7 +313,7 @@ class TraktSync extends Command
         while (true) {
             $batch = $trakt->historyPage($type, $page, 100, $startAt);
 
-            if ($batch === null || $batch === []) {
+            if ($batch === []) {
                 break;
             }
 

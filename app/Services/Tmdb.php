@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
@@ -68,9 +70,13 @@ class Tmdb
      */
     private function request(string $path, array $params): Response
     {
-        return Http::get(self::BASE.$path, [
-            ...$params,
-            'api_key' => config('services.tmdb.key'),
-        ]);
+        return Http::connectTimeout(10)
+            ->timeout(20)
+            ->retry(3, 500, when: fn (\Throwable $e): bool => $e instanceof ConnectionException
+                || ($e instanceof RequestException && $e->response?->status() === 429), throw: false)
+            ->get(self::BASE.$path, [
+                ...$params,
+                'api_key' => config('services.tmdb.key'),
+            ]);
     }
 }
