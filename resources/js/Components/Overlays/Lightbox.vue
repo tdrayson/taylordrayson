@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import { useDialog } from '../../composables/useDialog';
 
 const props = defineProps({
     photos: { type: Array, required: true },
@@ -19,20 +20,6 @@ const emit = defineEmits(['update:index']);
 const isOpen = computed(() => props.index !== null && props.index >= 0 && props.index < props.photos.length);
 const current = computed(() => (isOpen.value ? props.photos[props.index] : null));
 const hasMultiple = computed(() => props.photos.length > 1);
-
-// Focus management: the element that opened the lightbox, restored on close.
-const dialogEl = ref(null);
-let lastFocused = null;
-
-function focusableInDialog() {
-    if (!dialogEl.value) {
-        return [];
-    }
-
-    return [...dialogEl.value.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')].filter(
-        (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
-    );
-}
 
 function close() {
     emit('update:index', null);
@@ -59,40 +46,17 @@ function preloadNeighbours(idx) {
     }
 }
 
-function onKeydown(event) {
-    if (!isOpen.value) {
-        return;
-    }
-
-    if (event.key === 'Escape') {
-        close();
-    } else if (event.key === 'ArrowLeft') {
+// Arrow-key navigation; Escape and Tab are handled by useDialog.
+function onArrowKeys(event) {
+    if (event.key === 'ArrowLeft') {
         slideTo(-1);
     } else if (event.key === 'ArrowRight') {
         slideTo(1);
-    } else if (event.key === 'Tab') {
-        // Trap focus inside the dialog.
-        const focusable = focusableInDialog();
-
-        if (focusable.length === 0) {
-            event.preventDefault();
-
-            return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        const active = document.activeElement;
-
-        if (event.shiftKey && (active === first || !dialogEl.value.contains(active))) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && active === last) {
-            event.preventDefault();
-            first.focus();
-        }
     }
 }
+
+// Focus trap, Esc-to-close, body scroll lock, and focus save/restore.
+const { panelEl } = useDialog({ isOpen: () => isOpen.value, onClose: close, onKeydown: onArrowKeys });
 
 // Drag / swipe carousel. Three slides (previous, current, next) ride in a track;
 // the track follows the pointer, then animates fully to the neighbour past a
@@ -238,40 +202,20 @@ function closeUnlessDrag() {
     close();
 }
 
-watch(isOpen, (open) => {
-    document.body.style.overflow = open ? 'hidden' : '';
+// Reset the carousel's drag/animation state whenever the open state changes
+// (dialog plumbing itself, i.e. scroll lock, focus trap, focus restore, is
+// handled by useDialog).
+watch(isOpen, () => {
     clearTimeout(settleTimer);
     dragPx.value = 0;
     extra.value = 0;
     animating.value = false;
     dragging = false;
     pendingStep = 0;
-
-    if (open) {
-        lastFocused = document.activeElement;
-        document.addEventListener('keydown', onKeydown);
-        nextTick(() => {
-            const focusable = focusableInDialog();
-            (focusable[0] ?? dialogEl.value)?.focus();
-        });
-    } else {
-        document.removeEventListener('keydown', onKeydown);
-        // Restore focus to whatever opened the lightbox.
-        if (lastFocused && typeof lastFocused.focus === 'function') {
-            lastFocused.focus();
-        }
-
-        lastFocused = null;
-    }
 });
 
 // Preload neighbours whenever the open photo changes.
 watch(() => props.index, (idx) => preloadNeighbours(idx));
-
-onBeforeUnmount(() => {
-    document.removeEventListener('keydown', onKeydown);
-    document.body.style.overflow = '';
-});
 </script>
 
 <template>
@@ -279,7 +223,7 @@ onBeforeUnmount(() => {
         <Transition name="lightbox">
             <div
                 v-if="isOpen"
-                ref="dialogEl"
+                ref="panelEl"
                 tabindex="-1"
                 class="fixed inset-0 z-50 flex flex-col gap-3 p-3 focus:outline-none sm:p-5"
                 role="dialog"
@@ -290,14 +234,18 @@ onBeforeUnmount(() => {
                 @pointerup="onPointerUp"
                 @pointercancel="onPointerCancel"
             >
-                <div class="absolute inset-0 bg-neutral-900/95" @click="closeUnlessDrag" />
+                <!-- Fixed bg-black (not bg-neutral-900): the lightbox is an intentional
+                     dark scrim in both themes, so it must not invert with the neutral
+                     ramp. Every neutral-0 chrome element below is pinned to white to
+                     match (neutral-0 would otherwise invert to a dark, invisible tone). -->
+                <div class="absolute inset-0 bg-black/90" @click="closeUnlessDrag" />
 
                 <!-- Top bar: entry link and close. -->
                 <div class="relative flex shrink-0 items-center justify-between gap-3">
                     <Link
                         v-if="link && current?.url"
                         :href="current.url"
-                        class="flex items-center gap-1.5 rounded-full bg-neutral-0/10 py-2 pl-4 pr-3 text-meta text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-meta text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
@@ -307,7 +255,7 @@ onBeforeUnmount(() => {
 
                     <button
                         type="button"
-                        class="flex size-10 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         aria-label="Close"
                         @click="close"
                     >
@@ -340,7 +288,7 @@ onBeforeUnmount(() => {
                     <button
                         v-if="hasMultiple"
                         type="button"
-                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         aria-label="Previous photo"
                         @click="slideTo(-1)"
                     >
@@ -349,7 +297,7 @@ onBeforeUnmount(() => {
                     <button
                         v-if="hasMultiple"
                         type="button"
-                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors hover:bg-neutral-0/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         aria-label="Next photo"
                         @click="slideTo(1)"
                     >
@@ -362,9 +310,9 @@ onBeforeUnmount(() => {
                     v-if="(caption && current?.caption) || (counter && hasMultiple)"
                     class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"
                 >
-                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-neutral-0">{{ current.caption }}</p>
-                    <p v-if="caption && current?.date" class="text-caption text-neutral-0/70">{{ current.date }}</p>
-                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-neutral-0/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
+                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
+                    <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
+                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
                 </div>
             </div>
         </Transition>

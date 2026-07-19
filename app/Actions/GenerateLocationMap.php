@@ -15,8 +15,9 @@ class GenerateLocationMap
 
     private const MARKER_COLOR = '8541C8';
 
-    public function __invoke(Model&HasMedia $model): ?Media
+    public function __invoke(Model&HasMedia $model, ?string $markerColor = null): ?Media
     {
+        $color = $markerColor ?? self::MARKER_COLOR;
         $lat = $model->getAttribute('latitude');
         $lng = $model->getAttribute('longitude');
 
@@ -30,23 +31,33 @@ class GenerateLocationMap
             return null;
         }
 
-        $marker = 'pin-l+'.self::MARKER_COLOR."({$lng},{$lat})";
-        $center = "{$lng},{$lat},".self::ZOOM;
+        $styles = [
+            'mapbox/light-v11' => 'map',
+            'mapbox/dark-v11' => 'map_dark',
+        ];
 
-        $url = "https://api.mapbox.com/styles/v1/mapbox/light-v11/static/{$marker}/{$center}/800x500@2x?access_token={$token}";
+        $last = null;
 
-        try {
-            $response = Http::get($url);
-        } catch (ConnectionException) {
-            return null;
+        foreach ($styles as $style => $collection) {
+            $marker = 'pin-l+'.$color."({$lng},{$lat})";
+            $center = "{$lng},{$lat},".self::ZOOM;
+            $url = "https://api.mapbox.com/styles/v1/{$style}/static/{$marker}/{$center}/800x500@2x?access_token={$token}";
+
+            try {
+                $response = Http::get($url);
+            } catch (ConnectionException) {
+                continue;
+            }
+
+            if ($response->failed()) {
+                continue;
+            }
+
+            $last = $model->addMediaFromString($response->body())
+                ->usingFileName(Str::uuid().'.png')
+                ->toMediaCollection($collection);
         }
 
-        if ($response->failed()) {
-            return null;
-        }
-
-        return $model->addMediaFromString($response->body())
-            ->usingFileName(Str::uuid().'.png')
-            ->toMediaCollection('map');
+        return $last;
     }
 }

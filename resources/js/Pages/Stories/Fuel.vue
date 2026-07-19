@@ -11,7 +11,7 @@ import Blockquote from '../../Components/Ui/Blockquote.vue';
 import Chart from '../../Components/Ui/Chart.vue';
 import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
-import StoryToc from '../../Components/Story/StoryToc.vue';
+import TableOfContents from '../../Components/Ui/TableOfContents.vue';
 import DateLink from '../../Components/Ui/DateLink.vue';
 import { PetrolPumpIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { PALETTE, baseOptions } from '../../lib/chart.js';
@@ -267,7 +267,7 @@ const savingsOptions = baseOptions({
 
     <!-- The article stays left-aligned with the header, capped at the media
          width. On xl+ the contents list is placed in the right gutter off this
-         column's edge and sticks via CSS (see StoryToc); below xl it's a pill. -->
+         column's edge and sticks via CSS (see TableOfContents); below xl it's a pill. -->
     <div class="relative mt-14 max-w-media">
         <StoryChapter number="01" kicker="The car">
         <template #title>The same {{ story.car.name }}, all the way through.</template>
@@ -500,6 +500,6 @@ const savingsOptions = baseOptions({
 
         <StoryAuthor />
 
-        <StoryToc />
+        <TableOfContents selector="[data-story-chapter]" label-attr="data-kicker" number-attr="data-number" />
     </div>
 </template>

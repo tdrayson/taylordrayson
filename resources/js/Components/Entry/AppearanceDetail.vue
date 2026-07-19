@@ -88,7 +88,9 @@ onBeforeUnmount(() => {
                 @click="watchVideo"
             >
                 <img v-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
-                <span class="absolute inset-0 flex items-center justify-center bg-neutral-900/20 transition-colors group-hover:bg-neutral-900/30">
+                <!-- Fixed bg-black (not bg-neutral-900): this dims the thumbnail behind
+                     the play button in both themes, so it must not invert. -->
+                <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon :icon="PlayIcon" class="size-7" />
                     </span>
@@ -108,11 +110,12 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p v-twemoji class="max-w-prose whitespace-pre-neutral-100 text-body text-neutral-700">{{ entry.description }}</p>
+            <p v-twemoji class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.description }}</p>
         </div>
 
-        <div v-if="entry.url" class="flex flex-wrap gap-x-6 gap-y-3">
-            <ExternalLink :href="entry.url" label="Show page" />
+        <div v-if="entry.url || entry.video_url" class="flex flex-wrap gap-x-6 gap-y-3">
+            <ExternalLink v-if="entry.url" :href="entry.url" label="Show page" />
+            <ExternalLink v-if="entry.video_url" :href="entry.video_url" label="Watch on YouTube" />
         </div>
     </div>
 </template>

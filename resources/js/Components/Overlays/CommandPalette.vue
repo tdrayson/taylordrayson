@@ -6,6 +6,7 @@ import fuzzysort from 'fuzzysort';
 import { Search01Icon, Calendar03Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
+import { useDialog } from '../../composables/useDialog';
 import { pageCommands, archiveCommands } from '../../navigation.js';
 import { entryType } from '../../entryTypes.js';
 
@@ -15,6 +16,11 @@ const query = ref('');
 const activeIndex = ref(0);
 const input = ref(null);
 const listEl = ref(null);
+
+// Shared dialog behaviour: body scroll-lock + focus save/restore only. Escape
+// and Tab are kept bespoke (onPanelKeydown/onGlobalKeydown below), so both
+// closeOnEsc and trapFocus stay off; the palette owns its own keyboard model.
+const { panelEl } = useDialog({ isOpen: () => isOpen.value, onClose: close, closeOnEsc: false, trapFocus: false });
 
 // Async matches from the server (debounced fetch): timeline entries, plus
 // taxonomy destination pages drawn live from the registry.
@@ -227,13 +233,13 @@ watch(query, (value) => {
     }, 180);
 });
 
+// Body scroll-lock and focus-on-open are owned by useDialog now (the search
+// input is the first focusable element in the panel, so it receives focus
+// automatically). This watch keeps only the palette's own reset/teardown.
 watch(isOpen, (open) => {
-    document.body.style.overflow = open ? 'hidden' : '';
-
     if (open) {
         query.value = '';
         activeIndex.value = 0;
-        nextTick(() => input.value?.focus());
     } else {
         if (searchTimer) {
             clearTimeout(searchTimer);
@@ -310,10 +316,7 @@ function onGlobalKeydown(event) {
 }
 
 onMounted(() => document.addEventListener('keydown', onGlobalKeydown));
-onUnmounted(() => {
-    document.removeEventListener('keydown', onGlobalKeydown);
-    document.body.style.overflow = '';
-});
+onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
 </script>
 
 <template>
@@ -324,9 +327,12 @@ onUnmounted(() => {
                 class="overlay fixed inset-0 flex items-start justify-center px-4"
                 @click.self="close"
             >
-                <div class="backdrop absolute inset-0 bg-neutral-900/45" @click="close" />
+                <!-- Fixed bg-black (not bg-neutral-900): the palette backdrop is an
+                     intentional dim scrim in both themes, so it must not invert. -->
+                <div class="backdrop absolute inset-0 bg-black/45" @click="close" />
 
                 <div
+                    ref="panelEl"
                     class="panel relative flex w-full max-w-xl flex-col overflow-hidden rounded-lg border border-neutral-50 bg-neutral-0 shadow-card"
                     role="dialog"
                     aria-modal="true"

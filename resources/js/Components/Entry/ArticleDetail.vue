@@ -2,10 +2,12 @@
 import { computed } from 'vue';
 import Pill from '../Ui/Pill.vue';
 import BlockContent from '../Ui/BlockContent.vue';
-import ContentToc from '../Ui/ContentToc.vue';
+import TableOfContents from '../Ui/TableOfContents.vue';
 
 const props = defineProps({
     entry: { type: Object, required: true },
+    // Map of href -> preview data for internal content links, forwarded to BlockContent.
+    linkPreviews: { type: Object, default: () => ({}) },
 });
 
 const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
@@ -57,19 +59,19 @@ const headingCount = computed(() => contentNodes.value.filter(
             >
         </div>
 
-        <!-- relative + max-w-media anchors ContentToc's desktop rail in the
-             gutter to the right of the widest (media) content block, mirroring
-             how Story pages position StoryToc. It wraps only the body content
+        <!-- relative + max-w-media anchors the TableOfContents desktop rail in
+             the gutter to the right of the widest (media) content block, the
+             same way the story pages position it. It wraps only the body content
              so the rail's top-0 lines up with the first line of prose, not the
              tags row or cover image above. -->
         <div class="relative max-w-media space-y-8">
             <p v-if="entry.excerpt" class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
-            <BlockContent :document="entry.content" />
+            <BlockContent :document="entry.content" :link-previews="linkPreviews" />
 
             <!-- Mounted after BlockContent so its headings are already in the DOM
-                 when ContentToc's onMounted queries for them. -->
-            <ContentToc v-if="headingCount >= 2" />
+                 when TableOfContents's onMounted queries for them. -->
+            <TableOfContents v-if="headingCount >= 2" />
         </div>
     </div>
 </template>

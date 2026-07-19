@@ -23,7 +23,7 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
 
         <div v-if="entry.long_description">
             <SectionHead title="About" />
-            <p v-twemoji class="whitespace-pre-neutral-100 text-body text-neutral-700">{{ entry.long_description }}</p>
+            <p v-twemoji class="whitespace-pre-line text-body text-neutral-700">{{ entry.long_description }}</p>
         </div>
 
         <div v-if="tags.length" class="flex flex-wrap gap-2">

@@ -76,6 +76,12 @@ export function number(value, fractionDigits = 0) {
     });
 }
 
+// Kilograms to pounds. Returns the unrounded value; the formatter applies
+// display rounding via number(), matching how raw kg is rounded at render.
+export function kgToLbs(kg) {
+    return Number(kg) * 2.20462;
+}
+
 export function dateTime(value) {
     if (!value) {
         return null;

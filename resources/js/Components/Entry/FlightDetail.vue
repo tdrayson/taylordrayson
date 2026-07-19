@@ -3,12 +3,18 @@ import { computed } from 'vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
-import { number, titleCase, time, duration, flightDurationLabel } from '../../lib/format.js';
+import { titleCase, time, duration, flightDurationLabel } from '../../lib/format.js';
 import { metresToMiles } from '../../lib/distance.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
+
+// Unit-aware distance formatter; the visible label re-runs when the visitor
+// toggles distance units, while distanceMiles (below) stays fixed in miles
+// for the duration estimate.
+const { distance } = useFormat();
 
 const meta = computed(() => props.entry.meta || {});
 const airline = computed(() => props.entry.airline || null);
@@ -20,7 +26,7 @@ const arriveAt = computed(() => props.entry.arrived_local);
 // Raw distance is stored in metres; convert once here for the duration estimate and the label.
 const distanceMiles = computed(() => metresToMiles(props.entry.distance));
 const durationLabel = computed(() => (props.entry.duration ? duration(props.entry.duration) : flightDurationLabel(distanceMiles.value)));
-const distanceLabel = computed(() => (distanceMiles.value ? `${number(distanceMiles.value)} mi` : null));
+const distanceLabel = computed(() => distance(props.entry.distance));
 
 const hasCoordinates = computed(() => origin.value.latitude != null && destination.value.latitude != null);
 

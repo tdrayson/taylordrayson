@@ -3,6 +3,8 @@
 namespace App\Actions;
 
 use App\Models\Activity;
+use App\Support\StaticMap;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -17,26 +19,33 @@ class GenerateStaticMap
             return null;
         }
 
-        if ($existing = $activity->getFirstMedia('map')) {
-            return $existing;
+        $styles = [
+            'map' => StaticMap::route($polyline),
+            'map_dark' => StaticMap::route($polyline, style: 'mapbox/dark-v11'),
+        ];
+
+        $last = null;
+
+        foreach ($styles as $collection => $url) {
+            if ($url === null) {
+                continue;
+            }
+
+            try {
+                $response = Http::get($url);
+            } catch (ConnectionException) {
+                continue;
+            }
+
+            if ($response->failed()) {
+                continue;
+            }
+
+            $last = $activity->addMediaFromString($response->body())
+                ->usingFileName(Str::uuid().'.png')
+                ->toMediaCollection($collection);
         }
 
-        $token = config('services.mapbox.token');
-        $overlay = 'path-3+2E9E6A('.rawurlencode($polyline).')';
-
-        $url = "https://api.mapbox.com/styles/v1/mapbox/light-v11/static/{$overlay}"
-            .'/auto/800x500@2x'
-            ."?access_token={$token}"
-            .'&padding=40';
-
-        $response = Http::get($url);
-
-        if ($response->failed()) {
-            return null;
-        }
-
-        return $activity->addMediaFromString($response->body())
-            ->usingFileName(Str::uuid().'.png')
-            ->toMediaCollection('map');
+        return $last;
     }
 }

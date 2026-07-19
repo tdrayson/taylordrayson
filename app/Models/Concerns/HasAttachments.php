@@ -8,7 +8,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Shared Media Library setup: a single `cover`, a `photos` gallery, and a single
- * generated `map`, plus an optimised, responsive `card` conversion for feeds.
+ * generated `map` (with a `map_dark` twin for dark mode), plus an optimised,
+ * responsive `card` conversion for feeds.
  */
 trait HasAttachments
 {
@@ -19,6 +20,7 @@ trait HasAttachments
         $this->addMediaCollection('cover')->singleFile();
         $this->addMediaCollection('photos');
         $this->addMediaCollection('map')->singleFile();
+        $this->addMediaCollection('map_dark')->singleFile();
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -32,11 +34,11 @@ trait HasAttachments
     }
 
     /**
-     * The entry's photos in display order (cover first, then the gallery),
-     * each with the optimised card source, its responsive srcset, and the
-     * full-size original for the lightbox.
+     * The entry's photos in display order (cover first, then the gallery), each
+     * with the optimised card source, its responsive srcset, the full-size
+     * original for the lightbox, and the route coordinate where known.
      *
-     * @return array<int, array{src: string, srcset: ?string, full: string}>
+     * @return array<int, array{src: string, srcset: ?string, full: string, latitude: ?float, longitude: ?float}>
      */
     public function galleryPhotos(): array
     {
@@ -46,6 +48,8 @@ trait HasAttachments
                 'src' => $media->getUrl('card'),
                 'srcset' => $media->getSrcset('card') ?: null,
                 'full' => $media->getUrl(),
+                'latitude' => $media->getCustomProperty('latitude'),
+                'longitude' => $media->getCustomProperty('longitude'),
             ])
             ->values()
             ->all();

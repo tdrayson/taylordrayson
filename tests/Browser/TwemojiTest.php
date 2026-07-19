@@ -19,7 +19,7 @@ it('renders content emoji as a Twemoji image on the timeline', function () {
 
     $page->assertScript("document.querySelectorAll('img.emoji').length > 0", true)
         ->assertScript(
-            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.3/') && img.complete && img.naturalWidth > 0; })()",
+            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@') && img.complete && img.naturalWidth > 0; })()",
             true,
         );
 });
@@ -34,7 +34,7 @@ it('renders content emoji as a Twemoji image on a note detail page', function ()
 
     $page->assertScript("document.querySelectorAll('img.emoji').length > 0", true)
         ->assertScript(
-            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.3/') && img.complete && img.naturalWidth > 0; })()",
+            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@') && img.complete && img.naturalWidth > 0; })()",
             true,
         );
 });

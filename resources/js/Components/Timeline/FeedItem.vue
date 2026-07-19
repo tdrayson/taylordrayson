@@ -8,14 +8,11 @@ import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
-import RouteThumb from '../Maps/RouteThumb.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration, flightDurationLabel, number } from '../../lib/format.js';
-import { greatCircle } from '../../lib/maplibre.js';
-import { decodePolyline } from '../../lib/geo.js';
+import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
-import { staticRouteMap, staticArcMap } from '../../lib/staticMap.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     icon: { type: [Array, Object], default: null },
@@ -31,6 +28,9 @@ const props = defineProps({
     // the display-font title, with the timestamp acting as the permalink.
     body: { type: String, default: null },
     meta: { type: String, default: '' },
+    // Structured subtitle tokens (raw metres/kg + literal text) composed reactively
+    // via useFormat; null falls back to the plain `meta` string (e.g. notes).
+    metaTokens: { type: Array, default: null },
     segments: { type: Array, default: null },
     route: { type: Object, default: null },
     media: { type: Object, default: null },
@@ -39,6 +39,9 @@ const props = defineProps({
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
+    // Dark-mode twin of `map` (mapbox/dark-v11). Older data without a dark
+    // variant simply omits this and the light PNG shows in both themes.
+    mapDark: { type: String, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -46,6 +49,9 @@ const props = defineProps({
     label: { type: String, default: '' },
     offset: { type: String, default: '' },
 });
+
+// Unit-aware distance formatter; route.distance is already in miles.
+const { distance, weight, distanceFromMiles } = useFormat();
 
 const videoSlot = ref(null);
 
@@ -98,6 +104,27 @@ function listen() {
 // Leaving the page releases the inline dock, popping the video to the corner.
 onBeforeUnmount(() => undockVideo(videoSlot.value));
 
+// Timeline card subtitle. When the server sends structured tokens, compose them
+// through useFormat so distance/weight react to the unit toggle; otherwise fall
+// back to the plain server string (e.g. notes have no unit-bearing subtitle).
+const metaText = computed(() => {
+    if (!props.metaTokens) {
+        return props.meta;
+    }
+    return props.metaTokens
+        .map((token) => {
+            if (token.t === 'dist') {
+                return distance(token.m, token.p);
+            }
+            if (token.t === 'wt') {
+                return weight(token.kg, token.p);
+            }
+            return token.v;
+        })
+        .filter(Boolean)
+        .join(', ');
+});
+
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
 const typeHref = computed(() => entryType(props.iconKey).href ?? null);
@@ -123,7 +150,7 @@ const routeView = computed(() => {
         departTime: clockOf(props.route.depart),
         arriveTime: clockOf(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
-        note: props.route.distance ? `${number(props.route.distance)} mi` : null,
+        note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
     };
 });
 
@@ -131,60 +158,13 @@ const airline = computed(() => props.route?.airline ?? null);
 
 // The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
-const bannerColor = typeColor;
 
-// A full-width map banner: the flight's great-circle arc, or an activity's route.
-const flightArc = computed(() => {
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
+// Stored static map for this entry (activity route, flight arc, event/fuel/checkin
+// pin), pre-generated server-side. Shown only when there is no cover photo.
+const routeImageUrl = computed(() => props.map ?? null);
 
-    if (origin?.lat == null || destination?.lat == null) {
-        return null;
-    }
-
-    return greatCircle(
-        { lat: Number(origin.lat), lng: Number(origin.lng) },
-        { lat: Number(destination.lat), lng: Number(destination.lng) },
-        64,
-    );
-});
-
-const routePath = computed(() => {
-    const points = props.polyline ? decodePolyline(props.polyline) : [];
-
-    return points.length > 1 ? points : null;
-});
-
-// Generated static map image: an activity's GPS trace, a flight's great-circle
-// arc, or a pre-generated stored map (e.g. an event's location pin). INTERIM:
-// the GPS/arc variants render live from Mapbox; will move to a stored
-// (Cloudflare-hosted) URL. See lib/staticMap.js.
-const routeImageUrl = computed(() => {
-    if (props.polyline) {
-        return staticRouteMap(props.polyline);
-    }
-
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
-
-    if (origin?.lat != null && destination?.lat != null) {
-        return staticArcMap(origin, destination);
-    }
-
-    return props.map ?? null;
-});
-
-const banner = computed(() => {
-    if (flightArc.value) {
-        return { points: flightArc.value, endpoints: true };
-    }
-
-    if (routePath.value) {
-        return { points: routePath.value, endpoints: false };
-    }
-
-    return null;
-});
+// Dark twin of the stored map; the two <img> swap via dark:hidden / dark:block.
+const routeImageDarkUrl = computed(() => props.mapDark ?? null);
 
 const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
 
@@ -260,11 +240,11 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="meta" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ meta }}</p>
-        <!-- SVG banner only as a fallback when no generated image is available. -->
-        <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
-        <!-- Map alone when there is no photo. -->
-        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover">
+        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
+             and the `dark:` class picks the right one, no JS needed. -->
+        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+        <img v-if="routeImageDarkUrl && !coverPhoto" :src="routeImageDarkUrl" alt="" class="mt-3 hidden aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover dark:block">
 
         <!-- Cover on its own (small screens, or no route map). Image link and zoom button are
              siblings, not nested; the image link duplicates the text permalink so it is aria-hidden. -->
@@ -285,7 +265,7 @@ function openLightbox(index) {
             <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                 <ZoomButton />
             </button>
-            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
+            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
         </div>
 
         <!-- A wide route map (aspect-video, the same 512x288 as a video thumbnail)
@@ -303,7 +283,8 @@ function openLightbox(index) {
                 :aria-hidden="url ? 'true' : undefined"
                 class="block"
             >
-                <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+                <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+                <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover dark:block">
             </component>
             <div class="group/zoom relative">
                 <component
@@ -318,7 +299,7 @@ function openLightbox(index) {
                 <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                     <ZoomButton />
                 </button>
-                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-neutral-900/70 px-1.5 py-0.5 text-caption font-semibold text-neutral-0 tnum">+{{ extraPhotos }}</span>
+                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
             </div>
         </div>
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
@@ -341,7 +322,9 @@ function openLightbox(index) {
                     alt=""
                     class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                 >
-                <span class="absolute inset-0 flex items-center justify-center bg-neutral-900/20 transition-colors group-hover:bg-neutral-900/30">
+                <!-- Fixed bg-black (not bg-neutral-900): this dims the thumbnail behind
+                     the play button in both themes, so it must not invert. -->
+                <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-12 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon :icon="PlayIcon" class="size-5" />
                     </span>

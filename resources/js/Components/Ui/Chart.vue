@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Chart } from '../../lib/chart.js';
+import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
     type: { type: String, required: true },
@@ -13,10 +14,15 @@ const props = defineProps({
 });
 
 const canvas = ref(null);
+const { resolved } = useTheme();
 let chart = null;
 let observer = null;
 
-function render() {
+// Destroy any existing chart instance and construct a fresh one. Chart.js
+// resolves scriptable colour options (see lib/chart.js) at construction
+// time, so recreating the instance is what actually applies the current
+// theme's palette rather than reusing the previous draw.
+function rebuildChart() {
     if (!canvas.value) {
         return;
     }
@@ -30,7 +36,7 @@ onMounted(() => {
     observer = new IntersectionObserver(
         (entries) => {
             if (entries.some((entry) => entry.isIntersecting)) {
-                render();
+                rebuildChart();
                 observer.disconnect();
                 observer = null;
             }
@@ -41,7 +47,13 @@ onMounted(() => {
     observer.observe(canvas.value);
 });
 
-watch(() => [props.data, props.options], () => chart && render(), { deep: true });
+watch(() => [props.data, props.options], () => chart && rebuildChart(), { deep: true });
+
+// Rebuild on theme toggle so the scriptable palette in lib/chart.js is
+// re-resolved against the newly active tokens. Registered synchronously here
+// (no await above it) so Vue can auto-dispose it on unmount; guarded so it's
+// a no-op if the chart hasn't been created yet (still off-screen).
+watch(resolved, () => chart && rebuildChart());
 
 onBeforeUnmount(() => {
     observer?.disconnect();

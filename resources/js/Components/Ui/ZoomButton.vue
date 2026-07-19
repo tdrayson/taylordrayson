@@ -8,7 +8,9 @@ import Icon from './Icon.vue';
 </script>
 
 <template>
-    <span class="flex size-7 items-center justify-center rounded-md bg-neutral-900/55 text-neutral-0">
+    <!-- Fixed bg-black/text-white (not neutral-900/neutral-0): this chip overlays
+         a photo and is an intentional dark surface in both themes. -->
+    <span class="flex size-7 items-center justify-center rounded-md bg-black/55 text-white">
         <Icon :icon="ZoomInAreaIcon" class="size-4" />
     </span>
 </template>

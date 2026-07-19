@@ -6,7 +6,7 @@ A personal website that tracks everything I do (runs, films, places I've been, w
 
 It's like a private social media feed just for me, so I can look back and see exactly what I was doing on any day in the past. A digital scrapbook of my life that updates itself.
 
-**Inspiration:** Aaron Parecki (aaronparecki.com), Luke/Ekul (ekul.me), Zach Leatherman (zachleat.com), Marco Cornacchia (marco.fyi).
+**Inspiration:** Aaron Parecki (aaronparecki.com), Luke/Ekul (ekul.me), Zach Leatherman (zachleat.com), Marco Cornacchia (marco.fyi), Trevor Morris (trovster.com).
 
 ---
 
@@ -269,6 +269,7 @@ The `/now` page is a bento grid of container-query-scaled widgets (each sized in
 | Luke / Ekul (ekul.me) | Recontextualised stats, sidebar widgets, heatmaps, sparklines, personal records, a "Now" section |
 | Zach Leatherman (zachleat.com) | Inline avatars/icons in prose, stats as narrative, clean sidebar |
 | Marco Cornacchia (marco.fyi) | Interactive cards, polish, playful but professional |
+| Trevor Morris (trovster.com) | Movies/photos/music/activities/books as first-class logged sections, each with its own metadata; monthly recap posts that turn logs into running-total narratives ("149 for the year"); unified latest-across-everything feed; syndication links out to Letterboxd/Strava/Last.fm |
 
 ---
 

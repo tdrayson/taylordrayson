@@ -26,6 +26,9 @@ use Spatie\MediaLibrary\HasMedia;
     'average_heart_rate',
     'max_heart_rate',
     'heart_rate',
+    'altitude',
+    'speed',
+    'track',
     'source',
     'source_id',
     'timezone',
@@ -43,9 +46,26 @@ class Activity extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'heart_rate' => 'array',
+            'altitude' => 'array',
+            'speed' => 'array',
+            'track' => 'array',
             'meta' => 'array',
             'distance' => 'integer',
         ];
+    }
+
+    /**
+     * Preserve whole-number floats (e.g. 10.0) in the stream columns; without
+     * this flag json_encode() drops the trailing zero and round-trips them
+     * back as integers, silently changing the stored value's type.
+     *
+     * @param  string  $key
+     */
+    protected function getJsonCastFlags($key): int
+    {
+        return in_array($key, ['heart_rate', 'altitude', 'speed', 'track'], true)
+            ? JSON_PRESERVE_ZERO_FRACTION
+            : parent::getJsonCastFlags($key);
     }
 
     public function getPlatformUrlAttribute(): ?string
@@ -69,26 +89,30 @@ class Activity extends Model implements HasMedia, Timelineable
             'icon' => 'footprints',
             'title' => $this->name ?? ucfirst($this->type),
             'subtitle' => $this->cardSubtitle(),
+            'subtitleTokens' => $this->subtitleTokens(),
             'occurred_at' => $this->occurred_at,
             'accent' => 'activity',
             'meta' => [
                 'polyline' => data_get($this->meta, 'polyline'),
                 'photos' => $this->galleryPhotos(),
+                'map' => $this->getFirstMediaUrl('map') ?: null,
+                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
             ],
         ];
     }
 
     private function cardSubtitle(): ?string
     {
-        $isCardio = in_array($this->type, ['run', 'cycle', 'ride', 'swim', 'walk', 'hike']);
-
-        if (! $isCardio && is_array($this->meta['sets'] ?? null)) {
+        // Data-driven, not a hardcoded cardio type list: strength activities
+        // carry sets; everything else describes itself by whatever metrics it
+        // recorded, so new distance-based types scale in without an allow-list.
+        if (is_array($this->meta['sets'] ?? null)) {
             return $this->strengthSubtitle($this->meta['sets']);
         }
 
         $parts = [];
 
-        if ($isCardio && $this->distance) {
+        if ($this->distance) {
             $parts[] = Distance::miles($this->distance, 1).' mi';
         }
 
@@ -121,6 +145,59 @@ class Activity extends Model implements HasMedia, Timelineable
         }
 
         return implode(', ', $parts);
+    }
+
+    /**
+     * Structured counterpart to cardSubtitle(): distance/weight are emitted as raw
+     * tokens (metres/kg) instead of pre-formatted strings, so FeedItem.vue can
+     * compose them through useFormat() and react to the visitor's unit toggle.
+     *
+     * @return list<array{t: 'dist', m: int, p: int}|array{t: 'wt', kg: float, p: int}|array{t: 'text', v: string}>|null
+     */
+    private function subtitleTokens(): ?array
+    {
+        // Data-driven (see cardSubtitle): sets => strength; otherwise show
+        // whatever metrics exist, so new distance types need no allow-list.
+        if (is_array($this->meta['sets'] ?? null)) {
+            return $this->strengthTokens($this->meta['sets']);
+        }
+
+        $tokens = [];
+
+        if ($this->distance) {
+            $tokens[] = ['t' => 'dist', 'm' => (int) $this->distance, 'p' => 1];
+        }
+
+        if ($this->duration) {
+            $tokens[] = ['t' => 'text', 'v' => $this->durationForHumans($this->duration)];
+        }
+
+        if ($this->calories) {
+            $tokens[] = ['t' => 'text', 'v' => number_format($this->calories).' kcal'];
+        }
+
+        return $tokens ?: null;
+    }
+
+    /**
+     * @param  array<int, array{exercise: string, reps: int, weight: float}>  $sets
+     * @return list<array{t: 'text', v: string}|array{t: 'wt', kg: float, p: int}>
+     */
+    private function strengthTokens(array $sets): array
+    {
+        $exercises = count(array_unique(array_column($sets, 'exercise')));
+        $volume = array_sum(array_map(fn (array $set): float => ($set['reps'] ?? 0) * ($set['weight_kg'] ?? $set['weight'] ?? 0), $sets));
+
+        $tokens = [
+            ['t' => 'text', 'v' => $exercises.' '.Str::plural('exercise', $exercises)],
+            ['t' => 'text', 'v' => count($sets).' '.Str::plural('set', count($sets))],
+        ];
+
+        if ($volume > 0) {
+            $tokens[] = ['t' => 'wt', 'kg' => $volume, 'p' => 0];
+        }
+
+        return $tokens;
     }
 
     private function durationForHumans(int $seconds): string

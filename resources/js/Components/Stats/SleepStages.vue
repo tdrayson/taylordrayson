@@ -163,15 +163,18 @@ const cursor = computed(() => {
                 :style="{ left: `${cursor.x}%` }"
             />
 
+            <!-- Fixed bg-black/text-white (not neutral-900/neutral-0): this hover
+                 tooltip is an intentional dark chip in both themes (same pattern as
+                 Tooltip.vue), so it must not invert with the neutral ramp. -->
             <div
                 v-if="cursor"
-                class="pointer-events-none absolute -top-2 z-10 flex -translate-x-1/2 -translate-y-full items-center gap-1.5 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-0 shadow-card"
+                class="pointer-events-none absolute -top-2 z-10 flex -translate-x-1/2 -translate-y-full items-center gap-1.5 whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-card"
                 :style="{ left: `${Math.min(90, Math.max(10, cursor.x))}%` }"
             >
                 <span class="size-2 rounded-full" :style="{ background: cursor.color }" />
                 <span class="tnum">{{ cursor.time }}</span>
-                <span class="text-neutral-200">{{ cursor.label }}</span>
-                <span class="text-neutral-300 tnum">{{ cursor.duration }}</span>
+                <span class="text-white/80">{{ cursor.label }}</span>
+                <span class="text-white/60 tnum">{{ cursor.duration }}</span>
             </div>
         </div>
 

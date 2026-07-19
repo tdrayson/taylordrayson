@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildLinkPreviews;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -77,6 +78,20 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
+            'linkPreviews' => $model instanceof Article
+                ? (new BuildLinkPreviews)($model->content)
+                : [],
+            // Stream series are large, so they're excluded from the main
+            // entry payload and only sent once a profile chart is scrolled
+            // into view and requests this deferred prop.
+            'profile' => $model instanceof Activity
+                ? Inertia::defer(fn (): array => [
+                    'heart_rate' => $model->heart_rate,
+                    'altitude' => $model->altitude,
+                    'speed' => $model->speed,
+                    'track' => $model->track,
+                ])
+                : null,
         ]);
     }
 
@@ -112,7 +127,7 @@ class EntryController extends Controller
             $model->loadMissing('tags');
         }
 
-        $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
+        $data = Arr::except($model->toArray(), ['created_at', 'updated_at', 'heart_rate', 'altitude', 'speed', 'track']);
 
         if (method_exists($model, 'tagNames')) {
             $data['tags'] = $model->tags
@@ -149,6 +164,22 @@ class EntryController extends Controller
             // toArray() only serialises DB columns, so dateRange() (a computed
             // method, not an accessor) needs adding to the payload explicitly.
             $data['range'] = $model->dateRange();
+        }
+
+        if (! $model instanceof Event && $model->getAttribute('latitude') !== null && $model->getAttribute('longitude') !== null) {
+            $address = trim(implode(', ', array_filter([
+                $model->getAttribute('station_name') ?? $model->getAttribute('venue_name'),
+                $model->getAttribute('address'),
+                $model->getAttribute('postcode'),
+                $model->getAttribute('city'),
+            ])));
+
+            $data['location'] = [
+                'lat' => (float) $model->getAttribute('latitude'),
+                'lng' => (float) $model->getAttribute('longitude'),
+                'address' => $address,
+                'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($address !== '' ? $address : $model->getAttribute('latitude').','.$model->getAttribute('longitude')),
+            ];
         }
 
         return $data;

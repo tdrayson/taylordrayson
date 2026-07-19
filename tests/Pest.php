@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Browser');
 
 /*
 |--------------------------------------------------------------------------
@@ -47,4 +47,32 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/** A real JPEG of the given size, so the media library can process it. */
+function fakeJpeg(int $width = 800, int $height = 600): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    ob_start();
+    imagejpeg($image);
+    $bytes = ob_get_clean();
+    imagedestroy($image);
+
+    return $bytes;
+}
+
+/**
+ * A Strava photo payload, shaped like the real API response.
+ *
+ * @return array<string, mixed>
+ */
+function stravaPhotoPayload(string $uniqueId, string $createdAt): array
+{
+    return [
+        'unique_id' => $uniqueId,
+        'created_at' => $createdAt,
+        'source' => 1,
+        'urls' => ['2048' => 'https://dgtzuqphqg23d.cloudfront.net/'.$uniqueId.'-1152x2048.jpg'],
+        'sizes' => ['2048' => [1152, 2048]],
+    ];
 }

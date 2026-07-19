@@ -211,7 +211,7 @@ onBeforeUnmount(() => {
             aria-roledescription="photo carousel"
             aria-label="Recent photos. Use the left and right arrow keys to browse."
         >
-            <div v-for="(photo, i) in photos" :key="i" class="photos__card" :style="{ background: photo.gradient }">
+            <div v-for="(photo, i) in photos" :key="i" class="photos__card" :style="{ background: photo.gradient || 'var(--color-neutral-100)' }">
                 <img v-if="photo.src" :src="photo.src" alt="" @error="onImgError" />
             </div>
             <div class="photos__dots">
@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
 .photos__subtitle {
     font-size: 3.3cqw;
     font-weight: 500;
-    color: #9aa0a8;
+    color: var(--color-neutral-500);
 }
 
 .photos__link {
@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
     background: none;
     font-size: 2.9cqw;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-neutral-900);
     white-space: nowrap;
 }
 

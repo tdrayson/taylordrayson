@@ -112,6 +112,9 @@ class Event extends Model implements HasMedia, Timelineable
                 // Fall back to the generated static location map only when there
                 // is no photo to show instead (mirrors the activity route map).
                 'map' => $photos === [] ? $this->getFirstMediaUrl('map') ?: null : null,
+                // Dark twin of the same map, rendered by the frontend behind a
+                // `dark:` class swap so the theme decides which PNG shows.
+                'mapDark' => $photos === [] ? $this->getFirstMediaUrl('map_dark') ?: null : null,
             ],
         ];
     }

@@ -26,7 +26,15 @@ class FuelFactory extends Factory
             'cost' => $cost,
             'price_per_litre' => $pricePerLitre,
             'odometer' => fake()->numberBetween(20000, 80000),
-            'fuel_station_id' => null,
+            'station_name' => fake()->company().' Service Station',
+            'brand' => fake()->randomElement(['BP', 'Shell', 'Esso', 'ASDA', 'Tesco']),
+            'address' => fake()->streetAddress(),
+            'postcode' => fake()->postcode(),
+            'city' => fake()->city(),
+            'county' => null,
+            'country' => 'United Kingdom',
+            'latitude' => fake()->latitude(51, 52),
+            'longitude' => fake()->longitude(-1, 0),
         ];
     }
 }

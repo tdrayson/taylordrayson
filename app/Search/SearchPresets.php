@@ -34,7 +34,7 @@ class SearchPresets
                     'type' => 'activity',
                     'conditions' => [
                         ['field' => 'kind', 'operator' => 'is', 'value' => ['run']],
-                        ['field' => 'distance', 'operator' => 'gte', 'value' => '5'],
+                        ['field' => 'distance', 'operator' => 'gte', 'value' => 5000],
                     ],
                 ]],
             ],
@@ -56,7 +56,7 @@ class SearchPresets
                 'filter' => [[
                     'type' => 'flight',
                     'conditions' => [
-                        ['field' => 'distance', 'operator' => 'gte', 'value' => '1000'],
+                        ['field' => 'distance', 'operator' => 'gte', 'value' => 1609344],
                     ],
                 ]],
             ],

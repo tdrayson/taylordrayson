@@ -84,12 +84,14 @@ onBeforeUnmount(() => {
                     v-if="visible"
                     role="tooltip"
                     aria-hidden="true"
-                    class="pointer-events-none fixed z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white shadow-card"
+                    class="pointer-events-none fixed z-50 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-3 py-1.5 text-xs font-medium text-white shadow-card"
                     :class="isTop ? '-translate-y-full' : ''"
                     :style="{ top: `${position.top}px`, left: `${position.left}px` }"
                 >
                     {{ label }}
-                    <span class="absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-neutral-900" :class="isTop ? '-bottom-1' : '-top-1'" />
+                    <!-- Fixed bg-black (not bg-neutral-900): the tooltip is an intentional
+                         dark chip in both themes, so it must not invert with the neutral ramp. -->
+                    <span class="absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-black" :class="isTop ? '-bottom-1' : '-top-1'" />
                 </span>
             </Transition>
         </Teleport>

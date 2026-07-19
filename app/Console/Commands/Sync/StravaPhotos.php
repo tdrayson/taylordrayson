@@ -2,25 +2,26 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
 use App\Services\Strava;
+use Carbon\CarbonImmutable;
+use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
-#[Signature('strava:photos {--limit=0 : Max activities to fetch photos for (0 = all)} {--force : Re-download photos for activities that already have them}')]
+#[Signature('strava:photos {--limit=0 : Max activities to fetch photos for (0 = all)} {--force : Re-download photos even for activities already backfilled}')]
 #[Description('Backfill Strava photos for existing activities, stored as cover + photo gallery media')]
 class StravaPhotos extends Command
 {
-    private const PER_PAGE = 200;
-
     private const RATE_LIMIT = 95;
 
     private const RATE_WINDOW = 900;
 
-    public function handle(Strava $strava, SyncStravaPhotos $sync): int
+    public function handle(Strava $strava, SyncStravaPhotos $sync, FetchStravaActivitySummaries $summaries): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -28,7 +29,7 @@ class StravaPhotos extends Command
             return self::FAILURE;
         }
 
-        $targets = $this->resolveTargets($strava);
+        $targets = $this->resolveTargets($summaries);
 
         if ($targets === null) {
             return self::FAILURE;
@@ -51,13 +52,22 @@ class StravaPhotos extends Command
     }
 
     /**
-     * Page the Strava activity list and resolve the local activities that have
-     * photos on Strava but (unless forced) no stored photo media yet.
+     * The local activities that have photos on Strava but are not yet
+     * backfilled by the current sync code (unless forced), each paired with
+     * the activity's UTC start.
      *
-     * @return Collection<int, Activity>|null Null on a request failure.
+     * @return Collection<int, array{activity: Activity, start: ?CarbonImmutable}>|null Null on a request failure.
      */
-    private function resolveTargets(Strava $strava): ?Collection
+    private function resolveTargets(FetchStravaActivitySummaries $summaries): ?Collection
     {
+        $remote = $summaries();
+
+        if ($remote === null) {
+            $this->error('Strava request failed while listing activities.');
+
+            return null;
+        }
+
         $ours = Activity::query()
             ->where('source', 'strava')
             ->whereNotNull('source_id')
@@ -67,50 +77,70 @@ class StravaPhotos extends Command
 
         $force = (bool) $this->option('force');
         $targets = collect();
-        $page = 1;
 
-        while (true) {
-            $batch = $strava->activitiesPage($page, self::PER_PAGE);
-
-            if ($batch === null) {
-                $this->error("Strava request failed on page {$page}.");
-
-                return null;
+        foreach ($remote as $sourceId => $summary) {
+            if ($summary['total_photo_count'] < 1) {
+                continue;
             }
 
-            if ($batch === []) {
-                break;
+            $activity = $ours->get($sourceId);
+
+            if (! $activity) {
+                continue;
             }
 
-            foreach ($batch as $summary) {
-                if ((int) ($summary['total_photo_count'] ?? 0) < 1) {
-                    continue;
-                }
-
-                $activity = $ours->get((string) $summary['id']);
-
-                if (! $activity) {
-                    continue;
-                }
-
-                if (! $force && $activity->getMedia('cover')->isNotEmpty()) {
-                    continue;
-                }
-
-                $targets->push($activity);
+            if (! $force && $this->isMigrated($activity)) {
+                continue;
             }
 
-            $page++;
+            $targets->push([
+                'activity' => $activity,
+                'start' => $this->parseStart($summary['start_date'] ?? null),
+            ]);
         }
 
         return $targets;
     }
 
     /**
+     * Whether an activity's photos have already been backfilled by the current
+     * sync code. The distinguishing mark is the `captured_at` custom property,
+     * which only the coordinate-aware sync path writes; a cover that predates it
+     * still needs processing. Keying the skip off this makes an interrupted
+     * backfill resumable: a re-run continues from the first unmigrated activity.
+     */
+    private function isMigrated(Activity $activity): bool
+    {
+        $cover = $activity->getFirstMedia('cover');
+
+        return $cover !== null && $cover->hasCustomProperty('captured_at');
+    }
+
+    /**
+     * The activity's UTC start, or null when Strava sent no start_date or an
+     * unparseable one. A positioning problem must never cost us a photo: the
+     * activity's photos still download, they just can't be located.
+     */
+    private function parseStart(?string $startDate): ?CarbonImmutable
+    {
+        if (! filled($startDate)) {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($startDate);
+        } catch (InvalidFormatException) {
+            $this->warn("Unparseable start_date \"{$startDate}\", storing photos without map positions.");
+
+            return null;
+        }
+    }
+
+    /**
      * Fetch and store photos for each target activity, pausing when the Strava
      * rate-limit window fills up.
      *
-     * @param  Collection<int, Activity>  $targets
+     * @param  Collection<int, array{activity: Activity, start: ?CarbonImmutable}>  $targets
      */
     private function fetchPhotos(Strava $strava, SyncStravaPhotos $sync, Collection $targets): int
     {
@@ -118,8 +148,10 @@ class StravaPhotos extends Command
         $requestsInWindow = 0;
         $windowStart = time();
 
-        foreach ($targets as $activity) {
-            if ($requestsInWindow >= self::RATE_LIMIT) {
+        foreach ($targets as $target) {
+            $activity = $target['activity'];
+
+            if ($requestsInWindow >= self::RATE_LIMIT - 1) {
                 $wait = self::RATE_WINDOW - (time() - $windowStart);
 
                 if ($wait > 0) {
@@ -140,7 +172,14 @@ class StravaPhotos extends Command
                 continue;
             }
 
-            $count = $sync($activity, $photos);
+            $streams = $strava->activityStreams($activity->source_id);
+            $requestsInWindow++;
+
+            if ($streams === null) {
+                $this->warn("Failed to fetch streams for {$activity->source_id}, storing photos without map positions.");
+            }
+
+            $count = $sync($activity, $photos, $streams, $target['start']);
             $stored += $count;
 
             $this->info("[{$stored}] {$activity->name} - {$count} photo(s)");

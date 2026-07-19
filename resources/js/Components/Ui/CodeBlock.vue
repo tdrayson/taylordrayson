@@ -2,6 +2,7 @@
 import { computed, ref, onBeforeUnmount } from 'vue';
 import { Copy01Icon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
+import { copyText } from '../../lib/clipboard';
 import hljs from 'highlight.js/lib/core';
 import bash from 'highlight.js/lib/languages/bash';
 import css from 'highlight.js/lib/languages/css';
@@ -52,17 +53,7 @@ const copied = ref(false);
 let timer = null;
 
 async function copy() {
-    try {
-        await navigator.clipboard.writeText(props.code);
-    } catch {
-        // Non-secure context (e.g. http://*.test): fall back to a transient textarea.
-        const scratch = document.createElement('textarea');
-        scratch.value = props.code;
-        document.body.appendChild(scratch);
-        scratch.select();
-        document.execCommand('copy');
-        scratch.remove();
-    }
+    await copyText(props.code);
 
     copied.value = true;
     clearTimeout(timer);
@@ -155,5 +146,23 @@ onBeforeUnmount(() => clearTimeout(timer));
 .code-highlight :deep(.hljs-template-variable),
 .code-highlight :deep(.hljs-subst) {
     color: hsl(340 55% 42%);
+}
+
+:global(.dark) .code-highlight :deep(.hljs-string),
+:global(.dark) .code-highlight :deep(.hljs-addition),
+:global(.dark) .code-highlight :deep(.hljs-attr) {
+    color: hsl(150 50% 62%);
+}
+
+:global(.dark) .code-highlight :deep(.hljs-number),
+:global(.dark) .code-highlight :deep(.hljs-literal),
+:global(.dark) .code-highlight :deep(.hljs-built_in) {
+    color: hsl(28 80% 62%);
+}
+
+:global(.dark) .code-highlight :deep(.hljs-variable),
+:global(.dark) .code-highlight :deep(.hljs-template-variable),
+:global(.dark) .code-highlight :deep(.hljs-subst) {
+    color: hsl(340 60% 68%);
 }
 </style>
