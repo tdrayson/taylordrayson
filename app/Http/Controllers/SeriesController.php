@@ -14,16 +14,19 @@ class SeriesController extends Controller
      * Poster grid of every show with at least one watched episode, ordered by
      * the most recently watched episode first.
      *
-     * Avoids hydrating every show's full `episodes`/`media` collections:
-     * the sort key comes from a `MAX(occurred_at)` aggregate, and progress
-     * is computed from one lean query over just `series_id`/`meta` rather
-     * than loading each episode row and its relations.
+     * Avoids hydrating every show's full `episodes` collection: the sort
+     * key comes from a `MAX(occurred_at)` aggregate, and progress is
+     * computed from one lean query over just `series_id`/`meta` rather
+     * than loading each episode row and its relations. `media` is still
+     * eager-loaded so poster resolution stays a single query, not one
+     * per series.
      */
     public function index(): Response
     {
         $shows = Series::query()
             ->whereHas('episodes')
             ->withMax('episodes', 'occurred_at')
+            ->with('media')
             ->get()
             ->sortByDesc('episodes_max_occurred_at')
             ->values();

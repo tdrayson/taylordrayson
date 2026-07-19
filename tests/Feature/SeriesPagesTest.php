@@ -2,6 +2,7 @@
 
 use App\Models\Media;
 use App\Models\Series;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('lists shows on the tv index', function () {
@@ -53,6 +54,23 @@ it('reports distinct-episode progress on the tv index, clamped and rewatch-proof
             ->where('series.1.progress', 100)
             ->where('series.2.slug', 'unknown-aired-show')
             ->where('series.2.progress', null)
+        );
+});
+
+it('resolves a poster on the tv index for a series with a cover image', function () {
+    Storage::fake(config('media-library.disk_name'));
+
+    $series = Series::factory()->create(['slug' => 'severance']);
+    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 1]]);
+
+    $bytes = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
+    $series->addMediaFromString($bytes)->usingFileName('c.webp')->toMediaCollection('cover');
+
+    $this->get('/media/tv')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesIndex')
+            ->has('series', 1)
+            ->where('series.0.slug', 'severance')
+            ->where('series.0.poster', fn (?string $poster): bool => $poster !== null)
         );
 });
 
