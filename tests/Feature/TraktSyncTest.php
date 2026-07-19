@@ -389,6 +389,67 @@ it('caps the self-healed sync window at MAX_CATCHUP_DAYS when the last synced wa
     });
 });
 
+it('re-dispatches enrichment for an existing bare series that receives a new episode this run', function () {
+    // Bare: no cover media, and the factory's default meta carries no `tmdb`
+    // key. One episode already exists so the series is genuinely pre-existing,
+    // not created by this run.
+    $series = Series::factory()->create(['trakt_id' => 700]);
+    Media::create([
+        'occurred_at' => '2024-01-01 20:00:00',
+        'type' => 'episode',
+        'title' => 'Existing',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'existing-1',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+
+    fakeTraktHistory(movies: [], episodes: [
+        ['id' => 601, 'watched_at' => '2024-02-01T20:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 2, 'title' => 'New Ep', 'runtime' => 50, 'ids' => ['trakt' => 111]],
+            'show' => ['title' => 'Severance', 'year' => 2022, 'ids' => ['trakt' => 700, 'slug' => 'severance', 'tmdb' => 2316]]],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    // Not a new series, so the old `$wasNew`-only dispatch would have missed
+    // this: the series is bare, so it must still re-enrich.
+    Bus::assertDispatched(EnrichMedia::class, 1);
+});
+
+it('dispatches enrichment once for a bare series even when a batch carries several of its episodes', function () {
+    $series = Series::factory()->create(['trakt_id' => 700]);
+    Media::create([
+        'occurred_at' => '2024-01-01 20:00:00',
+        'type' => 'episode',
+        'title' => 'Existing',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'existing-1',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+
+    fakeTraktHistory(movies: [], episodes: [
+        ['id' => 601, 'watched_at' => '2024-02-01T20:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 2, 'title' => 'Ep 2', 'runtime' => 50, 'ids' => ['trakt' => 111]],
+            'show' => ['title' => 'Severance', 'year' => 2022, 'ids' => ['trakt' => 700, 'slug' => 'severance', 'tmdb' => 2316]]],
+        ['id' => 602, 'watched_at' => '2024-02-01T21:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 3, 'title' => 'Ep 3', 'runtime' => 50, 'ids' => ['trakt' => 112]],
+            'show' => ['title' => 'Severance', 'year' => 2022, 'ids' => ['trakt' => 700, 'slug' => 'severance', 'tmdb' => 2316]]],
+        ['id' => 603, 'watched_at' => '2024-02-01T22:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 4, 'title' => 'Ep 4', 'runtime' => 50, 'ids' => ['trakt' => 113]],
+            'show' => ['title' => 'Severance', 'year' => 2022, 'ids' => ['trakt' => 700, 'slug' => 'severance', 'tmdb' => 2316]]],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    expect(Media::where('type', 'episode')->count())->toBe(4); // 1 pre-existing + 3 new
+
+    // Deduped per run: three new episodes of the same bare show still only
+    // trigger one enrichment dispatch.
+    Bus::assertDispatched(EnrichMedia::class, 1);
+});
+
 it('sends no start_at when --full is passed, even with prior synced history', function () {
     fakeTraktHistory([], []);
 

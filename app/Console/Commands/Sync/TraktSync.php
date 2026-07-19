@@ -50,6 +50,16 @@ class TraktSync extends Command
      */
     private array $affectedSeriesIds = [];
 
+    /**
+     * Series ids that already had `EnrichMedia` dispatched this run, keyed
+     * by id. A batch of many episodes belonging to the same bare show would
+     * otherwise re-dispatch enrichment once per episode; this caps it to one
+     * dispatch per series per run.
+     *
+     * @var array<int, true>
+     */
+    private array $enrichDispatched = [];
+
     public function handle(Trakt $trakt): int
     {
         $startAt = $this->resolveStartAt();
@@ -450,11 +460,26 @@ class TraktSync extends Command
 
         $this->affectedSeriesIds[$series->id] = true;
 
-        if ($wasNew) {
+        // Re-enrich an existing series that's still bare (e.g. a prior
+        // enrichment job never ran, or failed after its retries), not just
+        // brand new ones. Deduped per run: a batch carrying several episodes
+        // of the same bare show must only dispatch once.
+        if (($wasNew || $this->seriesIsBare($series)) && ! isset($this->enrichDispatched[$series->id])) {
+            $this->enrichDispatched[$series->id] = true;
             $posterUrl = $this->posterUrl($show, $summary);
 
             EnrichMedia::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
         }
+    }
+
+    /**
+     * A series is bare when it's missing either its cover artwork or its
+     * TMDB enrichment metadata, e.g. because `EnrichMedia` never ran or
+     * exhausted its retries after the series was first created.
+     */
+    private function seriesIsBare(Series $series): bool
+    {
+        return ! $series->hasMedia('cover') || empty($series->meta['tmdb']);
     }
 
     /**
