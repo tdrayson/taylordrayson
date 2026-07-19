@@ -6,7 +6,8 @@ defineProps({
     href: { type: String, required: true },
     label: { type: String, required: true },
     // Optional: child links inside a collapsed group render text-only.
-    icon: { type: [Array, Object], default: null },
+    // String values are icon-registry names (e.g. from entryTypes / navigation).
+    icon: { type: [Array, Object, String], default: null },
     active: { type: Boolean, default: false },
 });
 </script>

@@ -15,7 +15,8 @@ import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockV
 import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
-    icon: { type: [Array, Object], default: null },
+    // Registry name string (from entryTypes) or a raw hugeicons object.
+    icon: { type: [Array, Object, String], default: null },
     iconKey: { type: String, default: null },
     accent: { type: String, default: null },
     type: { type: String, default: '' },
