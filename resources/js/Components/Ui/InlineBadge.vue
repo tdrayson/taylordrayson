@@ -4,7 +4,7 @@ import Icon from './Icon.vue';
 defineProps({
     src: { type: String, default: null },
     alt: { type: String, default: '' },
-    icon: { type: [Array, Object], default: null },
+    icon: { type: [Array, Object, String], default: null },
     circle: { type: Boolean, default: false },
 });
 </script>

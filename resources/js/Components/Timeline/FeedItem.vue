@@ -15,7 +15,8 @@ import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockV
 import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
-    icon: { type: [Array, Object], default: null },
+    // Registry name string (from entryTypes) or a raw hugeicons object.
+    icon: { type: [Array, Object, String], default: null },
     iconKey: { type: String, default: null },
     accent: { type: String, default: null },
     type: { type: String, default: '' },
@@ -326,7 +327,7 @@ function openLightbox(index) {
                      the play button in both themes, so it must not invert. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-12 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
-                        <Icon :icon="PlayIcon" class="size-5" />
+                        <Icon name="PlayIcon" class="size-5" />
                     </span>
                 </span>
             </button>

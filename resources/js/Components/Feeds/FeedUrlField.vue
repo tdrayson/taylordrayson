@@ -6,7 +6,7 @@ import { copyText } from '../../lib/clipboard';
 
 const props = defineProps({
     label: { type: String, required: true },
-    icon: { type: [Array, Object], default: null },
+    icon: { type: String, default: null }, // icon registry name
     url: { type: String, required: true },
 });
 
@@ -27,7 +27,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 <template>
     <div>
         <div class="mb-2 flex items-center gap-2 text-meta font-semibold text-neutral-700">
-            <Icon v-if="icon" :icon="icon" class="size-4 text-accent-500" />
+            <Icon v-if="icon" :name="icon" class="size-4 text-accent-500" />
             {{ label }}
         </div>
         <div class="flex items-stretch gap-2">

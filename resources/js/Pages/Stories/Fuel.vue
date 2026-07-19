@@ -13,7 +13,6 @@ import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
 import TableOfContents from '../../Components/Ui/TableOfContents.vue';
 import DateLink from '../../Components/Ui/DateLink.vue';
-import { PetrolPumpIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { PALETTE, baseOptions } from '../../lib/chart.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -255,7 +254,7 @@ const savingsOptions = baseOptions({
 <template>
     <AppHead :og="og" />
 
-    <StoryHero :meta="dateline" :kpis="heroKpis" :icon="PetrolPumpIcon">
+    <StoryHero :meta="dateline" :kpis="heroKpis" icon="PetrolPumpIcon">
         <template #title>The pandemic and a war, in my fuel receipts</template>
         <template #lead>
             Right, so I've got a slightly odd habit. Since {{ story.car.since }} I've written down every single time I've

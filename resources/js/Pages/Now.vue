@@ -4,7 +4,7 @@ import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import { GridStack } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
-import { DragDropVerticalIcon, Tick02Icon, RefreshIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { DragDropVerticalIcon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
 import { setupWidgetTilt } from '../lib/widgetTilt.js';
 import Button from '../Components/Ui/Button.vue';
@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex shrink-0 items-center gap-2">
                 <Button v-if="editing" variant="ghost" size="sm" @click="resetLayout">
-                    <Icon :icon="RefreshIcon" class="size-4" />
+                    <Icon name="RefreshIcon" class="size-4" />
                     Reset
                 </Button>
                 <Button :variant="editing ? 'primary' : 'secondary'" size="sm" @click="toggleEdit">

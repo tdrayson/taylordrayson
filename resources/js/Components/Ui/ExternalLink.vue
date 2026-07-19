@@ -1,5 +1,4 @@
 <script setup>
-import { ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
 defineProps({
@@ -18,7 +17,7 @@ defineProps({
     >
         {{ label }}
         <Icon
-            :icon="ArrowUpRight01Icon"
+            name="ArrowUpRight01Icon"
             class="size-4 transition-transform duration-150 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-focus-visible:-translate-y-0.5 group-focus-visible:translate-x-0.5 motion-reduce:transition-none"
         />
     </a>

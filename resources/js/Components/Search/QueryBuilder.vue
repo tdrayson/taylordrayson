@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { Delete02Icon, PlusSignIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
 import FilterValue from './FilterValue.vue';
@@ -274,7 +273,7 @@ function clearFilter() {
                             aria-label="Remove condition"
                             @click="removeCondition(group, conditionIndex)"
                         >
-                            <Icon :icon="Delete02Icon" class="size-4" />
+                            <Icon name="Delete02Icon" class="size-4" />
                         </button>
                     </div>
                 </div>
@@ -284,7 +283,7 @@ function clearFilter() {
                     class="mt-4 inline-flex items-center gap-1.5 rounded-md border border-neutral-100 px-3 py-1.5 text-label uppercase text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-500"
                     @click="addCondition(group)"
                 >
-                    <Icon :icon="PlusSignIcon" class="size-3.5" /> Add
+                    <Icon name="PlusSignIcon" class="size-3.5" /> Add
                 </button>
                 </div>
             </div>
@@ -297,7 +296,7 @@ function clearFilter() {
                     class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-label uppercase text-accent-500 transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
                     @click="addGroupAt(groupIndex + 1)"
                 >
-                    <Icon :icon="PlusSignIcon" class="size-3.5" /> Or
+                    <Icon name="PlusSignIcon" class="size-3.5" /> Or
                 </button>
                 <span class="or-neutral-100 flex-1" />
             </div>

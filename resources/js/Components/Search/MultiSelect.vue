@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { ArrowDown01Icon, Search01Icon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -59,12 +58,12 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
         >
             <span class="flex-1 truncate">{{ summary ?? placeholder }}</span>
             <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-label text-accent-700 tnum">{{ modelValue.length }}</span>
-            <Icon :icon="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
+            <Icon name="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
         </button>
 
         <div v-if="open" class="absolute left-0 z-50 mt-2 w-full min-w-56 rounded-lg border border-neutral-50 bg-neutral-0 shadow-card">
             <div class="flex items-center gap-2 border-b border-neutral-50 px-3">
-                <Icon :icon="Search01Icon" class="size-3.5 shrink-0 text-neutral-500" />
+                <Icon name="Search01Icon" class="size-3.5 shrink-0 text-neutral-500" />
                 <input
                     v-model="query"
                     type="text"
@@ -86,7 +85,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                             class="flex size-4 shrink-0 items-center justify-center rounded border transition-colors"
                             :class="isSelected(option) ? 'border-accent-500 bg-accent-500 text-neutral-0' : 'border-neutral-100'"
                         >
-                            <Icon v-if="isSelected(option)" :icon="Tick02Icon" class="size-3" :stroke-width="2.5" />
+                            <Icon v-if="isSelected(option)" name="Tick02Icon" class="size-3" :stroke-width="2.5" />
                         </span>
                         <span class="flex-1 truncate">{{ option }}</span>
                     </button>

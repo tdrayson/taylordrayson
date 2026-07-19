@@ -8,8 +8,8 @@ const props = defineProps({
     meta: { type: [String, Array], default: null },
     // [{ value, label }] shown as a divided strip beneath the hero.
     kpis: { type: Array, default: () => [] },
-    // Optional data-type icon, shown oversized and faint as background texture.
-    icon: { type: [Array, Object], default: null },
+    // Optional data-type icon (registry name), shown oversized and faint as background texture.
+    icon: { type: String, default: null },
     // Data-type accent (CSS colour) for the KPI figures; defaults to fuel amber.
     accent: { type: String, default: 'var(--color-fuel)' },
 });
@@ -31,7 +31,7 @@ const metaLines = computed(() => {
     <!-- On mobile the hero bleeds flush to the top bar (cancels the page's pt-8);
          on desktop it keeps the gap and sits inset with rounded corners. -->
     <header data-story-hero class="relative -mt-8 full-width overflow-hidden bg-neutral-900 text-neutral-0 md:mt-0 md:px-8 md:full-width-inset md:rounded-xl">
-        <Icon v-if="icon" :icon="icon" :stroke-width="1.2" class="pointer-events-none absolute -right-10 top-1/2 size-96 -translate-y-1/2 -rotate-12 scale-150 text-neutral-800/40 md:text-neutral-800/80" />
+        <Icon v-if="icon" :name="icon" :stroke-width="1.2" class="pointer-events-none absolute -right-10 top-1/2 size-96 -translate-y-1/2 -rotate-12 scale-150 text-neutral-800/40 md:text-neutral-800/80" />
         <div class="relative mx-auto max-w-4xl px-5 py-16 sm:py-20 md:px-0">
             <h1 class="mt-5 max-w-2xl font-display text-display-xl text-neutral-0">
                 <slot name="title" />

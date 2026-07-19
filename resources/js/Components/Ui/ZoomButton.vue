@@ -1,5 +1,4 @@
 <script setup>
-import { ZoomInAreaIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
 // The zoom chip shown over an image. Place inside a `group/zoom relative` parent
@@ -11,6 +10,6 @@ import Icon from './Icon.vue';
     <!-- Fixed bg-black/text-white (not neutral-900/neutral-0): this chip overlays
          a photo and is an intentional dark surface in both themes. -->
     <span class="flex size-7 items-center justify-center rounded-md bg-black/55 text-white">
-        <Icon :icon="ZoomInAreaIcon" class="size-4" />
+        <Icon name="ZoomInAreaIcon" class="size-4" />
     </span>
 </template>

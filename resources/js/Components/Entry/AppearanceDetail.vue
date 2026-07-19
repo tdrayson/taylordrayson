@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
                      the play button in both themes, so it must not invert. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
-                        <Icon :icon="PlayIcon" class="size-7" />
+                        <Icon name="PlayIcon" class="size-7" />
                     </span>
                 </span>
             </button>

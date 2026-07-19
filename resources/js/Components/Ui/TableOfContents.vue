@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Menu01Icon, Cancel01Icon, ArrowUp01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 
@@ -146,11 +145,11 @@ onBeforeUnmount(() => {
                 class="flex items-stretch overflow-hidden rounded-full bg-black/60 text-white shadow-card ring-1 ring-white/10 backdrop-blur-xl"
             >
                 <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="toTop">
-                    <Icon :icon="ArrowUp01Icon" class="size-4" /> Top
+                    <Icon name="ArrowUp01Icon" class="size-4" /> Top
                 </button>
                 <span class="w-px bg-white/15" />
                 <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="open = true">
-                    <Icon :icon="Menu01Icon" class="size-4" /> Contents
+                    <Icon name="Menu01Icon" class="size-4" /> Contents
                 </button>
             </div>
         </Transition>
@@ -175,7 +174,7 @@ onBeforeUnmount(() => {
                     <div class="mb-3 flex items-center justify-between">
                         <h2 class="text-label uppercase text-neutral-500">Contents</h2>
                         <button type="button" class="text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close contents" @click="open = false">
-                            <Icon :icon="Cancel01Icon" class="size-5" />
+                            <Icon name="Cancel01Icon" class="size-5" />
                         </button>
                     </div>
                     <ul class="flex flex-col">
