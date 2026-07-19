@@ -1,13 +1,18 @@
 <?php
 
+use App\Models\Article;
 use App\Models\Note;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Models\Page;
+use App\Models\Podcast;
 
-// Pest.php only binds TestCase + RefreshDatabase to the Feature directory;
-// bind them locally here so this Browser test boots the app and gets a
-// clean database per run, same as a Feature test would.
-uses(TestCase::class, RefreshDatabase::class);
+function assertTwemojiLoaded($page): void
+{
+    $page->assertScript("document.querySelectorAll('img.emoji').length > 0", true)
+        ->assertScript(
+            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@') && img.complete && img.naturalWidth > 0; })()",
+            true,
+        );
+}
 
 it('renders content emoji as a Twemoji image on the timeline', function () {
     Note::factory()->create([
@@ -15,13 +20,7 @@ it('renders content emoji as a Twemoji image on the timeline', function () {
         'occurred_at' => now()->subHour(),
     ]);
 
-    $page = visit('/');
-
-    $page->assertScript("document.querySelectorAll('img.emoji').length > 0", true)
-        ->assertScript(
-            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@') && img.complete && img.naturalWidth > 0; })()",
-            true,
-        );
+    assertTwemojiLoaded(visit('/'));
 });
 
 it('renders content emoji as a Twemoji image on a note detail page', function () {
@@ -30,11 +29,39 @@ it('renders content emoji as a Twemoji image on a note detail page', function ()
         'occurred_at' => now()->subDay(),
     ]);
 
-    $page = visit($note->fresh()->url());
+    assertTwemojiLoaded(visit($note->fresh()->url()));
+});
 
-    $page->assertScript("document.querySelectorAll('img.emoji').length > 0", true)
-        ->assertScript(
-            "(() => { const img = document.querySelector('img.emoji'); return !!img && img.src.includes('cdn.jsdelivr.net/gh/jdecked/twemoji@') && img.complete && img.naturalWidth > 0; })()",
-            true,
-        );
+it('renders emoji in a page excerpt', function () {
+    Page::factory()->create([
+        'slug' => 'about-emoji',
+        'title' => 'About',
+        'excerpt' => 'Hello from the excerpt 👍',
+        'published' => true,
+    ]);
+
+    assertTwemojiLoaded(visit('/about-emoji'));
+});
+
+it('renders emoji in an article excerpt', function () {
+    $article = Article::factory()->create([
+        'title' => 'Emoji excerpt article',
+        'excerpt' => 'A short summary with 👍',
+        // Keep body free of emoji so a pass must come from the excerpt.
+        'content' => [['_type' => 'block', 'children' => [['_type' => 'span', 'text' => 'Plain body.']]]],
+        'published' => true,
+        'occurred_at' => now()->subDay(),
+    ]);
+
+    assertTwemojiLoaded(visit($article->fresh()->url()));
+});
+
+it('renders emoji in podcast show notes', function () {
+    $podcast = Podcast::factory()->create([
+        'topic' => 'Shipping',
+        'show_notes' => 'Notes with a thumbs up 👍',
+        'occurred_at' => now()->subDay(),
+    ]);
+
+    assertTwemojiLoaded(visit($podcast->fresh()->url()));
 });

@@ -116,7 +116,7 @@ onBeforeUnmount(() => {
         </div>
 
         <Accordion v-if="entry.show_notes" title="Show Notes">
-            <div class="show-notes max-w-prose whitespace-pre-line text-body text-neutral-700" v-html="entry.show_notes"></div>
+            <div v-twemoji class="show-notes max-w-prose whitespace-pre-line text-body text-neutral-700" v-html="entry.show_notes"></div>
         </Accordion>
     </div>
 </template>

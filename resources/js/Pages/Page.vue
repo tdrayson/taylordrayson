@@ -31,7 +31,7 @@ setLayoutProps({ breadcrumb: [{ label: props.title }] });
             <!-- Unpublished pages are only visible to the logged-in owner; badge them so it's obvious. -->
             <Pill v-if="!published" label="Draft" variant="accent" class="mb-3" />
             <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
-            <p v-if="excerpt" class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
+            <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
         </header>
 
         <BlockContent :document="content" :link-previews="linkPreviews" class="mt-8" />
