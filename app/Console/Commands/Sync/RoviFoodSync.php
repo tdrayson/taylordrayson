@@ -16,10 +16,22 @@ class RoviFoodSync extends Command
     private const SOURCE = 'rovi';
 
     /**
-     * Re-sync the last --days of the Rovi food diary. Within that window each
-     * diary item is upserted by its Rovi id (so a food logged today for an
-     * earlier day appears, and edits update in place), and any Rovi-sourced row
-     * that has since vanished from Rovi is removed. Only source=rovi rows are
+     * Upper bound on the automatic catch-up: if the newest synced day is older
+     * than this, only the most recent window is backfilled (an explicit --days
+     * is still honoured in full).
+     */
+    private const MAX_CATCHUP_DAYS = 90;
+
+    private const MAX_PAGES = 100;
+
+    /**
+     * Re-sync a rolling window of the Rovi food diary. The window is the last
+     * --days, extended back to the newest already-synced day when that is older
+     * (so a gap that opened while the sync was not running self-heals instead of
+     * being stranded behind the fixed window), bounded by MAX_CATCHUP_DAYS.
+     * Within that window each diary item is upserted by its Rovi id (so a food
+     * logged today for an earlier day appears, and edits update in place), and
+     * any Rovi-sourced row that has since vanished from Rovi is removed. Only source=rovi rows are
      * ever touched, so the historical CSV-imported calories are left alone. The
      * per-day timeline entry is maintained by the CalorieTimelineObserver.
      *
@@ -29,19 +41,42 @@ class RoviFoodSync extends Command
     public function handle(Rovi $rovi): int
     {
         $days = max(0, (int) $this->option('days'));
-        $from = Carbon::today()->subDays($days)->toDateString();
+
+        // Self-healing window. Always re-check the last --days for late edits,
+        // but if the newest synced Rovi day is older than that (a gap opened
+        // while the sync was not running), extend the start back to it so the
+        // gap is backfilled instead of stranded forever behind a fixed window.
+        $from = Carbon::today()->subDays($days);
+        $lastSynced = Calorie::query()->where('source', self::SOURCE)->max('occurred_at');
+
+        if ($lastSynced !== null) {
+            $healFrom = Carbon::parse($lastSynced)->startOfDay();
+
+            // Bound only the automatic catch-up so a long outage cannot fetch
+            // unbounded history; an explicit --days is left untouched.
+            $cap = Carbon::today()->subDays(self::MAX_CATCHUP_DAYS);
+            if ($healFrom->lt($cap)) {
+                $this->warn(sprintf('Last Rovi sync predates %s; catching up only that far. Run with a larger --days to backfill older days.', $cap->toDateString()));
+                $healFrom = $cap;
+            }
+
+            if ($healFrom->lt($from)) {
+                $from = $healFrom;
+            }
+        }
+
+        $from = $from->toDateString();
         $to = Carbon::today()->toDateString();
 
-        // A single, generous page: a few days of food is never near the limit.
-        $envelope = $rovi->get('/v1/me/food', ['from' => $from, 'to' => $to, 'limit' => 500]);
+        $items = $this->fetchDiary($rovi, $from, $to);
 
-        if ($envelope === null) {
+        if ($items === null) {
             $this->warn('Rovi food fetch failed; skipping this run to avoid clobbering existing data.');
 
             return self::SUCCESS;
         }
 
-        $items = array_values(array_filter($envelope['data'] ?? [], fn ($item): bool => isset($item['id'], $item['dateKey'])));
+        $items = array_values(array_filter($items, fn ($item): bool => isset($item['id'], $item['dateKey'])));
         $seenIds = [];
         $roviDates = [];
 
@@ -60,6 +95,42 @@ class RoviFoodSync extends Command
         $this->info(sprintf('Synced %d Rovi food item(s) across %s..%s; removed %d superseded row(s).', count($seenIds), $from, $to, $removed));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Fetch every page of the diary for [from, to], following the cursor.
+     * Returns the merged items, or null if ANY page request fails so the caller
+     * skips reconciliation rather than deleting rows the fetch could not
+     * confirm (an outage must never wipe the window).
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function fetchDiary(Rovi $rovi, string $from, string $to): ?array
+    {
+        $items = [];
+        $query = ['from' => $from, 'to' => $to, 'limit' => 500];
+
+        for ($page = 0; $page < self::MAX_PAGES; $page++) {
+            $envelope = $rovi->get('/v1/me/food', $query);
+
+            if ($envelope === null) {
+                return null;
+            }
+
+            foreach ($envelope['data'] ?? [] as $item) {
+                $items[] = $item;
+            }
+
+            $cursor = $envelope['paging']['nextCursor'] ?? null;
+
+            if (! ($envelope['paging']['hasMore'] ?? false) || $cursor === null) {
+                break;
+            }
+
+            $query['cursor'] = $cursor;
+        }
+
+        return $items;
     }
 
     /**
