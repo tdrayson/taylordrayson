@@ -1,33 +1,84 @@
 <?php
 
 use App\Jobs\ProcessHealthExport;
+use App\Models\Activity;
 use App\Models\Sleep;
 use App\Support\Health\HealthProcessor;
+use App\Support\Health\HeartRateMatcher;
+use App\Support\Health\HeartRateProcessor;
+use App\Support\Health\SleepAggregator;
 use App\Support\Health\SleepProcessor;
+use App\Support\Health\SleepScore;
+use Illuminate\Support\Facades\Log;
 
 /**
- * The job calls each processor's process() with only the payload, so
- * SleepProcessor::process() resolves its CSV path to the real, tracked
- * data/sleep.csv (it exists, so mirrorToCsv() is NOT a no-op). Renaming it
- * out of the way for the duration of the test makes mirrorToCsv()/scoreAll()
- * treat it as absent (their documented no-op path) without ever touching
- * its contents, and the file is restored immediately after either outcome.
+ * The job calls each processor's process() with only the payload, so it
+ * always exercises each processor's production CSV default. Binding a real
+ * CSV path override into that call-site (rather than renaming the tracked
+ * data/sleep.csv out of the way) would change what's under test, so instead
+ * this binds the container to a subclass of the real processor whose
+ * process(array $payload): void (matching the HealthProcessor interface, so
+ * the job's single-argument call-site is untouched) delegates to
+ * parent::process() with a unique, nonexistent temp CSV path appended. A
+ * nonexistent path keeps mirrorToCsv()/scoreAll() on their documented no-op
+ * branch, so the tracked file is never opened, renamed, or raced. The real
+ * dependencies are resolved from the container, so aggregation/scoring logic
+ * is exercised unchanged.
  */
-function withoutProductionSleepCsv(Closure $callback): mixed
+function bindSleepProcessorWithTempCsv(): string
 {
-    $path = base_path('data/sleep.csv');
-    $hidden = $path.'.test-hidden';
+    $csvPath = sys_get_temp_dir().'/sleep-test-'.uniqid().'.csv';
 
-    rename($path, $hidden);
+    app()->instance(SleepProcessor::class, new class(app(SleepAggregator::class), app(SleepScore::class), $csvPath) extends SleepProcessor
+    {
+        public function __construct(SleepAggregator $aggregator, SleepScore $scorer, private readonly string $csvPath)
+        {
+            parent::__construct($aggregator, $scorer);
+        }
 
-    try {
-        return $callback();
-    } finally {
-        rename($hidden, $path);
-    }
+        // Signature matches the parent exactly (LSP requires it), but the
+        // incoming $csvPath is always ignored in favour of the bound temp
+        // path, since the job's call-site only ever passes $payload.
+        public function process(array $payload, ?string $csvPath = null): void
+        {
+            parent::process($payload, $this->csvPath);
+        }
+    });
+
+    return $csvPath;
+}
+
+/**
+ * Same approach as bindSleepProcessorWithTempCsv(), for HeartRateProcessor:
+ * a unique, nonexistent temp CSV path stands in for the tracked
+ * data/activities.csv so mirrorToCsv() no-ops instead of touching it.
+ */
+function bindHeartRateProcessorWithTempCsv(): string
+{
+    $csvPath = sys_get_temp_dir().'/activities-test-'.uniqid().'.csv';
+
+    app()->instance(HeartRateProcessor::class, new class(app(HeartRateMatcher::class), $csvPath) extends HeartRateProcessor
+    {
+        public function __construct(HeartRateMatcher $matcher, private readonly string $csvPath)
+        {
+            parent::__construct($matcher);
+        }
+
+        // 240 mirrors HeartRateProcessor::MAX_POINTS, which is private and so
+        // not visible to this subclass; it isn't exercised by these tests
+        // either way, since the job's call-site never passes $cap.
+        public function process(array $payload, ?string $csvPath = null, bool $overwrite = false, int $cap = 240): void
+        {
+            parent::process($payload, $this->csvPath, $overwrite, $cap);
+        }
+    });
+
+    return $csvPath;
 }
 
 it('routes sleep_analysis to the sleep processor when the job runs', function () {
+    bindSleepProcessorWithTempCsv();
+
     $payload = ['data' => ['metrics' => [[
         'name' => 'sleep_analysis',
         'data' => [
@@ -36,19 +87,23 @@ it('routes sleep_analysis to the sleep processor when the job runs', function ()
         ],
     ]]]];
 
-    withoutProductionSleepCsv(function () use ($payload): void {
-        (new ProcessHealthExport($payload))->handle();
-    });
+    (new ProcessHealthExport($payload))->handle();
 
     expect(Sleep::query()->count())->toBe(1);
 });
 
 it('ignores unknown metric names without error', function () {
+    Log::spy();
+
     $payload = ['data' => ['metrics' => [['name' => 'mindfulness', 'data' => [['value' => 1]]]]]];
 
     (new ProcessHealthExport($payload))->handle();
 
     expect(Sleep::query()->count())->toBe(0);
+
+    Log::shouldHaveReceived('info')
+        ->once()
+        ->with('health.ingest unhandled metrics', ['metrics' => ['mindfulness']]);
 });
 
 it('isolates a failing processor, still runs the others, and throws to trigger a retry', function () {
@@ -70,14 +125,29 @@ it('isolates a failing processor, still runs the others, and throws to trigger a
     };
 
     app()->instance(SleepProcessor::class, $failingProcessor);
+    bindHeartRateProcessorWithTempCsv();
 
-    // heart_rate with no matching Activity rows in the (in-memory, per-test)
-    // database resolves to an empty match set, so HeartRateProcessor::process()
-    // never reaches its CSV mirror step either.
+    // Falls inside the heart_rate sample's match window below, so the
+    // HeartRateProcessor update is directly observable even though Sleep
+    // throws first.
+    $activity = Activity::factory()->create([
+        'occurred_at' => '2026-01-10 09:00:00',
+        'duration' => 1800,
+        'timezone' => null,
+        'altitude' => null,
+        'average_heart_rate' => null,
+        'max_heart_rate' => null,
+    ]);
+
     $payload = ['data' => ['metrics' => [
         ['name' => 'sleep_analysis', 'data' => [['value' => 'Core', 'source' => 'Oura', 'start' => '2026-01-10 23:30:00 +0000', 'end' => '2026-01-11 03:00:00 +0000']]],
         ['name' => 'heart_rate', 'data' => [['start' => '2026-01-10 09:05:00 +0000', 'Avg' => 130, 'Max' => 150, 'source' => 'Apple Watch']]],
     ]]];
 
     expect(fn () => (new ProcessHealthExport($payload))->handle())->toThrow(RuntimeException::class);
+
+    $activity->refresh();
+
+    expect($activity->average_heart_rate)->toBe(130)
+        ->and($activity->max_heart_rate)->toBe(150);
 });
