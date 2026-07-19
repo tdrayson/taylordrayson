@@ -1,10 +1,11 @@
 import twemoji from '@twemoji/api';
 
-// Twemoji options: resolve each emoji to our self-hosted SVG (see Task 1)
-// rather than the default jsDelivr CDN.
+// Pin the asset host to the same jdecked release as `@twemoji/api` so the
+// parser and image pack stay on one Unicode line. jsDelivr serves the repo's
+// `assets/` tree; we prefer SVG over the default 72×72 PNG.
 const options = {
-    base: '/twemoji/',
-    folder: 'svg',
+    base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.3/',
+    folder: 'assets/svg',
     ext: '.svg',
     className: 'emoji',
 };

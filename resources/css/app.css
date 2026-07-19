@@ -239,7 +239,7 @@
         cursor: pointer;
     }
 
-    /* Twemoji replaces native emoji glyphs with inline SVGs (see v-twemoji);
+    /* Twemoji replaces native emoji glyphs with CDN SVGs (see v-twemoji);
        size and align them like a character in the surrounding text. */
     img.emoji {
         display: inline-block;

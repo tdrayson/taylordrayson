@@ -10,7 +10,6 @@
         "@tailwindcss/typography": "^0.5.20",
         "@tailwindcss/vite": "^4.0.0",
         "@twemoji/api": "^17.0.3",
-        "@twemoji/svg": "^15.0.0",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",

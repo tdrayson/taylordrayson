@@ -16,7 +16,6 @@
 /public/build
 /public/hot
 /public/storage
-/public/twemoji
 /storage/*.key
 /storage/pail
 /vendor
