@@ -321,6 +321,16 @@
         cursor: pointer;
     }
 
+    /* Twemoji replaces native emoji glyphs with CDN images (see v-twemoji);
+       size and align them like a character in the surrounding text. */
+    img.emoji {
+        display: inline-block;
+        height: 1em;
+        width: 1em;
+        margin: 0 0.05em 0 0.1em;
+        vertical-align: -0.1em;
+    }
+
     /* Abbreviations with a title are tooltips, not links: a dotted underline (vs
        the solid underline used for links) and a help cursor signal "hover me". */
     abbr[title] {

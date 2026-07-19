@@ -18,7 +18,7 @@ const lightboxIndex = ref(null);
 <template>
     <div class="max-w-prose space-y-4">
         <!-- Notes have no headline, so the content itself is the page's primary text. -->
-        <p class="whitespace-pre-line text-lg leading-relaxed">{{ entry.content }}</p>
+        <p v-twemoji class="whitespace-pre-line text-lg leading-relaxed">{{ entry.content }}</p>
 
         <!-- A single photo runs full width; small galleries share a grid. -->
         <ul v-if="photos.length" :class="photos.length > 1 ? 'grid grid-cols-2 gap-2.5' : ''">

@@ -96,7 +96,7 @@ setLayoutProps({
                 <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
             </div>
             <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-            <h1 v-if="title" class="mt-1 max-w-2xl font-display text-display">{{ title }}</h1>
+            <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl font-display text-display">{{ title }}</h1>
             <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>

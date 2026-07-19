@@ -84,7 +84,7 @@ function quantity(item) {
 
         <div v-if="meals.length">
             <SectionHead title="Meals" />
-            <div class="space-y-3">
+            <div v-twemoji class="space-y-3">
                 <div v-for="meal in meals" :key="meal.meal" class="overflow-hidden rounded-lg border border-neutral-50">
                     <div class="flex items-baseline justify-between bg-neutral-25 px-4 py-2.5">
                         <span class="font-display text-section">{{ titleCase(meal.meal) }}</span>

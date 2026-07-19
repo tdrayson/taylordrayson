@@ -207,7 +207,7 @@ function openLightbox(index) {
             </div>
         </div>
         <!-- Notes show their full content as body text; everything else gets a display-font title. -->
-        <p v-if="body" class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
+        <p v-if="body" v-twemoji class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
         <!-- Titles keep a headline measure (~40ch) rather than running full width.
              Each card is a subsection of its DateGroup date heading, so the title
              is a real h3, one level under DateGroup's h2/h3 (see the heading-ladder
@@ -215,6 +215,7 @@ function openLightbox(index) {
         <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
+                v-twemoji
                 :href="url || undefined"
                 :aria-label="titleLabel || undefined"
                 class="p-name"
@@ -239,7 +240,7 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
              and the `dark:` class picks the right one, no JS needed. -->
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">

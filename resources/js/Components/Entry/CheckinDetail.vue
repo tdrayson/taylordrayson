@@ -47,7 +47,7 @@ const location = computed(() => props.entry.location ?? null);
 
         <div v-if="entry.description">
             <SectionHead title="Note" />
-            <p class="text-body text-neutral-700">{{ entry.description }}</p>
+            <p v-twemoji class="text-body text-neutral-700">{{ entry.description }}</p>
         </div>
     </div>
 </template>
