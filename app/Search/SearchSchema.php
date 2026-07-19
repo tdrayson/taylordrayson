@@ -22,7 +22,7 @@ class SearchSchema
         'activity' => [
             'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Activity'],
             'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Activity'],
-            'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Metrics', 'suffix' => 'km', 'unit' => 'km'],
+            'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Metrics', 'measure' => 'distance', 'store' => 'm'],
             'duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Metrics'],
             'calories' => ['label' => 'Calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'Metrics', 'suffix' => 'kcal'],
             'avg_hr' => ['label' => 'Avg heart rate', 'dataType' => 'number', 'column' => 'average_heart_rate', 'category' => 'Metrics', 'suffix' => 'bpm'],
@@ -83,7 +83,7 @@ class SearchSchema
             'reason' => ['label' => 'Reason', 'dataType' => 'text', 'column' => 'reason', 'category' => 'Flight'],
             'origin' => ['label' => 'Origin (IATA)', 'dataType' => 'text', 'column' => 'origin_iata', 'category' => 'Route'],
             'destination' => ['label' => 'Destination (IATA)', 'dataType' => 'text', 'column' => 'destination_iata', 'category' => 'Route'],
-            'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Route', 'suffix' => 'mi', 'unit' => 'mi'],
+            'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Route', 'measure' => 'distance', 'store' => 'm'],
             'flight_duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Route'],
         ],
         'checkin' => [
@@ -100,7 +100,7 @@ class SearchSchema
             'litres' => ['label' => 'Litres', 'dataType' => 'number', 'column' => 'litres', 'category' => 'Cost', 'suffix' => 'L'],
             'cost' => ['label' => 'Cost', 'dataType' => 'number', 'column' => 'cost', 'category' => 'Cost', 'prefix' => '£'],
             'price' => ['label' => 'Price / litre', 'dataType' => 'number', 'column' => 'price_per_litre', 'category' => 'Cost', 'prefix' => '£'],
-            'odometer' => ['label' => 'Odometer', 'dataType' => 'number', 'column' => 'odometer', 'category' => 'Cost', 'suffix' => 'mi'],
+            'odometer' => ['label' => 'Odometer', 'dataType' => 'number', 'column' => 'odometer', 'category' => 'Cost', 'measure' => 'distance', 'store' => 'mi'],
         ],
         'project' => [
             'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Project'],
@@ -208,6 +208,8 @@ class SearchSchema
                         'operators' => $field['operators'],
                         'prefix' => $field['prefix'] ?? null,
                         'suffix' => $field['suffix'] ?? null,
+                        'measure' => $field['measure'] ?? null,
+                        'store' => $field['store'] ?? null,
                         'options' => $field['dataType'] === 'enum' && ! isset($field['relation']) && $type['model'] !== null
                             ? self::options($type['model'], $field['column'])
                             : null,

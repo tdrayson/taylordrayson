@@ -1,7 +1,7 @@
 import { defineSetting } from '../useSettings';
 import { number } from '../lib/format';
 import { kgToLbs } from '../lib/format';
-import { metresToMiles, metresToKm, milesToKm } from '../lib/distance';
+import { metresToMiles, metresToKm, milesToKm, milesToMetres, kmToMetres, kmToMiles } from '../lib/distance';
 
 // Two reactive, localStorage-backed settings (Project A's factory). Module-level
 // so every useFormat() consumer shares one source. Values are whitelisted; an
@@ -45,6 +45,56 @@ export function useFormat() {
         return `${number(converted, precision)} ${km ? 'km' : 'mi'}`;
     }
 
+    // The visitor's current distance unit as a plain string ('mi' or 'km'), for
+    // use as a suffix label. Reads the setting inside the function body so a
+    // caller using it in a template/computed stays reactive to the toggle.
+    function distanceUnitLabel() {
+        return distanceUnitDef.value.value;
+    }
+
+    // Convert a display value (typed by the visitor, in their chosen unit) to a
+    // field's storage unit, ready to send to the server. `store` is the schema's
+    // 'store' key ('m' for metres, 'mi' for miles). Empty values pass through
+    // unchanged so the caller can skip conversion for blank inputs.
+    function toStorage(value, store) {
+        if (value === '' || value === null || value === undefined) {
+            return value;
+        }
+
+        const km = distanceUnitDef.value.value === 'km';
+
+        if (store === 'm') {
+            // Metres are stored as integers, so round after converting.
+            return Math.round(km ? kmToMetres(Number(value)) : milesToMetres(Number(value)));
+        }
+
+        if (store === 'mi') {
+            return km ? kmToMiles(Number(value)) : Number(value);
+        }
+
+        return value;
+    }
+
+    // The inverse of toStorage: convert a stored value back to the visitor's
+    // display unit, for repopulating the query builder from a saved filter.
+    function toDisplay(stored, store) {
+        if (stored === '' || stored === null || stored === undefined) {
+            return stored;
+        }
+
+        const km = distanceUnitDef.value.value === 'km';
+
+        if (store === 'm') {
+            return km ? metresToKm(Number(stored), 2) : metresToMiles(Number(stored), 2);
+        }
+
+        if (store === 'mi') {
+            return km ? milesToKm(Number(stored), 2) : Number(stored);
+        }
+
+        return stored;
+    }
+
     // Weight from kilograms. 'auto' precision shows 1dp only when fractional,
     // matching the current weightLabel behaviour.
     function weight(kg, precision = 'auto') {
@@ -61,6 +111,9 @@ export function useFormat() {
         distance,
         distanceParts,
         distanceFromMiles,
+        distanceUnitLabel,
+        toStorage,
+        toDisplay,
         weight,
         distanceUnit: distanceUnitDef.value,
         setDistanceUnit: distanceUnitDef.set,

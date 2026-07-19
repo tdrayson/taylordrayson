@@ -7,11 +7,17 @@ import Button from '../Ui/Button.vue';
 import FilterValue from './FilterValue.vue';
 import FieldPicker from './FieldPicker.vue';
 import StyledSelect from './StyledSelect.vue';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     schema: { type: Array, required: true },
     filter: { type: Array, default: () => [] },
 });
+
+// Distance fields are stored server-side in a fixed unit (metres or miles) but
+// the builder always shows/accepts the visitor's chosen unit (mi/km). These
+// convert at the two boundaries: reading a saved filter in, sending one out.
+const { toStorage, toDisplay, distanceUnitLabel } = useFormat();
 
 const OPERATOR_LABELS = {
     contains: 'contains', not_contains: 'does not contain', equals: 'equals', starts_with: 'starts with', ends_with: 'ends with',
@@ -29,6 +35,14 @@ const fieldsOf = (type) => schemaByType.value[type]?.fields ?? [];
 const fieldDef = (type, key) => fieldsOf(type).find((field) => field.key === key) ?? null;
 const operatorOptions = (type, key) =>
     (fieldDef(type, key)?.operators ?? []).map((operator) => ({ value: operator, label: OPERATOR_LABELS[operator] ?? operator }));
+
+// The suffix shown beside a field's value input. Distance fields ignore the
+// schema's static suffix and show the visitor's live mi/km preference instead,
+// so the label updates immediately if they toggle it in settings.
+const suffixFor = (type, key) => {
+    const field = fieldDef(type, key);
+    return field?.measure === 'distance' ? distanceUnitLabel() : field?.suffix;
+};
 
 // The value shape an operator expects: none, a [from, to] pair, a multi-select
 // list, or a scalar.
@@ -66,8 +80,45 @@ function freshGroup() {
     return { type: '', conditions: [] };
 }
 
+// Run a distance condition's value through `convert(value, store)`, handling
+// both a single value and a [min, max] "between" pair, and leaving empty
+// values untouched so a blank input doesn't get coerced into a number.
+function convertDistanceValue(value, store, convert) {
+    if (Array.isArray(value)) {
+        return value.map((item) => (item === '' || item === null || item === undefined ? item : convert(item, store)));
+    }
+
+    if (value === '' || value === null || value === undefined) {
+        return value;
+    }
+
+    return convert(value, store);
+}
+
+// Return a new groups array with every distance-field condition's value passed
+// through `convert`. Used both ways: `toDisplay` when seeding state from a
+// saved filter (storage → visitor unit) and `toStorage` right before sending
+// (visitor unit → storage). Never mutates the input so callers can keep the
+// pre-conversion copy (e.g. `groups` must keep showing display values).
+function mapDistanceValues(groups, convert) {
+    return groups.map((group) => ({
+        ...group,
+        conditions: group.conditions.map((condition) => {
+            const field = fieldDef(group.type, condition.field);
+
+            if (!field || field.measure !== 'distance') {
+                return condition;
+            }
+
+            return { ...condition, value: convertDistanceValue(condition.value, field.store, convert) };
+        }),
+    }));
+}
+
 const groups = ref(
-    props.filter.length ? JSON.parse(JSON.stringify(props.filter)) : [freshGroup()]
+    props.filter.length
+        ? mapDistanceValues(JSON.parse(JSON.stringify(props.filter)), toDisplay)
+        : [freshGroup()]
 );
 
 function changeType(group, type) {
@@ -153,7 +204,10 @@ const canFilter = computed(() => cleaned.value.length > 0);
 
 // POST keeps the filter out of the URL (we don't need shareable search links).
 function applyFilter() {
-    router.post('/search', { filter: JSON.stringify(cleaned.value) }, { preserveState: false });
+    // Deep-clone before converting so this never touches `cleaned`/`groups`:
+    // the inputs must keep showing the display values the visitor typed.
+    const payload = mapDistanceValues(JSON.parse(JSON.stringify(cleaned.value)), toStorage);
+    router.post('/search', { filter: JSON.stringify(payload) }, { preserveState: false });
 }
 
 function clearFilter() {
@@ -209,7 +263,7 @@ function clearFilter() {
                                 :operator="condition.operator"
                                 :options="fieldDef(group.type, condition.field)?.options"
                                 :prefix="fieldDef(group.type, condition.field)?.prefix"
-                                :suffix="fieldDef(group.type, condition.field)?.suffix"
+                                :suffix="suffixFor(group.type, condition.field)"
                             />
                         </div>
                         <div v-else class="hidden sm:block sm:flex-1"></div>
