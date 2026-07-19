@@ -187,9 +187,9 @@ class TypeRegistry
             'label' => 'Vehicle',
             'title' => fn (string $label): string => "Fuel for {$label}",
             'filter' => fn (Builder $query, string $value) => $query->where('vehicle_id', $value),
-            'labelFor' => fn (string $value): string => config("vehicles.{$value}.name", $value),
+            'labelFor' => fn (string $value): string => config("vehicles.{$value}.model", $value),
             'values' => fn (): Collection => collect(config('vehicles', []))
-                ->map(fn (array $vehicle, string $id): array => ['value' => $id, 'label' => $vehicle['name'] ?? $id])->values(),
+                ->map(fn (array $vehicle, string $id): array => ['value' => $id, 'label' => $vehicle['model'] ?? $id])->values(),
         ];
     }
 
