@@ -80,12 +80,22 @@ class Series extends Model implements HasMedia
      */
     public function progress(): ?int
     {
+        return $this->progressFromDistinct($this->watchedEpisodeCount());
+    }
+
+    /**
+     * Same clamp/aired logic as progress(), but takes an already-computed
+     * distinct-episode count so callers (e.g. an index page aggregating
+     * across many shows in one query) don't need to hydrate `episodes`.
+     */
+    public function progressFromDistinct(int $distinctWatched): ?int
+    {
         $aired = $this->meta['aired_episodes'] ?? null;
         if (! $aired) {
             return null;
         }
 
-        return (int) min(100, round($this->watchedEpisodeCount() / $aired * 100));
+        return (int) min(100, round($distinctWatched / $aired * 100));
     }
 
     public function firstWatchedAt(): ?CarbonInterface
