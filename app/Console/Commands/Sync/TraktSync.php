@@ -464,7 +464,7 @@ class TraktSync extends Command
         // enrichment job never ran, or failed after its retries), not just
         // brand new ones. Deduped per run: a batch carrying several episodes
         // of the same bare show must only dispatch once.
-        if (($wasNew || $this->seriesIsBare($series)) && ! isset($this->enrichDispatched[$series->id])) {
+        if (! isset($this->enrichDispatched[$series->id]) && ($wasNew || $this->seriesIsBare($series))) {
             $this->enrichDispatched[$series->id] = true;
             $posterUrl = $this->posterUrl($show, $summary);
 
