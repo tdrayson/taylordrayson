@@ -3,6 +3,7 @@
 use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
@@ -215,4 +216,85 @@ it('nudges episodes that share an exact watched_at into season/episode order, id
     expect($e6->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:00')
         ->and($e7->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:01')
         ->and($e1->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-01 20:00:00');
+});
+
+it('self-heals the sync window to the last synced watch when it is older than the default --days window', function () {
+    fakeTraktHistory([], []);
+
+    // Last synced watch is 30 days ago; default --days=7 would otherwise
+    // miss the gap between day 7 and day 30 if a scheduled run was skipped.
+    Media::create([
+        'occurred_at' => now()->subDays(30)->format('Y-m-d H:i:s'),
+        'timezone' => 'Europe/London',
+        'type' => 'episode',
+        'title' => 'Old Episode',
+        'source' => 'trakt',
+        'source_id' => 'old-1',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+
+    $this->artisan('trakt:sync')->assertSuccessful();
+
+    Http::assertSent(function ($request) {
+        if (! str_contains($request->url(), '/history/movies')) {
+            return false;
+        }
+
+        $daysAgo = Carbon::parse($request['start_at'])->diffInDays(now());
+
+        return $daysAgo >= 29 && $daysAgo <= 31;
+    });
+});
+
+it('caps the self-healed sync window at MAX_CATCHUP_DAYS when the last synced watch is much older', function () {
+    fakeTraktHistory([], []);
+
+    // Last synced watch is 200 days ago (e.g. sync was broken for months);
+    // the window must be capped at MAX_CATCHUP_DAYS (90) rather than
+    // requesting a huge, unbounded backfill.
+    Media::create([
+        'occurred_at' => now()->subDays(200)->format('Y-m-d H:i:s'),
+        'timezone' => 'Europe/London',
+        'type' => 'episode',
+        'title' => 'Very Old Episode',
+        'source' => 'trakt',
+        'source_id' => 'old-2',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+
+    $this->artisan('trakt:sync')->assertSuccessful();
+
+    Http::assertSent(function ($request) {
+        if (! str_contains($request->url(), '/history/movies')) {
+            return false;
+        }
+
+        $daysAgo = Carbon::parse($request['start_at'])->diffInDays(now());
+
+        return $daysAgo >= 89 && $daysAgo <= 91;
+    });
+});
+
+it('sends no start_at when --full is passed, even with prior synced history', function () {
+    fakeTraktHistory([], []);
+
+    Media::create([
+        'occurred_at' => now()->subDays(30)->format('Y-m-d H:i:s'),
+        'timezone' => 'Europe/London',
+        'type' => 'episode',
+        'title' => 'Old Episode',
+        'source' => 'trakt',
+        'source_id' => 'old-3',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    Http::assertSent(function ($request) {
+        if (! str_contains($request->url(), '/history/movies')) {
+            return false;
+        }
+
+        return ! array_key_exists('start_at', $request->data());
+    });
 });

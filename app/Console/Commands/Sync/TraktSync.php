@@ -25,6 +25,13 @@ class TraktSync extends Command
     private const DISPLAY_TIMEZONE = 'Europe/London';
 
     /**
+     * Self-heal ceiling: if the last synced watch is older than this, cap
+     * the incremental window here instead of requesting an unbounded
+     * backfill (e.g. a sync that was broken for months).
+     */
+    private const MAX_CATCHUP_DAYS = 90;
+
+    /**
      * Show summaries fetched this run, keyed by Trakt id. A watch history
      * batch can carry dozens of episodes of the same show, so this avoids
      * hitting `/shows/{id}` once per episode.
@@ -35,7 +42,7 @@ class TraktSync extends Command
 
     public function handle(Trakt $trakt): int
     {
-        $startAt = $this->option('full') ? null : now()->subDays((int) $this->option('days'))->toIso8601ZuluString();
+        $startAt = $this->resolveStartAt();
 
         $existing = Media::query()->where('source', 'trakt')->pluck('source_id')->flip();
 
@@ -58,6 +65,38 @@ class TraktSync extends Command
         $this->info("Synced {$filmsCreated} film(s) and {$episodesCreated} episode(s).");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Resolve the incremental sync's lower bound, self-healing past a
+     * missed or broken schedule: rather than trusting `--days` alone (which
+     * would silently skip anything watched between `--days` ago and the
+     * last successful sync), the window widens back to the newest synced
+     * watch, capped at `MAX_CATCHUP_DAYS` so a very stale sync doesn't
+     * trigger an unbounded backfill. `--full` always wins and fetches
+     * everything.
+     */
+    private function resolveStartAt(): ?string
+    {
+        if ($this->option('full')) {
+            return null;
+        }
+
+        $default = now()->subDays((int) $this->option('days'));
+
+        /** @var string|null $newest Europe/London wall-clock string, or null with no prior Trakt data. */
+        $newest = Media::query()->where('source', 'trakt')->max('occurred_at');
+
+        if ($newest === null) {
+            return $default->toIso8601ZuluString();
+        }
+
+        $newestUtc = Carbon::parse($newest, self::DISPLAY_TIMEZONE)->utc();
+        $floor = now()->subDays(self::MAX_CATCHUP_DAYS);
+
+        $start = $default->min($newestUtc->max($floor));
+
+        return $start->toIso8601ZuluString();
     }
 
     /**
