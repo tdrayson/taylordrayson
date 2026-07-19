@@ -70,6 +70,22 @@ it('joins flight distance and cabin class with "in"', function () {
     expect($cabinToken['sep'])->toBe(' in ');
 });
 
+it('does not dangle "in" when a flight has no cabin class', function () {
+    $flight = Flight::factory()->create([
+        'distance' => 482803, // ~300 mi
+        'cabin_class' => null,
+    ]);
+
+    $card = $flight->card();
+
+    expect($card['subtitle'])->toBe('300 mi')
+        ->and($card['subtitle'])->not->toContain(' in ')
+        ->and($card['subtitle'])->not->toMatch('/\s$/');
+
+    expect($card['subtitleTokens'])->toHaveCount(1);
+    expect($card['subtitleTokens'][0])->not->toHaveKey('sep');
+});
+
 it('builds the fuel subtitle with "for" and "at" clauses', function () {
     $fuel = Fuel::factory()->create([
         'litres' => 33,

@@ -129,16 +129,28 @@ class Flight extends Model implements HasMedia, Timelineable
 
     public function card(): array
     {
+        // "300 mi in economy" reads as a single clause; falls back to the bare
+        // distance (no dangling "in") when cabin class is missing.
+        $subtitle = match (true) {
+            ! $this->distance => null,
+            (bool) $this->cabin_class => sprintf('%s mi in %s', number_format(Distance::miles($this->distance)), $this->cabin_class),
+            default => sprintf('%s mi', number_format(Distance::miles($this->distance))),
+        };
+
         return [
             'type' => 'flight',
             'icon' => 'plane',
             'title' => $this->routeTitle(),
-            'subtitle' => $this->distance ? sprintf('%s mi in %s', number_format(Distance::miles($this->distance)), $this->cabin_class) : null,
+            'subtitle' => $subtitle,
             // Raw metres (not Distance::miles) so FeedItem.vue converts via useFormat and
             // reacts to the visitor's unit toggle. Cabin class reads as a clause off the
-            // distance ("... mi in economy"), not a separate list item.
+            // distance ("... mi in economy"), not a separate list item; omitted entirely
+            // when cabin class is missing (no dangling "in").
             'subtitleTokens' => $this->distance
-                ? [['t' => 'dist', 'm' => (int) $this->distance, 'p' => 0], ['t' => 'text', 'v' => $this->cabin_class, 'sep' => ' in ']]
+                ? array_values(array_filter([
+                    ['t' => 'dist', 'm' => (int) $this->distance, 'p' => 0],
+                    $this->cabin_class ? ['t' => 'text', 'v' => $this->cabin_class, 'sep' => ' in '] : null,
+                ]))
                 : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',
