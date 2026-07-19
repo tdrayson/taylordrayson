@@ -161,10 +161,18 @@ it('imports personal star ratings onto films, episodes, and series, staying idem
 });
 
 it('nudges episodes that share an exact watched_at into season/episode order, idempotently, and leaves distinct timestamps alone', function () {
-    // No new history this run; only the normalization pass over already-imported rows matters here.
-    fakeTraktHistory(movies: [], episodes: []);
+    $series = Series::factory()->create(['trakt_id' => 700]);
 
-    $series = Series::factory()->create();
+    // Normalization is scoped to series synced this run (see the scoping
+    // test below), so this run also imports one new episode of the same
+    // series (a different season/episode, on a different date, so it
+    // doesn't collide with the seeded E1/E6/E7 tie below) purely to mark
+    // the series "affected".
+    fakeTraktHistory(movies: [], episodes: [
+        ['id' => 900, 'watched_at' => '2026-01-05T12:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 10, 'title' => 'Ten', 'runtime' => 50, 'ids' => ['trakt' => 910]],
+            'show' => ['title' => 'Show Title', 'year' => 2020, 'ids' => ['trakt' => 700, 'slug' => 'show-slug', 'tmdb' => 2316]]],
+    ]);
 
     // Real Trakt data: bulk-marking watched gives S1E6 and S1E7 the exact
     // same second, seeded here already out of order (E7 row created first).
@@ -219,10 +227,17 @@ it('nudges episodes that share an exact watched_at into season/episode order, id
 });
 
 it('clamps a tied group nudged near midnight so it stays inside the same local calendar day', function () {
-    // No new history this run; only the normalization pass over already-imported rows matters here.
-    fakeTraktHistory(movies: [], episodes: []);
+    $series = Series::factory()->create(['trakt_id' => 701]);
 
-    $series = Series::factory()->create();
+    // Normalization is scoped to series synced this run, so this run also
+    // imports one new episode of the same series (a different season/episode,
+    // on a different date, so it doesn't collide with the seeded E1/E2/E3
+    // tie below) purely to mark the series "affected".
+    fakeTraktHistory(movies: [], episodes: [
+        ['id' => 901, 'watched_at' => '2026-01-05T12:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 10, 'title' => 'Ten', 'runtime' => 50, 'ids' => ['trakt' => 911]],
+            'show' => ['title' => 'Show Title', 'year' => 2020, 'ids' => ['trakt' => 701, 'slug' => 'show-slug-2', 'tmdb' => 2317]]],
+    ]);
 
     // All three share the exact same second, one second before midnight, and
     // are seeded out of (season, episode) order so the sort itself is exercised
@@ -275,6 +290,46 @@ it('clamps a tied group nudged near midnight so it stays inside the same local c
         ->and($e3->occurred_at->format('Y-m-d'))->toBe('2026-01-02')
         ->and($e1->occurred_at->isBefore($e2->occurred_at))->toBeTrue()
         ->and($e2->occurred_at->isBefore($e3->occurred_at))->toBeTrue();
+});
+
+it('scopes normalization to series synced this run, leaving another series tied timestamps unchanged', function () {
+    $seriesA = Series::factory()->create(['trakt_id' => 702]);
+    $seriesB = Series::factory()->create(['trakt_id' => 703]);
+
+    // Series A already carries a tied group from a previous run; it receives
+    // no new episode this run, so it must NOT be touched by normalize.
+    $a1 = Media::create([
+        'occurred_at' => '2026-01-02 07:32:00',
+        'type' => 'episode',
+        'title' => 'A One',
+        'series_id' => $seriesA->id,
+        'source' => 'trakt',
+        'source_id' => 'a1',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+    $a2 = Media::create([
+        'occurred_at' => '2026-01-02 07:32:00',
+        'type' => 'episode',
+        'title' => 'A Two',
+        'series_id' => $seriesA->id,
+        'source' => 'trakt',
+        'source_id' => 'a2',
+        'meta' => ['season' => 1, 'episode' => 2],
+    ]);
+
+    // Only series B receives a new episode this run.
+    fakeTraktHistory(movies: [], episodes: [
+        ['id' => 950, 'watched_at' => '2026-02-01T12:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 1, 'title' => 'B One', 'runtime' => 50, 'ids' => ['trakt' => 951]],
+            'show' => ['title' => 'Show B', 'year' => 2020, 'ids' => ['trakt' => 703, 'slug' => 'show-b', 'tmdb' => 3000]]],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    // Series A wasn't affected this run, so its tied pair keeps sharing the
+    // exact same timestamp instead of being nudged apart by a full-table scan.
+    expect($a1->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:00')
+        ->and($a2->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-02 07:32:00');
 });
 
 it('self-heals the sync window to the last synced watch when it is older than the default --days window', function () {

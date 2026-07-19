@@ -40,6 +40,16 @@ class TraktSync extends Command
      */
     private array $showSummaries = [];
 
+    /**
+     * Series ids that received a new episode this run, keyed by id. Bounds
+     * `normalizeEpisodeOrder()` to only the series touched this run instead
+     * of a full-table scan: ties only ever arise from newly-imported
+     * episodes, so a series untouched this run has no new ties to fix.
+     *
+     * @var array<int, true>
+     */
+    private array $affectedSeriesIds = [];
+
     public function handle(Trakt $trakt): int
     {
         $startAt = $this->resolveStartAt();
@@ -106,18 +116,24 @@ class TraktSync extends Command
      * Nudge each tied episode apart by one second, ordered by
      * (season, episode), so a plain time-sort is correct everywhere.
      *
-     * This walks every synced episode on every run (not just ones created
-     * this run), so it also backfills previously-imported rows the first
-     * time it runs. It's idempotent: once a group has been nudged its
-     * timestamps are no longer identical, so a re-run finds no ties there
-     * and leaves it untouched.
+     * Bounded to `$affectedSeriesIds`: only series that received a new
+     * episode this run are re-scanned, rather than every synced episode on
+     * every run. Ties only ever arise from newly-imported episodes, so a
+     * series untouched this run can't have a new tie to fix, and it's
+     * idempotent: once a group has been nudged its timestamps are no longer
+     * identical, so a re-run finds no ties there and leaves it untouched.
      */
     private function normalizeEpisodeOrder(): void
     {
+        if ($this->affectedSeriesIds === []) {
+            return;
+        }
+
         Media::query()
             ->where('source', 'trakt')
             ->where('type', 'episode')
             ->whereNotNull('series_id')
+            ->whereIn('series_id', array_keys($this->affectedSeriesIds))
             ->get()
             ->groupBy('series_id')
             ->each(function (Collection $seriesEpisodes): void {
@@ -431,6 +447,8 @@ class TraktSync extends Command
                 'ids' => $episode['ids'] ?? [],
             ],
         ]);
+
+        $this->affectedSeriesIds[$series->id] = true;
 
         if ($wasNew) {
             $posterUrl = $this->posterUrl($show, $summary);
