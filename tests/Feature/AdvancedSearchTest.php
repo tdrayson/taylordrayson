@@ -65,16 +65,33 @@ it('ANDs conditions within a group (flights over 300mi with easyJet)', function 
     makeFlight('EZY', 200, '2026-05-02 09:00:00'); // fails distance
     makeFlight('BAW', 400, '2026-05-03 09:00:00'); // fails airline
 
-    // 300 is what the UI sends (miles); the server scales it to metres before comparing.
+    // The client now converts to storage units before sending; the server does no scaling.
     $url = searchUrl([[
         'type' => 'flight',
         'conditions' => [
-            ['field' => 'distance', 'operator' => 'gt', 'value' => 300],
+            ['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)],
             ['field' => 'airline', 'operator' => 'contains', 'value' => 'easyJet'],
         ],
     ]]);
 
     get($url)->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+});
+
+it('activity distance filter treats the value as stored metres (no server scaling)', function () {
+    Activity::factory()->create(['type' => 'run', 'distance' => Distance::fromMiles(5), 'occurred_at' => now()]);
+
+    // The wire contract is raw storage units: no km/mi scaling happens server-side.
+    $matches = searchUrl([[
+        'type' => 'activity',
+        'conditions' => [['field' => 'distance', 'operator' => 'gte', 'value' => Distance::fromMiles(5)]],
+    ]]);
+    get($matches)->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
+
+    $tooFar = searchUrl([[
+        'type' => 'activity',
+        'conditions' => [['field' => 'distance', 'operator' => 'gte', 'value' => Distance::fromMiles(6)]],
+    ]]);
+    get($tooFar)->assertOk()->assertInertia(fn ($page) => $page->where('total', 0));
 });
 
 it('ORs between groups of different types', function () {
@@ -85,7 +102,7 @@ it('ORs between groups of different types', function () {
     $url = searchUrl([
         [
             'type' => 'flight',
-            'conditions' => [['field' => 'distance', 'operator' => 'gt', 'value' => 300]],
+            'conditions' => [['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)]],
         ],
         [
             'type' => 'activity',
@@ -217,8 +234,21 @@ it('exposes unit prefix/suffix in the client schema', function () {
     Activity::factory()->create(['type' => 'run', 'occurred_at' => now()]);
 
     get('/search')->assertInertia(fn ($page) => $page
-        ->where('schema', fn ($schema) => collect(collect($schema)->firstWhere('type', 'activity')['fields'])
-            ->firstWhere('key', 'calories')['suffix'] === 'kcal')
+        ->where('schema', function ($schema) {
+            $activityFields = collect(collect($schema)->firstWhere('type', 'activity')['fields']);
+            $fuelFields = collect(collect($schema)->firstWhere('type', 'fuel')['fields']);
+
+            // Distance fields no longer carry a static km/mi suffix: the client
+            // converts using the schema's storage unit and the visitor's live
+            // mi/km preference instead.
+            $distance = $activityFields->firstWhere('key', 'distance');
+
+            return $distance['measure'] === 'distance'
+                && $distance['store'] === 'm'
+                && $activityFields->firstWhere('key', 'calories')['suffix'] === 'kcal'
+                && $fuelFields->firstWhere('key', 'litres')['suffix'] === 'L'
+                && $fuelFields->firstWhere('key', 'cost')['prefix'] === '£';
+        })
     );
 });
 
@@ -353,7 +383,7 @@ it('drops unknown fields and disallowed operators', function () {
         'conditions' => [
             ['field' => 'airline', 'operator' => 'eq', 'value' => 'easyJet'],
             ['field' => 'bogus', 'operator' => 'gt', 'value' => 1],
-            ['field' => 'distance', 'operator' => 'gt', 'value' => 300],
+            ['field' => 'distance', 'operator' => 'gt', 'value' => Distance::fromMiles(300)],
         ],
     ]]);
 
