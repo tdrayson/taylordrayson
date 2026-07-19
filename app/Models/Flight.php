@@ -133,11 +133,12 @@ class Flight extends Model implements HasMedia, Timelineable
             'type' => 'flight',
             'icon' => 'plane',
             'title' => $this->routeTitle(),
-            'subtitle' => $this->distance ? sprintf('%s mi, %s', number_format(Distance::miles($this->distance)), $this->cabin_class) : null,
+            'subtitle' => $this->distance ? sprintf('%s mi in %s', number_format(Distance::miles($this->distance)), $this->cabin_class) : null,
             // Raw metres (not Distance::miles) so FeedItem.vue converts via useFormat and
-            // reacts to the visitor's unit toggle.
+            // reacts to the visitor's unit toggle. Cabin class reads as a clause off the
+            // distance ("... mi in economy"), not a separate list item.
             'subtitleTokens' => $this->distance
-                ? [['t' => 'dist', 'm' => (int) $this->distance, 'p' => 0], ['t' => 'text', 'v' => $this->cabin_class]]
+                ? [['t' => 'dist', 'm' => (int) $this->distance, 'p' => 0], ['t' => 'text', 'v' => $this->cabin_class, 'sep' => ' in ']]
                 : null,
             'occurred_at' => $this->occurred_at,
             'accent' => 'flight',

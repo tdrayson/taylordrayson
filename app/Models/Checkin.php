@@ -60,13 +60,18 @@ class Checkin extends Model implements HasMedia, Timelineable
 
     public function card(): array
     {
-        $parts = array_filter([$this->category, $this->city]);
+        // "Coffee Shop in London" reads as a single clause; falls back to whichever
+        // one value is present (no dangling "in") when only category or city is set.
+        $subtitle = match (true) {
+            $this->category && $this->city => "{$this->category} in {$this->city}",
+            default => $this->category ?? $this->city,
+        };
 
         return [
             'type' => 'checkin',
             'icon' => 'map-pin',
             'title' => $this->venue_name,
-            'subtitle' => $parts ? implode(', ', $parts) : null,
+            'subtitle' => $subtitle,
             'occurred_at' => $this->occurred_at,
             'accent' => 'checkin',
             'meta' => [

@@ -96,14 +96,20 @@ class Event extends Model implements HasMedia, Timelineable
 
     public function card(): array
     {
-        $parts = array_filter([$this->venue_name, $this->city]);
+        // "The Roundhouse in London" reads as a single clause; falls back to
+        // whichever one value is present (no dangling "in") when only venue or
+        // city is set.
+        $subtitle = match (true) {
+            $this->venue_name && $this->city => "{$this->venue_name} in {$this->city}",
+            default => $this->venue_name ?? $this->city,
+        };
         $photos = $this->galleryPhotos();
 
         return [
             'type' => 'event',
             'icon' => 'music',
             'title' => $this->name,
-            'subtitle' => $parts ? implode(', ', $parts) : null,
+            'subtitle' => $subtitle,
             'occurred_at' => $this->occurred_at,
             'accent' => 'event',
             'range' => $this->dateRange(),

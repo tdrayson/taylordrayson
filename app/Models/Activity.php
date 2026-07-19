@@ -110,19 +110,21 @@ class Activity extends Model implements HasMedia, Timelineable
             return $this->strengthSubtitle($this->meta['sets']);
         }
 
-        $parts = [];
+        // Distance and duration read as one clause ("1.6 mi in 22m") when both are
+        // present; duration only gets a bare leading value when there is no
+        // distance to attach it to. Calories always stays comma-joined.
+        $distancePart = $this->distance ? Distance::miles($this->distance, 1).' mi' : null;
+        $durationPart = $this->duration ? $this->durationForHumans($this->duration) : null;
 
-        if ($this->distance) {
-            $parts[] = Distance::miles($this->distance, 1).' mi';
-        }
+        $lead = match (true) {
+            $distancePart && $durationPart => "{$distancePart} in {$durationPart}",
+            default => $distancePart ?? $durationPart,
+        };
 
-        if ($this->duration) {
-            $parts[] = $this->durationForHumans($this->duration);
-        }
-
-        if ($this->calories) {
-            $parts[] = number_format($this->calories).' kcal';
-        }
+        $parts = array_filter([
+            $lead,
+            $this->calories ? number_format($this->calories).' kcal' : null,
+        ]);
 
         return $parts ? implode(', ', $parts) : null;
     }
@@ -152,7 +154,7 @@ class Activity extends Model implements HasMedia, Timelineable
      * tokens (metres/kg) instead of pre-formatted strings, so FeedItem.vue can
      * compose them through useFormat() and react to the visitor's unit toggle.
      *
-     * @return list<array{t: 'dist', m: int, p: int}|array{t: 'wt', kg: float, p: int}|array{t: 'text', v: string}>|null
+     * @return list<array{t: 'dist', m: int, p: int}|array{t: 'wt', kg: float, p: int}|array{t: 'text', v: string, sep?: string}>|null
      */
     private function subtitleTokens(): ?array
     {
@@ -169,7 +171,13 @@ class Activity extends Model implements HasMedia, Timelineable
         }
 
         if ($this->duration) {
-            $tokens[] = ['t' => 'text', 'v' => $this->durationForHumans($this->duration)];
+            // ' in ' only reads correctly when duration follows a distance token;
+            // with no distance, duration leads and keeps the default ', ' separator.
+            $tokens[] = [
+                't' => 'text',
+                'v' => $this->durationForHumans($this->duration),
+                ...($this->distance ? ['sep' => ' in '] : []),
+            ];
         }
 
         if ($this->calories) {
