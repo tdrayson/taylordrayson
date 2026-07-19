@@ -145,6 +145,18 @@ class TraktSync extends Command
 
         $base = $group->first()->occurred_at->copy();
 
+        // A tie near end-of-day would otherwise push a later rank's base+rank
+        // offset past midnight, moving that episode onto the next calendar
+        // day (wrong day bucket, binge-collapse, date-URL). Clamp the base
+        // backwards so the whole group's spacing fits inside the same local
+        // day; the last-ranked episode still lands on the tied day exactly.
+        $count = $group->count();
+        $endOfDay = $base->copy()->endOfDay();
+
+        if ($base->copy()->addSeconds($count - 1)->gt($endOfDay)) {
+            $base = $endOfDay->copy()->subSeconds($count - 1);
+        }
+
         $group
             ->sort(function (Media $a, Media $b): int {
                 $seasonA = $a->meta['season'] ?? 0;

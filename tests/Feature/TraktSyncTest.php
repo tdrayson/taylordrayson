@@ -218,6 +218,65 @@ it('nudges episodes that share an exact watched_at into season/episode order, id
         ->and($e1->fresh()->occurred_at->toDateTimeString())->toBe('2026-01-01 20:00:00');
 });
 
+it('clamps a tied group nudged near midnight so it stays inside the same local calendar day', function () {
+    // No new history this run; only the normalization pass over already-imported rows matters here.
+    fakeTraktHistory(movies: [], episodes: []);
+
+    $series = Series::factory()->create();
+
+    // All three share the exact same second, one second before midnight, and
+    // are seeded out of (season, episode) order so the sort itself is exercised
+    // too. Naively assigning base+rank would push E3 to 2026-01-03 00:00:01.
+    $e3 = Media::create([
+        'occurred_at' => '2026-01-02 23:59:59',
+        'timezone' => 'Europe/London',
+        'type' => 'episode',
+        'title' => 'Three',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'e3',
+        'meta' => ['season' => 1, 'episode' => 3],
+    ]);
+    $e1 = Media::create([
+        'occurred_at' => '2026-01-02 23:59:59',
+        'timezone' => 'Europe/London',
+        'type' => 'episode',
+        'title' => 'One',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'e1',
+        'meta' => ['season' => 1, 'episode' => 1],
+    ]);
+    $e2 = Media::create([
+        'occurred_at' => '2026-01-02 23:59:59',
+        'timezone' => 'Europe/London',
+        'type' => 'episode',
+        'title' => 'Two',
+        'series_id' => $series->id,
+        'source' => 'trakt',
+        'source_id' => 'e2',
+        'meta' => ['season' => 1, 'episode' => 2],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    $e1 = $e1->fresh();
+    $e2 = $e2->fresh();
+    $e3 = $e3->fresh();
+
+    // The group can't fit 3 one-second-apart slots before midnight starting
+    // from 23:59:59, so the base shifts back to 23:59:57 instead of the last
+    // episode rolling onto the next calendar day.
+    expect($e1->occurred_at->toDateTimeString())->toBe('2026-01-02 23:59:57')
+        ->and($e2->occurred_at->toDateTimeString())->toBe('2026-01-02 23:59:58')
+        ->and($e3->occurred_at->toDateTimeString())->toBe('2026-01-02 23:59:59')
+        ->and($e1->occurred_at->format('Y-m-d'))->toBe('2026-01-02')
+        ->and($e2->occurred_at->format('Y-m-d'))->toBe('2026-01-02')
+        ->and($e3->occurred_at->format('Y-m-d'))->toBe('2026-01-02')
+        ->and($e1->occurred_at->isBefore($e2->occurred_at))->toBeTrue()
+        ->and($e2->occurred_at->isBefore($e3->occurred_at))->toBeTrue();
+});
+
 it('self-heals the sync window to the last synced watch when it is older than the default --days window', function () {
     fakeTraktHistory([], []);
 
