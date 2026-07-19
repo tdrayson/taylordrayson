@@ -4,169 +4,52 @@ namespace App\Console\Commands\Fetch;
 
 use App\Models\Sleep;
 use App\Support\Health\SleepAggregator;
-use App\Support\Health\SleepScore;
+use App\Support\Health\SleepProcessor;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
-#[Signature('health:sleep {--all : Process every captured payload, not just the latest} {--file= : Process a specific raw JSON payload path} {--csv= : Target CSV to mirror into (defaults to data/sleep.csv)} {--resplit : Re-derive existing rows from their stored stages with the current session logic instead of importing} {--redate : Re-date every existing row to the Apple Health sleep-day (6pm-6pm, dated to wake morning) and resolve resulting collisions} {--score : Recompute the Apple-style sleep score for every row}')]
-#[Description('Build nightly sleep records from captured Health Auto Export sleep_analysis data, upserting the database and data/sleep.csv (Oura preferred, Apple Watch fallback)')]
+#[Signature('health:sleep {--file= : Process a specific raw JSON payload path} {--csv= : Target CSV to mirror into (defaults to data/sleep.csv)} {--resplit : Re-derive existing rows from their stored stages with the current session logic instead of importing} {--redate : Re-date every existing row to the Apple Health sleep-day (6pm-6pm, dated to wake morning) and resolve resulting collisions} {--score : Recompute the Apple-style sleep score for every row}')]
+#[Description('Process a captured Health Auto Export sleep_analysis payload, or run maintenance (resplit/redate/score) over the existing sleep data')]
 class ImportHealthSleep extends Command
 {
-    /** @var list<string> */
-    private const COLUMNS = ['occurred_at', 'bedtime', 'wake_time', 'duration', 'awake', 'rem', 'core', 'deep', 'source', 'stages'];
-
-    /** @var list<string> */
-    private const SCORE_COLUMNS = ['score', 'duration_score', 'bedtime_score', 'interruption_score'];
-
-    /** Nights of recent history used to establish a typical bedtime. */
-    private const BASELINE_WINDOW = 14;
-
-    /** Fewest baseline nights before the bedtime component is scored at all. */
-    private const BASELINE_MINIMUM = 3;
-
-    public function handle(SleepAggregator $aggregator, SleepScore $scorer): int
+    public function handle(SleepProcessor $processor, SleepAggregator $aggregator): int
     {
         if ($this->option('resplit')) {
-            return $this->resplit($aggregator);
+            return $this->resplit($aggregator, $processor);
         }
 
         if ($this->option('redate')) {
-            return $this->redate($aggregator);
+            return $this->redate($aggregator, $processor);
         }
 
         if ($this->option('score')) {
-            return $this->score($scorer);
-        }
-
-        $segments = $this->collectSegments();
-
-        if ($segments === []) {
-            $this->components->warn('No sleep_analysis data found in the captured payloads.');
+            $processor->scoreAll($this->option('csv') ?: null);
 
             return self::SUCCESS;
         }
 
-        $records = $aggregator->aggregate($segments);
+        $file = $this->option('file');
 
-        foreach ($records as $record) {
-            Sleep::query()->updateOrCreate(
-                ['occurred_at' => Carbon::parse($record['occurred_at'])->startOfDay()],
-                $record,
-            );
+        if (! is_string($file) || $file === '') {
+            $this->components->info('Sleep now ingests from POST /api/health/ingest. Use --file to reprocess a payload, or --resplit/--redate/--score for maintenance.');
+
+            return self::SUCCESS;
         }
 
-        $mirrored = $this->mirrorToCsv($records);
-        $this->score($scorer);
+        $payload = json_decode((string) file_get_contents($file), true);
 
-        $this->components->info(sprintf('Imported %d night(s) of sleep. Mirrored %d row(s) into %s.', count($records), $mirrored, $this->csvPath()));
-
-        return self::SUCCESS;
-    }
-
-    /**
-     * Recompute the sleep score for every row and write it to the CSV and the
-     * database. Each night's bedtime component is judged against a trailing
-     * median of recent bedtimes, so rows are scored in chronological order.
-     */
-    private function score(SleepScore $scorer): int
-    {
-        $path = $this->csvPath();
-
-        if (! is_file($path)) {
-            $this->components->error("CSV not found: {$path}");
+        if (! is_array($payload)) {
+            $this->components->error("Not a JSON payload: {$file}");
 
             return self::FAILURE;
         }
 
-        $handle = fopen($path, 'r');
-        $headers = fgetcsv($handle);
-        $rows = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) === count($headers)) {
-                $rows[] = array_combine($headers, $row);
-            }
-        }
-
-        fclose($handle);
-
-        usort($rows, fn (array $first, array $second): int => strcmp($first['occurred_at'], $second['occurred_at']));
-
-        $headers = array_values(array_unique([...$headers, ...self::SCORE_COLUMNS]));
-        $models = Sleep::query()->get()->keyBy(fn (Sleep $sleep): string => $sleep->occurred_at->toDateString());
-        $recent = [];
-
-        foreach ($rows as $index => $row) {
-            $bedtimeMinutes = $this->bedtimeMinutes($row['bedtime']);
-            $baseline = count($recent) >= self::BASELINE_MINIMUM ? $this->median($recent) : null;
-
-            $scores = $scorer->score([
-                'duration' => (int) $row['duration'],
-                'awake' => (int) $row['awake'],
-                'rem' => (int) $row['rem'],
-                'core' => (int) $row['core'],
-                'deep' => (int) $row['deep'],
-                'wake_events' => $this->wakeEvents($row['stages'] ?? ''),
-                'bedtime_minutes' => $bedtimeMinutes,
-                'baseline_minutes' => $baseline,
-            ]);
-
-            $rows[$index] = [...$row, ...array_map('strval', $scores)];
-
-            $recent[] = $bedtimeMinutes;
-            $recent = array_slice($recent, -self::BASELINE_WINDOW);
-
-            $models->get($row['occurred_at'])?->forceFill($scores)->saveQuietly();
-        }
-
-        $handle = fopen($path, 'w');
-        fputcsv($handle, $headers);
-
-        foreach ($rows as $row) {
-            fputcsv($handle, array_map(fn (string $column): string => (string) ($row[$column] ?? ''), $headers));
-        }
-
-        fclose($handle);
-
-        $this->components->info(sprintf('Scored %d night(s) in %s.', count($rows), basename($path)));
+        $processor->process($payload, $this->option('csv') ?: null);
+        $this->components->info('Processed sleep payload.');
 
         return self::SUCCESS;
-    }
-
-    /** Minutes from 6pm to the bedtime, so evening and pre-dawn times stay ordered. */
-    private function bedtimeMinutes(string $bedtime): int
-    {
-        $time = Carbon::parse($bedtime);
-
-        return (($time->hour * 60 + $time->minute) - 1080 + 1440) % 1440;
-    }
-
-    /** Number of distinct awake periods recorded in the night's stages. */
-    private function wakeEvents(string $stagesJson): int
-    {
-        $stages = json_decode($stagesJson, true);
-
-        if (! is_array($stages)) {
-            return 0;
-        }
-
-        return count(array_filter($stages, fn ($stage): bool => ($stage['stage'] ?? null) === 'awake'));
-    }
-
-    /**
-     * @param  list<int>  $values
-     */
-    private function median(array $values): int
-    {
-        sort($values);
-        $middle = intdiv(count($values), 2);
-
-        return count($values) % 2 === 0
-            ? (int) round(($values[$middle - 1] + $values[$middle]) / 2)
-            : $values[$middle];
     }
 
     /**
@@ -175,9 +58,9 @@ class ImportHealthSleep extends Command
      * Rows with no stored stages, and rows that re-derive identically, are left
      * untouched. Updates both the CSV and the database.
      */
-    private function resplit(SleepAggregator $aggregator): int
+    private function resplit(SleepAggregator $aggregator, SleepProcessor $processor): int
     {
-        $path = $this->csvPath();
+        $path = $processor->csvPath($this->option('csv') ?: null);
 
         if (! is_file($path)) {
             $this->components->error("CSV not found: {$path}");
@@ -212,7 +95,7 @@ class ImportHealthSleep extends Command
                 continue;
             }
 
-            $rows[$index] = [...$row, ...$this->csvRow($record, $headers)];
+            $rows[$index] = [...$row, ...$processor->csvRow($record, $headers)];
             $changed++;
 
             Sleep::query()->updateOrCreate(
@@ -241,9 +124,9 @@ class ImportHealthSleep extends Command
      * overnight sleep plus a daytime nap) the longest is kept. The CSV and the
      * database (and its timeline entries, via model events) are moved together.
      */
-    private function redate(SleepAggregator $aggregator): int
+    private function redate(SleepAggregator $aggregator, SleepProcessor $processor): int
     {
-        $path = $this->csvPath();
+        $path = $processor->csvPath($this->option('csv') ?: null);
 
         if (! is_file($path)) {
             $this->components->error("CSV not found: {$path}");
@@ -349,132 +232,5 @@ class ImportHealthSleep extends Command
         $wakeDelta = abs(strtotime((string) $record['wake_time']) - (int) strtotime($row['wake_time'] ?: 'now'));
 
         return $durationDelta > $tolerance || $bedtimeDelta > $tolerance || $wakeDelta > $tolerance;
-    }
-
-    /**
-     * Gather and de-duplicate sleep_analysis segments from the selected payloads.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function collectSegments(): array
-    {
-        $segments = [];
-        $seen = [];
-
-        foreach ($this->payloads() as $payload) {
-            foreach ($payload['data']['metrics'] ?? [] as $metric) {
-                if (($metric['name'] ?? null) !== 'sleep_analysis' || ! is_array($metric['data'] ?? null)) {
-                    continue;
-                }
-
-                foreach ($metric['data'] as $segment) {
-                    $key = ($segment['source'] ?? '').'|'.($segment['start'] ?? '').'|'.($segment['end'] ?? '').'|'.($segment['value'] ?? '');
-
-                    if (isset($seen[$key])) {
-                        continue;
-                    }
-
-                    $seen[$key] = true;
-                    $segments[] = $segment;
-                }
-            }
-        }
-
-        return $segments;
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function payloads(): array
-    {
-        if ($file = $this->option('file')) {
-            $decoded = json_decode((string) file_get_contents($file), true);
-
-            return is_array($decoded) ? [$decoded] : [];
-        }
-
-        $paths = collect(Storage::disk('local')->files('health/incoming'))
-            ->filter(fn (string $path): bool => str_ends_with($path, '.json') && ! str_ends_with($path, '.summary.json'))
-            ->sort()
-            ->values();
-
-        if (! $this->option('all')) {
-            $paths = $paths->take(-1);
-        }
-
-        return $paths
-            ->map(fn (string $path) => json_decode((string) Storage::disk('local')->get($path), true))
-            ->filter(fn ($payload): bool => is_array($payload))
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Merge the records into the CSV by night, preserving every existing row.
-     *
-     * @param  array<string, array<string, mixed>>  $records
-     */
-    private function mirrorToCsv(array $records): int
-    {
-        $path = $this->csvPath();
-
-        if (! is_file($path)) {
-            return 0;
-        }
-
-        $handle = fopen($path, 'r');
-        $headers = fgetcsv($handle);
-        $rows = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) !== count($headers)) {
-                continue;
-            }
-
-            $combined = array_combine($headers, $row);
-            $rows[$combined['occurred_at']] = $combined;
-        }
-
-        fclose($handle);
-
-        foreach ($records as $night => $record) {
-            $rows[$night] = $this->csvRow($record, $headers);
-        }
-
-        ksort($rows);
-
-        $handle = fopen($path, 'w');
-        fputcsv($handle, $headers);
-
-        foreach ($rows as $row) {
-            fputcsv($handle, array_map(fn (string $column): string => (string) ($row[$column] ?? ''), $headers));
-        }
-
-        fclose($handle);
-
-        return count($records);
-    }
-
-    /**
-     * @param  array<string, mixed>  $record
-     * @param  list<string>  $headers
-     * @return array<string, string>
-     */
-    private function csvRow(array $record, array $headers): array
-    {
-        $row = [];
-
-        foreach ($headers as $header) {
-            $value = $record[$header] ?? null;
-            $row[$header] = $header === 'stages' ? (string) json_encode($value) : (string) ($value ?? '');
-        }
-
-        return $row;
-    }
-
-    private function csvPath(): string
-    {
-        return $this->option('csv') ?: base_path('data/sleep.csv');
     }
 }
