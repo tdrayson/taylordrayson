@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
@@ -56,6 +57,6 @@ class Fuel extends Model implements HasMedia, Timelineable
 
     public function slug(): string
     {
-        return 'fuel';
+        return Str::slug($this->station_name ?: 'fuel');
     }
 }
