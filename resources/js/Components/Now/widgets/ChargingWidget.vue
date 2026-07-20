@@ -57,7 +57,7 @@ const fillModifier = computed(() => {
     <div class="charging relative aspect-square rounded-3xl bg-neutral-0 shadow-card">
         <div class="charging__inner flex h-full flex-col justify-center">
             <p class="charging__status flex items-center font-semibold">
-                <svg v-if="charging" class="charging__bolt text-neutral-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg v-if="charging" class="charging__bolt text-neutral-900" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M13 2 4 13.5h6L9 22l10-12.5h-6z" />
                 </svg>
                 <span class="text-neutral-900">{{ device }}</span>

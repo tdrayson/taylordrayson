@@ -9,17 +9,19 @@ const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navig
 </script>
 
 <template>
-    <!-- Styled like the site's inputs (Ui/Input.vue): field radius, not a pill. -->
     <button
         type="button"
-        class="flex h-10 w-full items-center gap-2.5 rounded-md border border-neutral-100 bg-neutral-0 px-3 text-neutral-500 transition-colors hover:border-neutral-200 focus-visible:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        aria-label="Open search"
+        class="-ml-3 flex w-[calc(100%+0.75rem)] items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 md:py-2 md:text-sm"
         @click="open"
     >
-        <Icon name="Search01Icon" class="size-4 shrink-0" />
-        <span class="text-nav text-neutral-700">Search</span>
-        <kbd class="ml-auto hidden items-center gap-0.5 rounded border border-neutral-50 bg-neutral-0 px-1.5 py-0.5 text-meta text-neutral-500 md:flex">
-            <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
-            <template v-else>Ctrl K</template>
-        </kbd>
+        <Icon name="Search01Icon" class="size-5 flex-none text-neutral-500" />
+        <span class="flex items-center gap-2">
+            Search
+            <kbd class="hidden items-center gap-0.5 text-meta font-normal text-neutral-500 md:inline-flex">
+                <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
+                <template v-else>Ctrl K</template>
+            </kbd>
+        </span>
     </button>
 </template>

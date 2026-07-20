@@ -10,6 +10,7 @@ use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SleepScoreController;
@@ -92,9 +93,12 @@ foreach (TypeRegistry::all() as $type => $definition) {
 Route::get('/stats/{type}', [StatsController::class, 'show'])
     ->where('type', '[a-z][a-z0-9-]*')->name('stats.show');
 
-// Timeline: home, on-this-day, then digit-constrained dated routes and the entry page.
+// Timeline: home, on-this-day, lucky/random, then digit-constrained dated routes
+// and the entry page.
 Route::get('/', [TimelineController::class, 'index'])->name('timeline');
 Route::get('/on-this-day', [TimelineController::class, 'onThisDay'])->name('on-this-day');
+Route::get('/lucky', RandomEntryController::class)->name('lucky');
+Route::get('/random', RandomEntryController::class)->name('random');
 Route::get('/{year}', [TimelineController::class, 'year'])
     ->where(['year' => '\d{4}'])->name('year');
 Route::get('/{year}/{month}', [TimelineController::class, 'month'])

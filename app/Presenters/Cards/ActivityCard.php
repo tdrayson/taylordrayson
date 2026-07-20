@@ -59,19 +59,21 @@ final class ActivityCard
             return $this->strengthSubtitle($model->meta['sets']);
         }
 
-        $parts = [];
+        // Distance and duration read as one clause ("1.6 mi in 22m") when both are
+        // present; duration only gets a bare leading value when there is no
+        // distance to attach it to. Calories always stays comma-joined.
+        $distancePart = $model->distance ? Distance::miles($model->distance, 1).' mi' : null;
+        $durationPart = $model->duration ? $this->durationForHumans($model->duration) : null;
 
-        if ($model->distance) {
-            $parts[] = Distance::miles($model->distance, 1).' mi';
-        }
+        $lead = match (true) {
+            $distancePart && $durationPart => "{$distancePart} in {$durationPart}",
+            default => $distancePart ?? $durationPart,
+        };
 
-        if ($model->duration) {
-            $parts[] = $this->durationForHumans($model->duration);
-        }
-
-        if ($model->calories) {
-            $parts[] = number_format($model->calories).' kcal';
-        }
+        $parts = array_filter([
+            $lead,
+            $model->calories ? number_format($model->calories).' kcal' : null,
+        ]);
 
         return $parts ? implode(', ', $parts) : null;
     }
@@ -118,7 +120,9 @@ final class ActivityCard
         }
 
         if ($model->duration) {
-            $tokens[] = SubtitleToken::text($this->durationForHumans($model->duration));
+            // ' in ' only reads correctly when duration follows a distance token;
+            // with no distance, duration leads and keeps the default ', ' separator.
+            $tokens[] = SubtitleToken::text($this->durationForHumans($model->duration), $model->distance ? ' in ' : null);
         }
 
         if ($model->calories) {

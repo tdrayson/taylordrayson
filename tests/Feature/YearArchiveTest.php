@@ -79,7 +79,7 @@ it('splits distance by discipline, averages daily food, and adds a year-only sup
 
 it('counts tv episodes (not just films) in the "Watched" stat', function () {
     // Regression guard for the periodStats bug where `whereIn('type', ['film', 'show'])`
-    // used the non-existent value 'show' instead of the real 'tv_episode', silently
+    // used the non-existent value 'show' instead of the real 'episode', silently
     // undercounting TV in the year/month "Watched" stat.
     Media::factory()->create(['type' => MediaType::TvEpisode, 'occurred_at' => '2025-04-01 20:00:00']);
     Media::factory()->create(['type' => MediaType::Film, 'occurred_at' => '2025-04-02 20:00:00']);

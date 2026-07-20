@@ -9,8 +9,8 @@ defineProps({
 </script>
 
 <template>
-    <!-- Search lives in the sidebar (see AppSidebar.vue); the topbar carries
-         wayfinding (breadcrumb) and ambient status only. -->
+    <!-- Search lives at the bottom of the sidebar with Settings (see AppSidebar.vue);
+         the topbar carries wayfinding (breadcrumb) and ambient status only. -->
     <div class="hidden items-center gap-4 px-5 py-4 md:flex md:px-10">
         <div class="flex min-w-0 flex-1 items-center">
             <Breadcrumb :items="breadcrumb" />

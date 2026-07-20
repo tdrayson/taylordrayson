@@ -16,6 +16,7 @@ const day = pad(now.getDate());
 const todayUrl = `/${year}/${month}/${day}`;
 
 const items = [
+    { label: 'Today', href: todayUrl },
     { label: 'This month', href: `/${year}/${month}` },
     { label: 'This year', href: `/${year}` },
     { label: 'On this day', href: '/on-this-day' },
@@ -52,8 +53,8 @@ onUnmounted(() => {
 <template>
     <div ref="root" class="relative">
         <div class="inline-flex">
-            <Button :href="todayUrl" variant="secondary" size="sm" class="h-9 rounded-r-none border-r-0">
-                Today
+            <Button :href="'/now'" variant="secondary" size="sm" class="h-9 rounded-r-none border-r-0">
+                Now
             </Button>
             <Button
                 variant="secondary"
