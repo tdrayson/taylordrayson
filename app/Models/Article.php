@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
+use App\Data\PhotoData;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -76,18 +79,23 @@ class Article extends Model implements HasMedia, Timelineable
         ];
     }
 
-    public function card(): array
+    public function card(): CardData
     {
-        return [
-            'type' => 'article',
-            'icon' => 'file-text',
-            'title' => $this->title,
-            'subtitle' => Text::excerpt(PortableText::plainText($this->content), 240) ?: $this->excerpt,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'article',
-            'meta' => [
-                'photos' => array_values(array_filter([$this->coverPhoto()])),
-            ],
-        ];
+        $cover = $this->coverPhoto();
+
+        return new CardData(
+            type: 'article',
+            icon: 'file-text',
+            title: $this->title,
+            titleLabel: null,
+            subtitle: Text::excerpt(PortableText::plainText($this->content), 240) ?: $this->excerpt,
+            subtitleTokens: null,
+            occurredAt: $this->occurred_at,
+            accent: 'article',
+            range: null,
+            meta: CardMeta::photos(
+                $cover !== null ? [PhotoData::cover($cover['src'], $cover['srcset'], $cover['full'])] : [],
+            ),
+        );
     }
 }

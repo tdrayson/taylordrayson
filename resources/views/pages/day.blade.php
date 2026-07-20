@@ -9,12 +9,12 @@
                 @php $card = $entry->timelineable->card(); @endphp
                 <li>
                     <a href="{{ $entry->timelineable->url() }}">
-                        <strong>{{ $card['title'] }}</strong>
+                        <strong>{{ $card->title }}</strong>
                     </a>
-                    @if ($card['subtitle'])
-                        &mdash; {{ $card['subtitle'] }}
+                    @if ($card->subtitle)
+                        &mdash; {{ $card->subtitle }}
                     @endif
-                    <em>({{ $card['type'] }})</em>
+                    <em>({{ $card->type }})</em>
                 </li>
             @endif
         @endforeach

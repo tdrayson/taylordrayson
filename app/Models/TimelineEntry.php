@@ -102,13 +102,13 @@ class TimelineEntry extends Model implements Feedable
 
         return FeedItem::create([
             'id' => $link,
-            'title' => $card['title'],
-            'summary' => $card['subtitle'] ?? $card['title'],
+            'title' => $card->title,
+            'summary' => $card->subtitle ?? $card->title,
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
             'authorEmail' => config('feed.author_email'),
-            'category' => $card['type'],
+            'category' => $card->type,
         ]);
     }
 

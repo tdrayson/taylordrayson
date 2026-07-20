@@ -12,13 +12,13 @@ it('uses the flat station_name as the card title', function () {
 
     $card = $fuel->card();
 
-    expect($card['title'])->toBe('ASDA Wallington');
-    expect($card['titleLabel'])->toContain('ASDA Wallington');
-    expect($card['subtitle'])->toContain('£41.13');
+    expect($card->title)->toBe('ASDA Wallington');
+    expect($card->titleLabel)->toContain('ASDA Wallington');
+    expect($card->subtitle)->toContain('£41.13');
 });
 
 it('falls back to Fuel when no station is set', function () {
     $fuel = Fuel::factory()->create(['station_name' => null]);
 
-    expect($fuel->card()['title'])->toBe('Fuel');
+    expect($fuel->card()->title)->toBe('Fuel');
 });

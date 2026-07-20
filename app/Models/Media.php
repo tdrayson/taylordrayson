@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
 use App\Enums\MediaType;
 use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
@@ -55,7 +57,7 @@ class Media extends Model implements HasMedia, Timelineable
         return Str::slug($this->title);
     }
 
-    public function card(): array
+    public function card(): CardData
     {
         $detail = match ($this->type) {
             MediaType::Film => $this->meta['year'] ?? null,
@@ -71,14 +73,17 @@ class Media extends Model implements HasMedia, Timelineable
             $detail,
         ]);
 
-        return [
-            'type' => 'media',
-            'icon' => 'film',
-            'title' => $this->title,
-            'subtitle' => $parts ? implode(', ', $parts) : null,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'media',
-            'meta' => [],
-        ];
+        return new CardData(
+            type: 'media',
+            icon: 'film',
+            title: $this->title,
+            titleLabel: null,
+            subtitle: $parts ? implode(', ', $parts) : null,
+            subtitleTokens: null,
+            occurredAt: $this->occurred_at,
+            accent: 'media',
+            range: null,
+            meta: CardMeta::empty(),
+        );
     }
 }

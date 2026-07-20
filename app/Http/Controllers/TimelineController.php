@@ -224,7 +224,7 @@ class TimelineController extends Controller
                         continue;
                     }
 
-                    $types[] = $model->card()['type'];
+                    $types[] = $model->card()->type;
                 }
 
                 $calories = (int) ($calorieTotals[$group->first()->occurred_at->toDateString()] ?? 0);

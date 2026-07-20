@@ -181,14 +181,14 @@ it('resumes without redoing already-migrated activities', function () {
 it('includes the photos gallery in the activity feed card', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
 
-    expect($activity->card()['meta']['photos'])->toBe([]);
+    expect($activity->card()->meta->photos)->toBe([]);
 
     $activity->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
 
-    $photos = $activity->refresh()->card()['meta']['photos'];
+    $photos = $activity->refresh()->card()->meta->photos;
 
     expect($photos)->toHaveCount(1);
-    expect($photos[0])->toHaveKeys(['src', 'srcset', 'full']);
+    expect($photos[0]->toArray())->toHaveKeys(['src', 'srcset', 'full']);
 });
 
 it('exposes the activity photos in the entry payload, cover first', function () {

@@ -17,8 +17,8 @@ it('renders a card for every media type', function (MediaType $type) {
 
     $card = $media->card();
 
-    expect($card['type'])->toBe('media')
-        ->and($card['title'])->toBe('Test Title');
+    expect($card->type)->toBe('media')
+        ->and($card->title)->toBe('Test Title');
 })->with(MediaType::cases());
 
 it('builds the tv episode detail from meta using the enum arm, not the phantom "tv" value', function () {
@@ -27,5 +27,5 @@ it('builds the tv episode detail from meta using the enum arm, not the phantom "
         'meta' => ['season' => 2, 'episode' => 5],
     ]);
 
-    expect($episode->card()['subtitle'])->toContain('S02E05');
+    expect($episode->card()->subtitle)->toContain('S02E05');
 });

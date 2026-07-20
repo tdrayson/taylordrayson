@@ -43,9 +43,9 @@ it('generates both light and dark static pin maps and exposes both URLs on the c
 
     $card = $event->card();
 
-    expect($card['meta']['map'])->not->toBeNull()
-        ->and($card['meta']['mapDark'])->not->toBeNull()
-        ->and($card['meta']['map'])->not->toBe($card['meta']['mapDark']);
+    expect($card->meta->map)->not->toBeNull()
+        ->and($card->meta->mapDark)->not->toBeNull()
+        ->and($card->meta->map)->not->toBe($card->meta->mapDark);
 
     Http::assertSent(fn ($request) => str_contains($request->url(), 'mapbox/light-v11'));
     Http::assertSent(fn ($request) => str_contains($request->url(), 'mapbox/dark-v11'));
