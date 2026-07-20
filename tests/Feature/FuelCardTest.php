@@ -25,7 +25,6 @@ it('falls back to Fuel when no station is set', function () {
     expect(CardPresenter::for($fuel)->title)->toBe('Fuel');
 });
 
-<<<<<<< HEAD
 afterEach(function () {
     File::delete(public_path('logos/brands/testco.png'));
 });
@@ -45,7 +44,8 @@ it('exposes the brand logo url on the card when the file exists', function () {
 it('has a null brand logo when the file is absent or brand is null', function () {
     expect(CardPresenter::for(Fuel::factory()->create(['brand' => 'Testco']))->meta->brandLogo)->toBeNull();
     expect(Fuel::factory()->create(['brand' => null])->logo_url)->toBeNull();
-=======
+});
+
 it('slugs the station name for the entry URL', function () {
     $fuel = Fuel::factory()->make(['station_name' => 'Shell Cobham Services']);
 
@@ -55,5 +55,4 @@ it('slugs the station name for the entry URL', function () {
 it('falls back to the "fuel" slug when no station is set', function () {
     expect(Fuel::factory()->make(['station_name' => null])->slug())->toBe('fuel');
     expect(Fuel::factory()->make(['station_name' => ''])->slug())->toBe('fuel');
->>>>>>> origin/master
 });
