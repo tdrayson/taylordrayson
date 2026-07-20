@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Data\CardData;
 use App\Data\SegmentData;
+use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\OgMeta;
 use App\Support\OgPhrases;
 use App\Support\StaticMap;
@@ -143,7 +145,7 @@ class OgImageController extends Controller
             $model->load('origin', 'destination');
         }
 
-        $card = $model->card();
+        $card = CardPresenter::for($model);
         $accent = TypeColors::hex($card->accent, self::ACCENT_DEFAULT);
         [$layout, $image] = $this->entryImage($model, $card, $accent);
 
@@ -154,12 +156,12 @@ class OgImageController extends Controller
         return [
             'layout' => $layout,
             'accent' => $accent,
-            'eyebrow' => self::TYPE_EYEBROWS[$card->type] ?? null,
+            'eyebrow' => self::TYPE_EYEBROWS[$card->type->value] ?? null,
             'title' => $this->entryTitle($model, $card, $seed),
             'date' => $entry->occurred_at->format('D j M Y'),
             'subtitle' => null,
             'image' => $image,
-            'stages' => $card->type === 'sleep' ? $this->sleepStages($card->meta->segments ?? []) : null,
+            'stages' => $card->type === TimelineType::Sleep ? $this->sleepStages($card->meta->segments ?? []) : null,
             'cutout' => $this->dataUri('taylor-cutout.png', 'image/png'),
         ];
     }
@@ -194,10 +196,10 @@ class OgImageController extends Controller
     private function entryTitle(Model $model, CardData $card, string $seed): string
     {
         $phrase = match ($card->type) {
-            'sleep' => OgPhrases::pick('sleep', ['duration' => str_replace(' sleep', '', $card->title)], $seed),
-            'calorie' => OgPhrases::pick('food', ['kcal' => trim(str_replace('kcal', '', $card->title))], $seed),
-            'fuel' => OgPhrases::pick('fuel', ['cost' => number_format((float) $model->cost, 2), 'litres' => $model->litres], $seed),
-            'podcast' => $model->season_number && $model->episode_number
+            TimelineType::Sleep => OgPhrases::pick('sleep', ['duration' => str_replace(' sleep', '', $card->title)], $seed),
+            TimelineType::Calorie => OgPhrases::pick('food', ['kcal' => trim(str_replace('kcal', '', $card->title))], $seed),
+            TimelineType::Fuel => OgPhrases::pick('fuel', ['cost' => number_format((float) $model->cost, 2), 'litres' => $model->litres], $seed),
+            TimelineType::Podcast => $model->season_number && $model->episode_number
                 ? OgPhrases::pick('podcast', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
                 : null,
             default => null,
@@ -217,13 +219,13 @@ class OgImageController extends Controller
     {
         $type = $card->type;
 
-        if ($type === 'activity') {
+        if ($type === TimelineType::Activity) {
             if ($url = StaticMap::route($card->meta->polyline, $accent)) {
                 return ['media', $url];
             }
         }
 
-        if ($type === 'flight') {
+        if ($type === TimelineType::Flight) {
             $route = $card->meta->route;
             $url = StaticMap::arc(
                 $this->floatOrNull($route?->origin->lng),
@@ -238,7 +240,7 @@ class OgImageController extends Controller
             }
         }
 
-        if ($type === 'checkin') {
+        if ($type === TimelineType::Checkin) {
             $latitude = $this->floatOrNull($model->latitude);
             $longitude = $this->floatOrNull($model->longitude);
 
@@ -247,7 +249,7 @@ class OgImageController extends Controller
             }
         }
 
-        if (in_array($type, ['media', 'article'], true) && method_exists($model, 'getFirstMediaUrl')) {
+        if (in_array($type, [TimelineType::Media, TimelineType::Article], true) && method_exists($model, 'getFirstMediaUrl')) {
             $cover = $model->getFirstMediaUrl('cover');
 
             if ($cover !== '') {

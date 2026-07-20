@@ -2,6 +2,7 @@
 
 use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
+use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -181,11 +182,11 @@ it('resumes without redoing already-migrated activities', function () {
 it('includes the photos gallery in the activity feed card', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
 
-    expect($activity->card()->meta->photos)->toBe([]);
+    expect(CardPresenter::for($activity)->meta->photos)->toBe([]);
 
     $activity->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
 
-    $photos = $activity->refresh()->card()->meta->photos;
+    $photos = CardPresenter::for($activity->refresh())->meta->photos;
 
     expect($photos)->toHaveCount(1);
     expect($photos[0]->toArray())->toHaveKeys(['src', 'srcset', 'full']);

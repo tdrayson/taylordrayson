@@ -6,7 +6,7 @@
     <ul>
         @foreach ($entries as $entry)
             @if ($entry->timelineable)
-                @php $card = $entry->timelineable->card(); @endphp
+                @php $card = \App\Presenters\CardPresenter::for($entry->timelineable); @endphp
                 <li>
                     <a href="{{ $entry->timelineable->url() }}">
                         <strong>{{ $card->title }}</strong>
@@ -14,7 +14,7 @@
                     @if ($card->subtitle)
                         &mdash; {{ $card->subtitle }}
                     @endif
-                    <em>({{ $card->type }})</em>
+                    <em>({{ $card->type->value }})</em>
                 </li>
             @endif
         @endforeach

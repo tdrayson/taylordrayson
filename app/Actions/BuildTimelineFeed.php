@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
 use App\Support\Text;
 use Illuminate\Support\Collection;
@@ -42,11 +43,11 @@ class BuildTimelineFeed
         // without a lazy query per card.
         $entry->timelineable->setRelation('timelineEntry', $entry);
 
-        $card = $entry->timelineable->card();
+        $card = CardPresenter::for($entry->timelineable);
         $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
 
         return [
-            'iconKey' => $card->type,
+            'iconKey' => $card->type->value,
             'accent' => $card->accent,
             'title' => $card->title,
             'titleLabel' => $card->titleLabel,

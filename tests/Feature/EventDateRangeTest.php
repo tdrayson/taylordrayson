@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Event;
+use App\Presenters\CardPresenter;
 
 it('returns a range for a multi-day event', function () {
     $event = Event::factory()->create([
@@ -60,7 +61,7 @@ it('does not mutate occurred_at when building the card range', function () {
         'ends_at' => '2022-06-04 18:00:00',
     ]);
 
-    $card = $event->card();
+    $card = CardPresenter::for($event);
 
     expect($card->range->days)->toBe(3)
         ->and($card->occurredAt->format('H:i'))->toBe('09:00')

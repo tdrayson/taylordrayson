@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\MediaType;
+use App\Enums\TimelineType;
 use App\Models\Media;
+use App\Presenters\CardPresenter;
 
 it('casts a stored type string to the MediaType enum, but serialises the raw value', function (MediaType $type) {
     $media = Media::factory()->create(['type' => $type]);
@@ -15,9 +17,9 @@ it('casts a stored type string to the MediaType enum, but serialises the raw val
 it('renders a card for every media type', function (MediaType $type) {
     $media = Media::factory()->create(['type' => $type, 'title' => 'Test Title']);
 
-    $card = $media->card();
+    $card = CardPresenter::for($media);
 
-    expect($card->type)->toBe('media')
+    expect($card->type)->toBe(TimelineType::Media)
         ->and($card->title)->toBe('Test Title');
 })->with(MediaType::cases());
 
@@ -27,5 +29,5 @@ it('builds the tv episode detail from meta using the enum arm, not the phantom "
         'meta' => ['season' => 2, 'episode' => 5],
     ]);
 
-    expect($episode->card()->subtitle)->toContain('S02E05');
+    expect(CardPresenter::for($episode)->subtitle)->toContain('S02E05');
 });

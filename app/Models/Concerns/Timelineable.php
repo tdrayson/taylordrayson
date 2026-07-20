@@ -2,16 +2,8 @@
 
 namespace App\Models\Concerns;
 
-use App\Data\CardData;
-
 interface Timelineable
 {
-    /**
-     * The timeline card payload: type/icon/title/subtitle plus accent, an
-     * optional multi-day range, and the type-specific `meta` block.
-     */
-    public function card(): CardData;
-
     public function slug(): string;
 
     public function url(): string;

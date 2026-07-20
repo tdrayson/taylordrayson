@@ -3,8 +3,10 @@
 namespace App\Actions;
 
 use App\Models\Article;
+use App\Models\Concerns\Timelineable;
 use App\Models\Page;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use Illuminate\Database\Eloquent\Model;
 
 class BuildLinkPreviews
@@ -99,15 +101,15 @@ class BuildLinkPreviews
      *
      * @return array<string, mixed>
      */
-    private function fromCard(Model $model, string $href): array
+    private function fromCard(Model&Timelineable $model, string $href): array
     {
-        $card = $model->card();
+        $card = CardPresenter::for($model);
 
         return [
             'url' => $href,
             'title' => $card->title,
             'excerpt' => $card->subtitle,
-            'type' => $card->type,
+            'type' => $card->type->value,
             'accent' => $card->accent,
             'date' => $model->occurredAtForDisplay()?->toDateString(),
             'cover' => $card->meta->photos[0]->src ?? null,

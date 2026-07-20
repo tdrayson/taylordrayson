@@ -2,9 +2,6 @@
 
 namespace App\Models;
 
-use App\Data\CardData;
-use App\Data\CardMeta;
-use App\Data\MediaData;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -68,30 +65,5 @@ class Appearance extends Model implements HasMedia, Timelineable
         $srcset = $this->getFirstMedia('cover')?->getSrcset('card');
 
         return $srcset !== null && $srcset !== '' ? $srcset : null;
-    }
-
-    public function card(): CardData
-    {
-        return new CardData(
-            type: 'appearance',
-            icon: 'mic',
-            title: $this->title,
-            titleLabel: null,
-            subtitle: $this->show_name,
-            subtitleTokens: null,
-            occurredAt: $this->occurred_at,
-            accent: 'appearance',
-            range: null,
-            meta: CardMeta::media(MediaData::withSrcset(
-                id: "appearance-{$this->id}",
-                title: $this->title,
-                audioUrl: $this->audio_url,
-                videoUrl: $this->video_url,
-                thumbnail: $this->thumbnailUrl(),
-                srcset: $this->thumbnailSrcset(),
-                duration: $this->duration,
-                url: $this->url(),
-            )),
-        );
     }
 }

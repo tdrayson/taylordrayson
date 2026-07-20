@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -12,6 +13,7 @@ use App\Models\Flight;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
@@ -62,14 +64,14 @@ class EntryController extends Controller
             $model->load('media');
         }
 
-        $card = $model->card();
+        $card = CardPresenter::for($model);
 
         return Inertia::render('Entry', [
-            'type' => $card->type,
+            'type' => $card->type->value,
             'accent' => $card->accent,
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
-            'title' => $card->type === 'note' ? null : $card->title,
+            'title' => $card->type === TimelineType::Note ? null : $card->title,
             ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
             'og' => OgMeta::entry($entry, $card->title),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
