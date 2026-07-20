@@ -3,7 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
-import { Search01Icon, Calendar03Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { Calendar03Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 import { useDialog } from '../../composables/useDialog';
@@ -340,7 +340,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                     @keydown="onPanelKeydown"
                 >
                     <div class="flex items-center gap-3 border-b border-neutral-50 px-4">
-                        <Icon :icon="Search01Icon" class="size-4 shrink-0 text-neutral-500" />
+                        <Icon name="Search01Icon" class="size-4 shrink-0 text-neutral-500" />
                         <input
                             ref="input"
                             v-model="query"

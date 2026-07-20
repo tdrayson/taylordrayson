@@ -8,18 +8,15 @@ import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
-import RouteThumb from '../Maps/RouteThumb.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
-import { greatCircle } from '../../lib/maplibre.js';
-import { decodePolyline } from '../../lib/geo.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
-import { staticRouteMap, staticArcMap, MAPBOX_DARK } from '../../lib/staticMap.js';
 import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
-    icon: { type: [Array, Object], default: null },
+    // Registry name string (from entryTypes) or a raw hugeicons object.
+    icon: { type: [Array, Object, String], default: null },
     iconKey: { type: String, default: null },
     accent: { type: String, default: null },
     type: { type: String, default: '' },
@@ -162,78 +159,13 @@ const airline = computed(() => props.route?.airline ?? null);
 
 // The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
-const bannerColor = typeColor;
 
-// A full-width map banner: the flight's great-circle arc, or an activity's route.
-const flightArc = computed(() => {
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
+// Stored static map for this entry (activity route, flight arc, event/fuel/checkin
+// pin), pre-generated server-side. Shown only when there is no cover photo.
+const routeImageUrl = computed(() => props.map ?? null);
 
-    if (origin?.lat == null || destination?.lat == null) {
-        return null;
-    }
-
-    return greatCircle(
-        { lat: Number(origin.lat), lng: Number(origin.lng) },
-        { lat: Number(destination.lat), lng: Number(destination.lng) },
-        64,
-    );
-});
-
-const routePath = computed(() => {
-    const points = props.polyline ? decodePolyline(props.polyline) : [];
-
-    return points.length > 1 ? points : null;
-});
-
-// Generated static map image: an activity's GPS trace, a flight's great-circle
-// arc, or a pre-generated stored map (e.g. an event's location pin). INTERIM:
-// the GPS/arc variants render live from Mapbox; will move to a stored
-// (Cloudflare-hosted) URL. See lib/staticMap.js.
-const routeImageUrl = computed(() => {
-    if (props.polyline) {
-        return staticRouteMap(props.polyline);
-    }
-
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
-
-    if (origin?.lat != null && destination?.lat != null) {
-        return staticArcMap(origin, destination);
-    }
-
-    return props.map ?? null;
-});
-
-// Dark twin of routeImageUrl: the live polyline/arc maps re-render on the
-// dark Mapbox style, and the stored map (e.g. an event pin) uses its
-// pre-generated dark asset. The two <img> swap via dark:hidden / dark:block.
-const routeImageDarkUrl = computed(() => {
-    if (props.polyline) {
-        return staticRouteMap(props.polyline, { style: MAPBOX_DARK });
-    }
-
-    const origin = props.route?.origin;
-    const destination = props.route?.destination;
-
-    if (origin?.lat != null && destination?.lat != null) {
-        return staticArcMap(origin, destination, { style: MAPBOX_DARK });
-    }
-
-    return props.mapDark ?? null;
-});
-
-const banner = computed(() => {
-    if (flightArc.value) {
-        return { points: flightArc.value, endpoints: true };
-    }
-
-    if (routePath.value) {
-        return { points: routePath.value, endpoints: false };
-    }
-
-    return null;
-});
+// Dark twin of the stored map; the two <img> swap via dark:hidden / dark:block.
+const routeImageDarkUrl = computed(() => props.mapDark ?? null);
 
 const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
 
@@ -276,7 +208,7 @@ function openLightbox(index) {
             </div>
         </div>
         <!-- Notes show their full content as body text; everything else gets a display-font title. -->
-        <p v-if="body" class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
+        <p v-if="body" v-twemoji class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
         <!-- Titles keep a headline measure (~40ch) rather than running full width.
              Each card is a subsection of its DateGroup date heading, so the title
              is a real h3, one level under DateGroup's h2/h3 (see the heading-ladder
@@ -284,6 +216,7 @@ function openLightbox(index) {
         <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
+                v-twemoji
                 :href="url || undefined"
                 :aria-label="titleLabel || undefined"
                 class="p-name"
@@ -308,9 +241,7 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
-        <!-- SVG banner only as a fallback when no generated image is available. -->
-        <RouteThumb v-if="banner && !routeImageUrl" :points="banner.points" :color="bannerColor" :endpoints="banner.endpoints" class="mt-3" />
+        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
              and the `dark:` class picks the right one, no JS needed. -->
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
@@ -396,7 +327,7 @@ function openLightbox(index) {
                      the play button in both themes, so it must not invert. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-12 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
-                        <Icon :icon="PlayIcon" class="size-5" />
+                        <Icon name="PlayIcon" class="size-5" />
                     </span>
                 </span>
             </button>

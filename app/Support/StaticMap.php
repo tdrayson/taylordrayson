@@ -28,7 +28,7 @@ class StaticMap
      * using Mapbox's own auto-fit since there are no fixed-size markers to keep
      * stable.
      */
-    public static function route(?string $polyline, string $color = '2e9e6a', int $width = 1200, int $height = 630, int $padding = 64): ?string
+    public static function route(?string $polyline, string $color = '2e9e6a', int $width = 1200, int $height = 630, int $padding = 64, string $style = self::STYLE): ?string
     {
         if (! $polyline) {
             return null;
@@ -38,7 +38,7 @@ class StaticMap
 
         return sprintf(
             'https://api.mapbox.com/styles/v1/%s/static/%s/auto/%dx%d@2x?padding=%d&attribution=false&logo=false&access_token=%s',
-            self::STYLE, $overlay, $width, $height, $padding, config('services.mapbox.token')
+            $style, $overlay, $width, $height, $padding, config('services.mapbox.token')
         );
     }
 
@@ -61,7 +61,7 @@ class StaticMap
      *
      * @return string|null The image URL, or null when any coordinate is missing/invalid.
      */
-    public static function arc(?float $originLng, ?float $originLat, ?float $destLng, ?float $destLat, string $color = '209fdf', int $width = 1200, int $height = 630, int $padding = 60): ?string
+    public static function arc(?float $originLng, ?float $originLat, ?float $destLng, ?float $destLat, string $color = '209fdf', int $width = 1200, int $height = 630, int $padding = 60, string $style = self::STYLE): ?string
     {
         foreach ([$originLng, $originLat, $destLng, $destLat] as $coordinate) {
             if ($coordinate === null || ! is_finite($coordinate)) {
@@ -160,7 +160,7 @@ class StaticMap
 
         return sprintf(
             'https://api.mapbox.com/styles/v1/%s/static/%s/%s,%s,%s/%dx%d@2x?attribution=false&logo=false&access_token=%s',
-            self::STYLE,
+            $style,
             implode(',', $overlays),
             number_format($centerLongitude, 5, '.', ''),
             number_format($centerLatitude, 5, '.', ''),

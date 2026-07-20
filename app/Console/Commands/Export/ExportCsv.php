@@ -3,8 +3,6 @@
 namespace App\Console\Commands\Export;
 
 use App\Models\Activity;
-use App\Models\Airline;
-use App\Models\Airport;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Calorie;
@@ -29,8 +27,6 @@ class ExportCsv extends Command
     /** @var array<string, class-string<Model>> */
     private array $models = [
         'activity' => Activity::class,
-        'airline' => Airline::class,
-        'airport' => Airport::class,
         'appearance' => Appearance::class,
         'article' => Article::class,
         'calorie' => Calorie::class,

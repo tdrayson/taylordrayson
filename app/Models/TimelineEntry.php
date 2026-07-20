@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Presenters\CardPresenter;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -49,11 +50,13 @@ class TimelineEntry extends Model implements Feedable
     public static function cardRelations(): array
     {
         return [
-            Flight::class => ['origin', 'destination', 'airline'],
+            Flight::class => ['origin', 'destination', 'airline', 'media'],
             Appearance::class => ['media'],
             Activity::class => ['media'],
             Article::class => ['media'],
             Event::class => ['media'],
+            Fuel::class => ['media'],
+            Checkin::class => ['media'],
         ];
     }
 
@@ -95,18 +98,18 @@ class TimelineEntry extends Model implements Feedable
     {
         $this->timelineable->setRelation('timelineEntry', $this);
 
-        $card = $this->timelineable->card();
+        $card = CardPresenter::for($this->timelineable);
         $link = url($this->timelineable->url());
 
         return FeedItem::create([
             'id' => $link,
-            'title' => $card['title'],
-            'summary' => $card['subtitle'] ?? $card['title'],
+            'title' => $card->title,
+            'summary' => $card->subtitle ?? $card->title,
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
             'authorEmail' => config('feed.author_email'),
-            'category' => $card['type'],
+            'category' => $card->type->value,
         ]);
     }
 

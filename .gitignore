@@ -17,6 +17,7 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/backups
 /storage/pail
 /vendor
 Homestead.json
@@ -24,7 +25,11 @@ Homestead.yaml
 Thumbs.db
 .superpowers/
 /todo.md
+storage/backups/
 
 # Self-hosted twemoji SVGs: regenerated from the npm package at build time if
 # the emoji feature is used, so they are never committed (3,700+ files).
 /public/twemoji/
+
+# Local database backups (never commit: real data, large binaries)
+storage/backups/

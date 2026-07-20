@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MediaType;
 use App\Models\Media;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -15,10 +16,10 @@ class MediaFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(['film', 'episode', 'book']);
+        $type = fake()->randomElement(MediaType::cases());
 
         $meta = match ($type) {
-            'film' => [
+            MediaType::Film => [
                 'year' => fake()->numberBetween(1990, 2026),
                 'runtime' => fake()->numberBetween(80, 200),
                 'genres' => fake()->randomElements(
@@ -26,13 +27,13 @@ class MediaFactory extends Factory
                     fake()->numberBetween(1, 3),
                 ),
             ],
-            'episode' => [
+            MediaType::TvEpisode => [
                 'show_title' => fake()->words(fake()->numberBetween(2, 4), true),
                 'season' => fake()->numberBetween(1, 8),
                 'episode' => fake()->numberBetween(1, 24),
                 'runtime' => fake()->numberBetween(25, 65),
             ],
-            'book' => [
+            MediaType::Book => [
                 'author' => fake()->name(),
                 'isbn' => fake()->isbn13(),
             ],

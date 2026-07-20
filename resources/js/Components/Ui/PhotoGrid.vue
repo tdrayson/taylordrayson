@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
 // Masonry via CSS grid row spans: photos stay in document order so keyboard
@@ -147,7 +146,7 @@ function rowSpan(photo) {
                 class="absolute right-2 top-2 flex size-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition-opacity hover:bg-black/75 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white group-hover/photo:opacity-100 group-focus-within/photo:opacity-100"
                 :aria-label="`Go to ${photo.caption}`"
             >
-                <Icon :icon="ArrowUpRight01Icon" class="size-4" />
+                <Icon name="ArrowUpRight01Icon" class="size-4" />
             </Link>
         </li>
     </ul>

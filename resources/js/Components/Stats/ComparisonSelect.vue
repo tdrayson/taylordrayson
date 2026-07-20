@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -35,7 +34,7 @@ function choose(mode) {
         >
             <template v-if="mode === 'none'">No comparison</template>
             <template v-else><span class="text-neutral-500">vs</span> {{ active.label }}</template>
-            <Icon :icon="ArrowDown01Icon" class="size-4 text-neutral-500" />
+            <Icon name="ArrowDown01Icon" class="size-4 text-neutral-500" />
         </button>
 
         <template v-if="open">

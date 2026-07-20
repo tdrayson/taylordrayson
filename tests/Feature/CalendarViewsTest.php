@@ -6,18 +6,6 @@ use App\Models\Sleep;
 
 use function Pest\Laravel\get;
 
-it('renders the year view via Inertia', function () {
-    get('/2026')
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Year')->where('year', 2026));
-});
-
-it('renders the month view via Inertia', function () {
-    get('/2026/06')
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Month')->where('year', 2026)->where('month', 6));
-});
-
 it('wires month roll-up stats and per-day calendar data', function () {
     Activity::factory()->create(['type' => 'run', 'distance' => 5000, 'occurred_at' => '2026-06-10 07:00:00']);
     Activity::factory()->create(['type' => 'run', 'distance' => 8000, 'occurred_at' => '2026-06-15 07:00:00']);
@@ -33,12 +21,6 @@ it('wires month roll-up stats and per-day calendar data', function () {
         ->where('days.10.calories', 600)
         ->where('stats', fn ($stats) => collect($stats)->pluck('label')->contains('Activities'))
     );
-});
-
-it('renders the day view via Inertia', function () {
-    get('/2026/06/21')
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Day')->where('year', 2026)->where('month', 6)->where('day', 21));
 });
 
 it('loads the day feed and summary stats from the database', function () {

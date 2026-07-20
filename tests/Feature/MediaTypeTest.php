@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Media;
+use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 
 it('renders an episode card from canonical meta', function () {
@@ -11,7 +12,7 @@ it('renders an episode card from canonical meta', function () {
         'meta' => ['season' => 1, 'episode' => 3, 'show_title' => 'Severance'],
     ]);
 
-    expect($media->card()['subtitle'])->toContain('S01E03');
+    expect(CardPresenter::for($media)->subtitle)->toContain('S01E03');
 });
 
 it('builds a trakt content url for a film from meta ids, not the history id', function () {

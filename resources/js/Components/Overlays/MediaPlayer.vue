@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Link } from '@inertiajs/vue3';
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
-import { PlayIcon, PauseIcon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
 import { player, togglePlay, closePlayer } from '../../lib/player.js';
@@ -320,7 +320,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
                 <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">
-                    <Icon :icon="Cancel01Icon" class="size-5" />
+                    <Icon name="Cancel01Icon" class="size-5" />
                 </button>
             </div>
         </div>
@@ -344,7 +344,7 @@ onBeforeUnmount(() => {
                         :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
                     <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">
-                        <Icon :icon="Cancel01Icon" class="size-4" />
+                        <Icon name="Cancel01Icon" class="size-4" />
                     </button>
                 </div>
                 <div ref="plyrTarget" class="min-h-0 w-full flex-1"></div>

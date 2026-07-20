@@ -19,11 +19,11 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
             <Pill v-if="entry.featured" label="Featured" />
         </div>
 
-        <p v-if="entry.description" class="text-body text-neutral-700">{{ entry.description }}</p>
+        <p v-if="entry.description" v-twemoji class="text-body text-neutral-700">{{ entry.description }}</p>
 
         <div v-if="entry.long_description">
             <SectionHead title="About" />
-            <p class="whitespace-pre-line text-body text-neutral-700">{{ entry.long_description }}</p>
+            <p v-twemoji class="whitespace-pre-line text-body text-neutral-700">{{ entry.long_description }}</p>
         </div>
 
         <div v-if="tags.length" class="flex flex-wrap gap-2">

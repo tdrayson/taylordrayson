@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue';
-import { StarIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import DetailList from '../Ui/DetailList.vue';
 import Pill from '../Ui/Pill.vue';
@@ -39,7 +38,7 @@ const rows = computed(() => [
         <BackdropHero v-if="entry.backdrop" testid="media-backdrop" :backdrop="entry.backdrop" :bleed="false" />
 
         <div v-if="entry.rating" class="flex items-center gap-2">
-            <Icon :icon="StarIcon" class="size-5 text-accent-500" />
+            <Icon name="StarIcon" class="size-5 text-accent-500" />
             <span class="font-display text-stat tnum">{{ entry.rating }}</span>
             <span class="text-meta text-neutral-500">/ 10</span>
         </div>

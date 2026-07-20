@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\MediaType;
+use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -37,6 +39,7 @@ class Media extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'type' => MediaType::class,
             'meta' => 'array',
         ];
     }
@@ -48,18 +51,18 @@ class Media extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source !== 'trakt') {
+        if ($this->source !== Source::Trakt->value) {
             return null;
         }
 
         $slug = $this->meta['ids']['slug'] ?? null;
 
-        if ($this->type === 'film' && $slug) {
+        if ($this->type === MediaType::Film && $slug) {
             return "https://trakt.tv/movies/{$slug}";
         }
 
         $showSlug = $this->meta['show_slug'] ?? null;
-        if ($this->type === 'episode' && $showSlug && isset($this->meta['season'], $this->meta['episode'])) {
+        if ($this->type === MediaType::TvEpisode && $showSlug && isset($this->meta['season'], $this->meta['episode'])) {
             return "https://trakt.tv/shows/{$showSlug}/seasons/{$this->meta['season']}/episodes/{$this->meta['episode']}";
         }
 
@@ -69,32 +72,5 @@ class Media extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return Str::slug($this->title);
-    }
-
-    public function card(): array
-    {
-        $detail = match ($this->type) {
-            'film' => $this->meta['year'] ?? null,
-            'episode' => isset($this->meta['season'], $this->meta['episode'])
-                ? sprintf('S%02dE%02d', $this->meta['season'], $this->meta['episode'])
-                : null,
-            'book' => $this->meta['author'] ?? null,
-            default => null,
-        };
-
-        $parts = array_filter([
-            $this->rating ? "★ {$this->rating} / 10" : null,
-            $detail,
-        ]);
-
-        return [
-            'type' => 'media',
-            'icon' => 'film',
-            'title' => $this->title,
-            'subtitle' => $parts ? implode(', ', $parts) : null,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'media',
-            'meta' => [],
-        ];
     }
 }

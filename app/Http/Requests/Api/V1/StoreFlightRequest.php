@@ -2,9 +2,14 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Enums\CabinClass;
+use App\Models\Airline;
+use App\Models\Airport;
+use App\Rules\ExistsOnModel;
 use App\Support\Units;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 class StoreFlightRequest extends FormRequest
 {
@@ -64,12 +69,12 @@ class StoreFlightRequest extends FormRequest
         return [
             'occurred_at' => ['required', 'date'],
             'flight_number' => ['required', 'string', 'max:10'],
-            'airline_icao' => ['required', 'string', 'exists:airlines,icao_code'],
-            'origin_iata' => ['required', 'string', 'size:3', 'exists:airports,iata_code'],
-            'destination_iata' => ['required', 'string', 'size:3', 'exists:airports,iata_code'],
+            'airline_icao' => ['required', 'string', new ExistsOnModel(Airline::class, 'icao_code')],
+            'origin_iata' => ['required', 'string', 'size:3', new ExistsOnModel(Airport::class, 'iata_code')],
+            'destination_iata' => ['required', 'string', 'size:3', new ExistsOnModel(Airport::class, 'iata_code')],
             'duration' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'distance' => ['sometimes', 'nullable', 'integer', 'min:0'],
-            'cabin_class' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'cabin_class' => ['sometimes', 'nullable', Rule::enum(CabinClass::class)],
             'reason' => ['sometimes', 'nullable', 'string', 'max:100'],
             'departure_timezone' => ['sometimes', 'nullable', 'timezone'],
             'arrival_timezone' => ['sometimes', 'nullable', 'timezone'],

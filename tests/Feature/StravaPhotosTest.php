@@ -2,23 +2,12 @@
 
 use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
+use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
-
-/** A real JPEG of the given size, so the media library can process it. */
-function fakeJpeg(int $width = 800, int $height = 600): string
-{
-    $image = imagecreatetruecolor($width, $height);
-    ob_start();
-    imagejpeg($image);
-    $bytes = ob_get_clean();
-    imagedestroy($image);
-
-    return $bytes;
-}
 
 beforeEach(function () {
     config([
@@ -29,6 +18,31 @@ beforeEach(function () {
     Cache::flush();
     Storage::fake('public');
 });
+
+/**
+ * Fake the whole Strava surface: token, one page of summaries, per-activity
+ * photos, and the CloudFront image download.
+ *
+ * @param  array<int, array<string, mixed>>  $summaries
+ * @param  array<string, array<int, array<string, mixed>>>  $photosById
+ * @param  array<string, mixed>  $extra
+ */
+function fakeStravaPhotos(array $summaries, array $photosById, array $extra = []): void
+{
+    $responses = [
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg()),
+        '*/athlete/activities*' => Http::sequence()
+            ->push($summaries)
+            ->push([]),
+    ];
+
+    foreach ($photosById as $id => $photos) {
+        $responses["*/activities/{$id}/photos*"] = Http::response($photos);
+    }
+
+    Http::fake(array_merge($responses, $extra));
+}
 
 it('stores the first photo as cover and the rest in the gallery', function () {
     Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
@@ -91,9 +105,12 @@ it('backfills photos only for activities that have them on strava', function () 
     Http::assertNotSent(fn ($request) => str_contains($request->url(), '/activities/888/photos'));
 });
 
-it('skips activities that already have photos unless forced', function () {
+it('skips activities whose photos are already migrated unless forced', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
-    $activity->addMediaFromString(fakeJpeg())->usingFileName('existing.jpg')->toMediaCollection('cover');
+    $activity->addMediaFromString(fakeJpeg())
+        ->usingFileName('existing.jpg')
+        ->withCustomProperties(['captured_at' => '2026-04-28T17:34:35Z'])
+        ->toMediaCollection('cover');
 
     Http::fake([
         '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
@@ -111,17 +128,68 @@ it('skips activities that already have photos unless forced', function () {
     Http::assertNotSent(fn ($request) => str_contains($request->url(), '/photos'));
 });
 
+it('reprocesses an activity whose photos predate captured_at', function () {
+    // A legacy cover with no captured_at was downloaded before the current sync
+    // code existed. The default (unforced) run must still refetch it so it can
+    // be backfilled, rather than treating "has a cover" as "done".
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '500']);
+    $activity->addMediaFromString(fakeJpeg())->usingFileName('legacy.jpg')->toMediaCollection('cover');
+
+    fakeStravaPhotos(
+        [['id' => 500, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
+        ['500' => [stravaPhotoPayload('photo-new', '2023-10-31T21:00:10Z')]],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/activities/500/photos'));
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media->hasCustomProperty('captured_at'))->toBeTrue();
+});
+
+it('resumes without redoing already-migrated activities', function () {
+    // Direct regression guard for the reported bug: an interrupted default run,
+    // re-run later, must continue from the first unmigrated activity rather
+    // than restarting from scratch or skipping legacy activities forever.
+    $migrated = Activity::factory()->create(['source' => 'strava', 'source_id' => '601']);
+    $migrated->addMediaFromString(fakeJpeg())
+        ->usingFileName('migrated.jpg')
+        ->withCustomProperties(['captured_at' => '2026-04-28T17:34:35Z'])
+        ->toMediaCollection('cover');
+
+    $legacy = Activity::factory()->create(['source' => 'strava', 'source_id' => '602']);
+    $legacy->addMediaFromString(fakeJpeg())->usingFileName('legacy.jpg')->toMediaCollection('cover');
+
+    fakeStravaPhotos(
+        [
+            ['id' => 601, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1],
+            ['id' => 602, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1],
+        ],
+        [
+            '601' => [stravaPhotoPayload('photo-601', '2023-10-31T21:00:10Z')],
+            '602' => [stravaPhotoPayload('photo-602', '2023-10-31T21:00:10Z')],
+        ],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/activities/602/photos'));
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/activities/601/photos'));
+});
+
 it('includes the photos gallery in the activity feed card', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '777']);
 
-    expect($activity->card()['meta']['photos'])->toBe([]);
+    expect(CardPresenter::for($activity)->meta->photos)->toBe([]);
 
     $activity->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
 
-    $photos = $activity->refresh()->card()['meta']['photos'];
+    $photos = CardPresenter::for($activity->refresh())->meta->photos;
 
     expect($photos)->toHaveCount(1);
-    expect($photos[0])->toHaveKeys(['src', 'srcset', 'full']);
+    expect($photos[0]->toArray())->toHaveKeys(['src', 'srcset', 'full']);
 });
 
 it('exposes the activity photos in the entry payload, cover first', function () {
@@ -137,4 +205,133 @@ it('exposes the activity photos in the entry payload, cover first', function () 
         ->has('entry.photos.0.src')
         ->has('entry.photos.0.full')
     );
+});
+
+it('still stores photos when the strava summary has no start date', function () {
+    // Missing start_date must leave the start null rather than fabricating "now",
+    // and must not cost us the photo download.
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '999']);
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()
+            ->push([
+                ['id' => 999, 'total_photo_count' => 1],
+                // Note: intentionally no 'start_date' key to test null handling
+            ])
+            ->push([]),
+        '*/activities/999/photos*' => Http::response([
+            ['unique_id' => 'x', 'urls' => ['2048' => 'https://cdn.example/x.jpg']],
+        ]),
+        'https://cdn.example/*' => Http::response(fakeJpeg(), 200),
+    ]);
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    expect($activity->refresh()->getMedia('cover'))->toHaveCount(1);
+});
+
+it('stores photos with coordinates interpolated from the stream', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
+        ['*/streams*' => Http::response([
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ])],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media->getCustomProperty('latitude'))->toBe(51.1)
+        ->and($media->getCustomProperty('longitude'))->toBe(-0.1);
+});
+
+it('still stores the photo when the streams request fails', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
+        ['*/streams*' => Http::response([], 500)],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    // The photo survives a stream failure; only the marker is lost.
+    expect($media)->not->toBeNull()
+        ->and($media->hasCustomProperty('latitude'))->toBeFalse();
+});
+
+it('still stores the photo when the strava summary has a malformed start date', function () {
+    // A non-empty but unparseable start_date must not abort resolveTargets():
+    // CarbonImmutable::parse('not-a-date') throws InvalidFormatException, which
+    // would otherwise cost us every activity's photos, not just this one.
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'start_date' => 'not-a-date', 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
+        ['*/streams*' => Http::response([
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ])],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media)->not->toBeNull()
+        ->and($media->hasCustomProperty('latitude'))->toBeFalse();
+});
+
+it('still stores the photo for an indoor activity with no latlng stream', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
+        ['*/streams*' => Http::response([
+            'time' => ['data' => [0, 10, 20]],
+            'distance' => ['data' => [0, 5, 9]],
+        ])],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    expect($activity->refresh()->getFirstMedia('cover'))->not->toBeNull();
+});
+
+// Closes a Task 4 review finding. resolveTargets() must leave `start` null when
+// Strava sends no start_date, never fabricate one: CarbonImmutable::parse('')
+// silently returns NOW rather than throwing. The photo's capture time is
+// deliberately set to now, so a fabricated now-start would land at offset ~0,
+// inside the stream, and produce coordinates. Only a genuinely null start
+// produces none. An older capture time could not tell the two apart, because
+// both would fall outside the stream bounds and yield no coordinates either way.
+it('does not fabricate a start when the strava summary has no start date', function () {
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
+
+    fakeStravaPhotos(
+        [['id' => 100, 'total_photo_count' => 1]],
+        ['100' => [stravaPhotoPayload('photo-a', now()->toIso8601ZuluString())]],
+        ['*/streams*' => Http::response([
+            'time' => ['data' => [0, 10, 20]],
+            'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
+        ])],
+    );
+
+    $this->artisan('strava:photos')->assertSuccessful();
+
+    $media = $activity->refresh()->getFirstMedia('cover');
+
+    expect($media)->not->toBeNull()
+        ->and($media->hasCustomProperty('latitude'))->toBeFalse();
 });

@@ -1,19 +1,37 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
-import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
-import { mapStyleForTheme } from '../../lib/maplibre.js';
+import { mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
+import PhotoMarker from './PhotoMarker.vue';
 
 const props = defineProps({
     polyline: { type: String, required: true },
     color: { type: String, default: '#3858e9' },
     heightClass: { type: String, default: 'h-72 sm:h-96' },
+    photos: { type: Array, default: () => [] },
+    // Track points ({time, lat, lng}) for the scrub dot; empty on non-activity
+    // maps and until the deferred activity profile prop resolves.
+    track: { type: Array, default: () => [] },
+    // Shared cursor from useActivityCursor; EntryMap only reads its fraction to
+    // position the dot (the activity profile charts drive it). Null means no dot.
+    cursor: { type: Object, default: null },
 });
+
+const emit = defineEmits(['open-photo']);
 
 const MAPLIBRE_VERSION = '4.7.1';
 
 const { resolved } = useTheme();
+
+// Photos that have a coordinate, each keeping its index in the ORIGINAL photos
+// array. The Lightbox opens by that index, so mapping must happen before
+// filtering: filtering first would renumber them and open the wrong photo.
+const locatedPhotos = computed(() =>
+    props.photos
+        .map((photo, index) => ({ ...photo, index }))
+        .filter((photo) => photo.latitude !== null && photo.longitude !== null),
+);
 
 // maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
 // activities (e.g. padel) keep surrounding map context instead of filling the
@@ -22,9 +40,14 @@ const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
 const ready = ref(false);
+const markerRefs = ref([]);
 let map = null;
 let savedBounds = null;
 let stopThemeWatch;
+let markers = [];
+let stopTrackWatch;
+let stopCursorWatch;
+let routeDot = null;
 
 // Re-fit the view to the route's bounds after the visitor has panned or zoomed.
 function recenter() {
@@ -142,6 +165,50 @@ onMounted(async () => {
         new maplibregl.LngLatBounds(coords[0], coords[0]),
     );
 
+    // Builds the dot marker the first time a non-empty track arrives, so the
+    // element exists in the DOM (hidden) even before the visitor scrubs a chart.
+    function ensureRouteDot() {
+        if (routeDot || props.track.length === 0) {
+            return;
+        }
+
+        const element = document.createElement('div');
+        element.dataset.testid = 'route-dot';
+        element.className = 'invisible size-3 rounded-full border-2 border-neutral-0';
+        element.style.backgroundColor = resolveColor(props.color);
+        // The dot is purely a readout of the chart cursor, so it must not capture
+        // pointer events meant for the map beneath it (panning, photo markers).
+        element.style.pointerEvents = 'none';
+
+        routeDot = new maplibregl.Marker({ element }).setLngLat([props.track[0].lng, props.track[0].lat]).addTo(map);
+    }
+
+    // Moves the dot to the cursor's current track point, hiding it whenever
+    // there's no active index (pointer left, or the track hasn't loaded yet).
+    function updateRouteDot() {
+        ensureRouteDot();
+
+        if (!routeDot) {
+            return;
+        }
+
+        // Map the shared 0..1 fraction to this track's own nearest index.
+        const fraction = props.cursor?.fraction?.value;
+        const index = fraction != null && props.track.length > 0
+            ? Math.round(fraction * (props.track.length - 1))
+            : null;
+        const point = index != null ? props.track[index] : null;
+
+        if (!point) {
+            routeDot.getElement().classList.add('invisible');
+
+            return;
+        }
+
+        routeDot.setLngLat([point.lng, point.lat]);
+        routeDot.getElement().classList.remove('invisible');
+    }
+
     // Adds the route source/layer; re-run after setStyle since maplibre
     // drops custom sources/layers whenever the style is replaced.
     function addRouteLayer() {
@@ -162,6 +229,24 @@ onMounted(async () => {
         });
     }
 
+    // Attach a MapLibre marker per located photo. Strava gives [lat, lng] and
+    // maplibre wants [lng, lat], so the pair flips here and only here.
+    function addPhotoMarkers() {
+        locatedPhotos.value.forEach((photo, position) => {
+            const element = markerRefs.value[position];
+
+            if (!element) {
+                return;
+            }
+
+            markers.push(
+                new maplibregl.Marker({ element })
+                    .setLngLat([photo.longitude, photo.latitude])
+                    .addTo(map),
+            );
+        });
+    }
+
     map = new maplibregl.Map({
         container: container.value,
         style: mapStyleForTheme(resolved.value),
@@ -175,28 +260,40 @@ onMounted(async () => {
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
+    addPhotoMarkers();
+
     map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
     map.on('load', addRouteLayer);
 
-    // Switch basemap when the colour scheme changes, then re-add the custom
-    // layer once the new style has finished loading (setStyle clears it).
+    // Build/hide the dot for whatever track + cursor state already exists,
+    // then keep it in sync as the deferred track arrives and the cursor moves.
+    updateRouteDot();
+    stopTrackWatch = watch(() => props.track, updateRouteDot);
+
+    if (props.cursor) {
+        stopCursorWatch = watch(props.cursor.fraction, updateRouteDot);
+    }
+
+    // Swap the basemap on colour-scheme change, carrying the route layer across
+    // so it stays drawn (setStyle would otherwise drop it).
     stopThemeWatch = watch(resolved, (value) => {
         if (!map) {
             return;
         }
 
-        map.setStyle(mapStyleForTheme(value));
-        // Dedupe: drop any pending re-add from a previous toggle before
-        // registering a fresh one, otherwise rapid toggles stack handlers
-        // and both fire, throwing on the second addSource/addLayer call.
-        map.off('style.load', addRouteLayer);
-        map.once('style.load', addRouteLayer);
+        swapBasemapStyle(map, mapStyleForTheme(value), ['route']);
     });
 });
 
 onBeforeUnmount(() => {
     stopThemeWatch?.();
+    markers.forEach((marker) => marker.remove());
+    markers = [];
+    stopTrackWatch?.();
+    stopCursorWatch?.();
+    routeDot?.remove();
+    routeDot = null;
     map?.remove();
     map = null;
 });
@@ -212,7 +309,18 @@ onBeforeUnmount(() => {
             aria-label="Re-center map"
             @click="recenter"
         >
-            <Icon :icon="CenterFocusIcon" class="size-4" />
+            <Icon name="CenterFocusIcon" class="size-4" />
         </button>
+
+        <div class="hidden">
+            <PhotoMarker
+                v-for="(photo, position) in locatedPhotos"
+                :key="photo.index"
+                :ref="(el) => (markerRefs[position] = el?.$el)"
+                :photo="photo"
+                :label="`View photo ${photo.index + 1}`"
+                @select="emit('open-photo', photo.index)"
+            />
+        </div>
     </div>
 </template>

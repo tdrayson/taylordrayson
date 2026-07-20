@@ -66,31 +66,4 @@ class Appearance extends Model implements HasMedia, Timelineable
 
         return $srcset !== null && $srcset !== '' ? $srcset : null;
     }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function card(): array
-    {
-        return [
-            'type' => 'appearance',
-            'icon' => 'mic',
-            'title' => $this->title,
-            'subtitle' => $this->show_name,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'appearance',
-            'meta' => [
-                'media' => [
-                    'id' => "appearance-{$this->id}",
-                    'title' => $this->title,
-                    'audioUrl' => $this->audio_url,
-                    'videoUrl' => $this->video_url,
-                    'thumbnail' => $this->thumbnailUrl(),
-                    'srcset' => $this->thumbnailSrcset(),
-                    'duration' => $this->duration,
-                    'url' => $this->url(),
-                ],
-            ],
-        ];
-    }
 }

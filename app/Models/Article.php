@@ -7,8 +7,6 @@ use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use App\Support\PortableText;
-use App\Support\Text;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -73,21 +71,6 @@ class Article extends Model implements HasMedia, Timelineable
             'src' => $media->getUrl('card'),
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
-        ];
-    }
-
-    public function card(): array
-    {
-        return [
-            'type' => 'article',
-            'icon' => 'file-text',
-            'title' => $this->title,
-            'subtitle' => Text::excerpt(PortableText::plainText($this->content), 240) ?: $this->excerpt,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'article',
-            'meta' => [
-                'photos' => array_values(array_filter([$this->coverPhoto()])),
-            ],
         ];
     }
 }

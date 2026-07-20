@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../../Ui/Icon.vue';
 
 const props = defineProps({
@@ -198,7 +197,7 @@ onBeforeUnmount(() => {
                 </div>
                 <Link href="/photos" class="photos__link">
                     All photos
-                    <Icon class="photos__link-icon" :icon="ArrowRight01Icon" :stroke-width="2.6" />
+                    <Icon class="photos__link-icon" name="ArrowRight01Icon" :stroke-width="2.6" />
                 </Link>
             </div>
         </div>
@@ -211,7 +210,7 @@ onBeforeUnmount(() => {
             aria-roledescription="photo carousel"
             aria-label="Recent photos. Use the left and right arrow keys to browse."
         >
-            <div v-for="(photo, i) in photos" :key="i" class="photos__card" :style="{ background: photo.gradient }">
+            <div v-for="(photo, i) in photos" :key="i" class="photos__card" :style="{ background: photo.gradient || 'var(--color-neutral-100)' }">
                 <img v-if="photo.src" :src="photo.src" alt="" @error="onImgError" />
             </div>
             <div class="photos__dots">
@@ -263,7 +262,7 @@ onBeforeUnmount(() => {
 .photos__subtitle {
     font-size: 3.3cqw;
     font-weight: 500;
-    color: #9aa0a8;
+    color: var(--color-neutral-500);
 }
 
 .photos__link {
@@ -274,7 +273,7 @@ onBeforeUnmount(() => {
     background: none;
     font-size: 2.9cqw;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-neutral-900);
     white-space: nowrap;
 }
 

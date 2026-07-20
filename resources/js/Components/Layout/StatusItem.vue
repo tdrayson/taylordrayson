@@ -2,7 +2,7 @@
 import Icon from '../Ui/Icon.vue';
 
 defineProps({
-    icon: { type: [Array, Object], required: true },
+    icon: { type: [Array, Object, String], required: true },
 });
 </script>
 

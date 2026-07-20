@@ -1,12 +1,14 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { Deferred, usePage } from '@inertiajs/vue3';
 import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
-import HeartRateChart from '../Stats/HeartRateChart.vue';
+import ActivityProfile from './ActivityProfile.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import { number, titleCase } from '../../lib/format.js';
 import { useFormat } from '../../composables/useFormat';
+import { useActivityCursor } from '../../composables/useActivityCursor';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -20,35 +22,14 @@ const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.p
 const polyline = computed(() => props.entry.meta?.polyline ?? null);
 const lightboxIndex = ref(null);
 
-// Stored series is a list of { time, bpm } points; the chart wants bare BPM values.
-const heartRate = computed(() => {
-    const series = props.entry.heart_rate;
+// Stream series (heart_rate/altitude/speed/track) are deferred separately
+// from the main entry payload; read them once Inertia fetches the prop.
+const page = usePage();
+const profile = computed(() => page.props.profile);
 
-    if (!Array.isArray(series) || series.length === 0) {
-        return [];
-    }
-
-    return series.map((point) => (typeof point === 'number' ? point : point.bpm));
-});
-
-// Some activities (e.g. phone-tracked walks with only passive watch readings)
-// carry just a handful of points spread minutes apart, which plots as a
-// misleading two-dot "line". Only show the chart when the series is dense
-// enough to be a real trace: at least a floor of points, and on average no
-// sparser than one reading every couple of minutes across the activity.
-const MIN_HR_POINTS = 5;
-const MAX_HR_GAP_SECONDS = 120;
-const showHeartRate = computed(() => {
-    const points = heartRate.value.length;
-
-    if (points < MIN_HR_POINTS) {
-        return false;
-    }
-
-    const duration = Number(props.entry.duration) || 0;
-
-    return duration <= 0 || points >= duration / MAX_HR_GAP_SECONDS;
-});
+// Shared cursor across the profile charts and the route map, so hovering
+// (or scrubbing) any one of them highlights the same point everywhere.
+const cursor = useActivityCursor();
 
 /** Real data uses weight_kg; the factory/parser use weight. Support both. */
 function setWeight(set) {
@@ -99,7 +80,7 @@ function weightLabel(value) {
 
 <template>
     <div class="space-y-8">
-        <p v-if="entry.description" class="text-balance whitespace-pre-line text-neutral-700">
+        <p v-if="entry.description" v-twemoji class="text-balance whitespace-pre-line text-neutral-700">
             {{ entry.description }}
         </p>
 
@@ -110,15 +91,19 @@ function weightLabel(value) {
             :polyline="polyline"
             :photos="photos"
             color="var(--color-activity)"
+            :track="profile?.track ?? []"
+            :cursor="cursor"
             @open="lightboxIndex = $event"
         />
 
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />
 
-        <div v-if="!exercises.length && showHeartRate">
-            <SectionHead title="Heart rate" meta="bpm over the activity" />
-            <HeartRateChart :data="heartRate" :duration="entry.duration" />
-        </div>
+        <Deferred v-if="!exercises.length" data="profile">
+            <template #fallback>
+                <div class="h-40 w-full animate-pulse rounded-lg bg-neutral-25" />
+            </template>
+            <ActivityProfile v-if="profile" :profile="profile" :duration="entry.duration" :cursor="cursor" />
+        </Deferred>
 
         <div v-if="exercises.length">
             <SectionHead title="Exercises" :meta="totalVolume ? `${weight(totalVolume, 0)} volume` : ''" />

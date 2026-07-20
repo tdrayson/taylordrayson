@@ -2,8 +2,10 @@
 
 namespace App\Actions;
 
+use App\Enums\MediaType;
 use App\Models\Media;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
 use App\Support\Text;
 use Illuminate\Support\Collection;
@@ -47,7 +49,7 @@ class BuildTimelineFeed
         // one becomes a single "binge" card while singletons stay normal.
         $episodeCounts = $group
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable instanceof Media
-                && $entry->timelineable->type === 'episode'
+                && $entry->timelineable->type === MediaType::TvEpisode
                 && $entry->timelineable->series_id !== null)
             ->countBy(fn (TimelineEntry $entry): int => $entry->timelineable->series_id);
 
@@ -59,7 +61,7 @@ class BuildTimelineFeed
 
         foreach ($group as $entry) {
             $media = $entry->timelineable;
-            $seriesId = $media instanceof Media && $media->type === 'episode' ? $media->series_id : null;
+            $seriesId = $media instanceof Media && $media->type === MediaType::TvEpisode ? $media->series_id : null;
             $isBinge = $seriesId !== null && ($episodeCounts[$seriesId] ?? 0) > 1;
 
             if (! $isBinge) {
@@ -75,7 +77,7 @@ class BuildTimelineFeed
             $emitted[$seriesId] = true;
             $items[] = $this->synthesiseSeriesCard(
                 $group->filter(fn (TimelineEntry $candidate): bool => $candidate->timelineable instanceof Media
-                    && $candidate->timelineable->type === 'episode'
+                    && $candidate->timelineable->type === MediaType::TvEpisode
                     && $candidate->timelineable->series_id === $seriesId),
                 $date,
             );
@@ -140,25 +142,25 @@ class BuildTimelineFeed
         // without a lazy query per card.
         $entry->timelineable->setRelation('timelineEntry', $entry);
 
-        $card = $entry->timelineable->card();
+        $card = CardPresenter::for($entry->timelineable);
         $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
 
         return [
-            'iconKey' => $card['type'],
-            'accent' => $card['accent'],
-            'title' => $card['title'],
-            'titleLabel' => $card['titleLabel'] ?? null,
-            'meta' => Text::excerpt($card['subtitle'], 240),
-            'metaTokens' => $card['subtitleTokens'] ?? null,
-            'body' => $card['meta']['body'] ?? null,
-            'segments' => $card['meta']['segments'] ?? null,
-            'route' => $card['meta']['route'] ?? null,
-            'media' => $card['meta']['media'] ?? null,
-            'photos' => $card['meta']['photos'] ?? null,
-            'polyline' => $card['meta']['polyline'] ?? null,
-            'map' => $card['meta']['map'] ?? null,
-            'mapDark' => $card['meta']['mapDark'] ?? null,
-            'range' => $card['range'] ?? null,
+            'iconKey' => $card->type->value,
+            'accent' => $card->accent,
+            'title' => $card->title,
+            'titleLabel' => $card->titleLabel,
+            'meta' => Text::excerpt($card->subtitle, 240),
+            'metaTokens' => $card->subtitleTokens,
+            'body' => $card->meta->body,
+            'segments' => $card->meta->segments,
+            'route' => $card->meta->route,
+            'media' => $card->meta->media,
+            'photos' => $card->meta->photos,
+            'polyline' => $card->meta->polyline,
+            'map' => $card->meta->map,
+            'mapDark' => $card->meta->mapDark,
+            'range' => $card->range,
             'time' => $local['time'],
             'datetime' => $local['iso'],
             'label' => $local['label'],

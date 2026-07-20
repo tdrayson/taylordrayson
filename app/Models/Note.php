@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
@@ -42,21 +41,5 @@ class Note extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return $this->attributes['slug'] ?? 'note';
-    }
-
-    public function card(): array
-    {
-        return [
-            'type' => 'note',
-            'icon' => 'message-circle',
-            'title' => Str::limit($this->content, 80),
-            'subtitle' => null,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'note',
-            'meta' => [
-                'body' => $this->content,
-                'photos' => $this->galleryPhotos(),
-            ],
-        ];
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Enums\MediaType;
+use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -13,6 +15,7 @@ use App\Models\Media;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
@@ -63,16 +66,16 @@ class EntryController extends Controller
             $model->load('media');
         }
 
-        $card = $model->card();
+        $card = CardPresenter::for($model);
 
         return Inertia::render('Entry', [
-            'type' => $card['type'],
-            'accent' => $card['accent'],
+            'type' => $card->type->value,
+            'accent' => $card->accent,
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
-            'title' => $card['type'] === 'note' ? null : $card['title'],
+            'title' => $card->type === TimelineType::Note ? null : $card->title,
             ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
-            'og' => OgMeta::entry($entry, $card['title']),
+            'og' => OgMeta::entry($entry, $card->title),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'entry' => $model instanceof Calorie
                 ? $this->calorieDay($model)
@@ -82,6 +85,17 @@ class EntryController extends Controller
             'linkPreviews' => $model instanceof Article
                 ? (new BuildLinkPreviews)($model->content)
                 : [],
+            // Stream series are large, so they're excluded from the main
+            // entry payload and only sent once a profile chart is scrolled
+            // into view and requests this deferred prop.
+            'profile' => $model instanceof Activity
+                ? Inertia::defer(fn (): array => [
+                    'heart_rate' => $model->heart_rate,
+                    'altitude' => $model->altitude,
+                    'speed' => $model->speed,
+                    'track' => $model->track,
+                ])
+                : null,
         ]);
     }
 
@@ -117,7 +131,7 @@ class EntryController extends Controller
             $model->loadMissing('tags');
         }
 
-        $data = Arr::except($model->toArray(), ['created_at', 'updated_at']);
+        $data = Arr::except($model->toArray(), ['created_at', 'updated_at', 'heart_rate', 'altitude', 'speed', 'track']);
 
         if (method_exists($model, 'tagNames')) {
             $data['tags'] = $model->tags
@@ -138,7 +152,7 @@ class EntryController extends Controller
             $data['photos'] = $model->galleryPhotos();
         }
 
-        if ($model instanceof Media && $model->type === 'film') {
+        if ($model instanceof Media && $model->type === MediaType::Film) {
             $data['backdrop'] = $model->getFirstMediaUrl('backdrop') ?: null;
         }
 
@@ -158,6 +172,22 @@ class EntryController extends Controller
             // toArray() only serialises DB columns, so dateRange() (a computed
             // method, not an accessor) needs adding to the payload explicitly.
             $data['range'] = $model->dateRange();
+        }
+
+        if (! $model instanceof Event && $model->getAttribute('latitude') !== null && $model->getAttribute('longitude') !== null) {
+            $address = trim(implode(', ', array_filter([
+                $model->getAttribute('station_name') ?? $model->getAttribute('venue_name'),
+                $model->getAttribute('address'),
+                $model->getAttribute('postcode'),
+                $model->getAttribute('city'),
+            ])));
+
+            $data['location'] = [
+                'lat' => (float) $model->getAttribute('latitude'),
+                'lng' => (float) $model->getAttribute('longitude'),
+                'address' => $address,
+                'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($address !== '' ? $address : $model->getAttribute('latitude').','.$model->getAttribute('longitude')),
+            ];
         }
 
         return $data;

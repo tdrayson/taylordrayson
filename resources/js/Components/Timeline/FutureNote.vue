@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeft01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 defineProps({
@@ -99,7 +98,7 @@ onMounted(() => {
             href="/"
             class="inline-flex items-center gap-1.5 text-meta font-semibold text-accent-500 transition-colors hover:text-accent-700 focus-visible:text-accent-700"
         >
-            <Icon :icon="ArrowLeft01Icon" class="size-4" />
+            <Icon name="ArrowLeft01Icon" class="size-4" />
             Back to the present
         </Link>
     </div>

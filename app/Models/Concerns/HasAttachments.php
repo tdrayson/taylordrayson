@@ -37,11 +37,11 @@ trait HasAttachments
     }
 
     /**
-     * The entry's photos in display order (cover first, then the gallery),
-     * each with the optimised card source, its responsive srcset, and the
-     * full-size original for the lightbox.
+     * The entry's photos in display order (cover first, then the gallery), each
+     * with the optimised card source, its responsive srcset, the full-size
+     * original for the lightbox, and the route coordinate where known.
      *
-     * @return array<int, array{src: string, srcset: ?string, full: string}>
+     * @return array<int, array{src: string, srcset: ?string, full: string, latitude: ?float, longitude: ?float}>
      */
     public function galleryPhotos(): array
     {
@@ -51,6 +51,8 @@ trait HasAttachments
                 'src' => $media->getUrl('card'),
                 'srcset' => $media->getSrcset('card') ?: null,
                 'full' => $media->getUrl(),
+                'latitude' => $media->getCustomProperty('latitude'),
+                'longitude' => $media->getCustomProperty('longitude'),
             ])
             ->values()
             ->all();

@@ -1,6 +1,8 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { mapStyleForTheme } from '../../../lib/maplibre.js';
+import { useTheme } from '../../../useTheme.js';
 
 const props = defineProps({
     name: { type: String, default: 'Taylor' },
@@ -14,6 +16,10 @@ const props = defineProps({
 
 const mapContainer = ref(null);
 let map = null;
+let stopThemeWatch = null;
+
+// Match the basemap to the active colour scheme, like the shared map components.
+const { resolved } = useTheme();
 
 onMounted(async () => {
     const { Map } = await import('maplibre-gl');
@@ -25,15 +31,23 @@ onMounted(async () => {
 
     map = new Map({
         container: mapContainer.value,
-        style: 'https://tiles.openfreemap.org/styles/positron',
+        style: mapStyleForTheme(resolved.value),
         center: [props.longitude, props.latitude],
         zoom: 5.6,
         interactive: false,
         attributionControl: false,
     });
+
+    // Swap the basemap when the scheme flips. Nothing to re-add after setStyle:
+    // the marker, pulse and label are DOM overlays, not map sources/layers.
+    stopThemeWatch = watch(resolved, (value) => {
+        map?.setStyle(mapStyleForTheme(value));
+    });
 });
 
 onBeforeUnmount(() => {
+    stopThemeWatch?.();
+
     if (map) {
         map.remove();
         map = null;
@@ -83,13 +97,14 @@ onBeforeUnmount(() => {
     outline: none;
 }
 
-/* Soft white wash rising from the bottom-left so the label stays readable. */
+/* Soft surface-coloured wash rising from the bottom-left so the label stays
+   readable over either basemap: white in light, near-black in dark. */
 .location__scrim {
     position: absolute;
     inset: 0;
     z-index: 2;
     pointer-events: none;
-    background: radial-gradient(130% 90% at 0% 100%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 52%);
+    background: radial-gradient(130% 90% at 0% 100%, color-mix(in srgb, var(--color-neutral-0) 92%, transparent), transparent 52%);
 }
 
 .location__marker {
@@ -196,15 +211,15 @@ onBeforeUnmount(() => {
     font-weight: 800;
     letter-spacing: -0.025em;
     line-height: 1;
-    color: #1f2733;
-    text-shadow: 0 0.43cqw 4.31cqw rgba(255, 255, 255, 0.7);
+    color: var(--color-neutral-900);
+    text-shadow: 0 0.43cqw 4.31cqw color-mix(in srgb, var(--color-neutral-0) 70%, transparent);
 }
 
 .location__city {
     margin-top: 2.16cqw;
     font-size: 5.6cqw;
     font-weight: 600;
-    color: #7c8593;
-    text-shadow: 0 0.43cqw 3.45cqw rgba(255, 255, 255, 0.7);
+    color: var(--color-neutral-500);
+    text-shadow: 0 0.43cqw 3.45cqw color-mix(in srgb, var(--color-neutral-0) 70%, transparent);
 }
 </style>

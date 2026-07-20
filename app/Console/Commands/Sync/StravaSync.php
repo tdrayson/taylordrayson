@@ -3,7 +3,9 @@
 namespace App\Console\Commands\Sync;
 
 use App\Actions\GenerateStaticMap;
+use App\Actions\StoreActivityStreams;
 use App\Actions\SyncStravaPhotos;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\Carbon;
@@ -65,7 +67,7 @@ class StravaSync extends Command
         }
 
         $existingIds = Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('source_id')
             ->pluck('source_id')
             ->all();
@@ -90,6 +92,7 @@ class StravaSync extends Command
             $activity = $this->createActivity($detail);
             $this->downloadPhotos($strava, $detail, $activity);
             app(GenerateStaticMap::class)($activity);
+            app(StoreActivityStreams::class)($activity, $strava);
 
             $created[] = $activity;
             $this->info('['.count($created).'] '.$activity->name);
@@ -171,7 +174,7 @@ class StravaSync extends Command
             'distance' => $data['distance'] ? (int) round($data['distance']) : null,
             'average_heart_rate' => $data['average_heartrate'] ?? null,
             'max_heart_rate' => $data['max_heartrate'] ?? null,
-            'source' => 'strava',
+            'source' => Source::Strava->value,
             'source_id' => (string) $data['id'],
             'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
             'meta' => $meta ?: null,
@@ -252,10 +255,20 @@ class StravaSync extends Command
      */
     public function csvRow(Activity $activity, array $headers): array
     {
-        return array_map(fn (string $column): string => match ($column) {
-            'occurred_at' => $activity->occurred_at?->format('Y-m-d H:i:s') ?? '',
-            'meta' => $activity->meta ? (string) json_encode($activity->meta) : '',
-            default => (string) ($activity->getAttribute($column) ?? ''),
+        return array_map(function (string $column) use ($activity): string {
+            if ($column === 'occurred_at') {
+                return $activity->occurred_at?->format('Y-m-d H:i:s') ?? '';
+            }
+
+            $value = $activity->getAttribute($column);
+
+            // meta and the stream columns (heart_rate/altitude/speed/track) are
+            // array casts; encode any array column rather than stringifying it.
+            if (is_array($value)) {
+                return json_encode($value) ?: '';
+            }
+
+            return (string) ($value ?? '');
         }, $headers);
     }
 
