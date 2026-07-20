@@ -1,5 +1,4 @@
 <script setup>
-import { FireIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 defineProps({
@@ -12,7 +11,7 @@ defineProps({
     <div>
         <div class="text-eyebrow uppercase text-neutral-500">Streak</div>
         <div class="mt-1 flex items-baseline gap-2">
-            <Icon :icon="FireIcon" class="size-4 self-center text-accent-500" />
+            <Icon name="FireIcon" class="size-4 self-center text-accent-500" />
             <span class="font-display text-name tnum">{{ count }}</span>
             <span class="text-caption text-neutral-500">{{ label }}</span>
         </div>

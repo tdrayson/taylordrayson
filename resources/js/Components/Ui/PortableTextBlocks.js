@@ -1,5 +1,4 @@
 import { h } from 'vue';
-import { ArrowUpRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
@@ -94,7 +93,7 @@ function renderSpan(span, markDefs) {
                     ? h('a', { href: def.href, rel: 'noopener noreferrer', target: '_blank' }, [
                         node,
                         h('span', { class: 'sr-only' }, ', opens in a new tab'),
-                        h(Icon, { icon: ArrowUpRight01Icon, class: 'mb-0.5 ml-0.5 inline size-3.5 align-middle' }),
+                        h(Icon, { icon: 'ArrowUpRight01Icon', class: 'mb-0.5 ml-0.5 inline size-3.5 align-middle' }),
                     ])
                     : h('a', { href: def.href }, node);
             }

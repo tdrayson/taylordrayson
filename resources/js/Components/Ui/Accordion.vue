@@ -1,6 +1,5 @@
 <script setup>
 import { ref, useId } from 'vue';
-import { ArrowDown01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
 const props = defineProps({
@@ -30,7 +29,7 @@ function toggle() {
             >
                 {{ title }}
                 <Icon
-                    :icon="ArrowDown01Icon"
+                    name="ArrowDown01Icon"
                     class="size-5 shrink-0 text-neutral-500 transition-transform"
                     :class="{ 'rotate-180': expanded }"
                     aria-hidden="true"

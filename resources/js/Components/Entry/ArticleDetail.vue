@@ -65,7 +65,7 @@ const headingCount = computed(() => contentNodes.value.filter(
              so the rail's top-0 lines up with the first line of prose, not the
              tags row or cover image above. -->
         <div class="relative max-w-media space-y-8">
-            <p v-if="entry.excerpt" class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
+            <p v-if="entry.excerpt" v-twemoji class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
             <BlockContent :document="entry.content" :link-previews="linkPreviews" />
 

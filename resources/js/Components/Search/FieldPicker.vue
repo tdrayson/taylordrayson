@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { ArrowDown01Icon, ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -72,7 +71,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <span class="flex-1 truncate">
                 <span class="text-neutral-500">{{ current?.category }} / </span>{{ current?.label }}
             </span>
-            <Icon :icon="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
+            <Icon name="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
         </button>
 
         <div v-if="open" class="absolute left-0 z-50 mt-2 flex w-96 overflow-hidden rounded-lg border border-neutral-50 bg-neutral-0 shadow-card">
@@ -86,7 +85,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         @click="activeCategory = category.label"
                     >
                         {{ category.label }}
-                        <Icon :icon="ArrowRight01Icon" class="size-3.5 shrink-0 text-neutral-500" />
+                        <Icon name="ArrowRight01Icon" class="size-3.5 shrink-0 text-neutral-500" />
                     </button>
                 </li>
             </ul>

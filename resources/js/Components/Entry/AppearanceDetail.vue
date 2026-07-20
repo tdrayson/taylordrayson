@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
                      the play button in both themes, so it must not invert. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
-                        <Icon :icon="PlayIcon" class="size-7" />
+                        <Icon name="PlayIcon" class="size-7" />
                     </span>
                 </span>
             </button>
@@ -110,7 +110,7 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.description }}</p>
+            <p v-twemoji class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.description }}</p>
         </div>
 
         <div v-if="entry.url || entry.video_url" class="flex flex-wrap gap-x-6 gap-y-3">

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\Carbon;
@@ -46,7 +47,7 @@ class BackfillStravaTimezones extends Command
 
             foreach ($batch as $summary) {
                 $activity = Activity::query()
-                    ->where('source', 'strava')
+                    ->where('source', Source::Strava->value)
                     ->where('source_id', (string) $summary['id'])
                     ->first();
 

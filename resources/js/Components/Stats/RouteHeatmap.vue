@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import Icon from '../Ui/Icon.vue';
-import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { decodePolyline } from '../../lib/geo.js';
 
 const props = defineProps({
@@ -143,7 +142,7 @@ onBeforeUnmount(() => {
             aria-label="Re-center map"
             @click="recenter"
         >
-            <Icon :icon="CenterFocusIcon" class="size-4" />
+            <Icon name="CenterFocusIcon" class="size-4" />
         </button>
     </div>
 </template>

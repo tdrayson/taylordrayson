@@ -8,6 +8,35 @@ export function mapStyleForTheme(resolved) {
     return resolved === 'dark' ? OPENFREEMAP_DARK : OPENFREEMAP_LIGHT;
 }
 
+/**
+ * Swap the basemap style while preserving the given custom source + layer ids.
+ * A plain `setStyle` drops every custom source/layer, and its post-swap event
+ * (`style.load`) does not reliably fire when maplibre diffs the two styles, so
+ * a re-add-on-style.load approach leaves routes/arcs missing until reload.
+ * `transformStyle` instead carries our layers into the new style atomically, so
+ * they stay drawn across a theme toggle with no re-add timing dance.
+ */
+export function swapBasemapStyle(map, styleUrl, ids) {
+    map.setStyle(styleUrl, {
+        transformStyle: (previous, next) => {
+            if (!previous) {
+                return next;
+            }
+
+            const sources = { ...next.sources };
+            for (const id of ids) {
+                if (previous.sources[id]) {
+                    sources[id] = previous.sources[id];
+                }
+            }
+
+            const carried = previous.layers.filter((layer) => ids.includes(layer.id));
+
+            return { ...next, sources, layers: [...next.layers, ...carried] };
+        },
+    });
+}
+
 function loadStylesheet(href) {
     if (document.querySelector(`link[href="${href}"]`)) {
         return;

@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../../Ui/Icon.vue';
 
 const props = defineProps({
@@ -198,7 +197,7 @@ onBeforeUnmount(() => {
                 </div>
                 <Link href="/photos" class="photos__link">
                     All photos
-                    <Icon class="photos__link-icon" :icon="ArrowRight01Icon" :stroke-width="2.6" />
+                    <Icon class="photos__link-icon" name="ArrowRight01Icon" :stroke-width="2.6" />
                 </Link>
             </div>
         </div>

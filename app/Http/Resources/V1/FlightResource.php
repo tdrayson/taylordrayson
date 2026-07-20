@@ -31,7 +31,7 @@ class FlightResource extends JsonResource
             ]),
             'duration' => $this->duration,
             'distance' => $this->distance,
-            'cabin_class' => $this->cabin_class,
+            'cabin_class' => $this->cabin_class?->value,
             'reason' => $this->reason,
             'departure_timezone' => $this->departure_timezone,
             'arrival_timezone' => $this->arrival_timezone,

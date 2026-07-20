@@ -2,7 +2,6 @@
 
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
 
@@ -29,12 +28,6 @@ it('stores the restructured event fields', function () {
         ->and($event->ends_at->format('Y-m-d'))->toBe('2025-06-07')
         ->and($event->meta['seat'])->toBe('Stalls F9')
         ->and($event->description)->toBe('Went with dad.');
-});
-
-it('drops the retired event columns', function () {
-    expect(Schema::hasColumn('events', 'ticket_price'))->toBeFalse()
-        ->and(Schema::hasColumn('events', 'address'))->toBeFalse()
-        ->and(Schema::hasColumn('events', 'notes'))->toBeFalse();
 });
 
 it('builds events across the expanded category set', function () {

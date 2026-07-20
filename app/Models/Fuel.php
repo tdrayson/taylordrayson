@@ -84,28 +84,4 @@ class Fuel extends Model implements HasMedia, Timelineable
     {
         return 'fuel';
     }
-
-    public function card(): array
-    {
-        $parts = array_filter([
-            sprintf('%sL, £%.2f', $this->litres, $this->cost),
-            $this->price_per_litre ? sprintf('£%s / L', number_format($this->price_per_litre, 3)) : null,
-        ]);
-
-        return [
-            'type' => 'fuel',
-            'icon' => 'fuel',
-            'title' => $this->station_name ?? 'Fuel',
-            'titleLabel' => 'Fuel stop'.($this->station_name ? ', '.$this->station_name : ''),
-            'subtitle' => implode(', ', $parts),
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'fuel',
-            'meta' => [
-                'brand' => $this->brand,
-                'brandLogo' => $this->logo_url,
-                'map' => $this->getFirstMediaUrl('map') ?: null,
-                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
-            ],
-        ];
-    }
 }

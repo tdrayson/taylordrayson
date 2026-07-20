@@ -73,7 +73,7 @@ it('filters fuel by vehicle at its own base route', function () {
     get('/vehicles/hn14wxp')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Archive')
         ->where('type', 'fuel')
-        ->where('title', 'Fuel for Golf')
+        ->where('title', 'Fuel for Aygo')
     );
 });
 

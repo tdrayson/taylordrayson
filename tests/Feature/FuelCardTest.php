@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Fuel;
+use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\File;
 
 it('uses the flat station_name as the card title', function () {
@@ -11,17 +12,17 @@ it('uses the flat station_name as the card title', function () {
         'price_per_litre' => 1.28,
     ]);
 
-    $card = $fuel->card();
+    $card = CardPresenter::for($fuel);
 
-    expect($card['title'])->toBe('ASDA Wallington');
-    expect($card['titleLabel'])->toContain('ASDA Wallington');
-    expect($card['subtitle'])->toContain('£41.13');
+    expect($card->title)->toBe('ASDA Wallington');
+    expect($card->titleLabel)->toContain('ASDA Wallington');
+    expect($card->subtitle)->toContain('£41.13');
 });
 
 it('falls back to Fuel when no station is set', function () {
     $fuel = Fuel::factory()->create(['station_name' => null]);
 
-    expect($fuel->card()['title'])->toBe('Fuel');
+    expect(CardPresenter::for($fuel)->title)->toBe('Fuel');
 });
 
 afterEach(function () {
@@ -33,12 +34,14 @@ it('exposes the brand logo url on the card when the file exists', function () {
     File::put(public_path('logos/brands/testco.png'), 'x');
     $fuel = Fuel::factory()->create(['brand' => 'Testco']);
 
-    expect($fuel->card()['meta']['brandLogo'])->toBe('/logos/brands/testco.png');
-    expect($fuel->card()['meta']['brand'])->toBe('Testco');
+    $meta = CardPresenter::for($fuel)->meta;
+
+    expect($meta->brandLogo)->toBe('/logos/brands/testco.png');
+    expect($meta->brand)->toBe('Testco');
     expect($fuel->logo_url)->toBe('/logos/brands/testco.png');
 });
 
 it('has a null brand logo when the file is absent or brand is null', function () {
-    expect(Fuel::factory()->create(['brand' => 'Testco'])->card()['meta']['brandLogo'])->toBeNull();
+    expect(CardPresenter::for(Fuel::factory()->create(['brand' => 'Testco']))->meta->brandLogo)->toBeNull();
     expect(Fuel::factory()->create(['brand' => null])->logo_url)->toBeNull();
 });

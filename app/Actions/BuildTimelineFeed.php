@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
 use App\Support\Text;
 use Illuminate\Support\Collection;
@@ -42,27 +43,27 @@ class BuildTimelineFeed
         // without a lazy query per card.
         $entry->timelineable->setRelation('timelineEntry', $entry);
 
-        $card = $entry->timelineable->card();
+        $card = CardPresenter::for($entry->timelineable);
         $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
 
         return [
-            'iconKey' => $card['type'],
-            'accent' => $card['accent'],
-            'title' => $card['title'],
-            'titleLabel' => $card['titleLabel'] ?? null,
-            'meta' => Text::excerpt($card['subtitle'], 240),
-            'metaTokens' => $card['subtitleTokens'] ?? null,
-            'body' => $card['meta']['body'] ?? null,
-            'segments' => $card['meta']['segments'] ?? null,
-            'route' => $card['meta']['route'] ?? null,
-            'media' => $card['meta']['media'] ?? null,
-            'photos' => $card['meta']['photos'] ?? null,
-            'polyline' => $card['meta']['polyline'] ?? null,
-            'map' => $card['meta']['map'] ?? null,
-            'mapDark' => $card['meta']['mapDark'] ?? null,
-            'brandLogo' => $card['meta']['brandLogo'] ?? null,
-            'brand' => $card['meta']['brand'] ?? null,
-            'range' => $card['range'] ?? null,
+            'iconKey' => $card->type->value,
+            'accent' => $card->accent,
+            'title' => $card->title,
+            'titleLabel' => $card->titleLabel,
+            'meta' => Text::excerpt($card->subtitle, 240),
+            'metaTokens' => $card->subtitleTokens,
+            'body' => $card->meta->body,
+            'segments' => $card->meta->segments,
+            'route' => $card->meta->route,
+            'media' => $card->meta->media,
+            'photos' => $card->meta->photos,
+            'polyline' => $card->meta->polyline,
+            'map' => $card->meta->map,
+            'mapDark' => $card->meta->mapDark,
+            'brandLogo' => $card->meta->brandLogo,
+            'brand' => $card->meta->brand,
+            'range' => $card->range,
             'time' => $local['time'],
             'datetime' => $local['iso'],
             'label' => $local['label'],

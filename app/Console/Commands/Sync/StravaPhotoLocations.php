@@ -4,6 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\LocatePhotoOnRoute;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\CarbonImmutable;
@@ -48,7 +49,7 @@ class StravaPhotoLocations extends Command
         $force = (bool) $this->option('force');
 
         $targets = Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('source_id')
             ->with('media')
             ->get()

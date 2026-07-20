@@ -23,6 +23,24 @@ it('maps an activity to a CSV row in header order', function () {
     ]);
 });
 
+it('json-encodes array stream columns instead of stringifying them', function () {
+    $activity = Activity::factory()->make([
+        'occurred_at' => '2026-06-28 07:30:00',
+        'heart_rate' => [120, 130, 140],
+        'altitude' => [10.5, 11.0],
+        'meta' => ['average_speed' => 3.1],
+    ]);
+
+    $row = app(StravaSync::class)->csvRow($activity, ['occurred_at', 'heart_rate', 'altitude', 'meta']);
+
+    expect($row)->toBe([
+        '2026-06-28 07:30:00',
+        '[120,130,140]',
+        '[10.5,11]',
+        '{"average_speed":3.1}',
+    ]);
+});
+
 it('appends synced activities to the csv in header order', function () {
     $path = sys_get_temp_dir().'/activities_'.uniqid().'.csv';
     file_put_contents($path, "occurred_at,type,name,source,source_id,meta\n");

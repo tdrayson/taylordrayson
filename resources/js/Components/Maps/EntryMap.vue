@@ -1,8 +1,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
-import { CenterFocusIcon } from '@hugeicons-pro/core-stroke-rounded';
-import { mapStyleForTheme } from '../../lib/maplibre.js';
+import { mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 import PhotoMarker from './PhotoMarker.vue';
 
@@ -276,19 +275,14 @@ onMounted(async () => {
         stopCursorWatch = watch(props.cursor.fraction, updateRouteDot);
     }
 
-    // Switch basemap when the colour scheme changes, then re-add the custom
-    // layer once the new style has finished loading (setStyle clears it).
+    // Swap the basemap on colour-scheme change, carrying the route layer across
+    // so it stays drawn (setStyle would otherwise drop it).
     stopThemeWatch = watch(resolved, (value) => {
         if (!map) {
             return;
         }
 
-        map.setStyle(mapStyleForTheme(value));
-        // Dedupe: drop any pending re-add from a previous toggle before
-        // registering a fresh one, otherwise rapid toggles stack handlers
-        // and both fire, throwing on the second addSource/addLayer call.
-        map.off('style.load', addRouteLayer);
-        map.once('style.load', addRouteLayer);
+        swapBasemapStyle(map, mapStyleForTheme(value), ['route']);
     });
 });
 
@@ -315,7 +309,7 @@ onBeforeUnmount(() => {
             aria-label="Re-center map"
             @click="recenter"
         >
-            <Icon :icon="CenterFocusIcon" class="size-4" />
+            <Icon name="CenterFocusIcon" class="size-4" />
         </button>
 
         <div class="hidden">

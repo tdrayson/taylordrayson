@@ -44,17 +44,4 @@ class Project extends Model implements HasMedia, Timelineable
     {
         return $this->getAttribute('slug');
     }
-
-    public function card(): array
-    {
-        return [
-            'type' => 'project',
-            'icon' => 'rocket',
-            'title' => $this->title,
-            'subtitle' => $this->description,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'project',
-            'meta' => [],
-        ];
-    }
 }

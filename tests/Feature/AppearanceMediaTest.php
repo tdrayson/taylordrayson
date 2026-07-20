@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Appearance;
+use App\Presenters\CardPresenter;
 use App\Support\YouTube;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -50,13 +51,13 @@ it('exposes a media block with a derived youtube thumbnail when there is no cove
         'audio_url' => null,
     ]);
 
-    $media = $appearance->card()['meta']['media'];
+    $media = CardPresenter::for($appearance)->meta->media;
 
-    expect($media['id'])->toBe("appearance-{$appearance->id}");
-    expect($media['videoUrl'])->toBe('https://www.youtube.com/watch?v=W7rO_mZTuWM');
-    expect($media['thumbnail'])->toBe('https://i.ytimg.com/vi/W7rO_mZTuWM/maxresdefault.jpg');
-    expect($media['srcset'])->toBeNull();
-    expect($media['audioUrl'])->toBeNull();
+    expect($media->id)->toBe("appearance-{$appearance->id}");
+    expect($media->videoUrl)->toBe('https://www.youtube.com/watch?v=W7rO_mZTuWM');
+    expect($media->thumbnail)->toBe('https://i.ytimg.com/vi/W7rO_mZTuWM/maxresdefault.jpg');
+    expect($media->srcset)->toBeNull();
+    expect($media->audioUrl)->toBeNull();
 });
 
 it('prefers a stored cover over the derived thumbnail', function () {

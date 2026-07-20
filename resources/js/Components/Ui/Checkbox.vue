@@ -1,5 +1,4 @@
 <script setup>
-import { Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
 
 const props = defineProps({
@@ -20,6 +19,6 @@ defineEmits(['update:modelValue']);
         :class="modelValue ? 'border-accent-500 bg-accent-500 text-neutral-0' : 'border-neutral-100 bg-neutral-0 text-transparent hover:border-accent-500'"
         @click="$emit('update:modelValue', !modelValue)"
     >
-        <Icon :icon="Tick02Icon" class="size-3.5" />
+        <Icon name="Tick02Icon" class="size-3.5" />
     </button>
 </template>

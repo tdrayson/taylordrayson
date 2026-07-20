@@ -1,6 +1,5 @@
 <script setup>
 import { Link, setLayoutProps } from '@inertiajs/vue3';
-import { ArrowRight01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
@@ -40,7 +39,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Data stories' }] });
                 <p class="relative mt-2 flex-1 text-meta text-neutral-600">{{ story.description }}</p>
                 <span class="relative mt-5 inline-flex items-center gap-1.5 text-caption font-medium text-neutral-900">
                     Read the story
-                    <Icon :icon="ArrowRight01Icon" class="size-4 transition-transform group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5" />
+                    <Icon name="ArrowRight01Icon" class="size-4 transition-transform group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5" />
                 </span>
             </Link>
         </li>

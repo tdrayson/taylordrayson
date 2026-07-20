@@ -1,7 +1,10 @@
 <?php
 
+use App\Enums\ActivityDiscipline;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 
 it('can create an activity with factory-like attributes', function () {
     $activity = Activity::create([
@@ -73,9 +76,9 @@ it('card returns expected array shape', function () {
         'duration' => 1800,
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity);
 
-    expect($card)->toHaveKeys([
+    expect($card->toArray())->toHaveKeys([
         'type',
         'icon',
         'title',
@@ -96,10 +99,11 @@ it('shows distance for any activity type that records one, without a cardio allo
         'duration' => 1800,
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity);
 
-    expect($card['subtitle'])->toContain('mi')
-        ->and($card['subtitleTokens'])->toContain(['t' => 'dist', 'm' => 5000, 'p' => 1]);
+    expect($card->subtitle)->toContain('mi')
+        ->and(array_map(fn ($token) => $token->toArray(), $card->subtitleTokens))
+        ->toContain(['t' => 'dist', 'm' => 5000, 'p' => 1]);
 });
 
 it('shows a strength subtitle whenever sets exist, regardless of type', function () {
@@ -111,8 +115,23 @@ it('shows a strength subtitle whenever sets exist, regardless of type', function
         'meta' => ['sets' => [['exercise' => 'Snatch', 'reps' => 3, 'weight_kg' => 60]]],
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity);
 
-    expect($card['subtitle'])->toContain('exercise')
-        ->and($card['subtitleTokens'])->toContain(['t' => 'text', 'v' => '1 exercise']);
+    expect($card->subtitle)->toContain('exercise')
+        ->and(array_map(fn ($token) => $token->toArray(), $card->subtitleTokens))
+        ->toContain(['t' => 'text', 'v' => '1 exercise']);
+});
+
+it('builds a Strava platform URL for a run sourced from Strava', function () {
+    // Sanity check that the ActivityDiscipline/Source reference enums are
+    // being compared correctly (source stays a plain string column, not cast).
+    $activity = Activity::create([
+        'occurred_at' => now(),
+        'type' => ActivityDiscipline::Run->value,
+        'duration' => 1800,
+        'source' => Source::Strava->value,
+        'source_id' => '123456',
+    ]);
+
+    expect($activity->platform_url)->toBe('https://www.strava.com/activities/123456');
 });
