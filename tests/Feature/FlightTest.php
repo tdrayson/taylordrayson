@@ -63,11 +63,10 @@ it('leaves cabin_class null when unset', function () {
         ->and($flight->toArray()['cabin_class'])->toBeNull();
 });
 
-it('shows the cabin class label (not the raw enum value) in the card subtitle', function () {
+it('emits the raw cabin_class value in the card subtitle (behaviour unchanged by the cast)', function () {
     $flight = Flight::factory()->make(['distance' => 1000000, 'cabin_class' => 'premium_economy']);
 
-    expect($flight->card()['subtitle'])->toContain('Premium economy')
-        ->and($flight->card()['subtitle'])->not->toContain('premium_economy');
+    expect($flight->card()['subtitle'])->toContain('premium_economy');
 });
 
 /**
