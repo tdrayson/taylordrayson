@@ -5,7 +5,7 @@ namespace App\Enums;
 enum MediaType: string
 {
     case Film = 'film';
-    case TvEpisode = 'tv_episode';
+    case TvEpisode = 'episode';
     case Book = 'book';
 
     public function label(): string
