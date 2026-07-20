@@ -35,7 +35,7 @@ class NowController extends Controller
     /**
      * The most recent This Week With episode, shaped for the podcast widget.
      *
-     * @return array{season: int, episode: int, publishedAt: string, duration: int|null, url: string, media: array{id: int, title: string, audioUrl: string|null, videoUrl: string|null, thumbnail: string|null, url: string}}|null
+     * @return array{season: int, episode: int, publishedAt: string, duration: int|null, url: string, media: array{id: int, title: string, audioUrl: string|null, videoUrl: string|null, thumbnail: string|null, audioCover: string|null, url: string}}|null
      */
     private function latestEpisode(): ?array
     {
@@ -56,9 +56,10 @@ class NowController extends Controller
                 'title' => $episode->title,
                 'audioUrl' => $episode->audio_url,
                 'videoUrl' => $episode->video_url,
-                // Square podcast artwork for the audio player's cover slot; the
-                // wide cover_image (video still) would be cropped in the square.
-                'thumbnail' => $episode->thumbnail ?? $episode->cover_image,
+                'thumbnail' => $episode->cover_image ?? $episode->thumbnail,
+                // Square artwork for the bottom audio player; the widget itself
+                // shows host headshots, not this image.
+                'audioCover' => $episode->thumbnail ?? $episode->cover_image,
                 'url' => $episode->url(),
             ],
         ];
