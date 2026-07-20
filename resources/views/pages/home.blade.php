@@ -6,7 +6,7 @@
         @if ($entry->timelineable)
             @php
                 $currentDate = $entry->occurred_at->format('Y-m-d');
-                $card = $entry->timelineable->card();
+                $card = \App\Presenters\CardPresenter::for($entry->timelineable);
             @endphp
 
             @if ($currentDate !== $lastDate)

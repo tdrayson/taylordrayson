@@ -13,6 +13,7 @@ use App\Models\Flight;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
@@ -63,7 +64,7 @@ class EntryController extends Controller
             $model->load('media');
         }
 
-        $card = $model->card();
+        $card = CardPresenter::for($model);
 
         return Inertia::render('Entry', [
             'type' => $card->type->value,

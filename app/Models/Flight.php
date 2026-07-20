@@ -2,19 +2,11 @@
 
 namespace App\Models;
 
-use App\Data\AirlineData;
-use App\Data\CardData;
-use App\Data\CardMeta;
-use App\Data\RouteData;
-use App\Data\RoutePoint;
-use App\Data\SubtitleToken;
 use App\Enums\CabinClass;
-use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use App\Support\Distance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -122,67 +114,5 @@ class Flight extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return strtolower("{$this->origin_iata}-{$this->destination_iata}");
-    }
-
-    /**
-     * Route title using city names when the airport relations are loaded
-     * (the entry page), falling back to IATA codes otherwise (the feed).
-     */
-    private function routeTitle(): string
-    {
-        $origin = ($this->relationLoaded('origin') ? $this->origin?->place : null) ?? $this->origin_iata;
-        $destination = ($this->relationLoaded('destination') ? $this->destination?->place : null) ?? $this->destination_iata;
-
-        return "{$origin} → {$destination}";
-    }
-
-    public function card(): CardData
-    {
-        return new CardData(
-            type: TimelineType::Flight,
-            icon: 'plane',
-            title: $this->routeTitle(),
-            titleLabel: null,
-            subtitle: $this->distance ? sprintf('%s mi, %s', number_format(Distance::miles($this->distance)), $this->cabin_class?->value) : null,
-            // Raw metres (not Distance::miles) so FeedItem.vue converts via useFormat and
-            // reacts to the visitor's unit toggle.
-            subtitleTokens: $this->distance
-                ? [SubtitleToken::dist((int) $this->distance, 0), SubtitleToken::text($this->cabin_class?->value)]
-                : null,
-            occurredAt: $this->occurred_at,
-            accent: 'flight',
-            range: null,
-            meta: CardMeta::route(
-                route: new RouteData(
-                    origin: new RoutePoint(
-                        iata: $this->origin_iata,
-                        place: $this->relationLoaded('origin') ? $this->origin?->place : null,
-                        name: $this->relationLoaded('origin') ? $this->origin?->name : null,
-                        lat: $this->relationLoaded('origin') ? $this->origin?->latitude : null,
-                        lng: $this->relationLoaded('origin') ? $this->origin?->longitude : null,
-                    ),
-                    destination: new RoutePoint(
-                        iata: $this->destination_iata,
-                        place: $this->relationLoaded('destination') ? $this->destination?->place : null,
-                        name: $this->relationLoaded('destination') ? $this->destination?->name : null,
-                        lat: $this->relationLoaded('destination') ? $this->destination?->latitude : null,
-                        lng: $this->relationLoaded('destination') ? $this->destination?->longitude : null,
-                    ),
-                    depart: $this->departed_local,
-                    arrive: $this->arrived_local,
-                    distance: Distance::miles($this->distance),
-                    duration: $this->duration,
-                    airline: $this->relationLoaded('airline') && $this->airline
-                        ? new AirlineData(
-                            name: $this->airline->name,
-                            icon: $this->airline->icon_url,
-                            number: trim(($this->airline->iata_code ?: $this->airline_icao).' '.$this->flight_number),
-                        )
-                        : null,
-                ),
-                map: $this->getFirstMediaUrl('map') ?: null,
-                mapDark: $this->getFirstMediaUrl('map_dark') ?: null,
-            ),
-        );
     }
 }

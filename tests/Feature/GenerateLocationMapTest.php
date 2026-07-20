@@ -3,6 +3,7 @@
 use App\Actions\GenerateLocationMap;
 use App\Models\Checkin;
 use App\Models\Event;
+use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -41,7 +42,7 @@ it('generates both light and dark static pin maps and exposes both URLs on the c
         ->and($event->getFirstMedia('map'))->not->toBeNull()
         ->and($event->getFirstMedia('map_dark'))->not->toBeNull();
 
-    $card = $event->card();
+    $card = CardPresenter::for($event);
 
     expect($card->meta->map)->not->toBeNull()
         ->and($card->meta->mapDark)->not->toBeNull()

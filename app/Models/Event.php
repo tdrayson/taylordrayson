@@ -2,11 +2,7 @@
 
 namespace App\Models;
 
-use App\Data\CardData;
-use App\Data\CardMeta;
-use App\Data\PhotoData;
 use App\Data\RangeData;
-use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -94,36 +90,6 @@ class Event extends Model implements HasMedia, Timelineable
             days: (int) $days,
             label: $label,
             long: $long,
-        );
-    }
-
-    public function card(): CardData
-    {
-        $parts = array_filter([$this->venue_name, $this->city]);
-        $photos = $this->galleryPhotos();
-
-        return new CardData(
-            type: TimelineType::Event,
-            icon: 'music',
-            title: $this->name,
-            titleLabel: null,
-            subtitle: $parts ? implode(', ', $parts) : null,
-            subtitleTokens: null,
-            occurredAt: $this->occurred_at,
-            accent: 'event',
-            range: $this->dateRange(),
-            meta: CardMeta::event(
-                photos: array_map(
-                    fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
-                    $photos,
-                ),
-                // Fall back to the generated static location map only when there
-                // is no photo to show instead (mirrors the activity route map).
-                map: $photos === [] ? $this->getFirstMediaUrl('map') ?: null : null,
-                // Dark twin of the same map, rendered by the frontend behind a
-                // `dark:` class swap so the theme decides which PNG shows.
-                mapDark: $photos === [] ? $this->getFirstMediaUrl('map_dark') ?: null : null,
-            ),
         );
     }
 }

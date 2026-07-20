@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Fuel;
+use App\Presenters\CardPresenter;
 
 it('uses the flat station_name as the card title', function () {
     $fuel = Fuel::factory()->create([
@@ -10,7 +11,7 @@ it('uses the flat station_name as the card title', function () {
         'price_per_litre' => 1.28,
     ]);
 
-    $card = $fuel->card();
+    $card = CardPresenter::for($fuel);
 
     expect($card->title)->toBe('ASDA Wallington');
     expect($card->titleLabel)->toContain('ASDA Wallington');
@@ -20,5 +21,5 @@ it('uses the flat station_name as the card title', function () {
 it('falls back to Fuel when no station is set', function () {
     $fuel = Fuel::factory()->create(['station_name' => null]);
 
-    expect($fuel->card()->title)->toBe('Fuel');
+    expect(CardPresenter::for($fuel)->title)->toBe('Fuel');
 });

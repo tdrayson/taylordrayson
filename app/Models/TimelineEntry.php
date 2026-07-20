@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Presenters\CardPresenter;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -97,7 +98,7 @@ class TimelineEntry extends Model implements Feedable
     {
         $this->timelineable->setRelation('timelineEntry', $this);
 
-        $card = $this->timelineable->card();
+        $card = CardPresenter::for($this->timelineable);
         $link = url($this->timelineable->url());
 
         return FeedItem::create([

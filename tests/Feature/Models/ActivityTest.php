@@ -4,6 +4,7 @@ use App\Enums\ActivityDiscipline;
 use App\Enums\Source;
 use App\Models\Activity;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 
 it('can create an activity with factory-like attributes', function () {
     $activity = Activity::create([
@@ -75,7 +76,7 @@ it('card returns expected array shape', function () {
         'duration' => 1800,
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity);
 
     expect($card->toArray())->toHaveKeys([
         'type',
@@ -98,7 +99,7 @@ it('shows distance for any activity type that records one, without a cardio allo
         'duration' => 1800,
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity);
 
     expect($card->subtitle)->toContain('mi')
         ->and(array_map(fn ($token) => $token->toArray(), $card->subtitleTokens))
@@ -114,7 +115,7 @@ it('shows a strength subtitle whenever sets exist, regardless of type', function
         'meta' => ['sets' => [['exercise' => 'Snatch', 'reps' => 3, 'weight_kg' => 60]]],
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity);
 
     expect($card->subtitle)->toContain('exercise')
         ->and(array_map(fn ($token) => $token->toArray(), $card->subtitleTokens))

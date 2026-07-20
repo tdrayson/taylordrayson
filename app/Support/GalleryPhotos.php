@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Concerns\Timelineable;
+use App\Presenters\CardPresenter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -22,7 +23,7 @@ class GalleryPhotos
      */
     public static function shape(Model&Timelineable $model, Collection $media): array
     {
-        $card = $model->card();
+        $card = CardPresenter::for($model);
 
         return $media->map(fn (Media $item): array => [
             ...self::dimensions($item),

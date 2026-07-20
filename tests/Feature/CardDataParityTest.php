@@ -8,6 +8,7 @@ use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
+use App\Presenters\CardPresenter;
 use App\Support\Distance;
 use App\Support\YouTube;
 
@@ -29,7 +30,7 @@ it('reproduces the pre-refactor activity card shape', function () {
         'meta' => ['elevation_gain' => 50],
     ]);
 
-    expect($activity->card()->toArray())->toEqual([
+    expect(CardPresenter::for($activity)->toArray())->toEqual([
         'type' => 'activity',
         'icon' => 'footprints',
         'title' => 'Morning Run',
@@ -60,7 +61,7 @@ it('reproduces the pre-refactor flight card shape', function () {
         'meta' => [],
     ]);
 
-    expect($flight->card()->toArray())->toEqual([
+    expect(CardPresenter::for($flight)->toArray())->toEqual([
         'type' => 'flight',
         'icon' => 'plane',
         'title' => 'LHR → JFK',
@@ -96,7 +97,7 @@ it('reproduces the pre-refactor media card shape', function () {
         'meta' => ['year' => 2014],
     ]);
 
-    expect($media->card()->toArray())->toEqual([
+    expect(CardPresenter::for($media)->toArray())->toEqual([
         'type' => 'media',
         'icon' => 'film',
         'title' => 'Interstellar',
@@ -113,7 +114,7 @@ it('reproduces the pre-refactor note card shape', function () {
         'content' => 'A short note about today.',
     ]);
 
-    expect($note->card()->toArray())->toEqual([
+    expect(CardPresenter::for($note)->toArray())->toEqual([
         'type' => 'note',
         'icon' => 'message-circle',
         'title' => 'A short note about today.',
@@ -133,7 +134,7 @@ it('reproduces the pre-refactor single-day event card shape', function () {
         'city' => 'London',
     ]);
 
-    expect($event->card()->toArray())->toEqual([
+    expect(CardPresenter::for($event)->toArray())->toEqual([
         'type' => 'event',
         'icon' => 'music',
         'title' => 'Test Gig',
@@ -156,7 +157,7 @@ it('reproduces the pre-refactor sleep card shape', function () {
         'deep' => 7200,
     ]);
 
-    expect($sleep->card()->toArray())->toEqual([
+    expect(CardPresenter::for($sleep)->toArray())->toEqual([
         'type' => 'sleep',
         'icon' => 'bed',
         'title' => '8h sleep',
@@ -185,7 +186,7 @@ it('reproduces the pre-refactor appearance card shape', function () {
         'duration' => 1800,
     ]);
 
-    expect($appearance->card()->toArray())->toEqual([
+    expect(CardPresenter::for($appearance)->toArray())->toEqual([
         'type' => 'appearance',
         'icon' => 'mic',
         'title' => 'Building a Lifelog',

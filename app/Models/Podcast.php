@@ -2,10 +2,6 @@
 
 namespace App\Models;
 
-use App\Data\CardData;
-use App\Data\CardMeta;
-use App\Data\MediaData;
-use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -55,29 +51,5 @@ class Podcast extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return "tww-s{$this->season_number}-e{$this->episode_number}";
-    }
-
-    public function card(): CardData
-    {
-        return new CardData(
-            type: TimelineType::Podcast,
-            icon: 'headphones',
-            title: $this->title,
-            titleLabel: null,
-            subtitle: $this->topic,
-            subtitleTokens: null,
-            occurredAt: $this->occurred_at,
-            accent: 'podcast',
-            range: null,
-            meta: CardMeta::media(MediaData::withoutSrcset(
-                id: $this->id,
-                title: $this->title,
-                audioUrl: $this->audio_url,
-                videoUrl: $this->video_url,
-                thumbnail: $this->cover_image ?? $this->thumbnail,
-                duration: $this->duration,
-                url: $this->url(),
-            )),
-        );
     }
 }

@@ -8,6 +8,7 @@ use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\OgMeta;
 use App\Support\OgPhrases;
 use App\Support\StaticMap;
@@ -144,7 +145,7 @@ class OgImageController extends Controller
             $model->load('origin', 'destination');
         }
 
-        $card = $model->card();
+        $card = CardPresenter::for($model);
         $accent = TypeColors::hex($card->accent, self::ACCENT_DEFAULT);
         [$layout, $image] = $this->entryImage($model, $card, $accent);
 

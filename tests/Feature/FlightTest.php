@@ -3,6 +3,7 @@
 use App\Enums\CabinClass;
 use App\Models\Airline;
 use App\Models\Flight;
+use App\Presenters\CardPresenter;
 
 it('computes the landed time in the destination local timezone, DST-aware', function () {
     // BST departure (UTC+1) → EDT arrival (UTC-4): 09:30 + 7h25m = 11:55 New York.
@@ -41,7 +42,7 @@ it('includes the flight designator (iata code + number) in the card airline', fu
     $flight = new Flight(['airline_icao' => 'EZY', 'flight_number' => '8821', 'occurred_at' => '2026-06-03 17:20:00']);
     $flight->setRelation('airline', new Airline(['icao_code' => 'EZY', 'iata_code' => 'U2', 'name' => 'easyJet UK']));
 
-    $airline = $flight->card()->meta->route->airline;
+    $airline = CardPresenter::for($flight)->meta->route->airline;
 
     expect($airline->number)->toBe('U2 8821');
     expect($airline->name)->toBe('easyJet UK');
@@ -66,7 +67,7 @@ it('leaves cabin_class null when unset', function () {
 it('emits the raw cabin_class value in the card subtitle (behaviour unchanged by the cast)', function () {
     $flight = Flight::factory()->make(['distance' => 1000000, 'cabin_class' => 'premium_economy']);
 
-    expect($flight->card()->subtitle)->toContain('premium_economy');
+    expect(CardPresenter::for($flight)->subtitle)->toContain('premium_economy');
 });
 
 /**
@@ -77,5 +78,5 @@ it('emits the raw cabin_class value in the card subtitle (behaviour unchanged by
 it('preserves the pre-existing subtitle formatting when cabin_class is null', function () {
     $flight = Flight::factory()->make(['distance' => 1000000, 'cabin_class' => null]);
 
-    expect($flight->card()->subtitle)->toEndWith(' mi, ');
+    expect(CardPresenter::for($flight)->subtitle)->toEndWith(' mi, ');
 });

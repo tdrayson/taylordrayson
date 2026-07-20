@@ -16,6 +16,7 @@ use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -224,7 +225,7 @@ class TimelineController extends Controller
                         continue;
                     }
 
-                    $types[] = $model->card()->type->value;
+                    $types[] = CardPresenter::for($model)->type->value;
                 }
 
                 $calories = (int) ($calorieTotals[$group->first()->occurred_at->toDateString()] ?? 0);

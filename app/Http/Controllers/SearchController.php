@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
+use App\Presenters\CardPresenter;
 use App\Search\SearchCompiler;
 use App\Search\SearchPresets;
 use App\Search\SearchSchema;
@@ -318,7 +319,7 @@ class SearchController extends Controller
 
         return $query->get()
             ->map(function ($entry): array {
-                $card = $entry->card();
+                $card = CardPresenter::for($entry);
 
                 return [
                     'title' => $card->title,
