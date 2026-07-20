@@ -73,7 +73,7 @@ it('filters fuel by vehicle at its own base route', function () {
     get('/vehicles/hn14wxp')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Archive')
         ->where('type', 'fuel')
-        ->where('title', 'Fuel for Aygo')
+        ->where('title', 'Fuel for Toyota Aygo')
     );
 });
 
@@ -172,10 +172,78 @@ it('exposes route geometry on feed cards (activity polyline, flight coords)', fu
     );
 });
 
-it('omits the overview map for non-flight archives', function () {
+it('omits the overview map for archives without one', function () {
     Activity::factory()->create(['type' => 'run', 'occurred_at' => now()]);
 
     get('/activities')->assertInertia(fn ($page) => $page->where('map', []));
+});
+
+it('renders unique fuel stations on the overview map on the first page only', function () {
+    Fuel::factory()->create([
+        'station_name' => 'BP Chippenham',
+        'latitude' => 51.46,
+        'longitude' => -2.12,
+        'occurred_at' => now()->subDay(),
+    ]);
+    // Same pump again — should collapse to one pin.
+    Fuel::factory()->create([
+        'station_name' => 'BP Chippenham',
+        'latitude' => 51.46,
+        'longitude' => -2.12,
+        'occurred_at' => now()->subDays(2),
+    ]);
+    Fuel::factory()->create([
+        'station_name' => 'Shell Bath',
+        'latitude' => 51.38,
+        'longitude' => -2.36,
+        'occurred_at' => now()->subDays(3),
+    ]);
+    Fuel::factory()->create([
+        'station_name' => 'No coords',
+        'latitude' => null,
+        'longitude' => null,
+        'occurred_at' => now()->subDays(4),
+    ]);
+    // Pad past the first page so page 2 exists and should omit the map.
+    Fuel::factory()->count(23)->create([
+        'latitude' => null,
+        'longitude' => null,
+        'occurred_at' => fn () => fake()->dateTimeBetween('-3 months', '-5 days'),
+    ]);
+
+    get('/fuel')->assertOk()->assertInertia(fn ($page) => $page
+        ->component('Archive')
+        ->where('type', 'fuel')
+        ->has('map', 2)
+        ->where('map.0.label', 'BP Chippenham')
+        ->where('map.0.lat', 51.46)
+        ->where('map', fn ($map) => collect($map)->pluck('label')->contains('Shell Bath'))
+    );
+
+    get('/fuel?page=2')->assertInertia(fn ($page) => $page->where('map', []));
+});
+
+it('filters the fuel overview map by vehicle taxonomy', function () {
+    Fuel::factory()->create([
+        'vehicle_id' => 'hn14wxp',
+        'station_name' => 'Aygo fill',
+        'latitude' => 51.46,
+        'longitude' => -2.12,
+        'occurred_at' => now()->subDay(),
+    ]);
+    Fuel::factory()->create([
+        'vehicle_id' => 'other-car',
+        'station_name' => 'Other fill',
+        'latitude' => 51.50,
+        'longitude' => -2.20,
+        'occurred_at' => now()->subDays(2),
+    ]);
+
+    get('/vehicles/hn14wxp')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('type', 'fuel')
+        ->has('map', 1)
+        ->where('map.0.label', 'Aygo fill')
+    );
 });
 
 it('filters the project archive by relational tag slug', function () {

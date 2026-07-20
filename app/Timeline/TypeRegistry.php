@@ -193,10 +193,29 @@ class TypeRegistry
             'label' => 'Vehicle',
             'title' => fn (string $label): string => "Fuel for {$label}",
             'filter' => fn (Builder $query, string $value) => $query->where('vehicle_id', $value),
-            'labelFor' => fn (string $value): string => config("vehicles.{$value}.model", $value),
+            'labelFor' => fn (string $value): string => self::vehicleLabel($value),
             'values' => fn (): Collection => collect(config('vehicles', []))
-                ->map(fn (array $vehicle, string $id): array => ['value' => $id, 'label' => $vehicle['model'] ?? $id])->values(),
+                ->map(fn (array $vehicle, string $id): array => [
+                    'value' => $id,
+                    'label' => self::vehicleLabel($id),
+                ])->values(),
         ];
+    }
+
+    /**
+     * Display name for a vehicle config entry, e.g. "Toyota Aygo".
+     */
+    private static function vehicleLabel(string $id): string
+    {
+        $vehicle = config("vehicles.{$id}");
+
+        if (! is_array($vehicle)) {
+            return $id;
+        }
+
+        $label = trim(($vehicle['make'] ?? '').' '.($vehicle['model'] ?? ''));
+
+        return $label !== '' ? $label : $id;
     }
 
     /**

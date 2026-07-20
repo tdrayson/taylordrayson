@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import Icon from '../Ui/Icon.vue';
 import { loadMaplibre, resolveColor, greatCircle, iataLabel, mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 
@@ -11,8 +12,11 @@ const props = defineProps({
     bleed: { type: Boolean, default: true },
 });
 
+const FIT_OPTIONS = { padding: 64, maxZoom: 7 };
+
 const container = ref(null);
 const showLabels = ref(false);
+const ready = ref(false);
 
 // Full-bleed box vs a contained box aligned to the surrounding text column.
 const layoutClass = computed(() =>
@@ -22,6 +26,7 @@ const layoutClass = computed(() =>
 );
 let map = null;
 let markers = [];
+let savedBounds = null;
 let stopThemeWatch;
 
 const { resolved } = useTheme();
@@ -44,6 +49,12 @@ function buildGeometry() {
     });
 
     return { arcs, endpoints: [...endpoints.values()] };
+}
+
+function recenter() {
+    if (map && savedBounds) {
+        map.fitBounds(savedBounds, FIT_OPTIONS);
+    }
 }
 
 watch(showLabels, (show) => {
@@ -122,9 +133,12 @@ onMounted(async () => {
         container: container.value,
         style: mapStyleForTheme(resolved.value),
         bounds,
-        fitBoundsOptions: { padding: 64, maxZoom: 7 },
+        fitBoundsOptions: FIT_OPTIONS,
         attributionControl: false,
     });
+
+    savedBounds = bounds;
+    ready.value = true;
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
@@ -158,14 +172,25 @@ onBeforeUnmount(() => {
 <template>
     <div class="flights-map relative overflow-hidden border-neutral-50" :class="layoutClass">
         <div ref="container" class="size-full" />
-        <button
-            type="button"
-            class="absolute left-3 top-3 z-10 rounded-md border border-neutral-100 bg-neutral-0/95 px-2.5 py-1.5 text-label font-semibold text-neutral-700 shadow-card transition-colors hover:text-accent-500"
-            :aria-pressed="showLabels"
-            @click="showLabels = !showLabels"
-        >
-            {{ showLabels ? 'Hide labels' : 'Show labels' }}
-        </button>
+        <div class="absolute left-2.5 top-2.5 z-10 flex items-center gap-2">
+            <button
+                v-if="ready"
+                type="button"
+                class="flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                aria-label="Re-center map"
+                @click="recenter"
+            >
+                <Icon name="CenterFocusIcon" class="size-4" />
+            </button>
+            <button
+                type="button"
+                class="rounded-md border border-neutral-100 bg-neutral-0/95 px-2.5 py-1.5 text-label font-semibold text-neutral-700 shadow-card transition-colors hover:text-accent-500"
+                :aria-pressed="showLabels"
+                @click="showLabels = !showLabels"
+            >
+                {{ showLabels ? 'Hide labels' : 'Show labels' }}
+            </button>
+        </div>
     </div>
 </template>
 

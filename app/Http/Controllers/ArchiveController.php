@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
 use App\Models\Flight;
+use App\Models\Fuel;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
@@ -76,8 +77,24 @@ class ArchiveController extends Controller
             'lastPage' => $page->lastPage(),
             'chips' => $this->chips($definition, $value),
             'parent' => $parent,
-            'map' => $type === 'flight' && $page->currentPage() === 1 ? $this->flightRoutes($taxonomy, $value) : [],
+            'map' => $page->currentPage() === 1 ? $this->overviewMap($type, $taxonomy, $value) : [],
         ]);
+    }
+
+    /**
+     * Overview map payload for archives that support one (flights routes,
+     * fuel stations). Empty for every other type.
+     *
+     * @param  array<string, mixed>|null  $taxonomy
+     * @return list<array<string, mixed>>
+     */
+    private function overviewMap(string $type, ?array $taxonomy, ?string $value): array
+    {
+        return match ($type) {
+            'flight' => $this->flightRoutes($taxonomy, $value),
+            'fuel' => $this->fuelStations($taxonomy, $value),
+            default => [],
+        };
     }
 
     /**
@@ -118,6 +135,40 @@ class ArchiveController extends Controller
             ->map(fn (Flight $flight): array => [
                 'origin' => ['lat' => $flight->origin->latitude, 'lng' => $flight->origin->longitude, 'iata' => $flight->origin_iata],
                 'destination' => ['lat' => $flight->destination->latitude, 'lng' => $flight->destination->longitude, 'iata' => $flight->destination_iata],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Unique fuel stations with coordinates for the overview map, filtered to
+     * the active vehicle taxonomy when one is applied. Deduped by rounded
+     * lat/lng so repeat fills at the same pump collapse to one pin.
+     *
+     * @param  array<string, mixed>|null  $taxonomy
+     * @return list<array{lat: float, lng: float, label: string}>
+     */
+    private function fuelStations(?array $taxonomy, ?string $value): array
+    {
+        $query = Fuel::query()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude');
+
+        if ($value !== null && $taxonomy !== null) {
+            ($taxonomy['filter'])($query, $value);
+        }
+
+        return $query
+            ->orderByDesc('occurred_at')
+            ->get(['station_name', 'brand', 'city', 'latitude', 'longitude'])
+            ->unique(fn (Fuel $fuel): string => round((float) $fuel->latitude, 4).','.round((float) $fuel->longitude, 4))
+            ->map(fn (Fuel $fuel): array => [
+                'lat' => (float) $fuel->latitude,
+                'lng' => (float) $fuel->longitude,
+                'label' => $fuel->station_name
+                    ?: ($fuel->brand ? $fuel->brand.' garage' : null)
+                    ?: $fuel->city
+                    ?: 'Station',
             ])
             ->values()
             ->all();

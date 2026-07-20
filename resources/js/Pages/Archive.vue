@@ -7,6 +7,7 @@ import Icon from '../Components/Ui/Icon.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import FlightsMap from '../Components/Maps/FlightsMap.vue';
+import StationsMap from '../Components/Maps/StationsMap.vue';
 import { entryType } from '../entryTypes.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -55,7 +56,8 @@ setLayoutProps({
         </div>
     </header>
 
-    <FlightsMap v-if="map.length" :routes="map" class="mt-8" />
+    <FlightsMap v-if="type === 'flight' && map.length" :routes="map" class="mt-8" />
+    <StationsMap v-else-if="type === 'fuel' && map.length" :stations="map" class="mt-8" />
 
     <div v-if="chips.length" class="mt-6 flex flex-wrap gap-2">
         <Link
