@@ -3,6 +3,7 @@
 namespace App\Timeline;
 
 use App\Enums\MediaType;
+use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Appearance;
@@ -36,19 +37,19 @@ class TypeRegistry
     public static function all(): array
     {
         return [
-            'activity' => self::type(Activity::class, 'activities', 'Activities', self::column('type', 'Type', fn (string $label): string => "{$label} activities")),
-            'sleep' => self::type(Sleep::class, 'sleep', 'Sleep'),
-            'calorie' => self::type(Calorie::class, 'food', 'Food'),
-            'media' => self::type(Media::class, 'media', 'Media', self::media()),
-            'event' => self::type(Event::class, 'events', 'Events', self::column('type', 'Type', fn (string $label): string => "{$label} events")),
-            'appearance' => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
-            'podcast' => self::type(Podcast::class, 'this-week-with', 'This Week With', null, 'episode'),
-            'flight' => self::type(Flight::class, 'flights', 'Flights', self::airline()),
-            'checkin' => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
-            'fuel' => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
-            'project' => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
-            'article' => self::type(Article::class, 'articles', 'Articles', self::tags(fn (string $label): string => "Articles tagged {$label}")),
-            'note' => self::type(Note::class, 'notes', 'Notes', self::tags(fn (string $label): string => "Notes tagged {$label}")),
+            TimelineType::Activity->value => self::type(Activity::class, 'activities', 'Activities', self::column('type', 'Type', fn (string $label): string => "{$label} activities")),
+            TimelineType::Sleep->value => self::type(Sleep::class, 'sleep', 'Sleep'),
+            TimelineType::Calorie->value => self::type(Calorie::class, 'food', 'Food'),
+            TimelineType::Media->value => self::type(Media::class, 'media', 'Media', self::media()),
+            TimelineType::Event->value => self::type(Event::class, 'events', 'Events', self::column('type', 'Type', fn (string $label): string => "{$label} events")),
+            TimelineType::Appearance->value => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
+            TimelineType::Podcast->value => self::type(Podcast::class, 'this-week-with', 'This Week With', null, 'episode'),
+            TimelineType::Flight->value => self::type(Flight::class, 'flights', 'Flights', self::airline()),
+            TimelineType::Checkin->value => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
+            TimelineType::Fuel->value => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
+            TimelineType::Project->value => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
+            TimelineType::Article->value => self::type(Article::class, 'articles', 'Articles', self::tags(fn (string $label): string => "Articles tagged {$label}")),
+            TimelineType::Note->value => self::type(Note::class, 'notes', 'Notes', self::tags(fn (string $label): string => "Notes tagged {$label}")),
         ];
     }
 

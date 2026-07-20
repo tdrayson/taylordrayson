@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\Source;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -66,7 +67,7 @@ class Checkin extends Model implements HasMedia, Timelineable
         $parts = array_filter([$this->category, $this->city]);
 
         return new CardData(
-            type: 'checkin',
+            type: TimelineType::Checkin,
             icon: 'map-pin',
             title: $this->venue_name,
             titleLabel: null,

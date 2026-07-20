@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\MediaData;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -73,7 +74,7 @@ class Appearance extends Model implements HasMedia, Timelineable
     public function card(): CardData
     {
         return new CardData(
-            type: 'appearance',
+            type: TimelineType::Appearance,
             icon: 'mic',
             title: $this->title,
             titleLabel: null,

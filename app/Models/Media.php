@@ -6,6 +6,7 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\MediaType;
 use App\Enums\Source;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -74,7 +75,7 @@ class Media extends Model implements HasMedia, Timelineable
         ]);
 
         return new CardData(
-            type: 'media',
+            type: TimelineType::Media,
             icon: 'film',
             title: $this->title,
             titleLabel: null,

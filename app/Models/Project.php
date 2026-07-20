@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -50,7 +51,7 @@ class Project extends Model implements HasMedia, Timelineable
     public function card(): CardData
     {
         return new CardData(
-            type: 'project',
+            type: TimelineType::Project,
             icon: 'rocket',
             title: $this->title,
             titleLabel: null,

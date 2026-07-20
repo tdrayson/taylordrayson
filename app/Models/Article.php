@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\PhotoData;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -84,7 +85,7 @@ class Article extends Model implements HasMedia, Timelineable
         $cover = $this->coverPhoto();
 
         return new CardData(
-            type: 'article',
+            type: TimelineType::Article,
             icon: 'file-text',
             title: $this->title,
             titleLabel: null,

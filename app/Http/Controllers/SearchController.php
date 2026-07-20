@@ -323,7 +323,7 @@ class SearchController extends Controller
                 return [
                     'title' => $card->title,
                     'subtitle' => $card->subtitle,
-                    'type' => $card->type,
+                    'type' => $card->type->value,
                     'url' => $entry->url(),
                     'occurred_at' => $entry->occurred_at,
                 ];

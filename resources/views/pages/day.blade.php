@@ -14,7 +14,7 @@
                     @if ($card->subtitle)
                         &mdash; {{ $card->subtitle }}
                     @endif
-                    <em>({{ $card->type }})</em>
+                    <em>({{ $card->type->value }})</em>
                 </li>
             @endif
         @endforeach

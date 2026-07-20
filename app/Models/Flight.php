@@ -9,6 +9,7 @@ use App\Data\RouteData;
 use App\Data\RoutePoint;
 use App\Data\SubtitleToken;
 use App\Enums\CabinClass;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -138,7 +139,7 @@ class Flight extends Model implements HasMedia, Timelineable
     public function card(): CardData
     {
         return new CardData(
-            type: 'flight',
+            type: TimelineType::Flight,
             icon: 'plane',
             title: $this->routeTitle(),
             titleLabel: null,

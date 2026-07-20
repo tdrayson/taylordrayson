@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\PhotoData;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -50,7 +51,7 @@ class Note extends Model implements HasMedia, Timelineable
     public function card(): CardData
     {
         return new CardData(
-            type: 'note',
+            type: TimelineType::Note,
             icon: 'message-circle',
             title: Str::limit($this->content, 80),
             titleLabel: null,

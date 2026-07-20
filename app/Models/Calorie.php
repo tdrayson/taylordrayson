@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -59,7 +60,7 @@ class Calorie extends Model implements HasMedia, Timelineable
             ->sum('calories');
 
         return new CardData(
-            type: 'calorie',
+            type: TimelineType::Calorie,
             icon: 'utensils',
             title: number_format($dailyTotal).' kcal',
             titleLabel: 'Food log, '.number_format($dailyTotal).' kcal for the day',

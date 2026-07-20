@@ -6,6 +6,7 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Data\RangeData;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -102,7 +103,7 @@ class Event extends Model implements HasMedia, Timelineable
         $photos = $this->galleryPhotos();
 
         return new CardData(
-            type: 'event',
+            type: TimelineType::Event,
             icon: 'music',
             title: $this->name,
             titleLabel: null,

@@ -107,7 +107,7 @@ class BuildLinkPreviews
             'url' => $href,
             'title' => $card->title,
             'excerpt' => $card->subtitle,
-            'type' => $card->type,
+            'type' => $card->type->value,
             'accent' => $card->accent,
             'date' => $model->occurredAtForDisplay()?->toDateString(),
             'cover' => $card->meta->photos[0]->src ?? null,

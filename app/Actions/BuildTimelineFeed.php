@@ -46,7 +46,7 @@ class BuildTimelineFeed
         $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
 
         return [
-            'iconKey' => $card->type,
+            'iconKey' => $card->type->value,
             'accent' => $card->accent,
             'title' => $card->title,
             'titleLabel' => $card->titleLabel,

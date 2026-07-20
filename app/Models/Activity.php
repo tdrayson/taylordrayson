@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Data\SubtitleToken;
 use App\Enums\Source;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -90,7 +91,7 @@ class Activity extends Model implements HasMedia, Timelineable
     public function card(): CardData
     {
         return new CardData(
-            type: 'activity',
+            type: TimelineType::Activity,
             icon: 'footprints',
             title: $this->name ?? ucfirst($this->type),
             titleLabel: null,

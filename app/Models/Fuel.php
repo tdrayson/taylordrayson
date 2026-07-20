@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -69,7 +70,7 @@ class Fuel extends Model implements HasMedia, Timelineable
         ]);
 
         return new CardData(
-            type: 'fuel',
+            type: TimelineType::Fuel,
             icon: 'fuel',
             title: $this->station_name ?? 'Fuel',
             titleLabel: 'Fuel stop'.($this->station_name ? ', '.$this->station_name : ''),

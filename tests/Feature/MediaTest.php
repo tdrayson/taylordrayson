@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\MediaType;
+use App\Enums\TimelineType;
 use App\Models\Media;
 
 it('casts a stored type string to the MediaType enum, but serialises the raw value', function (MediaType $type) {
@@ -17,7 +18,7 @@ it('renders a card for every media type', function (MediaType $type) {
 
     $card = $media->card();
 
-    expect($card->type)->toBe('media')
+    expect($card->type)->toBe(TimelineType::Media)
         ->and($card->title)->toBe('Test Title');
 })->with(MediaType::cases());
 

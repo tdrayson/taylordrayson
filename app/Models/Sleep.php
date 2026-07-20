@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\SegmentData;
+use App\Enums\TimelineType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -74,7 +75,7 @@ class Sleep extends Model implements HasMedia, Timelineable
         $formatted = $minutes > 0 ? "{$hours}h {$minutes}m" : "{$hours}h";
 
         return new CardData(
-            type: 'sleep',
+            type: TimelineType::Sleep,
             icon: 'bed',
             title: "{$formatted} sleep",
             titleLabel: "Sleep log, {$formatted}",

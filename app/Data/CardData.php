@@ -2,6 +2,7 @@
 
 namespace App\Data;
 
+use App\Enums\TimelineType;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
@@ -11,7 +12,8 @@ use JsonSerializable;
  * the pre-DTO array shape byte-for-byte when serialised: `titleLabel`,
  * `subtitleTokens` and `range` are only emitted when the producer set them
  * (matching the old array, which simply never carried those keys for types
- * that didn't use them).
+ * that didn't use them). `type` is the TimelineType enum; toArray() emits its
+ * backed string value so the serialised payload is unchanged.
  */
 final readonly class CardData implements Arrayable, JsonSerializable
 {
@@ -19,7 +21,7 @@ final readonly class CardData implements Arrayable, JsonSerializable
      * @param  ?list<SubtitleToken>  $subtitleTokens
      */
     public function __construct(
-        public string $type,
+        public TimelineType $type,
         public string $icon,
         public string $title,
         public ?string $titleLabel,
@@ -37,7 +39,7 @@ final readonly class CardData implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         $data = [
-            'type' => $this->type,
+            'type' => $this->type->value,
             'icon' => $this->icon,
             'title' => $this->title,
         ];

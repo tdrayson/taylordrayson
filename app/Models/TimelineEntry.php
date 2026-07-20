@@ -108,7 +108,7 @@ class TimelineEntry extends Model implements Feedable
             'link' => $link,
             'authorName' => config('feed.author_name'),
             'authorEmail' => config('feed.author_email'),
-            'category' => $card->type,
+            'category' => $card->type->value,
         ]);
     }
 
