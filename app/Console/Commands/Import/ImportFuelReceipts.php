@@ -162,6 +162,7 @@ class ImportFuelReceipts extends Command
         fclose($handle);
 
         $this->call('export:csv', ['file' => $this->option('export'), 'type' => 'fuel']);
+        $this->call('fuel:brand-logos');
         $this->info("Applied {$updated} rows and regenerated {$this->option('export')}.");
 
         return self::SUCCESS;

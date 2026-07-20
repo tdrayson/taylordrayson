@@ -10,10 +10,12 @@ use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
+use App\Queries\FuelEconomy;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
@@ -26,6 +28,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
+    public function __construct(private readonly FuelEconomy $fuelEconomy) {}
+
     public function show(int $year, int $month, int $day, string $slug): Response
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
@@ -182,6 +186,13 @@ class EntryController extends Controller
                 'address' => $address,
                 'mapsUrl' => 'https://www.google.com/maps/search/?api=1&query='.urlencode($address !== '' ? $address : $model->getAttribute('latitude').','.$model->getAttribute('longitude')),
             ];
+        }
+
+        if ($model instanceof Fuel) {
+            $economy = ($this->fuelEconomy)($model);
+            $data['miles_this_tank'] = $economy['miles'];
+            $data['mpg'] = $economy['mpg'];
+            $data['vehicle'] = $economy['vehicle'];
         }
 
         return $data;

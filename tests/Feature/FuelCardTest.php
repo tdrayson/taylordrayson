@@ -2,6 +2,7 @@
 
 use App\Models\Fuel;
 use App\Presenters\CardPresenter;
+use Illuminate\Support\Facades\File;
 
 it('uses the flat station_name as the card title', function () {
     $fuel = Fuel::factory()->create([
@@ -22,6 +23,27 @@ it('falls back to Fuel when no station is set', function () {
     $fuel = Fuel::factory()->create(['station_name' => null]);
 
     expect(CardPresenter::for($fuel)->title)->toBe('Fuel');
+});
+
+afterEach(function () {
+    File::delete(public_path('logos/brands/testco.png'));
+});
+
+it('exposes the brand logo url on the card when the file exists', function () {
+    File::ensureDirectoryExists(public_path('logos/brands'));
+    File::put(public_path('logos/brands/testco.png'), 'x');
+    $fuel = Fuel::factory()->create(['brand' => 'Testco']);
+
+    $meta = CardPresenter::for($fuel)->meta;
+
+    expect($meta->brandLogo)->toBe('/logos/brands/testco.png');
+    expect($meta->brand)->toBe('Testco');
+    expect($fuel->logo_url)->toBe('/logos/brands/testco.png');
+});
+
+it('has a null brand logo when the file is absent or brand is null', function () {
+    expect(CardPresenter::for(Fuel::factory()->create(['brand' => 'Testco']))->meta->brandLogo)->toBeNull();
+    expect(Fuel::factory()->create(['brand' => null])->logo_url)->toBeNull();
 });
 
 it('slugs the station name for the entry URL', function () {

@@ -28,6 +28,8 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?MediaData $media,
         public ?RouteData $route,
         public ?string $body,
+        public ?string $brand,
+        public ?string $brandLogo,
         private array $present,
     ) {}
 
@@ -36,7 +38,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function empty(): self
     {
-        return new self(null, null, null, null, null, null, null, null, []);
+        return new self(null, null, null, null, null, null, null, null, null, null, []);
     }
 
     /**
@@ -46,7 +48,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function activity(?string $polyline, array $photos, ?string $map, ?string $mapDark): self
     {
-        return new self($polyline, $photos, $map, $mapDark, null, null, null, null, ['polyline', 'photos', 'map', 'mapDark']);
+        return new self($polyline, $photos, $map, $mapDark, null, null, null, null, null, null, ['polyline', 'photos', 'map', 'mapDark']);
     }
 
     /**
@@ -56,7 +58,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function sleep(array $segments): self
     {
-        return new self(null, null, null, null, $segments, null, null, null, ['segments']);
+        return new self(null, null, null, null, $segments, null, null, null, null, null, ['segments']);
     }
 
     /**
@@ -66,7 +68,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function event(array $photos, ?string $map, ?string $mapDark): self
     {
-        return new self(null, $photos, $map, $mapDark, null, null, null, null, ['photos', 'map', 'mapDark']);
+        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark']);
     }
 
     /**
@@ -74,7 +76,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function media(MediaData $media): self
     {
-        return new self(null, null, null, null, null, $media, null, null, ['media']);
+        return new self(null, null, null, null, null, $media, null, null, null, null, ['media']);
     }
 
     /**
@@ -82,15 +84,23 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function route(RouteData $route, ?string $map, ?string $mapDark): self
     {
-        return new self(null, null, $map, $mapDark, null, null, $route, null, ['route', 'map', 'mapDark']);
+        return new self(null, null, $map, $mapDark, null, null, $route, null, null, null, ['route', 'map', 'mapDark']);
     }
 
     /**
-     * Checkin/Fuel: map, mapDark.
+     * Checkin: map, mapDark.
      */
     public static function locationMap(?string $map, ?string $mapDark): self
     {
-        return new self(null, null, $map, $mapDark, null, null, null, null, ['map', 'mapDark']);
+        return new self(null, null, $map, $mapDark, null, null, null, null, null, null, ['map', 'mapDark']);
+    }
+
+    /**
+     * Fuel: map, mapDark, brand, brandLogo.
+     */
+    public static function fuel(?string $map, ?string $mapDark, ?string $brand, ?string $brandLogo): self
+    {
+        return new self(null, null, $map, $mapDark, null, null, null, null, $brand, $brandLogo, ['map', 'mapDark', 'brand', 'brandLogo']);
     }
 
     /**
@@ -100,7 +110,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function photos(array $photos): self
     {
-        return new self(null, $photos, null, null, null, null, null, null, ['photos']);
+        return new self(null, $photos, null, null, null, null, null, null, null, null, ['photos']);
     }
 
     /**
@@ -110,7 +120,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      */
     public static function note(string $body, array $photos): self
     {
-        return new self(null, $photos, null, null, null, null, null, $body, ['body', 'photos']);
+        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos']);
     }
 
     /**
@@ -127,6 +137,8 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'media' => $this->media?->toArray(),
             'route' => $this->route?->toArray(),
             'body' => $this->body,
+            'brand' => $this->brand,
+            'brandLogo' => $this->brandLogo,
         ];
 
         $result = [];

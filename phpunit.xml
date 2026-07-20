@@ -36,5 +36,6 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="LOGODEV_TOKEN" value=""/>
     </php>
 </phpunit>

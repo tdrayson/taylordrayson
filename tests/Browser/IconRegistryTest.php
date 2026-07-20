@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Note;
+
 // The dynamic icon maps (navigation.js / entryTypes.js) store registry-name
 // STRINGS rather than imported hugeicons objects; Icon.vue resolves a string via
 // the registry. A broken name would resolve to null and render nothing.
@@ -16,7 +18,7 @@ it('renders map-driven registry-name icons as svg', function () {
 });
 
 it('renders timeline entry-type icons from the registry', function () {
-    \App\Models\Note::factory()->create([
+    Note::factory()->create([
         'content' => 'Registry icon check',
         'occurred_at' => now()->subHour(),
     ]);

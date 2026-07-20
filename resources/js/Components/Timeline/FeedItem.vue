@@ -43,6 +43,12 @@ const props = defineProps({
     // Dark-mode twin of `map` (mapbox/dark-v11). Older data without a dark
     // variant simply omits this and the light PNG shows in both themes.
     mapDark: { type: String, default: null },
+    // Stored brand logo for fuel entries (e.g. /logos/brands/bp.png); null when
+    // the brand has no downloaded logo. Rendered as a small white chip.
+    brandLogo: { type: String, default: null },
+    // The garage brand name (e.g. "BP"), shown as a text label beside the brand
+    // logo chip so the small mark on a fuel card isn't context-less.
+    brand: { type: String, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -228,6 +234,12 @@ function openLightbox(index) {
                 :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
             >{{ title }}</component>
         </h3>
+        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+            <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
+                <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
+            </span>
+            <span v-if="brand">{{ brand }} garage</span>
+        </div>
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>

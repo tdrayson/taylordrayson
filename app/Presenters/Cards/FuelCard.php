@@ -9,7 +9,7 @@ use App\Models\Fuel;
 
 /**
  * Builds the timeline card for a Fuel stop: litres/cost and price-per-litre
- * subtitle plus the generated location map.
+ * subtitle plus the generated location map and brand logo.
  */
 final class FuelCard
 {
@@ -34,9 +34,11 @@ final class FuelCard
             occurredAt: $model->occurred_at,
             accent: 'fuel',
             range: null,
-            meta: CardMeta::locationMap(
+            meta: CardMeta::fuel(
                 map: $model->getFirstMediaUrl('map') ?: null,
                 mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                brand: $model->brand,
+                brandLogo: $model->logo_url,
             ),
         );
     }
