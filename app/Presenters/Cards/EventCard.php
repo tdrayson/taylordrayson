@@ -17,7 +17,13 @@ final class EventCard
 {
     public function present(Event $model): CardData
     {
-        $parts = array_filter([$model->venue_name, $model->city]);
+        // "The Roundhouse in London" reads as a single clause; falls back to
+        // whichever one value is present (no dangling "in") when only venue or
+        // city is set.
+        $subtitle = match (true) {
+            $model->venue_name && $model->city => "{$model->venue_name} in {$model->city}",
+            default => $model->venue_name ?? $model->city,
+        };
         $photos = $model->galleryPhotos();
 
         return new CardData(
@@ -25,7 +31,7 @@ final class EventCard
             icon: 'music',
             title: $model->name,
             titleLabel: null,
-            subtitle: $parts ? implode(', ', $parts) : null,
+            subtitle: $subtitle,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'event',
