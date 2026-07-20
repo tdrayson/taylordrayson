@@ -21,16 +21,31 @@ final class FlightCard
 {
     public function present(Flight $model): CardData
     {
+        $cabinClass = $model->cabin_class?->value;
+
+        // "300 mi in economy" reads as a single clause; falls back to the bare
+        // distance (no dangling "in") when cabin class is missing.
+        $subtitle = match (true) {
+            ! $model->distance => null,
+            (bool) $cabinClass => sprintf('%s mi in %s', number_format(Distance::miles($model->distance)), $cabinClass),
+            default => sprintf('%s mi', number_format(Distance::miles($model->distance))),
+        };
+
         return new CardData(
             type: TimelineType::Flight,
             icon: 'plane',
             title: $this->routeTitle($model),
             titleLabel: null,
-            subtitle: $model->distance ? sprintf('%s mi, %s', number_format(Distance::miles($model->distance)), $model->cabin_class?->value) : null,
+            subtitle: $subtitle,
             // Raw metres (not Distance::miles) so FeedItem.vue converts via useFormat and
-            // reacts to the visitor's unit toggle.
+            // reacts to the visitor's unit toggle. Cabin class reads as a clause off the
+            // distance ("... mi in economy"), not a separate list item; omitted entirely
+            // when cabin class is missing (no dangling "in").
             subtitleTokens: $model->distance
-                ? [SubtitleToken::dist((int) $model->distance, 0), SubtitleToken::text($model->cabin_class?->value)]
+                ? array_values(array_filter([
+                    SubtitleToken::dist((int) $model->distance, 0),
+                    $cabinClass ? SubtitleToken::text($cabinClass, ' in ') : null,
+                ]))
                 : null,
             occurredAt: $model->occurred_at,
             accent: 'flight',

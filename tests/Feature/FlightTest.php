@@ -71,12 +71,13 @@ it('emits the raw cabin_class value in the card subtitle (behaviour unchanged by
 });
 
 /**
- * Pure refactor guard: a null cabin_class already produced this trailing
- * ", " before the enum cast (sprintf('%s', null) => ''); this test proves
- * the enum cast did not change that pre-existing formatting quirk.
+ * A null cabin_class used to leave a dangling ", " on the subtitle
+ * (sprintf('%s', null) => ''); the connective subtitle fix (#63) falls back
+ * to the bare distance instead. This test proves the enum cast didn't
+ * resurrect that quirk.
  */
-it('preserves the pre-existing subtitle formatting when cabin_class is null', function () {
+it('falls back to the bare distance when cabin_class is null', function () {
     $flight = Flight::factory()->make(['distance' => 1000000, 'cabin_class' => null]);
 
-    expect(CardPresenter::for($flight)->subtitle)->toEndWith(' mi, ');
+    expect(CardPresenter::for($flight)->subtitle)->not->toEndWith(' mi, ');
 });

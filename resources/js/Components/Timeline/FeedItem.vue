@@ -118,18 +118,23 @@ const metaText = computed(() => {
     if (!props.metaTokens) {
         return props.meta;
     }
-    return props.metaTokens
+    // Each token may carry a `sep` (e.g. ' in ') to join it onto the previous
+    // token with a light connective instead of the default ', ' list comma.
+    // Empty-text tokens are dropped before joining so a missing value never
+    // leaves a dangling separator (e.g. no leading "in" when duration is first).
+    const parts = props.metaTokens
         .map((token) => {
             if (token.t === 'dist') {
-                return distance(token.m, token.p);
+                return { text: distance(token.m, token.p), sep: token.sep ?? ', ' };
             }
             if (token.t === 'wt') {
-                return weight(token.kg, token.p);
+                return { text: weight(token.kg, token.p), sep: token.sep ?? ', ' };
             }
-            return token.v;
+            return { text: token.v, sep: token.sep ?? ', ' };
         })
-        .filter(Boolean)
-        .join(', ');
+        .filter((part) => part.text);
+
+    return parts.map((part, index) => (index === 0 ? '' : part.sep) + part.text).join('');
 });
 
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);

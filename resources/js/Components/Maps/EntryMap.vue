@@ -179,6 +179,11 @@ onMounted(async () => {
         // The dot is purely a readout of the chart cursor, so it must not capture
         // pointer events meant for the map beneath it (panning, photo markers).
         element.style.pointerEvents = 'none';
+        // MapLibre gives DOM markers no z-index, so they stack by insertion order.
+        // The dot is created lazily (once the deferred track arrives) after the
+        // photo markers, which would otherwise leave it on top. Pin it below the
+        // photos explicitly so the images always sit above the scrub dot.
+        element.style.zIndex = '1';
 
         routeDot = new maplibregl.Marker({ element }).setLngLat([props.track[0].lng, props.track[0].lat]).addTo(map);
     }
@@ -238,6 +243,9 @@ onMounted(async () => {
             if (!element) {
                 return;
             }
+
+            // Sit above the scrub dot (z-index 1) regardless of insertion order.
+            element.style.zIndex = '2';
 
             markers.push(
                 new maplibregl.Marker({ element })

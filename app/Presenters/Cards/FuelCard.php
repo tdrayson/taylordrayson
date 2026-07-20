@@ -15,17 +15,21 @@ final class FuelCard
 {
     public function present(Fuel $model): CardData
     {
-        $parts = array_filter([
-            sprintf('%sL, £%.2f', $model->litres, $model->cost),
-            $model->price_per_litre ? sprintf('£%s / L', number_format($model->price_per_litre, 3)) : null,
-        ]);
+        // "33 L for £45.06 at £1.359/L": litres and cost read as one clause, with
+        // the per-litre price (when known) attached as a second "at ..." clause
+        // rather than a comma-joined list item.
+        $subtitle = sprintf('%s L for £%.2f', $model->litres, $model->cost);
+
+        if ($model->price_per_litre) {
+            $subtitle .= sprintf(' at £%s/L', number_format($model->price_per_litre, 3));
+        }
 
         return new CardData(
             type: TimelineType::Fuel,
             icon: 'fuel',
             title: $model->station_name ?? 'Fuel',
             titleLabel: 'Fuel stop'.($model->station_name ? ', '.$model->station_name : ''),
-            subtitle: implode(', ', $parts),
+            subtitle: $subtitle,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'fuel',

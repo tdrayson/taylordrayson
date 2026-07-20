@@ -258,3 +258,40 @@ Vue components must have a single root element.
 - IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 </laravel-boost-guidelines>
+
+# Application Architecture
+
+House style, adopted from The Laravel Architect's project structure. Follow these for all new code; when you touch an older file that predates them, migrate it rather than extending the old shape. This section lives outside the Boost block above so `boost:install` regeneration won't overwrite it.
+
+## Enums over magic strings and PHPDoc
+
+- Model a fixed set of string/int values as a backed enum in `app/Enums/`, never as loose strings or `@var 'a'|'b'` PHPDoc unions. Give every enum a `label()` method for display.
+- **Closed set (values only the app defines) -> cast enum.** Cast it on the model, e.g. `'cabin_class' => CabinClass::class`. Examples: `CabinClass`, `MediaType`, `TimelineType`.
+- **Open set (external data can introduce values we don't enumerate) -> reference enum, do NOT cast.** Keep the column a plain string and use the enum only as a behaviour/reference map. Examples: `ActivityDiscipline` (Strava mints new `activity.type` values via `Str::kebab()`), `Source`. Casting an open set throws `ValueError` the moment an unknown value is read from the DB. Match with `Enum::tryFrom($value)` and treat `null` as "no special behaviour".
+
+## DTOs over array shapes
+
+- Structured payloads passed between layers are `final readonly` DTOs in `app/Data/`, not associative arrays documented with `@return array{...}`.
+- DTOs implement `Illuminate\Contracts\Support\Arrayable` and `JsonSerializable` so they serialise identically to the array they replace. The `CardData` family (`CardData`, `CardMeta`, `SubtitleToken`, `RouteData`, `MediaData`, ...) is the reference example.
+- When a DTO replaces an existing array payload, `toArray()` must reproduce the old shape byte-for-byte (conditional keys stay conditional).
+
+## Lean models
+
+- Models hold only `$fillable`/attributes, `casts()`, relationships, and simple accessors. No presentation logic, no heavy queries, no multi-step computation.
+- Timeline card building is NOT on the model. `$model->card()` no longer exists - build a card via `CardPresenter::for($model)`.
+
+## Presenters
+
+- Payload/view shaping lives in `app/Presenters/`. `CardPresenter::for($model)` is the single entry point that dispatches a `Timelineable` model to its per-type `*Card` class in `app/Presenters/Cards/` (one class per timeline type, each exposing `present($model): CardData`).
+- Add a new timeline type by adding a case to `CardPresenter::for()` and a `*Card` class; never reintroduce a `card()` method on the model.
+
+## Queries and Actions
+
+- **Queries** (`app/Queries/`): read-only computation objects that assemble a payload (e.g. `StatsForType`, `PeriodStats`, `HeatmapDays`). `final class`, no side effects.
+- **Actions** (`app/Actions/`): single-purpose write/build operations, typically invokable (`__invoke`) and grouped into domain subfolders (`Flights/`, `Notes/`, `Fuel/`, `Og/`). One action does one job.
+- Extract any non-trivial controller logic into a Query or an Action rather than growing the controller.
+
+## Thin controllers and flat routes
+
+- Controllers wire request -> Query/Action -> response. No business logic or computation inline. Prefer single-action invokable controllers when a controller serves one route.
+- `routes/web.php` is a flat, explicit list, ordered so literal-segment routes win over the digit-constrained dated routes and the `/{slug}` page catch-all stays last.

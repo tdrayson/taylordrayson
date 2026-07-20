@@ -82,6 +82,6 @@ class Fuel extends Model implements HasMedia, Timelineable
 
     public function slug(): string
     {
-        return 'fuel';
+        return Str::slug($this->station_name ?: 'fuel');
     }
 }
