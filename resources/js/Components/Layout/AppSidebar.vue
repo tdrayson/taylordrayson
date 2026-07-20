@@ -12,19 +12,21 @@ const { openSettings } = useSettings();
 <template>
     <aside class="hidden flex-none flex-col px-6 py-8 md:flex md:sticky md:top-0 md:h-dvh md:w-66 md:overflow-y-auto">
         <ProfileCard class="mb-5" />
-        <SearchBar class="mb-5" />
         <SidebarNav />
         <div class="mt-auto hidden space-y-4 pt-8 md:block">
+            <div class="flex flex-col gap-0.5">
+                <SearchBar />
+                <button
+                    type="button"
+                    aria-label="Open settings"
+                    class="-ml-3 flex w-[calc(100%+0.75rem)] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    @click="openSettings"
+                >
+                    <Icon name="Settings01Icon" class="size-5 flex-none text-neutral-500" />
+                    Settings
+                </button>
+            </div>
             <StreakBadge />
-            <button
-                type="button"
-                aria-label="Open settings"
-                class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-nav text-neutral-500 transition hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                @click="openSettings"
-            >
-                <Icon name="Settings01Icon" class="size-5" />
-                Settings
-            </button>
         </div>
     </aside>
 </template>
