@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
-import ViewHeader from '../../Components/Layout/ViewHeader.vue';
+import Icon from '../../Components/Ui/Icon.vue';
 import PosterCard from '../../Components/Ui/PosterCard.vue';
+import { entryType } from '../../entryTypes.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -13,6 +14,10 @@ const props = defineProps({
     // year, poster, progress }.
     series: { type: Array, default: () => [] },
 });
+
+// Reuse the media type's icon + accent so /media/tv's header matches /media.
+const meta = entryType('media');
+const accentStyle = { color: 'var(--color-media)' };
 
 const subtitle = computed(() => `${props.series.length} ${props.series.length === 1 ? 'show' : 'shows'} watched`);
 
@@ -24,9 +29,18 @@ setLayoutProps({
 <template>
     <AppHead :og="{ title: 'TV', heading: 'TV', accent: 'media' }" />
 
-    <ViewHeader title="TV" :subtitle="subtitle" />
+    <header class="relative">
+        <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:-left-16 lg:flex" :style="accentStyle">
+            <Icon :icon="meta.icon" class="size-6" />
+        </span>
+        <div class="min-w-0">
+            <Link href="/media" class="text-eyebrow uppercase transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">Media</Link>
+            <h1 class="mt-1 font-display text-display">TV</h1>
+            <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
+        </div>
+    </header>
 
-    <div v-if="series.length" class="mt-10 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+    <div v-if="series.length" class="mt-10 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
         <PosterCard
             v-for="show in series"
             :key="show.slug"

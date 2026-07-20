@@ -56,12 +56,11 @@ setLayoutProps({
 <template>
     <AppHead :og="{ title: series.title, heading: series.title, eyebrow: 'TV', accent: 'media', image: series.backdrop || series.poster }" />
 
+    <!-- Decorative only (no title/logo overlay): the <h1> below carries the title, like the movie pages. -->
     <BackdropHero
         v-if="series.backdrop"
         testid="series-backdrop"
         :backdrop="series.backdrop"
-        :logo="series.logo"
-        :title="series.title"
         :bleed="false"
         class="mb-8"
     />
@@ -75,12 +74,10 @@ setLayoutProps({
         </div>
 
         <div class="min-w-0 flex-1">
-            <template v-if="!series.backdrop">
-                <span class="text-eyebrow uppercase" :style="accentStyle">TV</span>
-                <h1 class="mt-1 font-display text-display">{{ series.title }}</h1>
-            </template>
+            <span class="text-eyebrow uppercase" :style="accentStyle">TV</span>
+            <h1 class="mt-1 font-display text-display">{{ series.title }}</h1>
 
-            <div v-if="series.year || series.network" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-neutral-500" :class="series.backdrop ? '' : 'mt-1'">
+            <div v-if="series.year || series.network" class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-neutral-500">
                 <span v-if="series.year">{{ series.year }}</span>
                 <span v-if="series.network">{{ series.network }}</span>
             </div>
@@ -90,23 +87,13 @@ setLayoutProps({
                 <span>{{ series.rating }} / 10</span>
             </div>
 
-            <p v-if="series.overview" class="mt-4 max-w-prose text-body text-neutral-700">{{ series.overview }}</p>
-
-            <div v-if="stats.progress !== null" class="mt-5 max-w-sm">
-                <div class="flex items-center justify-between text-caption text-neutral-500">
-                    <span>Progress</span>
-                    <span class="tnum">{{ stats.progress }}%</span>
-                </div>
-                <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-neutral-50">
-                    <div class="h-full rounded-full bg-accent-500" :style="{ width: `${stats.progress}%` }" />
-                </div>
-            </div>
-
             <ExternalLink v-if="series.platformUrl" :href="series.platformUrl" label="View on Trakt" class="mt-5" />
         </div>
     </header>
 
     <SeriesStats :stats="stats" class="mt-10" />
+
+    <p v-if="series.overview" class="mt-6 max-w-prose text-body text-neutral-700">{{ series.overview }}</p>
 
     <section v-if="seasonList.length" data-testid="season-overview" class="mt-4">
         <SectionHead title="Seasons" />
