@@ -44,13 +44,14 @@ function applyInline() {
     };
 }
 
-// Solid title/close bar above the corner video, so our chrome stays readable
-// over YouTube's own overlay. Added to the corner box height (not the inline dock).
-const HEADER_HEIGHT = 40;
+// Solid title bar below the corner video (YouTube-style); the close button
+// floats over the top-right of the video. Added to the corner box height so
+// the 16:9 video area is never squashed (not applied to the inline dock).
+const BAR_HEIGHT = 40;
 
 function cornerBox() {
     const width = Math.min(400, window.innerWidth - 32);
-    const height = width * (9 / 16) + HEADER_HEIGHT;
+    const height = width * (9 / 16) + BAR_HEIGHT;
 
     return { width, height, top: window.innerHeight - height - 16, left: window.innerWidth - width - 16 };
 }
@@ -329,13 +330,27 @@ onBeforeUnmount(() => {
             <div
                 v-show="isVideo"
                 ref="videoWrap"
-                class="z-50 flex flex-col overflow-hidden bg-black"
+                class="relative z-50 flex flex-col overflow-hidden bg-black"
                 :style="geom"
                 :class="player.dockEl ? 'rounded-lg' : 'rounded-lg border border-neutral-50 shadow-card'"
             >
+                <div ref="plyrTarget" class="min-h-0 w-full flex-1"></div>
+
+                <!-- Corner mini-player chrome (YouTube-style): the close button
+                     floats over the top-right of the video, the title sits in a
+                     solid bar below it. Hidden while docked inline in the page. -->
+                <button
+                    v-if="isVideo && !player.dockEl"
+                    type="button"
+                    class="absolute right-2 top-2 z-10 flex size-7 items-center justify-center rounded-full bg-black/60 text-neutral-0 transition-colors hover:bg-black/80 focus-visible:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                    aria-label="Close player"
+                    @click="closePlayer"
+                >
+                    <Icon name="Cancel01Icon" class="size-4" />
+                </button>
                 <div
                     v-if="isVideo && !player.dockEl"
-                    class="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-neutral-50 bg-neutral-0 px-3"
+                    class="flex h-10 shrink-0 items-center border-t border-neutral-50 bg-neutral-0 px-3"
                 >
                     <component
                         :is="player.track.url ? Link : 'span'"
@@ -343,11 +358,7 @@ onBeforeUnmount(() => {
                         class="truncate text-caption font-semibold text-neutral-900"
                         :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
-                    <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">
-                        <Icon name="Cancel01Icon" class="size-4" />
-                    </button>
                 </div>
-                <div ref="plyrTarget" class="min-h-0 w-full flex-1"></div>
             </div>
         </Teleport>
     </div>
