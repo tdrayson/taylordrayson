@@ -75,4 +75,14 @@ return [
         'token' => env('API_TOKEN'),
     ],
 
+    'trakt' => [
+        'client_id' => env('TRAKT_CLIENT_ID'),
+        'username' => env('TRAKT_USERNAME'),
+    ],
+
+    'tmdb' => [
+        'key' => env('TMDB_API_KEY'),
+        'image_base' => env('TMDB_IMAGE_BASE', 'https://image.tmdb.org/t/p/'),
+    ],
+
 ];

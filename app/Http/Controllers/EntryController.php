@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Models\Appearance;
@@ -11,6 +12,7 @@ use App\Models\Calorie;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Models\Media;
 use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
@@ -152,6 +154,10 @@ class EntryController extends Controller
 
         if ($model instanceof Activity || $model instanceof Note || $model instanceof Event) {
             $data['photos'] = $model->galleryPhotos();
+        }
+
+        if ($model instanceof Media && $model->type === MediaType::Film) {
+            $data['backdrop'] = $model->getFirstMediaUrl('backdrop') ?: null;
         }
 
         if ($model instanceof Event) {

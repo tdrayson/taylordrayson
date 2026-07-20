@@ -7,8 +7,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Shared Media Library setup: a single `cover`, a `photos` gallery, and a single
- * generated `map` (with a `map_dark` twin for dark mode), plus an optimised,
+ * Shared Media Library setup: a single `cover`, a `photos` gallery, a single
+ * generated `map` (with a `map_dark` twin for dark mode), and single-file
+ * `backdrop`/`logo` collections (TMDB enrichment art), plus an optimised,
  * responsive `card` conversion for feeds.
  */
 trait HasAttachments
@@ -21,6 +22,8 @@ trait HasAttachments
         $this->addMediaCollection('photos');
         $this->addMediaCollection('map')->singleFile();
         $this->addMediaCollection('map_dark')->singleFile();
+        $this->addMediaCollection('backdrop')->singleFile();
+        $this->addMediaCollection('logo')->singleFile();
     }
 
     public function registerMediaConversions(?Media $media = null): void

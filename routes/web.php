@@ -12,6 +12,7 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SleepScoreController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
@@ -65,6 +66,11 @@ Route::post('/snake/score', [SnakeScoreController::class, 'store'])
     ->middleware('throttle:10,1')->name('snake.score');
 Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
     ->middleware('throttle:10,1')->name('snake.rename');
+
+// TV show pages, registered above the generic archive/taxonomy loop so
+// /media/tv wins over the /media/{value} taxonomy route for the 'tv' value.
+Route::get('/media/tv', [SeriesController::class, 'index'])->name('series.index');
+Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
 
 // Per-type archive pages and their taxonomy sub-routes. Slugs are literal segments,
 // so they never collide with the digit-constrained /{year}/... routes below.
