@@ -19,14 +19,6 @@ const items = computed(() => {
         list.push({ label: 'Episodes watched', value: props.stats.episodesWatched });
     }
 
-    if (props.stats.seasons !== null && props.stats.seasons !== undefined) {
-        list.push({ label: 'Seasons', value: props.stats.seasons });
-    }
-
-    if (props.stats.progress !== null && props.stats.progress !== undefined) {
-        list.push({ label: 'Progress', value: props.stats.progress, unit: '%' });
-    }
-
     if (props.stats.watchSpan) {
         list.push({ label: 'Watch span', value: props.stats.watchSpan });
     }
@@ -34,7 +26,7 @@ const items = computed(() => {
     if (props.stats.totalHours !== null && props.stats.totalHours !== undefined) {
         // Server rounds to a whole number of hours but sends it as a float
         // (e.g. 7.0); round again client-side so it never renders "7.0".
-        list.push({ label: 'Total time', value: Math.round(props.stats.totalHours), unit: 'h' });
+        list.push({ label: 'Watch time', value: Math.round(props.stats.totalHours), unit: 'h' });
     }
 
     return list;

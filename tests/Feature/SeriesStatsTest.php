@@ -19,8 +19,8 @@ it('summarises the watch span from first to last watch', function () {
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-09-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 2]]);
 
-    expect($series->watchSpan())->toStartWith('over ')
-        ->and($series->watchSpan())->toContain('months');
+    expect($series->watchSpan())->toContain('months')
+        ->and($series->watchSpan())->not->toStartWith('over ');
 });
 
 it('clamps progress to 100 when distinct watched episodes exceed the aired count', function () {
