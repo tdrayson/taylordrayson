@@ -201,12 +201,8 @@ function handleKeydown(event) {
         return;
     }
 
-    if (event.key === ' ' || event.key === 'Enter') {
-        if (state.value !== 'running') {
-            event.preventDefault();
-            startGame();
-        }
-
+    // Steering only — starting a game requires clicking/tapping the overlay.
+    if (state.value !== 'running') {
         return;
     }
 
@@ -217,11 +213,6 @@ function handleKeydown(event) {
     }
 
     event.preventDefault();
-
-    if (state.value !== 'running') {
-        startGame();
-    }
-
     turn(name);
 }
 
@@ -307,15 +298,15 @@ onBeforeUnmount(() => {
             @click="startGame"
         >
             <span v-if="state === 'idle'" class="snake-prompt">
-                <span class="font-display text-section">Fill in your day</span>
-                <span class="text-meta text-neutral-500">Arrow keys, WASD, or tap to play</span>
+                <span class="font-display text-section text-neutral-900">Fill in your day</span>
+                <span class="text-meta text-neutral-500">Click or tap to play · arrows or WASD to steer</span>
             </span>
             <span v-else-if="state === 'over'" class="snake-prompt">
-                <span class="font-display text-section">Game over</span>
+                <span class="font-display text-section text-neutral-900">Game over</span>
                 <span class="text-meta text-neutral-500">You logged {{ score }} {{ score === 1 ? 'day' : 'days' }}, tap to retry</span>
             </span>
             <span v-else class="snake-prompt">
-                <span class="font-display text-section">Full house! 🎉</span>
+                <span class="font-display text-section text-neutral-900">Full house! 🎉</span>
                 <span class="text-meta text-neutral-500">You filled the entire log, tap to play again</span>
             </span>
         </button>
@@ -371,7 +362,8 @@ onBeforeUnmount(() => {
     }
 }
 
-/* Low-opacity scrim so the board stays visible behind the prompt. */
+/* Low-opacity scrim so the board stays visible behind the prompt. Uses the
+   theme neutrals so light and dark mode both keep readable contrast. */
 .snake-overlay {
     position: absolute;
     inset: 0;
@@ -379,7 +371,7 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.42);
+    background: color-mix(in srgb, var(--color-neutral-0) 55%, transparent);
     backdrop-filter: blur(1px);
     text-align: center;
 }
@@ -390,7 +382,8 @@ onBeforeUnmount(() => {
     gap: 6px;
     padding: 10px 24px;
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.82);
+    background: color-mix(in srgb, var(--color-neutral-0) 92%, transparent);
+    color: var(--color-neutral-900);
 }
 
 @media (prefers-reduced-motion: reduce) {
