@@ -31,7 +31,7 @@ const externalIconClass =
             <span class="whitespace-nowrap">
                 Taylor<Avatar size="size-7" alt="" class="ml-1.5 inline-block rounded-sm align-[-0.25em]" />
             </span>,
-            a web developer in London who logs far more of his life than is strictly necessary. I've
+            a web developer in London. I log far more of my life than is strictly necessary. I've
             <Link href="/food" :class="textLinkClass">logged every calorie</Link>
             for <span class="tnum">{{ streakDays }}</span> days straight, which is either
             impressive or a cry for help depending on who's asking.
@@ -86,9 +86,9 @@ const externalIconClass =
             </Link>
             with my dad that's somehow at <span class="tnum">{{ podcastEpisodes }}</span> episodes.
             Elsewhere on here you'll find
-            <Link href="/flights" :class="textLinkClass">flights</Link>,
             <Link href="/activities" :class="textLinkClass">activities</Link>,
-            <Link href="/sleep" :class="textLinkClass">sleep</Link>, and
+            <Link href="/sleep" :class="textLinkClass">sleep</Link>,
+            <Link href="/flights" :class="textLinkClass">flights</Link>, and
             <Link href="/more" :class="textLinkClass">whatever else I'm measuring</Link>.
             When I'm offline, I'm either
             <Link href="/activities/padel" :class="textLinkClass">hitting a ball with a racket</Link>
