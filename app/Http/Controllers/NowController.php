@@ -56,7 +56,9 @@ class NowController extends Controller
                 'title' => $episode->title,
                 'audioUrl' => $episode->audio_url,
                 'videoUrl' => $episode->video_url,
-                'thumbnail' => $episode->cover_image ?? $episode->thumbnail,
+                // Square podcast artwork for the audio player's cover slot; the
+                // wide cover_image (video still) would be cropped in the square.
+                'thumbnail' => $episode->thumbnail ?? $episode->cover_image,
                 'url' => $episode->url(),
             ],
         ];

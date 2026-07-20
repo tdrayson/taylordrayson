@@ -31,7 +31,9 @@ final class PodcastCard
                 title: $model->title,
                 audioUrl: $model->audio_url,
                 videoUrl: $model->video_url,
-                thumbnail: $model->cover_image ?? $model->thumbnail,
+                // Prefer the square podcast artwork for the audio player's cover
+                // slot; cover_image is the wide 16:9 video still and gets cropped.
+                thumbnail: $model->thumbnail ?? $model->cover_image,
                 duration: $model->duration,
                 url: $model->url(),
             )),
