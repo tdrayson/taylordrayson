@@ -321,9 +321,9 @@ class SearchController extends Controller
                 $card = $entry->card();
 
                 return [
-                    'title' => $card['title'],
-                    'subtitle' => $card['subtitle'] ?? null,
-                    'type' => $card['type'],
+                    'title' => $card->title,
+                    'subtitle' => $card->subtitle,
+                    'type' => $card->type,
                     'url' => $entry->url(),
                     'occurred_at' => $entry->occurred_at,
                 ];

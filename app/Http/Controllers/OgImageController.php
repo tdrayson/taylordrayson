@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\CardData;
+use App\Data\SegmentData;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
@@ -142,7 +144,7 @@ class OgImageController extends Controller
         }
 
         $card = $model->card();
-        $accent = TypeColors::hex($card['accent'], self::ACCENT_DEFAULT);
+        $accent = TypeColors::hex($card->accent, self::ACCENT_DEFAULT);
         [$layout, $image] = $this->entryImage($model, $card, $accent);
 
         // Seed the wording with the id and last-updated stamp, so editing an
@@ -152,12 +154,12 @@ class OgImageController extends Controller
         return [
             'layout' => $layout,
             'accent' => $accent,
-            'eyebrow' => self::TYPE_EYEBROWS[$card['type']] ?? null,
+            'eyebrow' => self::TYPE_EYEBROWS[$card->type] ?? null,
             'title' => $this->entryTitle($model, $card, $seed),
             'date' => $entry->occurred_at->format('D j M Y'),
             'subtitle' => null,
             'image' => $image,
-            'stages' => $card['type'] === 'sleep' ? $this->sleepStages(data_get($card, 'meta.segments', [])) : null,
+            'stages' => $card->type === 'sleep' ? $this->sleepStages($card->meta->segments ?? []) : null,
             'cutout' => $this->dataUri('taylor-cutout.png', 'image/png'),
         ];
     }
@@ -166,7 +168,7 @@ class OgImageController extends Controller
      * Build the sleep stage bar segments (label, colour, width percent) from the
      * card's per-stage seconds. Returns an empty array when there is no data.
      *
-     * @param  array<int, array{label: string, stage: string, seconds: int}>  $segments
+     * @param  list<SegmentData>  $segments
      * @return array<int, array{label: string, color: string, percent: float}>
      */
     private function sleepStages(array $segments): array
@@ -177,10 +179,10 @@ class OgImageController extends Controller
             return [];
         }
 
-        return array_map(fn (array $segment): array => [
-            'label' => $segment['label'],
-            'color' => self::SLEEP_STAGE_COLORS[$segment['stage']] ?? '#'.self::ACCENT_DEFAULT,
-            'percent' => round($segment['seconds'] / $total * 100, 2),
+        return array_map(fn (SegmentData $segment): array => [
+            'label' => $segment->label,
+            'color' => self::SLEEP_STAGE_COLORS[$segment->stage] ?? '#'.self::ACCENT_DEFAULT,
+            'percent' => round($segment->seconds / $total * 100, 2),
         ], $segments);
     }
 
@@ -188,14 +190,12 @@ class OgImageController extends Controller
      * The card headline for an entry. Stat entries (sleep, food, fuel, podcast)
      * get a personable, varied phrase built from their real numbers; everything
      * else keeps its real title.
-     *
-     * @param  array<string, mixed>  $card
      */
-    private function entryTitle(Model $model, array $card, string $seed): string
+    private function entryTitle(Model $model, CardData $card, string $seed): string
     {
-        $phrase = match ($card['type']) {
-            'sleep' => OgPhrases::pick('sleep', ['duration' => str_replace(' sleep', '', (string) $card['title'])], $seed),
-            'calorie' => OgPhrases::pick('food', ['kcal' => trim(str_replace('kcal', '', (string) $card['title']))], $seed),
+        $phrase = match ($card->type) {
+            'sleep' => OgPhrases::pick('sleep', ['duration' => str_replace(' sleep', '', $card->title)], $seed),
+            'calorie' => OgPhrases::pick('food', ['kcal' => trim(str_replace('kcal', '', $card->title))], $seed),
             'fuel' => OgPhrases::pick('fuel', ['cost' => number_format((float) $model->cost, 2), 'litres' => $model->litres], $seed),
             'podcast' => $model->season_number && $model->episode_number
                 ? OgPhrases::pick('podcast', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
@@ -203,7 +203,7 @@ class OgImageController extends Controller
             default => null,
         };
 
-        return Str::limit($phrase ?? trim((string) $card['title']), 160, '');
+        return Str::limit($phrase ?? trim($card->title), 160, '');
     }
 
     /**
@@ -211,26 +211,25 @@ class OgImageController extends Controller
      * activities/flights, a marker for check-ins, a cover for media when one
      * exists, otherwise a plain gradient (text layout).
      *
-     * @param  array<string, mixed>  $card
      * @return array{0: string, 1: ?string} The [layout, image URL] pair.
      */
-    private function entryImage(Model $model, array $card, string $accent): array
+    private function entryImage(Model $model, CardData $card, string $accent): array
     {
-        $type = $card['type'];
+        $type = $card->type;
 
         if ($type === 'activity') {
-            if ($url = StaticMap::route(data_get($card, 'meta.polyline'), $accent)) {
+            if ($url = StaticMap::route($card->meta->polyline, $accent)) {
                 return ['media', $url];
             }
         }
 
         if ($type === 'flight') {
-            $route = data_get($card, 'meta.route');
+            $route = $card->meta->route;
             $url = StaticMap::arc(
-                $this->floatOrNull(data_get($route, 'origin.lng')),
-                $this->floatOrNull(data_get($route, 'origin.lat')),
-                $this->floatOrNull(data_get($route, 'destination.lng')),
-                $this->floatOrNull(data_get($route, 'destination.lat')),
+                $this->floatOrNull($route?->origin->lng),
+                $this->floatOrNull($route?->origin->lat),
+                $this->floatOrNull($route?->destination->lng),
+                $this->floatOrNull($route?->destination->lat),
                 $accent,
             );
 
@@ -457,10 +456,10 @@ class OgImageController extends Controller
             'project' => ['layout' => 'text', 'accent' => TypeColors::hex('project'), 'eyebrow' => 'Project', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel, Inertia, Vue'],
             'event' => ['layout' => 'text', 'accent' => TypeColors::hex('event'), 'eyebrow' => 'Event', 'title' => 'Laracon EU', 'date' => 'Tue 28 Jan 2026', 'meta' => 'Amsterdam'],
             'sleep' => ['layout' => 'text', 'accent' => TypeColors::hex('sleep'), 'eyebrow' => 'Sleep', 'title' => 'I slept 7h 32m', 'date' => 'Wed 25 Jun 2026', 'stages' => $this->sleepStages([
-                ['label' => 'Awake', 'stage' => 'awake', 'seconds' => 1620],
-                ['label' => 'REM', 'stage' => 'rem', 'seconds' => 6480],
-                ['label' => 'Light', 'stage' => 'light', 'seconds' => 13320],
-                ['label' => 'Deep', 'stage' => 'deep', 'seconds' => 5700],
+                new SegmentData('Awake', 'awake', 1620),
+                new SegmentData('REM', 'rem', 6480),
+                new SegmentData('Light', 'light', 13320),
+                new SegmentData('Deep', 'deep', 5700),
             ])],
             'calorie' => ['layout' => 'text', 'accent' => TypeColors::hex('food'), 'eyebrow' => 'Food', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
             'fuel' => ['layout' => 'text', 'accent' => TypeColors::hex('fuel'), 'eyebrow' => 'Fuel', 'title' => 'I put £62.40 of fuel in', 'date' => 'Sat 14 Jun 2026', 'meta' => null],

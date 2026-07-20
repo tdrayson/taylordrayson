@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
 use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
@@ -59,21 +61,24 @@ class Checkin extends Model implements HasMedia, Timelineable
         return Str::slug($this->venue_name);
     }
 
-    public function card(): array
+    public function card(): CardData
     {
         $parts = array_filter([$this->category, $this->city]);
 
-        return [
-            'type' => 'checkin',
-            'icon' => 'map-pin',
-            'title' => $this->venue_name,
-            'subtitle' => $parts ? implode(', ', $parts) : null,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'checkin',
-            'meta' => [
-                'map' => $this->getFirstMediaUrl('map') ?: null,
-                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
-            ],
-        ];
+        return new CardData(
+            type: 'checkin',
+            icon: 'map-pin',
+            title: $this->venue_name,
+            titleLabel: null,
+            subtitle: $parts ? implode(', ', $parts) : null,
+            subtitleTokens: null,
+            occurredAt: $this->occurred_at,
+            accent: 'checkin',
+            range: null,
+            meta: CardMeta::locationMap(
+                map: $this->getFirstMediaUrl('map') ?: null,
+                mapDark: $this->getFirstMediaUrl('map_dark') ?: null,
+            ),
+        );
     }
 }

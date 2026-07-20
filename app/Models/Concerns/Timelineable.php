@@ -2,23 +2,15 @@
 
 namespace App\Models\Concerns;
 
-use Carbon\Carbon;
+use App\Data\CardData;
 
 interface Timelineable
 {
     /**
-     * @return array{
-     *     type: string,
-     *     icon: string,
-     *     title: string,
-     *     titleLabel?: string,
-     *     subtitle: ?string,
-     *     occurred_at: Carbon,
-     *     accent: string,
-     *     meta: array,
-     * }
+     * The timeline card payload: type/icon/title/subtitle plus accent, an
+     * optional multi-day range, and the type-specific `meta` block.
      */
-    public function card(): array;
+    public function card(): CardData;
 
     public function slug(): string;
 

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -51,21 +53,23 @@ class Calorie extends Model implements HasMedia, Timelineable
         return 'calories';
     }
 
-    public function card(): array
+    public function card(): CardData
     {
         $dailyTotal = self::whereDate('occurred_at', $this->occurred_at->toDateString())
             ->sum('calories');
 
-        return [
-            'type' => 'calorie',
-            'icon' => 'utensils',
-            'title' => number_format($dailyTotal).' kcal',
-            'titleLabel' => 'Food log, '.number_format($dailyTotal).' kcal for the day',
-            'subtitle' => $this->cardSubtitle(),
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'food',
-            'meta' => [],
-        ];
+        return new CardData(
+            type: 'calorie',
+            icon: 'utensils',
+            title: number_format($dailyTotal).' kcal',
+            titleLabel: 'Food log, '.number_format($dailyTotal).' kcal for the day',
+            subtitle: $this->cardSubtitle(),
+            subtitleTokens: null,
+            occurredAt: $this->occurred_at,
+            accent: 'food',
+            range: null,
+            meta: CardMeta::empty(),
+        );
     }
 
     private function cardSubtitle(): ?string

@@ -105,12 +105,12 @@ class BuildLinkPreviews
 
         return [
             'url' => $href,
-            'title' => $card['title'] ?? null,
-            'excerpt' => $card['subtitle'] ?? null,
-            'type' => $card['type'] ?? null,
-            'accent' => $card['accent'] ?? $card['type'] ?? null,
+            'title' => $card->title,
+            'excerpt' => $card->subtitle,
+            'type' => $card->type,
+            'accent' => $card->accent,
             'date' => $model->occurredAtForDisplay()?->toDateString(),
-            'cover' => data_get($card, 'meta.photos.0.src'),
+            'cover' => $card->meta->photos[0]->src ?? null,
         ];
     }
 }

@@ -14,24 +14,24 @@ it('exposes a stored map url on the fuel card when media is attached', function 
     $fuel = Fuel::factory()->create(['station_name' => 'Test Garage']);
     $fuel->addMediaFromString('PNG')->usingFileName('m.png')->toMediaCollection('map');
 
-    $meta = $fuel->card()['meta'];
+    $meta = $fuel->card()->meta;
 
-    expect($meta['map'])->not->toBeNull();
+    expect($meta->map)->not->toBeNull();
 });
 
 it('has a null map on the fuel card when no media is attached', function () {
     $fuel = Fuel::factory()->create();
 
-    expect($fuel->card()['meta']['map'])->toBeNull();
-    expect($fuel->card()['meta']['mapDark'])->toBeNull();
+    expect($fuel->card()->meta->map)->toBeNull();
+    expect($fuel->card()->meta->mapDark)->toBeNull();
 });
 
 it('exposes stored map urls on the activity card while keeping its polyline', function () {
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U']]);
     $activity->addMediaFromString('PNG')->usingFileName('m.png')->toMediaCollection('map_dark');
 
-    $meta = $activity->card()['meta'];
+    $meta = $activity->card()->meta;
 
-    expect($meta['mapDark'])->not->toBeNull();
-    expect($meta['polyline'])->toBe('_p~iF~ps|U');
+    expect($meta->mapDark)->not->toBeNull();
+    expect($meta->polyline)->toBe('_p~iF~ps|U');
 });

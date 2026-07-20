@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -45,16 +47,19 @@ class Project extends Model implements HasMedia, Timelineable
         return $this->getAttribute('slug');
     }
 
-    public function card(): array
+    public function card(): CardData
     {
-        return [
-            'type' => 'project',
-            'icon' => 'rocket',
-            'title' => $this->title,
-            'subtitle' => $this->description,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'project',
-            'meta' => [],
-        ];
+        return new CardData(
+            type: 'project',
+            icon: 'rocket',
+            title: $this->title,
+            titleLabel: null,
+            subtitle: $this->description,
+            subtitleTokens: null,
+            occurredAt: $this->occurred_at,
+            accent: 'project',
+            range: null,
+            meta: CardMeta::empty(),
+        );
     }
 }

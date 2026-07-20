@@ -29,9 +29,9 @@ class GalleryPhotos
             'src' => $item->getUrl('card'),
             'srcset' => $item->getSrcset('card') ?: null,
             'full' => $item->getUrl(),
-            'caption' => $card['title'],
-            'date' => $card['occurred_at']?->format('j M Y'),
-            'accent' => $card['accent'],
+            'caption' => $card->title,
+            'date' => $card->occurredAt->format('j M Y'),
+            'accent' => $card->accent,
             'url' => $model->url(),
         ])->values()->all();
     }

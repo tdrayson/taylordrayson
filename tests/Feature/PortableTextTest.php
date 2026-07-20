@@ -9,7 +9,7 @@ it('derives the note card title from the content string', function () {
         'content' => 'First line of the note becomes the title.',
     ]);
 
-    expect($note->card()['title'])->toContain('First line of the note');
+    expect($note->card()->title)->toContain('First line of the note');
 });
 
 it('derives the article card subtitle from portable text content', function () {
@@ -21,7 +21,7 @@ it('derives the article card subtitle from portable text content', function () {
         'excerpt' => 'Fallback excerpt',
     ]);
 
-    expect($article->card()['subtitle'])->toBe('Hello World A link here one two');
+    expect($article->card()->subtitle)->toBe('Hello World A link here one two');
 });
 
 it('falls back to the excerpt when portable text content has no text', function () {
@@ -30,5 +30,5 @@ it('falls back to the excerpt when portable text content has no text', function 
         'excerpt' => 'Fallback excerpt',
     ]);
 
-    expect($article->card()['subtitle'])->toBe('Fallback excerpt');
+    expect($article->card()->subtitle)->toBe('Fallback excerpt');
 });

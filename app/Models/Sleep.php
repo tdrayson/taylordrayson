@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
+use App\Data\SegmentData;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -63,29 +66,31 @@ class Sleep extends Model implements HasMedia, Timelineable
         return $this->wake_time ?? $this->occurred_at;
     }
 
-    public function card(): array
+    public function card(): CardData
     {
         $totalMinutes = intdiv($this->duration, 60);
         $hours = intdiv($totalMinutes, 60);
         $minutes = $totalMinutes % 60;
         $formatted = $minutes > 0 ? "{$hours}h {$minutes}m" : "{$hours}h";
 
-        return [
-            'type' => 'sleep',
-            'icon' => 'bed',
-            'title' => "{$formatted} sleep",
-            'titleLabel' => "Sleep log, {$formatted}",
-            'subtitle' => $this->bedtime->format('g:ia').' → '.$this->wake_time->format('g:ia'),
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'sleep',
-            'meta' => ['segments' => $this->stageSegments()],
-        ];
+        return new CardData(
+            type: 'sleep',
+            icon: 'bed',
+            title: "{$formatted} sleep",
+            titleLabel: "Sleep log, {$formatted}",
+            subtitle: $this->bedtime->format('g:ia').' → '.$this->wake_time->format('g:ia'),
+            subtitleTokens: null,
+            occurredAt: $this->occurred_at,
+            accent: 'sleep',
+            range: null,
+            meta: CardMeta::sleep($this->stageSegments()),
+        );
     }
 
     /**
      * Per-stage durations (seconds) for the timeline breakdown bar.
      *
-     * @return array<int, array{label: string, stage: string, seconds: int}>
+     * @return list<SegmentData>
      */
     private function stageSegments(): array
     {
@@ -94,6 +99,10 @@ class Sleep extends Model implements HasMedia, Timelineable
             ['label' => 'REM', 'stage' => 'rem', 'seconds' => (int) $this->rem],
             ['label' => 'Light', 'stage' => 'light', 'seconds' => (int) $this->core],
             ['label' => 'Deep', 'stage' => 'deep', 'seconds' => (int) $this->deep],
-        ])->filter(fn (array $segment): bool => $segment['seconds'] > 0)->values()->all();
+        ])
+            ->filter(fn (array $segment): bool => $segment['seconds'] > 0)
+            ->map(fn (array $segment): SegmentData => new SegmentData($segment['label'], $segment['stage'], $segment['seconds']))
+            ->values()
+            ->all();
     }
 }

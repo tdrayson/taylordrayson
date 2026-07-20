@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Data\CardData;
+use App\Data\CardMeta;
+use App\Data\PhotoData;
+use App\Data\SubtitleToken;
 use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
@@ -83,23 +87,36 @@ class Activity extends Model implements HasMedia, Timelineable
         return Str::slug($this->name ?? $this->type);
     }
 
-    public function card(): array
+    public function card(): CardData
     {
-        return [
-            'type' => 'activity',
-            'icon' => 'footprints',
-            'title' => $this->name ?? ucfirst($this->type),
-            'subtitle' => $this->cardSubtitle(),
-            'subtitleTokens' => $this->subtitleTokens(),
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'activity',
-            'meta' => [
-                'polyline' => data_get($this->meta, 'polyline'),
-                'photos' => $this->galleryPhotos(),
-                'map' => $this->getFirstMediaUrl('map') ?: null,
-                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
-            ],
-        ];
+        return new CardData(
+            type: 'activity',
+            icon: 'footprints',
+            title: $this->name ?? ucfirst($this->type),
+            titleLabel: null,
+            subtitle: $this->cardSubtitle(),
+            subtitleTokens: $this->subtitleTokens(),
+            occurredAt: $this->occurred_at,
+            accent: 'activity',
+            range: null,
+            meta: CardMeta::activity(
+                polyline: data_get($this->meta, 'polyline'),
+                photos: $this->photoData(),
+                map: $this->getFirstMediaUrl('map') ?: null,
+                mapDark: $this->getFirstMediaUrl('map_dark') ?: null,
+            ),
+        );
+    }
+
+    /**
+     * @return list<PhotoData>
+     */
+    private function photoData(): array
+    {
+        return array_map(
+            fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
+            $this->galleryPhotos(),
+        );
     }
 
     private function cardSubtitle(): ?string
@@ -153,7 +170,7 @@ class Activity extends Model implements HasMedia, Timelineable
      * tokens (metres/kg) instead of pre-formatted strings, so FeedItem.vue can
      * compose them through useFormat() and react to the visitor's unit toggle.
      *
-     * @return list<array{t: 'dist', m: int, p: int}|array{t: 'wt', kg: float, p: int}|array{t: 'text', v: string}>|null
+     * @return list<SubtitleToken>|null
      */
     private function subtitleTokens(): ?array
     {
@@ -166,15 +183,15 @@ class Activity extends Model implements HasMedia, Timelineable
         $tokens = [];
 
         if ($this->distance) {
-            $tokens[] = ['t' => 'dist', 'm' => (int) $this->distance, 'p' => 1];
+            $tokens[] = SubtitleToken::dist((int) $this->distance, 1);
         }
 
         if ($this->duration) {
-            $tokens[] = ['t' => 'text', 'v' => $this->durationForHumans($this->duration)];
+            $tokens[] = SubtitleToken::text($this->durationForHumans($this->duration));
         }
 
         if ($this->calories) {
-            $tokens[] = ['t' => 'text', 'v' => number_format($this->calories).' kcal'];
+            $tokens[] = SubtitleToken::text(number_format($this->calories).' kcal');
         }
 
         return $tokens ?: null;
@@ -182,7 +199,7 @@ class Activity extends Model implements HasMedia, Timelineable
 
     /**
      * @param  array<int, array{exercise: string, reps: int, weight: float}>  $sets
-     * @return list<array{t: 'text', v: string}|array{t: 'wt', kg: float, p: int}>
+     * @return list<SubtitleToken>
      */
     private function strengthTokens(array $sets): array
     {
@@ -190,12 +207,12 @@ class Activity extends Model implements HasMedia, Timelineable
         $volume = array_sum(array_map(fn (array $set): float => ($set['reps'] ?? 0) * ($set['weight_kg'] ?? $set['weight'] ?? 0), $sets));
 
         $tokens = [
-            ['t' => 'text', 'v' => $exercises.' '.Str::plural('exercise', $exercises)],
-            ['t' => 'text', 'v' => count($sets).' '.Str::plural('set', count($sets))],
+            SubtitleToken::text($exercises.' '.Str::plural('exercise', $exercises)),
+            SubtitleToken::text(count($sets).' '.Str::plural('set', count($sets))),
         ];
 
         if ($volume > 0) {
-            $tokens[] = ['t' => 'wt', 'kg' => $volume, 'p' => 0];
+            $tokens[] = SubtitleToken::wt($volume, 0);
         }
 
         return $tokens;
