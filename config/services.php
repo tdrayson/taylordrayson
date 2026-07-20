@@ -85,4 +85,8 @@ return [
         'image_base' => env('TMDB_IMAGE_BASE', 'https://image.tmdb.org/t/p/'),
     ],
 
+    'hardcover' => [
+        'key' => env('HARDCOVER_API_KEY'),
+    ],
+
 ];
