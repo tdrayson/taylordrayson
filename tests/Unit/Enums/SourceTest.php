@@ -2,20 +2,16 @@
 
 use App\Enums\Source;
 
-it('has exactly the eleven known stored values', function () {
+it('has exactly the seven behaviour-bearing values', function () {
     expect(array_column(Source::cases(), 'value'))
         ->toBe([
             'strava',
-            'setgraph',
-            'apple_watch',
-            'clock',
-            'health',
-            'iphone',
-            'oura',
-            'loseit',
-            'rovi',
             'swarm',
             'trakt',
+            'oura',
+            'apple_watch',
+            'iphone',
+            'rovi',
         ]);
 });
 

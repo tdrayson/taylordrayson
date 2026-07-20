@@ -2,7 +2,7 @@
 
 namespace App\Search;
 
-use App\Enums\ActivityType;
+use App\Enums\ActivityDiscipline;
 
 /**
  * Curated example searches shown on the empty search page. Each entry is a
@@ -35,7 +35,7 @@ class SearchPresets
                 'filter' => [[
                     'type' => 'activity',
                     'conditions' => [
-                        ['field' => 'kind', 'operator' => 'is', 'value' => [ActivityType::Run->value]],
+                        ['field' => 'kind', 'operator' => 'is', 'value' => [ActivityDiscipline::Run->value]],
                         ['field' => 'distance', 'operator' => 'gte', 'value' => 5000],
                     ],
                 ]],

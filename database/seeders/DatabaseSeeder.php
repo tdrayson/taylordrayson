@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\ActivityType;
+use App\Enums\ActivityDiscipline;
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
@@ -182,10 +182,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $isCardio = in_array($activity->type, [
-            ActivityType::Run->value,
-            ActivityType::Ride->value,
-            ActivityType::Walk->value,
-            ActivityType::Swim->value,
+            ActivityDiscipline::Run->value,
+            ActivityDiscipline::Ride->value,
+            ActivityDiscipline::Walk->value,
+            ActivityDiscipline::Swim->value,
         ]);
 
         if ($isCardio) {

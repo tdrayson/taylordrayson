@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\ActivityType;
+use App\Enums\ActivityDiscipline;
 use App\Enums\Source;
 use App\Models\Activity;
 use App\Models\TimelineEntry;
@@ -120,11 +120,11 @@ it('shows a strength subtitle whenever sets exist, regardless of type', function
 });
 
 it('builds a Strava platform URL for a run sourced from Strava', function () {
-    // Sanity check that the ActivityType/Source reference enums are being
-    // compared correctly (source stays a plain string column, not cast).
+    // Sanity check that the ActivityDiscipline/Source reference enums are
+    // being compared correctly (source stays a plain string column, not cast).
     $activity = Activity::create([
         'occurred_at' => now(),
-        'type' => ActivityType::Run->value,
+        'type' => ActivityDiscipline::Run->value,
         'duration' => 1800,
         'source' => Source::Strava->value,
         'source_id' => '123456',
