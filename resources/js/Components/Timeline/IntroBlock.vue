@@ -12,13 +12,16 @@ defineProps({
 });
 
 const badgeLinkClass =
-    'group box-decoration-clone rounded-md bg-neutral-25 px-1.5 py-0.5 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 hover:decoration-accent-500 focus-visible:text-accent-500 focus-visible:decoration-accent-500';
+    'group box-decoration-clone rounded-md bg-neutral-25 px-1.5 py-0.5 no-underline transition-colors hover:text-accent-500 focus-visible:text-accent-500';
 
 const textLinkClass =
     'font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-2 transition-colors hover:text-accent-500 hover:decoration-accent-500 focus-visible:text-accent-500 focus-visible:decoration-accent-500';
 
+const externalIconWrapClass =
+    'ml-0.5 inline-block text-neutral-400 transition-colors duration-150 ease-out group-hover:text-accent-500 group-focus-visible:text-accent-500';
+
 const externalIconClass =
-    'ml-0.5 inline-block size-3.5 align-text-top text-neutral-400 transition-transform duration-150 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-focus-visible:-translate-y-0.5 group-focus-visible:translate-x-0.5 motion-reduce:transition-none';
+    'inline-block size-3.5 align-text-top transition-transform duration-150 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-focus-visible:-translate-y-0.5 group-focus-visible:translate-x-0.5 motion-reduce:transition-none';
 </script>
 
 <template>
@@ -49,7 +52,9 @@ const externalIconClass =
                 Creative
                 <span class="whitespace-nowrap">
                     Tinker
-                    <Icon name="ArrowUpRight01Icon" :class="externalIconClass" />
+                    <span :class="externalIconWrapClass">
+                        <Icon name="ArrowUpRight01Icon" :class="externalIconClass" />
+                    </span>
                 </span>
             </a>
             at 19. My side quests include developing a
@@ -66,7 +71,9 @@ const externalIconClass =
                 </span>
                 <span class="whitespace-nowrap">
                     plugin
-                    <Icon name="ArrowUpRight01Icon" :class="externalIconClass" />
+                    <span :class="externalIconWrapClass">
+                        <Icon name="ArrowUpRight01Icon" :class="externalIconClass" />
+                    </span>
                 </span>
             </a>,
             and co-hosting a
@@ -85,7 +92,7 @@ const externalIconClass =
             <Link href="/more" :class="textLinkClass">whatever else I'm measuring</Link>.
             When I'm offline, I'm either
             <Link href="/activities/padel" :class="textLinkClass">hitting a ball with a racket</Link>
-            or making another coffee. Guess which wins more often.
+            or making another coffee.
         </p>
     </div>
 </template>
