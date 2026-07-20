@@ -4,7 +4,7 @@ use App\Enums\MediaType;
 
 it('has exactly the three stored values', function () {
     expect(array_column(MediaType::cases(), 'value'))
-        ->toBe(['film', 'tv_episode', 'book']);
+        ->toBe(['film', 'episode', 'book']);
 });
 
 it('labels each case for display', function () {
@@ -14,5 +14,5 @@ it('labels each case for display', function () {
 });
 
 it('resolves from the stored backed value', function () {
-    expect(MediaType::from('tv_episode'))->toBe(MediaType::TvEpisode);
+    expect(MediaType::from('episode'))->toBe(MediaType::TvEpisode);
 });
