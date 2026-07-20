@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Import;
 
+use App\Enums\Source;
 use App\Models\Checkin;
 use App\Services\Foursquare;
 use Illuminate\Console\Attributes\Description;
@@ -16,7 +17,7 @@ class FoursquareImport extends Command
     public function handle(Foursquare $foursquare): int
     {
         $existingIds = Checkin::query()
-            ->where('source', 'swarm')
+            ->where('source', Source::Swarm->value)
             ->whereNotNull('source_id')
             ->pluck('source_id')
             ->flip()
@@ -39,7 +40,7 @@ class FoursquareImport extends Command
                 $category = $venue['categories'][0]['name'] ?? null;
 
                 Checkin::updateOrCreate(
-                    ['source' => 'swarm', 'source_id' => $item['id']],
+                    ['source' => Source::Swarm->value, 'source_id' => $item['id']],
                     [
                         'occurred_at' => date('Y-m-d H:i:s', $item['createdAt']),
                         'venue_name' => $venue['name'] ?? 'Unknown',

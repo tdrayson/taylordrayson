@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -46,7 +47,7 @@ class Checkin extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source === 'swarm' && $this->source_id) {
+        if ($this->source === Source::Swarm->value && $this->source_id) {
             return "https://www.swarmapp.com/checkin/{$this->source_id}";
         }
 

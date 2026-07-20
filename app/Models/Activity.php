@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -70,7 +71,7 @@ class Activity extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source === 'strava' && $this->source_id) {
+        if ($this->source === Source::Strava->value && $this->source_id) {
             return "https://www.strava.com/activities/{$this->source_id}";
         }
 

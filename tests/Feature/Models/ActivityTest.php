@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ActivityType;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Models\TimelineEntry;
 
@@ -115,4 +117,18 @@ it('shows a strength subtitle whenever sets exist, regardless of type', function
 
     expect($card['subtitle'])->toContain('exercise')
         ->and($card['subtitleTokens'])->toContain(['t' => 'text', 'v' => '1 exercise']);
+});
+
+it('builds a Strava platform URL for a run sourced from Strava', function () {
+    // Sanity check that the ActivityType/Source reference enums are being
+    // compared correctly (source stays a plain string column, not cast).
+    $activity = Activity::create([
+        'occurred_at' => now(),
+        'type' => ActivityType::Run->value,
+        'duration' => 1800,
+        'source' => Source::Strava->value,
+        'source_id' => '123456',
+    ]);
+
+    expect($activity->platform_url)->toBe('https://www.strava.com/activities/123456');
 });

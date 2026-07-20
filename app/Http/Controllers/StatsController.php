@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Support\Distance;
 use App\Support\OgMeta;
@@ -107,10 +108,10 @@ class StatsController extends Controller
             ->selectRaw('DATE(occurred_at) AS d')
             ->selectRaw('COUNT(*) AS sessions')
             ->selectRaw('COALESCE(SUM(duration), 0) AS secs')
-            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'walk' THEN distance END), 0) AS walk_m")
-            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'run' THEN distance END), 0) AS run_m")
-            ->selectRaw("COALESCE(SUM(CASE WHEN type IN ('ride', 'e-bike-ride') THEN distance END), 0) AS ride_m")
-            ->selectRaw("COALESCE(MAX(CASE WHEN type = 'run' THEN distance END), 0) AS run_max_m")
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = '".ActivityType::Walk->value."' THEN distance END), 0) AS walk_m")
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = '".ActivityType::Run->value."' THEN distance END), 0) AS run_m")
+            ->selectRaw("COALESCE(SUM(CASE WHEN type IN ('".ActivityType::Ride->value."', '".ActivityType::EbikeRide->value."') THEN distance END), 0) AS ride_m")
+            ->selectRaw("COALESCE(MAX(CASE WHEN type = '".ActivityType::Run->value."' THEN distance END), 0) AS run_max_m")
             ->whereBetween('occurred_at', [$start, $end])
             ->groupBy('d')
             ->get()
@@ -366,8 +367,8 @@ class StatsController extends Controller
     private function records(Carbon $start, Carbon $end): array
     {
         $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
-        $longestRun = (int) $between(Activity::query()->where('type', 'run'))->max('distance');
-        $longestRide = (int) $between(Activity::query()->whereIn('type', ['ride', 'e-bike-ride']))->max('distance');
+        $longestRun = (int) $between(Activity::query()->where('type', ActivityType::Run->value))->max('distance');
+        $longestRide = (int) $between(Activity::query()->whereIn('type', [ActivityType::Ride->value, ActivityType::EbikeRide->value]))->max('distance');
         $longestSession = (int) $between(Activity::query())->max('duration');
 
         return [

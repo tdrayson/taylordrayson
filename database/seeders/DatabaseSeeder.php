@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ActivityType;
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
@@ -180,7 +181,12 @@ class DatabaseSeeder extends Seeder
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(6, 19), fake()->numberBetween(0, 59)),
         ]);
 
-        $isCardio = in_array($activity->type, ['run', 'ride', 'walk', 'swim']);
+        $isCardio = in_array($activity->type, [
+            ActivityType::Run->value,
+            ActivityType::Ride->value,
+            ActivityType::Walk->value,
+            ActivityType::Swim->value,
+        ]);
 
         if ($isCardio) {
             $this->attachMap($activity);

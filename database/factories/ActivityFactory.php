@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ActivityType;
 use App\Models\Activity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,12 +15,13 @@ class ActivityFactory extends Factory
      * @var array<string, array{names: array<int, string>, cardio: bool}>
      */
     private const ACTIVITY_CONFIG = [
-        'run' => ['names' => ['Morning Run', 'Evening Run', 'Park Run', 'Tempo Run', 'Easy Run', 'Long Run'], 'cardio' => true],
-        'ride' => ['names' => ['Morning Ride', 'Evening Ride', 'Weekend Ride', 'Commute'], 'cardio' => true],
-        'walk' => ['names' => ['Morning Walk', 'Lunch Walk', 'Evening Walk', 'Sunday Walk'], 'cardio' => true],
-        'swim' => ['names' => ['Morning Swim', 'Pool Session', 'Open Water Swim'], 'cardio' => true],
-        'gym' => ['names' => ['Upper Body', 'Lower Body', 'Full Body', 'Push Day', 'Pull Day', 'Leg Day', 'Core Session'], 'cardio' => false],
-        'yoga' => ['names' => ['Morning Yoga', 'Full Body Yoga', 'Stretch & Recovery', 'Vinyasa Flow'], 'cardio' => false],
+        ActivityType::Run->value => ['names' => ['Morning Run', 'Evening Run', 'Park Run', 'Tempo Run', 'Easy Run', 'Long Run'], 'cardio' => true],
+        ActivityType::Ride->value => ['names' => ['Morning Ride', 'Evening Ride', 'Weekend Ride', 'Commute'], 'cardio' => true],
+        ActivityType::Walk->value => ['names' => ['Morning Walk', 'Lunch Walk', 'Evening Walk', 'Sunday Walk'], 'cardio' => true],
+        ActivityType::Swim->value => ['names' => ['Morning Swim', 'Pool Session', 'Open Water Swim'], 'cardio' => true],
+        ActivityType::WeightTraining->value => ['names' => ['Upper Body', 'Lower Body', 'Full Body', 'Push Day', 'Pull Day', 'Leg Day', 'Core Session'], 'cardio' => false],
+        ActivityType::Yoga->value => ['names' => ['Morning Yoga', 'Full Body Yoga', 'Stretch & Recovery', 'Vinyasa Flow'], 'cardio' => false],
+        ActivityType::Workout->value => ['names' => ['Circuit Session', 'HIIT Class', 'Cross Training'], 'cardio' => false],
     ];
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MediaType;
+use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -42,7 +43,7 @@ class Media extends Model implements HasMedia, Timelineable
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source === 'trakt' && $this->source_id) {
+        if ($this->source === Source::Trakt->value && $this->source_id) {
             return "https://trakt.tv/{$this->source_id}";
         }
 
