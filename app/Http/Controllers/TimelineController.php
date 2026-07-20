@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -308,7 +309,7 @@ class TimelineController extends Controller
             }
         }
 
-        $films = $between(Media::query())->whereIn('type', ['film', 'show'])->count();
+        $films = $between(Media::query())->whereIn('type', [MediaType::Film->value, MediaType::TvEpisode->value])->count();
 
         if ($films > 0) {
             $stats[] = ['label' => 'Watched', 'value' => number_format($films)];

@@ -2,6 +2,7 @@
 
 namespace App\Timeline;
 
+use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Appearance;
@@ -135,7 +136,11 @@ class TypeRegistry
 
     private static function media(): callable
     {
-        $map = ['films' => ['film'], 'tv' => ['tv', 'tv_episode'], 'books' => ['book']];
+        $map = [
+            'films' => [MediaType::Film->value],
+            'tv' => [MediaType::TvEpisode->value],
+            'books' => [MediaType::Book->value],
+        ];
         $labels = ['films' => 'Films', 'tv' => 'TV', 'books' => 'Books'];
 
         return fn (string $model, string $slug): array => [

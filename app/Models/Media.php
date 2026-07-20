@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MediaType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -34,6 +35,7 @@ class Media extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'type' => MediaType::class,
             'meta' => 'array',
         ];
     }
@@ -55,11 +57,11 @@ class Media extends Model implements HasMedia, Timelineable
     public function card(): array
     {
         $detail = match ($this->type) {
-            'film' => $this->meta['year'] ?? null,
-            'tv' => isset($this->meta['season'], $this->meta['episode'])
+            MediaType::Film => $this->meta['year'] ?? null,
+            MediaType::TvEpisode => isset($this->meta['season'], $this->meta['episode'])
                 ? sprintf('S%02dE%02d', $this->meta['season'], $this->meta['episode'])
                 : null,
-            'book' => $this->meta['author'] ?? null,
+            MediaType::Book => $this->meta['author'] ?? null,
             default => null,
         };
 

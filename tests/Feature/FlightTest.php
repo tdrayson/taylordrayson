@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CabinClass;
 use App\Models\Airline;
 use App\Models\Flight;
 
@@ -44,4 +45,38 @@ it('includes the flight designator (iata code + number) in the card airline', fu
 
     expect($airline['number'])->toBe('U2 8821');
     expect($airline['name'])->toBe('easyJet UK');
+});
+
+it('casts a stored cabin_class string to the CabinClass enum', function () {
+    $flight = Flight::factory()->create(['cabin_class' => 'economy']);
+
+    expect($flight->cabin_class)->toBeInstanceOf(CabinClass::class)
+        ->and($flight->cabin_class)->toBe(CabinClass::Economy)
+        ->and($flight->cabin_class->value)->toBe('economy')
+        ->and($flight->toArray()['cabin_class'])->toBe('economy');
+});
+
+it('leaves cabin_class null when unset', function () {
+    $flight = Flight::factory()->create(['cabin_class' => null]);
+
+    expect($flight->cabin_class)->toBeNull()
+        ->and($flight->toArray()['cabin_class'])->toBeNull();
+});
+
+it('shows the cabin class label (not the raw enum value) in the card subtitle', function () {
+    $flight = Flight::factory()->make(['distance' => 1000000, 'cabin_class' => 'premium_economy']);
+
+    expect($flight->card()['subtitle'])->toContain('Premium economy')
+        ->and($flight->card()['subtitle'])->not->toContain('premium_economy');
+});
+
+/**
+ * Pure refactor guard: a null cabin_class already produced this trailing
+ * ", " before the enum cast (sprintf('%s', null) => ''); this test proves
+ * the enum cast did not change that pre-existing formatting quirk.
+ */
+it('preserves the pre-existing subtitle formatting when cabin_class is null', function () {
+    $flight = Flight::factory()->make(['distance' => 1000000, 'cabin_class' => null]);
+
+    expect($flight->card()['subtitle'])->toEndWith(' mi, ');
 });

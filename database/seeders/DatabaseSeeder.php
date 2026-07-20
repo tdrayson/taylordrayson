@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -236,7 +237,7 @@ class DatabaseSeeder extends Seeder
 
         $film = Media::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => 'film',
+            'type' => MediaType::Film,
             'meta' => [
                 'year' => fake()->numberBetween(1990, 2026),
                 'runtime' => fake()->numberBetween(80, 200),
@@ -264,7 +265,7 @@ class DatabaseSeeder extends Seeder
         for ($i = 0; $i < $episodeCount; $i++) {
             $episode = Media::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 23), fake()->numberBetween(0, 59)),
-                'type' => 'tv_episode',
+                'type' => MediaType::TvEpisode,
                 'title' => $showTitle,
                 'meta' => [
                     'show_title' => $showTitle,
@@ -363,7 +364,7 @@ class DatabaseSeeder extends Seeder
 
         $book = Media::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => 'book',
+            'type' => MediaType::Book,
             'meta' => [
                 'author' => fake()->name(),
                 'isbn' => fake()->isbn13(),
