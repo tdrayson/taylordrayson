@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Fetch;
 
+use App\Enums\Source;
 use App\Models\Sleep;
 use App\Support\Health\SleepAggregator;
 use App\Support\Health\SleepScore;
@@ -326,8 +327,8 @@ class ImportHealthSleep extends Command
     private function sourceRank(string $source): int
     {
         return match ($source) {
-            'oura' => 2,
-            'apple_watch' => 1,
+            Source::Oura->value => 2,
+            Source::AppleWatch->value => 1,
             default => 0,
         };
     }

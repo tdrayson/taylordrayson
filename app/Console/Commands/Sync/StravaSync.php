@@ -5,6 +5,7 @@ namespace App\Console\Commands\Sync;
 use App\Actions\GenerateStaticMap;
 use App\Actions\StoreActivityStreams;
 use App\Actions\SyncStravaPhotos;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\Carbon;
@@ -66,7 +67,7 @@ class StravaSync extends Command
         }
 
         $existingIds = Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('source_id')
             ->pluck('source_id')
             ->all();
@@ -173,7 +174,7 @@ class StravaSync extends Command
             'distance' => $data['distance'] ? (int) round($data['distance']) : null,
             'average_heart_rate' => $data['average_heartrate'] ?? null,
             'max_heart_rate' => $data['max_heartrate'] ?? null,
-            'source' => 'strava',
+            'source' => Source::Strava->value,
             'source_id' => (string) $data['id'],
             'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
             'meta' => $meta ?: null,

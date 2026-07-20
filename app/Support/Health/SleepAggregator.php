@@ -2,6 +2,7 @@
 
 namespace App\Support\Health;
 
+use App\Enums\Source;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -26,7 +27,7 @@ class SleepAggregator
      *
      * @var list<string>
      */
-    private const SOURCE_PRIORITY = ['oura', 'apple_watch'];
+    private const SOURCE_PRIORITY = [Source::Oura->value, Source::AppleWatch->value];
 
     /**
      * A no-data gap (seconds) that separates one sleep session from the next.
@@ -268,9 +269,9 @@ class SleepAggregator
         $value = strtolower($source);
 
         return match (true) {
-            str_contains($value, 'oura') => 'oura',
-            str_contains($value, 'watch') => 'apple_watch',
-            str_contains($value, 'iphone') => 'iphone',
+            str_contains($value, 'oura') => Source::Oura->value,
+            str_contains($value, 'watch') => Source::AppleWatch->value,
+            str_contains($value, 'iphone') => Source::Iphone->value,
             default => Str::slug($value, '_') ?: 'unknown',
         };
     }

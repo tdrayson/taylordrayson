@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Illuminate\Console\Attributes\Description;
@@ -129,7 +130,7 @@ class BackfillStravaDescriptions extends Command
     private function remaining(int $cursor): Builder
     {
         return Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('source_id')
             ->whereNull('description')
             ->where('id', '>', $cursor)

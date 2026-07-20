@@ -2,6 +2,8 @@
 
 namespace App\Search;
 
+use App\Enums\ActivityDiscipline;
+
 /**
  * Curated example searches shown on the empty search page. Each entry is a
  * ready-made filter in the exact shape the query builder produces, so clicking
@@ -33,7 +35,7 @@ class SearchPresets
                 'filter' => [[
                     'type' => 'activity',
                     'conditions' => [
-                        ['field' => 'kind', 'operator' => 'is', 'value' => ['run']],
+                        ['field' => 'kind', 'operator' => 'is', 'value' => [ActivityDiscipline::Run->value]],
                         ['field' => 'distance', 'operator' => 'gte', 'value' => 5000],
                     ],
                 ]],

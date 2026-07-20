@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Enums\ActivityDiscipline;
+use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -276,9 +278,9 @@ class TimelineController extends Controller
          * @var array<string, list<string>> $disciplines
          */
         $disciplines = [
-            'Walked' => ['walk'],
-            'Ran' => ['run'],
-            'Cycled' => ['ride', 'e-bike-ride'],
+            'Walked' => [ActivityDiscipline::Walk->value],
+            'Ran' => [ActivityDiscipline::Run->value],
+            'Cycled' => [ActivityDiscipline::Ride->value, ActivityDiscipline::EbikeRide->value],
         ];
 
         foreach ($disciplines as $label => $types) {
@@ -308,7 +310,7 @@ class TimelineController extends Controller
             }
         }
 
-        $films = $between(Media::query())->whereIn('type', ['film', 'show'])->count();
+        $films = $between(Media::query())->whereIn('type', [MediaType::Film->value, MediaType::TvEpisode->value])->count();
 
         if ($films > 0) {
             $stats[] = ['label' => 'Watched', 'value' => number_format($films)];
@@ -334,7 +336,7 @@ class TimelineController extends Controller
 
         // Year-scale superlative: the standout single run of the period.
         if ($withSuperlative) {
-            $longestRun = (int) $between(Activity::query())->where('type', 'run')->max('distance');
+            $longestRun = (int) $between(Activity::query())->where('type', ActivityDiscipline::Run->value)->max('distance');
 
             if ($longestRun > 0) {
                 $stats[] = ['label' => 'Longest run', 'distanceM' => $longestRun, 'precision' => 1];

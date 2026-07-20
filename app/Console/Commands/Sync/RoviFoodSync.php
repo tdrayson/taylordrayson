@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Enums\Source;
 use App\Models\Calorie;
 use App\Services\Rovi;
 use Illuminate\Console\Attributes\Description;
@@ -13,7 +14,7 @@ use Illuminate\Support\Carbon;
 #[Description('Sync the Rovi food diary into calories rows for a rolling window of recent days, keyed by Rovi id so re-runs stay idempotent')]
 class RoviFoodSync extends Command
 {
-    private const SOURCE = 'rovi';
+    private const SOURCE = Source::Rovi->value;
 
     /**
      * Upper bound on the automatic catch-up: if the newest synced day is older

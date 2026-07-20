@@ -117,3 +117,26 @@ it('defaults both timezones to the home timezone when omitted', function () {
         ->assertJsonPath('data.departure_timezone', 'Europe/London')
         ->assertJsonPath('data.arrival_timezone', 'Europe/London');
 });
+
+it('rejects a cabin_class outside the CabinClass enum', function () {
+    $this->withToken('test-token')
+        ->postJson('/api/v1/flights', array_merge(validFlightPayload(), ['cabin_class' => 'spaceship']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['cabin_class']);
+});
+
+it('accepts premium_economy as a valid cabin_class', function () {
+    $this->withToken('test-token')
+        ->postJson('/api/v1/flights', array_merge(validFlightPayload(), ['cabin_class' => 'premium_economy']))
+        ->assertCreated()
+        ->assertJsonPath('data.cabin_class', 'premium_economy');
+});
+
+it('accepts a null cabin_class', function () {
+    $payload = validFlightPayload();
+    unset($payload['cabin_class']);
+
+    $this->withToken('test-token')->postJson('/api/v1/flights', $payload)
+        ->assertCreated()
+        ->assertJsonPath('data.cabin_class', null);
+});

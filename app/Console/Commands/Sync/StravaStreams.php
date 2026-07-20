@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Sync;
 
 use App\Actions\StoreActivityStreams;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Illuminate\Console\Attributes\Description;
@@ -16,7 +17,7 @@ class StravaStreams extends Command
     public function handle(StoreActivityStreams $store, Strava $strava): int
     {
         $query = Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('meta->polyline');
 
         if (! $this->option('force')) {

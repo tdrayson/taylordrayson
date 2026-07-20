@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Import;
 
+use App\Enums\Source;
 use App\Models\Activity;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -41,7 +42,7 @@ class ImportActivityDescriptions extends Command
         $updated = 0;
 
         Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereIn('source_id', array_keys($descriptions))
             ->when(! $overwrite, fn ($query) => $query->whereNull('description'))
             ->each(function (Activity $activity) use ($descriptions, &$updated): void {

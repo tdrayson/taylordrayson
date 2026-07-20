@@ -4,6 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\SyncStravaPhotos;
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\CarbonImmutable;
@@ -69,7 +70,7 @@ class StravaPhotos extends Command
         }
 
         $ours = Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('source_id')
             ->with('media')
             ->get()

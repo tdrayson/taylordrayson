@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
 use Illuminate\Console\Attributes\Description;
@@ -27,7 +28,7 @@ class StravaPolylines extends Command
         }
 
         $query = Activity::query()
-            ->where('source', 'strava')
+            ->where('source', Source::Strava->value)
             ->whereNotNull('source_id')
             ->whereIn('type', self::POLYLINE_TYPES);
 
