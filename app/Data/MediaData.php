@@ -6,7 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * The playable media block on an appearance/podcast card. Appearance always
+ * The playable media block on an appearance/podcast card. `thumbnail` is the
+ * wide (16:9) card image; `audioCover` is the square artwork the bottom audio
+ * player shows and is emitted only when set (podcasts). Appearance always
  * carries a (possibly null) responsive `srcset` for its stored cover; Podcast
  * has no such conversion, so the key is omitted entirely rather than emitted
  * as null.
@@ -19,6 +21,7 @@ final readonly class MediaData implements Arrayable, JsonSerializable
         public ?string $audioUrl,
         public ?string $videoUrl,
         public ?string $thumbnail,
+        public ?string $audioCover,
         public ?string $srcset,
         public ?int $duration,
         public string $url,
@@ -38,11 +41,12 @@ final readonly class MediaData implements Arrayable, JsonSerializable
         ?int $duration,
         string $url,
     ): self {
-        return new self($id, $title, $audioUrl, $videoUrl, $thumbnail, $srcset, $duration, $url, true);
+        return new self($id, $title, $audioUrl, $videoUrl, $thumbnail, null, $srcset, $duration, $url, true);
     }
 
     /**
-     * A podcast media block: no `srcset` key at all.
+     * A podcast media block: no `srcset` key at all. `audioCover` is the square
+     * artwork for the audio player (the wide `thumbnail` fronts the card).
      */
     public static function withoutSrcset(
         int|string $id,
@@ -50,10 +54,11 @@ final readonly class MediaData implements Arrayable, JsonSerializable
         ?string $audioUrl,
         ?string $videoUrl,
         ?string $thumbnail,
+        ?string $audioCover,
         ?int $duration,
         string $url,
     ): self {
-        return new self($id, $title, $audioUrl, $videoUrl, $thumbnail, null, $duration, $url, false);
+        return new self($id, $title, $audioUrl, $videoUrl, $thumbnail, $audioCover, null, $duration, $url, false);
     }
 
     /**
@@ -68,6 +73,10 @@ final readonly class MediaData implements Arrayable, JsonSerializable
             'videoUrl' => $this->videoUrl,
             'thumbnail' => $this->thumbnail,
         ];
+
+        if ($this->audioCover !== null) {
+            $data['audioCover'] = $this->audioCover;
+        }
 
         if ($this->withSrcset) {
             $data['srcset'] = $this->srcset;

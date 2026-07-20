@@ -38,7 +38,7 @@ it('serialises event meta with only photos, map, mapDark', function () {
 });
 
 it('serialises media meta with only media', function () {
-    $media = MediaData::withoutSrcset(1, 'Title', null, null, null, null, '/x');
+    $media = MediaData::withoutSrcset(1, 'Title', null, null, null, null, null, '/x');
     $meta = CardMeta::media($media);
 
     expect($meta->toArray())->toBe(['media' => $media->toArray()]);

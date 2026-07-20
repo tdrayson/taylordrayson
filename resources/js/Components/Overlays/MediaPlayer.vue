@@ -283,7 +283,8 @@ onBeforeUnmount(() => {
 
         <div v-if="isAudio" class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-50 bg-neutral-0 md:pl-66">
             <div class="mx-auto flex max-w-4xl items-center gap-4 px-5 py-3 md:px-10">
-                <img v-if="player.track.thumbnail" :src="player.track.thumbnail" alt="" class="size-11 shrink-0 rounded-md object-cover">
+                <!-- Prefer the square audioCover; fall back to the wide thumbnail. -->
+                <img v-if="player.track.audioCover || player.track.thumbnail" :src="player.track.audioCover || player.track.thumbnail" alt="" class="size-11 shrink-0 rounded-md object-cover">
                 <Button
                     variant="primary"
                     size="icon"
