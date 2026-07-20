@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\MediaType;
+use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -34,13 +36,14 @@ class Media extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'type' => MediaType::class,
             'meta' => 'array',
         ];
     }
 
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source === 'trakt' && $this->source_id) {
+        if ($this->source === Source::Trakt->value && $this->source_id) {
             return "https://trakt.tv/{$this->source_id}";
         }
 
@@ -50,32 +53,5 @@ class Media extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return Str::slug($this->title);
-    }
-
-    public function card(): array
-    {
-        $detail = match ($this->type) {
-            'film' => $this->meta['year'] ?? null,
-            'tv' => isset($this->meta['season'], $this->meta['episode'])
-                ? sprintf('S%02dE%02d', $this->meta['season'], $this->meta['episode'])
-                : null,
-            'book' => $this->meta['author'] ?? null,
-            default => null,
-        };
-
-        $parts = array_filter([
-            $this->rating ? "★ {$this->rating} / 10" : null,
-            $detail,
-        ]);
-
-        return [
-            'type' => 'media',
-            'icon' => 'film',
-            'title' => $this->title,
-            'subtitle' => $parts ? implode(', ', $parts) : null,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'media',
-            'meta' => [],
-        ];
     }
 }

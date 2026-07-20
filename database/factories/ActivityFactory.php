@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ActivityDiscipline;
 use App\Models\Activity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -11,15 +12,20 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class ActivityFactory extends Factory
 {
     /**
+     * Type keys are plain strings, mirroring the open `activity.type` set:
+     * `activity.type` is not cast, and only the cardio disciplines carry
+     * app behaviour (see ActivityDiscipline), so the rest are just test data.
+     *
      * @var array<string, array{names: array<int, string>, cardio: bool}>
      */
     private const ACTIVITY_CONFIG = [
-        'run' => ['names' => ['Morning Run', 'Evening Run', 'Park Run', 'Tempo Run', 'Easy Run', 'Long Run'], 'cardio' => true],
-        'ride' => ['names' => ['Morning Ride', 'Evening Ride', 'Weekend Ride', 'Commute'], 'cardio' => true],
-        'walk' => ['names' => ['Morning Walk', 'Lunch Walk', 'Evening Walk', 'Sunday Walk'], 'cardio' => true],
-        'swim' => ['names' => ['Morning Swim', 'Pool Session', 'Open Water Swim'], 'cardio' => true],
-        'gym' => ['names' => ['Upper Body', 'Lower Body', 'Full Body', 'Push Day', 'Pull Day', 'Leg Day', 'Core Session'], 'cardio' => false],
+        ActivityDiscipline::Run->value => ['names' => ['Morning Run', 'Evening Run', 'Park Run', 'Tempo Run', 'Easy Run', 'Long Run'], 'cardio' => true],
+        ActivityDiscipline::Ride->value => ['names' => ['Morning Ride', 'Evening Ride', 'Weekend Ride', 'Commute'], 'cardio' => true],
+        ActivityDiscipline::Walk->value => ['names' => ['Morning Walk', 'Lunch Walk', 'Evening Walk', 'Sunday Walk'], 'cardio' => true],
+        ActivityDiscipline::Swim->value => ['names' => ['Morning Swim', 'Pool Session', 'Open Water Swim'], 'cardio' => true],
+        'weight-training' => ['names' => ['Upper Body', 'Lower Body', 'Full Body', 'Push Day', 'Pull Day', 'Leg Day', 'Core Session'], 'cardio' => false],
         'yoga' => ['names' => ['Morning Yoga', 'Full Body Yoga', 'Stretch & Recovery', 'Vinyasa Flow'], 'cardio' => false],
+        'workout' => ['names' => ['Circuit Session', 'HIIT Class', 'Cross Training'], 'cardio' => false],
     ];
 
     /**

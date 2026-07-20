@@ -58,30 +58,4 @@ class Fuel extends Model implements HasMedia, Timelineable
     {
         return 'fuel';
     }
-
-    public function card(): array
-    {
-        // "33 L for £45.06 at £1.359/L": litres and cost read as one clause, with
-        // the per-litre price (when known) attached as a second "at ..." clause
-        // rather than a comma-joined list item.
-        $subtitle = sprintf('%s L for £%.2f', $this->litres, $this->cost);
-
-        if ($this->price_per_litre) {
-            $subtitle .= sprintf(' at £%s/L', number_format($this->price_per_litre, 3));
-        }
-
-        return [
-            'type' => 'fuel',
-            'icon' => 'fuel',
-            'title' => $this->station_name ?? 'Fuel',
-            'titleLabel' => 'Fuel stop'.($this->station_name ? ', '.$this->station_name : ''),
-            'subtitle' => $subtitle,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'fuel',
-            'meta' => [
-                'map' => $this->getFirstMediaUrl('map') ?: null,
-                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
-            ],
-        ];
-    }
 }

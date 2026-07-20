@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CabinClass;
 use App\Models\Flight;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -60,7 +61,7 @@ class FlightFactory extends Factory
             'origin_iata' => $originIata,
             'destination_iata' => $destinationIata,
             'distance' => fake()->numberBetween(300000, 9000000),
-            'cabin_class' => fake()->randomElement(['economy', 'business', null]),
+            'cabin_class' => fake()->randomElement([...CabinClass::cases(), null]),
             'reason' => fake()->randomElement(['personal', 'business']),
             'meta' => [
                 'aircraft' => fake()->randomElement(['Boeing 737-800', 'Airbus A320', 'Boeing 777-300ER']),

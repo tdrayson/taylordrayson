@@ -52,27 +52,4 @@ class Podcast extends Model implements HasMedia, Timelineable
     {
         return "tww-s{$this->season_number}-e{$this->episode_number}";
     }
-
-    public function card(): array
-    {
-        return [
-            'type' => 'podcast',
-            'icon' => 'headphones',
-            'title' => $this->title,
-            'subtitle' => $this->topic,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'podcast',
-            'meta' => [
-                'media' => [
-                    'id' => $this->id,
-                    'title' => $this->title,
-                    'audioUrl' => $this->audio_url,
-                    'videoUrl' => $this->video_url,
-                    'thumbnail' => $this->cover_image ?? $this->thumbnail,
-                    'duration' => $this->duration,
-                    'url' => $this->url(),
-                ],
-            ],
-        ];
-    }
 }

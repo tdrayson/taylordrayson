@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\CabinClass;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
-use App\Support\Distance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -49,6 +49,7 @@ class Flight extends Model implements HasMedia, Timelineable
             'meta' => 'array',
             'duration' => 'integer',
             'distance' => 'integer',
+            'cabin_class' => CabinClass::class,
         ];
     }
 
@@ -113,60 +114,5 @@ class Flight extends Model implements HasMedia, Timelineable
     public function slug(): string
     {
         return strtolower("{$this->origin_iata}-{$this->destination_iata}");
-    }
-
-    /**
-     * Route title using city names when the airport relations are loaded
-     * (the entry page), falling back to IATA codes otherwise (the feed).
-     */
-    private function routeTitle(): string
-    {
-        $origin = ($this->relationLoaded('origin') ? $this->origin?->place : null) ?? $this->origin_iata;
-        $destination = ($this->relationLoaded('destination') ? $this->destination?->place : null) ?? $this->destination_iata;
-
-        return "{$origin} → {$destination}";
-    }
-
-    public function card(): array
-    {
-        // "300 mi in economy" reads as a single clause; falls back to the bare
-        // distance (no dangling "in") when cabin class is missing.
-        $subtitle = match (true) {
-            ! $this->distance => null,
-            (bool) $this->cabin_class => sprintf('%s mi in %s', number_format(Distance::miles($this->distance)), $this->cabin_class),
-            default => sprintf('%s mi', number_format(Distance::miles($this->distance))),
-        };
-
-        return [
-            'type' => 'flight',
-            'icon' => 'plane',
-            'title' => $this->routeTitle(),
-            'subtitle' => $subtitle,
-            // Raw metres (not Distance::miles) so FeedItem.vue converts via useFormat and
-            // reacts to the visitor's unit toggle. Cabin class reads as a clause off the
-            // distance ("... mi in economy"), not a separate list item; omitted entirely
-            // when cabin class is missing (no dangling "in").
-            'subtitleTokens' => $this->distance
-                ? array_values(array_filter([
-                    ['t' => 'dist', 'm' => (int) $this->distance, 'p' => 0],
-                    $this->cabin_class ? ['t' => 'text', 'v' => $this->cabin_class, 'sep' => ' in '] : null,
-                ]))
-                : null,
-            'occurred_at' => $this->occurred_at,
-            'accent' => 'flight',
-            'meta' => [
-                'route' => [
-                    'origin' => ['iata' => $this->origin_iata, 'place' => $this->relationLoaded('origin') ? $this->origin?->place : null, 'name' => $this->relationLoaded('origin') ? $this->origin?->name : null, 'lat' => $this->relationLoaded('origin') ? $this->origin?->latitude : null, 'lng' => $this->relationLoaded('origin') ? $this->origin?->longitude : null],
-                    'destination' => ['iata' => $this->destination_iata, 'place' => $this->relationLoaded('destination') ? $this->destination?->place : null, 'name' => $this->relationLoaded('destination') ? $this->destination?->name : null, 'lat' => $this->relationLoaded('destination') ? $this->destination?->latitude : null, 'lng' => $this->relationLoaded('destination') ? $this->destination?->longitude : null],
-                    'depart' => $this->departed_local,
-                    'arrive' => $this->arrived_local,
-                    'distance' => Distance::miles($this->distance),
-                    'duration' => $this->duration,
-                    'airline' => $this->relationLoaded('airline') && $this->airline ? ['name' => $this->airline->name, 'icon' => $this->airline->icon_url, 'number' => trim(($this->airline->iata_code ?: $this->airline_icao).' '.$this->flight_number)] : null,
-                ],
-                'map' => $this->getFirstMediaUrl('map') ?: null,
-                'mapDark' => $this->getFirstMediaUrl('map_dark') ?: null,
-            ],
-        ];
     }
 }

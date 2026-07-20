@@ -6,6 +6,7 @@ use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Presenters\CardPresenter;
 
 it('joins activity distance and duration with "in" and keeps calories comma-joined', function () {
     $activity = Activity::factory()->create([
@@ -16,7 +17,7 @@ it('joins activity distance and duration with "in" and keeps calories comma-join
         'meta' => [],
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity)->toArray();
 
     expect($card['subtitle'])->toContain(' in ')
         ->and($card['subtitle'])->toMatch('/mi in .*, 210 kcal/');
@@ -34,7 +35,7 @@ it('does not lead activity subtitle with "in" when there is no distance', functi
         'meta' => [],
     ]);
 
-    $card = $activity->card();
+    $card = CardPresenter::for($activity)->toArray();
 
     expect($card['subtitle'])->not->toContain(' in ')
         ->and($card['subtitle'])->toBe('22m, 210 kcal');
@@ -53,7 +54,7 @@ it('activity subtitle shows just distance when duration and calories are absent'
         'meta' => [],
     ]);
 
-    expect($activity->card()['subtitle'])->toBe('1.6 mi');
+    expect(CardPresenter::for($activity)->toArray()['subtitle'])->toBe('1.6 mi');
 });
 
 it('joins flight distance and cabin class with "in"', function () {
@@ -62,7 +63,7 @@ it('joins flight distance and cabin class with "in"', function () {
         'cabin_class' => 'economy',
     ]);
 
-    $card = $flight->card();
+    $card = CardPresenter::for($flight)->toArray();
 
     expect($card['subtitle'])->toContain(' in economy');
 
@@ -76,7 +77,7 @@ it('does not dangle "in" when a flight has no cabin class', function () {
         'cabin_class' => null,
     ]);
 
-    $card = $flight->card();
+    $card = CardPresenter::for($flight)->toArray();
 
     expect($card['subtitle'])->toBe('300 mi')
         ->and($card['subtitle'])->not->toContain(' in ')
@@ -93,7 +94,7 @@ it('builds the fuel subtitle with "for" and "at" clauses', function () {
         'price_per_litre' => 1.359,
     ]);
 
-    expect($fuel->card()['subtitle'])->toBe('33 L for £45.06 at £1.359/L');
+    expect(CardPresenter::for($fuel)->toArray()['subtitle'])->toBe('33 L for £45.06 at £1.359/L');
 });
 
 it('omits the "at" clause when fuel has no price per litre', function () {
@@ -103,7 +104,7 @@ it('omits the "at" clause when fuel has no price per litre', function () {
         'price_per_litre' => null,
     ]);
 
-    $subtitle = $fuel->card()['subtitle'];
+    $subtitle = CardPresenter::for($fuel)->toArray()['subtitle'];
 
     expect($subtitle)->toBe('33 L for £45.06')
         ->and($subtitle)->not->toContain(' at ');
@@ -115,7 +116,7 @@ it('joins checkin category and city with "in"', function () {
         'city' => 'London',
     ]);
 
-    expect($checkin->card()['subtitle'])->toBe('Coffee Shop in London');
+    expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Coffee Shop in London');
 });
 
 it('does not dangle "in" when a checkin has only a category', function () {
@@ -124,7 +125,7 @@ it('does not dangle "in" when a checkin has only a category', function () {
         'city' => null,
     ]);
 
-    $subtitle = $checkin->card()['subtitle'];
+    $subtitle = CardPresenter::for($checkin)->toArray()['subtitle'];
 
     expect($subtitle)->toBe('Coffee Shop')
         ->and($subtitle)->not->toContain(' in ');
@@ -136,7 +137,7 @@ it('joins event venue and city with "in"', function () {
         'city' => 'London',
     ]);
 
-    expect($event->card()['subtitle'])->toBe('The Roundhouse in London');
+    expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('The Roundhouse in London');
 });
 
 it('keeps the calorie subtitle comma-joined with no connectives', function () {
@@ -147,7 +148,7 @@ it('keeps the calorie subtitle comma-joined with no connectives', function () {
         'fat' => 10,
     ]);
 
-    $subtitle = $calorie->card()['subtitle'];
+    $subtitle = CardPresenter::for($calorie)->toArray()['subtitle'];
 
     expect($subtitle)->toContain(',')
         ->and($subtitle)->not->toContain(' in ');
