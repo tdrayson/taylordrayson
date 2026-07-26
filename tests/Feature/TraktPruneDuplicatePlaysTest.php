@@ -129,7 +129,12 @@ it('deletes the spurious local row and keeps the genuine one', function () {
             'expires_in' => 30, 'interval' => 1,
         ]),
         'api.trakt.tv/oauth/device/token' => Http::response(['access_token' => 'tok-abc']),
+        'api.trakt.tv/users/settings' => Http::response(['user' => ['username' => 'taylor']]),
         'api.trakt.tv/sync/history/remove' => Http::response(['deleted' => ['episodes' => 17], 'not_found' => []]),
+        // Authenticated reverify: the removed play is gone, the kept play remains.
+        'api.trakt.tv/sync/history/episodes*' => fn ($request) => Http::response(
+            ((int) ($request->data()['page'] ?? 1)) === 1 ? [['id' => 8677547398, 'episode' => ['ids' => ['trakt' => 73482]]]] : []
+        ),
     ]);
 
     $this->artisan('trakt:prune-duplicate-plays --force')
@@ -140,7 +145,7 @@ it('deletes the spurious local row and keeps the genuine one', function () {
         ->and(Media::where('source_id', '8677547398')->exists())->toBeTrue();
 });
 
-it('leaves local rows alone when trakt reports the play as not found', function () {
+it('leaves local rows alone when the play is still in authenticated history', function () {
     seedPlayPair();
 
     Http::fake([
@@ -149,17 +154,19 @@ it('leaves local rows alone when trakt reports the play as not found', function 
             'expires_in' => 30, 'interval' => 1,
         ]),
         'api.trakt.tv/oauth/device/token' => Http::response(['access_token' => 'tok-abc']),
-        'api.trakt.tv/sync/history/remove' => Http::response([
-            'deleted' => ['episodes' => 16],
-            'not_found' => ['ids' => [9283695329]],
-        ]),
+        'api.trakt.tv/users/settings' => Http::response(['user' => ['username' => 'taylor']]),
+        'api.trakt.tv/sync/history/remove' => Http::response(['deleted' => ['episodes' => 17], 'not_found' => []]),
+        // The remove endpoint claims success, but the play is still in the
+        // authenticated history: the removal did not really happen, so the
+        // local row must survive rather than be cleared on a false signal.
+        'api.trakt.tv/sync/history/episodes*' => fn ($request) => Http::response(
+            ((int) ($request->data()['page'] ?? 1)) === 1 ? [['id' => 9283695329, 'episode' => ['ids' => ['trakt' => 73482]]]] : []
+        ),
     ]);
 
     $this->artisan('trakt:prune-duplicate-plays --force')
         ->expectsConfirmation('Delete these plays from your Trakt history?', 'yes')
         ->assertSuccessful();
 
-    // Still on Trakt, so a full sync would re-import it. Deleting locally
-    // would turn a visible mismatch into a silent reappearance.
     expect(Media::where('source_id', '9283695329')->exists())->toBeTrue();
 });

@@ -8,16 +8,18 @@ use JsonSerializable;
 /**
  * Outcome of a Trakt history prune.
  *
- * `requested` and `deleted` are reported separately because Trakt answers 200
- * even when it matched nothing, so a caller that trusts the status alone
- * cannot tell a full success from a silent partial one.
+ * `deleted` is the count confirmed gone by re-reading the authenticated
+ * history after the removal, NOT the remove endpoint's own count: that count
+ * has proven unreliable (a false success, and a zero for already-removed
+ * plays), so it is never trusted to decide what to clear locally. `notFound`
+ * is whatever the caller asked to remove that is still present afterwards.
  */
 final readonly class TraktPruneResult implements Arrayable, JsonSerializable
 {
     /**
-     * @param  int  $requested  Plays we asked Trakt to remove.
-     * @param  int  $deleted  Plays Trakt confirmed it removed.
-     * @param  list<int>  $notFound  Play ids Trakt did not recognise.
+     * @param  int  $requested  Plays/episodes we asked Trakt to remove.
+     * @param  int  $deleted  Confirmed gone from the authenticated history afterwards.
+     * @param  list<int>  $notFound  Ids still present in history after the attempt.
      * @param  int  $clearedRows  Local media rows deleted.
      * @param  int  $clearedSeries  Local series rows deleted for having no episodes left.
      */

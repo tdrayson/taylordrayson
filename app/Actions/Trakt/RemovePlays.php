@@ -30,13 +30,21 @@ final class RemovePlays
         array $localOnlyPlayIds = [],
         bool $pruneEmptySeries = false,
     ): TraktPruneResult {
-        $result = $this->trakt->removeHistory($playIds, $accessToken);
+        $playIds = array_map('intval', $playIds);
 
-        $deleted = (int) data_get($result, 'deleted.episodes', 0)
-            + (int) data_get($result, 'deleted.movies', 0);
-        $notFound = array_map('intval', (array) data_get($result, 'not_found.ids', []));
+        $this->trakt->removeHistory($playIds, $accessToken);
 
-        $confirmedGone = array_diff(array_map('intval', $playIds), $notFound);
+        // Confirm against authenticated history rather than the remove
+        // endpoint's own counts: those have proven unreliable, and clearing
+        // local rows on that basis has lost data. A play absent from the real
+        // history is genuinely gone; one still present was not removed.
+        $stillPresent = array_flip($this->trakt->authenticatedPlayIdsInHistory($accessToken));
+
+        $confirmedGone = array_values(array_filter($playIds, fn (int $id): bool => ! isset($stillPresent[$id])));
+        $notFound = array_values(array_filter($playIds, fn (int $id): bool => isset($stillPresent[$id])));
+
+        // localOnly plays are known-absent from Trakt already (never sent to
+        // the remove endpoint), so they clear without a history check.
         $clearable = array_merge($confirmedGone, array_map('intval', $localOnlyPlayIds));
 
         $touchedSeries = Media::query()
@@ -53,8 +61,8 @@ final class RemovePlays
 
         return new TraktPruneResult(
             requested: count($playIds),
-            deleted: $deleted,
-            notFound: array_values($notFound),
+            deleted: count($confirmedGone),
+            notFound: $notFound,
             clearedRows: $clearedRows,
             clearedSeries: $pruneEmptySeries ? $this->pruneEmptySeries($touchedSeries->all()) : 0,
         );

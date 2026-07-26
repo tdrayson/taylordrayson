@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Actions\Trakt\RemovePlays;
+use App\Actions\Trakt\RemoveEpisodePlays;
 use App\Console\Commands\Concerns\AuthorisesTrakt;
 use App\Exceptions\TraktException;
 use App\Models\Media;
@@ -52,25 +52,49 @@ class TraktPruneSingleEpisodeSeries extends Command
     ];
 
     /**
+     * The removal manifest, exposed so the read-only diagnostic command can
+     * target the same plays without duplicating the list.
+     *
+     * @return list<array{label: string, play: int}>
+     */
+    public static function manifest(): array
+    {
+        return self::MANIFEST;
+    }
+
+    /**
      * Execute the console command.
      *
      * @return int Command exit code
      */
-    public function handle(Trakt $trakt, RemovePlays $removePlays): int
+    public function handle(Trakt $trakt, RemoveEpisodePlays $removeEpisodePlays): int
     {
-        $playIds = array_column(self::MANIFEST, 'play');
+        $rows = Media::query()
+            ->where('source', 'trakt')
+            ->whereIn('source_id', array_map('strval', array_column(self::MANIFEST, 'play')))
+            ->get()
+            ->keyBy('source_id');
 
-        $this->table(
-            ['Episode', 'Play id', 'Local row'],
-            array_map(fn (array $e): array => [
-                $e['label'],
-                $e['play'],
-                Media::where('source', 'trakt')->where('source_id', (string) $e['play'])->exists() ? 'present' : 'MISSING',
-            ], self::MANIFEST),
-        );
+        // Removal targets episode trakt ids (meta.ids.trakt), not history ids:
+        // the id-based endpoint reports these plays as not_found, whereas
+        // removing the whole episode works and is what we want here anyway.
+        $episodeIds = [];
+
+        $tableRows = array_map(function (array $entry) use ($rows, &$episodeIds): array {
+            $row = $rows->get((string) $entry['play']);
+            $episodeTraktId = $row ? (int) data_get($row->meta, 'ids.trakt') : null;
+
+            if ($episodeTraktId) {
+                $episodeIds[] = $episodeTraktId;
+            }
+
+            return [$entry['label'], $episodeTraktId ?? 'MISSING', $row ? 'present' : 'MISSING'];
+        }, self::MANIFEST);
+
+        $this->table(['Episode', 'Episode trakt id', 'Local row'], $tableRows);
 
         $this->newLine();
-        $this->line(count($playIds).' plays to remove from Trakt, plus their now-empty series rows.');
+        $this->line(count($episodeIds).' episodes to remove from Trakt, plus their now-empty series rows.');
         $this->line('A Small Light is not in this list and stays.');
 
         if (! $this->option('force')) {
@@ -80,10 +104,17 @@ class TraktPruneSingleEpisodeSeries extends Command
             return self::SUCCESS;
         }
 
+        if ($episodeIds === []) {
+            $this->newLine();
+            $this->info('Nothing to remove; the local rows are already gone.');
+
+            return self::SUCCESS;
+        }
+
         $this->newLine();
         $this->warn('Removing plays from Trakt is permanent and cannot be undone.');
 
-        if (! $this->confirm('Delete these plays from your Trakt history?', false)) {
+        if (! $this->confirm('Delete these episodes from your Trakt history?', false)) {
             $this->info('Aborted. Nothing was changed.');
 
             return self::SUCCESS;
@@ -91,7 +122,7 @@ class TraktPruneSingleEpisodeSeries extends Command
 
         try {
             $accessToken = $this->authoriseTrakt($trakt);
-            $result = $removePlays($playIds, $accessToken, pruneEmptySeries: true);
+            $result = $removeEpisodePlays($episodeIds, $accessToken, pruneEmptySeries: true);
         } catch (TraktException $e) {
             $this->error($e->getMessage());
 
@@ -102,11 +133,11 @@ class TraktPruneSingleEpisodeSeries extends Command
         $this->info("Trakt removed {$result->deleted} play(s).");
 
         if (! $result->complete()) {
-            $this->warn("Expected {$result->requested}, Trakt reported {$result->deleted}.");
+            $this->warn("Expected {$result->requested} episode(s), Trakt removed plays for {$result->deleted}.");
         }
 
         if ($result->notFound !== []) {
-            $this->warn('Trakt did not recognise: '.implode(', ', $result->notFound));
+            $this->warn('Trakt did not recognise episode ids: '.implode(', ', $result->notFound));
         }
 
         $this->info("Cleared {$result->clearedRows} local row(s) and {$result->clearedSeries} empty series.");

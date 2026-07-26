@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Concerns;
 
+use App\Exceptions\TraktException;
 use App\Services\Trakt;
 
 /**
@@ -23,11 +24,28 @@ trait AuthorisesTrakt
         $this->newLine();
         $this->line('Waiting for authorisation...');
 
-        return $trakt->pollForDeviceToken(
+        $token = $trakt->pollForDeviceToken(
             $device['device_code'],
             (int) ($device['interval'] ?? 5),
             (int) ($device['expires_in'] ?? 600),
             fn (int $waited): mixed => $waited % 30 === 0 ? $this->line("  still waiting ({$waited}s)...") : null,
         );
+
+        $username = $trakt->authenticatedUsername($token);
+        $expected = config('services.trakt.username');
+
+        $this->newLine();
+        $this->line("Authorised as <options=bold>@{$username}</>.");
+
+        // A token for the wrong account makes every history-id removal come
+        // back not_found, so this mismatch is stopped here rather than after
+        // a confusing zero-effect run.
+        if ($username !== null && $expected !== null && strcasecmp($username, $expected) !== 0) {
+            throw new TraktException(
+                "That is not @{$expected}. Log into @{$expected} at trakt.tv, then run this again."
+            );
+        }
+
+        return $token;
     }
 }
