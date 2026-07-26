@@ -9,6 +9,7 @@ import Pagination from '../Components/Ui/Pagination.vue';
 import TaxonomyFilter from '../Components/Ui/TaxonomyFilter.vue';
 import FlightsMap from '../Components/Maps/FlightsMap.vue';
 import StationsMap from '../Components/Maps/StationsMap.vue';
+import PlacesMap from '../Components/Maps/PlacesMap.vue';
 import { entryType } from '../entryTypes.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -59,6 +60,7 @@ setLayoutProps({
 
     <FlightsMap v-if="type === 'flight' && map.length" :routes="map" class="mt-8" />
     <StationsMap v-else-if="type === 'fuel' && map.length" :stations="map" class="mt-8" />
+    <PlacesMap v-else-if="type === 'checkin' && map.length" :places="map" class="mt-8" />
 
     <TaxonomyFilter :chips="chips" />
 
