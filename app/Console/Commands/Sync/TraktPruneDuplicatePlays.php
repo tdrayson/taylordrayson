@@ -2,8 +2,9 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Actions\Trakt\RemovePlays;
+use App\Console\Commands\Concerns\AuthorisesTrakt;
 use App\Exceptions\TraktException;
-use App\Models\Media;
 use App\Services\Trakt;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -13,6 +14,8 @@ use Illuminate\Console\Command;
 #[Description('Remove spurious duplicate plays from Trakt history and their local media rows')]
 class TraktPruneDuplicatePlays extends Command
 {
+    use AuthorisesTrakt;
+
     /**
      * The plays to remove, decided per-group from Trakt's real `watched_at`
      * and play ids rather than from local `occurred_at`.
@@ -79,7 +82,7 @@ class TraktPruneDuplicatePlays extends Command
      *
      * @return int Command exit code
      */
-    public function handle(Trakt $trakt): int
+    public function handle(Trakt $trakt, RemovePlays $removePlays): int
     {
         $orphans = array_values(array_filter(self::MANIFEST, fn (array $e): bool => ($e['local_only'] ?? false) === true));
         $remote = array_values(array_filter(self::MANIFEST, fn (array $e): bool => ($e['local_only'] ?? false) === false));
@@ -118,66 +121,33 @@ class TraktPruneDuplicatePlays extends Command
         }
 
         try {
-            $accessToken = $this->authorise($trakt);
-            $result = $trakt->removeHistory(array_column($remote, 'delete'), $accessToken);
+            $accessToken = $this->authoriseTrakt($trakt);
+            $result = $removePlays(
+                array_column($remote, 'delete'),
+                $accessToken,
+                localOnlyPlayIds: array_column($orphans, 'delete'),
+            );
         } catch (TraktException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
         }
 
-        $deleted = (int) data_get($result, 'deleted.episodes', 0);
-        $notFound = data_get($result, 'not_found.ids', []);
-
         $this->newLine();
-        $this->info("Trakt removed {$deleted} play(s).");
+        $this->info("Trakt removed {$result->deleted} play(s).");
 
         // Trakt answers 200 even when it matched nothing, so a short delete
         // count is reported rather than assumed successful.
-        if ($deleted !== count($remote)) {
-            $this->warn(sprintf('Expected %d, Trakt reported %d.', count($remote), $deleted));
+        if (! $result->complete()) {
+            $this->warn("Expected {$result->requested}, Trakt reported {$result->deleted}.");
         }
 
-        if ($notFound !== []) {
-            $this->warn('Trakt did not recognise: '.implode(', ', (array) $notFound));
+        if ($result->notFound !== []) {
+            $this->warn('Trakt did not recognise: '.implode(', ', $result->notFound));
         }
 
-        // Only rows Trakt confirmed gone are cleared locally. Anything in
-        // not_found still exists upstream and would be re-imported by the
-        // next full sync, so deleting it here would just cause a silent
-        // reappearance rather than a fixable error.
-        $confirmedGone = array_diff(array_column($remote, 'delete'), (array) $notFound);
-        $clearable = array_merge($confirmedGone, array_column($orphans, 'delete'));
-
-        $cleared = Media::query()
-            ->where('source', 'trakt')
-            ->whereIn('source_id', array_map('strval', $clearable))
-            ->delete();
-
-        $this->info("Cleared {$cleared} local row(s).");
+        $this->info("Cleared {$result->clearedRows} local row(s).");
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Run the OAuth device flow, printing the code for the operator to enter.
-     */
-    private function authorise(Trakt $trakt): string
-    {
-        $device = $trakt->deviceCode();
-
-        $this->newLine();
-        $this->line("Go to <options=bold>{$device['verification_url']}</> and enter this code:");
-        $this->newLine();
-        $this->line("    <options=bold;fg=yellow>{$device['user_code']}</>");
-        $this->newLine();
-        $this->line('Waiting for authorisation...');
-
-        return $trakt->pollForDeviceToken(
-            $device['device_code'],
-            (int) ($device['interval'] ?? 5),
-            (int) ($device['expires_in'] ?? 600),
-            fn (int $waited): mixed => $waited % 30 === 0 ? $this->line("  still waiting ({$waited}s)...") : null,
-        );
     }
 }

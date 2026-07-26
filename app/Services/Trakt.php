@@ -165,6 +165,120 @@ class Trakt
     }
 
     /**
+     * Every episode trakt id currently present in the user's watch history.
+     *
+     * Read authoritatively (public history feed) so a removal's effect can be
+     * confirmed by what actually remains, rather than trusting the remove
+     * endpoint's own `deleted`/`not_found` counts, which have proven
+     * unreliable for imported plays.
+     *
+     * @return array<int, int>
+     */
+    public function episodeTraktIdsInHistory(): array
+    {
+        $ids = [];
+
+        for ($page = 1; $page <= 200; $page++) {
+            $batch = $this->historyPage('episodes', $page);
+
+            if ($batch === []) {
+                break;
+            }
+
+            foreach ($batch as $item) {
+                $traktId = (int) data_get($item, 'episode.ids.trakt');
+
+                if ($traktId !== 0) {
+                    $ids[$traktId] = $traktId;
+                }
+            }
+        }
+
+        return array_values($ids);
+    }
+
+    /**
+     * Every episode trakt id in the AUTHENTICATED user's history.
+     *
+     * Reads `/sync/history` with the bearer token rather than the public
+     * `/users/{id}/history` feed. The public feed is CDN-cached and can serve
+     * a stale copy for a while after a removal; the authenticated sync
+     * endpoint is user-scoped and uncached, so it is the ground truth for
+     * what a play removal actually did.
+     *
+     * @return array<int, int>
+     */
+    public function authenticatedEpisodeTraktIdsInHistory(string $accessToken): array
+    {
+        return $this->distinctFromAuthenticatedHistory($accessToken, 'episodes', 'episode.ids.trakt');
+    }
+
+    /**
+     * Every history/play id in the AUTHENTICATED user's episode history.
+     *
+     * The play-level counterpart of {@see authenticatedEpisodeTraktIdsInHistory()},
+     * used to confirm a specific play was removed while other plays of the
+     * same episode remain.
+     *
+     * @return array<int, int>
+     */
+    public function authenticatedPlayIdsInHistory(string $accessToken): array
+    {
+        return $this->distinctFromAuthenticatedHistory($accessToken, 'episodes', 'id');
+    }
+
+    /**
+     * Page the authenticated history for one media type and collect the
+     * distinct integer values at a dot-path from each item.
+     *
+     * @return array<int, int>
+     */
+    private function distinctFromAuthenticatedHistory(string $accessToken, string $type, string $path): array
+    {
+        $values = [];
+
+        for ($page = 1; $page <= 200; $page++) {
+            $response = $this->pendingRequest($accessToken)
+                ->get(self::BASE."/sync/history/{$type}", ['page' => $page, 'limit' => 100]);
+
+            if ($response->failed()) {
+                throw new TraktException("Reading authenticated Trakt history failed (status {$response->status()}).");
+            }
+
+            $batch = $response->json() ?? [];
+
+            if ($batch === []) {
+                break;
+            }
+
+            foreach ($batch as $item) {
+                $value = (int) data_get($item, $path);
+
+                if ($value !== 0) {
+                    $values[$value] = $value;
+                }
+            }
+        }
+
+        return array_values($values);
+    }
+
+    /**
+     * The username the given access token authenticates as.
+     *
+     * Used to confirm the device flow authorised the same account whose
+     * public history is being read: a token for a different account makes
+     * every history-id removal come back `not_found`, since the ids belong
+     * to someone else.
+     */
+    public function authenticatedUsername(string $accessToken): ?string
+    {
+        $response = $this->pendingRequest($accessToken)->get(self::BASE.'/users/settings');
+
+        return $response->failed() ? null : $response->json('user.username');
+    }
+
+    /**
      * Permanently remove plays from the user's Trakt watch history.
      *
      * `$playIds` are history/play ids (`media.source_id`), NOT movie or
@@ -190,6 +304,38 @@ class Trakt
 
         if ($response->failed()) {
             throw new TraktException("Trakt refused the history removal (status {$response->status()}).");
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Remove every history play for the given episodes, by episode trakt id.
+     *
+     * Where {@see removeHistory()} deletes one specific play by its history
+     * id, this deletes all plays of each whole episode - the right tool when
+     * an episode should not appear at all, and robust against history ids
+     * that the id-based endpoint reports as `not_found`. Episodes Trakt could
+     * not match come back under `not_found.episodes`.
+     *
+     * @param  array<int, int|string>  $episodeTraktIds
+     * @return array{deleted: array<string, int>, not_found: array{episodes: array<int, mixed>}}
+     */
+    public function removeEpisodePlays(array $episodeTraktIds, string $accessToken): array
+    {
+        if ($episodeTraktIds === []) {
+            return ['deleted' => ['episodes' => 0], 'not_found' => ['episodes' => []]];
+        }
+
+        $response = $this->post('/sync/history/remove', [
+            'episodes' => array_values(array_map(
+                fn ($id): array => ['ids' => ['trakt' => (int) $id]],
+                $episodeTraktIds,
+            )),
+        ], $accessToken);
+
+        if ($response->failed()) {
+            throw new TraktException("Trakt refused the episode removal (status {$response->status()}).");
         }
 
         return $response->json() ?? [];
