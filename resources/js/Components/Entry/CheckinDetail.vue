@@ -45,7 +45,7 @@ const lightboxIndex = ref(null);
                 :label="entry.venue_name || location.address"
                 color="var(--color-checkin)"
             />
-            <div class="flex items-start justify-between gap-x-4 gap-y-1">
+            <div class="flex flex-col gap-y-2 sm:flex-row sm:items-start sm:justify-between sm:gap-x-4 sm:gap-y-1">
                 <div v-if="entry.venue_name || addressLine" class="min-w-0">
                     <p v-if="entry.venue_name" class="text-meta font-medium text-neutral-900">{{ entry.venue_name }}</p>
                     <p v-if="addressLine" class="text-meta text-neutral-600">{{ addressLine }}</p>
