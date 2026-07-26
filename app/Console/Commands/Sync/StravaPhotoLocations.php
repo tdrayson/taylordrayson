@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Sync;
 
 use App\Actions\FetchStravaActivitySummaries;
-use App\Actions\LocatePhotoOnRoute;
+use App\Actions\ResolvePhotoCoordinate;
 use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
@@ -16,11 +16,14 @@ use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Backfill route coordinates onto Strava photos that are already downloaded.
+ * Backfill map coordinates onto Strava photos that are already downloaded,
+ * without re-fetching image bytes.
  *
- * Interpolation happens at sync time, so changing the maths would otherwise mean
- * re-downloading every image. This command re-derives positions from the GPS
- * stream alone and never fetches image bytes.
+ * Per activity it fetches the (small) photos payload and the GPS stream, then
+ * resolves each stored photo's coordinate via {@see ResolvePhotoCoordinate}:
+ * Strava's own per-photo `location` first, falling back to stream
+ * interpolation. Stored media are matched back to their Strava photo by the
+ * unique id embedded in the filename.
  */
 #[Signature('strava:photo-locations {--limit=0 : Max activities to locate photos for (0 = all)} {--force : Re-derive coordinates for photos that already have them}')]
 #[Description('Backfill map coordinates onto already-downloaded Strava photos')]
@@ -30,7 +33,7 @@ class StravaPhotoLocations extends Command
 
     private const RATE_WINDOW = 900;
 
-    public function handle(Strava $strava, FetchStravaActivitySummaries $summaries, LocatePhotoOnRoute $locate): int
+    public function handle(Strava $strava, FetchStravaActivitySummaries $summaries, ResolvePhotoCoordinate $resolveCoordinate): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -70,7 +73,7 @@ class StravaPhotoLocations extends Command
 
         $this->info("Found {$targets->count()} activities with photos to locate.");
 
-        return $this->locatePhotos($strava, $locate, $targets, $remote, $force);
+        return $this->locatePhotos($strava, $resolveCoordinate, $targets, $remote, $force);
     }
 
     /**
@@ -88,21 +91,21 @@ class StravaPhotoLocations extends Command
     }
 
     /**
-     * Fetch each activity's stream and write coordinates onto its photos,
-     * pausing when the Strava rate-limit window fills up.
+     * Fetch each activity's photos and stream, then write coordinates onto its
+     * stored media, pausing when the Strava rate-limit window fills up.
      *
-     * An activity whose summary has no start_date, or an unparseable one,
-     * cannot be located (there is nothing valid to offset the photo's capture
-     * time against), so it is skipped with a warning rather than fabricating a
-     * start from CarbonImmutable::parse(null) or letting InvalidFormatException
-     * abort the whole run.
+     * The photos payload carries Strava's own per-photo `location`, which
+     * places most photos without needing the stream at all; the stream (and
+     * the summary's UTC start_date) are only the fallback for photos Strava
+     * did not geotag. An activity with neither a usable location nor a stream
+     * simply locates nothing and moves on.
      *
      * @param  Collection<int, Activity>  $targets
      * @param  array<string, array{start_date: ?string, total_photo_count: int}>  $remote
      */
     private function locatePhotos(
         Strava $strava,
-        LocatePhotoOnRoute $locate,
+        ResolvePhotoCoordinate $resolveCoordinate,
         Collection $targets,
         array $remote,
         bool $force,
@@ -124,35 +127,47 @@ class StravaPhotoLocations extends Command
                 $windowStart = time();
             }
 
-            $startDate = $remote[$activity->source_id]['start_date'] ?? null;
-
-            if (! is_string($startDate) || $startDate === '') {
-                $this->warn("No start date for activity {$activity->source_id}, skipping.");
-
-                continue;
-            }
-
-            $streams = $strava->activityStreams($activity->source_id);
+            $photos = $strava->activityPhotos($activity->source_id);
             $requestsInWindow++;
 
-            $timeStream = $streams['time']['data'] ?? [];
-            $latlngStream = $streams['latlng']['data'] ?? [];
-
-            if ($timeStream === [] || $latlngStream === []) {
-                $this->warn("No usable stream for activity {$activity->source_id}, skipping.");
+            if (! is_array($photos) || $photos === []) {
+                $this->warn("No photos returned for activity {$activity->source_id}, skipping.");
 
                 continue;
             }
 
-            try {
-                $start = CarbonImmutable::parse($startDate);
-            } catch (InvalidFormatException) {
-                $this->warn("Unparseable start_date for activity {$activity->source_id}, skipping.");
+            $byUniqueId = $this->photosByUniqueId($photos);
 
-                continue;
+            // The stream is only the fallback for photos Strava did not geotag,
+            // and it is useless without a start to offset against, so it is
+            // fetched only when a photo actually lacks its own location and a
+            // usable start_date exists. Fully geotagged activities cost no
+            // stream request at all.
+            $needsStream = $this->photosToLocate($activity, $force)->contains(
+                fn (Media $media): bool => ($photo = $byUniqueId[$this->uniqueIdFor($media)] ?? null) !== null
+                    && $resolveCoordinate->locationFor($photo) === null,
+            );
+
+            $start = $needsStream ? $this->startFor($remote, $activity->source_id) : null;
+            $timeStream = [];
+            $latlngStream = [];
+
+            if ($start !== null) {
+                $streams = $strava->activityStreams($activity->source_id);
+                $requestsInWindow++;
+                $timeStream = $streams['time']['data'] ?? [];
+                $latlngStream = $streams['latlng']['data'] ?? [];
             }
 
-            $count = $this->locatePhotosForActivity($activity, $locate, $start, $timeStream, $latlngStream, $force);
+            $count = $this->locatePhotosForActivity(
+                $activity,
+                $resolveCoordinate,
+                $byUniqueId,
+                $start,
+                $timeStream,
+                $latlngStream,
+                $force,
+            );
 
             $located += $count;
 
@@ -165,18 +180,64 @@ class StravaPhotoLocations extends Command
     }
 
     /**
-     * Write a coordinate onto each of the activity's still-to-locate photos.
+     * Index the raw photos payload by Strava's unique_id, so a stored media row
+     * can be matched back to the photo it came from.
      *
-     * A photo whose stored captured_at cannot be parsed is skipped on its own;
-     * it must never abort the rest of the backfill run.
+     * @param  array<int, array<string, mixed>>  $photos
+     * @return array<string, array<string, mixed>>
+     */
+    private function photosByUniqueId(array $photos): array
+    {
+        $indexed = [];
+
+        foreach ($photos as $photo) {
+            $id = $photo['unique_id'] ?? null;
+
+            if (is_string($id) && $id !== '') {
+                $indexed[$id] = $photo;
+            }
+        }
+
+        return $indexed;
+    }
+
+    /**
+     * The activity's UTC start for the stream fallback, or null when the
+     * summary has no usable start_date (location-based photos still place).
      *
+     * @param  array<string, array{start_date: ?string, total_photo_count: int}>  $remote
+     */
+    private function startFor(array $remote, int|string $sourceId): ?CarbonImmutable
+    {
+        $startDate = $remote[$sourceId]['start_date'] ?? null;
+
+        if (! is_string($startDate) || $startDate === '') {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($startDate);
+        } catch (InvalidFormatException) {
+            return null;
+        }
+    }
+
+    /**
+     * Write a coordinate onto each of the activity's still-to-locate photos,
+     * resolving location-first with a stream fallback.
+     *
+     * A stored photo with no matching Strava photo (rare - deleted upstream) is
+     * skipped on its own; it must never abort the rest of the backfill run.
+     *
+     * @param  array<string, array<string, mixed>>  $photosByUniqueId
      * @param  array<int, int>  $timeStream
      * @param  array<int, array{0: float, 1: float}>  $latlngStream
      */
     private function locatePhotosForActivity(
         Activity $activity,
-        LocatePhotoOnRoute $locate,
-        CarbonImmutable $start,
+        ResolvePhotoCoordinate $resolveCoordinate,
+        array $photosByUniqueId,
+        ?CarbonImmutable $start,
         array $timeStream,
         array $latlngStream,
         bool $force,
@@ -184,15 +245,13 @@ class StravaPhotoLocations extends Command
         $count = 0;
 
         foreach ($this->photosToLocate($activity, $force) as $media) {
-            try {
-                $capturedAt = CarbonImmutable::parse($media->getCustomProperty('captured_at'));
-            } catch (InvalidFormatException) {
-                $this->warn("Unparseable captured_at on media {$media->id}, skipping.");
+            $photo = $photosByUniqueId[$this->uniqueIdFor($media)] ?? null;
 
+            if ($photo === null) {
                 continue;
             }
 
-            $coordinate = $locate($capturedAt, $start, $timeStream, $latlngStream, LocatePhotoOnRoute::GRACE_SECONDS);
+            $coordinate = $resolveCoordinate($photo, $start, $timeStream, $latlngStream);
 
             if ($coordinate === null) {
                 continue;
@@ -206,5 +265,18 @@ class StravaPhotoLocations extends Command
         }
 
         return $count;
+    }
+
+    /**
+     * The Strava unique_id a stored photo came from: the explicit custom
+     * property when present, else the filename it was stored under.
+     */
+    private function uniqueIdFor(Media $media): string
+    {
+        if ($media->hasCustomProperty('strava_photo_id')) {
+            return (string) $media->getCustomProperty('strava_photo_id');
+        }
+
+        return pathinfo($media->file_name, PATHINFO_FILENAME);
     }
 }

@@ -8,10 +8,10 @@ use Carbon\CarbonImmutable;
  * Resolve where along a route a photo was taken, by matching its capture time
  * against an activity's GPS stream.
  *
- * Strava photos carry no coordinates and their EXIF is stripped, so position is
- * inferred: the photo's offset from the activity start is looked up in the
- * `time` stream, and the matching `latlng` sample is returned. Pure maths with
- * no HTTP or database access.
+ * This is the fallback used by {@see ResolvePhotoCoordinate} when Strava does
+ * not return a photo's own `location`: the photo's offset from the activity
+ * start is looked up in the `time` stream, and the matching `latlng` sample is
+ * returned. Pure maths with no HTTP or database access.
  */
 class LocatePhotoOnRoute
 {
