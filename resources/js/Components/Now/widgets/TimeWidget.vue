@@ -121,7 +121,9 @@ onBeforeUnmount(() => {
     left: 9%;
     right: 9%;
     bottom: 13%;
-    height: 0.5cqw;
+    /* Floor the thickness so the line never rounds away when the card is
+       narrow on small screens; it still scales up with the card above that. */
+    height: max(1.5px, 0.5cqw);
     background: var(--color-neutral-50);
     z-index: 1;
 }
@@ -130,7 +132,9 @@ onBeforeUnmount(() => {
     position: absolute;
     top: 27%;
     bottom: 13%;
-    width: 0.5cqw;
+    /* Same minimum thickness as the baseline, so the current-time bar stays
+       visible on narrow cards instead of collapsing to a sub-pixel width. */
+    width: max(1.5px, 0.5cqw);
     background: var(--color-neutral-100);
     transform: translateX(-50%);
     z-index: 1;
