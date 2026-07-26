@@ -2,12 +2,10 @@
 import { computed, ref } from 'vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
-import Pill from '../Ui/Pill.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
-import { titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -38,12 +36,11 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="space-y-8">
-        <div class="space-y-2">
-            <Pill :label="titleCase(entry.type)" :href="`/events/${entry.type}`" />
-            <p v-if="range" class="text-meta text-neutral-500">
-                {{ range.long }} ({{ range.days }} days)
-            </p>
-        </div>
+        <!-- The event category now renders as a tag in the shared footer, so it
+             is no longer repeated as a pill here. -->
+        <p v-if="range" class="text-meta text-neutral-500">
+            {{ range.long }} ({{ range.days }} days)
+        </p>
 
         <div v-if="location" class="space-y-3">
             <LocationMap
