@@ -45,7 +45,10 @@ class ArchiveController extends Controller
 
         if ($value !== null) {
             abort_if($taxonomy === null, 404);
-            abort_unless($taxonomy['values']()->pluck('value')->contains($value), 404);
+            // Strict match: values are canonical slugs, so a loose compare would
+            // let non-canonical numeric inputs (e.g. "03" for season 3) through
+            // and render a duplicate page under the wrong label.
+            abort_unless($taxonomy['values']()->pluck('value')->contains(fn (string $known): bool => $known === $value), 404);
 
             $parent = ['label' => $definition['label'], 'href' => '/'.$definition['slug']];
         }
