@@ -195,6 +195,7 @@ class ArchiveController extends Controller
                 'href' => '/'.$taxonomy['base'].'/'.$value['value'],
                 'icon' => $value['icon'] ?? null,
                 'active' => $value['value'] === $activeValue,
+                'count' => $value['count'] ?? null,
             ])
             ->all();
     }

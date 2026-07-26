@@ -6,6 +6,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
+import TaxonomyFilter from '../Components/Ui/TaxonomyFilter.vue';
 import FlightsMap from '../Components/Maps/FlightsMap.vue';
 import StationsMap from '../Components/Maps/StationsMap.vue';
 import { entryType } from '../entryTypes.js';
@@ -59,20 +60,7 @@ setLayoutProps({
     <FlightsMap v-if="type === 'flight' && map.length" :routes="map" class="mt-8" />
     <StationsMap v-else-if="type === 'fuel' && map.length" :stations="map" class="mt-8" />
 
-    <div v-if="chips.length" class="mt-6 flex flex-wrap gap-2">
-        <Link
-            v-for="chip in chips"
-            :key="chip.href"
-            :href="chip.href"
-            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-caption font-medium transition-colors"
-            :class="chip.active
-                ? 'bg-accent-500 text-neutral-0'
-                : 'bg-neutral-25 text-neutral-700 hover:bg-accent-50 hover:text-accent-700'"
-        >
-            <img v-if="chip.icon" :src="chip.icon" alt="" class="size-4 shrink-0 object-contain">
-            {{ chip.label }}
-        </Link>
-    </div>
+    <TaxonomyFilter :chips="chips" />
 
     <div v-if="groups.length" class="mt-10 flex flex-col gap-14">
         <DateGroup
