@@ -86,7 +86,7 @@ const location = computed(() => props.entry.location ?? null);
                 :label="entry.station_name || location.address"
                 color="var(--color-fuel)"
             />
-            <div class="flex items-start justify-between gap-x-4 gap-y-1">
+            <div class="flex flex-col gap-y-2 sm:flex-row sm:items-start sm:justify-between sm:gap-x-4 sm:gap-y-1">
                 <div v-if="entry.station_name || addressLine" class="min-w-0">
                     <p v-if="entry.station_name" class="text-meta font-medium text-neutral-900">{{ entry.station_name }}</p>
                     <p v-if="addressLine" class="text-meta text-neutral-600">{{ addressLine }}</p>

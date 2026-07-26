@@ -52,7 +52,7 @@ const lightboxIndex = ref(null);
                 :label="entry.venue_name || location.address"
                 color="var(--color-event)"
             />
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <div class="flex flex-col gap-y-2 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4 sm:gap-y-1">
                 <p class="text-meta text-neutral-600">
                     <span v-if="entry.venue_name" class="font-medium text-neutral-900">{{ entry.venue_name }}</span><span v-if="entry.city">{{ entry.venue_name ? ', ' : '' }}{{ entry.city }}</span><span v-if="entry.country">, {{ entry.country }}</span>
                 </p>

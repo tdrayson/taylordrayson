@@ -9,6 +9,7 @@ import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
+import CardMediaCarousel from './CardMediaCarousel.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
@@ -267,12 +268,25 @@ function openLightbox(index) {
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
         <img v-if="routeImageDarkUrl && !coverPhoto" :src="routeImageDarkUrl" alt="" class="mt-3 hidden aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover dark:block">
 
-        <!-- Cover on its own (small screens, or no route map). Image link and zoom button are
-             siblings, not nested; the image link duplicates the text permalink so it is aria-hidden. -->
+        <!-- Small screens with both a map and photos: a swipeable carousel of the
+             map + every photo, instead of showing the cover alone. The lg+ layout
+             keeps the map/cover side-by-side below. -->
+        <CardMediaCarousel
+            v-if="routeImageUrl && coverPhoto"
+            :map="routeImageUrl"
+            :map-dark="routeImageDarkUrl"
+            :photos="photos"
+            :url="url"
+            class="lg:hidden"
+            @open="openLightbox"
+        />
+
+        <!-- Cover on its own when there is no map (all sizes). Image link and zoom
+             button are siblings, not nested; the image link duplicates the text
+             permalink so it is aria-hidden. -->
         <div
-            v-if="coverPhoto"
+            v-if="coverPhoto && !routeImageUrl"
             class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
-            :class="routeImageUrl ? 'lg:hidden' : ''"
         >
             <component
                 :is="url ? Link : 'div'"

@@ -274,7 +274,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         <div
                             v-for="(slide, slideIndex) in slides"
                             :key="slideIndex"
-                            class="flex h-full w-1/3 shrink-0 items-center justify-center"
+                            class="flex h-full w-1/3 shrink-0 items-center justify-center px-2 sm:px-3"
                             @click.self="closeUnlessDrag"
                         >
                             <img :src="slide.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
