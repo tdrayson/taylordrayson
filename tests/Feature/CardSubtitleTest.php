@@ -110,25 +110,28 @@ it('omits the "at" clause when fuel has no price per litre', function () {
         ->and($subtitle)->not->toContain(' at ');
 });
 
-it('joins checkin category and city with "in"', function () {
+it('uses the checkin note as its subtitle when present', function () {
     $checkin = Checkin::factory()->create([
+        'description' => 'Great coffee here',
         'category' => 'Coffee Shop',
         'city' => 'London',
     ]);
 
-    expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Coffee Shop in London');
+    expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Great coffee here');
 });
 
-it('does not dangle "in" when a checkin has only a category', function () {
+it('gives a checkin no subtitle without a note, carrying the address in meta instead', function () {
     $checkin = Checkin::factory()->create([
+        'description' => null,
         'category' => 'Coffee Shop',
-        'city' => null,
+        'city' => 'London',
+        'address' => 'High Street',
     ]);
 
-    $subtitle = CardPresenter::for($checkin)->toArray()['subtitle'];
+    $card = CardPresenter::for($checkin)->toArray();
 
-    expect($subtitle)->toBe('Coffee Shop')
-        ->and($subtitle)->not->toContain(' in ');
+    expect($card['subtitle'])->toBeNull()
+        ->and($card['meta']['address'])->toContain('London');
 });
 
 it('joins event venue and city with "in"', function () {
