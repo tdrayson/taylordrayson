@@ -176,6 +176,9 @@ class TypeRegistry
             'base' => $slug,
             'param' => 'season',
             'label' => 'Season',
+            // The leading chip reads "All Seasons" rather than the default
+            // "All This Week With", which the type label would produce.
+            'allLabel' => 'All Seasons',
             'filter' => fn (Builder $query, string $value) => $query->where('season_number', (int) $value),
             'labelFor' => fn (string $value): string => "Season {$value}",
             'values' => fn (): Collection => $model::query()

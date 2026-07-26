@@ -75,7 +75,9 @@ it('filters This Week With by season, with season-ordered chips', function () {
 
     get('/this-week-with')->assertOk()->assertInertia(fn ($page) => $page
         ->where('type', 'podcast')
-        ->where('chips', fn ($chips) => collect($chips)->firstWhere('href', '/this-week-with/3')['label'] === 'Season 3'
+        // The leading "all" chip reads "All Seasons", not "All This Week With".
+        ->where('chips', fn ($chips) => collect($chips)->firstWhere('all', true)['label'] === 'All Seasons'
+            && collect($chips)->firstWhere('href', '/this-week-with/3')['label'] === 'Season 3'
             // Seasons run in numeric order, not most-used-first (ignore the leading "All" chip).
             && collect($chips)->reject(fn ($chip) => $chip['all'] ?? false)->pluck('label')->all() === ['Season 3', 'Season 5'])
     );

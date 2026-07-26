@@ -235,10 +235,12 @@ class ArchiveController extends Controller
             ])
             ->all();
 
-        // A hardcoded "All Places" / "All Flights" chip leads every filter,
-        // linking back to the unfiltered archive and active when no value is set.
+        // An "All Places" / "All Flights" chip leads every filter, linking back
+        // to the unfiltered archive and active when no value is set. A taxonomy
+        // may override the label (e.g. "All Seasons") where the type label reads
+        // awkwardly.
         array_unshift($chips, [
-            'label' => 'All '.$definition['label'],
+            'label' => $taxonomy['allLabel'] ?? 'All '.$definition['label'],
             'href' => '/'.$taxonomy['base'],
             'icon' => null,
             'active' => $activeValue === null,
