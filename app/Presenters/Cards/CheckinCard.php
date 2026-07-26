@@ -7,7 +7,6 @@ use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Enums\TimelineType;
 use App\Models\Checkin;
-use Illuminate\Support\Str;
 
 /**
  * Builds the timeline card for a Checkin: category/city subtitle plus the
@@ -24,14 +23,8 @@ final class CheckinCard
             ->filter()
             ->implode(', ');
 
-        // The category links to its /places taxonomy page (e.g. all coffee-shop
-        // check-ins); the slug matches the archive's kebab-cased values.
-        $category = $model->category
-            ? ['label' => $model->category, 'href' => '/places/'.Str::slug($model->category)]
-            : null;
-
         // The subtitle is the check-in's own note/shout and nothing else; the
-        // address and category render in their own row beneath the map.
+        // address renders in its own row beneath the map.
         $subtitle = $model->description ?: null;
 
         // An attached Swarm event (a gig, screening, race meet) becomes the
@@ -59,7 +52,6 @@ final class CheckinCard
                 map: $model->getFirstMediaUrl('map') ?: null,
                 mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
                 address: $address !== '' ? $address : null,
-                category: $category,
             ),
         );
     }

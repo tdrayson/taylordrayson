@@ -32,7 +32,6 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?string $brandLogo,
         private array $present,
         public ?string $address = null,
-        public ?array $category = null,
     ) {}
 
     /**
@@ -90,17 +89,15 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Checkin: photos, map, mapDark, address, category. A located card that
-     * shows the check-in's own photos alongside the generated location map
-     * (both, not one-or-other), with the full address and a linked category
-     * rendered beneath.
+     * Checkin: photos, map, mapDark, address. A located card that shows the
+     * check-in's own photos alongside the generated location map (both, not
+     * one-or-other), with the full address rendered beneath.
      *
      * @param  list<PhotoData>  $photos
-     * @param  ?array{label: string, href: string}  $category
      */
-    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address, ?array $category): self
+    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address): self
     {
-        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address', 'category'], $address, $category);
+        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address'], $address);
     }
 
     /**
@@ -148,7 +145,6 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'brand' => $this->brand,
             'brandLogo' => $this->brandLogo,
             'address' => $this->address,
-            'category' => $this->category,
         ];
 
         $result = [];
