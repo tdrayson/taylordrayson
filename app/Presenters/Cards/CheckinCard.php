@@ -17,10 +17,15 @@ final class CheckinCard
     {
         // "Coffee Shop in London" reads as a single clause; falls back to whichever
         // one value is present (no dangling "in") when only category or city is set.
-        $subtitle = match (true) {
+        $location = match (true) {
             $model->category && $model->city => "{$model->category} in {$model->city}",
             default => $model->category ?? $model->city,
         };
+
+        // Lead with the check-in's own note/shout when it has one so a personal
+        // comment sits directly under the place name; the location map below
+        // still carries the "where". Fall back to the category/location clause.
+        $subtitle = $model->description ?: $location;
 
         return new CardData(
             type: TimelineType::Checkin,
