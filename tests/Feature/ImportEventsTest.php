@@ -13,8 +13,10 @@ it('imports the events dataset from data/events.csv', function () {
 
     expect(Event::count())->toBeGreaterThan(80);
 
+    // A multi-day conference with real daily times, so it is NOT all-day; the
+    // ends_at still spans to the closing day.
     $wceu = Event::where('name', 'WordCamp Europe 2025')->firstOrFail();
-    expect($wceu->all_day)->toBeTrue()
+    expect($wceu->all_day)->toBeFalse()
         ->and($wceu->ends_at)->not->toBeNull()
         ->and($wceu->type)->toBe('conference')
         ->and($wceu->timezone)->toBe('Europe/Zurich');
