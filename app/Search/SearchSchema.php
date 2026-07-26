@@ -92,7 +92,7 @@ class SearchSchema
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Place'],
             'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
             'county' => ['label' => 'County', 'dataType' => 'text', 'column' => 'county', 'category' => 'Location'],
-            'country' => ['label' => 'Country', 'dataType' => 'text', 'column' => 'country', 'category' => 'Location'],
+            'country' => ['label' => 'Country', 'dataType' => 'enum', 'column' => 'country', 'category' => 'Location'],
         ],
         'fuel' => [
             'station' => ['label' => 'Station', 'dataType' => 'text', 'column' => 'station', 'category' => 'Fuel'],
