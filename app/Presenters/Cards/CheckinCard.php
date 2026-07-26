@@ -4,6 +4,7 @@ namespace App\Presenters\Cards;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Data\PhotoData;
 use App\Enums\TimelineType;
 use App\Models\Checkin;
 
@@ -37,7 +38,11 @@ final class CheckinCard
             occurredAt: $model->occurred_at,
             accent: 'checkin',
             range: null,
-            meta: CardMeta::locationMap(
+            meta: CardMeta::checkin(
+                photos: array_map(
+                    fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
+                    $model->galleryPhotos(),
+                ),
                 map: $model->getFirstMediaUrl('map') ?: null,
                 mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
             ),

@@ -88,11 +88,14 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Checkin: map, mapDark.
+     * Checkin: photos, map, mapDark. A located card that shows the check-in's
+     * own photos alongside the generated location map (both, not one-or-other).
+     *
+     * @param  list<PhotoData>  $photos
      */
-    public static function locationMap(?string $map, ?string $mapDark): self
+    public static function checkin(array $photos, ?string $map, ?string $mapDark): self
     {
-        return new self(null, null, $map, $mapDark, null, null, null, null, null, null, ['map', 'mapDark']);
+        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark']);
     }
 
     /**
