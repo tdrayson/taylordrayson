@@ -26,6 +26,7 @@ use Spatie\MediaLibrary\HasMedia;
     'latitude',
     'longitude',
     'description',
+    'event_name',
     'is_mayor',
     'source',
     'source_id',
