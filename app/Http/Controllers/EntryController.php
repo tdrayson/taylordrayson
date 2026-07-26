@@ -9,6 +9,7 @@ use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Calorie;
+use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
@@ -152,7 +153,7 @@ class EntryController extends Controller
             $data['cover'] = $model->coverPhoto();
         }
 
-        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event) {
+        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Checkin) {
             $data['photos'] = $model->galleryPhotos();
         }
 
