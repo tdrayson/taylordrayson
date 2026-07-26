@@ -162,6 +162,8 @@ class BuildTimelineFeed
             'mapDark' => $card->meta->mapDark,
             'brandLogo' => $card->meta->brandLogo,
             'brand' => $card->meta->brand,
+            'address' => $card->meta->address,
+            'category' => $card->meta->category,
             'range' => $card->range,
             'time' => $local['time'],
             'datetime' => $local['iso'],

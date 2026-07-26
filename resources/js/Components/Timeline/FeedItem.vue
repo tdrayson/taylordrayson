@@ -49,6 +49,12 @@ const props = defineProps({
     // The garage brand name (e.g. "BP"), shown as a text label beside the brand
     // logo chip so the small mark on a fuel card isn't context-less.
     brand: { type: String, default: null },
+    // A check-in's full address, shown beneath the map regardless of whether the
+    // card has a note.
+    address: { type: String, default: null },
+    // A check-in's category as a linked chip ({ label, href }), e.g. a link to
+    // /places/coffee-shop listing every coffee-shop check-in.
+    category: { type: Object, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -320,6 +326,17 @@ function openLightbox(index) {
                 <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
             </div>
         </div>
+        <!-- Check-in address (always) and its category as a link to the
+             /places/{category} archive. Sits under the map/photos. -->
+        <div v-if="address || category" class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-neutral-500">
+            <span v-if="address">{{ address }}</span>
+            <Link
+                v-if="category"
+                :href="category.href"
+                class="type-color inline-flex items-center rounded-full bg-neutral-25 px-2 py-0.5 font-medium underline-offset-2 transition-colors hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            >{{ category.label }}</Link>
+        </div>
+
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div
             v-if="media?.thumbnail && media?.videoUrl"

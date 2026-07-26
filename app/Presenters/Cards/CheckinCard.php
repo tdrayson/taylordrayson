@@ -17,20 +17,22 @@ final class CheckinCard
 {
     public function present(Checkin $model): CardData
     {
-        // Full address plus the category as a kebab hashtag (matching the /places
-        // category taxonomy), shown under the venue when there is no personal
-        // note. Country is dropped: nearly every check-in is domestic, so it is
-        // noise on the card; the single-entry page still shows the full address.
-        $address = collect([$model->address, $model->city, $model->county])
+        // The full address always renders beneath the map, whether or not the
+        // check-in has a note. Country is included so overseas check-ins read
+        // correctly; domestic ones simply tail with "United Kingdom".
+        $address = collect([$model->address, $model->city, $model->county, $model->country])
             ->filter()
             ->implode(', ');
-        $hashtag = $model->category ? '#'.Str::slug($model->category) : null;
-        $location = trim(implode(' ', array_filter([$address, $hashtag])));
 
-        // Lead with the check-in's own note/shout when it has one so a personal
-        // comment sits directly under the place name; otherwise fall back to the
-        // address + category. The location map still carries the "where" either way.
-        $subtitle = $model->description ?: ($location !== '' ? $location : null);
+        // The category links to its /places taxonomy page (e.g. all coffee-shop
+        // check-ins); the slug matches the archive's kebab-cased values.
+        $category = $model->category
+            ? ['label' => $model->category, 'href' => '/places/'.Str::slug($model->category)]
+            : null;
+
+        // The subtitle is the check-in's own note/shout and nothing else; the
+        // address and category render in their own row beneath the map.
+        $subtitle = $model->description ?: null;
 
         // An attached Swarm event (a gig, screening, race meet) becomes the
         // headline: "Bug Jam 2026 at Santa Pod Raceway". The URL slug still comes
@@ -56,6 +58,8 @@ final class CheckinCard
                 ),
                 map: $model->getFirstMediaUrl('map') ?: null,
                 mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                address: $address !== '' ? $address : null,
+                category: $category,
             ),
         );
     }
