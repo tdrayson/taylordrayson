@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
@@ -7,13 +7,13 @@ import { Calendar03Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-str
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 import { useDialog } from '../../composables/useDialog';
+import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 import { pageCommands, archiveCommands } from '../../navigation.js';
 import { entryType } from '../../entryTypes.js';
 
 const { isOpen, close, toggle } = useCommandPalette();
 
 const query = ref('');
-const activeIndex = ref(0);
 const input = ref(null);
 const listEl = ref(null);
 
@@ -186,6 +186,14 @@ function withIndices(raw) {
 
 const flatItems = computed(() => sections.value.flatMap((section) => section.items));
 
+// Shared listbox keyboard navigation (also used by the archive taxonomy filter):
+// wrapping arrows, Enter to select, highlight scrolled into view. `select` is a
+// hoisted function declaration below, so referencing it here is fine.
+const { activeIndex, onKeydown: onListKeydown } = useListboxNavigation(flatItems, {
+    listEl,
+    onSelect: select,
+});
+
 watch(query, (value) => {
     activeIndex.value = 0;
 
@@ -253,20 +261,6 @@ watch(isOpen, (open) => {
     }
 });
 
-function move(delta) {
-    const count = flatItems.value.length;
-
-    if (count === 0) {
-        return;
-    }
-
-    activeIndex.value = (activeIndex.value + delta + count) % count;
-
-    nextTick(() => {
-        listEl.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
-    });
-}
-
 function select(item) {
     if (!item) {
         return;
@@ -277,16 +271,7 @@ function select(item) {
 }
 
 function onInputKeydown(event) {
-    if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        move(1);
-    } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        move(-1);
-    } else if (event.key === 'Enter') {
-        event.preventDefault();
-        select(flatItems.value[activeIndex.value]);
-    }
+    onListKeydown(event);
 }
 
 // Keep keys inside the palette: stop them reaching window-level listeners (e.g.

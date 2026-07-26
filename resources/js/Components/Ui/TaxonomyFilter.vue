@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { number } from '../../lib/format.js';
+import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 
 const props = defineProps({
     // [{ label, href, icon, active, count, all? }], categories ordered most-used
@@ -105,9 +106,6 @@ const open = ref(false);
 const search = ref('');
 const searchInput = ref(null);
 const listRef = ref(null);
-// Index of the keyboard-highlighted result within `filtered`.
-const activeIndex = ref(0);
-
 // The popover lists every category, filtered by the case-insensitive query, so
 // any category is one search away however far down the tail it sits.
 const filtered = computed(() => {
@@ -118,9 +116,16 @@ const filtered = computed(() => {
         : categoryChips.value;
 });
 
-// Reset the highlight to the top whenever the result set changes.
-watch(filtered, () => {
-    activeIndex.value = 0;
+// Shared listbox keyboard navigation (the same setup the command palette uses):
+// wrapping arrow keys, Enter to visit, highlight scrolled into view.
+const { activeIndex, onKeydown } = useListboxNavigation(filtered, {
+    listEl: listRef,
+    onSelect: (chip) => {
+        if (chip) {
+            open.value = false;
+            router.visit(chip.href);
+        }
+    },
 });
 
 // Focus the search box and close on outside click when the popover opens.
@@ -141,33 +146,15 @@ function onDocumentClick(event) {
     }
 }
 
-// Arrow keys move the highlight, Enter navigates to it, Escape closes.
+// Escape closes the popover; the wrapping arrow/Enter navigation is shared.
 function onSearchKeydown(event) {
-    if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        activeIndex.value = Math.min(activeIndex.value + 1, filtered.value.length - 1);
-        scrollActiveIntoView();
-    } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        activeIndex.value = Math.max(activeIndex.value - 1, 0);
-        scrollActiveIntoView();
-    } else if (event.key === 'Enter') {
-        event.preventDefault();
-        const chip = filtered.value[activeIndex.value];
-        if (chip) {
-            open.value = false;
-            router.visit(chip.href);
-        }
-    } else if (event.key === 'Escape') {
+    if (event.key === 'Escape') {
         open.value = false;
-    }
-}
 
-// Keep the highlighted option visible as the arrows move past the fold.
-function scrollActiveIntoView() {
-    nextTick(() => {
-        listRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
-    });
+        return;
+    }
+
+    onKeydown(event);
 }
 </script>
 
