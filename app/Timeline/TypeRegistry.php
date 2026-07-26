@@ -86,6 +86,16 @@ class TypeRegistry
     {
         $distinct = fn (string $model): Collection => $model::query()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column);
 
+        // Value counts, most-used first, so the archive filter can lead with the
+        // categories actually visited most and collapse the long tail into a
+        // searchable "more" popover (e.g. Places has 200 categories).
+        $counts = fn (string $model): Collection => $model::query()
+            ->whereNotNull($column)
+            ->selectRaw($column.' as value, count(*) as total')
+            ->groupBy($column)
+            ->orderByDesc('total')
+            ->pluck('total', 'value');
+
         return fn (string $model, string $slug): array => [
             'base' => $slug,
             'param' => $column,
@@ -93,8 +103,8 @@ class TypeRegistry
             'title' => $title,
             'filter' => fn (Builder $query, string $value) => $query->whereIn($column, self::resolveSlugs($distinct($model), $value) ?: [$value]),
             'labelFor' => fn (string $value): string => Str::headline(self::resolveSlugs($distinct($model), $value)[0] ?? $value),
-            'values' => fn (): Collection => $distinct($model)
-                ->map(fn ($value): array => ['value' => Str::slug($value), 'label' => Str::headline($value)])
+            'values' => fn (): Collection => $counts($model)
+                ->map(fn (int $total, $value): array => ['value' => Str::slug((string) $value), 'label' => Str::headline((string) $value), 'count' => $total])
                 ->unique('value')->values(),
         ];
     }

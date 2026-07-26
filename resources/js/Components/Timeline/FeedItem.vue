@@ -49,6 +49,9 @@ const props = defineProps({
     // The garage brand name (e.g. "BP"), shown as a text label beside the brand
     // logo chip so the small mark on a fuel card isn't context-less.
     brand: { type: String, default: null },
+    // A check-in's full address, shown beneath the map regardless of whether the
+    // card has a note.
+    address: { type: String, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -320,6 +323,10 @@ function openLightbox(index) {
                 <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
             </div>
         </div>
+        <!-- Check-in's full address, shown beneath the map/photos whether or not
+             the card carries a note. -->
+        <p v-if="address" class="mt-3 text-caption text-neutral-500">{{ address }}</p>
+
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div
             v-if="media?.thumbnail && media?.videoUrl"
