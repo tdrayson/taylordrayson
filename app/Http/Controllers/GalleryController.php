@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Attachment;
+use App\Models\Concerns\Timelineable;
+use App\Models\Media;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,19 +18,24 @@ class GalleryController extends Controller
 {
     /**
      * The photo gallery: every real photo (the cover + photos collections) across
-     * every entry, newest first. Generated maps and derived video thumbnails
-     * (appearance covers) are deliberately excluded.
+     * every entry, newest first. Enrichment art is deliberately excluded so the
+     * gallery only shows photos actually taken: appearance video thumbnails and
+     * media (film/TV/book) posters by model type, plus any non-timeline model
+     * (e.g. a Series poster) via the Timelineable guard below.
      */
     public function index(): Response
     {
         $attachments = Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNot('model_type', Appearance::class)
+            ->whereNotIn('model_type', [Appearance::class, Media::class])
             ->with(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith([Activity::class => ['media']])])
             ->get();
 
         $photos = $attachments
-            ->filter(fn (Attachment $attachment): bool => $attachment->model !== null)
+            // Only timeline entries belong in the photo gallery. Some non-timeline
+            // models (e.g. Series) also use the cover/photos collections for their
+            // own art, so guard on Timelineable rather than a mere null check.
+            ->filter(fn (Attachment $attachment): bool => $attachment->model instanceof Timelineable)
             ->groupBy(fn (Attachment $attachment): string => $attachment->model_type.':'.$attachment->model_id)
             ->flatMap(fn (Collection $group): array => $this->photosForModel($group))
             ->sortByDesc('sort')
