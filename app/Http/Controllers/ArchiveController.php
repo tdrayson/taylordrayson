@@ -45,7 +45,10 @@ class ArchiveController extends Controller
 
         if ($value !== null) {
             abort_if($taxonomy === null, 404);
-            abort_unless($taxonomy['values']()->pluck('value')->contains($value), 404);
+            // Strict match: values are canonical slugs, so a loose compare would
+            // let non-canonical numeric inputs (e.g. "03" for season 3) through
+            // and render a duplicate page under the wrong label.
+            abort_unless($taxonomy['values']()->pluck('value')->contains(fn (string $known): bool => $known === $value), 404);
 
             $parent = ['label' => $definition['label'], 'href' => '/'.$definition['slug']];
         }
@@ -232,10 +235,12 @@ class ArchiveController extends Controller
             ])
             ->all();
 
-        // A hardcoded "All Places" / "All Flights" chip leads every filter,
-        // linking back to the unfiltered archive and active when no value is set.
+        // An "All Places" / "All Flights" chip leads every filter, linking back
+        // to the unfiltered archive and active when no value is set. A taxonomy
+        // may override the label (e.g. "All Seasons") where the type label reads
+        // awkwardly.
         array_unshift($chips, [
-            'label' => 'All '.$definition['label'],
+            'label' => $taxonomy['allLabel'] ?? 'All '.$definition['label'],
             'href' => '/'.$taxonomy['base'],
             'icon' => null,
             'active' => $activeValue === null,

@@ -43,7 +43,7 @@ class TypeRegistry
             TimelineType::Media->value => self::type(Media::class, 'media', 'Media', self::media()),
             TimelineType::Event->value => self::type(Event::class, 'events', 'Events', self::column('type', 'Type', fn (string $label): string => "{$label} events")),
             TimelineType::Appearance->value => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
-            TimelineType::Podcast->value => self::type(Podcast::class, 'this-week-with', 'This Week With', null, 'episode'),
+            TimelineType::Podcast->value => self::type(Podcast::class, 'this-week-with', 'This Week With', self::podcastSeason(), 'episode'),
             TimelineType::Flight->value => self::type(Flight::class, 'flights', 'Flights', self::airline()),
             TimelineType::Checkin->value => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
             TimelineType::Fuel->value => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
@@ -161,6 +161,37 @@ class TypeRegistry
             'filter' => fn (Builder $query, string $value) => $query->whereIn('type', $map[$value] ?? ['__none__']),
             'labelFor' => fn (string $value): string => $labels[$value] ?? Str::headline($value),
             'values' => fn (): Collection => collect($map)->keys()->map(fn ($value): array => ['value' => $value, 'label' => $labels[$value]]),
+        ];
+    }
+
+    /**
+     * A taxonomy over the podcast's integer season number, addressed in the URL
+     * by the bare number (e.g. /this-week-with/3). Chips read "Season N" and run
+     * in season order rather than the usual most-used-first, since seasons have a
+     * natural sequence.
+     */
+    private static function podcastSeason(): callable
+    {
+        return fn (string $model, string $slug): array => [
+            'base' => $slug,
+            'param' => 'season',
+            'label' => 'Season',
+            // The leading chip reads "All Seasons" rather than the default
+            // "All This Week With", which the type label would produce.
+            'allLabel' => 'All Seasons',
+            'filter' => fn (Builder $query, string $value) => $query->where('season_number', (int) $value),
+            'labelFor' => fn (string $value): string => "Season {$value}",
+            'values' => fn (): Collection => $model::query()
+                ->whereNotNull('season_number')
+                ->selectRaw('season_number as value, count(*) as total')
+                ->groupBy('season_number')
+                ->orderBy('season_number')
+                ->get()
+                ->map(fn ($row): array => [
+                    'value' => (string) $row->value,
+                    'label' => "Season {$row->value}",
+                    'count' => (int) $row->total,
+                ]),
         ];
     }
 

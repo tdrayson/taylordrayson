@@ -8,6 +8,7 @@ use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Note;
+use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\User;
 
@@ -65,6 +66,33 @@ it('filters checkins by category slug', function () {
     get('/places/coffee-shop')->assertOk()->assertInertia(fn ($page) => $page
         ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Blue Bottle') && ! archiveTitlesContains($groups, 'City Gym'))
     );
+});
+
+it('filters This Week With by season, with season-ordered chips', function () {
+    Podcast::factory()->create(['season_number' => 3, 'episode_number' => 1, 'occurred_at' => now()->subDay()]);
+    Podcast::factory()->create(['season_number' => 3, 'episode_number' => 2, 'occurred_at' => now()->subDays(2)]);
+    Podcast::factory()->create(['season_number' => 5, 'episode_number' => 1, 'occurred_at' => now()->subDays(3)]);
+
+    get('/this-week-with')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('type', 'podcast')
+        // The leading "all" chip reads "All Seasons", not "All This Week With".
+        ->where('chips', fn ($chips) => collect($chips)->firstWhere('all', true)['label'] === 'All Seasons'
+            && collect($chips)->firstWhere('href', '/this-week-with/3')['label'] === 'Season 3'
+            // Seasons run in numeric order, not most-used-first (ignore the leading "All" chip).
+            && collect($chips)->reject(fn ($chip) => $chip['all'] ?? false)->pluck('label')->all() === ['Season 3', 'Season 5'])
+    );
+
+    get('/this-week-with/3')->assertOk()->assertInertia(fn ($page) => $page
+        ->component('Archive')
+        ->where('title', 'Season 3')
+        ->where('crumb', 'Season 3')
+        ->where('parent.href', '/this-week-with')
+        ->where('subtitle', '2 episodes')
+    );
+
+    get('/this-week-with/99')->assertNotFound();
+    // Non-canonical numeric forms must not slip past the strict guard.
+    get('/this-week-with/03')->assertNotFound();
 });
 
 it('filters fuel by vehicle at its own base route', function () {
