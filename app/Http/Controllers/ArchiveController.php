@@ -189,7 +189,7 @@ class ArchiveController extends Controller
             return [];
         }
 
-        return $taxonomy['values']()
+        $chips = $taxonomy['values']()
             ->map(fn (array $value): array => [
                 'label' => $value['label'],
                 'href' => '/'.$taxonomy['base'].'/'.$value['value'],
@@ -198,5 +198,18 @@ class ArchiveController extends Controller
                 'count' => $value['count'] ?? null,
             ])
             ->all();
+
+        // A hardcoded "All Places" / "All Flights" chip leads every filter,
+        // linking back to the unfiltered archive and active when no value is set.
+        array_unshift($chips, [
+            'label' => 'All '.$definition['label'],
+            'href' => '/'.$taxonomy['base'],
+            'icon' => null,
+            'active' => $activeValue === null,
+            'count' => null,
+            'all' => true,
+        ]);
+
+        return $chips;
     }
 }
