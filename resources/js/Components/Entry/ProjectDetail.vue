@@ -1,15 +1,12 @@
 <script setup>
-import { computed } from 'vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 import Pill from '../Ui/Pill.vue';
 import { titleCase } from '../../lib/format.js';
 
-const props = defineProps({
+defineProps({
     entry: { type: Object, required: true },
 });
-
-const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
 </script>
 
 <template>
@@ -24,10 +21,6 @@ const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags 
         <div v-if="entry.long_description">
             <SectionHead title="About" />
             <p v-twemoji class="whitespace-pre-line text-body text-neutral-700">{{ entry.long_description }}</p>
-        </div>
-
-        <div v-if="tags.length" class="flex flex-wrap gap-2">
-            <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
         </div>
 
         <div v-if="entry.url || entry.github_url" class="flex flex-wrap gap-x-6 gap-y-3">

@@ -5,7 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
-import Source from '../Components/Profile/Source.vue';
+import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import { entryType } from '../entryTypes.js';
 
 import ActivityDetail from '../Components/Entry/ActivityDetail.vue';
@@ -61,6 +61,10 @@ const DETAIL_COMPONENTS = {
 const meta = computed(() => entryType(props.type));
 const detailComponent = computed(() => DETAIL_COMPONENTS[props.type] ?? null);
 const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
+
+// Linkable tags for the shared footer; only taggable types carry the key.
+const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
+
 const [, year, month, day] = props.dayUrl.split('/');
 const monthName = computed(() => new Date(props.occurredAt).toLocaleDateString('en-GB', { month: 'long' }));
 
@@ -114,5 +118,5 @@ setLayoutProps({
         class="mt-10"
     />
 
-    <Source v-if="source" :platform="source.platform" :url="source.url" class="mt-10" />
+    <EntryFooter :source="source" :tags="tags" class="mt-10" />
 </template>
