@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\TimelineEntry;
@@ -93,6 +94,7 @@ class ArchiveController extends Controller
         return match ($type) {
             'flight' => $this->flightRoutes($taxonomy, $value),
             'fuel' => $this->fuelStations($taxonomy, $value),
+            'checkin' => $this->checkinPlaces($taxonomy, $value),
             default => [],
         };
     }
@@ -169,6 +171,37 @@ class ArchiveController extends Controller
                     ?: ($fuel->brand ? $fuel->brand.' garage' : null)
                     ?: $fuel->city
                     ?: 'Station',
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Check-in locations for the overview map, deduped to one point per venue
+     * coordinate and filtered to the active category when one is applied. The
+     * frontend clusters these, so every distinct place can be sent.
+     *
+     * @param  array<string, mixed>|null  $taxonomy
+     * @return list<array<string, mixed>>
+     */
+    private function checkinPlaces(?array $taxonomy, ?string $value): array
+    {
+        $query = Checkin::query()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude');
+
+        if ($value !== null && $taxonomy !== null) {
+            ($taxonomy['filter'])($query, $value);
+        }
+
+        return $query
+            ->orderByDesc('occurred_at')
+            ->get(['venue_name', 'city', 'latitude', 'longitude'])
+            ->unique(fn (Checkin $checkin): string => round((float) $checkin->latitude, 4).','.round((float) $checkin->longitude, 4))
+            ->map(fn (Checkin $checkin): array => [
+                'lat' => (float) $checkin->latitude,
+                'lng' => (float) $checkin->longitude,
+                'label' => $checkin->venue_name ?: $checkin->city ?: 'Place',
             ])
             ->values()
             ->all();
