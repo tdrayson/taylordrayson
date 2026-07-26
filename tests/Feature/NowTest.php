@@ -1,9 +1,13 @@
 <?php
 
+use App\Enums\MediaType;
 use App\Models\Activity;
+use App\Models\Checkin;
+use App\Models\Media;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 
 use function Pest\Laravel\get;
 
@@ -60,5 +64,29 @@ it('passes recent real photos to the deck', function () {
     get('/now')->assertInertia(fn ($page) => $page
         ->has('photos', 1)
         ->has('photos.0.src')
+    );
+});
+
+it('orders the deck newest first and excludes posters, matching /photos', function () {
+    Storage::fake('public');
+
+    // An older personal photo and a newer one, on different entry types.
+    $checkin = Checkin::factory()->create(['occurred_at' => now()->subYears(5)]);
+    $checkin->addMediaFromString(fakeJpeg())->usingFileName('old.jpg')->toMediaCollection('photos');
+
+    $activity = Activity::factory()->create(['occurred_at' => now()->subDay()]);
+    $activity->addMediaFromString(fakeJpeg())->usingFileName('new.jpg')->toMediaCollection('cover');
+
+    // A film poster (Media cover) is enrichment art, not a photo taken.
+    Media::factory()->create(['type' => MediaType::Film])
+        ->addMediaFromString(fakeJpeg())->usingFileName('poster.jpg')->toMediaCollection('cover');
+
+    get('/now')->assertInertia(fn (Assert $page) => $page
+        // The poster is gone; only the two real photos remain.
+        ->has('photos', 2)
+        // Newest entry (yesterday's activity) leads, not the recently-imported
+        // but five-year-old check-in.
+        ->where('photos.0.url', $activity->url())
+        ->where('photos.1.url', $checkin->url())
     );
 });
