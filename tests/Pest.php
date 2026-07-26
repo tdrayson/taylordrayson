@@ -66,13 +66,17 @@ function fakeJpeg(int $width = 800, int $height = 600): string
  *
  * @return array<string, mixed>
  */
-function stravaPhotoPayload(string $uniqueId, string $createdAt): array
+/**
+ * @param  array{0: float, 1: float}|null  $location  Strava's own per-photo GPS fix, when set.
+ */
+function stravaPhotoPayload(string $uniqueId, string $createdAt, ?array $location = null): array
 {
-    return [
+    return array_filter([
         'unique_id' => $uniqueId,
         'created_at' => $createdAt,
         'source' => 1,
         'urls' => ['2048' => 'https://dgtzuqphqg23d.cloudfront.net/'.$uniqueId.'-1152x2048.jpg'],
         'sizes' => ['2048' => [1152, 2048]],
-    ];
+        'location' => $location,
+    ], fn ($value): bool => $value !== null);
 }

@@ -4,7 +4,6 @@ namespace App\Actions;
 
 use App\Models\Activity;
 use Carbon\CarbonImmutable;
-use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -13,13 +12,14 @@ use Illuminate\Support\Str;
  * becomes the single `cover`, the rest fill the `photos` gallery. Existing photo
  * media is cleared first so re-running is idempotent.
  *
- * When a GPS stream and the activity's UTC start are supplied, each photo is
- * located on the route and its coordinate stored as custom properties. A photo
- * that cannot be located is still stored, just without coordinates.
+ * Each photo's map coordinate is resolved by {@see ResolvePhotoCoordinate}:
+ * Strava's own per-photo `location` first, then interpolation from the GPS
+ * stream when a stream and the activity's UTC start are supplied. A photo that
+ * cannot be placed is still stored, just without coordinates.
  */
 class SyncStravaPhotos
 {
-    public function __construct(private LocatePhotoOnRoute $locate) {}
+    public function __construct(private ResolvePhotoCoordinate $resolveCoordinate) {}
 
     /**
      * @param  array<int, array<string, mixed>>  $photos  The raw Strava photos payload.
@@ -37,7 +37,6 @@ class SyncStravaPhotos
 
         $timeStream = $streams['time']['data'] ?? [];
         $latlngStream = $streams['latlng']['data'] ?? [];
-        $canLocate = $activityStart !== null && $timeStream !== [] && $latlngStream !== [];
 
         $stored = 0;
 
@@ -54,28 +53,26 @@ class SyncStravaPhotos
                 continue;
             }
 
-            $media = $activity->addMediaFromString($response->body())
-                ->usingFileName(($photo['unique_id'] ?? Str::uuid()).'.jpg');
+            $uniqueId = $photo['unique_id'] ?? (string) Str::uuid();
 
-            $properties = [];
+            $media = $activity->addMediaFromString($response->body())
+                ->usingFileName($uniqueId.'.jpg');
+
+            $properties = ['strava_photo_id' => $uniqueId];
             $capturedAt = $photo['created_at'] ?? null;
 
             if (is_string($capturedAt) && $capturedAt !== '') {
                 $properties['captured_at'] = $capturedAt;
             }
 
-            $coordinate = $canLocate
-                ? $this->coordinateFor($photo, $activityStart, $timeStream, $latlngStream)
-                : null;
+            $coordinate = ($this->resolveCoordinate)($photo, $activityStart, $timeStream, $latlngStream);
 
             if ($coordinate !== null) {
                 $properties['latitude'] = $coordinate[0];
                 $properties['longitude'] = $coordinate[1];
             }
 
-            if ($properties !== []) {
-                $media->withCustomProperties($properties);
-            }
+            $media->withCustomProperties($properties);
 
             $media->toMediaCollection($stored === 0 ? 'cover' : 'photos');
 
@@ -83,41 +80,5 @@ class SyncStravaPhotos
         }
 
         return $stored;
-    }
-
-    /**
-     * The route coordinate for a single photo, or null when it has no capture
-     * time, an unparseable capture time, or falls outside the activity's stream.
-     *
-     * @param  array<string, mixed>  $photo
-     * @param  array<int, int>  $timeStream
-     * @param  array<int, array{0: float, 1: float}>  $latlngStream
-     * @return array{0: float, 1: float}|null
-     */
-    private function coordinateFor(
-        array $photo,
-        CarbonImmutable $activityStart,
-        array $timeStream,
-        array $latlngStream,
-    ): ?array {
-        $capturedAt = $photo['created_at'] ?? null;
-
-        if (! is_string($capturedAt) || $capturedAt === '') {
-            return null;
-        }
-
-        try {
-            $capturedTime = CarbonImmutable::parse($capturedAt);
-        } catch (InvalidFormatException) {
-            return null;
-        }
-
-        return ($this->locate)(
-            $capturedTime,
-            $activityStart,
-            $timeStream,
-            $latlngStream,
-            LocatePhotoOnRoute::GRACE_SECONDS,
-        );
     }
 }
