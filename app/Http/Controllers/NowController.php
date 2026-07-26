@@ -2,22 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Activity;
-use App\Models\Appearance;
-use App\Models\Attachment;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
-use App\Support\GalleryPhotos;
+use App\Queries\PhotoStream;
 use App\Support\OgMeta;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class NowController extends Controller
 {
+    public function __construct(private readonly PhotoStream $photos) {}
+
     /**
      * Render the live "Now" dashboard of widgets.
      */
@@ -120,42 +117,21 @@ class NowController extends Controller
     }
 
     /**
-     * The most recent real photos (cover + gallery collections) across every
-     * entry type, shaped for the photos widget deck. Mirrors the gallery's
-     * shaping but samples only the newest attachments to stay cheap.
+     * The newest real photos for the "Life lately" deck, drawn from the same
+     * PhotoStream that backs the /photos gallery so the two never diverge, then
+     * trimmed to the deck's shape and the first few cards.
      *
      * @return array<int, array{src: string, srcset: string|null, url: string, caption: string|null}>
      */
     private function recentPhotos(int $limit = 6): array
     {
-        $attachments = Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNot('model_type', Appearance::class)
-            ->latest('id')
-            ->limit(150)
-            ->with(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith([Activity::class => ['media']])])
-            ->get();
-
-        return $attachments
-            ->filter(fn (Attachment $attachment): bool => $attachment->model !== null)
-            ->groupBy(fn (Attachment $attachment): string => $attachment->model_type.':'.$attachment->model_id)
-            ->flatMap(function (Collection $group): array {
-                $model = $group->first()->model;
-
-                return array_map(
-                    fn (array $photo): array => [...$photo, 'sort' => $model->occurred_at],
-                    GalleryPhotos::shape($model, $group),
-                );
-            })
-            ->sortByDesc('sort')
-            ->take($limit)
+        return collect(($this->photos)($limit))
             ->map(fn (array $photo): array => [
                 'src' => $photo['src'],
                 'srcset' => $photo['srcset'] ?? null,
                 'url' => $photo['url'],
                 'caption' => $photo['caption'] ?? null,
             ])
-            ->values()
             ->all();
     }
 }
