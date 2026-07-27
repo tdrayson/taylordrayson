@@ -42,6 +42,13 @@ class ImportAll extends Command
             ]);
         }
 
+        // Events carry their category as a shared tag, but the replace-on-import
+        // drops those pivots, so re-seed them from the type column here rather
+        // than relying on the operator to remember a follow-up command.
+        if (file_exists(base_path('data/events.csv'))) {
+            $this->call('events:tag-from-type');
+        }
+
         return self::SUCCESS;
     }
 }
