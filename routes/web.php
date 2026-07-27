@@ -108,8 +108,10 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 
-// Cross-type tag feed. Registered above the page catch-all so /tags/{slug}
-// never falls through to PageController.
+// Tag index + cross-type tag feed. The literal /tags is registered before the
+// /tags/{slug} feed, and both above the page catch-all so neither falls through
+// to PageController.
+Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 
 // Content pages, matched last so every real route wins. Letter-first so the
