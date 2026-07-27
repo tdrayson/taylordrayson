@@ -41,12 +41,13 @@ final class EventCard
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $photos,
                 ),
-                // Fall back to the generated static location map only when there
-                // is no photo to show instead (mirrors the activity route map).
-                map: $photos === [] ? $model->getFirstMediaUrl('map') ?: null : null,
+                // Always carry the location map alongside any photos, like a
+                // check-in: the card shows the map and the first photo together
+                // (side by side on desktop, a swipeable carousel on mobile).
+                map: $model->getFirstMediaUrl('map') ?: null,
                 // Dark twin of the same map, rendered by the frontend behind a
                 // `dark:` class swap so the theme decides which PNG shows.
-                mapDark: $photos === [] ? $model->getFirstMediaUrl('map_dark') ?: null : null,
+                mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
             ),
         );
     }
