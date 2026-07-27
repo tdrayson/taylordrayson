@@ -32,6 +32,22 @@ it('lists visible tags with per-tag usage counts', function () {
     );
 });
 
+it('counts only the visible attachments for a tag shared by a published and an unpublished article', function () {
+    $published = Article::factory()->create(['published' => true, 'occurred_at' => now()->subDay()]);
+    $draft = Article::factory()->create(['published' => false, 'occurred_at' => now()->subDays(2)]);
+    $published->syncTagNames(['Mixed']);
+    $draft->syncTagNames(['Mixed']);
+
+    // Guest counts only the published attachment.
+    get('/tags')->assertInertia(fn (Assert $page) => $page
+        ->where('tags', fn ($tags) => collect($tags)->firstWhere('slug', 'mixed')['count'] === 1));
+
+    // The owner counts both.
+    actingAs(User::factory()->create());
+    get('/tags')->assertInertia(fn (Assert $page) => $page
+        ->where('tags', fn ($tags) => collect($tags)->firstWhere('slug', 'mixed')['count'] === 2));
+});
+
 it('hides a tag that lives only on an unpublished article from guests, but shows it to the owner', function () {
     $draft = Article::factory()->create(['published' => false, 'occurred_at' => now()]);
     $draft->syncTagNames(['Secret Launch']);
