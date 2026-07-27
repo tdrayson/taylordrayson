@@ -53,7 +53,6 @@ class SearchSchema
         ],
         'event' => [
             'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Event'],
-            'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Event'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Event'],
             'organiser' => ['label' => 'Organiser', 'dataType' => 'text', 'column' => 'organiser', 'category' => 'Event'],
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Location'],

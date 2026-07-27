@@ -41,7 +41,7 @@ class TypeRegistry
             TimelineType::Sleep->value => self::type(Sleep::class, 'sleep', 'Sleep'),
             TimelineType::Calorie->value => self::type(Calorie::class, 'food', 'Food'),
             TimelineType::Media->value => self::type(Media::class, 'media', 'Media', self::media()),
-            TimelineType::Event->value => self::type(Event::class, 'events', 'Events', self::column('type', 'Type', fn (string $label): string => "{$label} events")),
+            TimelineType::Event->value => self::type(Event::class, 'events', 'Events', self::tags(fn (string $label): string => "{$label} events")),
             TimelineType::Appearance->value => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
             TimelineType::Podcast->value => self::type(Podcast::class, 'this-week-with', 'This Week With', self::podcastSeason(), 'episode'),
             TimelineType::Flight->value => self::type(Flight::class, 'flights', 'Flights', self::airline()),

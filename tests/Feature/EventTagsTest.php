@@ -4,13 +4,12 @@ use App\Models\Event;
 use App\Models\Note;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-use function Pest\Laravel\artisan;
 use function Pest\Laravel\get;
 
 uses(RefreshDatabase::class);
 
 it('makes events taggable and surfaces them on the cross-type tag page', function () {
-    $event = Event::factory()->create(['name' => 'Hamilton', 'type' => 'musical', 'occurred_at' => now()->subDay()]);
+    $event = Event::factory()->create(['name' => 'Hamilton', 'occurred_at' => now()->subDay()]);
     $note = Note::factory()->create(['content' => 'Loved the show', 'occurred_at' => now()->subDays(2)]);
     $event->syncTagNames(['Theatre']);
     $note->syncTagNames(['Theatre']);
@@ -27,20 +26,4 @@ it('makes events taggable and surfaces them on the cross-type tag page', functio
                 && $items->pluck('body')->contains('Loved the show');
         })
     );
-});
-
-it('backfills event category tags from the legacy type column, additively and idempotently', function () {
-    $musical = Event::factory()->create(['type' => 'musical', 'occurred_at' => now()->subDay()]);
-    $theatre = Event::factory()->create(['type' => 'theatre', 'occurred_at' => now()->subDays(2)]);
-
-    artisan('events:tag-from-type')->assertSuccessful();
-
-    expect($musical->fresh()->tagNames())->toContain('Musical')
-        ->and($theatre->fresh()->tagNames())->toContain('Theatre');
-
-    // Additive + idempotent: a manually-added tag survives a re-run.
-    $musical->syncTagNames(['Musical', 'Family']);
-    artisan('events:tag-from-type')->assertSuccessful();
-
-    expect($musical->fresh()->tagNames())->toContain('Musical')->toContain('Family');
 });

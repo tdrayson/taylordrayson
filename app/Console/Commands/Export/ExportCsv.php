@@ -52,14 +52,22 @@ class ExportCsv extends Command
         }
 
         $modelClass = $this->models[$type];
-        $headers = (new $modelClass)->getFillable();
+        $model = new $modelClass;
+        $headers = $model->getFillable();
+
+        // Round-trip relational tags as a trailing pipe-separated `tags` column,
+        // mirroring ImportCsv (the tag table has no fillable column of its own).
+        $hasTags = method_exists($model, 'tagNames');
+        if ($hasTags) {
+            $headers[] = 'tags';
+        }
 
         $handle = fopen($this->argument('file'), 'w');
         fputcsv($handle, $headers, ',', '"', '\\');
 
         $exported = 0;
 
-        $modelClass::query()->orderBy('id')->chunk(500, function ($rows) use ($handle, $headers, &$exported): void {
+        $modelClass::query()->orderBy('id')->when($hasTags, fn ($query) => $query->with('tags'))->chunk(500, function ($rows) use ($handle, $headers, &$exported): void {
             foreach ($rows as $row) {
                 fputcsv($handle, array_map(fn (string $header): string => $this->stringify($row, $header), $headers), ',', '"', '\\');
                 $exported++;
@@ -79,6 +87,10 @@ class ExportCsv extends Command
      */
     private function stringify(Model $row, string $header): string
     {
+        if ($header === 'tags' && method_exists($row, 'tagNames')) {
+            return implode('|', $row->tagNames());
+        }
+
         $value = $row->getRawOriginal($header);
 
         if ($value === null) {

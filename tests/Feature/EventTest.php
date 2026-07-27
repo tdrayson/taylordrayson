@@ -2,6 +2,7 @@
 
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -10,7 +11,6 @@ it('stores the restructured event fields', function () {
         'occurred_at' => '2025-06-05 00:00:00',
         'ends_at' => '2025-06-07 00:00:00',
         'all_day' => true,
-        'type' => 'conference',
         'name' => 'WordCamp Europe 2025',
         'organiser' => null,
         'venue_name' => 'Congress Center Basel',
@@ -30,10 +30,11 @@ it('stores the restructured event fields', function () {
         ->and($event->description)->toBe('Went with dad.');
 });
 
-it('builds events across the expanded category set', function () {
-    foreach (['musical', 'magic', 'sport', 'convention', 'conference'] as $type) {
-        $event = Event::factory()->create(['type' => $type]);
-        expect($event->type)->toBe($type)
+it('tags events across the expanded category set', function () {
+    foreach (['musical', 'magic', 'sport', 'convention', 'conference'] as $category) {
+        $event = Event::factory()->create();
+        $event->syncTagNames([Str::headline($category)]);
+        expect($event->fresh()->tagNames())->toContain(Str::headline($category))
             ->and($event->timezone)->toBe('Europe/London');
     }
 });

@@ -18,10 +18,11 @@ it('imports the events dataset from data/events.csv', function () {
     $wceu = Event::where('name', 'WordCamp Europe 2025')->firstOrFail();
     expect($wceu->all_day)->toBeFalse()
         ->and($wceu->ends_at)->not->toBeNull()
-        ->and($wceu->type)->toBe('conference')
+        ->and($wceu->tagNames())->toContain('Conference')
         ->and($wceu->timezone)->toBe('Europe/Zurich');
 
-    $panto = Event::where('type', 'theatre')
+    // The category now arrives as a tag from the CSV `tags` column.
+    $panto = Event::whereHas('tags', fn ($query) => $query->where('slug', 'theatre'))
         ->whereNotNull('organiser')
         ->where('organiser', 'Sanderstead Dramatic Club')
         ->first();
