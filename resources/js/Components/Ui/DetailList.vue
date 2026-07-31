@@ -11,7 +11,7 @@ defineProps({
             :key="row.label"
             class="flex items-baseline justify-between gap-6 py-3"
         >
-            <dt class="text-label uppercase text-neutral-500">{{ row.label }}</dt>
+            <dt class="text-label uppercase text-neutral-500" :class="{ 'pl-4 text-neutral-400': row.sub }">{{ row.label }}</dt>
             <dd class="text-right text-meta text-neutral-900 tnum">{{ row.value }}</dd>
         </div>
     </dl>
