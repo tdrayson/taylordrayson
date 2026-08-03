@@ -21,6 +21,10 @@ const heartRate = computed(() => values('heart_rate', 'bpm'));
 const elevation = computed(() => values('altitude', 'value'));
 // Stored m/s -> mph for display (British default; a later pass can honour the unit toggle).
 const speed = computed(() => values('speed', 'value').map((v) => v * 2.23694));
+// A stationary workout (indoor weight training) still streams a full-length
+// speed series, just every point at zero. Charting that draws a flat line along
+// the axis, so the series only counts as real once something actually moved.
+const hasMovement = computed(() => speed.value.some((value) => value > 0));
 
 // HR density gate carried over from ActivityDetail: only show a dense-enough trace.
 const MIN_HR_POINTS = 5;
@@ -41,7 +45,7 @@ const charts = computed(() =>
     [
         showHeartRate.value ? { key: 'hr', label: 'Heart rate', unit: 'bpm', color: 'var(--color-fuel)', points: heartRate.value } : null,
         elevation.value.length ? { key: 'elevation', label: 'Elevation', unit: 'm', color: 'var(--color-activity)', points: elevation.value } : null,
-        speed.value.length ? { key: 'speed', label: 'Speed', unit: 'mph', color: 'var(--color-flight)', points: speed.value } : null,
+        hasMovement.value ? { key: 'speed', label: 'Speed', unit: 'mph', color: 'var(--color-flight)', points: speed.value } : null,
     ].filter(Boolean),
 );
 </script>
