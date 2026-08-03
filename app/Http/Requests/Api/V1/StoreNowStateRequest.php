@@ -42,7 +42,7 @@ class StoreNowStateRequest extends FormRequest
             // itself ("David Lloyd Purley Way"), which iOS falls back to the
             // street address for when there is no named place, so it stays
             // private with the rest of them.
-            'name', 'street', 'street_number', 'district', 'county', 'postcode', 'areas_of_interest',
+            'name', 'street', 'street_number', 'district', 'county', 'postcode',
         ],
         'rings' => ['move', 'move_goal', 'exercise', 'exercise_goal', 'stand', 'stand_goal', 'steps'],
     ];
@@ -166,7 +166,6 @@ class StoreNowStateRequest extends FormRequest
             'location.district' => ['sometimes', 'string', 'max:100'],
             'location.county' => ['sometimes', 'string', 'max:100'],
             'location.postcode' => ['sometimes', 'string', 'max:20'],
-            'location.areas_of_interest' => ['sometimes', 'string', 'max:255'],
 
             'rings' => ['sometimes', 'array'],
             'rings.move' => ['sometimes', 'integer', 'between:0,20000'],
