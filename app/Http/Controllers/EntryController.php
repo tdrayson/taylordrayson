@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Actions\ResolveMentions;
 use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Models\Activity;
@@ -89,6 +90,11 @@ class EntryController extends Controller
             'source' => $this->source($model),
             'linkPreviews' => $model instanceof Article
                 ? (new BuildLinkPreviews)($model->content)
+                : [],
+            // Mentions store {kind, id}, so their titles and hrefs are resolved
+            // per request rather than baked into the content at save time.
+            'mentions' => $model instanceof Article
+                ? (new ResolveMentions)($model->content)
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled

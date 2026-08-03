@@ -6,6 +6,7 @@ use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
@@ -26,6 +27,12 @@ use Illuminate\Support\Facades\Route;
 // any lowercase word, 'login' included, so registering it later would let a
 // content page shadow the login form.
 require __DIR__.'/auth.php';
+
+// Authoring, session-guarded: the only caller is the editor in a signed-in
+// browser. Above the /{slug} catch-all for the same reason as /login.
+Route::middleware('auth')->group(function (): void {
+    Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+});
 
 // Feeds
 Route::feeds();
