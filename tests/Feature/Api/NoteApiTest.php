@@ -13,7 +13,10 @@ it('creates a note', function () {
         'occurred_at' => '2026-07-04 09:15:00',
     ])
         ->assertCreated()
-        ->assertJsonPath('data.content', 'Espresso was dialled in perfectly today.');
+        // Notes are Portable Text now: `content` is the block document and
+        // `text` carries what `content` used to, so a string client is served.
+        ->assertJsonPath('data.text', 'Espresso was dialled in perfectly today.')
+        ->assertJsonPath('data.content.0.children.0.text', 'Espresso was dialled in perfectly today.');
 
     expect(Note::count())->toBe(1)
         ->and(Note::first()->timelineEntry)->not->toBeNull();
@@ -53,11 +56,11 @@ it('shows, updates, and deletes a note', function () {
 
     $this->withToken('test-token')->getJson("/api/v1/notes/{$note->id}")
         ->assertOk()
-        ->assertJsonPath('data.content', 'Before');
+        ->assertJsonPath('data.text', 'Before');
 
     $this->withToken('test-token')->patchJson("/api/v1/notes/{$note->id}", ['content' => 'After'])
         ->assertOk()
-        ->assertJsonPath('data.content', 'After');
+        ->assertJsonPath('data.text', 'After');
 
     $this->withToken('test-token')->deleteJson("/api/v1/notes/{$note->id}")->assertNoContent();
 

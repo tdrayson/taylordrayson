@@ -33,6 +33,35 @@ class PortableText
     }
 
     /**
+     * The document's text with its paragraph breaks intact.
+     *
+     * {@see plainText()} collapses all whitespace, which is right for a card
+     * title or an OG description and wrong for a note's body, where the breaks
+     * the author typed are part of what they wrote.
+     *
+     * @param  array<int, array<string, mixed>>|string|null  $document
+     */
+    public static function text(array|string|null $document): string
+    {
+        $parts = [];
+
+        foreach (self::nodes($document) as $node) {
+            if (($node['_type'] ?? null) === 'block') {
+                $parts[] = implode('', array_map(
+                    fn (array $child): string => $child['text'] ?? '',
+                    $node['children'] ?? [],
+                ));
+            }
+
+            if (($node['_type'] ?? null) === 'code') {
+                $parts[] = $node['code'] ?? '';
+            }
+        }
+
+        return implode("\n\n", $parts);
+    }
+
+    /**
      * Normalise a stored document (array or raw JSON) to the bare node list.
      *
      * @return array<int, array<string, mixed>>
@@ -65,6 +94,32 @@ class PortableText
         }
 
         return $block;
+    }
+
+    /**
+     * Convert plain text to Portable Text, so a client that can only send a
+     * string (Shortcuts, Micropub, a CSV import) still produces valid content.
+     *
+     * Blank lines separate blocks. Wrapping the whole string in one block
+     * instead would keep the newlines inside a single span, where the renderer
+     * has no reason to honour them and the paragraph break is simply lost.
+     * A single newline stays inside its block, being a soft break the dialect
+     * has no node for.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function fromPlainText(string $text): array
+    {
+        if (trim($text) === '') {
+            return [];
+        }
+
+        $paragraphs = preg_split('/\R\s*\R/', trim($text)) ?: [];
+
+        return array_values(array_map(
+            fn (string $paragraph): array => self::block(trim($paragraph)),
+            array_filter($paragraphs, fn (string $paragraph): bool => trim($paragraph) !== ''),
+        ));
     }
 
     /**

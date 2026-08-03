@@ -88,12 +88,12 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
-            'linkPreviews' => $model instanceof Article
+            'linkPreviews' => $model instanceof Article || $model instanceof Note
                 ? (new BuildLinkPreviews)($model->content)
                 : [],
             // Mentions store {kind, id}, so their titles and hrefs are resolved
             // per request rather than baked into the content at save time.
-            'mentions' => $model instanceof Article
+            'mentions' => $model instanceof Article || $model instanceof Note
                 ? (new ResolveMentions)($model->content)
                 : [],
             // Stream series are large, so they're excluded from the main

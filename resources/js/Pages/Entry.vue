@@ -114,7 +114,7 @@ setLayoutProps({
         :is="detailComponent"
         v-if="detailComponent"
         :entry="entry"
-        v-bind="type === 'article' ? { linkPreviews } : {}"
+        v-bind="['article', 'note'].includes(type) ? { linkPreviews } : {}"
         class="mt-10"
     />
 

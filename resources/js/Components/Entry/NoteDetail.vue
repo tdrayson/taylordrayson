@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue';
+import BlockContent from '../Ui/BlockContent.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 
 const props = defineProps({
     entry: { type: Object, required: true },
+    // Map of href -> preview card for internal links, forwarded to the renderer.
+    linkPreviews: { type: Object, default: () => ({}) },
 });
 
 const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
@@ -15,8 +18,10 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="max-w-prose space-y-4">
-        <!-- Notes have no headline, so the content itself is the page's primary text. -->
-        <p v-twemoji class="whitespace-pre-line text-lg leading-relaxed">{{ entry.content }}</p>
+        <!-- Notes have no headline, so the content itself is the page's primary
+             text. Portable Text since notes gained mentions, so it renders
+             through the same component as pages and articles. -->
+        <BlockContent :document="entry.content" :link-previews="linkPreviews" class="text-lg leading-relaxed" />
 
         <!-- A single photo runs full width; small galleries share a grid. -->
         <ul v-if="photos.length" :class="photos.length > 1 ? 'grid grid-cols-2 gap-2.5' : ''">
