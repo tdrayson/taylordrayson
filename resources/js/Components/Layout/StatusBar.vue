@@ -44,8 +44,6 @@ const temp = computed(() => (weather.value.temp === undefined ? props.temp : `${
 const condition = computed(() => weather.value.condition ?? props.condition);
 const place = computed(() => location.value.city ?? props.location);
 const zone = computed(() => location.value.tzAbbr ?? props.timezone);
-// Steps stay on the placeholder until the Vitals table (#67) is fed from
-// Rovi's daily step records; the phone deliberately does not send them.
 const steps = computed(() => rings.value.steps ?? props.steps);
 const move = computed(() => ringPercent(rings.value.move, rings.value.moveGoal, props.move));
 const exercise = computed(() => ringPercent(rings.value.exercise, rings.value.exerciseGoal, props.exercise));

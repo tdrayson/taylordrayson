@@ -44,11 +44,11 @@ class StoreNowStateRequest extends FormRequest
             // private with the rest of them.
             'name', 'street', 'district', 'county', 'postcode',
         ],
-        // Steps are deliberately absent: Rovi already holds a daily step count
-        // per date, which is a historical series and so belongs in the Vitals
-        // table (#67) fed by a sync command, not in overwritten state. Two
-        // sources for one number is how they quietly come to disagree.
-        'rings' => ['move', 'move_goal', 'exercise', 'exercise_goal', 'stand', 'stand_goal'],
+        // `steps` here is today's count so far, which is ambient state like the
+        // rings beside it. The historical daily series is a different thing and
+        // belongs in the Vitals table (#67), fed from Rovi's own step records
+        // when that exists; this value is never the source for that.
+        'rings' => ['move', 'move_goal', 'exercise', 'exercise_goal', 'stand', 'stand_goal', 'steps'],
     ];
 
     /**
@@ -225,6 +225,7 @@ class StoreNowStateRequest extends FormRequest
             'rings.exercise_goal' => ['sometimes', 'integer', 'between:1,1440'],
             'rings.stand' => ['sometimes', 'integer', 'between:0,24'],
             'rings.stand_goal' => ['sometimes', 'integer', 'between:1,24'],
+            'rings.steps' => ['sometimes', 'integer', 'between:0,200000'],
         ];
     }
 
