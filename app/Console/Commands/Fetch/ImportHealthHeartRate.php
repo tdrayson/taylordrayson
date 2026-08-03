@@ -16,7 +16,7 @@ class ImportHealthHeartRate extends Command
         $file = $this->option('file');
 
         if (! is_string($file) || $file === '') {
-            $this->components->info('Heart-rate now ingests from POST /api/health/ingest. Use --file to reprocess a payload.');
+            $this->components->info('Heart-rate now ingests from POST /api/v1/health-export. Use --file to reprocess a payload.');
 
             return self::SUCCESS;
         }

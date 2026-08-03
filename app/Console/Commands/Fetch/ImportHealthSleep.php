@@ -34,7 +34,7 @@ class ImportHealthSleep extends Command
         $file = $this->option('file');
 
         if (! is_string($file) || $file === '') {
-            $this->components->info('Sleep now ingests from POST /api/health/ingest. Use --file to reprocess a payload, or --resplit/--redate/--score for maintenance.');
+            $this->components->info('Sleep now ingests from POST /api/v1/health-export. Use --file to reprocess a payload, or --resplit/--redate/--score for maintenance.');
 
             return self::SUCCESS;
         }
