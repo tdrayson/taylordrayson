@@ -1,8 +1,13 @@
 <?php
 
 use App\Enums\FieldType;
+use App\Enums\MediaType;
 use App\Fields\FieldRegistry;
+use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Event;
+use App\Models\Fuel;
+use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
@@ -10,13 +15,25 @@ use App\Models\Sleep;
 
 it('resolves fields for every authorable type', function (string $model) {
     expect(FieldRegistry::for(new $model))->not->toBeEmpty();
-})->with([Note::class, Page::class, Article::class, Project::class]);
+})->with([Note::class, Page::class, Article::class, Project::class, Event::class, Fuel::class, Appearance::class]);
 
 it('refuses a type nobody authors by hand', function () {
     // Sleep arrives from Apple Health; there is no form for it.
     expect(FieldRegistry::has(new Sleep))->toBeFalse();
     FieldRegistry::for(new Sleep);
 })->throws(LogicException::class);
+
+it('authors books but not the Trakt-sourced media types', function () {
+    $book = Media::factory()->make(['type' => MediaType::Book]);
+    $film = Media::factory()->make(['type' => MediaType::Film]);
+    $episode = Media::factory()->make(['type' => MediaType::TvEpisode]);
+
+    expect(FieldRegistry::has($book))->toBeTrue()
+        ->and(FieldRegistry::has($film))->toBeFalse()
+        ->and(FieldRegistry::has($episode))->toBeFalse();
+
+    expect(collect(FieldRegistry::for($book))->pluck('name'))->toContain('meta.author');
+});
 
 it('gives the long-form types exactly one body field', function () {
     foreach ([Page::class, Article::class] as $model) {
@@ -36,9 +53,15 @@ it('names only fields the model can actually be filled with', function (string $
             continue;
         }
 
-        expect($fillable)->toContain($field->name);
+        // A dotted name addresses a key inside a JSON column, so the column
+        // itself is what has to be fillable.
+        $column = str_contains($field->name, '.')
+            ? str($field->name)->before('.')->toString()
+            : $field->name;
+
+        expect($fillable)->toContain($column);
     }
-})->with([Note::class, Page::class, Article::class, Project::class]);
+})->with([Note::class, Page::class, Article::class, Project::class, Event::class, Fuel::class, Appearance::class, Media::class]);
 
 it('marks the fields that hide behind Add field', function () {
     $fields = collect(FieldRegistry::for(new Page))->keyBy('name');
