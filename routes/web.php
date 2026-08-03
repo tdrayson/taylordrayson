@@ -32,6 +32,7 @@ require __DIR__.'/auth.php';
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+    Route::patch('/pages/{page}', [PageController::class, 'update'])->name('pages.update');
 });
 
 // Feeds

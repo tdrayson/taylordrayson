@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Actions\Pages\UpdatePage;
 use App\Actions\ResolveMentions;
+use App\Fields\FieldRegistry;
+use App\Http\Requests\UpdatePageRequest;
 use App\Models\Page;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,6 +48,11 @@ class PageController extends Controller
         }
 
         return Inertia::render('Page', [
+            'id' => $page->id,
+            // ?edit opens the editor in place. Only ever honoured for a
+            // signed-in visitor; the save route enforces it again server-side.
+            'editing' => Auth::check() && request()->has('edit'),
+            'fields' => Auth::check() ? FieldRegistry::for($page) : [],
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'content' => $page->content,
@@ -52,5 +61,16 @@ class PageController extends Controller
             'linkPreviews' => (new BuildLinkPreviews)($page->content),
             'mentions' => (new ResolveMentions)($page->content),
         ]);
+    }
+
+    /**
+     * Save an edit made in place. Guarded by the auth middleware on the route;
+     * the editing flag on show() only decides whether the UI is offered.
+     */
+    public function update(UpdatePageRequest $request, Page $page, UpdatePage $updatePage): RedirectResponse
+    {
+        $updatePage($page, $request->validated());
+
+        return back();
     }
 }
