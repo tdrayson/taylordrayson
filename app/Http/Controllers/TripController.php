@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Actions\BuildTimelineFeed;
 use App\Models\Trip;
 use App\Queries\TripEntries;
+use App\Support\LocalTime;
 use App\Support\OgMeta;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -29,8 +31,8 @@ class TripController extends Controller
                 'title' => $trip->title,
                 'href' => $trip->url(),
                 'days' => $trip->days(),
-                'start' => $this->datePartsFor($trip->starts_at),
-                'end' => $this->datePartsFor($trip->ends_at),
+                'start' => $this->datePartsFor($trip->starts_at, $trip->timezone),
+                'end' => $this->datePartsFor($trip->ends_at, $trip->timezone),
                 'year' => $trip->starts_at->format('Y'),
                 'spansYears' => $trip->starts_at->format('Y') !== $trip->ends_at->format('Y'),
             ])
@@ -43,17 +45,25 @@ class TripController extends Controller
     }
 
     /**
-     * Split a date into the parts the index card's date strip renders, so the
-     * client never does date maths of its own.
+     * One end of a trip window, formatted server-side in the trip's own zone so
+     * the client never does date maths: the parts the index strip renders, the
+     * spelled-out label the trip page shows, and the machine-readable instant.
      *
-     * @return array{day: string, month: string, year: string}
+     * @return array{day: string, month: string, year: string, time: string, label: string, iso: string, offset: string}
      */
-    private function datePartsFor(CarbonInterface $date): array
+    private function datePartsFor(CarbonInterface $date, ?string $timezone): array
     {
+        $local = LocalTime::for($date, $timezone);
+        $zoned = CarbonImmutable::parse($date->format('Y-m-d H:i:s'), $timezone ?: (string) config('app.home_timezone'));
+
         return [
-            'day' => $date->format('j'),
-            'month' => $date->format('M'),
-            'year' => $date->format('Y'),
+            'day' => $zoned->format('j'),
+            'month' => $zoned->format('M'),
+            'year' => $zoned->format('Y'),
+            'time' => $local['time'],
+            'label' => $zoned->format('j M Y, g:ia'),
+            'iso' => $local['iso'],
+            'offset' => $local['offset'],
         ];
     }
 
@@ -71,8 +81,8 @@ class TripController extends Controller
             'og' => OgMeta::trip($trip->title),
             'title' => $trip->title,
             'days' => $trip->days(),
-            'start' => $trip->starts_at->format('j M Y'),
-            'end' => $trip->ends_at->format('j M Y'),
+            'start' => $this->datePartsFor($trip->starts_at, $trip->timezone),
+            'end' => $this->datePartsFor($trip->ends_at, $trip->timezone),
             'tags' => $trip->tags->map(fn ($tag): array => ['name' => $tag->name, 'slug' => $tag->slug])->all(),
             'groups' => $this->feed->groupByDay(($this->entries)($trip)),
         ]);
