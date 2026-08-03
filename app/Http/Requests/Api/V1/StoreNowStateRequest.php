@@ -28,7 +28,7 @@ class StoreNowStateRequest extends FormRequest
      */
     public const SCHEMA = [
         'battery' => ['percent', 'charging', 'low_power', 'device'],
-        'weather' => ['condition', 'temp', 'high', 'low'],
+        'weather' => ['condition', 'temp', 'high', 'low', 'humidity', 'wind'],
         // Field names mirror Apple's own labels so building the Shortcuts
         // dictionary is a straight copy. Note `state` is the administrative
         // area, which in the UK is "England" rather than the county; the county
@@ -74,6 +74,8 @@ class StoreNowStateRequest extends FormRequest
             return null;
         }
 
+        // Readings arrive with their unit attached once they land in a
+        // Shortcuts dictionary: "21°C", "62%", "8 mph".
         foreach (['charging', 'low_power'] as $flag) {
             if (is_string($battery[$flag] ?? null)) {
                 $battery[$flag] = filter_var($battery[$flag], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? $battery[$flag];
@@ -116,7 +118,7 @@ class StoreNowStateRequest extends FormRequest
             return null;
         }
 
-        foreach (['temp', 'high', 'low'] as $reading) {
+        foreach (['temp', 'high', 'low', 'humidity', 'wind'] as $reading) {
             if (is_string($weather[$reading] ?? null) && preg_match('/-?\d+(\.\d+)?/', $weather[$reading], $match) === 1) {
                 $weather[$reading] = (float) $match[0];
             }
@@ -152,6 +154,10 @@ class StoreNowStateRequest extends FormRequest
             'weather.temp' => ['sometimes', 'numeric', 'between:-90,60'],
             'weather.high' => ['sometimes', 'numeric', 'between:-90,60'],
             'weather.low' => ['sometimes', 'numeric', 'between:-90,60'],
+            'weather.humidity' => ['sometimes', 'numeric', 'between:0,100'],
+            // Whatever unit the phone's locale reports, mph here. Nothing
+            // renders it yet, so the unit is only decided if it ever does.
+            'weather.wind' => ['sometimes', 'numeric', 'between:0,500'],
 
             'location' => ['sometimes', 'array'],
             'location.city' => ['sometimes', 'string', 'max:100'],

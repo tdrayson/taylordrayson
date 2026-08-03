@@ -164,3 +164,12 @@ it('stores the full address but never renders it', function () {
         ->missing('ambient.location.name')
     );
 });
+
+it('takes humidity and wind with their units attached', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'weather' => ['temp' => '21°C', 'humidity' => '62%', 'wind' => '8 mph'],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.weather'))
+        ->toEqual(['temp' => 21.0, 'humidity' => 62.0, 'wind' => 8.0]);
+});
