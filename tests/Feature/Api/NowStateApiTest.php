@@ -145,7 +145,6 @@ it('stores the full address but never renders it', function () {
         'location' => [
             'city' => 'Whyteleafe',
             'street' => 'Godstone Road',
-            'street_number' => '221B',
             'postcode' => 'CR3 0AA',
             'name' => 'David Lloyd Purley Way',
             'latitude' => 51.3134567,
@@ -153,7 +152,7 @@ it('stores the full address but never renders it', function () {
     ])->assertOk();
 
     expect(app(StateStore::class)->get('now.location'))
-        ->toMatchArray(['street' => 'Godstone Road', 'street_number' => '221B', 'postcode' => 'CR3 0AA', 'name' => 'David Lloyd Purley Way']);
+        ->toMatchArray(['street' => 'Godstone Road', 'postcode' => 'CR3 0AA', 'name' => 'David Lloyd Purley Way']);
 
     // The public payload is built from an allowlist, so the address is absent
     // by construction rather than by remembering to strip it.
