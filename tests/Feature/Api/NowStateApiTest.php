@@ -114,7 +114,7 @@ it('stores coordinates exactly but only ever renders them coarsened', function (
     $this->withToken('test-token')->postJson('/api/v1/now', [
         'location' => [
             'city' => 'Whyteleafe',
-            'region' => 'Surrey',
+            'state' => 'England',
             'country_code' => 'gb',
             'latitude' => 51.3134567,
             'longitude' => -0.0612345,
@@ -125,7 +125,7 @@ it('stores coordinates exactly but only ever renders them coarsened', function (
     expect(app(StateStore::class)->get('now.location'))
         ->toEqual([
             'city' => 'Whyteleafe',
-            'region' => 'Surrey',
+            'state' => 'England',
             'country_code' => 'GB',
             'latitude' => 51.3134567,
             'longitude' => -0.0612345,

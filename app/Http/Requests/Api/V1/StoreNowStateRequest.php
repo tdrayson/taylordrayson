@@ -29,9 +29,13 @@ class StoreNowStateRequest extends FormRequest
     public const SCHEMA = [
         'battery' => ['percent', 'charging', 'low_power', 'device'],
         'weather' => ['condition', 'temp', 'high', 'low'],
+        // Field names mirror Apple's own labels so building the Shortcuts
+        // dictionary is a straight copy. Note `state` is the administrative
+        // area, which in the UK is "England" rather than the county; the county
+        // arrives in Apple's "Add State" and is stored as `county`.
         'location' => [
             // Rendered publicly, coarsened where needed.
-            'city', 'region', 'country_code', 'latitude', 'longitude', 'timezone',
+            'city', 'state', 'country_code', 'latitude', 'longitude', 'timezone',
             // Stored only. NowState builds the public payload from its own
             // allowlist, so these never reach a page: they are here for private
             // use of data the phone already has to hand. `name` is the place
@@ -151,7 +155,7 @@ class StoreNowStateRequest extends FormRequest
 
             'location' => ['sometimes', 'array'],
             'location.city' => ['sometimes', 'string', 'max:100'],
-            'location.region' => ['sometimes', 'string', 'max:100'],
+            'location.state' => ['sometimes', 'string', 'max:100'],
             'location.country_code' => ['sometimes', 'string', 'size:2'],
             'location.latitude' => ['sometimes', 'numeric', 'between:-90,90'],
             'location.longitude' => ['sometimes', 'numeric', 'between:-180,180'],
