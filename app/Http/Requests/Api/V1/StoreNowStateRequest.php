@@ -29,7 +29,14 @@ class StoreNowStateRequest extends FormRequest
     public const SCHEMA = [
         'battery' => ['percent', 'charging', 'low_power', 'device'],
         'weather' => ['condition', 'temp', 'high', 'low'],
-        'location' => ['city', 'region', 'country_code', 'latitude', 'longitude', 'timezone'],
+        'location' => [
+            // Rendered publicly, coarsened where needed.
+            'city', 'region', 'country_code', 'latitude', 'longitude', 'timezone',
+            // Stored only. NowState builds the public payload from its own
+            // allowlist, so these never reach a page: they are here for private
+            // use of data the phone already has to hand.
+            'name', 'street', 'street_number', 'district', 'county', 'postcode', 'areas_of_interest',
+        ],
         'rings' => ['move', 'move_goal', 'exercise', 'exercise_goal', 'stand', 'stand_goal', 'steps'],
     ];
 
@@ -146,6 +153,13 @@ class StoreNowStateRequest extends FormRequest
             'location.latitude' => ['sometimes', 'numeric', 'between:-90,90'],
             'location.longitude' => ['sometimes', 'numeric', 'between:-180,180'],
             'location.timezone' => ['sometimes', 'timezone'],
+            'location.name' => ['sometimes', 'string', 'max:150'],
+            'location.street' => ['sometimes', 'string', 'max:150'],
+            'location.street_number' => ['sometimes', 'string', 'max:30'],
+            'location.district' => ['sometimes', 'string', 'max:100'],
+            'location.county' => ['sometimes', 'string', 'max:100'],
+            'location.postcode' => ['sometimes', 'string', 'max:20'],
+            'location.areas_of_interest' => ['sometimes', 'string', 'max:255'],
 
             'rings' => ['sometimes', 'array'],
             'rings.move' => ['sometimes', 'integer', 'between:0,20000'],

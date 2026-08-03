@@ -140,10 +140,28 @@ it('stores coordinates exactly but only ever renders them coarsened', function (
     );
 });
 
-it('rejects address-level location fields outright', function () {
+it('stores the full address but never renders it', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
-        'location' => ['city' => 'Whyteleafe', 'postcode' => 'CR3 0AA', 'street' => 'Godstone Road'],
-    ])
-        ->assertStatus(422)
-        ->assertJsonValidationErrors(['location.postcode', 'location.street']);
+        'location' => [
+            'city' => 'Whyteleafe',
+            'street' => 'Godstone Road',
+            'street_number' => '221B',
+            'postcode' => 'CR3 0AA',
+            'name' => 'Home',
+            'latitude' => 51.3134567,
+        ],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.location'))
+        ->toMatchArray(['street' => 'Godstone Road', 'street_number' => '221B', 'postcode' => 'CR3 0AA', 'name' => 'Home']);
+
+    // The public payload is built from an allowlist, so the address is absent
+    // by construction rather than by remembering to strip it.
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.location.city', 'Whyteleafe')
+        ->where('ambient.location.latitude', 51.31)
+        ->missing('ambient.location.street')
+        ->missing('ambient.location.postcode')
+        ->missing('ambient.location.name')
+    );
 });
