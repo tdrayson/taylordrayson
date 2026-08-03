@@ -50,11 +50,9 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
              names a place and never the year. The span sits above the rule
              joining them. -->
         <div class="mt-3 flex max-w-md items-center gap-4">
-            <!-- The body below the band is square, so the date block keeps a
-                 calendar page's proportions whatever the day number's width. -->
-            <div class="tile-border flex w-18 shrink-0 flex-col overflow-hidden rounded-xl border">
+            <div class="tile-border flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border">
                 <div class="tile-band py-1 text-center text-label uppercase text-white">{{ start.month }}</div>
-                <div class="flex aspect-square flex-col items-center justify-center gap-0.5">
+                <div class="flex flex-col items-center justify-center gap-0.5 p-2">
                     <time :datetime="start.iso" class="tile-day font-display text-stat leading-none tnum">{{ start.day }}</time>
                     <span class="text-caption text-neutral-400 tnum">{{ start.year }}</span>
                 </div>
@@ -72,9 +70,9 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
                 </div>
             </div>
 
-            <div class="tile-border flex w-18 shrink-0 flex-col overflow-hidden rounded-xl border">
+            <div class="tile-border flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border">
                 <div class="tile-band py-1 text-center text-label uppercase text-white">{{ end.month }}</div>
-                <div class="flex aspect-square flex-col items-center justify-center gap-0.5">
+                <div class="flex flex-col items-center justify-center gap-0.5 p-2">
                     <time :datetime="end.iso" class="tile-day font-display text-stat leading-none tnum">{{ end.day }}</time>
                     <span class="text-caption text-neutral-400 tnum">{{ end.year }}</span>
                 </div>
