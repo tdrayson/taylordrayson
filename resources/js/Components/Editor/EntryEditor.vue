@@ -5,16 +5,14 @@ import Button from '../Ui/Button.vue';
 import FieldInput from './FieldInput.vue';
 
 /**
- * The editing surface for any type, drawn from its field definitions.
+ * The editing surface for any type: one column, mobile first, nothing floating.
  *
- * Ghost's shape: the body gets the full width, the rest lives in a panel that
- * is summoned rather than parked, and the save state sits quietly in the header
- * beside Preview and Publish.
+ * Shaped after Quill and HQ's add-task sheet. A title, a body, then a quiet row
+ * of chips for the rest, each opening in place. Nothing sits in a panel beside
+ * the content, because on a phone there is no beside.
  */
 const props = defineProps({
-    // Field definitions from FieldRegistry.
     fields: { type: Array, required: true },
-    // Current values, keyed by field name (dotted names allowed).
     values: { type: Object, required: true },
     action: { type: String, required: true },
     method: { type: String, default: 'patch' },
@@ -22,31 +20,87 @@ const props = defineProps({
     submitLabel: { type: String, default: 'Post' },
 });
 
-const emit = defineEmits(['preview']);
-
 const form = useForm({ ...props.values });
 
-// The body is whatever field the type nominates, and it is the only one that
-// gets the full width. Everything else is a property.
+const titleField = computed(() => props.fields.find((field) => field.isTitle) ?? null);
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
-const primaryFields = computed(() => props.fields.filter((field) => field.primary && !field.isBody));
-const optionalFields = computed(() => props.fields.filter((field) => !field.primary));
-
-const showProperties = ref(false);
-// Optional fields stay hidden until asked for, or until one already has a value.
-const revealed = ref(optionalFields.value.filter((field) => {
-    const value = props.values[field.name];
-
-    return value !== null && value !== undefined && value !== '';
-}).map((field) => field.name));
-
-const hidden = computed(() => optionalFields.value.filter((field) => !revealed.value.includes(field.name)));
 
 /**
- * Apply the sibling values a lookup resolved. Only keys the form already has
- * are written, so a source returning something this type does not store is
- * ignored rather than silently added to the payload.
+ * A chip suits a short value that is usually empty and quick to set: a date, a
+ * tag list, a toggle. It does not suit a field you have to see to fill in.
+ *
+ * Rich text needs room, a location needs its search box and its button, and a
+ * required field behind a chip is a trap: the post is refused and the reason is
+ * a tap away. Those stack instead.
  */
+function stacks(field) {
+    return field.isTitle
+        || field.isBody
+        || field.type === 'rich-text'
+        || field.type === 'location'
+        || field.required;
+}
+
+const stacked = computed(() => props.fields.filter((field) => stacks(field) && !field.isTitle && !field.isBody));
+const chippable = computed(() => props.fields.filter((field) => !stacks(field)));
+const primaryChips = computed(() => chippable.value.filter((field) => field.primary));
+const extraChips = computed(() => chippable.value.filter((field) => !field.primary));
+
+function filled(name) {
+    const value = props.values[name];
+
+    return Array.isArray(value)
+        ? value.length > 0
+        : value !== null && value !== undefined && value !== '' && value !== false;
+}
+
+/** Which chips are open, and which extras have been added to the row. */
+const expanded = ref([]);
+const added = ref(extraChips.value.filter((field) => filled(field.name)).map((field) => field.name));
+const showExtras = ref(false);
+
+const visibleChips = computed(() => [
+    ...primaryChips.value,
+    ...extraChips.value.filter((field) => added.value.includes(field.name)),
+]);
+
+const remainingExtras = computed(() => extraChips.value.filter((field) => !added.value.includes(field.name)));
+
+function toggle(name) {
+    expanded.value = expanded.value.includes(name)
+        ? expanded.value.filter((item) => item !== name)
+        : [...expanded.value, name];
+}
+
+function add(field) {
+    added.value.push(field.name);
+    expanded.value.push(field.name);
+    showExtras.value = false;
+}
+
+/** The value on the chip itself, so a field that is set reads at a glance. */
+function summary(field) {
+    const value = form[field.name];
+
+    if (value === null || value === undefined || value === '' || value === false) {
+        return null;
+    }
+
+    if (value === true) {
+        return 'Yes';
+    }
+
+    if (Array.isArray(value)) {
+        return value.length ? value.join(', ') : null;
+    }
+
+    if (field.type === 'select') {
+        return field.options?.find((option) => option.value === value)?.label ?? String(value);
+    }
+
+    return String(value).slice(0, 24);
+}
+
 function applyFill(values) {
     Object.entries(values).forEach(([key, value]) => {
         if (key in form) {
@@ -61,38 +115,88 @@ function submit() {
 </script>
 
 <template>
-    <div>
-        <div class="sticky top-0 z-10 mb-6 flex items-center justify-between gap-3 border-b border-neutral-50 bg-neutral-0/90 py-3 backdrop-blur">
-            <p class="text-meta text-neutral-500">
-                <span v-if="form.processing">Posting...</span>
-                <span v-else-if="form.isDirty">Changes not posted</span>
-                <!-- Nothing exists yet on a create, so claiming it is posted
-                     would be a lie the first time anyone reads it. -->
-                <span v-else-if="method === 'post'">Not posted yet</span>
-                <span v-else>Posted</span>
-            </p>
+    <div class="mx-auto w-full max-w-2xl">
+        <!-- The heading: an input that reads as the title it will become, not a
+             form field with a label above it. -->
+        <input
+            v-if="titleField"
+            :id="titleField.name"
+            v-model="form[titleField.name]"
+            :placeholder="titleField.label"
+            class="w-full border-none bg-transparent p-0 font-display text-display text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
+        >
 
-            <div class="flex items-center gap-2">
-                <Button v-if="bodyField" size="sm" @click="emit('preview', form.data())">Preview</Button>
-                <Button size="sm" @click="showProperties = !showProperties">Properties</Button>
-                <Button size="sm" variant="primary" :disabled="form.processing" @click="submit">{{ submitLabel }}</Button>
-            </div>
-        </div>
-
-        <!-- The body, full width. -->
         <FieldInput
             v-if="bodyField"
             :field="bodyField"
             :model-value="form[bodyField.name]"
             :resolved="resolved"
+            hide-label
+            :class="titleField ? 'mt-4' : ''"
             @update:model-value="form[bodyField.name] = $event"
             @fill="applyFill"
         />
 
-        <!-- Types with no body (fuel, books, appearances) are just a form. -->
-        <div v-else class="max-w-xl space-y-4">
+        <!-- Fields that have to be seen to be filled. -->
+        <div v-if="stacked.length" class="mt-6 space-y-4">
             <FieldInput
-                v-for="field in primaryFields"
+                v-for="field in stacked"
+                :key="field.name"
+                :field="field"
+                :model-value="form[field.name]"
+                :resolved="resolved"
+                @update:model-value="form[field.name] = $event"
+                @fill="applyFill"
+            />
+        </div>
+
+        <!-- Everything else, as chips that open in place. -->
+        <div v-if="visibleChips.length || remainingExtras.length" class="mt-6 flex flex-wrap items-center gap-1.5">
+            <button
+                v-for="field in visibleChips"
+                :key="field.name"
+                type="button"
+                class="inline-flex max-w-full items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-meta transition-colors"
+                :class="expanded.includes(field.name) || summary(field)
+                    ? 'border-accent-500 bg-accent-50 text-accent-700'
+                    : 'border-neutral-100 text-neutral-700 hover:border-accent-500 hover:text-accent-700'"
+                @click="toggle(field.name)"
+            >
+                {{ field.label }}
+                <span v-if="summary(field)" class="min-w-0 truncate font-medium">{{ summary(field) }}</span>
+            </button>
+
+            <div v-if="remainingExtras.length" class="relative">
+                <button
+                    type="button"
+                    class="rounded-md border border-neutral-100 px-2.5 py-1.5 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700"
+                    aria-label="Add another field"
+                    @click="showExtras = ! showExtras"
+                >
+                    +
+                </button>
+
+                <ul
+                    v-if="showExtras"
+                    class="absolute left-0 z-20 mt-1 w-52 rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
+                >
+                    <li v-for="field in remainingExtras" :key="field.name">
+                        <button
+                            type="button"
+                            class="w-full px-3 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                            @click="add(field)"
+                        >
+                            {{ field.label }}
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- An opened chip appears here, under the row, in the flow. -->
+        <div v-if="expanded.length" class="mt-4 space-y-4 rounded-lg border border-neutral-50 bg-neutral-25 p-4">
+            <FieldInput
+                v-for="field in visibleChips.filter((f) => expanded.includes(f.name))"
                 :key="field.name"
                 :field="field"
                 :model-value="form[field.name]"
@@ -101,44 +205,15 @@ function submit() {
             />
         </div>
 
-        <aside
-            v-if="showProperties"
-            class="fixed right-4 top-24 z-20 max-h-[70vh] w-80 space-y-4 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 p-4 shadow-lg"
-        >
-            <!-- With a body present the primary fields are properties too; without
-                 one they are already the form above, so they are not repeated. -->
-            <FieldInput
-                v-for="field in (bodyField ? primaryFields : [])"
-                :key="field.name"
-                :field="field"
-                :model-value="form[field.name]"
-                @update:model-value="form[field.name] = $event"
-                @fill="applyFill"
-            />
+        <div class="mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 pt-4">
+            <p class="text-meta text-neutral-500">
+                <span v-if="form.processing">Posting...</span>
+                <span v-else-if="form.isDirty">Changes not posted</span>
+                <span v-else-if="method === 'post'">Not posted yet</span>
+                <span v-else>Posted</span>
+            </p>
 
-            <FieldInput
-                v-for="field in optionalFields.filter((f) => revealed.includes(f.name))"
-                :key="field.name"
-                :field="field"
-                :model-value="form[field.name]"
-                @update:model-value="form[field.name] = $event"
-                @fill="applyFill"
-            />
-
-            <div v-if="hidden.length" class="border-t border-neutral-50 pt-3">
-                <p class="mb-2 text-label uppercase text-neutral-500">Add field</p>
-                <div class="flex flex-wrap gap-1.5">
-                    <button
-                        v-for="field in hidden"
-                        :key="field.name"
-                        type="button"
-                        class="rounded-md bg-neutral-25 px-2 py-1 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                        @click="revealed.push(field.name)"
-                    >
-                        + {{ field.label }}
-                    </button>
-                </div>
-            </div>
-        </aside>
+            <Button variant="primary" :disabled="form.processing" @click="submit">{{ submitLabel }}</Button>
+        </div>
     </div>
 </template>

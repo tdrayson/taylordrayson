@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { Link, router, setLayoutProps } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
@@ -18,19 +18,8 @@ const props = defineProps({
 
 setLayoutProps({ breadcrumb: [{ label: 'New' }] });
 
-// Typing here starts a note without picking anything: the common case should
-// cost no taps at all, and the tiles are for everything else.
-const quickNote = ref('');
-
 const values = computed(() => valuesFor(props.fields));
 
-function startNote() {
-    if (quickNote.value.trim() === '') {
-        return;
-    }
-
-    router.post('/entries/note', { content: quickNote.value });
-}
 </script>
 
 <template>
@@ -39,26 +28,7 @@ function startNote() {
     <div v-if="! type" class="max-w-2xl">
         <h1 class="font-display text-display">New</h1>
 
-        <textarea
-            v-model="quickNote"
-            rows="3"
-            placeholder="What's on your mind?"
-            class="mt-6 w-full rounded-lg border border-neutral-100 bg-neutral-0 px-4 py-3 text-body text-neutral-900 placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none"
-            @keydown.meta.enter="startNote"
-        />
-
-        <div class="mt-2 flex justify-end">
-            <button
-                type="button"
-                class="rounded-md bg-accent-500 px-4 py-2 text-meta font-semibold text-white transition-opacity disabled:opacity-40"
-                :disabled="quickNote.trim() === ''"
-                @click="startNote"
-            >
-                Post note
-            </button>
-        </div>
-
-        <p class="mt-8 text-label uppercase text-neutral-500">Or start something else</p>
+        <p class="mt-6 text-meta text-neutral-500">What are you adding?</p>
 
         <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
             <Link
@@ -74,9 +44,9 @@ function startNote() {
     </div>
 
     <div v-else>
-        <div class="mb-2 flex items-baseline gap-3">
-            <h1 class="font-display text-section">New {{ type }}</h1>
-            <Link href="/new" class="text-meta text-accent-500 underline underline-offset-2">Pick another type</Link>
+        <div class="mx-auto mb-6 flex w-full max-w-2xl items-baseline justify-between gap-3">
+            <p class="text-label uppercase text-neutral-500">New {{ type }}</p>
+            <Link href="/new" class="text-caption text-neutral-500 underline underline-offset-2 hover:text-accent-500">Change type</Link>
         </div>
 
         <EntryEditor

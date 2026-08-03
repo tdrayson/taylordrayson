@@ -42,7 +42,7 @@ final class FieldRules
     private static function typeRules(FieldData $field): array
     {
         return match ($field->type) {
-            FieldType::Text => ['nullable', 'string', 'max:255'],
+            FieldType::Title, FieldType::Text => ['nullable', 'string', 'max:255'],
             FieldType::Textarea => ['nullable', 'string', 'max:5000'],
             FieldType::RichText => ['nullable', 'array'],
             FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],

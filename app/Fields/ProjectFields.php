@@ -17,7 +17,7 @@ final class ProjectFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('title', 'Title', FieldType::Text, required: true),
+            FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('description', 'Description', FieldType::Textarea, 'The one-line summary shown on cards.'),
             FieldData::primary('status', 'Status', FieldType::Select, null, [
                 ['value' => 'active', 'label' => 'Active'],

@@ -85,6 +85,15 @@ function inlineToSpans(content) {
     return { children, markDefs };
 }
 
+/**
+ * A block carrying nothing at all is not worth storing: it is what an untouched
+ * editor produces, and saving it would give every new entry a phantom empty
+ * paragraph.
+ */
+function isEmpty(block) {
+    return (block.children ?? []).length === 0;
+}
+
 /** Build a Portable Text block, omitting markDefs when the block has no links. */
 function block(key, style, content, extra = {}) {
     const { children, markDefs } = inlineToSpans(content);
@@ -191,5 +200,5 @@ export function fromProseMirror(doc) {
         }
     }
 
-    return out;
+    return out.filter((block) => block._type !== 'block' || ! isEmpty(block));
 }

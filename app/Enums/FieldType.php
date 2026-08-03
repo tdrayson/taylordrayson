@@ -10,6 +10,7 @@ namespace App\Enums;
  */
 enum FieldType: string
 {
+    case Title = 'title';
     case Text = 'text';
     case Textarea = 'textarea';
     case RichText = 'rich-text';
@@ -26,6 +27,7 @@ enum FieldType: string
     public function label(): string
     {
         return match ($this) {
+            self::Title => 'Title',
             self::Text => 'Text',
             self::Textarea => 'Long text',
             self::RichText => 'Rich text',
@@ -48,5 +50,14 @@ enum FieldType: string
     public function isBody(): bool
     {
         return $this === self::RichText;
+    }
+
+    /**
+     * Whether this field is the entry's heading, which the editor renders as a
+     * large borderless input above everything rather than as a labelled field.
+     */
+    public function isTitle(): bool
+    {
+        return $this === self::Title;
     }
 }

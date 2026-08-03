@@ -67,6 +67,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
             'primary' => $this->primary,
             'required' => $this->required,
             'isBody' => $this->type->isBody(),
+            'isTitle' => $this->type->isTitle(),
         ];
 
         if ($this->help !== null) {

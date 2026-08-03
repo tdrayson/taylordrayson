@@ -222,3 +222,32 @@ describe('portable text round trip', () => {
         assert.equal(roundTrip(blocks).length, 1);
     });
 });
+
+describe('empty documents', () => {
+    it('gives an empty document a paragraph to type in', () => {
+        // Without one there is no caret position and no node for the
+        // placeholder to hang off, so a new entry opens blank and unlabelled.
+        assert.deepEqual(toProseMirror([]), { type: 'doc', content: [{ type: 'paragraph' }] });
+    });
+
+    it('stores nothing for an untouched editor', () => {
+        resetKeyCounter();
+
+        assert.deepEqual(fromProseMirror(toProseMirror([])), []);
+    });
+
+    it('keeps a document that has real content alongside an empty block', () => {
+        resetKeyCounter();
+
+        const blocks = fromProseMirror({
+            type: 'doc',
+            content: [
+                { type: 'paragraph', attrs: { _key: 'b1' }, content: [{ type: 'text', text: 'Real.' }] },
+                { type: 'paragraph', attrs: { _key: 'b2' } },
+            ],
+        });
+
+        assert.equal(blocks.length, 1);
+        assert.equal(blocks[0]._key, 'b1');
+    });
+});

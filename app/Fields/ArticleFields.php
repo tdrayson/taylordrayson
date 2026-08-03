@@ -17,7 +17,7 @@ final class ArticleFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('title', 'Title', FieldType::Text, required: true),
+            FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('published', 'Published', FieldType::Boolean, 'Drafts are visible only to you and appear in /drafts.'),
             FieldData::primary('tags', 'Tags', FieldType::Tags),

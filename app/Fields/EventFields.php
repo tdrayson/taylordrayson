@@ -18,7 +18,7 @@ final class EventFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('name', 'Name', FieldType::Text, required: true),
+            FieldData::primary('name', 'Name', FieldType::Title, required: true),
             FieldData::primary('occurred_at', 'Starts', FieldType::DateTime),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, 'Search, or use your location.', source: 'place'),
             FieldData::primary('tags', 'Category', FieldType::Tags, 'The first tag is shown as the category.'),

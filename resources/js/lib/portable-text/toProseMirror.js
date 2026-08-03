@@ -210,5 +210,8 @@ export function toProseMirror(portableText) {
         index++;
     }
 
-    return { type: 'doc', content };
+    // ProseMirror needs at least one block: a doc with empty content has no
+    // paragraph for the caret to sit in and nothing for the placeholder to
+    // decorate, which is how every new entry opened blank and unlabelled.
+    return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] };
 }

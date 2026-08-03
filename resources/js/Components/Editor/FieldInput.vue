@@ -15,6 +15,8 @@ defineProps({
     modelValue: { type: [String, Number, Boolean, Array, Object], default: null },
     // kind:id -> resolved mention, forwarded to the rich-text editor.
     resolved: { type: Object, default: () => ({}) },
+    // The body carries no label: the placeholder says what it is.
+    hideLabel: { type: Boolean, default: false },
 });
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
@@ -54,13 +56,13 @@ function textToTags(value) {
 
 <template>
     <div>
-        <label :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
+        <label v-if="! hideLabel" :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
 
         <RichTextEditor
             v-if="field.type === 'rich-text'"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
-            :placeholder="field.help || 'Write, or type @ to mention something'"
+            :placeholder="field.help || 'Write something. Type @ to mention an entry.'"
             :resolved="resolved"
             @update:model-value="$emit('update:modelValue', $event)"
         />
@@ -140,7 +142,12 @@ function textToTags(value) {
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
-        <p v-if="field.help && field.type !== 'boolean' && field.type !== 'rich-text'" class="mt-1 text-caption text-neutral-500">
+        <!-- Lookup and location fields already show the help as their
+             placeholder, and a boolean shows it beside the checkbox. -->
+        <p
+            v-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
+            class="mt-1 text-caption text-neutral-500"
+        >
             {{ field.help }}
         </p>
     </div>
