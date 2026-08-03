@@ -19,6 +19,7 @@ enum Source: string
     case AppleWatch = 'apple_watch';
     case Iphone = 'iphone';
     case Rovi = 'rovi';
+    case Setgraph = 'setgraph';
 
     public function label(): string
     {
@@ -30,6 +31,7 @@ enum Source: string
             self::AppleWatch => 'Apple Watch',
             self::Iphone => 'iPhone',
             self::Rovi => 'Rovi',
+            self::Setgraph => 'Setgraph',
         };
     }
 }

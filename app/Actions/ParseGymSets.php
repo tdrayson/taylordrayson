@@ -2,10 +2,17 @@
 
 namespace App\Actions;
 
+/**
+ * Parse a Setgraph-style gym log into flat set entries, one per set performed.
+ *
+ * Weight is emitted as `weight_kg` to match the shape already stored in
+ * `activities.meta.sets`. A set with no stated weight is bodyweight and carries
+ * `0.0`, which the entry view renders as "Bodyweight".
+ */
 class ParseGymSets
 {
     /**
-     * @return array<int, array{exercise: string, reps: int, weight: float}>
+     * @return array<int, array{exercise: string, reps: int, weight_kg: float}>
      */
     public function __invoke(string $text): array
     {
@@ -25,7 +32,7 @@ class ParseGymSets
     }
 
     /**
-     * @return array<int, array{exercise: string, reps: int, weight: float}>
+     * @return array<int, array{exercise: string, reps: int, weight_kg: float}>
      */
     private function parseLine(string $line): array
     {
@@ -48,7 +55,7 @@ class ParseGymSets
             return array_fill(0, $setCount, [
                 'exercise' => $exercise,
                 'reps' => $set['reps'],
-                'weight' => $set['weight'],
+                'weight_kg' => $set['weight_kg'],
             ]);
         }
 
@@ -60,7 +67,7 @@ class ParseGymSets
                 fn (float $weight): array => [
                     'exercise' => $exercise,
                     'reps' => $reps,
-                    'weight' => $weight,
+                    'weight_kg' => $weight,
                 ],
                 $weights,
             );
@@ -78,7 +85,7 @@ class ParseGymSets
             $sets[] = [
                 'exercise' => $exercise,
                 'reps' => $set['reps'],
-                'weight' => $set['weight'],
+                'weight_kg' => $set['weight_kg'],
             ];
         }
 
@@ -86,17 +93,20 @@ class ParseGymSets
     }
 
     /**
-     * @return array{reps: int, weight: float}|null
+     * A weight is optional: "12 rep" is a bodyweight set (TRX, press-ups) and
+     * scores 0 kg, which is how the entry view spots it.
+     *
+     * @return array{reps: int, weight_kg: float}|null
      */
     private function parseSetSpecification(string $specification): ?array
     {
-        if (! preg_match('/^(\d+)\s+rep(?:s)?\s+([\d.]+)\s*kg$/i', trim($specification), $matches)) {
+        if (! preg_match('/^(\d+)\s+rep(?:s)?(?:\s+([\d.]+)\s*kg)?$/i', trim($specification), $matches)) {
             return null;
         }
 
         return [
             'reps' => (int) $matches[1],
-            'weight' => (float) $matches[2],
+            'weight_kg' => (float) ($matches[2] ?? 0),
         ];
     }
 
