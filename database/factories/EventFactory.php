@@ -47,12 +47,14 @@ class EventFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(array_keys(self::NAMES_BY_TYPE));
+        // The category drives the sample name only; it is no longer persisted as
+        // a column. Tests that need an event's category attach it as a tag with
+        // ->syncTagNames([...]) or the category() state below.
+        $category = fake()->randomElement(array_keys(self::NAMES_BY_TYPE));
 
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
-            'type' => $type,
-            'name' => fake()->randomElement(self::NAMES_BY_TYPE[$type]),
+            'name' => fake()->randomElement(self::NAMES_BY_TYPE[$category]),
             'venue_name' => fake()->randomElement(self::VENUES),
             'city' => fake()->randomElement(['London', 'Manchester', 'Brighton', 'Bristol']),
             'country' => 'United Kingdom',

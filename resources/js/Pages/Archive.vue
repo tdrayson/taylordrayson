@@ -25,6 +25,7 @@ const props = defineProps({
     currentPage: { type: Number, default: 1 },
     lastPage: { type: Number, default: 1 },
     chips: { type: Array, default: () => [] },
+    tagLink: { type: Object, default: null },
     parent: { type: Object, default: null },
     map: { type: Array, default: () => [] },
 });
@@ -55,6 +56,14 @@ setLayoutProps({
             <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
             <h1 class="mt-1 font-display text-display">{{ title }}</h1>
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
+            <Link
+                v-if="tagLink"
+                :href="`/tags/${tagLink.slug}`"
+                class="mt-3 inline-flex items-center gap-1 text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
+            >
+                See everything tagged {{ tagLink.name }}
+                <Icon name="ArrowRight01Icon" class="size-4" />
+            </Link>
         </div>
     </header>
 

@@ -13,7 +13,7 @@ const props = defineProps({
 });
 
 setLayoutProps({
-    breadcrumb: [{ label: `Tagged ${props.name}` }],
+    breadcrumb: [{ label: 'Tags', href: '/tags' }, { label: props.name }],
 });
 </script>
 
@@ -21,8 +21,7 @@ setLayoutProps({
     <AppHead :og="og" />
 
     <header>
-        <p class="text-eyebrow uppercase text-neutral-500">Tag</p>
-        <h1 class="mt-1 font-display text-display">Tagged {{ name }}</h1>
+        <h1 class="font-display text-display">Tagged {{ name }}</h1>
     </header>
 
     <div v-if="groups.length" class="mt-10 flex flex-col gap-14">

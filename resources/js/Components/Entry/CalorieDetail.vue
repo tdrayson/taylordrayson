@@ -30,20 +30,20 @@ const macros = computed(() => {
     return entries.map((macro) => ({ ...macro, percent: (macro.energy / energyTotal) * 100 }));
 });
 
-// Full per-nutrient breakdown. Calories and macros are always present, so the
-// table renders for every day; the micros below are only supplied by some
-// sources (e.g. Lose It, not Rovi) and appear when they carry a value.
+// Per-nutrient breakdown, ordered and nested like a UK/EU nutrition label:
+// saturated fat sits under fat, sugars under carbs (the "of which" sub-rows).
+// Calories are omitted here since they already headline the page. Micros are
+// only supplied by some sources (e.g. Lose It, not Rovi) and appear when present.
 const nutrition = computed(() => {
     const t = totals.value;
 
     return [
-        { label: 'Calories', value: t.calories ? `${number(t.calories)} kcal` : null },
-        { label: 'Protein', value: t.protein ? `${number(t.protein, 1)} g` : null },
-        { label: 'Carbs', value: t.carbs ? `${number(t.carbs, 1)} g` : null },
         { label: 'Fat', value: t.fat ? `${number(t.fat, 1)} g` : null },
-        { label: 'Saturated fat', value: t.saturated_fat ? `${number(t.saturated_fat, 1)} g` : null },
-        { label: 'Sugars', value: t.sugars ? `${number(t.sugars, 1)} g` : null },
+        { label: 'Saturated fat', value: t.saturated_fat ? `${number(t.saturated_fat, 1)} g` : null, sub: true },
+        { label: 'Carbs', value: t.carbs ? `${number(t.carbs, 1)} g` : null },
+        { label: 'Sugars', value: t.sugars ? `${number(t.sugars, 1)} g` : null, sub: true },
         { label: 'Fibre', value: t.fibre ? `${number(t.fibre, 1)} g` : null },
+        { label: 'Protein', value: t.protein ? `${number(t.protein, 1)} g` : null },
         { label: 'Sodium', value: t.sodium ? `${number(t.sodium)} mg` : null },
     ].filter((row) => row.value);
 });

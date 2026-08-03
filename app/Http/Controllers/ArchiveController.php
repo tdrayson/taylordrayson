@@ -7,6 +7,7 @@ use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\TimelineEntry;
+use App\Queries\ArchiveTagBridge;
 use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,7 +19,10 @@ class ArchiveController extends Controller
 {
     private const PER_PAGE = 25;
 
-    public function __construct(private readonly BuildTimelineFeed $feed) {}
+    public function __construct(
+        private readonly BuildTimelineFeed $feed,
+        private readonly ArchiveTagBridge $tagBridge,
+    ) {}
 
     public function index(string $type): Response
     {
@@ -80,6 +84,7 @@ class ArchiveController extends Controller
             'currentPage' => $page->currentPage(),
             'lastPage' => $page->lastPage(),
             'chips' => $this->chips($definition, $value),
+            'tagLink' => ($this->tagBridge)($value),
             'parent' => $parent,
             'map' => $page->currentPage() === 1 ? $this->overviewMap($type, $taxonomy, $value) : [],
         ]);

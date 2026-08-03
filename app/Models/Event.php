@@ -20,7 +20,6 @@ use Spatie\MediaLibrary\HasMedia;
     'occurred_at',
     'ends_at',
     'all_day',
-    'type',
     'name',
     'organiser',
     'venue_name',
