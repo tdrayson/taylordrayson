@@ -19,7 +19,7 @@ const props = defineProps({
     action: { type: String, required: true },
     method: { type: String, default: 'patch' },
     resolved: { type: Object, default: () => ({}) },
-    submitLabel: { type: String, default: 'Save' },
+    submitLabel: { type: String, default: 'Post' },
 });
 
 const emit = defineEmits(['preview']);
@@ -51,12 +51,12 @@ function submit() {
     <div>
         <div class="sticky top-0 z-10 mb-6 flex items-center justify-between gap-3 border-b border-neutral-50 bg-neutral-0/90 py-3 backdrop-blur">
             <p class="text-meta text-neutral-500">
-                <span v-if="form.processing">Saving...</span>
-                <span v-else-if="form.isDirty">Unsaved changes</span>
-                <!-- Nothing has been saved yet on a create, so claiming "Saved"
+                <span v-if="form.processing">Posting...</span>
+                <span v-else-if="form.isDirty">Changes not posted</span>
+                <!-- Nothing exists yet on a create, so claiming it is posted
                      would be a lie the first time anyone reads it. -->
-                <span v-else-if="method === 'post'">Not saved yet</span>
-                <span v-else>Saved</span>
+                <span v-else-if="method === 'post'">Not posted yet</span>
+                <span v-else>Posted</span>
             </p>
 
             <div class="flex items-center gap-2">

@@ -45,14 +45,14 @@ final class AuthorableTypes
      * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, label: string, icon: string, draftable: bool}>
      */
     private const TYPES = [
-        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'label' => 'Note', 'icon' => 'note', 'draftable' => false],
-        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'label' => 'Article', 'icon' => 'article', 'draftable' => true],
-        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'label' => 'Page', 'icon' => 'page', 'draftable' => true],
-        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'label' => 'Project', 'icon' => 'project', 'draftable' => false],
-        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'label' => 'Event', 'icon' => 'event', 'draftable' => false],
-        'book' => ['model' => Media::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'label' => 'Book', 'icon' => 'book', 'draftable' => false],
-        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'label' => 'Fuel', 'icon' => 'fuel', 'draftable' => false],
-        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'label' => 'Appearance', 'icon' => 'appearance', 'draftable' => false],
+        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'label' => 'Note', 'icon' => 'Note01Icon', 'draftable' => false],
+        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'label' => 'Article', 'icon' => 'File01Icon', 'draftable' => true],
+        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'label' => 'Page', 'icon' => 'File02Icon', 'draftable' => true],
+        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'label' => 'Project', 'icon' => 'RocketIcon', 'draftable' => false],
+        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'label' => 'Event', 'icon' => 'Ticket01Icon', 'draftable' => false],
+        'book' => ['model' => Media::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'label' => 'Book', 'icon' => 'BookOpen01Icon', 'draftable' => false],
+        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'label' => 'Fuel', 'icon' => 'PetrolPumpIcon', 'draftable' => false],
+        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'label' => 'Appearance', 'icon' => 'Mic01Icon', 'draftable' => false],
     ];
 
     public static function has(string $type): bool
@@ -92,6 +92,11 @@ final class AuthorableTypes
     /**
      * Everything offered on /new, in the order the tiles appear: the quickest
      * and most frequent first, so the common case is the first thing thumbed.
+     *
+     * Icon names match resources/js/entryTypes.js wherever a type already has
+     * one, so a tile and its timeline entry never show different marks. Pages
+     * are not a timeline type and have no entry there, hence File02Icon beside
+     * the article's File01Icon.
      *
      * @return list<array{type: string, label: string, icon: string}>
      */
