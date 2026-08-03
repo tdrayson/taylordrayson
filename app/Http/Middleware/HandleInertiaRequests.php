@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Queries\NowState;
+use App\Support\StateStore;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,6 +40,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            // Ambient readings from the phone. Shared rather than per-page
+            // because the status bar carries battery, weather and rings on
+            // every page, not just /now. One query for all four groups.
+            'ambient' => fn (): array => (new NowState(new StateStore))(),
         ];
     }
 }
