@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed } from 'vue';
-import Pill from '../Ui/Pill.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 
@@ -8,7 +7,6 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
 const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
 
 // Which photo the lightbox is showing (null = closed).
@@ -39,9 +37,5 @@ const lightboxIndex = ref(null);
         </ul>
 
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />
-
-        <div v-if="tags.length" class="flex flex-wrap gap-2">
-            <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
-        </div>
     </div>
 </template>

@@ -13,20 +13,47 @@ TEXT;
     $sets = (new ParseGymSets)($text);
 
     expect($sets)->toHaveCount(14)
-        ->and($sets[0])->toBe(['exercise' => 'Bench Press', 'reps' => 8, 'weight' => 29.0])
-        ->and($sets[3])->toBe(['exercise' => 'Bench Press', 'reps' => 8, 'weight' => 49.0])
-        ->and($sets[4])->toBe(['exercise' => 'chest press', 'reps' => 8, 'weight' => 20.0])
-        ->and($sets[5])->toBe(['exercise' => 'chest press', 'reps' => 12, 'weight' => 25.0])
-        ->and($sets[7])->toBe(['exercise' => 'chest press', 'reps' => 8, 'weight' => 20.0])
-        ->and($sets[8])->toBe(['exercise' => 'Seated Shoulder Press', 'reps' => 8, 'weight' => 20.0])
-        ->and($sets[9])->toBe(['exercise' => 'Seated Shoulder Press', 'reps' => 8, 'weight' => 20.0])
-        ->and($sets[10])->toBe(['exercise' => 'Seated Shoulder Press', 'reps' => 8, 'weight' => 20.0])
-        ->and($sets[11])->toBe(['exercise' => 'Rope Tricep extension', 'reps' => 12, 'weight' => 12.5])
-        ->and($sets[13])->toBe(['exercise' => 'Rope Tricep extension', 'reps' => 12, 'weight' => 15.0]);
+        ->and($sets[0])->toBe(['exercise' => 'Bench Press', 'reps' => 8, 'weight_kg' => 29.0])
+        ->and($sets[3])->toBe(['exercise' => 'Bench Press', 'reps' => 8, 'weight_kg' => 49.0])
+        ->and($sets[4])->toBe(['exercise' => 'chest press', 'reps' => 8, 'weight_kg' => 20.0])
+        ->and($sets[5])->toBe(['exercise' => 'chest press', 'reps' => 12, 'weight_kg' => 25.0])
+        ->and($sets[7])->toBe(['exercise' => 'chest press', 'reps' => 8, 'weight_kg' => 20.0])
+        ->and($sets[8])->toBe(['exercise' => 'Seated Shoulder Press', 'reps' => 8, 'weight_kg' => 20.0])
+        ->and($sets[9])->toBe(['exercise' => 'Seated Shoulder Press', 'reps' => 8, 'weight_kg' => 20.0])
+        ->and($sets[10])->toBe(['exercise' => 'Seated Shoulder Press', 'reps' => 8, 'weight_kg' => 20.0])
+        ->and($sets[11])->toBe(['exercise' => 'Rope Tricep extension', 'reps' => 12, 'weight_kg' => 12.5])
+        ->and($sets[13])->toBe(['exercise' => 'Rope Tricep extension', 'reps' => 12, 'weight_kg' => 15.0]);
 });
 
 it('ignores blank lines', function () {
     $sets = (new ParseGymSets)("Squat • 5 rep 60 kg\n\nDeadlift • 5 rep 80 kg");
 
     expect($sets)->toHaveCount(2);
+});
+
+it('keeps bodyweight sets, scoring them at zero kg', function () {
+    $sets = (new ParseGymSets)("Trx push up • 3 sets: 12 rep\nPull up • 8 rep");
+
+    expect($sets)->toHaveCount(4)
+        ->and($sets[0])->toBe(['exercise' => 'Trx push up', 'reps' => 12, 'weight_kg' => 0.0])
+        ->and($sets[3])->toBe(['exercise' => 'Pull up', 'reps' => 8, 'weight_kg' => 0.0]);
+});
+
+it('reads a whole Setgraph share, summary and credit lines included', function () {
+    $text = <<<'TEXT'
+Lat Pulldown • 12 rep: 32, 36, 36 kg
+Dumbbell Bench Press • 12 rep: 12, 16, 16 kg
+Trx push up • 3 sets: 12 rep
+chest press • 3 sets: 12 rep 10 kg
+
+Other • 38 min
+
+Tracked on Setgraph
+TEXT;
+
+    $sets = (new ParseGymSets)($text);
+
+    // 12 sets across 4 exercises: the summary and credit lines contribute none.
+    expect($sets)->toHaveCount(12)
+        ->and(array_unique(array_column($sets, 'exercise')))->toHaveCount(4);
 });

@@ -5,6 +5,7 @@ namespace App\Console\Commands\Sync;
 use App\Actions\GenerateStaticMap;
 use App\Actions\StoreActivityStreams;
 use App\Actions\SyncStravaPhotos;
+use App\Actions\Workouts\RecordSetgraphWorkout;
 use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava;
@@ -162,10 +163,11 @@ class StravaSync extends Command
         }
 
         $localDate = $data['start_date_local'] ?? $data['start_date'];
+        // Strava's start_date_local carries a Z; parse as UTC so the wall-clock digits are kept verbatim.
+        $occurredAt = Carbon::parse($localDate, 'UTC');
 
-        return Activity::create([
-            // Strava's start_date_local carries a Z; parse as UTC so the wall-clock digits are kept verbatim.
-            'occurred_at' => Carbon::parse($localDate, 'UTC')->format('Y-m-d H:i:s'),
+        $attributes = [
+            'occurred_at' => $occurredAt->format('Y-m-d H:i:s'),
             'type' => $type,
             'name' => $data['name'],
             'description' => trim((string) ($data['description'] ?? '')) ?: null,
@@ -177,8 +179,43 @@ class StravaSync extends Command
             'source' => Source::Strava->value,
             'source_id' => (string) $data['id'],
             'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
-            'meta' => $meta ?: null,
-        ]);
+        ];
+
+        $activity = $this->unclaimedSetgraphActivity($occurredAt);
+
+        if ($activity === null) {
+            return Activity::create([...$attributes, 'meta' => $meta ?: null]);
+        }
+
+        // Setgraph logged this session before Strava had it. Take the row over
+        // rather than creating a second one, keeping the sets it recorded.
+        $activity->fill($attributes);
+        $activity->meta = [...$meta, ...array_filter($activity->meta ?? [], fn (string $key): bool => $key === 'sets', ARRAY_FILTER_USE_KEY)];
+        $activity->save();
+
+        $this->line('  → Adopted the Setgraph workout logged at '.$activity->getOriginal('occurred_at'));
+
+        return $activity;
+    }
+
+    /**
+     * A strength activity Setgraph created that no Strava activity has claimed
+     * yet, within {@see RecordSetgraphWorkout::MATCH_WINDOW_MINUTES} of this one.
+     */
+    private function unclaimedSetgraphActivity(Carbon $occurredAt): ?Activity
+    {
+        $window = RecordSetgraphWorkout::MATCH_WINDOW_MINUTES;
+
+        return Activity::query()
+            ->where('source', Source::Setgraph->value)
+            ->whereNull('source_id')
+            ->whereBetween('occurred_at', [
+                $occurredAt->copy()->subMinutes($window)->format('Y-m-d H:i:s'),
+                $occurredAt->copy()->addMinutes($window)->format('Y-m-d H:i:s'),
+            ])
+            ->get()
+            ->sortBy(fn (Activity $activity): int => abs($activity->occurred_at->diffInSeconds($occurredAt)))
+            ->first();
     }
 
     /**

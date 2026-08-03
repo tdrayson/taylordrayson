@@ -10,8 +10,6 @@ const props = defineProps({
     linkPreviews: { type: Object, default: () => ({}) },
 });
 
-const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
-
 // Normalise the stored document (bare node array or JSON string) the same way
 // BlockContent does, so heading count can be read straight from the data
 // without waiting for anything to render.
@@ -41,9 +39,8 @@ const headingCount = computed(() => contentNodes.value.filter(
          cover can bleed full width (with the gutter inset, like FlightsMap
          and the story heroes) while everything else stays in the content column. -->
     <div class="full-width content-grid gap-y-8">
-        <div v-if="!entry.published || tags.length" class="flex flex-wrap gap-2">
-            <Pill v-if="!entry.published" label="Draft" variant="accent" />
-            <Pill v-for="tag in tags" :key="tag.slug" :label="tag.name" :href="`/tags/${tag.slug}`" />
+        <div v-if="!entry.published" class="flex flex-wrap gap-2">
+            <Pill label="Draft" variant="accent" />
         </div>
 
         <!-- Wrapper div (not the img) is the grid item: replaced elements
