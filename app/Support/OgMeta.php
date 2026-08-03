@@ -285,6 +285,19 @@ class OgMeta
      * @param  string  $name  The tag's display name.
      * @return OgPayload
      */
+    /**
+     * @return OgPayload
+     */
+    public static function tags(): array
+    {
+        return self::make([
+            'title' => 'Tags',
+            'eyebrow' => 'Index',
+            'heading' => 'Tags',
+            'description' => 'Every topic across the site, most-used first.',
+        ]);
+    }
+
     public static function tag(string $name): array
     {
         return self::make([

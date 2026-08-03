@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\Tag;
 use App\Models\Taggable;
 use App\Models\TimelineEntry;
+use App\Queries\TagUsage;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -17,6 +18,18 @@ use Inertia\Response;
 class TagController extends Controller
 {
     public function __construct(private readonly BuildTimelineFeed $feed) {}
+
+    /**
+     * The tag index: every visible tag with its usage count, for the weighted
+     * cloud and the A-Z list.
+     */
+    public function index(TagUsage $tags): Response
+    {
+        return Inertia::render('Tags', [
+            'og' => OgMeta::tags(),
+            'tags' => $tags(),
+        ]);
+    }
 
     /**
      * Cross-type tag feed: every article, note, and project carrying this tag,
