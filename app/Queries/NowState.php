@@ -29,9 +29,12 @@ final class NowState
     ];
 
     /**
-     * Decimal places kept on a public coordinate: ~1.1km, a town not a house.
+     * Decimal places kept on a public coordinate. The Now map sits at zoom 5.6,
+     * a regional view where a whole degree and two places look identical, so
+     * the precision would only ever have been sitting in the page source. A
+     * page wanting a tighter map can read the stored value and decide its own.
      */
-    private const COORDINATE_PLACES = 2;
+    private const COORDINATE_PLACES = 0;
 
     public function __construct(private readonly StateStore $state) {}
 
@@ -88,7 +91,7 @@ final class NowState
         // the single path out. The stored value stays precise for private use.
         foreach (['latitude', 'longitude'] as $axis) {
             if (isset($shaped[$axis])) {
-                $shaped[$axis] = round((float) $shaped[$axis], self::COORDINATE_PLACES);
+                $shaped[$axis] = (int) round((float) $shaped[$axis], self::COORDINATE_PLACES);
             }
         }
 

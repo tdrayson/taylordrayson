@@ -134,8 +134,8 @@ it('stores coordinates exactly but only ever renders them coarsened', function (
     // Coarsened on the only path to a public page, and the country name comes
     // from the code rather than being sent as a second value.
     $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
-        ->where('ambient.location.latitude', 51.31)
-        ->where('ambient.location.longitude', -0.06)
+        ->where('ambient.location.latitude', 51)
+        ->where('ambient.location.longitude', 0)
         ->where('ambient.location.country', 'United Kingdom')
     );
 });
@@ -158,7 +158,7 @@ it('stores the full address but never renders it', function () {
     // by construction rather than by remembering to strip it.
     $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
         ->where('ambient.location.city', 'Whyteleafe')
-        ->where('ambient.location.latitude', 51.31)
+        ->where('ambient.location.latitude', 51)
         ->missing('ambient.location.street')
         ->missing('ambient.location.postcode')
         ->missing('ambient.location.name')
@@ -186,4 +186,13 @@ it('renders whole temperatures while storing what was sent', function () {
         ->where('ambient.weather.high', 24)
         ->where('ambient.weather.low', 14)
     );
+});
+
+it('takes health values with their units and separators attached', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'rings' => ['move' => '137 kcal', 'exercise' => '24 min', 'stand' => '9 hr', 'steps' => '11,240 steps'],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.rings'))
+        ->toEqual(['move' => 137, 'exercise' => 24, 'stand' => 9, 'steps' => 11240]);
 });

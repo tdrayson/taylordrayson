@@ -60,6 +60,7 @@ class StoreNowStateRequest extends FormRequest
             'battery' => $this->normalisedBattery(),
             'weather' => $this->normalisedWeather(),
             'location' => $this->normalisedLocation(),
+            'rings' => $this->normalisedRings(),
         ]));
     }
 
@@ -105,6 +106,47 @@ class StoreNowStateRequest extends FormRequest
         }
 
         return $location;
+    }
+
+    /**
+     * Health values arrive from Shortcuts with their unit attached and, for
+     * larger figures, a thousands separator: "137 kcal", "11,240 steps".
+     *
+     * @return array<string, mixed>|null
+     */
+    private function normalisedRings(): ?array
+    {
+        $rings = $this->input('rings');
+
+        if (! is_array($rings)) {
+            return null;
+        }
+
+        foreach (array_keys($rings) as $key) {
+            $rings[$key] = $this->numberIn($rings[$key]) ?? $rings[$key];
+        }
+
+        return $rings;
+    }
+
+    /**
+     * The first number in a value Shortcuts has stringified, or null when there
+     * is none to find. Thousands separators are dropped first so "11,240" reads
+     * as one number rather than stopping at the comma.
+     */
+    private function numberIn(mixed $value): int|float|null
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $cleaned = str_replace(',', '', $value);
+
+        if (preg_match('/-?\\d+(\\.\\d+)?/', $cleaned, $match) !== 1) {
+            return null;
+        }
+
+        return str_contains($match[0], '.') ? (float) $match[0] : (int) $match[0];
     }
 
     /**
