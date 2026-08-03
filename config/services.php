@@ -50,10 +50,6 @@ return [
         'refresh_token' => env('STRAVA_REFRESH_TOKEN'),
     ],
 
-    'health_export' => [
-        'token' => env('HEALTH_EXPORT_TOKEN'),
-    ],
-
     'rovi' => [
         'key' => env('ROVI_KEY'),
         'base_url' => env('ROVI_BASE_URL', 'https://europe-west1-rovi-16b3a.cloudfunctions.net/personalApi'),
