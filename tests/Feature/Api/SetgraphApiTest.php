@@ -16,7 +16,7 @@ Tracked on Setgraph
 TEXT;
 
 it('creates a placeholder activity when Strava has not synced the session yet', function () use ($share) {
-    $this->withToken('test-token')->postJson('/api/v1/workouts', [
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
         'text' => $share,
         'occurred_at' => '2026-07-27 19:49:17',
         'timezone' => 'Europe/London',
@@ -50,7 +50,7 @@ it('merges the sets onto the Strava activity when that synced first', function (
     ]);
 
     // Shared 20 minutes after the activity started, still the same session.
-    $this->withToken('test-token')->postJson('/api/v1/workouts', [
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
         'text' => $share,
         'occurred_at' => '2026-07-27 20:09:00',
     ])
@@ -76,7 +76,7 @@ it('does not claim a cardio activity that happens to sit in the same window', fu
         'source_id' => '111',
     ]);
 
-    $this->withToken('test-token')->postJson('/api/v1/workouts', [
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
         'text' => $share,
         'occurred_at' => '2026-07-27 19:49:17',
     ])->assertCreated();
@@ -85,13 +85,13 @@ it('does not claim a cardio activity that happens to sit in the same window', fu
 });
 
 it('requires the share text', function () {
-    $this->withToken('test-token')->postJson('/api/v1/workouts', [])
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['text']);
 });
 
 it('rejects an unauthenticated post', function () use ($share) {
-    $this->postJson('/api/v1/workouts', ['text' => $share])->assertUnauthorized();
+    $this->postJson('/api/v1/setgraph', ['text' => $share])->assertUnauthorized();
 
     expect(Activity::count())->toBe(0);
 });

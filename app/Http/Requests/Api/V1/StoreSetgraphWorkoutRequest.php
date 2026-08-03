@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreWorkoutRequest extends FormRequest
+class StoreSetgraphWorkoutRequest extends FormRequest
 {
     /**
      * @return array<string, array<int, string>>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Workouts\RecordSetgraphWorkout;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\StoreWorkoutRequest;
+use App\Http\Requests\Api\V1\StoreSetgraphWorkoutRequest;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -14,9 +14,9 @@ use Illuminate\Http\Response;
  * against the matching activity. The client sends everything it has; picking
  * out the sets is this end's job.
  */
-class WorkoutController extends Controller
+class SetgraphController extends Controller
 {
-    public function __invoke(StoreWorkoutRequest $request, RecordSetgraphWorkout $record): JsonResponse
+    public function __invoke(StoreSetgraphWorkoutRequest $request, RecordSetgraphWorkout $record): JsonResponse
     {
         $validated = $request->validated();
 

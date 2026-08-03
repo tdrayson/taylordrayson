@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\V1\FlightController;
 use App\Http\Controllers\Api\V1\NoteController;
-use App\Http\Controllers\Api\V1\WorkoutController;
+use App\Http\Controllers\Api\V1\SetgraphController;
 use App\Http\Controllers\HealthExportController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
@@ -17,5 +17,7 @@ Route::prefix('v1')->middleware('api.token')->name('api.v1.')->group(function ()
     Route::get('/ping', fn (): JsonResponse => response()->json(['data' => ['ok' => true]]))->name('ping');
     Route::apiResource('notes', NoteController::class);
     Route::apiResource('flights', FlightController::class);
-    Route::post('/workouts', WorkoutController::class)->name('workouts.store');
+    // Ingest routes are named for the app that sends them, since the payload
+    // shape is that app's contract rather than ours.
+    Route::post('/setgraph', SetgraphController::class)->name('setgraph.store');
 });
