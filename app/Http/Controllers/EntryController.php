@@ -18,7 +18,7 @@ use App\Models\Note;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
-use App\Queries\FuelEconomy;
+use App\Presenters\Entries\FuelEntry;
 use App\Queries\TripForEntry;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
@@ -32,10 +32,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
-    public function __construct(
-        private readonly FuelEconomy $fuelEconomy,
-        private readonly TripForEntry $tripForEntry,
-    ) {}
+    public function __construct(private readonly TripForEntry $tripForEntry) {}
 
     public function show(int $year, int $month, int $day, string $slug): Response
     {
@@ -214,10 +211,7 @@ class EntryController extends Controller
         }
 
         if ($model instanceof Fuel) {
-            $economy = ($this->fuelEconomy)($model);
-            $data['miles_this_tank'] = $economy['miles'];
-            $data['mpg'] = $economy['mpg'];
-            $data['vehicle'] = $economy['vehicle'];
+            $data = [...$data, ...(new FuelEntry)->present($model)];
         }
 
         return $data;
