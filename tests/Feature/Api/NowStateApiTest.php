@@ -110,27 +110,34 @@ it('takes weather the way Shortcuts hands it over', function () {
         ->toEqual(['condition' => 'partly-cloudy', 'temp' => 21.0, 'high' => 24.0, 'low' => -2.0]);
 });
 
-it('coarsens coordinates rather than trusting them to arrive rounded', function () {
+it('stores coordinates exactly but only ever renders them coarsened', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
         'location' => [
             'city' => 'Whyteleafe',
             'region' => 'Surrey',
-            'country' => 'United Kingdom',
             'country_code' => 'gb',
             'latitude' => 51.3134567,
             'longitude' => -0.0612345,
         ],
     ])->assertOk();
 
+    // Stored precisely, so a private project can use the real position.
     expect(app(StateStore::class)->get('now.location'))
         ->toEqual([
             'city' => 'Whyteleafe',
             'region' => 'Surrey',
-            'country' => 'United Kingdom',
             'country_code' => 'GB',
-            'latitude' => 51.31,
-            'longitude' => -0.06,
+            'latitude' => 51.3134567,
+            'longitude' => -0.0612345,
         ]);
+
+    // Coarsened on the only path to a public page, and the country name comes
+    // from the code rather than being sent as a second value.
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.location.latitude', 51.31)
+        ->where('ambient.location.longitude', -0.06)
+        ->where('ambient.location.country', 'United Kingdom')
+    );
 });
 
 it('rejects address-level location fields outright', function () {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Queries\NowState;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
@@ -25,15 +26,10 @@ class StoreNowStateRequest extends FormRequest
      *
      * @var array<string, array<int, string>>
      */
-    /**
-     * Decimal places kept on a coordinate: ~1.1km, a town rather than a street.
-     */
-    public const COORDINATE_PLACES = 2;
-
     public const SCHEMA = [
         'battery' => ['percent', 'charging', 'low_power', 'device'],
         'weather' => ['condition', 'temp', 'high', 'low'],
-        'location' => ['city', 'region', 'country', 'country_code', 'latitude', 'longitude', 'timezone'],
+        'location' => ['city', 'region', 'country_code', 'latitude', 'longitude', 'timezone'],
         'rings' => ['move', 'move_goal', 'exercise', 'exercise_goal', 'stand', 'stand_goal', 'steps'],
     ];
 
@@ -74,10 +70,9 @@ class StoreNowStateRequest extends FormRequest
     }
 
     /**
-     * Coordinates are rounded here rather than trusted to arrive coarse. They
-     * are rendered on a public page, so precision is dropped at the boundary
-     * where it cannot be forgotten: two places is roughly a kilometre, enough
-     * to place a town and not a house.
+     * Coordinates are stored exactly as sent. They are coarsened on the way
+     * out instead ({@see NowState}), so the precise position
+     * stays available to anything private while never reaching a public page.
      *
      * @return array<string, mixed>|null
      */
@@ -87,12 +82,6 @@ class StoreNowStateRequest extends FormRequest
 
         if (! is_array($location)) {
             return null;
-        }
-
-        foreach (['latitude', 'longitude'] as $axis) {
-            if (is_numeric($location[$axis] ?? null)) {
-                $location[$axis] = round((float) $location[$axis], self::COORDINATE_PLACES);
-            }
         }
 
         if (is_string($location['country_code'] ?? null)) {
@@ -153,7 +142,6 @@ class StoreNowStateRequest extends FormRequest
             'location' => ['sometimes', 'array'],
             'location.city' => ['sometimes', 'string', 'max:100'],
             'location.region' => ['sometimes', 'string', 'max:100'],
-            'location.country' => ['sometimes', 'string', 'max:100'],
             'location.country_code' => ['sometimes', 'string', 'size:2'],
             'location.latitude' => ['sometimes', 'numeric', 'between:-90,90'],
             'location.longitude' => ['sometimes', 'numeric', 'between:-180,180'],

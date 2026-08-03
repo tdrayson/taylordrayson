@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Support\StateStore;
 use Carbon\CarbonImmutable;
+use Locale;
 
 /**
  * The ambient readings the Now page shows, as last sent from the phone.
@@ -23,9 +24,14 @@ final class NowState
     private const FIELDS = [
         'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower', 'device' => 'device'],
         'weather' => ['condition' => 'condition', 'temp' => 'temp', 'high' => 'high', 'low' => 'low'],
-        'location' => ['city' => 'city', 'region' => 'region', 'country' => 'country', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
+        'location' => ['city' => 'city', 'region' => 'region', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
         'rings' => ['move' => 'move', 'move_goal' => 'moveGoal', 'exercise' => 'exercise', 'exercise_goal' => 'exerciseGoal', 'stand' => 'stand', 'stand_goal' => 'standGoal', 'steps' => 'steps'],
     ];
+
+    /**
+     * Decimal places kept on a public coordinate: ~1.1km, a town not a house.
+     */
+    private const COORDINATE_PLACES = 2;
 
     public function __construct(private readonly StateStore $state) {}
 
@@ -66,6 +72,21 @@ final class NowState
 
         if ($shaped === []) {
             return null;
+        }
+
+        // Coordinates are stored exactly but never leave the server that way:
+        // this payload is rendered on a public page, so precision is dropped on
+        // the single path out. The stored value stays precise for private use.
+        foreach (['latitude', 'longitude'] as $axis) {
+            if (isset($shaped[$axis])) {
+                $shaped[$axis] = round((float) $shaped[$axis], self::COORDINATE_PLACES);
+            }
+        }
+
+        // A country code is enough: intl turns it into a display name, so the
+        // phone sends one value rather than two that can disagree.
+        if (isset($shaped['countryCode'])) {
+            $shaped['country'] = Locale::getDisplayRegion('-'.$shaped['countryCode'], 'en');
         }
 
         // The status bar shows the zone as an abbreviation ("BST"), which needs
