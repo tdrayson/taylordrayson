@@ -133,8 +133,102 @@ it('stores the shared wall-clock time and zone on an activity it creates', funct
 
     $activity = Activity::sole();
 
-    expect($activity->occurred_at->format('Y-m-d H:i:s'))->toBe('2026-07-27 20:10:00')
+    // 20:10 shared, less the 38 minutes the share states.
+    expect($activity->occurred_at->format('Y-m-d H:i:s'))->toBe('2026-07-27 19:32:00')
         ->and($activity->timezone)->toBe('America/New_York');
+});
+
+it('works the start back from the share time and the stated length', function () use ($share) {
+    // Shared at 20:10 after a 38 minute session, so the workout began ~19:32.
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-07-27T20:10:00+01:00',
+    ])->assertCreated();
+
+    expect(Activity::sole()->occurred_at->format('Y-m-d H:i:s'))->toBe('2026-07-27 19:32:00');
+});
+
+it('matches a long session that would fall outside the window if timed from its end', function () {
+    $existing = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 18:00:00',
+        'type' => 'weight-training',
+        'source' => 'strava',
+        'source_id' => '555',
+    ]);
+
+    // A 135 minute session shared at 20:20: 140 minutes from the Strava start,
+    // well past the 90 minute window, but only 5 minutes out once worked back.
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => "Squat • 5 rep 60 kg\n\nStrength • 135 min",
+        'occurred_at' => '2026-07-27T20:20:00+01:00',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $existing->id);
+
+    expect(Activity::count())->toBe(1);
+});
+
+it('falls back to the share time when the workout states no length', function () {
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => 'Squat • 5 rep 60 kg',
+        'occurred_at' => '2026-07-27T20:10:00+01:00',
+    ])->assertCreated();
+
+    expect(Activity::sole()->occurred_at->format('Y-m-d H:i:s'))->toBe('2026-07-27 20:10:00');
+});
+
+it('picks the gym session over the tennis that preceded it', function () {
+    // Strava files tennis as a generic 'workout', so both are candidates.
+    $tennis = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 17:30:00',
+        'type' => 'workout',
+        'name' => 'Tennis',
+        'duration' => 3600,
+        'source' => 'strava',
+        'source_id' => '777',
+        'meta' => ['sport_type' => 'Tennis'],
+    ]);
+
+    $gym = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 19:00:00',
+        'type' => 'weight-training',
+        'name' => 'Evening Weight Training',
+        'duration' => 2280,
+        'source' => 'strava',
+        'source_id' => '888',
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => "Squat • 5 rep 60 kg\n\nOther • 38 min",
+        'occurred_at' => '2026-07-27T19:40:00+01:00',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $gym->id);
+
+    expect($tennis->fresh()->meta['sets'] ?? null)->toBeNull()
+        ->and($gym->fresh()->meta['sets'])->toHaveCount(1);
+});
+
+it('leaves tennis alone when the gym session has not synced yet', function () {
+    // The dangerous case: tennis ends at 18:30, gym starts at 19:00 and is not
+    // on Strava yet. Proximity alone would hand the sets to the tennis.
+    $tennis = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 17:30:00',
+        'type' => 'workout',
+        'name' => 'Tennis',
+        'duration' => 3600,
+        'source' => 'strava',
+        'source_id' => '777',
+        'meta' => ['sport_type' => 'Tennis'],
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => "Squat • 5 rep 60 kg\n\nOther • 38 min",
+        'occurred_at' => '2026-07-27T19:38:00+01:00',
+    ])->assertCreated();
+
+    expect($tennis->fresh()->meta['sets'] ?? null)->toBeNull()
+        ->and(Activity::count())->toBe(2);
 });
 
 it('requires the share text', function () {

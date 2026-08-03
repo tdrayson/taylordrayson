@@ -32,8 +32,10 @@ beforeEach(function () {
 });
 
 it('adopts the Setgraph workout instead of creating a second activity', function () {
+    // Setgraph only knows when the workout was shared, so the placeholder sits
+    // 21 minutes after the session actually began.
     $setgraph = Activity::factory()->create([
-        'occurred_at' => '2026-07-27 19:49:00',
+        'occurred_at' => '2026-07-27 20:10:00',
         'type' => 'weight-training',
         'name' => 'Weight Training',
         'duration' => 2280,
@@ -50,7 +52,9 @@ it('adopts the Setgraph workout instead of creating a second activity', function
     expect(Activity::count())->toBe(1)
         ->and($setgraph->source)->toBe('strava')
         ->and($setgraph->source_id)->toBe('19532725079')
-        // Strava's richer figures land on the row Setgraph opened.
+        // Strava's richer figures land on the row Setgraph opened, including
+        // the real start time in place of the share-time estimate.
+        ->and($setgraph->occurred_at->format('Y-m-d H:i:s'))->toBe('2026-07-27 19:49:17')
         ->and($setgraph->name)->toBe('Evening Weight Training')
         ->and($setgraph->average_heart_rate)->toEqual(118)
         ->and($setgraph->duration)->toBe(2311)
