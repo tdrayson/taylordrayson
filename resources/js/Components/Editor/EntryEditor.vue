@@ -115,7 +115,10 @@ function submit() {
 </script>
 
 <template>
-    <div class="mx-auto w-full max-w-2xl">
+    <!-- Left-aligned in the content column, not centred inside it: every other
+         page on the site starts at the same left edge, and centring made the
+         editor jump 112px right of the page you arrived from. -->
+    <div class="w-full max-w-2xl">
         <!-- The heading: an input that reads as the title it will become, not a
              form field with a label above it. -->
         <input

@@ -44,7 +44,7 @@ const values = computed(() => valuesFor(props.fields));
     </div>
 
     <div v-else>
-        <div class="mx-auto mb-6 flex w-full max-w-2xl items-baseline justify-between gap-3">
+        <div class="mb-6 flex w-full max-w-2xl items-baseline justify-between gap-3">
             <p class="text-label uppercase text-neutral-500">New {{ type }}</p>
             <Link href="/new" class="text-caption text-neutral-500 underline underline-offset-2 hover:text-accent-500">Change type</Link>
         </div>
