@@ -10,7 +10,7 @@ uses(RefreshDatabase::class);
 it('carries both the location map and photos on the card, like a check-in', function () {
     Storage::fake('public');
 
-    $event = Event::factory()->create(['type' => 'musical', 'occurred_at' => now()]);
+    $event = Event::factory()->create(['occurred_at' => now()]);
     $event->addMediaFromString(fakeJpeg())->usingFileName('photo.jpg')->toMediaCollection('photos');
     $event->addMediaFromString(fakeJpeg())->usingFileName('map.png')->toMediaCollection('map');
 

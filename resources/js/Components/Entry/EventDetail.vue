@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
-import Pill from '../Ui/Pill.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import LocationMap from '../Maps/LocationMap.vue';
@@ -11,11 +10,6 @@ import StatGrid from '../Stats/StatGrid.vue';
 const props = defineProps({
     entry: { type: Object, required: true },
 });
-
-// The event's category, shown as a pill linking to that slice of the events
-// archive. Events moved from a `type` column to tags, so the category is now
-// the first tag ({name, slug}); null for an untagged event.
-const category = computed(() => props.entry.tags?.[0] ?? null);
 
 // Loose, display-only details live in the meta JSON column (seat, geocoding extras).
 const seat = computed(() => props.entry.meta?.seat ?? null);
@@ -42,12 +36,11 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="space-y-8">
-        <div class="space-y-2">
-            <Pill v-if="category" :label="category.name" :href="`/events/${category.slug}`" />
-            <p v-if="range" class="text-meta text-neutral-500">
-                {{ range.long }} ({{ range.days }} days)
-            </p>
-        </div>
+        <!-- The event category now renders as a tag in the shared footer, so it
+             is no longer repeated as a pill here. -->
+        <p v-if="range" class="text-meta text-neutral-500">
+            {{ range.long }} ({{ range.days }} days)
+        </p>
 
         <div v-if="location" class="space-y-3">
             <LocationMap

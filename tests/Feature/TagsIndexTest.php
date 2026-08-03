@@ -13,8 +13,8 @@ use function Pest\Laravel\get;
 uses(RefreshDatabase::class);
 
 it('lists visible tags with per-tag usage counts', function () {
-    $first = Event::factory()->create(['type' => 'theatre', 'occurred_at' => now()->subDay()]);
-    $second = Event::factory()->create(['type' => 'theatre', 'occurred_at' => now()->subDays(2)]);
+    $first = Event::factory()->create(['occurred_at' => now()->subDay()]);
+    $second = Event::factory()->create(['occurred_at' => now()->subDays(2)]);
     $note = Note::factory()->create(['occurred_at' => now()->subDays(3)]);
 
     $first->syncTagNames(['Theatre']);
