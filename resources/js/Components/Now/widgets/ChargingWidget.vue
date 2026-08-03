@@ -162,15 +162,15 @@ const fillModifier = computed(() => {
 }
 
 /* Idle (not charging) — a white battery, outlined so it reads on the track. */
+/* On battery — dark, matching the percentage's own colour in this state. A
+   white fill was invisible against the white card. */
 .charging__fill--idle {
-    background: var(--color-neutral-0);
-    box-shadow:
-        inset 0 0 0 0.4cqw var(--color-neutral-200),
-        0 1cqw 2cqw rgba(20, 22, 30, 0.06);
+    background: linear-gradient(180deg, var(--color-neutral-700), var(--color-neutral-900) 60%);
+    box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.18);
 }
 
 .charging__fill--idle::before {
-    background: rgba(0, 0, 0, 0.14);
+    background: rgba(255, 255, 255, 0.45);
 }
 
 .charging__fill--low {
