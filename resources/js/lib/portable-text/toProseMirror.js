@@ -45,11 +45,21 @@ function spanToText(span, markDefs) {
     return node;
 }
 
-/** The inline content of a block, dropping spans that carry no text. */
+/**
+ * The inline content of a block.
+ *
+ * A mention is a child alongside spans rather than a mark, because it stores a
+ * reference rather than decorating text: `{kind, id}` and nothing else. The
+ * title is resolved when rendering, so renaming an entry updates every mention
+ * of it and a mention of a deleted entry can say so instead of showing a name
+ * that is gone.
+ */
 function inlineContent(block) {
     return (block.children ?? [])
-        .filter((span) => (span.text ?? '') !== '')
-        .map((span) => spanToText(span, block.markDefs));
+        .filter((child) => child._type === 'mention' || (child.text ?? '') !== '')
+        .map((child) => child._type === 'mention'
+            ? { type: 'mention', attrs: { _key: child._key, kind: child.kind ?? null, id: child.id ?? null } }
+            : spanToText(child, block.markDefs));
 }
 
 /** A paragraph, heading or blockquote, i.e. any block that is not a list item. */

@@ -21,7 +21,11 @@ function stripSpanKeys(blocks) {
 
         return {
             ...block,
-            children: (block.children ?? []).map(({ _key, ...span }) => span),
+            // Mentions keep their key: it identifies a real reference, not a
+            // run of text, and survives as a node attribute.
+            children: (block.children ?? []).map((child) => child._type === 'mention'
+                ? child
+                : (({ _key, ...span }) => span)(child)),
         };
     });
 }
@@ -133,6 +137,43 @@ describe('portable text round trip', () => {
         { _type: 'code', _key: 'c1', code: 'true', language: 'js', filename: null, lineNumbers: null },
         { _type: 'block', _key: 'b3', style: 'blockquote', children: [span('Closing.')] },
     ]);
+
+    survives('a mention among ordinary text', [
+        {
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [
+                span('As covered in '),
+                { _type: 'mention', _key: 'm1', kind: 'article', id: 42 },
+                span(' last week.'),
+            ],
+        },
+    ]);
+
+    survives('a mention as the only content of a block', [
+        {
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [{ _type: 'mention', _key: 'm1', kind: 'project', id: 7 }],
+        },
+    ]);
+
+    it('stores only kind and id on a mention, never the title', () => {
+        // A stored title would go stale the moment the target is renamed, and
+        // would keep showing a name that is gone once it is deleted.
+        const blocks = [{
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [{ _type: 'mention', _key: 'm1', kind: 'article', id: 42, title: 'Should not survive' }],
+        }];
+
+        const mention = roundTrip(blocks)[0].children[0];
+
+        assert.deepEqual(mention, { _type: 'mention', _key: 'm1', kind: 'article', id: 42 });
+    });
 
     it('preserves block keys, so a save is not a whole-document rewrite', () => {
         const blocks = [{ _type: 'block', _key: 'stable-key', style: 'normal', children: [span('Text')] }];
