@@ -34,7 +34,10 @@ class StoreNowStateRequest extends FormRequest
             'city', 'region', 'country_code', 'latitude', 'longitude', 'timezone',
             // Stored only. NowState builds the public payload from its own
             // allowlist, so these never reach a page: they are here for private
-            // use of data the phone already has to hand.
+            // use of data the phone already has to hand. `name` is the place
+            // itself ("David Lloyd Purley Way"), which iOS falls back to the
+            // street address for when there is no named place, so it stays
+            // private with the rest of them.
             'name', 'street', 'street_number', 'district', 'county', 'postcode', 'areas_of_interest',
         ],
         'rings' => ['move', 'move_goal', 'exercise', 'exercise_goal', 'stand', 'stand_goal', 'steps'],
