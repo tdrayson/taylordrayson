@@ -109,3 +109,34 @@ it('takes weather the way Shortcuts hands it over', function () {
     expect(app(StateStore::class)->get('now.weather'))
         ->toEqual(['condition' => 'partly-cloudy', 'temp' => 21.0, 'high' => 24.0, 'low' => -2.0]);
 });
+
+it('coarsens coordinates rather than trusting them to arrive rounded', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'location' => [
+            'city' => 'Whyteleafe',
+            'region' => 'Surrey',
+            'country' => 'United Kingdom',
+            'country_code' => 'gb',
+            'latitude' => 51.3134567,
+            'longitude' => -0.0612345,
+        ],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.location'))
+        ->toEqual([
+            'city' => 'Whyteleafe',
+            'region' => 'Surrey',
+            'country' => 'United Kingdom',
+            'country_code' => 'GB',
+            'latitude' => 51.31,
+            'longitude' => -0.06,
+        ]);
+});
+
+it('rejects address-level location fields outright', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'location' => ['city' => 'Whyteleafe', 'postcode' => 'CR3 0AA', 'street' => 'Godstone Road'],
+    ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['location.postcode', 'location.street']);
+});
