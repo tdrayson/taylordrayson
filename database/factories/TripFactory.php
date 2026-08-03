@@ -31,12 +31,14 @@ class TripFactory extends Factory
      */
     public function definition(): array
     {
-        $title = fake()->unique()->randomElement(self::TITLES).' '.fake()->year();
+        // A trip title names a place and never a date; the slug carries a
+        // counter so repeated places stay unique without dating the title.
+        $title = fake()->randomElement(self::TITLES);
         $startsAt = CarbonImmutable::parse(fake()->dateTimeBetween('-3 years', '-1 month')->format('Y-m-d').' 08:00:00');
 
         return [
             'title' => $title,
-            'slug' => Str::slug($title),
+            'slug' => Str::slug($title).'-'.fake()->unique()->numberBetween(1, 999999),
             'starts_at' => $startsAt,
             'ends_at' => $startsAt->addDays(fake()->numberBetween(2, 13))->setTime(22, 0),
             'timezone' => 'Europe/London',

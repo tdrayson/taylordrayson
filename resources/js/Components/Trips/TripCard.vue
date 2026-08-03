@@ -10,8 +10,6 @@ defineProps({
     start: { type: Object, required: true },
     end: { type: Object, required: true },
     days: { type: Number, required: true },
-    // True when the trip crosses a year boundary, so both tiles show their year.
-    spansYears: { type: Boolean, default: false },
 });
 </script>
 
@@ -37,21 +35,25 @@ defineProps({
             <Link :href="href" class="transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ title }}</Link>
         </h3>
 
-        <!-- A calendar tile per end of the window, month above day, with the
-             span between them. -->
-        <div class="mt-3 flex items-center gap-4">
-            <div class="flex w-16 flex-col overflow-hidden rounded-lg border border-neutral-100">
-                <span class="type-color-bg py-0.5 text-center text-label uppercase text-white">{{ start.month }}</span>
-                <span class="bg-neutral-0 py-1 text-center font-display text-section tnum">{{ start.day }}</span>
-                <span v-if="spansYears" class="bg-neutral-0 pb-1 text-center text-caption text-neutral-400 tnum">{{ start.year }}</span>
+        <!-- Each end carries its own full date and time, since a trip title
+             names a place and never the year. The span sits above the rule
+             joining them. -->
+        <div class="mt-3 flex max-w-md items-center gap-4">
+            <div class="w-28 shrink-0 rounded-xl border border-neutral-100 px-4 py-3">
+                <div class="type-color text-label uppercase">{{ start.month }} {{ start.year }}</div>
+                <div class="mt-1 font-display text-stat leading-none tnum">{{ start.day }}</div>
+                <time :datetime="start.iso" class="mt-1.5 block text-caption text-neutral-500 tnum">{{ start.time }}</time>
             </div>
 
-            <span class="text-label uppercase text-neutral-400 tnum">{{ days }} {{ days === 1 ? 'day' : 'days' }}</span>
+            <div class="flex flex-1 flex-col items-center gap-1.5">
+                <span class="text-label uppercase text-neutral-500 tnum">{{ days }} {{ days === 1 ? 'day' : 'days' }}</span>
+                <span class="h-px w-full bg-neutral-100" />
+            </div>
 
-            <div class="flex w-16 flex-col overflow-hidden rounded-lg border border-neutral-100">
-                <span class="type-color-bg py-0.5 text-center text-label uppercase text-white">{{ end.month }}</span>
-                <span class="bg-neutral-0 py-1 text-center font-display text-section tnum">{{ end.day }}</span>
-                <span v-if="spansYears" class="bg-neutral-0 pb-1 text-center text-caption text-neutral-400 tnum">{{ end.year }}</span>
+            <div class="w-28 shrink-0 rounded-xl border border-neutral-100 px-4 py-3 text-right">
+                <div class="type-color text-label uppercase">{{ end.month }} {{ end.year }}</div>
+                <div class="mt-1 font-display text-stat leading-none tnum">{{ end.day }}</div>
+                <time :datetime="end.iso" class="mt-1.5 block text-caption text-neutral-500 tnum">{{ end.time }}</time>
             </div>
         </div>
     </div>
@@ -62,10 +64,5 @@ defineProps({
    set on the wrapper, which for a trip is the flight accent. */
 .type-color {
     color: var(--type-color);
-}
-
-/* The tile's month band, filled with the same accent. */
-.type-color-bg {
-    background: var(--type-color);
 }
 </style>

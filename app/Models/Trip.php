@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Data\RangeData;
 use App\Models\Concerns\HasTags;
+use App\Support\DateRange;
 use Database\Factories\TripFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -54,11 +56,21 @@ class Trip extends Model
     }
 
     /**
+     * The trip's window, formatted the way every other multi-day span on the
+     * site is. A trip is always a range, so unlike an event this never returns
+     * null for a single day.
+     */
+    public function dateRange(): RangeData
+    {
+        return DateRange::for($this->starts_at, $this->ends_at);
+    }
+
+    /**
      * The trip's length in days, counting both the first and last day.
      */
     public function days(): int
     {
-        return (int) $this->starts_at->startOfDay()->diffInDays($this->ends_at->startOfDay()) + 1;
+        return $this->dateRange()->days;
     }
 
     public function url(): string

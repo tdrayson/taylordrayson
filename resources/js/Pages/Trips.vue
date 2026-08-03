@@ -10,8 +10,8 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
-    // [{ title, href, days, start, end, year, spansYears }], newest first from
-    // the server. Tags are deliberately absent: they belong to the trip page.
+    // [{ title, href, days, start, end, year }], newest first from the server.
+    // Tags are deliberately absent: they belong to the trip page.
     trips: { type: Array, default: () => [] },
 });
 
@@ -54,7 +54,6 @@ const byYear = computed(() => {
                     :start="trip.start"
                     :end="trip.end"
                     :days="trip.days"
-                    :spans-years="trip.spansYears"
                 />
             </FeedRail>
         </section>

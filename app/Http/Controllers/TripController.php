@@ -34,7 +34,6 @@ class TripController extends Controller
                 'start' => $this->datePartsFor($trip->starts_at, $trip->timezone),
                 'end' => $this->datePartsFor($trip->ends_at, $trip->timezone),
                 'year' => $trip->starts_at->format('Y'),
-                'spansYears' => $trip->starts_at->format('Y') !== $trip->ends_at->format('Y'),
             ])
             ->all();
 
