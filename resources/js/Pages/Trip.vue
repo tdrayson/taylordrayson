@@ -43,13 +43,11 @@ const entryCount = computed(() =>
         <h1 class="font-display text-display">{{ title }}</h1>
         <p class="mt-2 text-meta text-neutral-500">{{ summary }}</p>
 
-        <p v-if="tags.length" class="mt-3 text-meta text-neutral-500">
-            <template v-for="(tag, index) in tags" :key="tag.slug">
-                <Link
-                    :href="`/tags/${tag.slug}`"
-                    class="text-neutral-600 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
-                >{{ tag.name }}</Link><span v-if="index < tags.length - 1">, </span>
-            </template>
+        <!-- Same "Tagged #slug" treatment EntryFooter gives entry tags, so a
+             trip's tags read identically to tags anywhere else on the site. -->
+        <p v-if="tags.length" class="mt-2 text-caption text-neutral-500">
+            Tagged
+            <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="`/tags/${tag.slug}`" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">#{{ tag.slug }}</Link><span v-if="index < tags.length - 1">, </span></template>
         </p>
     </header>
 

@@ -1,21 +1,24 @@
 <script setup>
 import { computed } from 'vue';
-import { Link, setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
+import FeedRail from '../Components/Timeline/FeedRail.vue';
+import TripCard from '../Components/Trips/TripCard.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
-    // [{ title, href, days, start, end, year, tags }], newest first from the server.
+    // [{ title, href, days, start, end, year, spansYears }], newest first from
+    // the server. Tags are deliberately absent: they belong to the trip page.
     trips: { type: Array, default: () => [] },
 });
 
 setLayoutProps({ breadcrumb: [{ label: 'Trips' }] });
 
 // Trips bucketed under their start year, preserving the server's newest-first
-// order within each bucket.
+// order within each bucket, so the index reads like the timeline's year runs.
 const byYear = computed(() => {
     const years = new Map();
 
@@ -41,29 +44,22 @@ const byYear = computed(() => {
         </p>
     </header>
 
-    <div v-if="trips.length" class="mt-10 flex flex-col gap-12">
+    <div v-if="trips.length" class="mt-10 flex flex-col gap-14">
         <section v-for="group in byYear" :key="group.year">
-            <h2 class="text-label font-semibold uppercase tracking-wide text-neutral-400">{{ group.year }}</h2>
+            <h2 class="mb-6 font-display text-item-title">{{ group.year }}</h2>
 
-            <ul class="mt-4 flex flex-col divide-y divide-neutral-50 border-t border-neutral-50">
-                <li v-for="trip in group.trips" :key="trip.href">
-                    <Link
-                        :href="trip.href"
-                        class="flex flex-col gap-1 py-4 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
-                    >
-                        <span class="font-display text-name font-semibold text-neutral-800">{{ trip.title }}</span>
-                        <span class="text-meta text-neutral-500">
-                            {{ trip.start === trip.end ? trip.start : `${trip.start} to ${trip.end}` }}
-                            <span class="tabular-nums text-neutral-400">
-                                {{ trip.days }} {{ trip.days === 1 ? 'day' : 'days' }}
-                            </span>
-                        </span>
-                        <span v-if="trip.tags.length" class="text-label text-neutral-400">
-                            {{ trip.tags.map((tag) => tag.name).join(', ') }}
-                        </span>
-                    </Link>
-                </li>
-            </ul>
+            <FeedRail>
+                <TripCard
+                    v-for="trip in group.trips"
+                    :key="trip.href"
+                    :title="trip.title"
+                    :href="trip.href"
+                    :start="trip.start"
+                    :end="trip.end"
+                    :days="trip.days"
+                    :spans-years="trip.spansYears"
+                />
+            </FeedRail>
         </section>
     </div>
 

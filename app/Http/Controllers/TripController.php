@@ -6,6 +6,7 @@ use App\Actions\BuildTimelineFeed;
 use App\Models\Trip;
 use App\Queries\TripEntries;
 use App\Support\OgMeta;
+use Carbon\CarbonInterface;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,17 +23,16 @@ class TripController extends Controller
     public function index(): Response
     {
         $trips = Trip::query()
-            ->with('tags')
             ->orderByDesc('starts_at')
             ->get()
             ->map(fn (Trip $trip): array => [
                 'title' => $trip->title,
                 'href' => $trip->url(),
                 'days' => $trip->days(),
-                'start' => $trip->starts_at->format('j M Y'),
-                'end' => $trip->ends_at->format('j M Y'),
+                'start' => $this->datePartsFor($trip->starts_at),
+                'end' => $this->datePartsFor($trip->ends_at),
                 'year' => $trip->starts_at->format('Y'),
-                'tags' => $trip->tags->map(fn ($tag): array => ['name' => $tag->name, 'slug' => $tag->slug])->all(),
+                'spansYears' => $trip->starts_at->format('Y') !== $trip->ends_at->format('Y'),
             ])
             ->all();
 
@@ -40,6 +40,21 @@ class TripController extends Controller
             'og' => OgMeta::trips(),
             'trips' => $trips,
         ]);
+    }
+
+    /**
+     * Split a date into the parts the index card's date strip renders, so the
+     * client never does date maths of its own.
+     *
+     * @return array{day: string, month: string, year: string}
+     */
+    private function datePartsFor(CarbonInterface $date): array
+    {
+        return [
+            'day' => $date->format('j'),
+            'month' => $date->format('M'),
+            'year' => $date->format('Y'),
+        ];
     }
 
     /**
