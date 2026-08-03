@@ -39,9 +39,6 @@ const byYear = computed(() => {
 
     <header>
         <h1 class="font-display text-display">Trips</h1>
-        <p v-if="trips.length" class="mt-2 text-meta text-neutral-500">
-            {{ trips.length }} {{ trips.length === 1 ? 'trip' : 'trips' }}, newest first
-        </p>
     </header>
 
     <div v-if="trips.length" class="mt-10 flex flex-col gap-14">

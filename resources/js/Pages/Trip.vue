@@ -26,11 +26,6 @@ setLayoutProps({
 
 // "6 days", the span the window covers counting both end days.
 const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'days'}`);
-
-// The number of entries gathered by the window, across every day group.
-const entryCount = computed(() =>
-    props.groups.reduce((total, group) => total + group.items.length, 0),
-);
 </script>
 
 <template>
@@ -53,11 +48,7 @@ const entryCount = computed(() =>
     </header>
 
     <template v-if="groups.length">
-        <p class="mt-8 text-meta text-neutral-500">
-            {{ entryCount }} {{ entryCount === 1 ? 'entry' : 'entries' }} from this trip
-        </p>
-
-        <div class="mt-6 flex flex-col gap-14">
+        <div class="mt-10 flex flex-col gap-14">
             <DateGroup
                 v-for="group in groups"
                 :key="group.label"
