@@ -39,21 +39,28 @@ defineProps({
              names a place and never the year. The span sits above the rule
              joining them. -->
         <div class="mt-3 flex max-w-md items-center gap-4">
-            <div class="w-28 shrink-0 rounded-xl border border-neutral-100 px-4 py-3">
-                <div class="type-color text-label uppercase">{{ start.month }} {{ start.year }}</div>
-                <div class="mt-1 font-display text-stat leading-none tnum">{{ start.day }}</div>
-                <time :datetime="start.iso" class="mt-1.5 block text-caption text-neutral-500 tnum">{{ start.time }}</time>
+            <div class="tile-border w-24 shrink-0 overflow-hidden rounded-xl border">
+                <div class="tile-band py-1 text-center text-label uppercase text-white">{{ start.month }} {{ start.year }}</div>
+                <div class="tile-day pt-2 text-center font-display text-stat leading-none tnum">{{ start.day }}</div>
+                <time :datetime="start.iso" class="block pb-2 pt-1.5 text-center text-caption text-neutral-500 tnum">{{ start.time }}</time>
             </div>
 
-            <div class="flex flex-1 flex-col items-center gap-1.5">
+            <!-- Span above a rule broken by the trip icon, the way a flight
+                 card hangs its duration over the plane. -->
+            <div class="flex flex-1 flex-col items-center gap-1">
                 <span class="text-label uppercase text-neutral-500 tnum">{{ days }} {{ days === 1 ? 'day' : 'days' }}</span>
-                <span class="h-px w-full bg-neutral-100" />
+                <div class="relative flex w-full items-center justify-center">
+                    <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
+                    <span class="relative bg-neutral-0 px-2 text-neutral-500">
+                        <Icon name="Luggage01Icon" class="size-4" />
+                    </span>
+                </div>
             </div>
 
-            <div class="w-28 shrink-0 rounded-xl border border-neutral-100 px-4 py-3 text-right">
-                <div class="type-color text-label uppercase">{{ end.month }} {{ end.year }}</div>
-                <div class="mt-1 font-display text-stat leading-none tnum">{{ end.day }}</div>
-                <time :datetime="end.iso" class="mt-1.5 block text-caption text-neutral-500 tnum">{{ end.time }}</time>
+            <div class="tile-border w-24 shrink-0 overflow-hidden rounded-xl border">
+                <div class="tile-band py-1 text-center text-label uppercase text-white">{{ end.month }} {{ end.year }}</div>
+                <div class="tile-day pt-2 text-center font-display text-stat leading-none tnum">{{ end.day }}</div>
+                <time :datetime="end.iso" class="block pb-2 pt-1.5 text-center text-caption text-neutral-500 tnum">{{ end.time }}</time>
             </div>
         </div>
     </div>
@@ -63,6 +70,21 @@ defineProps({
 /* Mirrors FeedItem's own rule: the eyebrow and rail bubble take the type colour
    set on the wrapper, which for a trip is the flight accent. */
 .type-color {
+    color: var(--type-color);
+}
+
+/* The calendar tile: accent border and month band, accent day number. Set here
+   rather than with arbitrary Tailwind values so the colour follows the single
+   --type-color the card already declares. */
+.tile-border {
+    border-color: var(--type-color);
+}
+
+.tile-band {
+    background: var(--type-color);
+}
+
+.tile-day {
     color: var(--type-color);
 }
 </style>
