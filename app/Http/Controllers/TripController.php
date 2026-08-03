@@ -48,7 +48,7 @@ class TripController extends Controller
      * the client never does date maths: the parts the index strip renders, the
      * spelled-out label the trip page shows, and the machine-readable instant.
      *
-     * @return array{day: string, month: string, year: string, time: string, label: string, iso: string, offset: string}
+     * @return array{day: string, month: string, year: string, time: string, label: string, full: string, iso: string, offset: string}
      */
     private function datePartsFor(CarbonInterface $date, ?string $timezone): array
     {
@@ -61,6 +61,9 @@ class TripController extends Controller
             'year' => $zoned->format('Y'),
             'time' => $local['time'],
             'label' => $zoned->format('j M Y, g:ia'),
+            // LocalTime's own weekday-led form, for the timestamp tooltip every
+            // timeline card shows on hover.
+            'full' => $local['label'],
             'iso' => $local['iso'],
             'offset' => $local['offset'],
         ];

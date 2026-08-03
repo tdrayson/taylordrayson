@@ -1,16 +1,22 @@
 <script setup>
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
+import Tooltip from '../Ui/Tooltip.vue';
 
-defineProps({
+const props = defineProps({
     title: { type: String, required: true },
     href: { type: String, required: true },
-    // { day, month, year, time, label, iso, offset }, formatted server-side in
-    // the trip's own timezone so the client never does date maths.
+    // { day, month, year, time, label, full, iso, offset }, formatted
+    // server-side in the trip's own timezone so the client never does date maths.
     start: { type: Object, required: true },
     end: { type: Object, required: true },
     days: { type: Number, required: true },
 });
+
+// The full start timestamp with its offset, shown on hovering the time and used
+// as the link's accessible name, matching FeedItem's own timestamp treatment.
+const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`.trim());
 </script>
 
 <template>
@@ -27,7 +33,12 @@ defineProps({
         <div class="flex min-h-9 items-center">
             <div class="flex items-baseline gap-2.5">
                 <Link :href="href" class="type-color text-label uppercase underline-offset-2 hover:underline focus-visible:underline">Trip</Link>
-                <time :datetime="start.iso" class="text-xs text-neutral-500 tnum">{{ start.time }}</time>
+                <!-- Timestamp is the card's permalink; full start date shows as a tooltip and is the link's aria-label. -->
+                <Tooltip :label="fullTimestamp" placement="top">
+                    <Link :href="href" :aria-label="fullTimestamp" class="underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
+                        <time :datetime="start.iso" class="text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ start.time }}</time>
+                    </Link>
+                </Tooltip>
             </div>
         </div>
 
