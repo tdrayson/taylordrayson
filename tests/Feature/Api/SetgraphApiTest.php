@@ -84,6 +84,59 @@ it('does not claim a cardio activity that happens to sit in the same window', fu
     expect(Activity::count())->toBe(2);
 });
 
+it('reads an ISO 8601 share time as wall clock, matching the session it belongs to', function () use ($share) {
+    $existing = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 19:49:17',
+        'type' => 'weight-training',
+        'source' => 'strava',
+        'source_id' => '19532725079',
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-07-27T20:10:00+01:00',
+        'timezone' => 'Europe/London',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $existing->id);
+
+    expect(Activity::count())->toBe(1);
+});
+
+it('matches on the wall clock even when the offset says otherwise', function () use ($share) {
+    // Shared at 20:10 local while abroad. As an instant that is nine hours from
+    // a session logged at 19:49, but as wall-clock time it is the same evening.
+    $existing = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 19:49:17',
+        'type' => 'weight-training',
+        'source' => 'strava',
+        'source_id' => '19532725079',
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-07-27T20:10:00-04:00',
+        'timezone' => 'America/New_York',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $existing->id);
+
+    expect(Activity::count())->toBe(1);
+});
+
+it('stores the shared wall-clock time and zone on an activity it creates', function () use ($share) {
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-07-27T20:10:00-04:00',
+        'timezone' => 'America/New_York',
+    ])->assertCreated();
+
+    $activity = Activity::sole();
+
+    expect($activity->occurred_at->format('Y-m-d H:i:s'))->toBe('2026-07-27 20:10:00')
+        ->and($activity->timezone)->toBe('America/New_York');
+});
+
 it('requires the share text', function () {
     $this->withToken('test-token')->postJson('/api/v1/setgraph', [])
         ->assertUnprocessable()

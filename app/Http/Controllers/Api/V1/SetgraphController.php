@@ -19,12 +19,15 @@ class SetgraphController extends Controller
     public function __invoke(StoreSetgraphWorkoutRequest $request, RecordSetgraphWorkout $record): JsonResponse
     {
         $validated = $request->validated();
+        $timezone = $validated['timezone'] ?? config('app.home_timezone');
 
         $result = $record(
             $validated['text'],
-            isset($validated['occurred_at'])
-                ? CarbonImmutable::parse($validated['occurred_at'])
-                : CarbonImmutable::now(),
+            $this->wallClock(
+                isset($validated['occurred_at'])
+                    ? CarbonImmutable::parse($validated['occurred_at'])
+                    : CarbonImmutable::now($timezone),
+            ),
             $validated['timezone'] ?? null,
         );
 
@@ -44,5 +47,21 @@ class SetgraphController extends Controller
                 'created' => $result['created'],
             ],
         ], $result['created'] ? Response::HTTP_CREATED : Response::HTTP_OK);
+    }
+
+    /**
+     * Keep the wall-clock digits and drop the offset.
+     *
+     * Shortcuts sends a native ISO 8601 date, so `occurred_at` arrives as
+     * `2026-07-27T20:10:00+01:00`. Activities store local wall-clock time, not
+     * an instant, so an offset-aware value would compare wrongly against them:
+     * shared at 20:10 from New York it sits nine hours from a session logged at
+     * 20:10, far outside the match window, and would duplicate the activity.
+     * Reading the digits as UTC makes every comparison wall-clock to
+     * wall-clock, the same trick StravaSync uses on `start_date_local`.
+     */
+    private function wallClock(CarbonImmutable $moment): CarbonImmutable
+    {
+        return CarbonImmutable::createFromFormat('Y-m-d H:i:s', $moment->format('Y-m-d H:i:s'), 'UTC');
     }
 }
