@@ -41,8 +41,7 @@ defineProps({
         <div class="mt-3 flex max-w-md items-center gap-4">
             <div class="tile-border w-24 shrink-0 overflow-hidden rounded-xl border">
                 <div class="tile-band py-1 text-center text-label uppercase text-white">{{ start.month }} {{ start.year }}</div>
-                <div class="tile-day pt-2 text-center font-display text-stat leading-none tnum">{{ start.day }}</div>
-                <time :datetime="start.iso" class="block pb-2 pt-1.5 text-center text-caption text-neutral-500 tnum">{{ start.time }}</time>
+                <time :datetime="start.iso" class="tile-day block py-2.5 text-center font-display text-stat leading-none tnum">{{ start.day }}</time>
             </div>
 
             <!-- Span above a rule broken by the trip icon, the way a flight
@@ -59,8 +58,7 @@ defineProps({
 
             <div class="tile-border w-24 shrink-0 overflow-hidden rounded-xl border">
                 <div class="tile-band py-1 text-center text-label uppercase text-white">{{ end.month }} {{ end.year }}</div>
-                <div class="tile-day pt-2 text-center font-display text-stat leading-none tnum">{{ end.day }}</div>
-                <time :datetime="end.iso" class="block pb-2 pt-1.5 text-center text-caption text-neutral-500 tnum">{{ end.time }}</time>
+                <time :datetime="end.iso" class="tile-day block py-2.5 text-center font-display text-stat leading-none tnum">{{ end.day }}</time>
             </div>
         </div>
     </div>
