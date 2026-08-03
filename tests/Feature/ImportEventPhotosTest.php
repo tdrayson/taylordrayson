@@ -20,14 +20,14 @@ it('matches event photos by name, disambiguating recurring events and dropped pu
     mkdir($dir);
 
     // Colon in the title, dropped from the filename.
-    $miracle = Event::factory()->create(['name' => 'Derren Brown: Miracle', 'type' => 'magic', 'occurred_at' => '2016-01-07']);
+    $miracle = Event::factory()->create(['name' => 'Derren Brown: Miracle', 'occurred_at' => '2016-01-07']);
     // Year is part of the name, not a disambiguator.
-    $wordcamp = Event::factory()->create(['name' => 'WordCamp Europe 2024', 'type' => 'conference', 'occurred_at' => '2024-06-13']);
+    $wordcamp = Event::factory()->create(['name' => 'WordCamp Europe 2024', 'occurred_at' => '2024-06-13']);
     // Same name twice: the trailing year picks the recurrence.
-    $bttf2020 = Event::factory()->create(['name' => 'Back to the Future: The Musical', 'type' => 'musical', 'occurred_at' => '2020-03-10']);
-    $bttf2022 = Event::factory()->create(['name' => 'Back to the Future: The Musical', 'type' => 'musical', 'occurred_at' => '2022-04-20']);
+    $bttf2020 = Event::factory()->create(['name' => 'Back to the Future: The Musical', 'occurred_at' => '2020-03-10']);
+    $bttf2022 = Event::factory()->create(['name' => 'Back to the Future: The Musical', 'occurred_at' => '2022-04-20']);
     // Two photos of one event via the numeric suffix.
-    $oliver = Event::factory()->create(['name' => 'Oliver!', 'type' => 'musical', 'occurred_at' => '2025-03-05']);
+    $oliver = Event::factory()->create(['name' => 'Oliver!', 'occurred_at' => '2025-03-05']);
 
     writeEventPhoto($dir, 'Derren Brown Miracle.jpg');
     writeEventPhoto($dir, 'WordCamp Europe 2024.jpg');
@@ -58,7 +58,7 @@ it('does not attach anything on a dry run', function () {
     $dir = sys_get_temp_dir().'/evt-photos-'.uniqid();
     mkdir($dir);
 
-    $event = Event::factory()->create(['name' => 'Hamilton', 'type' => 'musical', 'occurred_at' => '2025-06-14']);
+    $event = Event::factory()->create(['name' => 'Hamilton', 'occurred_at' => '2025-06-14']);
     writeEventPhoto($dir, 'Hamilton 2025-06-14.jpg');
 
     $this->artisan('events:import-photos', ['folder' => $dir])->assertSuccessful();

@@ -344,7 +344,7 @@ it('registers a tag taxonomy on the note archive too', function () {
 });
 
 it('bridges an events type archive to the cross-type tag feed', function () {
-    $event = Event::factory()->create(['type' => 'musical', 'occurred_at' => now()->subDay()]);
+    $event = Event::factory()->create(['occurred_at' => now()->subDay()]);
     $event->syncTagNames(['Musical']);
 
     get('/events/musical')->assertOk()->assertInertia(fn ($page) => $page
@@ -353,6 +353,13 @@ it('bridges an events type archive to the cross-type tag feed', function () {
 
     // The bridge target must actually resolve for the same requester.
     get('/tags/musical')->assertOk();
+
+    // The events taxonomy is scoped to tags on events: a tag that lives only on
+    // a note opens no /events/{slug} page, even though /tags/{slug} exists.
+    $note = Note::factory()->create(['occurred_at' => now()->subDays(2)]);
+    $note->syncTagNames(['Coffee']);
+    get('/events/coffee')->assertNotFound();
+    get('/tags/coffee')->assertOk();
 
     // The unfiltered index has no single value to bridge from.
     get('/events')->assertInertia(fn ($page) => $page->where('tagLink', null));
@@ -377,21 +384,22 @@ it('omits the tag bridge when no tag matches the taxonomy value', function () {
 });
 
 it('gates the tag bridge on visibility for guests', function () {
-    // A theatre event renders /events/theatre via its type column, untagged itself.
-    Event::factory()->create(['type' => 'theatre', 'occurred_at' => now()->subDay()]);
-    // The matching "theatre" tag exists, but lives only on an unpublished article.
+    // A run activity renders /activities/run via its type column, untagged itself
+    // (a column-backed archive renders regardless of tags, unlike tag-backed ones).
+    Activity::factory()->create(['type' => 'run', 'occurred_at' => now()->subDay()]);
+    // The matching "run" tag exists, but lives only on an unpublished article.
     $draft = Article::factory()->create(['published' => false, 'occurred_at' => now()->subDays(2)]);
-    $draft->syncTagNames(['Theatre']);
+    $draft->syncTagNames(['Run']);
 
     // Guest: nothing visible resolves for the tag, so no bridge is offered, and
     // the feed it would point at 404s for a guest. The two agree.
-    get('/events/theatre')->assertOk()->assertInertia(fn ($page) => $page->where('tagLink', null));
-    get('/tags/theatre')->assertNotFound();
+    get('/activities/run')->assertOk()->assertInertia(fn ($page) => $page->where('tagLink', null));
+    get('/tags/run')->assertNotFound();
 
     // Owner: the draft-only tag is visible, so the bridge appears and resolves.
     actingAs(User::factory()->create());
-    get('/events/theatre')->assertInertia(fn ($page) => $page->where('tagLink.slug', 'theatre'));
-    get('/tags/theatre')->assertOk();
+    get('/activities/run')->assertInertia(fn ($page) => $page->where('tagLink.slug', 'run'));
+    get('/tags/run')->assertOk();
 });
 
 function archiveTitlesContains($groups, string $title): bool

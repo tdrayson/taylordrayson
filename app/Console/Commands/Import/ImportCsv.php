@@ -76,11 +76,16 @@ class ImportCsv extends Command
         $model = new $modelClass;
         $fillable = $model->getFillable();
         $casts = $model->getCasts();
+        $hasTags = method_exists($model, 'syncTagNames');
 
         $handle = fopen($file, 'r');
         $headers = fgetcsv($handle);
 
-        $unknown = array_diff($headers, $fillable);
+        // A `tags` column is synced to the relational tag table after create,
+        // not mass-assigned as a column, so it is expected rather than "unknown".
+        $tagsInHeaders = $hasTags && in_array('tags', $headers, true);
+
+        $unknown = array_diff($headers, $fillable, $tagsInHeaders ? ['tags'] : []);
         if ($unknown) {
             $this->warn('Skipping columns not in fillable: '.implode(', ', $unknown));
         }
@@ -110,7 +115,19 @@ class ImportCsv extends Command
                 }
             }
 
-            $modelClass::create($mapped);
+            $record = $modelClass::create($mapped);
+
+            if ($tagsInHeaders) {
+                $raw = $data['tags'] ?? '';
+                // Honour the same null sentinels as the column mapping above, so
+                // an empty or "n/a" cell means no tags rather than a literal one.
+                $names = ($raw === '' || $raw === 'n/a') ? [] : $this->parseTags($raw);
+
+                if ($names !== []) {
+                    $record->syncTagNames($names);
+                }
+            }
+
             $imported++;
         }
 
@@ -119,5 +136,21 @@ class ImportCsv extends Command
         $this->info("Imported {$imported} {$type} rows.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Split a `tags` cell into trimmed, non-empty tag names. Pipe-separated so
+     * commas can appear inside a tag name; tag names themselves must not contain
+     * a pipe (they are short curated labels, so this is not a real constraint).
+     *
+     * @return array<int, string>
+     */
+    private function parseTags(string $value): array
+    {
+        return collect(explode('|', $value))
+            ->map(fn (string $name): string => trim($name))
+            ->filter()
+            ->values()
+            ->all();
     }
 }
