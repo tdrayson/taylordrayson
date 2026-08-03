@@ -38,6 +38,11 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            // Only whether someone is signed in, never the user record. The
+            // client uses this to decide whether to offer an edit affordance;
+            // every actual gate is enforced server-side, and sharing the model
+            // would put the account's email in the props of every page.
+            'signedIn' => $request->user() !== null,
         ];
     }
 }

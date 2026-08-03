@@ -22,6 +22,11 @@ use App\Http\Controllers\TimelineController;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Facades\Route;
 
+// Sign-in, required first: the /{slug} page catch-all at the bottom matches
+// any lowercase word, 'login' included, so registering it later would let a
+// content page shadow the login form.
+require __DIR__.'/auth.php';
+
 // Feeds
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
