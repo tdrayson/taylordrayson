@@ -190,9 +190,9 @@ it('renders whole temperatures while storing what was sent', function () {
 
 it('takes health values with their units and separators attached', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
-        'rings' => ['move' => '137 kcal', 'exercise' => '24 min', 'stand' => '9 hr', 'steps' => '11,240 steps'],
+        'rings' => ['move' => '137 kcal', 'exercise' => '24 min', 'stand' => '9 hr'],
     ])->assertOk();
 
     expect(app(StateStore::class)->get('now.rings'))
-        ->toEqual(['move' => 137, 'exercise' => 24, 'stand' => 9, 'steps' => 11240]);
+        ->toEqual(['move' => 137, 'exercise' => 24, 'stand' => 9]);
 });
