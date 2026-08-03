@@ -44,15 +44,13 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request): Response {
-            // TEMPORARY: surface which fields a phone's payload failed on.
+            // A rejected payload is logged by field, never by value, so a
+            // misbuilt shortcut can be diagnosed from the server without the
+            // readings themselves (location included) landing in a log file.
             if ($response->getStatusCode() === 422 && $request->is('api/*')) {
                 Log::info('api validation failed', [
                     'path' => $request->path(),
-                    'errors' => $exception instanceof ValidationException ? $exception->errors() : null,
-                    'sent_keys' => array_map(
-                        fn ($value): mixed => is_array($value) ? array_keys($value) : gettype($value),
-                        $request->all(),
-                    ),
+                    'errors' => $exception instanceof ValidationException ? array_keys($exception->errors()) : null,
                 ]);
             }
 

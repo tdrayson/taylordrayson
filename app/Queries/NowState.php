@@ -74,6 +74,15 @@ final class NowState
             return null;
         }
 
+        // Temperatures are stored as sent but shown whole: a widget reading
+        // "20.5°" is precision nobody asked for. Rounded here rather than in
+        // each consumer so the status bar and the widget cannot disagree.
+        foreach (['temp', 'high', 'low'] as $reading) {
+            if (isset($shaped[$reading])) {
+                $shaped[$reading] = (int) round((float) $shaped[$reading]);
+            }
+        }
+
         // Coordinates are stored exactly but never leave the server that way:
         // this payload is rendered on a public page, so precision is dropped on
         // the single path out. The stored value stays precise for private use.

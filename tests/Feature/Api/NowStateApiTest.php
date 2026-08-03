@@ -173,3 +173,17 @@ it('takes humidity and wind with their units attached', function () {
     expect(app(StateStore::class)->get('now.weather'))
         ->toEqual(['temp' => 21.0, 'humidity' => 62.0, 'wind' => 8.0]);
 });
+
+it('renders whole temperatures while storing what was sent', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'weather' => ['temp' => 20.6, 'high' => 24.4, 'low' => 13.5],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.weather'))->toEqual(['temp' => 20.6, 'high' => 24.4, 'low' => 13.5]);
+
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.weather.temp', 21)
+        ->where('ambient.weather.high', 24)
+        ->where('ambient.weather.low', 14)
+    );
+});
