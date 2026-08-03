@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test": "node --test tests/js/*.test.js"
     },
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.20",
@@ -31,6 +32,10 @@
         "@hugeicons-pro/core-stroke-rounded": "^4.2.1",
         "@hugeicons/vue": "^1.0.6",
         "@inertiajs/vue3": "^3.4.0",
+        "@tiptap/extension-image": "^3.29.2",
+        "@tiptap/extension-link": "^3.29.2",
+        "@tiptap/starter-kit": "^3.29.2",
+        "@tiptap/vue-3": "^3.29.2",
         "@vitejs/plugin-vue": "^6.0.7",
         "chart.js": "^4.5.1",
         "chrono-node": "^2.9.1",
