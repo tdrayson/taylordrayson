@@ -1,6 +1,6 @@
 <script setup>
 import { setLayoutProps, Link } from '@inertiajs/vue3';
-import { RssIcon, File01Icon, PaintBoardIcon, CalendarFavorite01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { RssIcon, File01Icon, PaintBoardIcon, CalendarFavorite01Icon, Luggage01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
@@ -45,6 +45,7 @@ function countLabel(item) {
 }
 
 const site = [
+    { label: 'Trips', description: 'Everything I logged while I was away, gathered by date range', href: '/trips', icon: Luggage01Icon },
     { label: 'On this day', description: 'Everything I\'ve logged on today\'s date, across every year', href: '/on-this-day', icon: CalendarFavorite01Icon },
     { label: 'Feeds', description: 'RSS and JSON, filterable by type', href: '/feeds', icon: RssIcon },
     { label: 'Pages', description: 'Standalone pages that live outside the timeline', href: '/pages', icon: File01Icon },

@@ -19,6 +19,7 @@ use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Queries\FuelEconomy;
+use App\Queries\TripForEntry;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
@@ -31,7 +32,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
-    public function __construct(private readonly FuelEconomy $fuelEconomy) {}
+    public function __construct(
+        private readonly FuelEconomy $fuelEconomy,
+        private readonly TripForEntry $tripForEntry,
+    ) {}
 
     public function show(int $year, int $month, int $day, string $slug): Response
     {
@@ -82,6 +86,7 @@ class EntryController extends Controller
             ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
             'og' => OgMeta::entry($entry, $card->title),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
+            'trip' => $this->trip($model),
             'entry' => $model instanceof Calorie
                 ? $this->calorieDay($model)
                 : $this->entryPayload($model),
@@ -102,6 +107,19 @@ class EntryController extends Controller
                 ])
                 : null,
         ]);
+    }
+
+    /**
+     * The trip this entry falls inside, for the "part of" backlink, or null
+     * when it happened outside every trip window.
+     *
+     * @return array{title: string, url: string}|null
+     */
+    private function trip(Model $model): ?array
+    {
+        $trip = ($this->tripForEntry)($model);
+
+        return $trip === null ? null : ['title' => $trip->title, 'url' => $trip->url()];
     }
 
     /**
