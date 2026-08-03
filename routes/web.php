@@ -7,6 +7,7 @@ use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LookupController;
 use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
@@ -40,6 +41,11 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
+
+    // Autocomplete for the fields that cannot be a plain text box.
+    Route::get('/lookup/{source}', LookupController::class)
+        ->where('source', '[a-z]+')->name('lookup');
+    Route::get('/lookup-reverse', [LookupController::class, 'reverse'])->name('lookup.reverse');
 
     // Drafts have no timeline entry, so they appear in no listing without this.
     Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');

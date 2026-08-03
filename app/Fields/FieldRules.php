@@ -52,6 +52,10 @@ final class FieldRules
             FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
+            // Both resolve to a name the lookup filled in, which stays
+            // editable afterwards, so neither is constrained to what the
+            // source returned.
+            FieldType::Lookup, FieldType::Location => ['nullable', 'string', 'max:255'],
         };
     }
 

@@ -42,6 +42,19 @@ const revealed = ref(optionalFields.value.filter((field) => {
 
 const hidden = computed(() => optionalFields.value.filter((field) => !revealed.value.includes(field.name)));
 
+/**
+ * Apply the sibling values a lookup resolved. Only keys the form already has
+ * are written, so a source returning something this type does not store is
+ * ignored rather than silently added to the payload.
+ */
+function applyFill(values) {
+    Object.entries(values).forEach(([key, value]) => {
+        if (key in form) {
+            form[key] = value;
+        }
+    });
+}
+
 function submit() {
     form[props.method](props.action, { preserveScroll: true });
 }
@@ -73,6 +86,7 @@ function submit() {
             :model-value="form[bodyField.name]"
             :resolved="resolved"
             @update:model-value="form[bodyField.name] = $event"
+            @fill="applyFill"
         />
 
         <!-- Types with no body (fuel, books, appearances) are just a form. -->
@@ -83,6 +97,7 @@ function submit() {
                 :field="field"
                 :model-value="form[field.name]"
                 @update:model-value="form[field.name] = $event"
+                @fill="applyFill"
             />
         </div>
 
@@ -98,6 +113,7 @@ function submit() {
                 :field="field"
                 :model-value="form[field.name]"
                 @update:model-value="form[field.name] = $event"
+                @fill="applyFill"
             />
 
             <FieldInput
@@ -106,6 +122,7 @@ function submit() {
                 :field="field"
                 :model-value="form[field.name]"
                 @update:model-value="form[field.name] = $event"
+                @fill="applyFill"
             />
 
             <div v-if="hidden.length" class="border-t border-neutral-50 pt-3">

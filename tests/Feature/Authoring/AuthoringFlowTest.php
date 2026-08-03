@@ -12,7 +12,7 @@ it('offers a tile for every hand-authored type on /new', function () {
     $this->get('/new')->assertOk()->assertInertia(fn ($page) => $page
         ->component('New')
         ->where('types', fn ($types) => collect($types)->pluck('type')->all() === [
-            'note', 'article', 'page', 'project', 'event', 'book', 'fuel', 'appearance',
+            'note', 'article', 'page', 'project', 'event', 'book', 'flight', 'fuel', 'appearance',
         ]));
 });
 

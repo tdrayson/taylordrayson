@@ -7,6 +7,7 @@ use App\Enums\MediaType;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Event;
+use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
@@ -41,6 +42,7 @@ final class FieldRegistry
             $model instanceof Article => ArticleFields::fields(),
             $model instanceof Project => ProjectFields::fields(),
             $model instanceof Event => EventFields::fields(),
+            $model instanceof Flight => FlightFields::fields(),
             $model instanceof Fuel => FuelFields::fields(),
             $model instanceof Appearance => AppearanceFields::fields(),
             $model instanceof Media && self::isBook($model) => BookFields::fields(),
@@ -59,6 +61,7 @@ final class FieldRegistry
             || $model instanceof Article
             || $model instanceof Project
             || $model instanceof Event
+            || $model instanceof Flight
             || $model instanceof Fuel
             || $model instanceof Appearance
             || ($model instanceof Media && self::isBook($model));

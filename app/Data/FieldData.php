@@ -18,6 +18,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 {
     /**
      * @param  list<array{value: string, label: string}>  $options  Choices, for a Select field.
+     * @param  string|null  $source  Which /lookup source backs a Lookup or Location field.
      */
     private function __construct(
         public string $name,
@@ -27,6 +28,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public bool $required,
         public ?string $help,
         public array $options,
+        public ?string $source,
     ) {}
 
     /**
@@ -38,9 +40,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options);
+        return new self($name, $label, $type, true, $required, $help, $options, $source);
     }
 
     /**
@@ -48,9 +50,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = []): self
+    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null): self
     {
-        return new self($name, $label, $type, false, false, $help, $options);
+        return new self($name, $label, $type, false, false, $help, $options, $source);
     }
 
     /**
@@ -73,6 +75,10 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->options !== []) {
             $data['options'] = $this->options;
+        }
+
+        if ($this->source !== null) {
+            $data['source'] = $this->source;
         }
 
         return $data;

@@ -10,6 +10,8 @@ use App\Actions\Books\CreateBook;
 use App\Actions\Books\UpdateBook;
 use App\Actions\Events\CreateEvent;
 use App\Actions\Events\UpdateEvent;
+use App\Actions\Flights\CreateFlight;
+use App\Actions\Flights\UpdateFlight;
 use App\Actions\Fuel\CreateFuel;
 use App\Actions\Fuel\UpdateFuel;
 use App\Actions\Notes\CreateNote;
@@ -22,6 +24,7 @@ use App\Enums\MediaType;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Event;
+use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
@@ -51,6 +54,7 @@ final class AuthorableTypes
         'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'label' => 'Project', 'icon' => 'RocketIcon', 'draftable' => false],
         'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'label' => 'Event', 'icon' => 'Ticket01Icon', 'draftable' => false],
         'book' => ['model' => Media::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'label' => 'Book', 'icon' => 'BookOpen01Icon', 'draftable' => false],
+        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class, 'label' => 'Flight', 'icon' => 'AirplaneTakeOff01Icon', 'draftable' => false],
         'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'label' => 'Fuel', 'icon' => 'PetrolPumpIcon', 'draftable' => false],
         'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'label' => 'Appearance', 'icon' => 'Mic01Icon', 'draftable' => false],
     ];

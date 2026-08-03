@@ -1,6 +1,9 @@
 <script setup>
 import Input from '../Ui/Input.vue';
 import RichTextEditor from './RichTextEditor.vue';
+import LookupInput from './LookupInput.vue';
+import LocationInput from './LocationInput.vue';
+import DateTimeField from './DateTimeField.vue';
 
 /**
  * One field, drawn from its definition. The `type` on the definition is the
@@ -14,7 +17,10 @@ defineProps({
     resolved: { type: Object, default: () => ({}) },
 });
 
-defineEmits(['update:modelValue']);
+// `fill` carries the sibling values a lookup resolved: a book's author, a
+// place's coordinates. The editor applies them; this component does not know
+// what other fields exist.
+defineEmits(['update:modelValue', 'fill']);
 
 /**
  * A datetime-local input only accepts YYYY-MM-DDTHH:mm and silently renders
@@ -99,12 +105,31 @@ function textToTags(value) {
             @update:model-value="$emit('update:modelValue', textToTags($event))"
         />
 
-        <Input
+        <DateTimeField
             v-else-if="field.type === 'datetime'"
             :id="field.name"
-            :model-value="toLocalInput(modelValue)"
-            type="datetime-local"
+            :model-value="String(modelValue ?? '')"
             @update:model-value="$emit('update:modelValue', $event)"
+        />
+
+        <LookupInput
+            v-else-if="field.type === 'lookup'"
+            :id="field.name"
+            :model-value="modelValue ?? ''"
+            :source="field.source"
+            :placeholder="field.help ?? ''"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @fill="$emit('fill', $event)"
+        />
+
+        <LocationInput
+            v-else-if="field.type === 'location'"
+            :id="field.name"
+            :model-value="modelValue ?? ''"
+            :source="field.source ?? 'place'"
+            :placeholder="field.help ?? ''"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @fill="$emit('fill', $event)"
         />
 
         <Input

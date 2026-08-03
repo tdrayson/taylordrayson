@@ -20,6 +20,8 @@ enum FieldType: string
     case Boolean = 'boolean';
     case Select = 'select';
     case Tags = 'tags';
+    case Lookup = 'lookup';
+    case Location = 'location';
 
     public function label(): string
     {
@@ -34,6 +36,8 @@ enum FieldType: string
             self::Boolean => 'Toggle',
             self::Select => 'Choice',
             self::Tags => 'Tags',
+            self::Lookup => 'Lookup',
+            self::Location => 'Location',
         };
     }
 

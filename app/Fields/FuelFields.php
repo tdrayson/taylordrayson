@@ -22,7 +22,7 @@ final class FuelFields
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime),
             FieldData::primary('litres', 'Litres', FieldType::Number, required: true),
             FieldData::primary('cost', 'Cost', FieldType::Number, 'Total paid, to 2dp.', required: true),
-            FieldData::primary('station_name', 'Garage', FieldType::Text),
+            FieldData::primary('station_name', 'Garage', FieldType::Location, 'Search, or use your location.', source: 'place'),
             FieldData::primary('vehicle_id', 'Vehicle', FieldType::Select, null, self::vehicleOptions()),
             FieldData::optional('brand', 'Brand', FieldType::Text, 'Drives the logo shown on the card.'),
             FieldData::optional('price_per_litre', 'Price per litre', FieldType::Number, 'The 3dp exception to 2dp money.'),
