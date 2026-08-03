@@ -17,7 +17,7 @@ final class AppearanceFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('title', 'Title', FieldType::Text),
+            FieldData::primary('title', 'Title', FieldType::Text, required: true),
             FieldData::primary('show_name', 'Show', FieldType::Text),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime),
             FieldData::primary('type', 'Kind', FieldType::Select, null, [

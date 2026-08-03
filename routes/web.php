@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArchiveController;
+use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
@@ -32,7 +33,17 @@ require __DIR__.'/auth.php';
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
-    Route::patch('/pages/{page}', [PageController::class, 'update'])->name('pages.update');
+
+    // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
+    Route::get('/new', [AuthoringController::class, 'new'])->name('new');
+    Route::get('/new/{type}', [AuthoringController::class, 'new'])->name('new.type');
+    Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
+    Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
+        ->where('id', '[0-9]+')->name('entries.update');
+
+    // Drafts have no timeline entry, so they appear in no listing without this.
+    Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+
 });
 
 // Feeds

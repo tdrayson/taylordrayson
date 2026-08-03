@@ -21,7 +21,7 @@ final class BookFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('title', 'Title', FieldType::Text),
+            FieldData::primary('title', 'Title', FieldType::Text, required: true),
             FieldData::primary('meta.author', 'Author', FieldType::Text),
             FieldData::primary('occurred_at', 'Finished', FieldType::DateTime),
             FieldData::optional('rating', 'Rating', FieldType::Number, 'Out of 10.'),

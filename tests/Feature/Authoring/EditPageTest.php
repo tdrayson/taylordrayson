@@ -30,7 +30,7 @@ it('saves an edit made in place', function () {
     $page = Page::factory()->create(['slug' => 'about', 'title' => 'About', 'published' => true]);
 
     $this->actingAs(User::factory()->create())
-        ->patch("/pages/{$page->id}", [
+        ->patch("/entries/page/{$page->id}", [
             'title' => 'About me',
             'content' => [[
                 '_type' => 'block',
@@ -48,7 +48,7 @@ it('saves an edit made in place', function () {
 it('refuses a save from a guest', function () {
     $page = Page::factory()->create(['slug' => 'about', 'title' => 'About', 'published' => true]);
 
-    $this->patch("/pages/{$page->id}", ['title' => 'Hacked'])->assertRedirect('/login');
+    $this->patch("/entries/page/{$page->id}", ['title' => 'Hacked'])->assertRedirect('/login');
 
     expect($page->fresh()->title)->toBe('About');
 });

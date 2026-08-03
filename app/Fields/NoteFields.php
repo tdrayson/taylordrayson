@@ -17,7 +17,7 @@ final class NoteFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('content', 'Note', FieldType::Textarea),
+            FieldData::primary('content', 'Note', FieldType::Textarea, required: true),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Defaults to now.'),
             FieldData::optional('slug', 'Slug', FieldType::Slug, 'Generated from the content when left blank.'),

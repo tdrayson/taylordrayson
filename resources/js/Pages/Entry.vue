@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Link, setLayoutProps } from '@inertiajs/vue3';
+import { Link, setLayoutProps, usePage } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
@@ -21,6 +21,8 @@ import FuelDetail from '../Components/Entry/FuelDetail.vue';
 import ProjectDetail from '../Components/Entry/ProjectDetail.vue';
 import ArticleDetail from '../Components/Entry/ArticleDetail.vue';
 import NoteDetail from '../Components/Entry/NoteDetail.vue';
+import EntryEditor from '../Components/Editor/EntryEditor.vue';
+import { valuesFor } from '../lib/editor/defaults.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -40,7 +42,19 @@ const props = defineProps({
     // Map of href -> preview data for internal content links; only ArticleDetail
     // consumes it, so it's bound conditionally below rather than on every type.
     linkPreviews: { type: Object, default: () => ({}) },
+    // kind:id -> resolved mention, for content that carries any.
+    mentions: { type: Object, default: () => ({}) },
+    // Editing in place: only hand-authored types get a form at all.
+    editing: { type: Boolean, default: false },
+    editType: { type: String, default: null },
+    fields: { type: Array, default: () => [] },
 });
+
+const signedIn = computed(() => usePage().props.signedIn === true);
+
+// Current values for the form, read off the entry payload. Dotted field names
+// address into meta, which is where a book keeps its author.
+const editorValues = computed(() => valuesFor(props.fields, props.entry));
 
 const DETAIL_COMPONENTS = {
     activity: ActivityDetail,
@@ -110,13 +124,26 @@ setLayoutProps({
 
     <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
+    <EntryEditor
+        v-if="editing"
+        :fields="fields"
+        :values="editorValues"
+        :action="`/entries/${editType}/${entry.id}`"
+        :resolved="mentions"
+        class="mt-10"
+    />
+
     <component
+        v-else-if="detailComponent"
         :is="detailComponent"
-        v-if="detailComponent"
         :entry="entry"
         v-bind="['article', 'note'].includes(type) ? { linkPreviews } : {}"
         class="mt-10"
     />
 
-    <EntryFooter :source="source" :tags="tags" class="mt-10" />
+    <p v-if="signedIn && editType && ! editing" class="mt-6">
+        <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
+    </p>
+
+    <EntryFooter v-if="! editing" :source="source" :tags="tags" class="mt-10" />
 </template>

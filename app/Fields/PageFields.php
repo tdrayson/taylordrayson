@@ -17,7 +17,7 @@ final class PageFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('title', 'Title', FieldType::Text),
+            FieldData::primary('title', 'Title', FieldType::Text, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL: /about, /colophon.'),
             FieldData::primary('published', 'Published', FieldType::Boolean, 'Unpublished pages are visible only to you.'),

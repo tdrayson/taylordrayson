@@ -20,8 +20,8 @@ final class FuelFields
     {
         return [
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime),
-            FieldData::primary('litres', 'Litres', FieldType::Number),
-            FieldData::primary('cost', 'Cost', FieldType::Number, 'Total paid, to 2dp.'),
+            FieldData::primary('litres', 'Litres', FieldType::Number, required: true),
+            FieldData::primary('cost', 'Cost', FieldType::Number, 'Total paid, to 2dp.', required: true),
             FieldData::primary('station_name', 'Garage', FieldType::Text),
             FieldData::primary('vehicle_id', 'Vehicle', FieldType::Select, null, self::vehicleOptions()),
             FieldData::optional('brand', 'Brand', FieldType::Text, 'Drives the logo shown on the card.'),

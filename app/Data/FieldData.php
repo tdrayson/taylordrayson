@@ -24,6 +24,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public string $label,
         public FieldType $type,
         public bool $primary,
+        public bool $required,
         public ?string $help,
         public array $options,
     ) {}
@@ -31,11 +32,15 @@ final readonly class FieldData implements Arrayable, JsonSerializable
     /**
      * A field that is always shown.
      *
+     * `required` is separate from `primary` on purpose: primary decides whether
+     * a field is visible, required decides whether a save is refused without
+     * it. Tags are always shown and almost never mandatory.
+     *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = []): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false): self
     {
-        return new self($name, $label, $type, true, $help, $options);
+        return new self($name, $label, $type, true, $required, $help, $options);
     }
 
     /**
@@ -45,7 +50,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = []): self
     {
-        return new self($name, $label, $type, false, $help, $options);
+        return new self($name, $label, $type, false, false, $help, $options);
     }
 
     /**
@@ -58,6 +63,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
             'label' => $this->label,
             'type' => $this->type->value,
             'primary' => $this->primary,
+            'required' => $this->required,
             'isBody' => $this->type->isBody(),
         ];
 
