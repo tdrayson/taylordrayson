@@ -25,9 +25,47 @@ const error = ref(null);
 // stays in the field itself, since that is what a card shows as the title.
 const resolvedAddress = ref(null);
 
-function onFill(values) {
-    resolvedAddress.value = values.address ?? null;
+/**
+ * Resolve a position into the parts an entry stores. A search result carries
+ * only coordinates, because asking for the components of every row in a list
+ * would cost a request per row nobody may choose.
+ */
+async function resolveParts(latitude, longitude) {
+    try {
+        const response = await fetch(`/lookup-reverse?lat=${latitude}&lng=${longitude}`, {
+            headers: { Accept: 'application/json' },
+            credentials: 'same-origin',
+        });
+
+        return response.ok ? (await response.json()).data : null;
+    } catch {
+        return null;
+    }
+}
+
+async function onFill(values) {
     emit('fill', values);
+
+    if (values.address) {
+        resolvedAddress.value = values.address;
+    }
+
+    // A station lookup already returns its parts; a place search does not.
+    if (values.latitude && ! values.postcode) {
+        const place = await resolveParts(values.latitude, values.longitude);
+
+        if (place) {
+            resolvedAddress.value = place.formatted ?? place.address ?? resolvedAddress.value;
+            emit('fill', Object.fromEntries(
+                Object.entries({
+                    address: place.address,
+                    postcode: place.postcode,
+                    city: place.city,
+                    country: place.country,
+                }).filter(([, value]) => value),
+            ));
+        }
+    }
 }
 
 function useMyLocation() {

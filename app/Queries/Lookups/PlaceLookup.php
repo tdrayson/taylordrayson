@@ -3,15 +3,18 @@
 namespace App\Queries\Lookups;
 
 use App\Models\Checkin;
-use App\Services\Mapbox;
+use App\Services\GoogleMaps;
 
 /**
- * Places for the location field. Picking one fills the coordinates as well as
- * the name, so a saved entry has what the map generator needs.
+ * Places for the location field, from Google.
+ *
+ * Google rather than Mapbox: Mapbox ranked streets above businesses, so
+ * searching for a venue returned the road it stands on. Mapbox still renders
+ * every stored map; this is only about finding the place.
  */
 final class PlaceLookup
 {
-    public function __construct(private Mapbox $mapbox) {}
+    public function __construct(private GoogleMaps $maps) {}
 
     /**
      * @return list<array{value: string, label: string, detail: string|null, fill: array<string, mixed>}>
@@ -33,15 +36,15 @@ final class PlaceLookup
             // Everything the pick resolved, so a type that stores a city or a
             // postcode gets them filled rather than only its coordinates.
             // EntryEditor writes only the keys the form actually has.
+            // Coordinates only. Text Search returns no address components, so
+            // the parts are resolved by reverse-geocoding this position when
+            // the row is picked, rather than by an extra call per row in a
+            // list that may never be chosen from.
             'fill' => array_filter([
                 'latitude' => $place['latitude'],
                 'longitude' => $place['longitude'],
-                'city' => $place['city'] ?? null,
-                'postcode' => $place['postcode'] ?? null,
-                'country' => $place['country'] ?? null,
-                'address' => $place['address'] ?? null,
             ], fn ($value): bool => $value !== null && $value !== ''),
-        ], $this->mapbox->search($query, $latitude, $longitude)));
+        ], $this->maps->search($query, $latitude, $longitude)));
     }
 
     /**

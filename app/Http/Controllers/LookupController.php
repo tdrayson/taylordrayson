@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Queries\Lookups\AirlineLookup;
 use App\Queries\Lookups\AirportLookup;
 use App\Queries\Lookups\BookLookup;
+use App\Queries\Lookups\FuelBrandLookup;
 use App\Queries\Lookups\PlaceLookup;
+use App\Queries\Lookups\StationLookup;
 use App\Queries\Lookups\TagLookup;
 use App\Queries\Lookups\TimezoneLookup;
-use App\Services\Mapbox;
+use App\Services\GoogleMaps;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -34,6 +36,8 @@ class LookupController extends Controller
             'book' => app(BookLookup::class)($query),
             'tag' => app(TagLookup::class)($query),
             'timezone' => app(TimezoneLookup::class)($query),
+            'station' => app(StationLookup::class)($query, $request->float('lat') ?: null, $request->float('lng') ?: null),
+            'fuel-brand' => app(FuelBrandLookup::class)($query),
             'place' => app(PlaceLookup::class)(
                 $query,
                 $request->float('lat') ?: null,
@@ -50,13 +54,21 @@ class LookupController extends Controller
      * from the search above because the browser supplies a position rather
      * than a query, and there is exactly one answer.
      */
-    public function reverse(Request $request, Mapbox $mapbox): JsonResponse
+    public function reverse(Request $request, GoogleMaps $maps): JsonResponse
     {
         $validated = $request->validate([
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lng' => ['required', 'numeric', 'between:-180,180'],
         ]);
 
-        return response()->json(['data' => $mapbox->reverse((float) $validated['lat'], (float) $validated['lng'])]);
+        $place = $maps->reverse((float) $validated['lat'], (float) $validated['lng']);
+
+        return response()->json(['data' => $place === null ? null : [
+            ...$place,
+            // The street line is what `address` holds; the town, postcode and
+            // country have fields of their own and repeating them there says
+            // the same thing twice.
+            'address' => $place['street'],
+        ]]);
     }
 }
