@@ -41,9 +41,10 @@ Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping()
 // Swarm check-ins, asking only for what postdates the newest stored one.
 Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
 
-// Podcasts re-fetch the full episode list on every run (see issue #85), so
-// this stays daily until it is made incremental like the others.
-Schedule::command('podcast:sync')->dailyAt('05:00')->withoutOverlapping();
+// Episodes publish weekly, but the feed is the only signal that one is out, so
+// this polls often enough that a new episode is up within the half hour. A run
+// with nothing new is one page and five upserts.
+Schedule::command('podcast:sync')->everyThirtyMinutes()->withoutOverlapping();
 
 /*
 |--------------------------------------------------------------------------
