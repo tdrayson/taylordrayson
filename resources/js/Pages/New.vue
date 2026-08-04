@@ -16,7 +16,13 @@ const props = defineProps({
     fields: { type: Array, default: () => [] },
 });
 
-setLayoutProps({ breadcrumb: [{ label: 'New' }] });
+// Home / New / Article, with New linking back to the picker: changing your
+// mind should be the breadcrumb you already expect, not a separate link.
+setLayoutProps({
+    breadcrumb: props.type
+        ? [{ label: 'New', href: '/new' }, { label: props.type.charAt(0).toUpperCase() + props.type.slice(1) }]
+        : [{ label: 'New' }],
+});
 
 const values = computed(() => valuesFor(props.fields));
 
@@ -44,11 +50,6 @@ const values = computed(() => valuesFor(props.fields));
     </div>
 
     <div v-else>
-        <div class="mb-6 flex w-full max-w-2xl items-baseline justify-between gap-3">
-            <p class="text-label uppercase text-neutral-500">New {{ type }}</p>
-            <Link href="/new" class="text-caption text-neutral-500 underline underline-offset-2 hover:text-accent-500">Change type</Link>
-        </div>
-
         <EntryEditor
             :fields="fields"
             :values="values"

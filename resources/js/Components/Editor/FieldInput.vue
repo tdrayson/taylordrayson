@@ -4,6 +4,7 @@ import RichTextEditor from './RichTextEditor.vue';
 import LookupInput from './LookupInput.vue';
 import LocationInput from './LocationInput.vue';
 import DateTimeField from './DateTimeField.vue';
+import TagsInput from './TagsInput.vue';
 
 /**
  * One field, drawn from its definition. The `type` on the definition is the
@@ -99,12 +100,11 @@ function textToTags(value) {
             </option>
         </select>
 
-        <Input
+        <TagsInput
             v-else-if="field.type === 'tags'"
             :id="field.name"
-            :model-value="tagsToText(modelValue)"
-            placeholder="Comma separated"
-            @update:model-value="$emit('update:modelValue', textToTags($event))"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            @update:model-value="$emit('update:modelValue', $event)"
         />
 
         <DateTimeField

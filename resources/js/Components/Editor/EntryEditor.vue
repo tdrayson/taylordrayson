@@ -126,6 +126,7 @@ function submit() {
             :id="titleField.name"
             v-model="form[titleField.name]"
             :placeholder="titleField.label"
+            data-text-size
             class="w-full border-none bg-transparent p-0 font-display text-display text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
         >
 
