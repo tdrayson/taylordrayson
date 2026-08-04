@@ -36,8 +36,8 @@ final class FlightFields
                 fn (FlightReason $reason): array => ['value' => $reason->value, 'label' => $reason->label()],
                 FlightReason::cases(),
             )),
-            FieldData::optional('duration', 'Duration', FieldType::Number, 'Seconds.'),
-            FieldData::optional('distance', 'Distance', FieldType::Number, 'Metres.'),
+            FieldData::optional('duration', 'Duration', FieldType::Duration),
+            FieldData::optional('distance', 'Distance', FieldType::Distance),
             FieldData::optional('departure_timezone', 'Departure timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('arrival_timezone', 'Arrival timezone', FieldType::Lookup, source: 'timezone'),
         ];

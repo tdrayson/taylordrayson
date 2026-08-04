@@ -18,6 +18,8 @@ enum FieldType: string
     case Url = 'url';
     case DateTime = 'datetime';
     case Number = 'number';
+    case Duration = 'duration';
+    case Distance = 'distance';
     case Boolean = 'boolean';
     case Select = 'select';
     case Tags = 'tags';
@@ -35,6 +37,8 @@ enum FieldType: string
             self::Url => 'URL',
             self::DateTime => 'Date and time',
             self::Number => 'Number',
+            self::Duration => 'Duration',
+            self::Distance => 'Distance',
             self::Boolean => 'Toggle',
             self::Select => 'Choice',
             self::Tags => 'Tags',

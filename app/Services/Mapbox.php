@@ -71,6 +71,34 @@ class Mapbox
             'address' => $feature['place_name'] ?? null,
             'longitude' => (float) ($feature['center'][0] ?? 0),
             'latitude' => (float) ($feature['center'][1] ?? 0),
+            ...$this->context($feature),
         ], $response->json('features') ?? []));
+    }
+
+    /**
+     * Mapbox returns the town, postcode and country as a `context` list rather
+     * than as fields. Pulling them out is what lets picking a place fill an
+     * entry's city and postcode instead of only its coordinates.
+     *
+     * @param  array<string, mixed>  $feature
+     * @return array{city: string|null, postcode: string|null, country: string|null}
+     */
+    private function context(array $feature): array
+    {
+        $of = function (string $prefix) use ($feature): ?string {
+            foreach ($feature['context'] ?? [] as $entry) {
+                if (str_starts_with((string) ($entry['id'] ?? ''), $prefix)) {
+                    return $entry['text'] ?? null;
+                }
+            }
+
+            return null;
+        };
+
+        return [
+            'city' => $of('place') ?? $of('locality'),
+            'postcode' => $of('postcode'),
+            'country' => $of('country'),
+        ];
     }
 }

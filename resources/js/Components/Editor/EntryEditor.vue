@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { slugify } from '../../lib/editor/defaults.js';
+import { useDismissable } from '../../lib/editor/dismissable.js';
 import Button from '../Ui/Button.vue';
 import FieldInput from './FieldInput.vue';
 
@@ -58,7 +59,7 @@ function filled(name) {
 /** Which chips are open, and which extras have been added to the row. */
 const expanded = ref([]);
 const added = ref(extraChips.value.filter((field) => filled(field.name)).map((field) => field.name));
-const showExtras = ref(false);
+const { isOpen: showExtras, root: extrasRoot, close: closeExtras, toggle: toggleExtras } = useDismissable();
 
 // Declaration order, not primary-then-added: the fields class is where the
 // order is decided, and a chip should not jump position because it was added
@@ -83,7 +84,7 @@ function toggle(name) {
 function add(field) {
     added.value.push(field.name);
     expanded.value.push(field.name);
-    showExtras.value = false;
+    closeExtras();
 }
 
 /** The value on the chip itself, so a field that is set reads at a glance. */
@@ -104,6 +105,31 @@ function summary(field) {
 
     if (field.type === 'select') {
         return field.options?.find((option) => option.value === value)?.label ?? String(value);
+    }
+
+    // A chip is a glance, so a stored timestamp reads as a date rather than as
+    // the database value it happens to be.
+    if (field.type === 'datetime') {
+        const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+
+        if (match) {
+            const [, y, mo, d, h, mi] = match;
+            const date = new Date(Number(y), Number(mo) - 1, Number(d));
+
+            return `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${h}:${mi}`;
+        }
+    }
+
+    if (field.type === 'duration') {
+        const total = Number(value);
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.round((total % 3600) / 60);
+
+        return [hours ? `${hours}h` : null, minutes ? `${minutes}m` : null].filter(Boolean).join(' ');
+    }
+
+    if (field.type === 'distance') {
+        return `${Math.round((Number(value) / 1609.344) * 10) / 10} mi`;
     }
 
     return String(value).slice(0, 24);
@@ -133,10 +159,23 @@ function onFieldInput(field, value) {
     form[field.name] = value;
 }
 
+/**
+ * Apply the sibling values a lookup resolved, and surface the ones that were
+ * hidden. A pick that quietly fills City and Country behind a + menu looks
+ * like it did nothing.
+ */
 function applyFill(values) {
     Object.entries(values).forEach(([key, value]) => {
-        if (key in form) {
-            form[key] = value;
+        if (! (key in form)) {
+            return;
+        }
+
+        form[key] = value;
+
+        const field = props.fields.find((candidate) => candidate.name === key);
+
+        if (field && ! field.primary && ! added.value.includes(key) && ! stacks(field)) {
+            added.value.push(key);
         }
     });
 }
@@ -181,6 +220,7 @@ function submit() {
                 :field="field"
                 :model-value="form[field.name]"
                 :resolved="resolved"
+                :relative-to-value="field.relativeTo ? String(form[field.relativeTo] ?? '') : null"
                 @update:model-value="onFieldInput(field, $event)"
                 @fill="applyFill"
             />
@@ -193,21 +233,29 @@ function submit() {
                 :key="field.name"
                 type="button"
                 class="inline-flex max-w-full items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-meta transition-colors"
-                :class="expanded.includes(field.name) || summary(field)
-                    ? 'border-accent-500 bg-accent-50 text-accent-700'
-                    : 'border-neutral-100 text-neutral-700 hover:border-accent-500 hover:text-accent-700'"
+                :class="[
+                    // Three states, not two: open is the accent, set is a quiet
+                    // fill, empty is an outline. Without the distinction a
+                    // field with data looks identical to the one you are
+                    // currently editing.
+                    expanded.includes(field.name)
+                        ? 'border-accent-500 bg-accent-50 text-accent-700'
+                        : summary(field)
+                            ? 'border-neutral-100 bg-neutral-25 text-neutral-900'
+                            : 'border-neutral-100 text-neutral-700 hover:border-accent-500 hover:text-accent-700',
+                ]"
                 @click="toggle(field.name)"
             >
-                {{ field.label }}
+                <span :class="summary(field) ? 'text-neutral-500' : ''">{{ field.label }}</span>
                 <span v-if="summary(field)" class="min-w-0 truncate font-medium">{{ summary(field) }}</span>
             </button>
 
-            <div v-if="remainingExtras.length" class="relative">
+            <div v-if="remainingExtras.length" ref="extrasRoot" class="relative">
                 <button
                     type="button"
                     class="rounded-md border border-neutral-100 px-2.5 py-1.5 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700"
                     aria-label="Add another field"
-                    @click="showExtras = ! showExtras"
+                    @click="toggleExtras"
                 >
                     +
                 </button>
@@ -236,6 +284,7 @@ function submit() {
                 :key="field.name"
                 :field="field"
                 :model-value="form[field.name]"
+                :relative-to-value="field.relativeTo ? String(form[field.relativeTo] ?? '') : null"
                 @update:model-value="onFieldInput(field, $event)"
                 @fill="applyFill"
             />

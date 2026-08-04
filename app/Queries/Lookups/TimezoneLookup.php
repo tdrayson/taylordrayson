@@ -38,7 +38,31 @@ final class TimezoneLookup
                 'label' => $city,
                 'detail' => $this->offset($identifier),
             ];
-        }, array_slice($identifiers, 0, 12));
+        }, array_slice($this->ranked($identifiers, $query), 0, 40));
+    }
+
+    /**
+     * A match on the city sorts above a match anywhere in the path, so typing
+     * "york" offers New York before America/New_York's neighbours.
+     *
+     * @param  list<string>  $identifiers
+     * @return list<string>
+     */
+    private function ranked(array $identifiers, string $query): array
+    {
+        if ($query === '') {
+            return $identifiers;
+        }
+
+        $needle = str_replace(' ', '_', strtolower($query));
+
+        usort($identifiers, function (string $a, string $b) use ($needle): int {
+            $score = fn (string $identifier): int => str_starts_with(strtolower(basename($identifier)), $needle) ? 0 : 1;
+
+            return [$score($a), $a] <=> [$score($b), $b];
+        });
+
+        return $identifiers;
     }
 
     private function offset(string $identifier): string

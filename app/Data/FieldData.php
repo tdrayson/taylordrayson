@@ -30,6 +30,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public array $options,
         public ?string $source,
         public bool $defaultsToNow,
+        public ?string $relativeTo,
     ) {}
 
     /**
@@ -41,9 +42,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow);
+        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo);
     }
 
     /**
@@ -51,9 +52,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false): self
+    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null): self
     {
-        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow);
+        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo);
     }
 
     /**
@@ -85,6 +86,10 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->defaultsToNow) {
             $data['defaultsToNow'] = true;
+        }
+
+        if ($this->relativeTo !== null) {
+            $data['relativeTo'] = $this->relativeTo;
         }
 
         return $data;

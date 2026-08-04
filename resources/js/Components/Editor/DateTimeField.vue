@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import * as chrono from 'chrono-node';
 import Input from '../Ui/Input.vue';
+import { useDismissable } from '../../lib/editor/dismissable.js';
 
 /**
  * A date and time, with the shortcuts you actually reach for and an explicit
@@ -18,11 +19,15 @@ const props = defineProps({
     id: { type: String, default: null },
     // The timezone stored alongside, if the type keeps one.
     timezone: { type: String, default: null },
+    // The value this one is measured from, when the field declares a
+    // relativeTo: an event's end is nearly always a few hours after its start.
+    relativeToValue: { type: String, default: null },
+    relativeToLabel: { type: String, default: 'start' },
 });
 
 const emit = defineEmits(['update:modelValue', 'update:timezone']);
 
-const open = ref(false);
+const { isOpen: open, root, close, toggle } = useDismissable();
 const typed = ref('');
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -71,9 +76,32 @@ const shortcuts = computed(() => {
 
 function choose(date) {
     emit('update:modelValue', stamp(date));
-    open.value = false;
+    close();
     typed.value = '';
 }
+
+/**
+ * Offsets from the field this one is measured from. Reading the start as wall
+ * clock rather than through Date keeps the arithmetic in the same frame the
+ * value is stored in.
+ */
+const relativeOptions = computed(() => {
+    const match = String(props.relativeToValue ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+
+    if (! match) {
+        return [];
+    }
+
+    const [, y, mo, d, h, mi] = match.map(Number);
+    const from = new Date(y, mo - 1, d, h, mi);
+
+    return [
+        { label: `1 hour after ${props.relativeToLabel}`, minutes: 60 },
+        { label: `2 hours after ${props.relativeToLabel}`, minutes: 120 },
+        { label: `3 hours after ${props.relativeToLabel}`, minutes: 180 },
+        { label: `Next day`, minutes: 60 * 24 },
+    ].map((option) => ({ ...option, date: new Date(from.getTime() + option.minutes * 60000) }));
+});
 
 /** "yesterday 9am", "3 aug 18:30", "last friday". */
 function parseTyped() {
@@ -94,12 +122,12 @@ function setTimePart(value) {
 </script>
 
 <template>
-    <div class="relative">
+    <div ref="root" class="relative">
         <button
             :id="id"
             type="button"
             class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            @click="open = ! open"
+            @click="toggle"
         >
             {{ label }}
         </button>
@@ -114,6 +142,22 @@ function setTimePart(value) {
                 class="mb-2"
                 @keydown.enter.prevent="parseTyped"
             />
+
+            <ul v-if="relativeOptions.length" class="mb-2 border-b border-neutral-50 pb-2">
+                <li v-for="option in relativeOptions" :key="option.label">
+                    <button
+                        type="button"
+                        class="flex w-full items-baseline justify-between gap-4 rounded px-2 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        @click="choose(option.date)"
+                    >
+                        <span>{{ option.label }}</span>
+                        <span class="text-caption text-neutral-500">
+                            {{ option.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
+                            {{ String(option.date.getHours()).padStart(2, '0') }}:{{ String(option.date.getMinutes()).padStart(2, '0') }}
+                        </span>
+                    </button>
+                </li>
+            </ul>
 
             <ul class="mb-2 border-b border-neutral-50 pb-2">
                 <li v-for="shortcut in shortcuts" :key="shortcut.label">
@@ -130,8 +174,8 @@ function setTimePart(value) {
                 </li>
             </ul>
 
-            <div class="grid grid-cols-2 gap-2">
-                <label class="text-label uppercase text-neutral-500">
+            <div class="grid grid-cols-5 gap-2">
+                <label class="col-span-3 text-label uppercase text-neutral-500">
                     Date
                     <input
                         type="date"
@@ -141,7 +185,7 @@ function setTimePart(value) {
                     >
                 </label>
 
-                <label class="text-label uppercase text-neutral-500">
+                <label class="col-span-2 text-label uppercase text-neutral-500">
                     Time
                     <input
                         type="time"
@@ -166,7 +210,7 @@ function setTimePart(value) {
             <button
                 type="button"
                 class="mt-2 w-full rounded-md bg-neutral-25 py-1.5 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                @click="open = false"
+                @click="close"
             >
                 Done
             </button>

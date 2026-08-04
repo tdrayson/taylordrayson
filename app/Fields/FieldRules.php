@@ -48,7 +48,7 @@ final class FieldRules
             FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
-            FieldType::Number => ['nullable', 'numeric'],
+            FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
             FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],

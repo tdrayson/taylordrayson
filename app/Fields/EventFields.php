@@ -22,7 +22,7 @@ final class EventFields
             FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, defaultsToNow: true),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, 'Search, or use your location.', source: 'place'),
             FieldData::primary('tags', 'Category', FieldType::Tags, 'The first tag is shown as the category.'),
-            FieldData::optional('ends_at', 'Ends', FieldType::DateTime, 'Set for multi-day events; shows a date range.'),
+            FieldData::optional('ends_at', 'Ends', FieldType::DateTime, 'Set for multi-day events; shows a date range.', relativeTo: 'occurred_at'),
             FieldData::optional('all_day', 'All day', FieldType::Boolean),
             FieldData::optional('organiser', 'Organiser', FieldType::Text, 'Only shown when it differs from the name.'),
             FieldData::optional('city', 'City', FieldType::Text),

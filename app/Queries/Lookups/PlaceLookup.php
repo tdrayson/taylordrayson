@@ -30,10 +30,17 @@ final class PlaceLookup
             'value' => $place['name'],
             'label' => $place['name'],
             'detail' => $place['address'],
-            'fill' => [
+            // Everything the pick resolved, so a type that stores a city or a
+            // postcode gets them filled rather than only its coordinates.
+            // EntryEditor writes only the keys the form actually has.
+            'fill' => array_filter([
                 'latitude' => $place['latitude'],
                 'longitude' => $place['longitude'],
-            ],
+                'city' => $place['city'] ?? null,
+                'postcode' => $place['postcode'] ?? null,
+                'country' => $place['country'] ?? null,
+                'address' => $place['address'] ?? null,
+            ], fn ($value): bool => $value !== null && $value !== ''),
         ], $this->mapbox->search($query, $latitude, $longitude)));
     }
 

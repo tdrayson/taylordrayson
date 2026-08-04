@@ -1,5 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**
  * Tags as chips, with autocomplete over the tags that already exist.
@@ -20,9 +22,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
+const { isOpen: open, root, open: show, close } = useDismissable();
 const query = ref('');
 const suggestions = ref([]);
-const open = ref(false);
 let timer = null;
 
 const tags = computed(() => (Array.isArray(props.modelValue) ? props.modelValue : []));
@@ -41,7 +43,7 @@ async function search() {
         });
 
         suggestions.value = response.ok ? (await response.json()).data ?? [] : [];
-        open.value = true;
+        show();
     } catch {
         suggestions.value = [];
     }
@@ -75,22 +77,33 @@ function commit(value) {
 function pick(suggestion) {
     commit(suggestion.value);
     query.value = '';
-    open.value = false;
+    close();
 }
 
 function remove(name) {
     emit('update:modelValue', tags.value.filter((tag) => tag !== name));
 }
 
-function onEnter() {
-    if (offered.value.length && query.value !== '') {
-        pick(offered.value[0]);
+const { active, onKeydown: onListKeydown } = useListNavigation(offered, {
+    onSelect: (suggestion) => pick(suggestion),
+    onDismiss: () => close(),
+});
+
+/**
+ * Enter takes the highlighted suggestion when the list is open, and otherwise
+ * commits whatever was typed: a tag that does not exist yet still has to be
+ * creatable, which is why this is not a plain select.
+ */
+function onKeydown(event) {
+    if (event.key === 'Enter' && (! open.value || ! offered.value.length)) {
+        event.preventDefault();
+        commit(query.value);
+        query.value = '';
 
         return;
     }
 
-    commit(query.value);
-    query.value = '';
+    onListKeydown(event);
 }
 
 function onBackspace() {
@@ -101,7 +114,7 @@ function onBackspace() {
 </script>
 
 <template>
-    <div class="relative">
+    <div ref="root" class="relative">
         <div class="flex flex-wrap items-center gap-1.5 rounded-md border border-neutral-100 bg-neutral-0 px-2 py-1.5 focus-within:border-accent-500">
             <span
                 v-for="tag in tags"
@@ -126,8 +139,10 @@ function onBackspace() {
                 autocomplete="off"
                 @input="onInput($event.target.value)"
                 @focus="search"
-                @blur="open = false"
-                @keydown.enter.prevent="onEnter"
+                role="combobox"
+                :aria-expanded="open"
+                aria-autocomplete="list"
+                @keydown="onKeydown"
                 @keydown.backspace="onBackspace"
             >
         </div>
@@ -135,11 +150,15 @@ function onBackspace() {
         <ul
             v-if="open && offered.length"
             class="absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
+            role="listbox"
         >
-            <li v-for="suggestion in offered" :key="suggestion.value">
+            <li v-for="(suggestion, index) in offered" :key="suggestion.value">
                 <button
                     type="button"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    role="option"
+                    :aria-selected="index === active"
+                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(suggestion)"
                 >
                     <span class="min-w-0 truncate">{{ suggestion.label }}</span>

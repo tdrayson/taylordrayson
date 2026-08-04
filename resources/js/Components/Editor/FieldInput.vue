@@ -5,6 +5,8 @@ import LookupInput from './LookupInput.vue';
 import LocationInput from './LocationInput.vue';
 import DateTimeField from './DateTimeField.vue';
 import TagsInput from './TagsInput.vue';
+import DurationInput from './DurationInput.vue';
+import DistanceInput from './DistanceInput.vue';
 
 /**
  * One field, drawn from its definition. The `type` on the definition is the
@@ -18,6 +20,8 @@ defineProps({
     resolved: { type: Object, default: () => ({}) },
     // The body carries no label: the placeholder says what it is.
     hideLabel: { type: Boolean, default: false },
+    // The value of the field this one is measured from, when it declares one.
+    relativeToValue: { type: String, default: null },
 });
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
@@ -111,6 +115,21 @@ function textToTags(value) {
             v-else-if="field.type === 'datetime'"
             :id="field.name"
             :model-value="String(modelValue ?? '')"
+            :relative-to-value="relativeToValue"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
+
+        <DurationInput
+            v-else-if="field.type === 'duration'"
+            :id="field.name"
+            :model-value="modelValue"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
+
+        <DistanceInput
+            v-else-if="field.type === 'distance'"
+            :id="field.name"
+            :model-value="modelValue"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

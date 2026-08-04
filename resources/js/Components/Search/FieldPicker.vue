@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Icon from '../Ui/Icon.vue';
+import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 const props = defineProps({
     fields: { type: Array, required: true },
@@ -49,6 +50,13 @@ function pick(field) {
     open.value = false;
 }
 
+// Arrows move through the fields of the open category, Enter picks. Without
+// this the picker could be opened from the keyboard and then not used.
+const { active, onKeydown } = useListNavigation(activeFields, {
+    onSelect: (field) => field && pick(field),
+    onDismiss: () => (open.value = false),
+});
+
 function onDocumentClick(event) {
     if (root.value && !root.value.contains(event.target)) {
         open.value = false;
@@ -60,7 +68,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
 </script>
 
 <template>
-    <div ref="root" class="relative" @keydown.esc="open = false">
+    <div ref="root" class="relative" @keydown="open && onKeydown($event)" @keydown.esc="open = false">
         <button
             type="button"
             aria-haspopup="true"
@@ -89,12 +97,17 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     </button>
                 </li>
             </ul>
-            <ul class="max-h-72 w-1/2 overflow-y-auto py-1">
-                <li v-for="field in activeFields" :key="field.key">
+            <ul class="max-h-72 w-1/2 overflow-y-auto py-1" role="listbox">
+                <li v-for="(field, index) in activeFields" :key="field.key">
                     <button
                         type="button"
+                        role="option"
+                        :aria-selected="field.key === modelValue"
                         class="block w-full px-4 py-2 text-left text-meta transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
-                        :class="field.key === modelValue ? 'text-accent-500' : 'text-neutral-700 hover:bg-neutral-25'"
+                        :class="[
+                            field.key === modelValue ? 'text-accent-500' : 'text-neutral-700 hover:bg-neutral-25',
+                            index === active ? 'bg-neutral-25' : '',
+                        ]"
                         @click="pick(field)"
                     >
                         {{ field.label }}

@@ -1,6 +1,8 @@
 <script setup>
 import { ref, watch } from 'vue';
 import Input from '../Ui/Input.vue';
+import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**
  * A text field backed by a search: airports, airlines, books, places.
@@ -20,11 +22,16 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'fill']);
 
+const { isOpen: open, root, open: show, close } = useDismissable();
 const query = ref(String(props.modelValue ?? ''));
 const results = ref([]);
-const open = ref(false);
 const searching = ref(false);
 let timer = null;
+
+const { active, onKeydown } = useListNavigation(results, {
+    onSelect: (result) => pick(result),
+    onDismiss: () => close(),
+});
 
 watch(() => props.modelValue, (value) => {
     // Only follow the prop when the field is not being typed in, or every
@@ -44,7 +51,7 @@ async function search() {
         });
 
         results.value = response.ok ? (await response.json()).data ?? [] : [];
-        open.value = true;
+        show();
     } catch {
         // A failed lookup leaves what was typed alone rather than clearing it.
         results.value = [];
@@ -69,31 +76,38 @@ function pick(result) {
         emit('fill', result.fill);
     }
 
-    open.value = false;
+    close();
     results.value = [];
 }
 </script>
 
 <template>
-    <div class="relative">
+    <div ref="root" class="relative">
         <Input
             :id="id"
             :model-value="query"
             :placeholder="placeholder"
             autocomplete="off"
+            role="combobox"
+            :aria-expanded="open"
+            aria-autocomplete="list"
             @update:model-value="onInput"
             @focus="query && search()"
-            @blur="setTimeout(() => (open = false), 150)"
+            @keydown="onKeydown"
         />
 
         <ul
             v-if="open && results.length"
             class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
+            role="listbox"
         >
-            <li v-for="result in results" :key="result.value + result.label">
+            <li v-for="(result, index) in results" :key="result.value + result.label">
                 <button
                     type="button"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    role="option"
+                    :aria-selected="index === active"
+                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(result)"
                 >
                     <span class="min-w-0 truncate">{{ result.label }}</span>
