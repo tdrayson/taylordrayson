@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { slugify } from '../../lib/editor/defaults.js';
 import Button from '../Ui/Button.vue';
 import FieldInput from './FieldInput.vue';
 
@@ -59,10 +60,17 @@ const expanded = ref([]);
 const added = ref(extraChips.value.filter((field) => filled(field.name)).map((field) => field.name));
 const showExtras = ref(false);
 
-const visibleChips = computed(() => [
-    ...primaryChips.value,
-    ...extraChips.value.filter((field) => added.value.includes(field.name)),
-]);
+// Declaration order, not primary-then-added: the fields class is where the
+// order is decided, and a chip should not jump position because it was added
+// from the + menu rather than shown by default.
+const visibleChips = computed(() => {
+    const shown = [
+        ...primaryChips.value,
+        ...extraChips.value.filter((field) => added.value.includes(field.name)),
+    ];
+
+    return props.fields.filter((field) => shown.includes(field));
+});
 
 const remainingExtras = computed(() => extraChips.value.filter((field) => !added.value.includes(field.name)));
 
@@ -99,6 +107,30 @@ function summary(field) {
     }
 
     return String(value).slice(0, 24);
+}
+
+/**
+ * The slug follows the title until it is edited by hand, and only while the
+ * entry is unpublished: once something is public its URL is a promise, and
+ * retitling it must not quietly move the page.
+ */
+const slugField = computed(() => props.fields.find((field) => field.type === 'slug') ?? null);
+const slugEdited = ref(Boolean(props.values[slugField.value?.name]));
+
+watch(() => (titleField.value ? form[titleField.value.name] : null), (title) => {
+    if (! slugField.value || slugEdited.value || form.published === true) {
+        return;
+    }
+
+    form[slugField.value.name] = slugify(title);
+});
+
+function onFieldInput(field, value) {
+    if (slugField.value && field.name === slugField.value.name) {
+        slugEdited.value = true;
+    }
+
+    form[field.name] = value;
 }
 
 function applyFill(values) {
@@ -149,7 +181,7 @@ function submit() {
                 :field="field"
                 :model-value="form[field.name]"
                 :resolved="resolved"
-                @update:model-value="form[field.name] = $event"
+                @update:model-value="onFieldInput(field, $event)"
                 @fill="applyFill"
             />
         </div>
@@ -204,7 +236,7 @@ function submit() {
                 :key="field.name"
                 :field="field"
                 :model-value="form[field.name]"
-                @update:model-value="form[field.name] = $event"
+                @update:model-value="onFieldInput(field, $event)"
                 @fill="applyFill"
             />
         </div>

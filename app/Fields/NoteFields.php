@@ -19,9 +19,9 @@ final class NoteFields
         return [
             FieldData::primary('content', 'Note', FieldType::Textarea, required: true),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
-            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Defaults to now.'),
+            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('slug', 'Slug', FieldType::Slug, 'Generated from the content when left blank.'),
-            FieldData::optional('timezone', 'Timezone', FieldType::Text, 'Where it was written. Defaults to home.'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, 'Where it was written.', source: 'timezone'),
         ];
     }
 }

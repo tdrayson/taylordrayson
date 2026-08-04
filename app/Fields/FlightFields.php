@@ -5,6 +5,7 @@ namespace App\Fields;
 use App\Data\FieldData;
 use App\Enums\CabinClass;
 use App\Enums\FieldType;
+use App\Enums\FlightReason;
 
 /**
  * A flight. Airline and airports autocomplete from the 5,800 airlines and
@@ -22,7 +23,7 @@ final class FlightFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('occurred_at', 'Departs', FieldType::DateTime, required: true),
+            FieldData::primary('occurred_at', 'Departs', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::primary('origin_iata', 'From', FieldType::Lookup, 'Airport code.', required: true, source: 'airport'),
             FieldData::primary('destination_iata', 'To', FieldType::Lookup, 'Airport code.', required: true, source: 'airport'),
             FieldData::primary('airline_icao', 'Airline', FieldType::Lookup, source: 'airline'),
@@ -31,11 +32,14 @@ final class FlightFields
                 fn (CabinClass $class): array => ['value' => $class->value, 'label' => $class->label()],
                 CabinClass::cases(),
             )),
-            FieldData::optional('reason', 'Reason', FieldType::Text),
+            FieldData::optional('reason', 'Reason', FieldType::Select, options: array_map(
+                fn (FlightReason $reason): array => ['value' => $reason->value, 'label' => $reason->label()],
+                FlightReason::cases(),
+            )),
             FieldData::optional('duration', 'Duration', FieldType::Number, 'Seconds.'),
             FieldData::optional('distance', 'Distance', FieldType::Number, 'Metres.'),
-            FieldData::optional('departure_timezone', 'Departure timezone', FieldType::Text),
-            FieldData::optional('arrival_timezone', 'Arrival timezone', FieldType::Text),
+            FieldData::optional('departure_timezone', 'Departure timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::optional('arrival_timezone', 'Arrival timezone', FieldType::Lookup, source: 'timezone'),
         ];
     }
 }

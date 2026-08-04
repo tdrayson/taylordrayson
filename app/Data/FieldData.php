@@ -29,6 +29,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public ?string $help,
         public array $options,
         public ?string $source,
+        public bool $defaultsToNow,
     ) {}
 
     /**
@@ -40,9 +41,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options, $source);
+        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow);
     }
 
     /**
@@ -50,9 +51,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null): self
+    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false): self
     {
-        return new self($name, $label, $type, false, false, $help, $options, $source);
+        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow);
     }
 
     /**
@@ -80,6 +81,10 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->source !== null) {
             $data['source'] = $this->source;
+        }
+
+        if ($this->defaultsToNow) {
+            $data['defaultsToNow'] = true;
         }
 
         return $data;

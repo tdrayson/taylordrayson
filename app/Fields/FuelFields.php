@@ -19,7 +19,7 @@ final class FuelFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('occurred_at', 'Date', FieldType::DateTime),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::primary('litres', 'Litres', FieldType::Number, required: true),
             FieldData::primary('cost', 'Cost', FieldType::Number, 'Total paid, to 2dp.', required: true),
             FieldData::primary('station_name', 'Garage', FieldType::Location, 'Search, or use your location.', source: 'place'),

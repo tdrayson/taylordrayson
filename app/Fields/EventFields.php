@@ -19,7 +19,7 @@ final class EventFields
     {
         return [
             FieldData::primary('name', 'Name', FieldType::Title, required: true),
-            FieldData::primary('occurred_at', 'Starts', FieldType::DateTime),
+            FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, defaultsToNow: true),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, 'Search, or use your location.', source: 'place'),
             FieldData::primary('tags', 'Category', FieldType::Tags, 'The first tag is shown as the category.'),
             FieldData::optional('ends_at', 'Ends', FieldType::DateTime, 'Set for multi-day events; shows a date range.'),
@@ -31,7 +31,7 @@ final class EventFields
             FieldData::optional('longitude', 'Longitude', FieldType::Number),
             FieldData::optional('url', 'Link', FieldType::Url),
             FieldData::optional('description', 'Notes', FieldType::Textarea),
-            FieldData::optional('timezone', 'Timezone', FieldType::Text),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
         ];
     }
 }

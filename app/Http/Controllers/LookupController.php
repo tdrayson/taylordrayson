@@ -7,6 +7,7 @@ use App\Queries\Lookups\AirportLookup;
 use App\Queries\Lookups\BookLookup;
 use App\Queries\Lookups\PlaceLookup;
 use App\Queries\Lookups\TagLookup;
+use App\Queries\Lookups\TimezoneLookup;
 use App\Services\Mapbox;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,7 @@ class LookupController extends Controller
             'airline' => app(AirlineLookup::class)($query),
             'book' => app(BookLookup::class)($query),
             'tag' => app(TagLookup::class)($query),
+            'timezone' => app(TimezoneLookup::class)($query),
             'place' => app(PlaceLookup::class)(
                 $query,
                 $request->float('lat') ?: null,

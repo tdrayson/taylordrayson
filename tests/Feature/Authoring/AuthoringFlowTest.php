@@ -88,3 +88,20 @@ it('keeps the whole authoring surface behind the login', function () {
 
     expect(Note::count())->toBe(0);
 });
+
+it('rejects a flight reason that is not one of the enum cases', function () {
+    // Before the enum this was a free-text column: an unknown value saved fine
+    // and then threw a ValueError the next time the row was read.
+    $this->postJson('/entries/flight', [
+        'occurred_at' => '2026-08-04 09:00:00',
+        'origin_iata' => 'LHR',
+        'destination_iata' => 'JFK',
+        'reason' => 'commuting',
+    ])->assertJsonValidationErrors('reason');
+});
+
+it('keeps the field order the fields class declares', function () {
+    $names = collect($this->get('/new/flight')->viewData('page')['props']['fields'])->pluck('name');
+
+    expect($names->take(3)->all())->toBe(['occurred_at', 'origin_iata', 'destination_iata']);
+});

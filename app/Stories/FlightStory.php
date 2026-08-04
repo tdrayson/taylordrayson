@@ -2,6 +2,7 @@
 
 namespace App\Stories;
 
+use App\Enums\FlightReason;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Flight;
@@ -391,8 +392,8 @@ class FlightStory implements Story
      */
     private function purpose(Collection $flights): array
     {
-        $business = $flights->where('reason', 'business')->count();
-        $personal = $flights->where('reason', 'personal')->count();
+        $business = $flights->where('reason', FlightReason::Business)->count();
+        $personal = $flights->where('reason', FlightReason::Personal)->count();
 
         return [
             'business' => $business,
