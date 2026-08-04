@@ -196,3 +196,13 @@ it('takes health values with their units and separators attached', function () {
     expect(app(StateStore::class)->get('now.rings'))
         ->toEqual(['move' => 137, 'exercise' => 24, 'stand' => 9, 'steps' => 11240]);
 });
+
+it('refuses a value that merely starts with a number', function () {
+    // A mis-mapped shortcut variable, e.g. a date where the steps should be.
+    // Reading the leading digits would have stored 2026 as a step count.
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'rings' => ['steps' => '2026-08-03'],
+    ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['rings.steps']);
+});

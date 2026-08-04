@@ -134,9 +134,14 @@ class StoreNowStateRequest extends FormRequest
     }
 
     /**
-     * The first number in a value Shortcuts has stringified, or null when there
-     * is none to find. Thousands separators are dropped first so "11,240" reads
-     * as one number rather than stopping at the comma.
+     * A number Shortcuts has stringified with its unit attached, or null when
+     * the value is not that shape.
+     *
+     * Deliberately strict about what follows the digits: a unit ("kcal", "%",
+     * "°C", "mph") or nothing at all. Grabbing the first number in any string
+     * would read "2026-08-03" as 2026, turning a mis-mapped shortcut variable
+     * into a plausible reading that passes validation. Anything else is left
+     * alone so the rules reject it and the phone is told.
      */
     private function numberIn(mixed $value): int|float|null
     {
@@ -144,13 +149,14 @@ class StoreNowStateRequest extends FormRequest
             return null;
         }
 
-        $cleaned = str_replace(',', '', $value);
+        // Thousands separators first, so "11,240 steps" reads as one number.
+        $cleaned = str_replace(',', '', trim($value));
 
-        if (preg_match('/-?\\d+(\\.\\d+)?/', $cleaned, $match) !== 1) {
+        if (preg_match('/^(-?\d+(?:\.\d+)?)\s*[%\x{00B0}a-zA-Z\/\s.]*$/u', $cleaned, $match) !== 1) {
             return null;
         }
 
-        return str_contains($match[0], '.') ? (float) $match[0] : (int) $match[0];
+        return str_contains($match[1], '.') ? (float) $match[1] : (int) $match[1];
     }
 
     /**
