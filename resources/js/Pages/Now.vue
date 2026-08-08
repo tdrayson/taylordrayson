@@ -9,16 +9,16 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import { setupWidgetTilt } from '../lib/widgetTilt.js';
 import Button from '../Components/Ui/Button.vue';
 import Icon from '../Components/Ui/Icon.vue';
-import ChargingWidget from '../Components/Now/widgets/ChargingWidget.vue';
-import ActivityWidget from '../Components/Now/widgets/ActivityWidget.vue';
-import WeatherWidget from '../Components/Now/widgets/WeatherWidget.vue';
-import PhotosWidget from '../Components/Now/widgets/PhotosWidget.vue';
-import TimeWidget from '../Components/Now/widgets/TimeWidget.vue';
-import SleepWidget from '../Components/Now/widgets/SleepWidget.vue';
-import EntriesWidget from '../Components/Now/widgets/EntriesWidget.vue';
-import ReadingWidget from '../Components/Now/widgets/ReadingWidget.vue';
-import LocationWidget from '../Components/Now/widgets/LocationWidget.vue';
-import PodcastWidget from '../Components/Now/widgets/PodcastWidget.vue';
+import ChargingWidget from '../Components/Now/ChargingWidget.vue';
+import ActivityWidget from '../Components/Now/ActivityWidget.vue';
+import WeatherWidget from '../Components/Now/WeatherWidget.vue';
+import PhotosWidget from '../Components/Now/PhotosWidget.vue';
+import TimeWidget from '../Components/Now/TimeWidget.vue';
+import SleepWidget from '../Components/Now/SleepWidget.vue';
+import EntriesWidget from '../Components/Now/EntriesWidget.vue';
+import ReadingWidget from '../Components/Now/ReadingWidget.vue';
+import LocationWidget from '../Components/Now/LocationWidget.vue';
+import PodcastWidget from '../Components/Now/PodcastWidget.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -62,7 +62,7 @@ function ambient(group, keys) {
 }
 
 const chargingProps = ambient('battery', ['device', 'percent', 'charging', 'lowPower']);
-const weatherProps = ambient('weather', ['condition', 'temp', 'high', 'low']);
+const weatherProps = ambient('weather', ['condition', 'temp', 'humidity', 'wind']);
 const locationProps = ambient('location', ['city', 'latitude', 'longitude']);
 const ringsProps = ambient('rings', ['move', 'moveGoal', 'exercise', 'exerciseGoal', 'stand', 'standGoal']);
 

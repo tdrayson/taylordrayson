@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import Icon from '../../Ui/Icon.vue';
+import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     title: { type: String, default: 'Life lately' },

@@ -174,17 +174,36 @@ it('takes humidity and wind with their units attached', function () {
         ->toEqual(['temp' => 21.0, 'humidity' => 62.0, 'wind' => 8.0]);
 });
 
-it('renders whole temperatures while storing what was sent', function () {
+it('renders whole readings while storing what was sent', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
-        'weather' => ['temp' => 20.6, 'high' => 24.4, 'low' => 13.5],
+        'weather' => ['temp' => 20.6, 'humidity' => 61.7, 'wind' => 8.4],
     ])->assertOk();
 
-    expect(app(StateStore::class)->get('now.weather'))->toEqual(['temp' => 20.6, 'high' => 24.4, 'low' => 13.5]);
+    expect(app(StateStore::class)->get('now.weather'))->toEqual(['temp' => 20.6, 'humidity' => 61.7, 'wind' => 8.4]);
 
     $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
         ->where('ambient.weather.temp', 21)
-        ->where('ambient.weather.high', 24)
-        ->where('ambient.weather.low', 14)
+        ->where('ambient.weather.humidity', 62)
+        ->where('ambient.weather.wind', 8)
+    );
+});
+
+/**
+ * `high` and `low` are still accepted and stored, since the phone sends what
+ * Apple gives it, but the widget shows humidity and wind instead, so nothing
+ * should be putting a forecast range on the page.
+ */
+it('stores high and low without rendering them', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'weather' => ['temp' => 20.0, 'high' => 24.0, 'low' => 13.0],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.weather'))->toHaveKeys(['high', 'low']);
+
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.weather.temp', 20)
+        ->missing('ambient.weather.high')
+        ->missing('ambient.weather.low')
     );
 });
 

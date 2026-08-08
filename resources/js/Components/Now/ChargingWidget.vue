@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { batteryState } from '../../../lib/battery.js';
+import { BATTERY_COLOURS, batteryState } from '../../lib/battery.js';
 
 const props = defineProps({
     device: { type: String, default: 'iPhone' },
@@ -45,9 +45,7 @@ const hasSubText = computed(() => Boolean(subText.value));
 // Colour priority mirrors iOS: Low Power (orange) > low (red) > charging
 // (green) > idle (neutral foreground).
 const VALUE_COLOURS = {
-    'low-power': '#FF9500',
-    low: '#FA3532',
-    charging: '#1BC95A',
+    ...BATTERY_COLOURS,
     idle: 'var(--color-neutral-900)',
 };
 

@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import Icon from '../../Ui/Icon.vue';
-import Tooltip from '../../Ui/Tooltip.vue';
+import Icon from '../Ui/Icon.vue';
+import Tooltip from '../Ui/Tooltip.vue';
 
 const props = defineProps({
     fill: { type: Boolean, default: false },

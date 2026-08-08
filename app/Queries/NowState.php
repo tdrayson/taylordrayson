@@ -23,7 +23,10 @@ final class NowState
      */
     private const FIELDS = [
         'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower', 'device' => 'device'],
-        'weather' => ['condition' => 'condition', 'temp' => 'temp', 'high' => 'high', 'low' => 'low'],
+        // `high`/`low` are still accepted and stored, but nothing renders them:
+        // the widget shows humidity and wind instead, which say more about what
+        // stepping outside feels like than a forecast range does.
+        'weather' => ['condition' => 'condition', 'temp' => 'temp', 'humidity' => 'humidity', 'wind' => 'wind'],
         'location' => ['city' => 'city', 'state' => 'state', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
         'rings' => ['move' => 'move', 'move_goal' => 'moveGoal', 'exercise' => 'exercise', 'exercise_goal' => 'exerciseGoal', 'stand' => 'stand', 'stand_goal' => 'standGoal', 'steps' => 'steps'],
     ];
@@ -77,10 +80,10 @@ final class NowState
             return null;
         }
 
-        // Temperatures are stored as sent but shown whole: a widget reading
-        // "20.5°" is precision nobody asked for. Rounded here rather than in
+        // Readings are stored as sent but shown whole: a widget reading "20.5°"
+        // or "62.4%" is precision nobody asked for. Rounded here rather than in
         // each consumer so the status bar and the widget cannot disagree.
-        foreach (['temp', 'high', 'low'] as $reading) {
+        foreach (['temp', 'humidity', 'wind'] as $reading) {
             if (isset($shaped[$reading])) {
                 $shaped[$reading] = (int) round((float) $shaped[$reading]);
             }

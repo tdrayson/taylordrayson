@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { batteryState } from '../../lib/battery.js';
+import { BATTERY_COLOURS, batteryState } from '../../lib/battery.js';
 
 const props = defineProps({
     level: { type: Number, default: 0.69 },
@@ -20,12 +20,10 @@ const state = computed(() => batteryState({
     lowPower: props.lowPower,
 }));
 
-// iOS state colours: Low Power → yellow, low → red, charging → green, otherwise
+// iOS state colours: Low Power → orange, low → red, charging → green, otherwise
 // the foreground colour (inherits the surrounding text colour).
 const FILL_COLOURS = {
-    'low-power': '#FDC633',
-    low: '#FA3532',
-    charging: '#37C058',
+    ...BATTERY_COLOURS,
     idle: 'currentColor',
 };
 

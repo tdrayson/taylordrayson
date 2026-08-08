@@ -30,3 +30,17 @@ export function batteryState({ level, charging = false, lowPower = false }) {
 
     return charging ? 'charging' : 'idle';
 }
+
+/**
+ * The colour for each state, shared so the status bar glyph and the /now tile
+ * cannot drift apart again. They previously disagreed on two of the three.
+ *
+ * `idle` is deliberately absent: the glyph inherits the surrounding text
+ * colour while the tile uses its own foreground, and that difference is real
+ * rather than an oversight.
+ */
+export const BATTERY_COLOURS = {
+    'low-power': '#FF9500',
+    low: '#FA3532',
+    charging: '#1BC95A',
+};
