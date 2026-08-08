@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { batteryState } from '../../lib/battery.js';
 
 const props = defineProps({
     level: { type: Number, default: 0.69 },
@@ -9,28 +10,26 @@ const props = defineProps({
 });
 
 const clamped = computed(() => Math.max(0, Math.min(1, props.level)));
-const isLow = computed(() => clamped.value <= 0.2);
 
 // Fill spans x2..23 (21 units) inside the body; keep a sliver visible near empty.
 const fillWidth = computed(() => Math.max(2.5, clamped.value * 21).toFixed(1));
 
+const state = computed(() => batteryState({
+    level: clamped.value,
+    charging: props.charging,
+    lowPower: props.lowPower,
+}));
+
 // iOS state colours: Low Power → yellow, low → red, charging → green, otherwise
 // the foreground colour (inherits the surrounding text colour).
-const fillColor = computed(() => {
-    if (props.lowPower) {
-        return '#FDC633';
-    }
+const FILL_COLOURS = {
+    'low-power': '#FDC633',
+    low: '#FA3532',
+    charging: '#37C058',
+    idle: 'currentColor',
+};
 
-    if (isLow.value) {
-        return '#FA3532';
-    }
-
-    if (props.charging) {
-        return '#37C058';
-    }
-
-    return 'currentColor';
-});
+const fillColor = computed(() => FILL_COLOURS[state.value]);
 </script>
 
 <template>
