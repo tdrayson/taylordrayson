@@ -20,8 +20,8 @@ const state = computed(() => batteryState({
     lowPower: props.lowPower,
 }));
 
-// iOS state colours: Low Power → orange, low → red, charging → green, otherwise
-// the foreground colour (inherits the surrounding text colour).
+// iOS state colours: Low Power Mode → orange, low → red, charging → green,
+// otherwise the foreground colour (inherits the surrounding text colour).
 const FILL_COLOURS = {
     ...BATTERY_COLOURS,
     idle: 'currentColor',

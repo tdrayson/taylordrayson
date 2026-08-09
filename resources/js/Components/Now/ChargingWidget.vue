@@ -24,7 +24,7 @@ const state = computed(() => batteryState({
 /**
  * Deliberately not driven by `state`: the label describes what the phone is
  * doing, and a phone charging in Low Power Mode is still charging, whereas the
- * colour follows iOS in showing Low Power. Keeping them separate is why the
+ * colour follows iOS in showing Low Power Mode. Keeping them separate is why the
  * two disagree in that one case.
  */
 const statusText = computed(() => {
@@ -33,7 +33,7 @@ const statusText = computed(() => {
     }
 
     if (props.lowPower) {
-        return 'Low Power';
+        return 'Low Power Mode';
     }
 
     return state.value === 'low' ? 'Low battery' : 'On battery';
@@ -42,7 +42,7 @@ const statusText = computed(() => {
 const subText = computed(() => (props.charging ? props.timeLeft : 'remaining'));
 const hasSubText = computed(() => Boolean(subText.value));
 
-// Colour priority mirrors iOS: Low Power (orange) > low (red) > charging
+// Colour priority mirrors iOS: Low Power Mode (orange) > low (red) > charging
 // (green) > idle (neutral foreground).
 const VALUE_COLOURS = {
     ...BATTERY_COLOURS,

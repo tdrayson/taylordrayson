@@ -5,12 +5,12 @@ export const LOW_BATTERY_THRESHOLD = 0.2;
 
 /**
  * Reduce a battery reading to one state token, following iOS's precedence:
- * Low Power beats low, which beats charging, which beats idle.
+ * Low Power Mode beats low, which beats charging, which beats idle.
  *
  * Shared because the same battery is drawn in two very different shapes, the
  * status bar's 14px SVG and the /now tile, and each had its own copy of this
- * rule. The copies had already drifted on which colour Low Power uses, which
- * is exactly the kind of thing a duplicated rule does over time.
+ * rule. The copies had already drifted on which colour Low Power Mode uses,
+ * which is exactly the kind of thing a duplicated rule does over time.
  *
  * Only the rule is shared. Each component still picks its own colours, since
  * a tile and a 14px glyph do not want the same palette.

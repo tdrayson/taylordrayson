@@ -64,7 +64,7 @@ const batteryLabel = computed(() => {
         return `${percent}%, charging`;
     }
 
-    return `${percent}%, ${lowPower.value ? 'Low Power' : 'on battery'}`;
+    return `${percent}%, ${lowPower.value ? 'Low Power Mode' : 'on battery'}`;
 });
 </script>
 
