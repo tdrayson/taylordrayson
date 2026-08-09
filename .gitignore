@@ -33,3 +33,6 @@ storage/backups/
 
 # Local database backups (never commit: real data, large binaries)
 storage/backups/
+
+# Failure screenshots written by Pest browser tests, not artefacts to keep.
+/tests/Browser/Screenshots/

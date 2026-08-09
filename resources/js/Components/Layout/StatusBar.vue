@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useClock } from '../../composables/useClock';
+import { weatherFor } from '../../lib/weather.js';
 import Tooltip from '../Ui/Tooltip.vue';
 import ActivityRings from '../Stats/ActivityRings.vue';
 import WeatherStatus from './WeatherStatus.vue';
@@ -9,7 +10,7 @@ import BatteryStatus from './BatteryStatus.vue';
 
 const props = defineProps({
     temp: { type: String, default: '25°C' },
-    condition: { type: String, default: 'Partly Cloudy' },
+    condition: { type: String, default: 'partly-cloudy' },
     location: { type: String, default: 'Whyteleafe' },
     timezone: { type: String, default: 'BST' },
     move: { type: Number, default: 62 },
@@ -54,7 +55,9 @@ const charging = computed(() => battery.value.charging ?? props.charging);
 const lowPower = computed(() => battery.value.lowPower ?? props.lowPower);
 
 const ringsLabel = computed(() => `${steps.value} steps`);
-const weatherLabel = computed(() => `${condition.value} in ${place.value}`);
+// The condition arrives as a slug, so the label comes from the shared table
+// rather than the raw value: this read "mostly-sunny in Whyteleafe".
+const weatherLabel = computed(() => `${weatherFor(condition.value).label} in ${place.value}`);
 // Mirrors the /now tile's wording, including its charging-beats-Low-Power
 // order: a phone charging in Low Power Mode is still charging.
 const batteryLabel = computed(() => {
