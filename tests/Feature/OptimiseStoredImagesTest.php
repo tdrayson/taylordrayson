@@ -7,37 +7,6 @@ beforeEach(function () {
     Storage::fake('public');
 });
 
-/**
- * A photographic-looking JPEG rather than a flat colour: a solid image
- * compresses to almost nothing in any format, which would make a size
- * comparison prove nothing.
- */
-function noisyJpeg(int $width = 2400, int $height = 1600): string
-{
-    $image = imagecreatetruecolor($width, $height);
-
-    for ($x = 0; $x < $width; $x += 4) {
-        for ($y = 0; $y < $height; $y += 4) {
-            imagefilledrectangle($image, $x, $y, $x + 3, $y + 3, imagecolorallocate($image, ($x * 7) % 255, ($y * 13) % 255, ($x + $y) % 255));
-        }
-    }
-
-    ob_start();
-    imagejpeg($image, null, 92);
-    $bytes = ob_get_clean();
-    imagedestroy($image);
-
-    return $bytes;
-}
-
-function activityWithPhoto(string $bytes, string $name = 'photo.jpg'): Activity
-{
-    $activity = Activity::factory()->create();
-    $activity->addMediaFromString($bytes)->usingFileName($name)->toMediaCollection('photos');
-
-    return $activity->fresh();
-}
-
 it('renders a full copy no larger than 1920 on its longest side', function () {
     $activity = activityWithPhoto(noisyJpeg());
 
