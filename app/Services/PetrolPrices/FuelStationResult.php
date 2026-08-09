@@ -1,22 +1,21 @@
 <?php
 
-namespace App\Services\PetrolFinder;
+namespace App\Services\PetrolPrices;
 
 /**
- * An immutable fuel-station lookup result from the PetrolFinder API, with
- * casing standardised and the brand canonicalised against the brands endpoint.
+ * An immutable fuel-station lookup result from the PetrolPrices feed, with casing
+ * standardised and the brand canonicalised against the known-brand map.
  */
-readonly class FuelStationResult
+final readonly class FuelStationResult
 {
     public function __construct(
         public string $stationName,
         public ?string $brand,
-        public ?string $brandLogo,
         public ?string $address,
         public ?string $postcode,
         public ?string $city,
         public ?float $latitude,
         public ?float $longitude,
-        public ?float $distance,
+        public ?float $distanceKm,
     ) {}
 }
