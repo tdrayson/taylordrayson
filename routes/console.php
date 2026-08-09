@@ -38,6 +38,11 @@ Schedule::command('strava:sync --days=2')->everyFiveMinutes()->withoutOverlappin
 // days so food logged late for an earlier day is picked up.
 Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping();
 
+// Today's step count for the status bar. The odd one out above: it stores no
+// history, so there is no gap to heal and it asks only for today, whose total
+// climbs until midnight and is simply refetched.
+Schedule::command('rovi:sync-steps')->everyFifteenMinutes()->withoutOverlapping();
+
 // Swarm check-ins, asking only for what postdates the newest stored one.
 Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\TodaySteps;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,6 +39,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            // Shared rather than page-scoped: the status bar showing it sits in
+            // the topbar on every page. Null until the day's first sync.
+            'todaySteps' => TodaySteps::get(),
         ];
     }
 }
