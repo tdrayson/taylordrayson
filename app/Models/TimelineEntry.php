@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Presenters\CardPresenter;
+use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -90,8 +91,8 @@ class TimelineEntry extends Model implements Feedable
     public function scopeCoveringAnniversary(Builder $query, string $monthDay): Builder
     {
         return $query
-            ->whereRaw("strftime('%m-%d', occurred_at) <= ?", [$monthDay])
-            ->whereRaw("strftime('%m-%d', COALESCE(ends_at, occurred_at)) >= ?", [$monthDay]);
+            ->whereRaw(SqlDate::monthDay('occurred_at').' <= ?', [$monthDay])
+            ->whereRaw(SqlDate::monthDay('COALESCE(ends_at, occurred_at)').' >= ?', [$monthDay]);
     }
 
     public function toFeedItem(): FeedItem

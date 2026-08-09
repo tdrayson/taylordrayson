@@ -94,7 +94,9 @@ class SearchSchema
             'country' => ['label' => 'Country', 'dataType' => 'enum', 'column' => 'country', 'category' => 'Location'],
         ],
         'fuel' => [
-            'station' => ['label' => 'Station', 'dataType' => 'text', 'column' => 'station', 'category' => 'Fuel'],
+            // Filter is still typed as `station:`; the column behind it became
+            // station_name when the station moved onto the row.
+            'station' => ['label' => 'Station', 'dataType' => 'text', 'column' => 'station_name', 'category' => 'Fuel'],
             'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Fuel'],
             'litres' => ['label' => 'Litres', 'dataType' => 'number', 'column' => 'litres', 'category' => 'Cost', 'suffix' => 'L'],
             'cost' => ['label' => 'Cost', 'dataType' => 'number', 'column' => 'cost', 'category' => 'Cost', 'prefix' => '£'],
@@ -132,7 +134,7 @@ class SearchSchema
         'podcast' => ['topic', 'show_notes'],
         'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
         'checkin' => ['venue_name', 'category', 'city', 'description'],
-        'fuel' => ['station', 'city'],
+        'fuel' => ['station_name', 'city'],
         'project' => ['title', 'description', 'status'],
         'note' => ['content'],
         'article' => ['title', 'excerpt', 'content'],
