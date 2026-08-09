@@ -15,6 +15,51 @@ it('renders an episode card from canonical meta', function () {
     expect(CardPresenter::for($media)->subtitle)->toContain('S01E03');
 });
 
+it('leads an episode card with the show, not the episode title', function () {
+    $media = Media::factory()->make([
+        'type' => 'episode',
+        'title' => 'Pilot',
+        'rating' => null,
+        'meta' => ['season' => 1, 'episode' => 3, 'show_title' => 'Severance'],
+    ]);
+
+    $card = CardPresenter::for($media);
+
+    // Without this the card reads "Pilot", with nothing naming the show.
+    expect($card->title)->toBe('Severance')
+        ->and($card->subtitle)->toBe('S01E03, Pilot');
+});
+
+it('keeps the episode title in the heading when no show can be resolved', function () {
+    $media = Media::factory()->make([
+        'type' => 'episode',
+        'title' => 'Pilot',
+        'series_id' => null,
+        'rating' => null,
+        'meta' => ['season' => 1, 'episode' => 3],
+    ]);
+
+    $card = CardPresenter::for($media);
+
+    // The fallback must not print "Pilot" as both the heading and the subtitle.
+    expect($card->title)->toBe('Pilot')
+        ->and($card->subtitle)->toBe('S01E03');
+});
+
+it('leaves a film card titled by the film', function () {
+    $media = Media::factory()->make([
+        'type' => 'film',
+        'title' => 'Dune',
+        'rating' => 8,
+        'meta' => ['year' => 2021],
+    ]);
+
+    $card = CardPresenter::for($media);
+
+    expect($card->title)->toBe('Dune')
+        ->and($card->subtitle)->toBe('★ 8 / 10, 2021');
+});
+
 it('builds a trakt content url for a film from meta ids, not the history id', function () {
     $media = Media::factory()->make([
         'type' => 'film',

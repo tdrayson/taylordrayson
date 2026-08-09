@@ -39,7 +39,10 @@ final class WatchedSeriesIndex
             title: $show->title,
             year: $show->year,
             poster: $show->getFirstMediaUrl('cover', 'card') ?: null,
-            progress: $show->progressFromDistinct($distinctWatchedBySeriesId->get($show->id, 0)),
+            progress: SeriesWatchStats::progressFor(
+                $show->meta['aired_episodes'] ?? null,
+                $distinctWatchedBySeriesId->get($show->id, 0),
+            ),
         ))->all();
     }
 

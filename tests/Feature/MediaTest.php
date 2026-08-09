@@ -15,7 +15,11 @@ it('casts a stored type string to the MediaType enum, but serialises the raw val
 })->with(MediaType::cases());
 
 it('renders a card for every media type', function (MediaType $type) {
-    $media = Media::factory()->create(['type' => $type, 'title' => 'Test Title']);
+    // Empty meta on purpose: the factory gives an episode a show_title, which
+    // would (correctly) lead the card instead of the row's own title. How each
+    // type is titled is pinned in MediaTypeTest; this is only about every type
+    // producing a card at all.
+    $media = Media::factory()->create(['type' => $type, 'title' => 'Test Title', 'meta' => []]);
 
     $card = CardPresenter::for($media);
 
