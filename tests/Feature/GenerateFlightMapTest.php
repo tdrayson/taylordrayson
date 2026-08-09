@@ -12,7 +12,7 @@ beforeEach(function () {
 });
 
 it('stores light and dark arc maps from the flight endpoints', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     // The Airport table is empty in tests until seeded, so pin the flight to a
     // known LHR/JFK pair with explicit coordinates rather than relying on

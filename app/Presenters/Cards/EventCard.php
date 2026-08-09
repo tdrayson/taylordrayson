@@ -44,10 +44,10 @@ final class EventCard
                 // Always carry the location map alongside any photos, like a
                 // check-in: the card shows the map and the first photo together
                 // (side by side on desktop, a swipeable carousel on mobile).
-                map: $model->getFirstMediaUrl('map') ?: null,
+                map: $model->optimisedUrl('map'),
                 // Dark twin of the same map, rendered by the frontend behind a
-                // `dark:` class swap so the theme decides which PNG shows.
-                mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                // `dark:` class swap so the theme decides which image shows.
+                mapDark: $model->optimisedUrl('map_dark'),
             ),
         );
     }

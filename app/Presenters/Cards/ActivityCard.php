@@ -33,8 +33,8 @@ final class ActivityCard
             meta: CardMeta::activity(
                 polyline: data_get($model->meta, 'polyline'),
                 photos: $this->photoData($model),
-                map: $model->getFirstMediaUrl('map') ?: null,
-                mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                map: $model->optimisedUrl('map'),
+                mapDark: $model->optimisedUrl('map_dark'),
             ),
         );
     }

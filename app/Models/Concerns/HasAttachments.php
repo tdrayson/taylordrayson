@@ -29,6 +29,29 @@ trait HasAttachments
         $this->addMediaCollection('audio')->singleFile();
     }
 
+    /**
+     * Every stored image, at the largest size anything on the site displays.
+     *
+     * Nothing here is over 1920 to begin with (maps are 1600x1000, photos
+     * mostly 1440x1920), so the resize is a backstop and the saving is almost
+     * entirely the format: a 436KB map PNG becomes 21KB of WebP, and a 497KB
+     * photo becomes 310KB. Serving this in place of the original takes the
+     * library from ~3.5GB to roughly 400MB.
+     */
+    private const FULL_DIMENSION = 1920;
+
+    /**
+     * Formats left exactly as uploaded.
+     *
+     * SVG is vector: rasterising it to 1920 would be a downgrade, and the six
+     * stored are ~20KB in total. GIF is skipped because Imagick would flatten
+     * an animated one to a single frame, which is a silent loss of the thing
+     * that made it a GIF.
+     *
+     * @var array<int, string>
+     */
+    private const UNCONVERTED_TYPES = ['image/svg+xml', 'image/gif'];
+
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('card')
@@ -40,6 +63,42 @@ trait HasAttachments
             // it was never going to produce.
             ->performOnCollections('cover', 'photos', 'artwork')
             ->withResponsiveImages();
+
+        // Only `full` is withheld from these, never `card`. Skipping every
+        // conversion for a type unregisters `card` as well, and getUrl()
+        // resolves against REGISTERED conversions, not generated ones: the one
+        // stored GIF already had a card file on disk and /photos still died
+        // with "There is no conversion named `card`".
+        if (in_array($media?->mime_type, self::UNCONVERTED_TYPES, true)) {
+            return;
+        }
+
+        // No responsive variants: this is the one full-size render, shown on its
+        // own in a lightbox or behind a card, never picked from a srcset.
+        $this->addMediaConversion('full')
+            ->fit(Fit::Max, self::FULL_DIMENSION, self::FULL_DIMENSION)
+            ->format('webp')
+            ->quality(80)
+            ->performOnCollections('cover', 'photos', 'artwork', 'map', 'map_dark', 'backdrop', 'logo');
+    }
+
+    /**
+     * The optimised render of a single-file collection, falling back to the
+     * stored original.
+     *
+     * The fallback carries real weight while the back-fill runs and for the
+     * formats above that never get a conversion, so callers can move to this
+     * without waiting for every conversion to exist.
+     */
+    public function optimisedUrl(string $collection): ?string
+    {
+        $media = $this->getFirstMedia($collection);
+
+        if ($media === null) {
+            return null;
+        }
+
+        return $media->hasGeneratedConversion('full') ? $media->getUrl('full') : $media->getUrl();
     }
 
     /**
@@ -56,7 +115,11 @@ trait HasAttachments
             ->map(fn (Media $media): array => [
                 'src' => $media->getUrl('card'),
                 'srcset' => $media->getSrcset('card') ?: null,
-                'full' => $media->getUrl(),
+                // The optimised render, not the import. A phone photo went to
+                // the lightbox as its original multi-megabyte JPEG (or, for the
+                // 28 stored HEICs, as a file most browsers cannot display at
+                // all); this serves a 1920 WebP instead.
+                'full' => $media->hasGeneratedConversion('full') ? $media->getUrl('full') : $media->getUrl(),
                 'latitude' => $media->getCustomProperty('latitude'),
                 'longitude' => $media->getCustomProperty('longitude'),
             ])
