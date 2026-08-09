@@ -18,9 +18,8 @@ use App\Data\SetgraphWorkout;
  *
  *     Tracked on Setgraph
  *
- * Exercise lines are left to {@see ParseGymSets}. Everything here is about the
- * summary line, which looks like an exercise line to that parser but yields no
- * sets, so it is picked out separately rather than by position.
+ * Exercise lines go to {@see ParseGymSets}. The summary line is picked out by
+ * yielding no sets rather than by position.
  */
 class ParseSetgraphWorkout
 {

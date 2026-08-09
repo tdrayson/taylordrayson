@@ -31,7 +31,6 @@ setLayoutProps({
 
 const s = computed(() => props.story);
 
-// --- formatting helpers ----------------------------------------------------
 
 /**
  * Format a number with thousands separators (5467 becomes "5,467").
@@ -66,7 +65,6 @@ const heroKpis = computed(() => [
     { value: n(s.value.kpis.avgPerDay), label: 'Average a day' },
 ]);
 
-// --- derived narrative figures ---------------------------------------------
 
 const byYear = computed(() => s.value.byYear);
 
@@ -81,7 +79,6 @@ const proteinNow = computed(() => byYear.value[byYear.value.length - 1]);
 const dinner = computed(() => s.value.meals.find((meal) => meal.meal === 'dinner'));
 const maxMealPct = computed(() => Math.max(...s.value.meals.map((meal) => meal.pct)));
 
-// --- chart configs ---------------------------------------------------------
 
 /**
  * All-time macro split as a doughnut: carbs (the lead) in the data colour, the

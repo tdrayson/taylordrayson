@@ -89,8 +89,7 @@ onBeforeUnmount(() => {
                     :style="{ top: `${position.top}px`, left: `${position.left}px` }"
                 >
                     {{ label }}
-                    <!-- Fixed bg-black (not bg-neutral-900): the tooltip is an intentional
-                         dark chip in both themes, so it must not invert with the neutral ramp. -->
+                    <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                     <span class="absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-black" :class="isTop ? '-bottom-1' : '-top-1'" />
                 </span>
             </Transition>

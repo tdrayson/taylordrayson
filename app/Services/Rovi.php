@@ -6,15 +6,13 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Read-only client for the Rovi personal API (food, activity, steps, weight,
- * water and more). Every endpoint returns the same envelope:
+ * Read-only client for the Rovi personal API, authenticated with a static
+ * Bearer token. Every endpoint returns the same envelope:
  *
  *   { data, paging: { nextCursor, hasMore }, meta: { uid, endpoint, generatedAt } }
  *
- * where `data` is either a list (foods, activity, steps, weight, water,
- * summaries, routes) or an object (me, streaks, recipes, habits, cycle). The
- * key is a static Bearer token, so unlike Strava there is no refresh flow.
- * Every method returns the decoded JSON, or null/[] when a request fails.
+ * `data` is a list (foods, activity, steps, weight, water, summaries, routes)
+ * or an object (me, streaks, recipes, habits, cycle).
  */
 class Rovi
 {

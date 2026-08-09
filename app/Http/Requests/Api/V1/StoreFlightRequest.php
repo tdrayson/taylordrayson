@@ -15,14 +15,9 @@ use Illuminate\Validation\Rule;
 class StoreFlightRequest extends FormRequest
 {
     /**
-     * Normalise flexible unit strings ("2h 25m", "774 miles") to canonical
-     * seconds/metres, and canonicalise occurred_at to a fixed wall-clock
-     * format so retried submissions with a different timestamp format
-     * (e.g. ISO8601 vs "Y-m-d H:i:s") still match the natural-key lookup
-     * used for idempotency. occurred_at is local wall-clock time, so this
-     * must only reformat the string, never shift it to another timezone.
-     * Unparseable values are left as-is so the relevant rules reject them
-     * with a validation error.
+     * Normalise unit strings ("2h 25m", "774 miles") to seconds/metres and pin
+     * occurred_at to one wall-clock format, so a retry in a different format still
+     * hits the idempotency key. Reformats only: never shift the zone.
      */
     protected function prepareForValidation(): void
     {

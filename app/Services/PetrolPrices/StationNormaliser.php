@@ -32,10 +32,8 @@ class StationNormaliser
     }
 
     /**
-     * The forecourt's own name from the feed's label.
-     *
-     * The feed formats these as "BRAND TOWN (TRADING NAME)", so the trailing
-     * parenthetical is the forecourt name and the prefix is a generated label.
+     * The forecourt's own name, taken from the trailing parenthetical of the
+     * feed's "BRAND TOWN (TRADING NAME)" label.
      */
     public static function tradingName(?string $value): ?string
     {

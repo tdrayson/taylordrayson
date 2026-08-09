@@ -233,13 +233,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                 @pointerup="onPointerUp"
                 @pointercancel="onPointerCancel"
             >
-                <!-- Fixed bg-black (not bg-neutral-900): the lightbox is an intentional
-                     dark scrim in both themes, so it must not invert with the neutral
-                     ramp. Every neutral-0 chrome element below is pinned to white to
-                     match (neutral-0 would otherwise invert to a dark, invisible tone). -->
+                <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="absolute inset-0 bg-black/90" @click="closeUnlessDrag" />
 
-                <!-- Top bar: entry link and close. -->
                 <div class="relative flex shrink-0 items-center justify-between gap-3">
                     <Link
                         v-if="link && current?.url"
@@ -269,7 +265,6 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'items-center justify-center'"
                     @click.self="closeUnlessDrag"
                 >
-                    <!-- Multiple photos: a draggable three-slide carousel. -->
                     <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">
                         <div
                             v-for="(slide, slideIndex) in slides"
@@ -281,7 +276,6 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         </div>
                     </div>
 
-                    <!-- Single photo: a static, non-draggable image. -->
                     <img v-else-if="current" :src="current.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
 
                     <button
@@ -304,7 +298,6 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     </button>
                 </div>
 
-                <!-- Bottom bar: caption, date, position (each opt-in). -->
                 <div
                     v-if="(caption && current?.caption) || (counter && hasMultiple)"
                     class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"

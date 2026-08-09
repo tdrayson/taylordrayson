@@ -113,13 +113,9 @@ class OgImageController extends Controller
     }
 
     /**
-     * TEMP: a gallery page listing every OG card variation in one place: the
-     * regularly-hit pages, the per-type archives, the data-type samples, and one
-     * real entry per type that has data.
-     *
-     * The page itself renders nothing; it just references each card by its real
-     * route as a lazily-loaded image, so every card renders in its own fast,
-     * cached request rather than blocking one giant page render.
+     * A gallery page listing every OG card variation. Each card is referenced by
+     * its real route as a lazily-loaded image, so it renders in its own cached
+     * request rather than blocking one giant page render.
      */
     public function gallery(): View
     {

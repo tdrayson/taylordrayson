@@ -1,15 +1,10 @@
 /**
- * Portable Text -> ProseMirror document.
+ * Portable Text -> ProseMirror document. The dialect is whatever
+ * PortableTextBlocks.js renders, so read the two together.
  *
- * The dialect is whatever PortableTextBlocks.js renders, so the two must be
- * read together: blocks with styles normal/h2-h6/blockquote, flat list items
- * carrying `listItem` and `level`, spans with strong/em/code decorators and
- * link markDefs, plus the standalone image, code, callout, divider and video
- * nodes.
- *
- * Every `_key` is carried through as a node attribute so a document survives
- * the round trip byte-for-byte rather than being reassigned new keys on each
- * save, which would make every edit look like a rewrite in the diff.
+ * Every `_key` is carried through as a node attribute, so a document survives the
+ * round trip rather than being reassigned new keys and making every save look
+ * like a rewrite in the diff.
  */
 
 /** Decorator marks that map straight onto a ProseMirror mark of the same meaning. */
@@ -46,13 +41,8 @@ function spanToText(span, markDefs) {
 }
 
 /**
- * The inline content of a block.
- *
- * A mention is a child alongside spans rather than a mark, because it stores a
- * reference rather than decorating text: `{kind, id}` and nothing else. The
- * title is resolved when rendering, so renaming an entry updates every mention
- * of it and a mention of a deleted entry can say so instead of showing a name
- * that is gone.
+ * The inline content of a block. A mention is a child alongside spans rather than
+ * a mark, since it stores a reference rather than decorating text.
  */
 function inlineContent(block) {
     return (block.children ?? [])

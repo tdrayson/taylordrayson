@@ -6,14 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * A gym session shared out of Setgraph, already parsed from its plain-text
- * share-sheet format.
- *
- * `sets` is the flat list stored on `activities.meta.sets`, one entry per set
- * performed. `duration` comes from the summary line ("Other • 38 min") and is
- * only a fallback: Strava owns the real timing once it syncs. `label` is that
- * same line's leading word, kept for naming an activity Setgraph had to create
- * itself.
+ * A gym session parsed from Setgraph's plain-text share sheet. `sets` is the flat
+ * list stored on `activities.meta.sets`; `duration` and `label` come from the
+ * summary line and are only a fallback until Strava syncs the real timing.
  */
 final readonly class SetgraphWorkout implements Arrayable, JsonSerializable
 {

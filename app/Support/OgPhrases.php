@@ -3,12 +3,9 @@
 namespace App\Support;
 
 /**
- * Picks Open Graph card headlines from the pools in config/og-phrases.php.
- *
- * The choice is deterministic, seeded by the entity it describes (an entry id, a
- * period, a type) plus the current OG_VERSION, so a given card always reads the
- * same (stable for social caches) until OG_VERSION is bumped, which rerolls every
- * card's wording at once.
+ * Picks Open Graph card headlines from the pools in config/og-phrases.php. The
+ * choice is seeded by the entity plus OG_VERSION, so a card reads the same until
+ * that version is bumped, which rerolls every card at once.
  */
 class OgPhrases
 {

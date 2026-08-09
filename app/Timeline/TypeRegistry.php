@@ -110,13 +110,9 @@ class TypeRegistry
     }
 
     /**
-     * A taxonomy over the relational `tags` table, addressed by tag slug.
-     * Scoped to tags attached to at least one record of the given model.
-     * Articles are the only publish-gated type: a guest must never see (or
-     * resolve) a tag that is attached only to unpublished articles, so the
-     * taggables subquery is further restricted to published articles when
-     * there's no authenticated viewer. Authed users (the owner) still see
-     * draft-only tags, matching how they see draft articles elsewhere.
+     * A taxonomy over the relational `tags` table, addressed by tag slug and
+     * scoped to tags attached to at least one record of the model. Guests are
+     * further restricted to published articles, so a draft-only tag stays hidden.
      */
     private static function tags(?callable $title = null): callable
     {
@@ -165,10 +161,8 @@ class TypeRegistry
     }
 
     /**
-     * A taxonomy over the podcast's integer season number, addressed in the URL
-     * by the bare number (e.g. /this-week-with/3). Chips read "Season N" and run
-     * in season order rather than the usual most-used-first, since seasons have a
-     * natural sequence.
+     * A taxonomy over the podcast's season number, addressed by the bare number
+     * (/this-week-with/3). Ordered by season rather than the usual most-used-first.
      */
     private static function podcastSeason(): callable
     {

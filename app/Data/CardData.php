@@ -8,12 +8,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * The timeline card payload every Timelineable model's card() returns. Mirrors
- * the pre-DTO array shape byte-for-byte when serialised: `titleLabel`,
- * `subtitleTokens` and `range` are only emitted when the producer set them
- * (matching the old array, which simply never carried those keys for types
- * that didn't use them). `type` is the TimelineType enum; toArray() emits its
- * backed string value so the serialised payload is unchanged.
+ * The timeline card payload a presenter returns. `titleLabel`, `subtitleTokens`
+ * and `range` are emitted only when the producer set them, and `type` serialises
+ * to the enum's backed string value.
  */
 final readonly class CardData implements Arrayable, JsonSerializable
 {

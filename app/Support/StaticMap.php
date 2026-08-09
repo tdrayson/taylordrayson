@@ -3,13 +3,8 @@
 namespace App\Support;
 
 /**
- * Builds Mapbox Static Images API URLs for entry route maps. This is the
- * server-side twin of resources/js/lib/staticMap.js (which renders the live
- * timeline thumbnails); the two must stay visually in step.
- *
- * INTERIM: renders live from the Mapbox API (token from config/services.php).
- * The plan is to generate each image once and host it on Cloudflare R2, then
- * point callers at the stored URL instead of building a Mapbox URL on the fly.
+ * Builds Mapbox Static Images API URLs for entry route maps. Server-side twin of
+ * resources/js/lib/staticMap.js, which must stay visually in step.
  */
 class StaticMap
 {

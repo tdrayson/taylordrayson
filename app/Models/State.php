@@ -7,14 +7,9 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A single current value, overwritten in place and never charted: the phone's
- * battery, the weather outside, today's rings so far. The key/value home for
- * server-side ambient state, distinct from the client-side `useSettings` store
- * of visitor preferences.
- *
- * Anything with history, or that you would filter, sort or aggregate across,
- * belongs in its own typed table instead. Reading and writing goes through
- * {@see StateStore} rather than this model directly.
+ * A single current value, overwritten in place and never charted. Anything with
+ * history, or that you would filter or aggregate, belongs in its own typed table.
+ * Read and write through {@see StateStore}, not this model.
  */
 #[Fillable([
     'key',

@@ -100,7 +100,6 @@ onBeforeUnmount(() => {
 // Re-measure if the chip set changes (navigating between archives).
 watch(() => props.chips, () => measure());
 
-// --- Popover ---------------------------------------------------------------
 
 const open = ref(false);
 const search = ref('');

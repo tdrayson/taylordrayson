@@ -14,14 +14,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 
 /**
- * The stream of real photos (the cover + photos collections) across every
- * timeline entry, newest first by the entry's date. This is the single source
- * for both the /photos gallery and the "Life lately" widget on /now, so the two
- * can never drift apart on what counts as a photo or how they are ordered.
- *
- * Enrichment art is deliberately excluded so only photos actually taken remain:
- * appearance video thumbnails and media (film/TV/book) posters by model type,
- * plus any non-timeline model (e.g. a Series poster) via the Timelineable guard.
+ * Every real photo across the timeline, newest first, backing both the /photos
+ * gallery and the "Life lately" widget so the two cannot drift. Enrichment art
+ * (video thumbnails, film and book posters) is excluded.
  */
 final class PhotoStream
 {
@@ -33,9 +28,8 @@ final class PhotoStream
     {
         $photos = [];
 
-        // Ordering is decided cheaply up front, so only the photos actually
-        // wanted get the expensive card presentation and URL generation. The
-        // gallery shapes everything (null); the /now deck only its first few.
+        // Ordered up front so only the photos actually wanted pay for card
+        // presentation and URL generation.
         foreach ($this->orderedGroups() as $group) {
             foreach (GalleryPhotos::shape($group['model'], $group['media']) as $photo) {
                 $photos[] = $photo;
@@ -64,9 +58,8 @@ final class PhotoStream
             ->whereNotIn('model_type', [Appearance::class, Media::class])
             ->with(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith([Activity::class => ['media']])])
             ->get()
-            // Some non-timeline models (e.g. Series) also use the cover/photos
-            // collections for their own art, so guard on Timelineable rather
-            // than a mere null check.
+            // Non-timeline models (Series) use cover/photos for their own art, so
+            // this guards on Timelineable rather than on null.
             ->filter(fn (Attachment $attachment): bool => $attachment->model instanceof Timelineable)
             ->groupBy(fn (Attachment $attachment): string => $attachment->model_type.':'.$attachment->model_id)
             ->map(fn (EloquentCollection $group): array => [

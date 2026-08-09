@@ -8,21 +8,10 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-/*
-|--------------------------------------------------------------------------
-| Capture
-|--------------------------------------------------------------------------
-|
-| Everything that pulls from a third party. Each command is incremental and
-| self-healing: it asks only for what is newer than the last stored row, and
-| widens its window to cover a missed run rather than stranding the gap. That
-| is what makes these safe to run often, and why `withoutOverlapping()` is on
-| all of them: a slow run must never stack on the next tick.
-|
-| Push-based capture is not here by design. Health Auto Export and Setgraph
-| POST to /api/v1, so their freshness is set on the phone, not by this file.
-|
-*/
+// Capture: everything that pulls from a third party. Each is incremental and
+// widens its window to cover a missed run, which is what makes them safe to run
+// often. `withoutOverlapping()` throughout, so a slow run never stacks.
+// Push-based capture (Health Auto Export, Setgraph) is set on the phone instead.
 
 // Watch history is what should appear quickest, and a run with nothing new is
 // a single empty page per type. Ratings are excluded here because they page
@@ -51,16 +40,8 @@ Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
 // with nothing new is one page and five upserts.
 Schedule::command('podcast:sync')->everyThirtyMinutes()->withoutOverlapping();
 
-/*
-|--------------------------------------------------------------------------
-| Enrichment
-|--------------------------------------------------------------------------
-|
-| Derived work for rows the capture pass has already stored. All of these skip
-| what is already done, so they are cheap when there is nothing new and they
-| double as a repair pass for anything a failed run left half-finished.
-|
-*/
+// Enrichment: derived work for rows capture has already stored. All skip what is
+// done, so they are cheap when idle and double as a repair pass.
 
 // Activity streams (the heart-rate, elevation and speed charts) are the one
 // part of an activity that strava:sync does not fetch inline.

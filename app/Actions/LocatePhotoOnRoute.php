@@ -5,13 +5,9 @@ namespace App\Actions;
 use Carbon\CarbonImmutable;
 
 /**
- * Resolve where along a route a photo was taken, by matching its capture time
- * against an activity's GPS stream.
- *
- * This is the fallback used by {@see ResolvePhotoCoordinate} when Strava does
- * not return a photo's own `location`: the photo's offset from the activity
- * start is looked up in the `time` stream, and the matching `latlng` sample is
- * returned. Pure maths with no HTTP or database access.
+ * Resolve where along a route a photo was taken, looking its offset from the
+ * activity start up in the `time` stream and returning the matching `latlng`.
+ * The fallback for {@see ResolvePhotoCoordinate}. Pure maths, no IO.
  */
 class LocatePhotoOnRoute
 {

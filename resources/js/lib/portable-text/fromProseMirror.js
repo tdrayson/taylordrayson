@@ -1,9 +1,7 @@
 /**
- * ProseMirror document -> Portable Text.
- *
- * The inverse of toProseMirror.js; read the two together. Keys carried through
- * as node attributes are restored, and anything the editor created fresh gets a
- * new key here, since ProseMirror has no notion of one.
+ * ProseMirror document -> Portable Text, the inverse of toProseMirror.js. Keys
+ * carried as node attributes are restored; anything the editor created fresh gets
+ * a new one here.
  */
 
 /** ProseMirror mark -> Portable Text decorator. Link is handled separately. */

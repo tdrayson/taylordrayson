@@ -10,11 +10,8 @@ class HeartRateMatcher
 {
     /**
      * Reduce raw heart_rate samples onto the activities whose time window they
-     * fall within. Each activity's window is its start instant through its
-     * elapsed (wall-clock) duration, so paused workouts still capture their
-     * full heart-rate trace. Where more than one device reports inside the
-     * window the source with the most samples wins, avoiding double counting
-     * when an Apple Watch and an Oura ring overlap.
+     * fall within, windowed on elapsed rather than moving time so paused workouts
+     * keep their full trace. Overlapping devices resolve to the busiest source.
      *
      * @param  array<int, array{time: int, avg: int, max: int, source: string}>  $samples
      * @param  Collection<int, Activity>  $activities

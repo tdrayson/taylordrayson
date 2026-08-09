@@ -51,7 +51,6 @@ const secondValue = computed({
 </script>
 
 <template>
-    <!-- When (day / month / year), single or a from–to range -->
     <template v-if="isWhen">
         <div v-if="isBetween" class="flex items-center gap-2">
             <DatePicker v-model="firstValue" :mode="dataType" placeholder="From" class="flex-1" />
@@ -60,7 +59,6 @@ const secondValue = computed({
         <DatePicker v-else v-model="single" :mode="dataType" />
     </template>
 
-    <!-- Duration (amount + unit, stored as seconds) -->
     <template v-else-if="dataType === 'duration'">
         <div v-if="isBetween" class="flex items-center gap-2">
             <DurationInput v-model="firstValue" class="flex-1" />
@@ -69,7 +67,6 @@ const secondValue = computed({
         <DurationInput v-else v-model="single" />
     </template>
 
-    <!-- Number / photo count (with optional unit prefix/suffix) -->
     <template v-else-if="dataType === 'number' || dataType === 'media'">
         <div v-if="isBetween" class="flex items-center gap-2">
             <UnitInput v-model="firstValue" :prefix="prefix" :suffix="suffix" placeholder="Min" class="flex-1" />
@@ -78,12 +75,10 @@ const secondValue = computed({
         <UnitInput v-else v-model="single" :prefix="prefix" :suffix="suffix" />
     </template>
 
-    <!-- Enum: is / is not → searchable multi-select; equals / contains → text -->
     <template v-else-if="dataType === 'enum'">
         <MultiSelect v-if="isList" v-model="listValue" :options="options ?? []" />
         <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
     </template>
 
-    <!-- Text -->
     <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
 </template>

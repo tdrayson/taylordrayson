@@ -14,16 +14,9 @@ use Illuminate\Support\Carbon;
 class RoviStepsSync extends Command
 {
     /**
-     * Fetch today's step count and cache it.
-     *
-     * Only today is requested: this feeds the live status bar rather than any
-     * history, so there is nothing to backfill and no reconciliation to do. Rovi
-     * keys each row by its date rather than by the `date` field, which holds the
-     * time the row was written and can be months adrift.
-     *
-     * A failed or empty fetch leaves the previous value in place; it expires on
-     * its own date check rather than being cleared here, so a transient outage
-     * does not blank the status bar mid-day.
+     * Fetch today's step count and cache it for the live status bar. Rows are
+     * keyed by their own date, not Rovi's `date` field, which holds the write
+     * time and can be months adrift. A failed fetch leaves the previous value.
      */
     public function handle(Rovi $rovi): int
     {

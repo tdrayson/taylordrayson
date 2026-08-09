@@ -18,12 +18,8 @@ use Throwable;
 class DownloadPodcastMedia extends Command
 {
     /**
-     * Back-fill the archive, one job per episode.
-     *
-     * Queued by default because the full catalogue is ~10GB: workers can run
-     * several at once and retry the ones that fail, where a single foreground
-     * pass would be a long run that loses everything if it is interrupted.
-     * `--now` is for watching a handful go through.
+     * Back-fill the archive, one job per episode. Queued by default so the ~10GB
+     * catalogue survives an interruption; `--now` runs a handful in the foreground.
      */
     public function handle(): int
     {

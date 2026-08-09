@@ -53,11 +53,9 @@ it('copies rows across keeping their ids', function () {
 });
 
 /**
- * The reason this is a command and not a SQL dump. SQLite writes a string
- * literal verbatim; MySQL reads a backslash inside one as an escape, so a
- * dumped 'App\Models\Activity' arrives as "AppModelsActivity" and every
- * polymorphic relation breaks, without one error to show for it. Going through
- * PDO leaves the escaping to the driver.
+ * Why this is a command and not a SQL dump: MySQL reads a backslash in a string
+ * literal as an escape, so a dumped 'App\Models\Activity' arrives as
+ * "AppModelsActivity" and breaks every polymorphic relation, silently.
  */
 it('keeps class names in polymorphic columns intact', function () {
     $path = sourceDatabase();

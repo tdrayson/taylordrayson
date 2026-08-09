@@ -27,9 +27,8 @@ function focusableWithin(el) {
 }
 
 /**
- * Shared dialog behaviour: focus trap, Escape-to-close, body scroll lock, and
- * focus save/restore. Consumers own their open-state and chrome; this owns the
- * cross-cutting a11y that was previously copied into every overlay.
+ * Shared dialog behaviour: focus trap, Escape-to-close, body scroll lock and
+ * focus save/restore. Consumers own their open state and chrome.
  *
  * @param {object} options
  * @param {() => boolean} options.isOpen   Reactive getter for the open state.

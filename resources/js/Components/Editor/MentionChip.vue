@@ -3,14 +3,9 @@ import { computed } from 'vue';
 import { NodeViewWrapper } from '@tiptap/vue-3';
 
 /**
- * How a mention is drawn while the editor is open, so it reads as a chip from
- * the moment it is picked rather than from the moment the field is left.
- *
- * The node stores kind and id only, so the label has to be resolved. The
- * suggestion menu hands one over when inserting; on a document loaded from the
- * server the resolved map does. Neither is stored, which is the point: a
- * renamed target shows its new name next time, not the name it had when it was
- * mentioned.
+ * How a mention is drawn while the editor is open. The node stores kind and id
+ * only, so the label is resolved on render and a renamed target shows its new
+ * name next time.
  */
 const props = defineProps({
     node: { type: Object, required: true },

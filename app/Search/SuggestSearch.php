@@ -107,17 +107,13 @@ final class SuggestSearch
                     ->filter(fn (array $value): bool => str_contains(Str::lower($value['label']), $needle))
                     ->map(fn (array $value): array => [
                         'label' => $value['label'],
-                        // The taxonomy's own kind label ("Tag", "Type", "Category", …),
-                        // not the owning type's label: a tag jump is a "Tag", not an
-                        // "Articles" entry, and a run is an activity "Type", not an "Activities" one.
+                        // The taxonomy's own kind label, not the owning type's: a tag
+                        // jump is a "Tag", not an "Articles" entry.
                         'section' => $taxonomy['label'],
                         'type' => $type,
-                        // Tags span every type, so the palette shows them with a tag
-                        // icon rather than the owning model's icon.
                         'tag' => $taxonomy['param'] === 'tag',
-                        // Tags jump to the cross-type /tags feed, not a per-type filter,
-                        // so the same tag on several types collapses to one destination
-                        // (deduped by url below). Other taxonomies keep their type page.
+                        // Tags go to the cross-type feed, so the same tag on several
+                        // types collapses to one destination (deduped by url below).
                         'url' => $taxonomy['param'] === 'tag'
                             ? '/tags/'.$value['value']
                             : '/'.$taxonomy['base'].'/'.$value['value'],

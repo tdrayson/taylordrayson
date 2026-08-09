@@ -155,7 +155,6 @@ onBeforeUnmount(() => {
         </Transition>
     </div>
 
-    <!-- The contents sheet the pill opens. -->
     <Teleport to="body">
         <Transition name="sheet">
             <div
@@ -167,8 +166,7 @@ onBeforeUnmount(() => {
                 aria-label="Table of contents"
                 class="fixed inset-0 z-50 flex flex-col justify-end focus:outline-none"
             >
-                <!-- Fixed bg-black (not bg-neutral-900): the floating glass pill and
-                     its sheet backdrop are intentional dark surfaces in both themes. -->
+                <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="absolute inset-0 bg-black/50" @click="open = false" />
                 <div class="relative max-h-svh overflow-y-auto rounded-t-2xl bg-neutral-0 p-5 pb-8">
                     <div class="mb-3 flex items-center justify-between">

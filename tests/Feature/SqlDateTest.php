@@ -8,13 +8,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * These pin the date-part expressions to the same answers on every database.
- *
- * SQLite's strftime() has no MySQL equivalent, and the obvious replacements do
- * not line up: strftime('%w') counts 0-6 from Sunday while MySQL's DAYOFWEEK()
- * counts 1-7 from Sunday. Getting that wrong shifts every activity onto the
- * wrong day of the heatmap, with no error and nothing visibly broken, so the
- * mapping is asserted rather than trusted.
+ * Pins the date-part expressions to the same answers on every database.
+ * strftime('%w') counts 0-6 from Sunday, MySQL's DAYOFWEEK() 1-7: getting that
+ * wrong shifts the whole heatmap by a day with no error to show for it.
  */
 it('numbers the days of the week the same way on any database', function () {
     // A known week: 2026-06-07 is a Sunday, so %w counts 0 through 6 from here.

@@ -18,16 +18,9 @@ use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
 /**
- * Resolves a model to the fields the authoring UI offers for it.
- *
- * The single entry point for building an edit form, mirroring
- * {@see CardPresenter::for()}: one declaration per type, in code, driving the
- * form, the properties panel and the "+ Add field" menu alike. Adding a field
- * is an edit and a deploy, deliberately — this is not a runtime field builder.
- *
- * Types absent here are not hand-authored: activities, sleep, calories,
- * check-ins, podcasts and flights all arrive from a sync, and films and
- * episodes come from Trakt. Books are the one Media type entered by hand.
+ * Resolves a model to the fields the authoring UI offers for it, mirroring
+ * {@see CardPresenter::for()}. Types absent here arrive from a sync rather than
+ * being hand-authored. Deliberately not a runtime field builder.
  */
 final class FieldRegistry
 {

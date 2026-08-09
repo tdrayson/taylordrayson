@@ -1,13 +1,7 @@
-// Central icon registry for UI chrome and timeline types. Components reference
-// icons by name (<Icon name="Settings01Icon" />) without their own hugeicons
-// import. Named imports stay tree-shakeable — only icons listed here are
-// pulled onto pages that use <Icon>.
-//
-// Weather condition icons live in lib/weather.js, the one table both the top
-// bar and the Now tile read — not in this registry. StatusBar already loads
-// them site-wide; keeping them out of icons.js avoids also tying them to every
-// <Icon> consumer. Add a new UI icon by adding its export name to both lists
-// below.
+// Central icon registry for UI chrome and timeline types, so components can
+// reference an icon by name without their own hugeicons import. Add a new icon
+// to both lists below. Weather icons live in lib/weather.js instead, keeping
+// them off every <Icon> consumer.
 import {
     Airplane01Icon,
     AirplaneTakeOff01Icon,

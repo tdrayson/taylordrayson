@@ -26,8 +26,7 @@ defineProps({
         :class="bleed ? 'full-width-inset' : ''"
         :style="{ backgroundImage: `url(${backdrop})` }"
     >
-        <!-- Fixed from-black (not neutral-900), matching PhotoGrid's caption
-             scrim: an intentional dark overlay on a photo in both themes. -->
+        <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
         <div v-if="title" class="relative flex h-full flex-col items-start justify-end gap-2 p-6 sm:p-8">

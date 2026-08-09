@@ -203,7 +203,6 @@ function openLightbox(index) {
         <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 lg:-left-12">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
-        <!-- Outer row centres against the icon rail; inner group baseline-aligns the label and time. -->
         <div class="flex min-h-9 items-center">
             <div class="flex items-baseline gap-2.5">
                 <component
@@ -212,7 +211,6 @@ function openLightbox(index) {
                     class="type-color p-category text-label uppercase"
                     :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
                 >{{ displayType }}</component>
-                <!-- Timestamp is the card's permalink; full date shows as a tooltip and is the link's aria-label. -->
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
                     <Link v-if="url" :href="url" :aria-label="fullTimestamp" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
                         <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
@@ -222,12 +220,8 @@ function openLightbox(index) {
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
             </div>
         </div>
-        <!-- Notes show their full content as body text; everything else gets a display-font title. -->
         <p v-if="body" v-twemoji class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
-        <!-- Titles keep a headline measure (~40ch) rather than running full width.
-             Each card is a subsection of its DateGroup date heading, so the title
-             is a real h3, one level under DateGroup's h2/h3 (see the heading-ladder
-             convention: DateGroup h2/h3 -> FeedItem h3). -->
+        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
         <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
@@ -249,7 +243,6 @@ function openLightbox(index) {
             <span>{{ airline.name }}</span>
             <span v-if="airline.number" class="text-neutral-400 tnum">{{ airline.number }}</span>
         </div>
-        <!-- Multi-day badge, e.g. a festival or conference spanning several days. -->
         <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
         <FlightRoute
             v-if="routeView"
@@ -268,9 +261,8 @@ function openLightbox(index) {
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
         <img v-if="routeImageDarkUrl && !coverPhoto" :src="routeImageDarkUrl" alt="" class="mt-3 hidden aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover dark:block">
 
-        <!-- Small screens with both a map and photos: a swipeable carousel of the
-             map + every photo, instead of showing the cover alone. The lg+ layout
-             keeps the map/cover side-by-side below. -->
+        <!-- Small screens with both a map and photos get a swipeable carousel;
+             the lg+ layout below keeps them side by side. -->
         <CardMediaCarousel
             v-if="routeImageUrl && coverPhoto"
             :map="routeImageUrl"
@@ -281,9 +273,8 @@ function openLightbox(index) {
             @open="openLightbox"
         />
 
-        <!-- Cover on its own when there is no map (all sizes). Image link and zoom
-             button are siblings, not nested; the image link duplicates the text
-             permalink so it is aria-hidden. -->
+        <!-- Image link and zoom button are siblings, not nested; the image link
+             duplicates the text permalink, so it is aria-hidden. -->
         <div
             v-if="coverPhoto && !routeImageUrl"
             class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
@@ -303,15 +294,10 @@ function openLightbox(index) {
             <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
         </div>
 
-        <!-- A wide route map beside a square cover of the same height, like
-             Strava, on lg+ screens. A shared fixed height sets both, so the row
-             never needs flex height-matching.
-
-             The square is the fixed part (288px, its height) and the map takes
-             whatever is left, capped at the 512x288 of a video thumbnail. Sizing
-             the map by its aspect instead would make the pair a rigid 808px:
-             wider than the content column until a 1152px viewport, so every
-             width from lg up to there scrolled the whole page sideways. -->
+        <!-- A wide route map beside a square cover on lg+, sharing one fixed height
+             so the row never needs flex height-matching. The square is the fixed
+             part and the map takes what is left: sizing the map by its aspect
+             instead makes the pair too wide for the content column. -->
         <div
             v-if="routeImageUrl && coverPhoto"
             class="mt-3 hidden gap-2 lg:flex"
@@ -366,8 +352,7 @@ function openLightbox(index) {
                     alt=""
                     class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                 >
-                <!-- Fixed bg-black (not bg-neutral-900): this dims the thumbnail behind
-                     the play button in both themes, so it must not invert. -->
+                <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-12 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
                         <Icon name="PlayIcon" class="size-5" />

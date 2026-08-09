@@ -4,11 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Notes move from plaintext to Portable Text so they can carry @mentions, which
- * is where mentions are most wanted.
- *
- * The column stays TEXT and only its contents change shape: SQLite has no JSON
- * type, and the model cast is what reads it either way. Each existing note
+ * Notes move from plaintext to Portable Text so they can carry @mentions. The
+ * column stays TEXT and only its contents change shape; each existing note
  * becomes a single normal block, preserving its text exactly.
  */
 return new class extends Migration

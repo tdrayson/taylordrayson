@@ -31,8 +31,7 @@ final class PodcastCard
                 title: $model->title,
                 audioUrl: $model->audioSrc(),
                 videoUrl: $model->video_url,
-                // The wide 16:9 video still fronts the timeline card; the square
-                // artwork (audioCover) is what the bottom audio player shows.
+                // Wide art fronts the card, square art goes to the audio player.
                 thumbnail: $model->wideArtworkSrc() ?? $model->squareArtworkSrc(),
                 audioCover: $model->squareArtworkSrc() ?? $model->wideArtworkSrc(),
                 duration: $model->duration,

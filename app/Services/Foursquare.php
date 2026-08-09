@@ -6,10 +6,8 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Client for the Foursquare/Swarm v2 API (api.foursquare.com/v2).
- *
- * Authenticates with the personal OAuth token from config('services.foursquare')
- * and pages through the account's full check-in history, newest first.
+ * Client for the Foursquare/Swarm v2 API, paging the account's check-in
+ * history newest first.
  */
 class Foursquare
 {
@@ -22,10 +20,8 @@ class Foursquare
     /**
      * Yield every check-in item across all pages, newest first.
      *
-     * `$afterTimestamp` (unix seconds) narrows the request to check-ins made
-     * after that moment, which is what makes a recurring sync cheap: without
-     * it every run pages the entire history to find the handful that are new.
-     *
+     * @param  int|null  $afterTimestamp  Unix seconds; keeps a recurring sync cheap
+     *                                    by not re-paging the whole history.
      * @return iterable<array<string, mixed>>
      *
      * @throws RuntimeException When credentials are missing or a request fails.

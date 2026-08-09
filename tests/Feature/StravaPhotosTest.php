@@ -309,13 +309,9 @@ it('still stores the photo for an indoor activity with no latlng stream', functi
     expect($activity->refresh()->getFirstMedia('cover'))->not->toBeNull();
 });
 
-// Closes a Task 4 review finding. resolveTargets() must leave `start` null when
-// Strava sends no start_date, never fabricate one: CarbonImmutable::parse('')
-// silently returns NOW rather than throwing. The photo's capture time is
-// deliberately set to now, so a fabricated now-start would land at offset ~0,
-// inside the stream, and produce coordinates. Only a genuinely null start
-// produces none. An older capture time could not tell the two apart, because
-// both would fall outside the stream bounds and yield no coordinates either way.
+// CarbonImmutable::parse('') silently returns NOW rather than throwing, so a
+// fabricated start would land at offset ~0 and produce coordinates. The capture
+// time is set to now deliberately: an older one could not tell the two apart.
 it('does not fabricate a start when the strava summary has no start date', function () {
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '100']);
 

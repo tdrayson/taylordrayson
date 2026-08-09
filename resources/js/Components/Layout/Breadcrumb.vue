@@ -30,7 +30,6 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
             <Icon name="Home01Icon" class="size-4" />
         </Link>
 
-        <!-- Ancestors: shown inline on every breakpoint (these are the real navigation). -->
         <template v-for="(item, index) in ancestors" :key="index">
             <span class="mx-2 shrink-0 text-neutral-100" aria-hidden="true">/</span>
             <Link v-if="item.href" :href="item.href" class="shrink-0 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ item.label }}</Link>

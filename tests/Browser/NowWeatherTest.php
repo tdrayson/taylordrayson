@@ -3,14 +3,9 @@
 use App\Support\StateStore;
 
 /**
- * The condition slug drives three things that were each worked out separately:
- * the tile's copy, the tile's icon and the top bar's icon. All three were wrong
- * at once for a condition the phone sends every sunny morning, so these assert
- * the rendered DOM rather than the props, which carried the right slug
- * throughout.
- *
- * "Mostly Sunny" is what Shortcuts hands over in daylight for the sky Apple
- * calls "Mostly Clear" after dark. Only the after-dark spelling was mapped.
+ * The condition slug drives the tile's copy, the tile's icon and the top bar's
+ * icon, so these assert the rendered DOM rather than the props, which carry the
+ * right slug even when all three render wrong.
  */
 beforeEach(function () {
     app(StateStore::class)->put('now.weather', ['condition' => 'mostly-sunny', 'temp' => 24]);

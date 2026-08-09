@@ -7,12 +7,8 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * One editable field on an entry.
- *
- * `primary` decides where it appears: primary fields are always visible in the
- * form or the properties panel, everything else hides behind "+ Add field" and
- * only surfaces once it has a value. That split is declared here, once, and
- * drives the form, the panel and the menu alike.
+ * One editable field on an entry. `primary` fields are always visible; the rest
+ * hide behind "+ Add field" until they have a value.
  */
 final readonly class FieldData implements Arrayable, JsonSerializable
 {
@@ -34,11 +30,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
     ) {}
 
     /**
-     * A field that is always shown.
-     *
-     * `required` is separate from `primary` on purpose: primary decides whether
-     * a field is visible, required decides whether a save is refused without
-     * it. Tags are always shown and almost never mandatory.
+     * A field that is always shown. `required` is separate: primary controls
+     * visibility, required controls whether a save is refused without it.
      *
      * @param  list<array{value: string, label: string}>  $options
      */

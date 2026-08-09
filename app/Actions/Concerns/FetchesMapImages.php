@@ -17,14 +17,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 trait FetchesMapImages
 {
     /**
-     * Fetch every style and store them together, or store none at all.
-     *
-     * All-or-nothing on purpose. An entry is meant to carry a light map and its
-     * dark twin, and every renderer keys off the light one, so storing whichever
-     * style happened to succeed produced an entry that looked mapped in the
-     * database and unmapped on the page. Failing instead leaves the entry
-     * untouched and still eligible: the queued job retries it, and the
-     * maps:generate sweep picks up anything that never came good.
+     * Fetch every style and store them together, or store none at all. Renderers
+     * key off the light map, so storing only the dark one leaves an entry that
+     * looks mapped in the database and unmapped on the page.
      *
      * @param  array<string, string|null>  $urls  collection name => URL, skipped when null
      * @return Media|null the last image stored, or null when there was nothing to fetch

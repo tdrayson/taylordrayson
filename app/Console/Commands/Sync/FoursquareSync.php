@@ -25,16 +25,10 @@ class FoursquareSync extends Command
     private const MAX_CATCHUP_DAYS = 90;
 
     /**
-     * Fetch only check-ins newer than the last one stored, so a run that finds
-     * nothing new costs a single empty page rather than paging all history the
-     * way `foursquare:import` does.
-     *
-     * The window is the last --days, extended back to the newest stored
-     * check-in when that is older, so a gap opened by a missed schedule
-     * self-heals instead of being stranded behind a fixed window. Overlap is
-     * deliberate and free: the action upserts on source_id, so re-seeing a
-     * check-in updates it rather than duplicating it, which also picks up a
-     * shout or photo added after the fact.
+     * Fetch only check-ins newer than the last stored one, so an empty run costs
+     * a single page. The window extends back to the newest stored check-in when
+     * that is older than --days, so a missed schedule self-heals; the overlap is
+     * free because the action upserts on source_id.
      */
     public function handle(Foursquare $foursquare, ImportCheckin $importCheckin): int
     {

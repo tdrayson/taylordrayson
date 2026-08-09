@@ -37,8 +37,6 @@ final class BookLookup
                 'value' => (string) data_get($document, 'title', ''),
                 'label' => (string) data_get($document, 'title', 'Untitled'),
                 'detail' => trim(implode(', ', array_filter([$author, $year]))) ?: null,
-                // Picking a result fills the other fields too, which is the
-                // point of the lookup: one choice, not four retyped facts.
                 'fill' => array_filter([
                     'title' => data_get($document, 'title'),
                     'meta.author' => $author,

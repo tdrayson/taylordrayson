@@ -21,8 +21,6 @@ final class NoteCard
         return new CardData(
             type: TimelineType::Note,
             icon: 'message-circle',
-            // Notes are Portable Text now, so the card title is the flattened
-            // text rather than the stored value.
             title: Str::limit(PortableText::plainText($model->content), 80),
             titleLabel: null,
             subtitle: null,

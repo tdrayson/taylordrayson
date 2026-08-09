@@ -17,9 +17,6 @@ final class EventCard
 {
     public function present(Event $model): CardData
     {
-        // "The Roundhouse in London" reads as a single clause; falls back to
-        // whichever one value is present (no dangling "in") when only venue or
-        // city is set.
         $subtitle = match (true) {
             $model->venue_name && $model->city => "{$model->venue_name} in {$model->city}",
             default => $model->venue_name ?? $model->city,
@@ -41,12 +38,8 @@ final class EventCard
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $photos,
                 ),
-                // Always carry the location map alongside any photos, like a
-                // check-in: the card shows the map and the first photo together
-                // (side by side on desktop, a swipeable carousel on mobile).
+                // Carried alongside any photos: the card shows map and first photo together.
                 map: $model->optimisedUrl('map'),
-                // Dark twin of the same map, rendered by the frontend behind a
-                // `dark:` class swap so the theme decides which image shows.
                 mapDark: $model->optimisedUrl('map_dark'),
             ),
         );

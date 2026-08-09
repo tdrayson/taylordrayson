@@ -14,14 +14,9 @@ use Inertia\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Creating and saving hand-written entries.
- *
- * Every type goes through here rather than through a controller of its own:
- * {@see AuthorableTypes} says which model and actions to reach for, and
- * {@see FieldRegistry} says what the form contains, so adding a type needs no
- * change to this file.
- *
- * Guarded by the auth middleware on the routes.
+ * Creating and saving hand-written entries of every type. {@see AuthorableTypes}
+ * supplies the model and actions, {@see FieldRegistry} the form, so adding a type
+ * needs no change here.
  */
 class AuthoringController extends Controller
 {

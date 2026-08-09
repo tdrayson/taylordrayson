@@ -6,11 +6,8 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * A single card photo. Two shapes exist in the wild: the gallery shape (cover
- * + photos collection, via HasAttachments::galleryPhotos()) always carries a
- * route coordinate, present or not; the cover-only shape (Article's single
- * featured image) never does, so its coordinate keys are omitted entirely
- * rather than emitted as null.
+ * A single card photo. The gallery shape always carries a route coordinate,
+ * present or not; the cover-only shape omits the coordinate keys entirely.
  */
 final readonly class PhotoData implements Arrayable, JsonSerializable
 {

@@ -6,22 +6,14 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Date parts pulled out of a timestamp column, in whichever dialect the current
- * connection speaks.
- *
- * SQLite's strftime() has no MySQL equivalent, so these queries ran only on
- * SQLite. Written as expressions rather than casts on the PHP side because the
- * grouping and comparison happen in the database, over every row.
- *
- * Each takes a column name or any SQL expression, e.g. COALESCE(a, b).
+ * connection speaks. Each takes a column name or any SQL expression, e.g.
+ * COALESCE(a, b), since the grouping happens in the database over every row.
  */
 final class SqlDate
 {
     /**
-     * Day of the week as 0-6 with Sunday as 0, matching both SQLite's `%w` and
-     * JavaScript's getDay(), which is the order the heatmap's rows are built in.
-     *
-     * MySQL's DAYOFWEEK() is 1-7 with Sunday as 1, so it is shifted down. Miss
-     * that and every reading lands on the wrong day, which no error reports.
+     * Day of the week as 0-6, Sunday first, matching SQLite's `%w` and JS
+     * getDay(). MySQL's DAYOFWEEK() is 1-7, so it is shifted down.
      */
     public static function dayOfWeek(string $expression): string
     {

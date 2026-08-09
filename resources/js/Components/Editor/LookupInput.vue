@@ -5,11 +5,8 @@ import { useDismissable } from '../../lib/editor/dismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**
- * A text field backed by a search: airports, airlines, books, places.
- *
- * The typed value is kept whatever happens, so a book Hardcover has never
- * heard of, or an airport with no row, is still enterable. Picking a result
- * may also fill sibling fields (a book's author, a place's coordinates), which
+ * A text field backed by a search. The typed value is always kept, so an airport
+ * with no row is still enterable. Picking a result may fill sibling fields, which
  * is emitted separately rather than folded into the value.
  */
 const props = defineProps({

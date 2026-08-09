@@ -11,15 +11,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * The "see everything tagged X" bridge for an archive taxonomy page. Given the
- * taxonomy value in the URL, returns the cross-type tag whose slug matches it,
- * so a single-type archive slice (e.g. musical events, notes tagged coffee) can
- * link to the /tags union that spans every taggable type.
- *
- * Returns null on index pages (no value) and whenever no matching tag resolves
- * to an entry visible to the current requester, so the link never points at a
- * /tags feed that would 404. Visibility is decided by the same condition
- * TagController::show uses for its 200/404 boundary, so the two stay in lockstep.
+ * The "see everything tagged X" bridge from an archive taxonomy page to the /tags
+ * union. Null on index pages and whenever the tag would resolve to nothing the
+ * requester can see, using the same visibility condition as
+ * TagController::show so the link never points at a 404.
  */
 final class ArchiveTagBridge
 {
@@ -63,10 +58,8 @@ final class ArchiveTagBridge
     {
         $types = $taggables->pluck('taggable_type')->unique()->values()->all();
 
-        // whereHasMorph joins to each related model, so an orphaned spine row (a
-        // model deleted by a bulk delete that skipped the observer, leaving its
-        // entry behind) is excluded here just as TagController::show discards
-        // entries whose timelineable resolves to null.
+        // whereHasMorph joins to the related model, so orphaned spine rows drop out
+        // here just as TagController::show discards a null timelineable.
         $hasSpineEntry = TimelineEntry::query()
             ->whereHasMorph('timelineable', $types, function (Builder $query, string $type) use ($taggables): void {
                 $query->whereKey($taggables->where('taggable_type', $type)->pluck('taggable_id'));

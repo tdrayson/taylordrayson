@@ -19,15 +19,9 @@ use Illuminate\Queue\SerializesModels;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
- * Draws the static map for a newly created entry: an activity's route, a
- * flight's arc, or a pin for anything with coordinates.
- *
- * Queued rather than done inline because it is two Mapbox fetches that the
- * entry does not need in order to exist, and because a failed fetch should be
- * retried rather than skipped. Dispatched from the points where a single entry
- * is created (a sync run, a manual entry), never from a bulk import, which
- * would queue a job per row and hammer Mapbox to redraw maps that already
- * exist; those are still covered by the maps:generate sweep.
+ * Draws the static map for a newly created entry: an activity's route, a flight's
+ * arc, or a pin. Dispatched only where a single entry is created, never from a
+ * bulk import, which would queue a job per row; those go through maps:generate.
  */
 class GenerateEntryMap implements ShouldQueue
 {

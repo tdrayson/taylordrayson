@@ -47,9 +47,8 @@ const big = computed(() => props.size === 'lg');
 
 <template>
     <dl :class="cn('flex flex-wrap', big ? 'gap-x-14 gap-y-8' : 'gap-x-12 gap-y-6', props.class)">
-        <!-- dt must precede its dd per the dl content model; flex-col-reverse
-             keeps the big value visually on top with the label caption below,
-             matching the original div order, while the DOM order stays term-first. -->
+        <!-- dt must precede its dd per the dl content model, so flex-col-reverse
+             puts the value on top while the DOM order stays term-first. -->
         <div v-for="(stat, index) in resolved" :key="index" class="flex flex-col-reverse">
             <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
             <dd class="font-display font-extrabold leading-none tracking-tight tnum" :class="big ? 'text-stat-lg' : 'text-stat'">

@@ -21,10 +21,8 @@ final class PlaceLookup
      */
     public function __invoke(string $query, ?float $latitude = null, ?float $longitude = null): array
     {
-        // Without a hint Mapbox ranks globally: "shell caterham" came back as a
-        // filling station in Chile. The last place checked into is the best
-        // guess at where the search is being made from, and it follows you
-        // abroad rather than pinning results to home forever.
+        // Without a bias hint Mapbox ranks globally: "shell caterham" returned a
+        // filling station in Chile.
         if ($latitude === null || $longitude === null) {
             [$latitude, $longitude] = $this->lastKnownPosition();
         }
@@ -33,13 +31,8 @@ final class PlaceLookup
             'value' => $place['name'],
             'label' => $place['name'],
             'detail' => $place['address'],
-            // Everything the pick resolved, so a type that stores a city or a
-            // postcode gets them filled rather than only its coordinates.
-            // EntryEditor writes only the keys the form actually has.
-            // Coordinates only. Text Search returns no address components, so
-            // the parts are resolved by reverse-geocoding this position when
-            // the row is picked, rather than by an extra call per row in a
-            // list that may never be chosen from.
+            // Coordinates only: Text Search returns no address components, so the
+            // parts are reverse-geocoded when a row is actually picked.
             'fill' => array_filter([
                 'latitude' => $place['latitude'],
                 'longitude' => $place['longitude'],

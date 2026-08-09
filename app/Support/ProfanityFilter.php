@@ -5,10 +5,8 @@ namespace App\Support;
 use Illuminate\Support\Str;
 
 /**
- * A deliberately small blocklist guarding the public leaderboard against the
- * most obvious slurs and abuse. It normalises common letter/number swaps before
- * matching so trivial obfuscations (e.g. "n1gger") are still caught. This is a
- * best-effort filter, not a guarantee, overt cases only.
+ * A deliberately small blocklist guarding the public leaderboard, normalising
+ * letter/number swaps before matching. Best-effort, overt cases only.
  */
 class ProfanityFilter
 {

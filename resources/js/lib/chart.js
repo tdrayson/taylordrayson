@@ -70,15 +70,9 @@ export const tooltip = {
 };
 
 /**
- * Shared chart options: fills the container height, hides the legend by default,
- * and applies the themed tooltip and quiet gridlines. Pass overrides for scales
- * or plugins as needed.
- *
- * Axis tick/grid colours are scriptable functions (not plain strings) for the
- * same reason as the tooltip above: Chart.js re-resolves them on every
- * render, so a chart rebuilt after a theme change picks up the new palette
- * even though the surrounding options object it was constructed with is
- * otherwise unchanged.
+ * Shared chart options: fills the container, hides the legend, applies the themed
+ * tooltip and quiet gridlines. Axis colours are scriptable functions, not strings,
+ * so Chart.js re-resolves them and a theme change repaints.
  */
 export function baseOptions(overrides = {}) {
     const { plugins = {}, scales = {}, ...rest } = overrides;

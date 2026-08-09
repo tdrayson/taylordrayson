@@ -3,12 +3,9 @@
 namespace App\Enums;
 
 /**
- * Reference enum for the `activity.type` values the app gives behaviour to,
- * NOT a model cast and NOT an enumeration of Strava's sport types.
- *
- * `type` is an open set: Strava mints new sport types via Str::kebab() when
- * no explicit mapping exists (see StravaSync::TYPE_MAP), so the column stays
- * a plain string and unknown values simply won't match a case here.
+ * Reference enum for the `activity.type` values the app gives behaviour to, NOT a
+ * model cast. `type` is an open set: Strava mints new sport types via Str::kebab(),
+ * so the column stays a string and unknown values match no case here.
  */
 enum ActivityDiscipline: string
 {

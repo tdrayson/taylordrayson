@@ -207,13 +207,8 @@ class TimelineController extends Controller
             'og' => OgMeta::day($date),
             'items' => $entries->map(fn (TimelineEntry $entry): array => $this->feed->cardItem($entry))->all(),
             'stats' => ($this->dayStats)($entries, $date),
-            // No `rings` or `steps`. Both were fixed placeholder numbers, so
-            // every day in the archive claimed the same 137 kcal, 32 minutes,
-            // 9 hours and 11,240 steps, whatever actually happened that day.
-            // A page that invents its own history is worse than one that says
-            // nothing, so they are withheld until the daily figures are real
-            // (#67). Day.vue keeps the markup and hides it when either is
-            // absent, so wiring them up later is a matter of sending them.
+            // No `rings` or `steps` until the daily figures are real (#67); they
+            // were fixed placeholders. Day.vue hides the markup when they are absent.
         ]);
     }
 }

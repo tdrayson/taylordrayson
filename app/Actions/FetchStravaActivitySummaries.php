@@ -5,13 +5,9 @@ namespace App\Actions;
 use App\Services\Strava;
 
 /**
- * Page the athlete's full activity list once and keep only the fields the photo
- * commands need, keyed by Strava activity id.
- *
- * Both `strava:photos` and `strava:photo-locations` need each activity's UTC
- * start to place photos on the route. Fetching it per activity would cost one
- * request each against a 95-per-15-minute limit; paging the list costs roughly
- * one request per 200 activities.
+ * Page the athlete's full activity list once, keyed by Strava activity id. Paging
+ * costs a request per 200 activities where fetching each one's UTC start
+ * individually would cost one each against a 95-per-15-minute limit.
  */
 class FetchStravaActivitySummaries
 {

@@ -288,7 +288,6 @@ function clearFilter() {
                 </div>
             </div>
 
-            <!-- Insert another OR group at this position. -->
             <div class="flex items-center gap-3">
                 <span class="or-neutral-100 flex-1" />
                 <button

@@ -9,12 +9,8 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Client for the unofficial Pocket Casts web API (api.pocketcasts.com).
- *
- * It authenticates with the account email/password from
- * config('services.pocketcasts'), exchanges them for a JWT that is cached and
- * reused, and silently re-authenticates once when a request returns 401. Every
- * public method maps to a single endpoint and returns the decoded JSON.
+ * Client for the unofficial Pocket Casts web API. Exchanges the configured
+ * credentials for a cached JWT, re-authenticating once on a 401.
  *
  * @phpstan-type PocketCastsResponse array<array-key, mixed>
  */
@@ -53,8 +49,6 @@ class PocketCasts
     }
 
     /**
-     * Episodes currently in progress.
-     *
      * @return PocketCastsResponse
      */
     public function inProgress(): array
@@ -63,8 +57,6 @@ class PocketCasts
     }
 
     /**
-     * Starred episodes.
-     *
      * @return PocketCastsResponse
      */
     public function starred(): array
@@ -73,8 +65,6 @@ class PocketCasts
     }
 
     /**
-     * Listening history.
-     *
      * @return PocketCastsResponse
      */
     public function history(): array

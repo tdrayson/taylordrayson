@@ -47,14 +47,10 @@ const G = {
 };
 
 /**
- * Every condition the phone can report: label, honest copy, Hugeicon and blob
- * gradient. One table, read by both the Now tile and the top bar, because two
- * separate maps drifted apart and showed different icons for the same sky.
- *
- * Keyed by the slug the server stores. Note the daytime pairs: Apple names the
- * same sky "Clear" after dark and "Sunny" in daylight, and Shortcuts hands over
- * whichever it is showing, so both spellings have to be here. `t` is a fallback
- * temperature for the gap before the first reading arrives; a real temp wins.
+ * Every condition the phone can report, keyed by the slug the server stores and
+ * read by both the Now tile and the top bar. Day/night pairs are both listed:
+ * Apple names the same sky "Clear" after dark and "Sunny" in daylight. `t` is a
+ * placeholder temperature for the gap before the first reading arrives.
  */
 export const CONDITIONS = {
     clear: { label: 'Clear', line: 'Clear skies. Make the most of it.', icon: Sun03Icon, t: 22, gradient: G.clear },
@@ -117,12 +113,9 @@ function labelFromSlug(condition) {
 }
 
 /**
- * The presentation for a condition slug.
- *
- * An unknown condition deliberately does NOT borrow another sky's copy. Falling
- * back to "partly cloudy" meant a condition we had never mapped read as a
- * confident, specific and wrong forecast, which is how this went unnoticed. It
- * keeps its real label and says nothing it cannot back up.
+ * The presentation for a condition slug. An unknown condition keeps its real
+ * label rather than borrowing another sky's copy, which would read as a
+ * confident and wrong forecast.
  */
 export function weatherFor(condition) {
     const known = CONDITIONS[condition];

@@ -10,13 +10,9 @@ use Illuminate\Support\Str;
 return new class extends Migration
 {
     /**
-     * The event category now lives in the relational tag table (like notes,
-     * articles, and projects), so the legacy `type` column is dropped.
-     *
-     * Each event's category is first preserved as a tag, so any database still
-     * carrying `type` values keeps its taxonomy. This is self-healing (it is
-     * what the retired events:tag-from-type command used to do), so no operator
-     * has to remember a manual backfill before migrating.
+     * Drop the legacy `type` column, the event category now living in the
+     * relational tag table. Each category is preserved as a tag first, so no
+     * operator has to remember a manual backfill.
      */
     public function up(): void
     {

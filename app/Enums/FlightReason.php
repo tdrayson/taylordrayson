@@ -3,12 +3,9 @@
 namespace App\Enums;
 
 /**
- * Why a flight was taken.
- *
- * A closed set the app defines rather than anything a third party supplies, so
- * it is cast on the model. Adding a reason is a case here and a deploy, which
- * is the point: two spellings of "business" would split the flight story's
- * counts in half without anyone noticing.
+ * Why a flight was taken. A closed set the app defines, so it is cast on the
+ * model: two spellings of "business" would silently halve the flight story's
+ * counts.
  */
 enum FlightReason: string
 {

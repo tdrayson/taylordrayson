@@ -104,11 +104,9 @@ class StravaPhotos extends Command
     }
 
     /**
-     * Whether an activity's photos have already been backfilled by the current
-     * sync code. The distinguishing mark is the `captured_at` custom property,
-     * which only the coordinate-aware sync path writes; a cover that predates it
-     * still needs processing. Keying the skip off this makes an interrupted
-     * backfill resumable: a re-run continues from the first unmigrated activity.
+     * Whether an activity's photos were backfilled by the current sync code, marked
+     * by the `captured_at` custom property only that path writes. Keying the skip
+     * off this makes an interrupted backfill resumable.
      */
     private function isMigrated(Activity $activity): bool
     {

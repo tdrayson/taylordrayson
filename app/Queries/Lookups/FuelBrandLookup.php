@@ -6,15 +6,9 @@ use App\Models\Fuel;
 use App\Services\PetrolFinder;
 
 /**
- * Fuel brands, from the canonical list the fuel API publishes.
- *
- * Free text let "Shell", "shell" and "Shell UK" all through, and the brand is
- * what picks the logo on a fuel card: a spelling the logo map does not know
- * renders as no logo at all.
- *
- * The brands already recorded are merged in, and stand alone when the fuel API
- * is unreachable. A dropdown with nothing in it is worse than free text, and
- * that API has been observed returning 404s.
+ * Fuel brands, from the canonical list the fuel API publishes, since the brand
+ * spelling is what picks a card's logo. Brands already recorded are merged in and
+ * stand alone when that API is down, which it has been.
  */
 final class FuelBrandLookup
 {

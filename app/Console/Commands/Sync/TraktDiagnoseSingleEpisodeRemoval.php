@@ -17,16 +17,9 @@ class TraktDiagnoseSingleEpisodeRemoval extends Command
     use AuthorisesTrakt;
 
     /**
-     * Compare the single-episode targets against three sources of truth and
-     * change nothing.
-     *
-     * The public history feed is CDN-cached and can lag a removal; the
-     * authenticated `/sync/history` read is the real account state. If a play
-     * is absent from the authenticated history it is already gone from Trakt,
-     * and the local row is a phantom left by a full sync re-importing the
-     * stale feed.
-     *
-     * @return int Command exit code
+     * Compare the single-episode targets against three sources of truth, changing
+     * nothing. Only the authenticated `/sync/history` read is authoritative; the
+     * public feed is CDN-cached and lags a removal.
      */
     public function handle(Trakt $trakt): int
     {

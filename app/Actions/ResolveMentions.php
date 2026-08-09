@@ -13,13 +13,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Resolve the mentions in Portable Text content to what they should render as.
- *
- * A mention stores `{kind, id}` and nothing else, so the title has to be looked
- * up every time it is rendered. That is the point: renaming an entry updates
- * every mention of it, and a mention whose target is gone reports
- * `exists: false` so the renderer can say so rather than showing a name that no
- * longer means anything.
+ * Resolve the mentions in Portable Text content. A mention stores only
+ * `{kind, id}`, so renaming an entry updates every mention of it, and a dead
+ * target reports `exists: false` for the renderer to handle.
  */
 class ResolveMentions
 {

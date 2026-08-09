@@ -67,11 +67,7 @@ onBeforeUnmount(() => clearTimeout(timer));
     <!-- not-prose: the code block is a self-contained component; typography
          plugin defaults must not leak into it. -->
     <div class="code-block not-prose max-w-media overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
-        <!-- Header bar only when there is something to say; the copy button
-             floats over the code instead when the header is absent. -->
         <div v-if="hasHeader" class="flex items-center border-b border-neutral-50 text-caption">
-            <!-- Language sits in its own flush left segment: neutral-100 fill,
-                 squared right edge dividing it from the filename. -->
             <span v-if="language" class="bg-neutral-50 px-4 py-2.5 font-medium uppercase tracking-wide text-neutral-500">{{ language }}</span>
             <span v-if="filename" class="min-w-0 truncate px-4 font-mono text-neutral-700">{{ filename }}</span>
             <button
@@ -97,8 +93,8 @@ onBeforeUnmount(() => clearTimeout(timer));
                 {{ copied ? 'Copied' : 'Copy' }}
             </button>
 
-            <!-- Both columns share text-meta + leading-6 so gutter rows line up
-                 with code lines without splitting the highlighted HTML. -->
+            <!-- Both columns share leading-6 so gutter rows line up with code lines
+                 without splitting the highlighted HTML. -->
             <div v-if="lineNumbers" aria-hidden="true" class="select-none py-4 pl-4 pr-3 text-right text-meta leading-6 text-neutral-300 tnum">
                 <div v-for="line in lineCount" :key="line">{{ line }}</div>
             </div>

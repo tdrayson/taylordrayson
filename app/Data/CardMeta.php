@@ -6,11 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * The `meta` grab-bag on a timeline card. Every field is nullable/optional;
- * each producer uses one of the named constructors below, which records
- * exactly which keys that producer includes, so the serialised `meta` array
- * matches that producer's pre-DTO array (no keys are ever added for fields a
- * given type never populated).
+ * The `meta` grab-bag on a timeline card. Every field is optional; each producer
+ * uses one of the named constructors below, which fixes exactly which keys that
+ * producer emits.
  */
 final readonly class CardMeta implements Arrayable, JsonSerializable
 {
@@ -89,9 +87,8 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Checkin: photos, map, mapDark, address. A located card that shows the
-     * check-in's own photos alongside the generated location map (both, not
-     * one-or-other), with the full address rendered beneath.
+     * Checkin: the check-in's own photos alongside the generated location map,
+     * both rather than one-or-other, with the address beneath.
      *
      * @param  list<PhotoData>  $photos
      */

@@ -10,39 +10,22 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Client for the Trakt API (api.trakt.tv).
- *
- * Reads authenticate with the client_id alone (the `trakt-api-key` header)
- * against a public profile, so they need no OAuth token. `historyPage`/
- * `ratingsPage` are paginated fetches that drive imports, so they fail
- * closed: a failed response throws `TraktException` rather than being
- * treated as an empty page. `show`/`movie` are best-effort summary lookups
- * and stay null-tolerant.
- *
- * Writes are a separate, narrow path. Trakt gates every `/sync/*` mutation
- * behind a user OAuth token, which the client_id cannot mint, so
- * {@see deviceCode()} and {@see pollForDeviceToken()} implement the device
- * flow and hand the caller a bearer token to pass explicitly into
- * {@see removeHistory()}. The token is deliberately never stored: the only
- * caller is an interactive, occasional cleanup command, and keeping a
- * long-lived write-capable credential on disk to save a 15-second re-auth
- * is a poor trade. Nothing on a schedule needs it.
+ * Client for the Trakt API. Reads need only the client_id; every `/sync/*`
+ * write needs a user OAuth token, minted per-run by the device flow and passed
+ * in explicitly rather than stored (only an interactive command writes).
  */
 class Trakt
 {
     private const BASE = 'https://api.trakt.tv';
 
-    /**
-     * Device-flow poll responses that mean "keep waiting" rather than "fail":
-     * 400 is the authorisation-pending heartbeat, 429 is a slow-down request.
-     */
+    /** Device-flow poll statuses meaning "keep waiting": 400 pending, 429 slow down. */
     private const DEVICE_PENDING_STATUSES = [400, 429];
 
     /**
-     * Fetch one page of the user's watch history for a given media type.
+     * Fetch one page of the user's watch history.
      *
      * @param  string  $type  Either "movies" or "episodes".
-     * @param  string|null  $startAt  ISO 8601 lower bound (for incremental syncs).
+     * @param  string|null  $startAt  ISO 8601 lower bound, for incremental syncs.
      * @return array<int, array<string, mixed>>
      */
     public function historyPage(string $type, int $page, int $limit = 100, ?string $startAt = null): array
@@ -56,7 +39,7 @@ class Trakt
     }
 
     /**
-     * Fetch one page of the user's personal star ratings for a given media type.
+     * Fetch one page of the user's personal star ratings.
      *
      * @param  string  $type  One of "movies", "shows", or "episodes".
      * @return array<int, array<string, mixed>>
@@ -86,11 +69,7 @@ class Trakt
     }
 
     /**
-     * Begin the OAuth device flow.
-     *
-     * Returns Trakt's device payload: `user_code` (what the human types at
-     * `verification_url`), `device_code` (what we poll with), plus the
-     * `interval` and `expires_in` bounds that govern polling.
+     * Begin the OAuth device flow, returning the code the user approves.
      *
      * @return array{device_code: string, user_code: string, verification_url: string, expires_in: int, interval: int}
      */
@@ -108,16 +87,10 @@ class Trakt
     }
 
     /**
-     * Poll Trakt until the user approves the device code, then return the
-     * access token.
+     * Poll until the user approves the device code, then return the access token.
+     * Trakt encodes poll state in the HTTP status: 404/409/410/418 are terminal.
      *
-     * Trakt encodes poll state in the HTTP status, so the pending statuses
-     * are distinguished from genuine failures: 404/409/410/418 are terminal
-     * and each gets a message the operator can act on, rather than being
-     * retried until the code expires. `$onTick` fires once per wait so a
-     * command can keep the terminal alive.
-     *
-     * @param  callable(int $secondsWaited): void|null  $onTick
+     * @param  callable(int $secondsWaited): void|null  $onTick  Fires once per wait.
      */
     public function pollForDeviceToken(string $deviceCode, int $interval = 5, int $expiresIn = 600, ?callable $onTick = null): string
     {
@@ -165,12 +138,8 @@ class Trakt
     }
 
     /**
-     * Every episode trakt id currently present in the user's watch history.
-     *
-     * Read authoritatively (public history feed) so a removal's effect can be
-     * confirmed by what actually remains, rather than trusting the remove
-     * endpoint's own `deleted`/`not_found` counts, which have proven
-     * unreliable for imported plays.
+     * Every episode trakt id in the public watch history. Confirms a removal by
+     * what remains, since the remove endpoint's own counts are unreliable.
      *
      * @return array<int, int>
      */
@@ -198,13 +167,8 @@ class Trakt
     }
 
     /**
-     * Every episode trakt id in the AUTHENTICATED user's history.
-     *
-     * Reads `/sync/history` with the bearer token rather than the public
-     * `/users/{id}/history` feed. The public feed is CDN-cached and can serve
-     * a stale copy for a while after a removal; the authenticated sync
-     * endpoint is user-scoped and uncached, so it is the ground truth for
-     * what a play removal actually did.
+     * Every episode trakt id in the authenticated user's history. Ground truth
+     * after a removal: the public feed is CDN-cached, `/sync/history` is not.
      *
      * @return array<int, int>
      */
@@ -214,11 +178,8 @@ class Trakt
     }
 
     /**
-     * Every history/play id in the AUTHENTICATED user's episode history.
-     *
-     * The play-level counterpart of {@see authenticatedEpisodeTraktIdsInHistory()},
-     * used to confirm a specific play was removed while other plays of the
-     * same episode remain.
+     * Every history/play id in the authenticated user's episode history, for
+     * confirming one play went while the episode's others remain.
      *
      * @return array<int, int>
      */
@@ -228,8 +189,8 @@ class Trakt
     }
 
     /**
-     * Page the authenticated history for one media type and collect the
-     * distinct integer values at a dot-path from each item.
+     * Page the authenticated history and collect the distinct integers found
+     * at a dot-path on each item.
      *
      * @return array<int, int>
      */
@@ -264,12 +225,8 @@ class Trakt
     }
 
     /**
-     * The username the given access token authenticates as.
-     *
-     * Used to confirm the device flow authorised the same account whose
-     * public history is being read: a token for a different account makes
-     * every history-id removal come back `not_found`, since the ids belong
-     * to someone else.
+     * The username a token authenticates as. Guards against authorising a
+     * different account than the one being read, which makes removals no-op.
      */
     public function authenticatedUsername(string $accessToken): ?string
     {
@@ -279,17 +236,11 @@ class Trakt
     }
 
     /**
-     * Permanently remove plays from the user's Trakt watch history.
+     * Permanently remove specific plays from the watch history. Trakt answers 200
+     * even when it deleted nothing, so callers must read the body, not the status.
      *
-     * `$playIds` are history/play ids (`media.source_id`), NOT movie or
-     * episode ids - passing the latter would delete every play of that
-     * title rather than the single spurious one.
-     *
-     * Trakt answers 200 even when it deleted nothing, reporting counts under
-     * `deleted` and unmatched ids under `not_found`, so the caller must read
-     * the body rather than trust the status.
-     *
-     * @param  array<int, string|int>  $playIds
+     * @param  array<int, string|int>  $playIds  History/play ids, NOT movie or
+     *                                           episode ids: those delete every play of the title.
      * @return array{deleted: array<string, int>, not_found: array<string, mixed>}
      */
     public function removeHistory(array $playIds, string $accessToken): array
@@ -310,13 +261,8 @@ class Trakt
     }
 
     /**
-     * Remove every history play for the given episodes, by episode trakt id.
-     *
-     * Where {@see removeHistory()} deletes one specific play by its history
-     * id, this deletes all plays of each whole episode - the right tool when
-     * an episode should not appear at all, and robust against history ids
-     * that the id-based endpoint reports as `not_found`. Episodes Trakt could
-     * not match come back under `not_found.episodes`.
+     * Remove every play of the given episodes, unlike {@see removeHistory()} which
+     * removes one. Also works where the id-based endpoint reports `not_found`.
      *
      * @param  array<int, int|string>  $episodeTraktIds
      * @return array{deleted: array<string, int>, not_found: array{episodes: array<int, mixed>}}
@@ -353,10 +299,8 @@ class Trakt
     }
 
     /**
-     * Like {@see get()}, but fails closed: a failed response throws instead
-     * of being treated as absent data. Used by the paginated fetches that
-     * drive imports, where silently swallowing a failure would truncate a
-     * sync without the caller ever knowing.
+     * GET that throws on failure, unlike {@see get()}: swallowing a failure in a
+     * paginated fetch would silently truncate an import.
      *
      * @param  array<string, mixed>  $params
      * @return array<mixed>
@@ -381,12 +325,8 @@ class Trakt
     }
 
     /**
-     * POST a JSON body, optionally as an authenticated user.
-     *
-     * The 429 retry that {@see PendingRequest()} applies to reads is dropped
-     * here: the device-flow poll treats 429 as its own "slow down" signal and
-     * handles the backoff itself, so retrying underneath it would poll
-     * harder than Trakt asked.
+     * POST a JSON body, optionally as an authenticated user. No 429 retry: the
+     * device-flow poll handles that backoff itself.
      *
      * @param  array<string, mixed>  $body
      */

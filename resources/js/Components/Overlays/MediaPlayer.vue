@@ -22,7 +22,6 @@ const isAudio = computed(() => player.mode === 'audio' && player.track);
 const isVideo = computed(() => player.mode === 'video' && player.track);
 const progress = computed(() => (duration.value ? (currentTime.value / duration.value) * 100 : 0));
 
-// ---- video geometry --------------------------------------------------------
 // Docked inline: position ABSOLUTE in document coords, so it scrolls with the
 // page naturally (no scroll listener). Undocked: a fixed corner mini-player.
 function applyInline() {
@@ -115,7 +114,6 @@ function onResize() {
     }
 }
 
-// ---- video (Plyr) ----------------------------------------------------------
 // Build the right embed for the source: a YouTube/Vimeo provider div, or a
 // native <video> element for a direct file (mp4/webm/...).
 function loadVideo(source) {
@@ -157,7 +155,6 @@ watch(
     },
 );
 
-// ---- audio (native element) ------------------------------------------------
 watch(
     () => (isAudio.value ? player.track.audioUrl : null),
     (url) => {
@@ -283,7 +280,6 @@ onBeforeUnmount(() => {
 
         <div v-if="isAudio" class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-50 bg-neutral-0 md:pl-66">
             <div class="mx-auto flex max-w-4xl items-center gap-4 px-5 py-3 md:px-10">
-                <!-- Prefer the square audioCover; fall back to the wide thumbnail. -->
                 <img v-if="player.track.audioCover || player.track.thumbnail" :src="player.track.audioCover || player.track.thumbnail" alt="" class="size-11 shrink-0 rounded-md object-cover">
                 <Button
                     variant="primary"
@@ -337,9 +333,7 @@ onBeforeUnmount(() => {
             >
                 <div ref="plyrTarget" class="min-h-0 w-full flex-1"></div>
 
-                <!-- Corner mini-player chrome (YouTube-style): the close button
-                     floats over the top-right of the video, the title sits in a
-                     solid bar below it. Hidden while docked inline in the page. -->
+                <!-- Corner mini-player chrome, hidden while docked inline. -->
                 <button
                     v-if="isVideo && !player.dockEl"
                     type="button"

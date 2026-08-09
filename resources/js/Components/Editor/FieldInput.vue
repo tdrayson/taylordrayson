@@ -30,14 +30,9 @@ defineProps({
 defineEmits(['update:modelValue', 'fill']);
 
 /**
- * A datetime-local input only accepts YYYY-MM-DDTHH:mm and silently renders
- * blank for anything else, which is how a stored timestamp came through empty
- * and would have wiped the date on the next save.
- *
- * Sliced rather than parsed through `new Date`, deliberately. Entries store
- * local wall-clock time, not an instant: `new Date('2026-08-03 16:48')` reads
- * it as UTC and renders 17:48 in British summer time, so every edit of an
- * unrelated field would have walked the clock forward an hour.
+ * A datetime-local input silently renders blank for anything but
+ * YYYY-MM-DDTHH:mm. Sliced rather than parsed through `new Date`, which reads a
+ * stored wall-clock time as UTC and walks the clock forward every save.
  */
 function toLocalInput(value) {
     if (! value) {

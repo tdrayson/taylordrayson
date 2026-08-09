@@ -95,14 +95,10 @@ class ImportEventPhotos extends Command
     }
 
     /**
-     * Resolve a filename to exactly one event, or null when it matches none or
-     * is ambiguous (so ambiguity surfaces as "unmatched" rather than silently
-     * attaching to the wrong recurrence).
-     *
-     * Two passes, because a trailing year can be either part of the name
-     * ("WordCamp Europe 2024") or a disambiguator ("Hamilton" seen twice):
-     * first match the whole name as-is, then peel off a trailing year/date and
-     * use it to pick between same-named events.
+     * Resolve a filename to exactly one event, or null when ambiguous, so it
+     * surfaces as unmatched rather than attaching to the wrong recurrence. Two
+     * passes, since a trailing year may be part of the name ("WordCamp Europe
+     * 2024") or a disambiguator ("Hamilton" seen twice).
      *
      * @param  Collection<int, Event>  $events
      */

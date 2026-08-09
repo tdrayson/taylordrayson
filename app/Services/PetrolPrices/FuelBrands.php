@@ -3,17 +3,10 @@
 namespace App\Services\PetrolPrices;
 
 /**
- * Canonical display name and logo domain for UK fuel brands, keyed by the
- * brand's own name.
- *
- * Keyed by name rather than by any feed's identifier: names are real-world
- * identity, so this map survives a change of data source, where a vendor's
- * internal ids would silently mis-brand every row if they were renumbered.
- * Lookup is case-insensitive because feeds report brands in mixed case.
- *
- * Domains exist because logo.dev is keyed by domain and no station feed carries
- * one. Brands with no resolvable domain are listed with null so the name still
- * canonicalises; they simply go without a logo.
+ * Canonical display name and logo.dev domain for UK fuel brands, looked up
+ * case-insensitively by the brand's own name. Keyed by name, not by a feed's
+ * identifier, so the map survives a change of data source. A null domain means
+ * the brand canonicalises but has no logo.
  */
 class FuelBrands
 {

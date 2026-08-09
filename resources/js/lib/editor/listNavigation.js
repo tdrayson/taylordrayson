@@ -1,11 +1,8 @@
 import { ref, watch } from 'vue';
 
 /**
- * Arrow-key navigation for a dropdown list.
- *
- * Every combobox here needs the same four keys, and a list you can only reach
- * with a pointer is not usable from a keyboard at all: the suggestions are the
- * only way to pick an existing tag, airport or timezone.
+ * Arrow-key navigation for a dropdown list, shared by every combobox here: the
+ * suggestions are the only way to pick an existing tag, airport or timezone.
  *
  * @param {import('vue').Ref<Array>} items
  */

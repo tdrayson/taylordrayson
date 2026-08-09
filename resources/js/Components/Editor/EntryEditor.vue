@@ -28,12 +28,9 @@ const titleField = computed(() => props.fields.find((field) => field.isTitle) ??
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
 /**
- * A chip suits a short value that is usually empty and quick to set: a date, a
- * tag list, a toggle. It does not suit a field you have to see to fill in.
- *
- * Rich text needs room, a location needs its search box and its button, and a
- * required field behind a chip is a trap: the post is refused and the reason is
- * a tap away. Those stack instead.
+ * Whether a field stacks rather than collapsing to a chip. Chips suit short,
+ * usually-empty values; rich text and location need room, and a required field
+ * behind a chip is a trap.
  */
 function stacks(field) {
     return field.isTitle
