@@ -303,10 +303,15 @@ function openLightbox(index) {
             <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
         </div>
 
-        <!-- A wide route map (aspect-video, the same 512x288 as a video thumbnail)
-             beside a square cover of the same height, like Strava, on lg+ screens.
-             Both are sized by a fixed height plus their aspect, so widths follow
-             cleanly without flex height-matching. -->
+        <!-- A wide route map beside a square cover of the same height, like
+             Strava, on lg+ screens. A shared fixed height sets both, so the row
+             never needs flex height-matching.
+
+             The square is the fixed part (288px, its height) and the map takes
+             whatever is left, capped at the 512x288 of a video thumbnail. Sizing
+             the map by its aspect instead would make the pair a rigid 808px:
+             wider than the content column until a 1152px viewport, so every
+             width from lg up to there scrolled the whole page sideways. -->
         <div
             v-if="routeImageUrl && coverPhoto"
             class="mt-3 hidden gap-2 lg:flex"
@@ -316,12 +321,12 @@ function openLightbox(index) {
                 :href="url || undefined"
                 :tabindex="url ? -1 : undefined"
                 :aria-hidden="url ? 'true' : undefined"
-                class="block"
+                class="block min-w-0 max-w-lg flex-1"
             >
-                <img :src="routeImageUrl" alt="" class="aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
-                <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden aspect-video h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover dark:block">
+                <img :src="routeImageUrl" alt="" class="h-72 w-full rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+                <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden h-72 w-full rounded-lg border border-neutral-50 object-cover dark:block">
             </component>
-            <div class="group/zoom relative">
+            <div class="group/zoom relative shrink-0">
                 <component
                     :is="url ? Link : 'div'"
                     :href="url || undefined"
