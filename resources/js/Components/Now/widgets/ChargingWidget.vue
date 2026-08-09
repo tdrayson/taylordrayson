@@ -4,7 +4,9 @@ import { computed } from 'vue';
 const props = defineProps({
     device: { type: String, default: 'iPhone' },
     percent: { type: Number, default: 72 },
-    timeLeft: { type: String, default: '25m left' },
+    // iOS's own estimate, which Shortcuts cannot read, so this is normally
+    // absent and the line below it simply does not render.
+    timeLeft: { type: String, default: null },
     charging: { type: Boolean, default: true },
     lowPower: { type: Boolean, default: false },
 });
@@ -25,6 +27,7 @@ const statusText = computed(() => {
 });
 
 const subText = computed(() => (props.charging ? props.timeLeft : 'remaining'));
+const hasSubText = computed(() => Boolean(subText.value));
 
 // Colour priority mirrors iOS: Low Power (orange) > low (red) > charging
 // (green) > idle (neutral foreground).
@@ -66,7 +69,7 @@ const fillModifier = computed(() => {
 
             <p class="charging__value flex items-baseline tnum">
                 <span class="charging__percent font-extrabold" :style="{ color: valueColor }">{{ clamped }}%</span>
-                <span class="charging__time font-extrabold text-neutral-900">{{ subText }}</span>
+                <span v-if="hasSubText" class="charging__time font-extrabold text-neutral-900">{{ subText }}</span>
             </p>
 
             <div class="charging__scale flex justify-between font-semibold text-neutral-300">
@@ -159,15 +162,15 @@ const fillModifier = computed(() => {
 }
 
 /* Idle (not charging) — a white battery, outlined so it reads on the track. */
+/* On battery — dark, matching the percentage's own colour in this state. A
+   white fill was invisible against the white card. */
 .charging__fill--idle {
-    background: var(--color-neutral-0);
-    box-shadow:
-        inset 0 0 0 0.4cqw var(--color-neutral-200),
-        0 1cqw 2cqw rgba(20, 22, 30, 0.06);
+    background: linear-gradient(180deg, var(--color-neutral-700), var(--color-neutral-900) 60%);
+    box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.18);
 }
 
 .charging__fill--idle::before {
-    background: rgba(0, 0, 0, 0.14);
+    background: rgba(255, 255, 255, 0.45);
 }
 
 .charging__fill--low {
