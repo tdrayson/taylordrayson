@@ -13,7 +13,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
-#[Signature('trakt:sync {--days=7 : Days back to fetch} {--full : Backfill entire history}')]
+#[Signature('trakt:sync {--days=7 : Days back to fetch} {--full : Backfill entire history} {--skip-ratings : Import watch history only} {--ratings-only : Refresh personal ratings only}')]
 #[Description('Sync Trakt watch history to the media timeline')]
 class TraktSync extends Command
 {
@@ -60,22 +60,44 @@ class TraktSync extends Command
      */
     private array $enrichDispatched = [];
 
+    /**
+     * History and ratings are separable because they cost wildly different
+     * amounts. A history run with a short window is a page request per type
+     * that usually comes back empty, so it is cheap enough to poll every
+     * minute. `syncRatings()` pages the entire ratings library and then walks
+     * every Trakt-sourced row in PHP, which is a daily job.
+     *
+     * The two flags are mutually exclusive halves, so the frequent schedule and
+     * the daily one never do the same work and cannot race to create the same
+     * row. A plain run still does both, which is what a manual or `--full`
+     * invocation wants.
+     */
     public function handle(Trakt $trakt): int
     {
-        $startAt = $this->resolveStartAt();
-
-        $existing = Media::query()->where('source', 'trakt')->pluck('source_id')->flip();
-
         // Fail closed: a mid-pagination Trakt failure throws (see `Trakt::historyPage`/
         // `ratingsPage`), and any work already imported before the failure stays
         // (never rolled back), but the command reports failure so a partial sync is
         // never mistaken for a complete one.
         try {
+            if ($this->option('ratings-only')) {
+                $this->syncRatings($trakt);
+                $this->info('Refreshed Trakt ratings.');
+
+                return self::SUCCESS;
+            }
+
+            $startAt = $this->resolveStartAt();
+
+            $existing = Media::query()->where('source', 'trakt')->pluck('source_id')->flip();
+
             $filmsCreated = $this->importMovies($trakt, $startAt, $existing);
             $episodesCreated = $this->importEpisodes($trakt, $startAt, $existing);
 
             $this->normalizeEpisodeOrder();
-            $this->syncRatings($trakt);
+
+            if (! $this->option('skip-ratings')) {
+                $this->syncRatings($trakt);
+            }
         } catch (TraktException $e) {
             $this->error($e->getMessage());
 

@@ -308,6 +308,26 @@ class OgMeta
         ]);
     }
 
+    public static function trips(): array
+    {
+        return self::make([
+            'title' => 'Trips',
+            'eyebrow' => 'Index',
+            'heading' => 'Trips',
+            'description' => 'Every trip, newest first.',
+        ]);
+    }
+
+    public static function trip(string $title): array
+    {
+        return self::make([
+            'title' => $title,
+            'eyebrow' => 'Trip',
+            'heading' => $title,
+            'description' => "Everything I logged during {$title}.",
+        ]);
+    }
+
     /**
      * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
      *                                     the model has no spine row (e.g. an unpublished article

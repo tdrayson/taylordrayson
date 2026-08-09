@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Actions\GenerateStaticMap;
 use App\Actions\StoreActivityStreams;
 use App\Actions\SyncStravaPhotos;
 use App\Actions\Workouts\RecordSetgraphWorkout;
 use App\Enums\Source;
+use App\Jobs\GenerateEntryMap;
 use App\Models\Activity;
 use App\Services\Strava;
 use Carbon\Carbon;
@@ -92,7 +92,7 @@ class StravaSync extends Command
 
             $activity = $this->createActivity($detail);
             $this->downloadPhotos($strava, $detail, $activity);
-            app(GenerateStaticMap::class)($activity);
+            GenerateEntryMap::dispatch($activity);
             app(StoreActivityStreams::class)($activity, $strava);
 
             $created[] = $activity;

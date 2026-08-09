@@ -8,6 +8,7 @@ use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\DateRange;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -65,31 +66,6 @@ class Event extends Model implements HasMedia, Timelineable
             return null;
         }
 
-        $start = $this->occurred_at->copy();
-        $end = $this->ends_at->copy();
-        $days = $start->startOfDay()->diffInDays($end->startOfDay()) + 1;
-
-        $sameMonth = $start->format('n') === $end->format('n') && $start->format('Y') === $end->format('Y');
-        $sameYear = $start->format('Y') === $end->format('Y');
-
-        $label = $sameMonth
-            ? $start->format('j').'-'.$end->format('j M Y')
-            : $start->format('j M').' - '.$end->format('j M Y');
-
-        if ($sameMonth) {
-            $long = $start->format('jS').' to '.$end->format('jS F Y');
-        } elseif ($sameYear) {
-            $long = $start->format('jS F').' to '.$end->format('jS F Y');
-        } else {
-            $long = $start->format('jS F Y').' to '.$end->format('jS F Y');
-        }
-
-        return new RangeData(
-            start: $start->toDateString(),
-            end: $end->toDateString(),
-            days: (int) $days,
-            label: $label,
-            long: $long,
-        );
+        return DateRange::for($this->occurred_at, $this->ends_at);
     }
 }

@@ -33,6 +33,8 @@ const props = defineProps({
     title: { type: String, default: null },
     occurredAt: { type: String, required: true },
     dayUrl: { type: String, required: true },
+    // { title, url } when this entry falls inside a trip window, else null.
+    trip: { type: Object, default: null },
     entry: { type: Object, required: true },
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
@@ -119,6 +121,10 @@ setLayoutProps({
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
             </Link>
+            <p v-if="trip" class="mt-1 text-meta text-neutral-500">
+                Part of
+                <Link :href="trip.url" class="font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ trip.title }}</Link>
+            </p>
         </div>
     </header>
 

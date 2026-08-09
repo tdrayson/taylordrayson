@@ -207,9 +207,13 @@ class TimelineController extends Controller
             'og' => OgMeta::day($date),
             'items' => $entries->map(fn (TimelineEntry $entry): array => $this->feed->cardItem($entry))->all(),
             'stats' => ($this->dayStats)($entries, $date),
-            // Placeholder Apple-Health summary — replace with real data once the health schema lands.
-            'rings' => ['move' => 62, 'exercise' => 53, 'stand' => 75, 'moveKcal' => 137, 'exerciseMins' => 32, 'standHrs' => 9],
-            'steps' => 11240,
+            // No `rings` or `steps`. Both were fixed placeholder numbers, so
+            // every day in the archive claimed the same 137 kcal, 32 minutes,
+            // 9 hours and 11,240 steps, whatever actually happened that day.
+            // A page that invents its own history is worse than one that says
+            // nothing, so they are withheld until the daily figures are real
+            // (#67). Day.vue keeps the markup and hides it when either is
+            // absent, so wiring them up later is a matter of sending them.
         ]);
     }
 }

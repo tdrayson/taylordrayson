@@ -4,7 +4,7 @@ namespace App\Console\Commands\Fetch;
 
 use App\Models\Fuel;
 use App\Services\LogoDev;
-use App\Services\PetrolFinder;
+use App\Services\PetrolPrices\FuelBrands;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 #[Description('Download fuel-station brand logos from logo.dev, keyed by brand slug')]
 class FetchFuelBrandLogos extends Command
 {
-    public function handle(LogoDev $logoDev, PetrolFinder $petrolFinder): int
+    public function handle(LogoDev $logoDev): int
     {
         if (! config('services.logodev.token')) {
             $this->components->error('LOGODEV_TOKEN is not set.');
@@ -46,7 +46,7 @@ class FetchFuelBrandLogos extends Command
                 continue;
             }
 
-            $domain = $petrolFinder->brandDomain($brand);
+            $domain = FuelBrands::domain($brand);
 
             if ($domain === null) {
                 $this->components->warn("{$brand} - no domain");

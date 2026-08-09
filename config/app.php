@@ -70,6 +70,14 @@ return [
     'home_timezone' => env('APP_HOME_TIMEZONE', 'Europe/London'),
 
     /*
+    | The phone the Now page's battery reading comes from. Configured rather
+    | than sent with every reading: it changes once every few years, so putting
+    | it in the payload meant repeating it thousands of times to say the same
+    | thing.
+    */
+    'device' => env('APP_DEVICE', 'iPhone'),
+
+    /*
     |--------------------------------------------------------------------------
     | Site Owner
     |--------------------------------------------------------------------------

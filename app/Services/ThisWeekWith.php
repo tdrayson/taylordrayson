@@ -17,15 +17,19 @@ class ThisWeekWith
     private const ENDPOINT = 'https://www.thisweekwith.co.uk/wp-json/podcast/v1/episodes';
 
     /**
-     * Every published episode, across all pages.
+     * Yield every published episode, newest first, fetching each page only as
+     * the caller reaches it.
      *
-     * @return list<array<string, mixed>>
+     * Lazy rather than eager so an incremental sync can stop once it reaches
+     * episodes it already has: the endpoint returns newest first, so breaking
+     * out of the loop means the remaining pages are never requested at all.
+     *
+     * @return iterable<array<string, mixed>>
      *
      * @throws RuntimeException When a page request fails.
      */
-    public function episodes(int $perPage = 50): array
+    public function episodes(int $perPage = 50): iterable
     {
-        $episodes = [];
         $page = 1;
 
         do {
@@ -38,14 +42,10 @@ class ThisWeekWith
                 throw new RuntimeException("This Week With request failed on page {$page} ({$response->status()}).");
             }
 
-            foreach ($response->json('episodes', []) as $episode) {
-                $episodes[] = $episode;
-            }
+            yield from $response->json('episodes', []);
 
             $totalPages = (int) $response->json('total_pages', 1);
             $page++;
         } while ($page <= $totalPages);
-
-        return $episodes;
     }
 }

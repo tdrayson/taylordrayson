@@ -2,6 +2,7 @@
 
 namespace App\Actions\Flights;
 
+use App\Jobs\GenerateEntryMap;
 use App\Models\Flight;
 use Illuminate\Support\Arr;
 
@@ -28,7 +29,15 @@ class CreateFlight
         ];
 
         $flight = Flight::updateOrCreate($key, Arr::except($attributes, array_keys($key)));
+        $created = $flight->wasRecentlyCreated;
 
-        return ['flight' => $flight->refresh(), 'created' => $flight->wasRecentlyCreated];
+        // Drawn on the queue so a slow or failed Mapbox call neither holds up
+        // the response nor leaves the flight permanently unmapped. The job
+        // no-ops if the arc is already there.
+        if ($created) {
+            GenerateEntryMap::dispatch($flight);
+        }
+
+        return ['flight' => $flight->refresh(), 'created' => $created];
     }
 }

@@ -22,6 +22,7 @@ use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
+use App\Http\Controllers\TripController;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -143,6 +144,11 @@ Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
 // to PageController.
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
+
+// Trips: a named date range whose page gathers the entries already inside it.
+// Registered above the page catch-all for the same reason as /tags.
+Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
+Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show');
 
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.

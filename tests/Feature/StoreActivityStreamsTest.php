@@ -32,10 +32,14 @@ it('stores aligned absolute-time streams on the activity', function () {
     expect($stored)->toBeTrue();
     $activity->refresh();
     expect($activity->altitude)->toHaveCount(3);
-    expect($activity->altitude[0])->toBe(['time' => '2024-01-01 08:00:00', 'value' => 10.0]);
     expect($activity->speed[2]['value'])->toBe(3.0);
-    expect($activity->track[1])->toBe(['time' => '2024-01-01 08:00:01', 'lat' => 51.6, 'lng' => -0.2]);
-    expect($activity->heart_rate[0])->toBe(['time' => '2024-01-01 08:00:00', 'bpm' => 120]);
+
+    // toEqual, not toBe: MySQL stores JSON in a binary form that reorders object
+    // keys (shortest first), so an identical-array check compares key order and
+    // fails there while passing on SQLite. Nothing reads a point by key order.
+    expect($activity->altitude[0])->toEqual(['time' => '2024-01-01 08:00:00', 'value' => 10.0])
+        ->and($activity->track[1])->toEqual(['time' => '2024-01-01 08:00:01', 'lat' => 51.6, 'lng' => -0.2])
+        ->and($activity->heart_rate[0])->toEqual(['time' => '2024-01-01 08:00:00', 'bpm' => 120]);
 });
 
 it('returns false and stores nothing when Strava has no streams', function () {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Queries\NowState;
+use App\Support\StateStore;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,6 +45,10 @@ class HandleInertiaRequests extends Middleware
             // every actual gate is enforced server-side, and sharing the model
             // would put the account's email in the props of every page.
             'signedIn' => $request->user() !== null,
+            // Ambient readings from the phone. Shared rather than per-page
+            // because the status bar carries battery, weather and rings on
+            // every page, not just /now. One query for all four groups.
+            'ambient' => fn (): array => (new NowState(new StateStore))(),
         ];
     }
 }

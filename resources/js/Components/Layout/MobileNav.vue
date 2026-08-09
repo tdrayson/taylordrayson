@@ -8,7 +8,7 @@ import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
 import SocialLinks from '../Profile/SocialLinks.vue';
 import Avatar from '../Profile/Avatar.vue';
-import StreakBadge from '../Now/StreakBadge.vue';
+import StreakBadge from './StreakBadge.vue';
 import { useSettings } from '../../useSettings';
 
 const { openSettings } = useSettings();
