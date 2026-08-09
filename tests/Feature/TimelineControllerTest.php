@@ -109,3 +109,24 @@ it('ships full note content as the card body', function () {
         ->where('groups.0.items.0.body', "Long thought about grinders.\n\nSecond paragraph of the same note.")
         ->where('groups.0.items.0.iconKey', 'note'));
 });
+
+/**
+ * The day page used to send a fixed Apple Health summary with every request, so
+ * every day in the archive reported the same 137 kcal, 32 minutes, 9 hours and
+ * 11,240 steps regardless of what happened. Nothing marked it as invented, and
+ * it read exactly like the real entry-derived stats beside it.
+ */
+it('does not put invented health figures on a day page', function () {
+    $activity = Activity::factory()->create(['occurred_at' => '2026-03-15 07:30:00', 'type' => 'run', 'distance' => 5000, 'duration' => 1800]);
+
+    $this->get('/2026/03/15')->assertOk()->assertInertia(fn ($page) => $page
+        ->component('Day')
+        ->missing('rings')
+        ->missing('steps')
+        // The stats that are genuinely derived from the day's entries stay.
+        ->has('stats')
+        ->has('items', 1)
+    );
+
+    expect($activity->fresh())->not->toBeNull();
+});

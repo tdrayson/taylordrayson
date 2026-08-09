@@ -473,3 +473,28 @@ it('sends no start_at when --full is passed, even with prior synced history', fu
         return ! array_key_exists('start_at', $request->data());
     });
 });
+
+/**
+ * History and ratings are polled on very different cadences (every minute
+ * versus daily), so each flag must do strictly its own half: if the frequent
+ * run still paged the ratings library the split would buy nothing, and if the
+ * daily one still imported history the two schedules could race to create the
+ * same row.
+ */
+it('skips the ratings endpoints with --skip-ratings', function () {
+    fakeTraktHistory([], []);
+
+    $this->artisan('trakt:sync --skip-ratings')->assertSuccessful();
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/ratings/'));
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/history/'));
+});
+
+it('skips the history endpoints with --ratings-only', function () {
+    fakeTraktHistory([], []);
+
+    $this->artisan('trakt:sync --ratings-only')->assertSuccessful();
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/history/'));
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/ratings/'));
+});

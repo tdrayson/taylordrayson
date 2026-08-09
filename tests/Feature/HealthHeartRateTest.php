@@ -299,7 +299,10 @@ it('keeps a Strava-streamed heart-rate series when altitude is present, unless -
     $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath])->assertSuccessful();
 
     $activity->refresh();
-    expect($activity->heart_rate)->toBe($stravaHeartRate)
+    // toEqual, not toBe: MySQL's binary JSON reorders object keys, so an
+    // identical-array check would fail there purely on key order. What matters
+    // is that every reading is still Strava's, unchanged.
+    expect($activity->heart_rate)->toEqual($stravaHeartRate)
         ->and((int) $activity->average_heart_rate)->toBe(150)
         ->and((int) $activity->max_heart_rate)->toBe(160);
 

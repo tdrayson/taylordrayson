@@ -1,5 +1,3 @@
-const MAPLIBRE_VERSION = '4.7.1';
-
 export const OPENFREEMAP_LIGHT = 'https://tiles.openfreemap.org/styles/positron';
 export const OPENFREEMAP_DARK = 'https://tiles.openfreemap.org/styles/dark';
 
@@ -37,49 +35,32 @@ export function swapBasemapStyle(map, styleUrl, ids) {
     });
 }
 
-function loadStylesheet(href) {
-    if (document.querySelector(`link[href="${href}"]`)) {
-        return;
-    }
-
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-}
-
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const existing = document.querySelector(`script[src="${src}"]`);
-
-        if (existing) {
-            if (window.maplibregl) {
-                resolve();
-            } else {
-                existing.addEventListener('load', resolve);
-                existing.addEventListener('error', reject);
-            }
-
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
 /**
- * Lazily load the MapLibre GL stylesheet + script, resolving with the global
- * `maplibregl` (or null if it failed to load).
+ * Lazily load MapLibre GL and its stylesheet, resolving with the module (or
+ * null if the chunk failed to load).
+ *
+ * Imported dynamically rather than at the top of the file so the ~1MB library
+ * is a chunk of its own, fetched when a map is actually created instead of by
+ * every visitor who loads a page that happens to import this module for
+ * `greatCircle` or `mapStyleForTheme`.
+ *
+ * The version comes from package.json. It used to be a hardcoded CDN URL,
+ * which had drifted to loading v4 from unpkg while the bundled dependency was
+ * v5, so two different majors were in play depending on which map you opened.
  */
 export async function loadMaplibre() {
-    loadStylesheet(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`);
-    await loadScript(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`);
+    try {
+        const [module] = await Promise.all([
+            import('maplibre-gl'),
+            import('maplibre-gl/dist/maplibre-gl.css'),
+        ]);
 
-    return window.maplibregl ?? null;
+        return module.default ?? module;
+    } catch (error) {
+        console.error('[maplibre] failed to load', error);
+
+        return null;
+    }
 }
 
 /** Resolve a CSS custom property reference like `var(--color-flight)` to its value. */

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\PetrolFinder;
+namespace App\Services\PetrolPrices;
 
 /**
- * Standardises the inconsistent casing the PetrolFinder API returns (some
- * fields all-caps, some title-case) into readable title case, while keeping
- * fuel-forecourt acronyms and UK postcode fragments uppercase.
+ * Standardises the all-caps text the PetrolPrices feed returns into readable
+ * title case, while keeping fuel-forecourt acronyms and UK postcode fragments
+ * uppercase.
  */
 class StationNormaliser
 {
@@ -14,7 +14,7 @@ class StationNormaliser
      *
      * @var array<int, string>
      */
-    private const ACRONYMS = ['SF', 'MFG', 'MWSA', 'BP', 'JET', 'LPG', 'HGV', 'EV', 'UK'];
+    private const ACRONYMS = ['SF', 'MFG', 'MWSA', 'RSS', 'BP', 'LPG', 'HGV', 'EV', 'UK'];
 
     public static function name(?string $value): ?string
     {
@@ -29,6 +29,25 @@ class StationNormaliser
     public static function address(?string $value): ?string
     {
         return self::titleCase($value);
+    }
+
+    /**
+     * The forecourt's own name from the feed's label.
+     *
+     * The feed formats these as "BRAND TOWN (TRADING NAME)", so the trailing
+     * parenthetical is the forecourt name and the prefix is a generated label.
+     */
+    public static function tradingName(?string $value): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        return self::titleCase(
+            preg_match('/\(([^)]+)\)\s*$/', trim($value), $matches) === 1
+                ? $matches[1]
+                : $value,
+        );
     }
 
     /**

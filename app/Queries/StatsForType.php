@@ -5,6 +5,7 @@ namespace App\Queries;
 use App\Enums\ActivityDiscipline;
 use App\Models\Activity;
 use App\Support\Distance;
+use App\Support\SqlDate;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -311,11 +312,14 @@ final class StatsForType
     {
         $grid = array_fill(0, 7, array_fill(0, 24, 0));
 
+        $dow = SqlDate::dayOfWeek('occurred_at');
+        $hour = SqlDate::hour('occurred_at');
+
         $rows = Activity::query()
             ->toBase()
-            ->selectRaw("CAST(strftime('%w', occurred_at) AS INTEGER) AS dow, CAST(strftime('%H', occurred_at) AS INTEGER) AS hr, COUNT(*) AS total")
+            ->selectRaw("{$dow} AS dow, {$hour} AS hr, COUNT(*) AS total")
             ->whereBetween('occurred_at', [$start, $end])
-            ->groupByRaw("strftime('%w', occurred_at), strftime('%H', occurred_at)")
+            ->groupByRaw("{$dow}, {$hour}")
             ->get();
 
         $max = 0;

@@ -4,8 +4,8 @@ namespace App\Console\Commands\Import;
 
 use App\Actions\Fuel\ExtractReceiptLocation;
 use App\Models\Fuel;
-use App\Services\PetrolFinder;
-use App\Services\PetrolFinder\FuelStationResult;
+use App\Services\PetrolPrices;
+use App\Services\PetrolPrices\FuelStationResult;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -21,16 +21,16 @@ class ImportFuelReceipts extends Command
         'city', 'station_lat', 'station_lng', 'distance_km', 'alt1_name', 'alt2_name', 'flag',
     ];
 
-    public function handle(PetrolFinder $petrolFinder, ExtractReceiptLocation $extract): int
+    public function handle(PetrolPrices $petrolPrices, ExtractReceiptLocation $extract): int
     {
         $reviewPath = $this->option('review') ?: storage_path('app/fuel/receipt-review.csv');
 
         return $this->option('apply')
             ? $this->apply($reviewPath)
-            : $this->dryRun($petrolFinder, $extract, $reviewPath);
+            : $this->dryRun($petrolPrices, $extract, $reviewPath);
     }
 
-    private function dryRun(PetrolFinder $petrolFinder, ExtractReceiptLocation $extract, string $reviewPath): int
+    private function dryRun(PetrolPrices $petrolPrices, ExtractReceiptLocation $extract, string $reviewPath): int
     {
         $folder = $this->argument('folder');
 
@@ -70,12 +70,12 @@ class ImportFuelReceipts extends Command
             }
 
             $cacheKey = round($location->latitude, 4).','.round($location->longitude, 4);
-            $stations = $stationCache[$cacheKey] ??= $petrolFinder->search(
+            $stations = $stationCache[$cacheKey] ??= $petrolPrices->search(
                 latitude: $location->latitude,
                 longitude: $location->longitude,
-                radius: 5,
+                radiusKm: 5,
             );
-            usort($stations, fn (FuelStationResult $a, FuelStationResult $b): int => ($a->distance ?? INF) <=> ($b->distance ?? INF));
+            usort($stations, fn (FuelStationResult $a, FuelStationResult $b): int => ($a->distanceKm ?? INF) <=> ($b->distanceKm ?? INF));
 
             $station = $stations[0] ?? null;
             $flag = match (true) {
@@ -104,7 +104,7 @@ class ImportFuelReceipts extends Command
                 $station?->city ?? '',
                 $station?->latitude ?? '',
                 $station?->longitude ?? '',
-                $station?->distance ?? '',
+                $station?->distanceKm ?? '',
                 $stations[1]->stationName ?? '',
                 $stations[2]->stationName ?? '',
                 $flag,

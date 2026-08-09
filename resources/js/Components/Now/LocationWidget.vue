@@ -1,7 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import { mapStyleForTheme } from '../../lib/maplibre.js';
+import { loadMaplibre, mapStyleForTheme } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
@@ -22,14 +21,14 @@ let stopThemeWatch = null;
 const { resolved } = useTheme();
 
 onMounted(async () => {
-    const { Map } = await import('maplibre-gl');
+    const maplibregl = await loadMaplibre();
 
     // Guard against the widget unmounting before the chunk resolves.
-    if (!mapContainer.value) {
+    if (!maplibregl || !mapContainer.value) {
         return;
     }
 
-    map = new Map({
+    map = new maplibregl.Map({
         container: mapContainer.value,
         style: mapStyleForTheme(resolved.value),
         center: [props.longitude, props.latitude],

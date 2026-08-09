@@ -36,3 +36,5 @@ storage/backups/
 
 # Failure screenshots written by Pest browser tests, not artefacts to keep.
 /tests/Browser/Screenshots/
+
+/docs/superpowers/
