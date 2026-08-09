@@ -1,7 +1,15 @@
 <?php
 
+use App\Data\SeriesStats;
 use App\Models\Media;
 use App\Models\Series;
+use App\Queries\SeriesWatchStats;
+
+/** The stats for a show, as the show page assembles them. */
+function watchStatsFor(Series $series): SeriesStats
+{
+    return (new SeriesWatchStats)($series->load('episodes'));
+}
 
 it('computes distinct-episode progress, clamped and rewatch-proof', function () {
     $series = Series::factory()->create(['meta' => ['aired_episodes' => 10]]);
@@ -9,9 +17,12 @@ it('computes distinct-episode progress, clamped and rewatch-proof', function () 
     Media::factory()->count(2)->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 1, 'runtime' => 50]]);
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 2, 'runtime' => 50]]);
 
-    expect($series->watchedEpisodeCount())->toBe(2)
-        ->and($series->progress())->toBe(20)
-        ->and($series->totalRuntimeMinutes())->toBe(150); // 3 watches x 50
+    $stats = watchStatsFor($series);
+
+    expect($stats->episodesWatched)->toBe(2)
+        ->and($stats->progress)->toBe(20)
+        // Runtime counts every watch, unlike progress: 3 x 50 minutes.
+        ->and($stats->totalHours)->toBe(3.0);
 });
 
 it('summarises the watch span from first to last watch', function () {
@@ -19,29 +30,30 @@ it('summarises the watch span from first to last watch', function () {
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-09-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 2]]);
 
-    expect($series->watchSpan())->toContain('months')
-        ->and($series->watchSpan())->not->toStartWith('over ');
+    $span = watchStatsFor($series)->watchSpan;
+
+    expect($span)->toContain('months')
+        ->and($span)->not->toStartWith('over ');
 });
 
 it('clamps progress to 100 when distinct watched episodes exceed the aired count', function () {
     $series = Series::factory()->create(['meta' => ['aired_episodes' => 2]]);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 1]]);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 2]]);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 3]]);
+    foreach ([1, 2, 3] as $episode) {
+        Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => $episode]]);
+    }
 
-    expect($series->watchedEpisodeCount())->toBe(3)
-        ->and($series->progress())->toBe(100);
+    $stats = watchStatsFor($series);
+
+    expect($stats->episodesWatched)->toBe(3)
+        ->and($stats->progress)->toBe(100);
 });
 
 it('returns null progress when aired_episodes is missing or zero', function () {
-    $missing = Series::factory()->create(['meta' => []]);
-    Media::factory()->create(['series_id' => $missing->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 1]]);
-
-    $zero = Series::factory()->create(['meta' => ['aired_episodes' => 0]]);
-    Media::factory()->create(['series_id' => $zero->id, 'type' => 'episode', 'meta' => ['season' => 1, 'episode' => 1]]);
-
-    expect($missing->progress())->toBeNull()
-        ->and($zero->progress())->toBeNull();
+    // Null rather than 0%, so the bar is hidden rather than drawn at a figure
+    // we cannot actually calculate.
+    expect(SeriesWatchStats::progressFor(null, 4))->toBeNull()
+        ->and(SeriesWatchStats::progressFor(0, 4))->toBeNull()
+        ->and(SeriesWatchStats::progressFor(10, 2))->toBe(20);
 });
 
 it('describes a single-day watch span as "in a single day"', function () {
@@ -50,5 +62,5 @@ it('describes a single-day watch span as "in a single day"', function () {
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
     Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-01-01 22:30:00', 'meta' => ['season' => 1, 'episode' => 2]]);
 
-    expect($series->watchSpan())->toBe('in a single day');
+    expect(watchStatsFor($series)->watchSpan)->toBe('in a single day');
 });

@@ -7,6 +7,7 @@ use App\Models\Media;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Support\LocalTime;
+use App\Support\ShowTitle;
 use App\Support\Text;
 use Illuminate\Support\Collection;
 
@@ -92,9 +93,8 @@ class BuildTimelineFeed
      * plus a `count`. Links to the series page anchored at this day's watch
      * section rather than any single episode.
      *
-     * Note: reads $entry->timelineable->series lazily per collapsed group
-     * (not eager-loaded), which is acceptable given the small number of
-     * entries per day.
+     * Reads $entry->timelineable->series, which TimelineEntry::cardRelations()
+     * eager-loads with the feed.
      *
      * @param  Collection<int, TimelineEntry>  $entries
      * @return array<string, mixed>
@@ -109,7 +109,7 @@ class BuildTimelineFeed
         return [
             'iconKey' => 'media',
             'accent' => 'media',
-            'title' => $series?->title ?? $first->meta['show_title'] ?? $first->title,
+            'title' => ShowTitle::for($first) ?? $first->title,
             'titleLabel' => null,
             'meta' => "{$count} episodes",
             'metaTokens' => null,

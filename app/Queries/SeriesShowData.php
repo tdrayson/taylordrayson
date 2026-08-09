@@ -7,10 +7,10 @@ use App\Data\SeasonGroup;
 use App\Data\SeasonSummary;
 use App\Data\SeriesHeader;
 use App\Data\SeriesShow;
-use App\Data\SeriesStats;
 use App\Data\WatchDateGroup;
 use App\Models\Media;
 use App\Models\Series;
+use App\Support\TraktUrl;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,13 +19,15 @@ use Illuminate\Support\Collection;
  */
 final class SeriesShowData
 {
+    public function __construct(private readonly SeriesWatchStats $watchStats) {}
+
     public function __invoke(Series $series): SeriesShow
     {
         $series->load('episodes');
 
         return new SeriesShow(
             series: $this->header($series),
-            stats: $this->stats($series),
+            stats: ($this->watchStats)($series),
             seasons: $this->seasons($series->episodes),
             seasonList: $this->seasonList($series),
         );
@@ -45,18 +47,7 @@ final class SeriesShowData
             logo: $series->optimisedUrl('logo'),
             network: $series->meta['tmdb']['network'] ?? null,
             rating: $series->meta['rating'] ?? null,
-            platformUrl: $slug ? "https://trakt.tv/shows/{$slug}" : null,
-        );
-    }
-
-    private function stats(Series $series): SeriesStats
-    {
-        return new SeriesStats(
-            episodesWatched: $series->watchedEpisodeCount(),
-            seasons: $series->meta['seasons'] ?? null,
-            progress: $series->progress(),
-            watchSpan: $series->watchSpan(),
-            totalHours: round($series->totalRuntimeMinutes() / 60),
+            platformUrl: TraktUrl::show($slug),
         );
     }
 

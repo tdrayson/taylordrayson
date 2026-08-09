@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Enums\MediaType;
-use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\TraktUrl;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -49,24 +49,15 @@ class Media extends Model implements HasMedia, Timelineable
         return $this->belongsTo(Series::class);
     }
 
+    /**
+     * Kept because Activity and Checkin expose the same attribute and
+     * EntryController reads it off whichever model it was handed. The URL
+     * shapes themselves live in TraktUrl, so the model no longer knows how a
+     * Trakt link is spelled.
+     */
     public function getPlatformUrlAttribute(): ?string
     {
-        if ($this->source !== Source::Trakt->value) {
-            return null;
-        }
-
-        $slug = $this->meta['ids']['slug'] ?? null;
-
-        if ($this->type === MediaType::Film && $slug) {
-            return "https://trakt.tv/movies/{$slug}";
-        }
-
-        $showSlug = $this->meta['show_slug'] ?? null;
-        if ($this->type === MediaType::TvEpisode && $showSlug && isset($this->meta['season'], $this->meta['episode'])) {
-            return "https://trakt.tv/shows/{$showSlug}/seasons/{$this->meta['season']}/episodes/{$this->meta['episode']}";
-        }
-
-        return null;
+        return TraktUrl::forMedia($this);
     }
 
     public function slug(): string

@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Models\Media;
+use App\Support\ShowTitle;
 
 /**
  * Builds the timeline card for a Media entry: rating and a type-specific
@@ -21,7 +22,7 @@ final class MediaCard
 {
     public function present(Media $model): CardData
     {
-        $title = $this->showTitle($model) ?? $model->title;
+        $title = ShowTitle::for($model) ?? $model->title;
 
         $detail = match ($model->type) {
             MediaType::Film => $model->meta['year'] ?? null,
@@ -53,23 +54,5 @@ final class MediaCard
             range: null,
             meta: CardMeta::empty(),
         );
-    }
-
-    /**
-     * The show a TV episode belongs to, or null for anything else.
-     *
-     * Reads the denormalised `show_title` before the relation, the reverse of
-     * synthesiseSeriesCard: that runs once per collapsed group, this runs for
-     * every media row in the feed, so touching `series` first would be an N+1
-     * across the timeline. The relation stays as the fallback for a row whose
-     * meta predates the key.
-     */
-    private function showTitle(Media $model): ?string
-    {
-        if ($model->type !== MediaType::TvEpisode) {
-            return null;
-        }
-
-        return $model->meta['show_title'] ?? $model->series?->title;
     }
 }
