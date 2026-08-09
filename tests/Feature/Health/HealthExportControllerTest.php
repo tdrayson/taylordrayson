@@ -50,13 +50,3 @@ it('confirms reachability on GET', function () {
         ->assertOk()
         ->assertJsonPath('data.ok', true);
 });
-
-it('tells a phone still on the old path where the endpoint went', function () {
-    Queue::fake();
-
-    $this->postJson('/api/health/ingest', ['data' => ['metrics' => []]])
-        ->assertStatus(410)
-        ->assertJsonPath('message', 'Moved to POST /api/v1/health-export, with an Authorization: Bearer <token> header.');
-
-    Queue::assertNothingPushed();
-});

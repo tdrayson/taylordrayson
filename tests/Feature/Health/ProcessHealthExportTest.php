@@ -103,7 +103,7 @@ it('ignores unknown metric names without error', function () {
 
     Log::shouldHaveReceived('info')
         ->once()
-        ->with('health.ingest unhandled metrics', ['metrics' => ['mindfulness']]);
+        ->with('health.export unhandled metrics', ['metrics' => ['mindfulness']]);
 });
 
 it('isolates a failing processor, still runs the others, and throws to trigger a retry', function () {
