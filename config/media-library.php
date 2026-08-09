@@ -50,8 +50,12 @@ return [
     /*
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
+     *
+     * Raised from 10MB for the mirrored podcast episodes, which run 27-55MB
+     * each and would otherwise be rejected outright. Everything else stored
+     * is an image well under the old ceiling.
      */
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    'max_file_size' => 1024 * 1024 * 200, // 200MB
 
     /*
      * Uploads whose file name contains any of these extensions will be rejected.

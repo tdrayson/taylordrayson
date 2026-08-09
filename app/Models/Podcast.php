@@ -52,4 +52,33 @@ class Podcast extends Model implements HasMedia, Timelineable
     {
         return "tww-s{$this->season_number}-e{$this->episode_number}";
     }
+
+    /**
+     * The episode audio: the mirrored copy once it has been stored, otherwise
+     * the publisher's URL.
+     *
+     * The fallback is the point of the pair. Mirroring 255 episodes is not
+     * instant and a download can fail, so every consumer asks for the local
+     * copy and quietly streams from the publisher until there is one, rather
+     * than the player going silent while the archive fills up.
+     */
+    public function audioSrc(): ?string
+    {
+        return $this->getFirstMediaUrl('audio') ?: $this->audio_url;
+    }
+
+    /**
+     * The wide 16:9 episode art, mirrored copy first. Serves the optimised
+     * `card` conversion rather than the stored original, as covers elsewhere do.
+     */
+    public function wideArtworkSrc(): ?string
+    {
+        return $this->getFirstMediaUrl('cover', 'card') ?: $this->cover_image;
+    }
+
+    /** The square episode art (what the audio player shows), mirrored copy first. */
+    public function squareArtworkSrc(): ?string
+    {
+        return $this->getFirstMediaUrl('artwork', 'card') ?: $this->thumbnail;
+    }
 }

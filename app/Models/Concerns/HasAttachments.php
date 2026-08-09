@@ -8,9 +8,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Shared Media Library setup: a single `cover`, a `photos` gallery, a single
- * generated `map` (with a `map_dark` twin for dark mode), and single-file
- * `backdrop`/`logo` collections (TMDB enrichment art), plus an optimised,
- * responsive `card` conversion for feeds.
+ * generated `map` (with a `map_dark` twin for dark mode), single-file
+ * `backdrop`/`logo` collections (TMDB enrichment art), a square `artwork`
+ * collection and an `audio` collection (mirrored podcast episodes), plus an
+ * optimised, responsive `card` conversion for feeds.
  */
 trait HasAttachments
 {
@@ -24,6 +25,8 @@ trait HasAttachments
         $this->addMediaCollection('map_dark')->singleFile();
         $this->addMediaCollection('backdrop')->singleFile();
         $this->addMediaCollection('logo')->singleFile();
+        $this->addMediaCollection('artwork')->singleFile();
+        $this->addMediaCollection('audio')->singleFile();
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -32,7 +35,10 @@ trait HasAttachments
             ->fit(Fit::Max, 640, 640)
             ->format('webp')
             ->quality(78)
-            ->performOnCollections('cover', 'photos')
+            // Not `audio`: the conversion pipeline is an image one, and pointing
+            // it at an MP3 would have every mirrored episode fail a conversion
+            // it was never going to produce.
+            ->performOnCollections('cover', 'photos', 'artwork')
             ->withResponsiveImages();
     }
 

@@ -1,15 +1,23 @@
 <?php
 
+use App\Jobs\StorePodcastMedia;
 use App\Models\Podcast;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * Every run rewrites the CSV mirror, so each test points it at a scratch file.
  * Without this the suite truncates the real data/podcasts.csv to whatever the
  * test factories happened to create.
+ *
+ * The queue is faked because a new episode dispatches StorePodcastMedia, and
+ * the sync queue driver in tests would run it inline: it would consume the
+ * faked API responses meant for the next page and count towards the request
+ * assertions below.
  */
 beforeEach(function () {
     $this->csv = sys_get_temp_dir().'/podcasts-test-'.getmypid().'.csv';
+    Queue::fake();
 });
 
 afterEach(function () {
@@ -87,6 +95,20 @@ it('keeps going past a hole left by a half-finished run', function () {
     $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
 
     expect(Podcast::where('episode_number', 252)->exists())->toBeTrue();
+});
+
+/**
+ * A new episode should stop depending on the publisher straight away, but a
+ * re-map of episodes already stored must not re-queue the whole 10GB archive.
+ */
+it('queues a mirror for new episodes only', function () {
+    Podcast::factory()->create(['season_number' => 7, 'episode_number' => 254]);
+
+    fakePodcastPages([[podcastEpisode(255), podcastEpisode(254)]]);
+
+    $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
+
+    Queue::assertPushed(StorePodcastMedia::class, 1);
 });
 
 it('re-maps the newest episodes so notes added after publication are picked up', function () {
