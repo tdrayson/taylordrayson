@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Data\MediaMeta;
 use App\Data\SeriesSummary;
 use App\Models\Media;
 use App\Models\Series;
@@ -13,9 +14,9 @@ use Illuminate\Support\Collection;
  *
  * Avoids hydrating every show's full `episodes` collection: the sort key comes
  * from a `MAX(occurred_at)` aggregate, and progress is computed from one lean
- * query over just `series_id`/`meta` rather than loading each episode row and
- * its relations. `media` is still eager-loaded so poster resolution stays a
- * single query, not one per series.
+ * query over just `series_id`/`meta` that builds no models at all. `media` is
+ * still eager-loaded so poster resolution stays a single query, not one per
+ * series.
  */
 final class WatchedSeriesIndex
 {
@@ -40,7 +41,7 @@ final class WatchedSeriesIndex
             year: $show->year,
             poster: $show->getFirstMediaUrl('cover', 'card') ?: null,
             progress: SeriesWatchStats::progressFor(
-                $show->meta['aired_episodes'] ?? null,
+                $show->meta->airedEpisodes,
                 $distinctWatchedBySeriesId->get($show->id, 0),
             ),
         ))->all();
@@ -58,10 +59,19 @@ final class WatchedSeriesIndex
     {
         return Media::query()
             ->whereIn('series_id', $seriesIds)
+            // toBase() skips Eloquent hydration: this counts two numbers per
+            // row across every episode ever watched, and has no use for a
+            // model. MediaMeta still names the fields, so the season/episode
+            // keys are spelled in one place rather than inline here.
+            ->toBase()
             ->get(['series_id', 'meta'])
             ->groupBy('series_id')
             ->map(fn (Collection $episodes): int => $episodes
-                ->map(fn (Media $episode): string => ($episode->meta['season'] ?? '?').'x'.($episode->meta['episode'] ?? '?'))
+                ->map(function (object $episode): string {
+                    $meta = MediaMeta::from(json_decode((string) $episode->meta, true));
+
+                    return ($meta->season ?? '?').'x'.($meta->episode ?? '?');
+                })
                 ->unique()
                 ->count());
     }

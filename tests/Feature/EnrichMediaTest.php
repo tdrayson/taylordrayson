@@ -69,15 +69,15 @@ it('enriches a series with tmdb structure and downloaded art', function () {
 
     $fresh = $series->fresh();
 
-    expect($fresh->meta['seasons'])->toBe(2)
-        ->and($fresh->meta['season_list'])->toHaveCount(2)
-        ->and($fresh->meta['season_list'][0])->toMatchArray([
+    expect($fresh->meta->seasons)->toBe(2)
+        ->and($fresh->meta->seasonList)->toHaveCount(2)
+        ->and($fresh->meta->seasonList[0]->toArray())->toMatchArray([
             'number' => 1,
             'name' => 'Season 1',
-            'episode_count' => 6,
-            'air_date' => '2019-05-31',
+            'episodeCount' => 6,
+            'airDate' => '2019-05-31',
         ])
-        ->and($fresh->meta['tmdb'])->toMatchArray([
+        ->and($fresh->meta->tmdb->toArray())->toMatchArray([
             'id' => 71712,
             'status' => 'Ended',
             'genres' => ['Comedy', 'Fantasy'],

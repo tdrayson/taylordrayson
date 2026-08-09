@@ -43,7 +43,7 @@ class EnrichMedia implements ShouldQueue
 
     public function handle(Tmdb $tmdb): void
     {
-        $meta = $this->subject->meta ?? [];
+        $meta = $this->subject->meta->toArray();
         $posterDownloaded = false;
 
         if ($this->tmdbId !== null) {
@@ -62,6 +62,11 @@ class EnrichMedia implements ShouldQueue
      * Fetch the TMDB detail + images payloads, merge the `tmdb` (and, for tv,
      * `seasons`/`season_list`) blocks into meta, and download whichever
      * images are available.
+     *
+     * Works in the stored array spelling rather than the meta DTO, because
+     * what it is really doing is translating TMDB's payload; the DTO takes
+     * over at the boundary in handle(), where it drops empty keys for both
+     * branches (this used to happen for tv only).
      *
      * @param  array<string, mixed>  $meta
      * @return array{0: array<string, mixed>, 1: bool} The updated meta, and whether a poster was downloaded.
@@ -95,7 +100,6 @@ class EnrichMedia implements ShouldQueue
                 ])
                 ->all();
 
-            $meta = array_filter($meta, fn ($value): bool => $value !== null);
         }
 
         $posterDownloaded = $this->downloadTmdbImage('cover', $tmdb->imageUrl($detail['poster_path'] ?? null, 'w780'));

@@ -149,7 +149,7 @@ it('imports personal star ratings onto films, episodes, and series, staying idem
 
     expect($film->rating)->toBe(9)
         ->and($episode->rating)->toBe(8)
-        ->and($series->meta['rating'])->toBe(10);
+        ->and($series->meta->rating)->toBe(10);
 
     // Re-run stays idempotent: same ratings applied again, nothing errors,
     // nothing changes.
@@ -157,7 +157,7 @@ it('imports personal star ratings onto films, episodes, and series, staying idem
 
     expect($film->fresh()->rating)->toBe(9)
         ->and($episode->fresh()->rating)->toBe(8)
-        ->and($series->fresh()->meta['rating'])->toBe(10);
+        ->and($series->fresh()->meta->rating)->toBe(10);
 });
 
 it('nudges episodes that share an exact watched_at into season/episode order, idempotently, and leaves distinct timestamps alone', function () {

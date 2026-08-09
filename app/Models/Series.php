@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\SeriesMeta;
 use App\Models\Concerns\HasAttachments;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +22,7 @@ class Series extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'meta' => 'array',
+            'meta' => SeriesMeta::class,
             'year' => 'integer',
         ];
     }

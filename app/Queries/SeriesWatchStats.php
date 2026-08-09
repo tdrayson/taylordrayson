@@ -22,8 +22,8 @@ final class SeriesWatchStats
 
         return new SeriesStats(
             episodesWatched: $watched,
-            seasons: $series->meta['seasons'] ?? null,
-            progress: self::progressFor($series->meta['aired_episodes'] ?? null, $watched),
+            seasons: $series->meta->seasons,
+            progress: self::progressFor($series->meta->airedEpisodes, $watched),
             watchSpan: $this->watchSpan($series),
             totalHours: round($this->totalRuntimeMinutes($series) / 60),
         );
@@ -53,7 +53,7 @@ final class SeriesWatchStats
     private function distinctEpisodesWatched(Series $series): int
     {
         return $series->episodes
-            ->map(fn (Media $episode): string => ($episode->meta['season'] ?? '?').'x'.($episode->meta['episode'] ?? '?'))
+            ->map(fn (Media $episode): string => ($episode->meta->season ?? '?').'x'.($episode->meta->episode ?? '?'))
             ->unique()
             ->count();
     }
@@ -61,7 +61,7 @@ final class SeriesWatchStats
     /** Every watch counts here, rewatches included: it is time actually spent. */
     private function totalRuntimeMinutes(Series $series): int
     {
-        return (int) $series->episodes->sum(fn (Media $episode): int => (int) ($episode->meta['runtime'] ?? 0));
+        return (int) $series->episodes->sum(fn (Media $episode): int => $episode->meta->runtime ?? 0);
     }
 
     /** Human span between first and last watch, e.g. "8 months". */

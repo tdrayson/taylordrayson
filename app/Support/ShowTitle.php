@@ -30,7 +30,8 @@ final class ShowTitle
 
         // Trimmed rather than null-coalesced: a blank stored title is not a
         // title, and `??` would accept it and leave the card headed by nothing.
-        return self::clean($media->series?->title) ?? self::clean($media->meta['show_title'] ?? null);
+        // MediaMeta already applies that rule to the stored fallback.
+        return self::clean($media->series?->title) ?? $media->meta->showTitle;
     }
 
     private static function clean(?string $value): ?string
