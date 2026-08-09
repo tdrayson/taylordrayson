@@ -11,10 +11,22 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use RuntimeException;
 
-#[Signature('podcast:sync {--per-page=50 : Episodes to request per page}')]
+#[Signature('podcast:sync {--per-page=50 : Episodes to request per page} {--full : Re-fetch and re-map every episode} {--csv= : Target CSV path; defaults to data/podcasts.csv}')]
 #[Description('Sync This Week With episodes from the website API into data/podcasts.csv and the database')]
 class PodcastSync extends Command
 {
+    /**
+     * How many already-stored episodes in a row end an incremental run.
+     *
+     * The endpoint returns newest first, so one known episode usually means
+     * everything older is known too. Requiring a run of them costs a few
+     * upserts and buys two things: the newest episodes are re-mapped every
+     * run, so show notes or a transcript added after publication are picked
+     * up, and a hole left by a half-finished run is filled rather than being
+     * stranded behind a stop-at-the-first-known rule.
+     */
+    private const CONSECUTIVE_KNOWN_LIMIT = 5;
+
     /** @var list<string> */
     private const HEADERS = [
         'occurred_at',
@@ -30,30 +42,66 @@ class PodcastSync extends Command
         'cover_image',
     ];
 
+    /**
+     * Pull new episodes, stopping as soon as the feed reaches episodes already
+     * stored. Every run used to walk all six pages and re-upsert all 254
+     * episodes to find the nought or one that were new.
+     *
+     * `--full` restores that whole-feed pass, which is what a backfill or a
+     * re-map after changing `mapEpisode()` wants.
+     */
     public function handle(ThisWeekWith $thisWeekWith): int
     {
         $perPage = (int) $this->option('per-page');
+        $full = (bool) $this->option('full');
+
+        $created = 0;
+        $seen = 0;
+        $consecutiveKnown = 0;
+        $changed = false;
 
         try {
-            $episodes = $thisWeekWith->episodes($perPage);
+            foreach ($thisWeekWith->episodes($perPage) as $episode) {
+                $podcast = $this->store($this->mapEpisode($episode));
+                $changed = $changed || $podcast->wasRecentlyCreated || $podcast->wasChanged();
+
+                if ($podcast->wasRecentlyCreated) {
+                    $created++;
+                    $consecutiveKnown = 0;
+
+                    continue;
+                }
+
+                $seen++;
+                $consecutiveKnown++;
+
+                if (! $full && $consecutiveKnown >= self::CONSECUTIVE_KNOWN_LIMIT) {
+                    break;
+                }
+            }
         } catch (RuntimeException $exception) {
             $this->error($exception->getMessage());
 
             return self::FAILURE;
         }
 
-        if ($episodes === []) {
+        if ($created === 0 && $seen === 0) {
             $this->warn('No episodes returned from the API.');
 
             return self::FAILURE;
         }
 
-        $rows = array_map(fn (array $episode): array => $this->mapEpisode($episode), $episodes);
+        // Only when something actually moved: the mirror is a full rewrite of
+        // every episode, and at this cadence most runs change nothing.
+        //
+        // Rebuilt from the database rather than from the episodes fetched this
+        // run, because an incremental run holds only a handful and writing
+        // those would truncate the mirror to the newest few.
+        if ($changed) {
+            $this->writeCsv();
+        }
 
-        $this->writeCsv($rows);
-        $this->syncDatabase($rows);
-
-        $this->info('Synced '.count($rows).' episodes to data/podcasts.csv and the database.');
+        $this->info("Synced {$created} new episode(s), {$seen} already stored.");
 
         return self::SUCCESS;
     }
@@ -107,30 +155,36 @@ class PodcastSync extends Command
     }
 
     /**
-     * @param  list<array<string, mixed>>  $rows
+     * Mirror every stored episode to the CSV, newest first to match how the
+     * file was written when it was built straight from the API response.
      */
-    private function writeCsv(array $rows): void
+    private function writeCsv(): void
     {
-        $handle = fopen(base_path('data/podcasts.csv'), 'w');
+        $handle = fopen($this->option('csv') ?: base_path('data/podcasts.csv'), 'w');
         fputcsv($handle, self::HEADERS);
 
-        foreach ($rows as $row) {
-            fputcsv($handle, array_map(fn (string $header): string => (string) ($row[$header] ?? ''), self::HEADERS));
-        }
+        Podcast::query()
+            ->orderByDesc('occurred_at')
+            ->each(function (Podcast $podcast) use ($handle): void {
+                fputcsv($handle, array_map(
+                    fn (string $header): string => $header === 'occurred_at'
+                        ? $podcast->occurred_at->format('Y-m-d H:i:s')
+                        : (string) ($podcast->getAttribute($header) ?? ''),
+                    self::HEADERS,
+                ));
+            });
 
         fclose($handle);
     }
 
     /**
-     * @param  list<array<string, mixed>>  $rows
+     * @param  array<string, mixed>  $row
      */
-    private function syncDatabase(array $rows): void
+    private function store(array $row): Podcast
     {
-        foreach ($rows as $row) {
-            Podcast::updateOrCreate(
-                ['season_number' => $row['season_number'], 'episode_number' => $row['episode_number']],
-                $row,
-            );
-        }
+        return Podcast::updateOrCreate(
+            ['season_number' => $row['season_number'], 'episode_number' => $row['episode_number']],
+            $row,
+        );
     }
 }

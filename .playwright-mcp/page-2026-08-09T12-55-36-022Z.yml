@@ -1,0 +1,194 @@
+- generic [active] [ref=f19e1]:
+  - banner [ref=f19e2]:
+    - link "Back to Fuel Finder" [ref=f19e4] [cursor=pointer]:
+      - /url: /
+  - main [ref=f19e8]:
+    - article [ref=f19e9]:
+      - heading "Terms of Service" [level=1] [ref=f19e10]
+      - paragraph [ref=f19e11]: "Last updated: March 30, 2026"
+      - generic [ref=f19e12]:
+        - generic [ref=f19e13]:
+          - heading "1. Acceptance of Terms" [level=2] [ref=f19e14]
+          - paragraph [ref=f19e15]:
+            - text: By accessing and using Fuel Finder UK ("the Service"), you accept and agree to be bound by these Terms of Service and our
+            - link "Privacy Policy" [ref=f19e16] [cursor=pointer]:
+              - /url: /privacy
+            - text: . If you do not agree to these terms, please do not use our Service.
+          - paragraph [ref=f19e17]: Fuel Finder UK is operated by Scott Benson, trading as Fuel Finder UK, as an independent sole-trader project based in the United Kingdom. These Terms constitute a legally binding agreement between you and Scott Benson trading as Fuel Finder UK.
+        - generic [ref=f19e18]:
+          - heading "2. Description of Service" [level=2] [ref=f19e19]
+          - paragraph [ref=f19e20]: "Fuel Finder UK is a free fuel price comparison service with an optional paid Pro subscription. It helps users find and compare petrol, diesel, premium fuels, and HVO prices, and locate EV charging stations across the United Kingdom. The Service includes:"
+          - list [ref=f19e21]:
+            - listitem [ref=f19e22]: Fuel price comparison by location (postcode, town, or GPS)
+            - listitem [ref=f19e23]: EV charging station discovery
+            - listitem [ref=f19e24]: Route planning with fuel or charging stop recommendations
+            - listitem [ref=f19e25]: Fuel cost calculations
+            - listitem [ref=f19e26]: Station information, ratings, and directions
+            - listitem [ref=f19e27]: User accounts with favourites and price alerts
+            - listitem [ref=f19e28]: Community features including price reports, station ratings, issue reports, and station suggestions
+            - listitem [ref=f19e29]: Gamification features including points, achievements, and leaderboards
+            - listitem [ref=f19e30]: Push notifications and email alerts (some features may require Pro)
+            - listitem [ref=f19e31]: Blog content about fuel prices and related topics
+        - generic [ref=f19e32]:
+          - heading "3. User Accounts" [level=2] [ref=f19e33]
+          - heading "3.1 Account Creation" [level=3] [ref=f19e34]
+          - paragraph [ref=f19e35]: "You may create an account to access additional features. When creating an account, you agree to:"
+          - list [ref=f19e36]:
+            - listitem [ref=f19e37]: Provide accurate and complete information
+            - listitem [ref=f19e38]: Maintain the security of your password
+            - listitem [ref=f19e39]: Notify us immediately of any unauthorised use of your account
+            - listitem [ref=f19e40]: Accept responsibility for all activities that occur under your account
+          - heading "3.2 Email Verification" [level=3] [ref=f19e41]
+          - paragraph [ref=f19e42]: You must verify your email address to access certain features, including submitting community contributions. Verification links expire after 24 hours.
+          - heading "3.3 Account Termination" [level=3] [ref=f19e43]
+          - paragraph [ref=f19e44]: We reserve the right to suspend or terminate accounts that violate these Terms, engage in fraudulent activity, or abuse our community features. You may delete your account at any time by contacting us.
+        - generic [ref=f19e45]:
+          - heading "4. Community Contributions" [level=2] [ref=f19e46]
+          - heading "4.1 User-Generated Content" [level=3] [ref=f19e47]
+          - paragraph [ref=f19e48]: "The Service allows users to submit content including price reports, station ratings, issue reports, station suggestions, and comments. By submitting content, you:"
+          - list [ref=f19e49]:
+            - listitem [ref=f19e50]: Grant us a non-exclusive, royalty-free, perpetual licence to use, display, and distribute your contributions
+            - listitem [ref=f19e51]: Confirm that your submissions are accurate to the best of your knowledge
+            - listitem [ref=f19e52]: Agree not to submit false, misleading, or fraudulent information
+            - listitem [ref=f19e53]: Accept that your display name and contributions may be publicly visible
+          - heading "4.2 Content Standards" [level=3] [ref=f19e54]
+          - paragraph [ref=f19e55]: "All user contributions must:"
+          - list [ref=f19e56]:
+            - listitem [ref=f19e57]: Be accurate and made in good faith
+            - listitem [ref=f19e58]: Not contain offensive, defamatory, or inappropriate content
+            - listitem [ref=f19e59]: Not infringe any third party's intellectual property rights
+            - listitem [ref=f19e60]: Not contain spam, advertising, or promotional material
+            - listitem [ref=f19e61]: Comply with all applicable laws and regulations
+          - heading "4.3 Moderation" [level=3] [ref=f19e62]
+          - paragraph [ref=f19e63]: We reserve the right to review, approve, reject, or remove any user-generated content at our discretion. Submissions may be subject to manual review before appearing on the Service. Repeated submission of inaccurate or fraudulent information may result in account suspension or banning.
+          - heading "4.4 Photo Evidence" [level=3] [ref=f19e64]
+          - paragraph [ref=f19e65]: When uploading photos as evidence for price reports, issue reports, or station suggestions, you confirm that you have the right to share these images and that they do not contain personal information about third parties (such as vehicle registration plates or identifiable individuals).
+        - generic [ref=f19e66]:
+          - heading "5. Points, Achievements, and Leaderboards" [level=2] [ref=f19e67]
+          - paragraph [ref=f19e68]: "The Service includes gamification features that award points for community contributions. You acknowledge that:"
+          - list [ref=f19e69]:
+            - listitem [ref=f19e70]: Points and achievements have no monetary value and cannot be exchanged for cash or prizes
+            - listitem [ref=f19e71]: We may adjust point values, achievements, or leaderboard calculations at any time
+            - listitem [ref=f19e72]: Attempting to manipulate rankings through fraudulent submissions may result in point deductions and account suspension
+            - listitem [ref=f19e73]: Trusted reporter status is earned through consistent accurate submissions and may be revoked for inaccurate reporting
+        - generic [ref=f19e74]:
+          - heading "6. Price Alerts and Notifications" [level=2] [ref=f19e75]
+          - heading "6.1 Price Alerts" [level=3] [ref=f19e76]
+          - paragraph [ref=f19e77]: "You may set up price alerts to be notified when fuel prices drop below your specified threshold. You understand that:"
+          - list [ref=f19e78]:
+            - listitem [ref=f19e79]: Alerts are based on data available to us and may not reflect real-time prices
+            - listitem [ref=f19e80]: We cannot guarantee delivery of all notifications
+            - listitem [ref=f19e81]: You can unsubscribe from individual alerts at any time
+          - heading "6.2 Push Notifications" [level=3] [ref=f19e82]
+          - paragraph [ref=f19e83]: Push notifications are optional and require your explicit consent. Some push notification features are available to Pro subscribers. You can manage notification preferences and quiet hours in your account settings, and revoke permission at any time through your browser settings.
+          - heading "6.3 Pro Subscription" [level=3] [ref=f19e84]
+          - paragraph [ref=f19e85]: Pro is an optional paid subscription that unlocks additional features (such as enhanced alerts or advanced routing). Billing and payment processing are handled by Stripe using Stripe-hosted checkout and billing tools. Fuel Finder UK does not store or have access to your full payment card number or CVV.
+          - paragraph [ref=f19e86]: Subscription pricing, billing cadence, renewal details, any trial terms, and cancellation steps are shown at checkout and in your account area. Unless stated otherwise at checkout, subscriptions renew automatically at the billing interval you choose until cancelled.
+          - paragraph [ref=f19e87]: Nothing in these Terms limits your statutory rights as a consumer. In accordance with UK consumer law, you may have a 14-day cooling-off period from the date you purchase a Pro subscription. If you cancel within that period before accessing any Pro-exclusive features, you will generally be entitled to a full refund. However, if you ask us to begin supplying Pro-exclusive digital features during that period, and you acknowledge the consequences at checkout, your cancellation right or refund entitlement may be lost or reduced to the extent permitted by law.
+          - paragraph [ref=f19e88]: Where Pro features include live push notifications, route planning, or navigation-related information, you assume all risk of using the Service while in or around a vehicle. You must not interact with the Service while the vehicle is in motion. Compliance with the Road Traffic Act 1988, the Highway Code, and all other applicable driving laws is your sole responsibility.
+        - generic [ref=f19e89]:
+          - heading "7. Price Information Disclaimer" [level=2] [ref=f19e90]
+          - paragraph [ref=f19e91]:
+            - strong [ref=f19e92]: "Important:"
+            - text: The Service is provided for general information purposes only. It does not constitute financial, professional, motoring, safety, or other advice. Fuel prices displayed on our Service are sourced from UK Government fuel-price data, other third-party providers, and community contributions. Fuel Finder UK acts as a downstream consumer of those feeds and does not control the data submitted by motor fuel traders or other upstream sources.
+          - list [ref=f19e93]:
+            - listitem [ref=f19e94]: Prices may not reflect real-time changes at fuel stations
+            - listitem [ref=f19e95]: Actual prices at the pump may differ from those displayed
+            - listitem [ref=f19e96]: Fuel prices are volatile and may change without notice
+            - listitem [ref=f19e97]: Government or third-party feeds may be delayed, stale, incomplete, or inaccurate
+            - listitem [ref=f19e98]: Station availability, opening hours, and facilities may vary
+            - listitem [ref=f19e99]: Community-reported prices are unverified and may be inaccurate
+            - listitem [ref=f19e100]: We cannot guarantee the accuracy of any price or station information
+          - paragraph [ref=f19e101]: Always verify prices at the fuel station before making purchasing decisions. If you believe a government-sourced price or forecourt record is wrong, you should raise it with the relevant forecourt and, where appropriate, through the UK Government Fuel Finder help or error-reporting channels.
+        - generic [ref=f19e102]:
+          - heading "8. Acceptable Use and Prohibited Use" [level=2] [ref=f19e103]
+          - paragraph [ref=f19e104]: "You agree to use the Service only for lawful purposes and in accordance with these Terms. You agree not to:"
+          - list [ref=f19e105]:
+            - listitem [ref=f19e106]: Use the Service in any way that violates applicable laws or regulations
+            - listitem [ref=f19e107]: Attempt to gain unauthorised access to our systems, networks, or other users' accounts
+            - listitem [ref=f19e108]: Use any automated system, including robots, spiders, scrapers, crawlers, or offline readers, to access the Service in a way that sends more request messages to our systems than a human could reasonably produce in the same period, or otherwise access the Service without our written permission
+            - listitem [ref=f19e109]: Mirror, frame, bulk extract, republish, or systematically reproduce substantial parts of the Service, including any materially extracted datasets, compiled station database, classifications, filters, or other value-added outputs, without our written permission
+            - listitem [ref=f19e110]: Copy, reverse engineer, or commercially exploit our data cleansing logic, station classification, deduplication rules, or derived analytics in a way that goes beyond normal personal use, normal editorial citation, or bona fide research use
+            - listitem [ref=f19e111]: Interfere with or disrupt the Service or servers
+            - listitem [ref=f19e112]: Submit false, misleading, or fraudulent price reports or other content
+            - listitem [ref=f19e113]: Circumvent rate limits, anti-abuse controls, or technical restrictions
+            - listitem [ref=f19e114]: Impersonate another person or entity
+            - listitem [ref=f19e115]: Harvest or collect user data without consent
+            - listitem [ref=f19e116]: Use the Service, or outputs materially extracted from it, for resale, lead generation, competitor monitoring, or other commercial exploitation without our written consent, except for normal editorial citation or bona fide research use with clear attribution
+          - paragraph [ref=f19e117]: Commercial use of data aggregated on this site, including the mirroring or scraping of our unique data-cleansing, sync, deduplication, and classification logic, is strictly prohibited. You may not use any automated systems or software to extract data from this Website for commercial purposes, including screen scraping, without our express written consent.
+        - generic [ref=f19e118]:
+          - heading "9. Intellectual Property" [level=2] [ref=f19e119]
+          - paragraph [ref=f19e120]: The Service and its original content, features, and functionality are owned by Fuel Finder UK and are protected by copyright, trademark, database, and other intellectual property laws. This includes our website design, original written content, station classification, data cleansing rules, derived analytics, and other value-added outputs created by us.
+          - paragraph [ref=f19e121]: Fuel price data is sourced from public government datasets, third-party providers, and community contributions. Nothing in these Terms claims ownership of rights that belong to those upstream sources. Map data is provided by OpenStreetMap contributors under the Open Database License.
+        - generic [ref=f19e122]:
+          - heading "10. Third-Party Services" [level=2] [ref=f19e123]
+          - paragraph [ref=f19e124]: "Our Service integrates with third-party services including:"
+          - list [ref=f19e125]:
+            - listitem [ref=f19e126]: OpenStreetMap for mapping and geocoding
+            - listitem [ref=f19e127]: postcodes.io for UK postcode lookups
+            - listitem [ref=f19e128]: OSRM for route planning
+            - listitem [ref=f19e129]: Open Charge Map for EV charging locations
+            - listitem [ref=f19e130]: External navigation apps (Google Maps, Apple Maps, Waze) for directions
+            - listitem [ref=f19e131]: Google Analytics for basic usage analytics
+            - listitem [ref=f19e132]: Publift Fuse and related advertising partners for ad delivery and ad measurement on supported pages
+            - listitem [ref=f19e133]: Quantcast CMP for advertising consent management where required by law
+            - listitem [ref=f19e134]: Stripe for Pro subscription payments and subscription management
+          - paragraph [ref=f19e135]: Your use of these third-party services is subject to their respective terms and conditions. We are not responsible for the content, accuracy, or practices of third-party services.
+        - generic [ref=f19e136]:
+          - heading "11. User Responsibilities" [level=2] [ref=f19e137]
+          - paragraph [ref=f19e138]: "When using route planning and navigation features:"
+          - paragraph [ref=f19e139]: Do not use this Service while driving. You must comply with the Road Traffic Act 1988, the Highway Code, and all other applicable driving laws at all times. Use of the Service while the vehicle is in motion is strictly prohibited.
+          - list [ref=f19e140]:
+            - listitem [ref=f19e141]: You are solely responsible for safe driving practices
+            - listitem [ref=f19e142]: Do not interact with the Service while a vehicle is in motion
+            - listitem [ref=f19e143]: Compliance with the Highway Code, the Road Traffic Act 1988 where applicable, and all other road traffic laws is your sole responsibility
+            - listitem [ref=f19e144]: Verify fuel levels and plan accordingly for your journey
+            - listitem [ref=f19e145]: Use the Service as a guide only, not as your sole navigation tool
+        - generic [ref=f19e146]:
+          - heading "12. Limitation of Liability" [level=2] [ref=f19e147]
+          - paragraph [ref=f19e148]: Fuel Finder UK acts as a downstream consumer of the Fuel Finder Open Data Scheme and other third-party sources. We are not responsible for the accuracy, completeness, or timeliness of data submitted by motor fuel traders to the central aggregator under that scheme, including where that aggregation service is operated via VE3, or to any other upstream source. You acknowledge that prices at the pump may vary from those displayed due to transmission lags, retailer reporting errors, forecourt-side changes, or other upstream data issues.
+          - paragraph [ref=f19e149]: To the fullest extent permitted by applicable law, Fuel Finder UK and its operator shall not be liable for loss arising from inaccuracies, delays, stale data, omissions, station closures, routing outcomes, failures of third-party services, or reliance on information provided by the Service.
+          - list [ref=f19e150]:
+            - listitem [ref=f19e151]: Additional fuel costs, wasted journeys, time lost, vehicle wear and tear, missed appointments, or similar reliance losses
+            - listitem [ref=f19e152]: Loss of profits, data, goodwill, or other indirect or consequential loss
+            - listitem [ref=f19e153]: Service interruption, downtime, or technical issues
+            - listitem [ref=f19e154]: Issues arising from inaccurate or incomplete price, route, station, or user-generated information
+            - listitem [ref=f19e155]: Failure to deliver notifications or alerts
+          - paragraph [ref=f19e156]: Nothing in these Terms excludes or limits liability for death or personal injury caused by negligence, fraud or fraudulent misrepresentation, breach of your non-excludable statutory rights, or any other liability that cannot be excluded or limited by English law.
+        - generic [ref=f19e157]:
+          - heading "13. Disclaimer of Warranties" [level=2] [ref=f19e158]
+          - paragraph [ref=f19e159]: The Service is provided on an "as is" and "as available" basis. Except where the law does not allow us to exclude or limit them, we do not guarantee that the Service will always be uninterrupted, error-free, secure, accurate, complete, or suitable for every particular purpose.
+        - generic [ref=f19e160]:
+          - heading "14. Service Availability" [level=2] [ref=f19e161]
+          - paragraph [ref=f19e162]: We strive to maintain the Service's availability but do not guarantee uninterrupted access. The Service may be temporarily unavailable due to maintenance, updates, or circumstances beyond our control. We reserve the right to modify, suspend, or discontinue the Service (or any part of it) at any time without notice.
+        - generic [ref=f19e163]:
+          - heading "15. Indemnification" [level=2] [ref=f19e164]
+          - paragraph [ref=f19e165]: If you use the Service in breach of these Terms, or submit unlawful or infringing content, you may be responsible to us for losses, costs, and claims that are reasonably foreseeable and directly result from that breach.
+        - generic [ref=f19e166]:
+          - heading "16. Governing Law and Jurisdiction" [level=2] [ref=f19e167]
+          - paragraph [ref=f19e168]: These Terms shall be governed by and construed in accordance with the laws of England and Wales. Any disputes arising from these Terms or the use of the Service shall be subject to the exclusive jurisdiction of the courts of England and Wales.
+          - paragraph [ref=f19e169]: If you are a consumer, you may also have rights under the laws of the country in which you reside.
+        - generic [ref=f19e170]:
+          - heading "17. Changes to Terms" [level=2] [ref=f19e171]
+          - paragraph [ref=f19e172]: We reserve the right to modify these Terms at any time. We will notify users of significant changes by posting a notice on the Service and updating the "Last updated" date. Your continued use of the Service after changes are posted constitutes acceptance of the modified Terms.
+        - generic [ref=f19e173]:
+          - heading "18. Severability" [level=2] [ref=f19e174]
+          - paragraph [ref=f19e175]: If any provision of these Terms is found to be unenforceable or invalid by a court of competent jurisdiction, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.
+        - generic [ref=f19e176]:
+          - heading "19. Entire Agreement" [level=2] [ref=f19e177]
+          - paragraph [ref=f19e178]: These Terms, together with our Privacy Policy, constitute the entire agreement between you and Fuel Finder UK regarding the use of the Service and supersede any prior agreements.
+        - generic [ref=f19e179]:
+          - heading "20. Contact Information" [level=2] [ref=f19e180]
+          - paragraph [ref=f19e181]: "If you have any questions about these Terms of Service, please contact us at:"
+          - paragraph [ref=f19e182]:
+            - strong [ref=f19e183]: "Email:"
+            - text: hello@fuel-finder.uk
+          - paragraph [ref=f19e184]: "Operator: Scott Benson trading as Fuel Finder UK. For privacy and data protection matters, Fuel Finder UK is registered with the Information Commissioner's Office (ICO) under reference 00013620617. Please contact us by email first for contractual, legal, customer-service, or data protection enquiries. While I endeavour to respond to all enquiries, there may be some delay in response times."
+  - contentinfo [ref=f19e185]:
+    - paragraph [ref=f19e186]: © 2026 Fuel Finder UK. All rights reserved.
+    - generic [ref=f19e187]:
+      - link "Privacy Policy" [ref=f19e188] [cursor=pointer]:
+        - /url: /privacy
+      - text: •
+      - link "Terms of Service" [ref=f19e189] [cursor=pointer]:
+        - /url: /terms
