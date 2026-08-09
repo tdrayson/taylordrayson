@@ -40,11 +40,29 @@ class OptimiseStoredImages extends Command
             return self::SUCCESS;
         }
 
-        if (! $this->option('report')) {
-            $this->convert($manipulator, $images);
+        if ($this->option('report')) {
+            $this->report();
+
+            return self::SUCCESS;
         }
 
-        $this->report();
+        $this->convert($manipulator, $images);
+
+        // Only when the work actually happened. Queued, the conversions have
+        // not run yet, and printing the table here reports the state from
+        // before the command was invoked: it reads as a finished run that
+        // converted almost nothing.
+        if ($this->option('now')) {
+            $this->report();
+
+            return self::SUCCESS;
+        }
+
+        $this->components->info('Queued '.$images->count().' conversion(s). None have run yet.');
+        $this->components->warn('Start a worker in THIS project, then check with --report:');
+        $this->line('    php artisan queue:work --stop-when-empty');
+        $this->newLine();
+        $this->line('    php artisan media:optimise --report');
 
         return self::SUCCESS;
     }
