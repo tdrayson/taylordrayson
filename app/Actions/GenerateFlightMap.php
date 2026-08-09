@@ -2,16 +2,20 @@
 
 namespace App\Actions;
 
+use App\Actions\Concerns\FetchesMapImages;
+use App\Exceptions\MapGenerationFailed;
 use App\Models\Flight;
 use App\Support\StaticMap;
 use App\Support\TypeColors;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class GenerateFlightMap
 {
+    use FetchesMapImages;
+
+    /**
+     * @throws MapGenerationFailed
+     */
     public function __invoke(Flight $flight): ?Media
     {
         $origin = $flight->origin;
@@ -22,34 +26,18 @@ class GenerateFlightMap
         }
 
         $color = TypeColors::hex('flight');
+        $arc = fn (string $style): ?string => StaticMap::arc(
+            (float) $origin->longitude,
+            (float) $origin->latitude,
+            (float) $destination->longitude,
+            (float) $destination->latitude,
+            $color,
+            style: $style,
+        );
 
-        $styles = [
-            'map' => StaticMap::arc((float) $origin->longitude, (float) $origin->latitude, (float) $destination->longitude, (float) $destination->latitude, $color),
-            'map_dark' => StaticMap::arc((float) $origin->longitude, (float) $origin->latitude, (float) $destination->longitude, (float) $destination->latitude, $color, style: 'mapbox/dark-v11'),
-        ];
-
-        $last = null;
-
-        foreach ($styles as $collection => $url) {
-            if ($url === null) {
-                continue;
-            }
-
-            try {
-                $response = Http::get($url);
-            } catch (ConnectionException) {
-                continue;
-            }
-
-            if ($response->failed()) {
-                continue;
-            }
-
-            $last = $flight->addMediaFromString($response->body())
-                ->usingFileName(Str::uuid().'.png')
-                ->toMediaCollection($collection);
-        }
-
-        return $last;
+        return $this->storeMapImages($flight, [
+            'map' => $arc('mapbox/light-v11'),
+            'map_dark' => $arc('mapbox/dark-v11'),
+        ]);
     }
 }
