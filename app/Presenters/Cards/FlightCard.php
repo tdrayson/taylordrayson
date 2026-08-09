@@ -78,8 +78,8 @@ final class FlightCard
                         )
                         : null,
                 ),
-                map: $model->getFirstMediaUrl('map') ?: null,
-                mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                map: $model->optimisedUrl('map'),
+                mapDark: $model->optimisedUrl('map_dark'),
             ),
         );
     }

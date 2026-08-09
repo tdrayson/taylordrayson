@@ -12,7 +12,7 @@ beforeEach(function () {
 });
 
 it('stores light and dark route maps from the activity polyline', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
 
@@ -39,7 +39,7 @@ it('returns null when the activity has no polyline', function () {
  */
 it('stores nothing at all when one of the two styles fails', function () {
     Http::fake([
-        '*light-v11*' => Http::response('PNGDATA', 200),
+        '*light-v11*' => Http::response(mapPng(), 200),
         '*dark-v11*' => Http::response('', 500),
     ]);
 

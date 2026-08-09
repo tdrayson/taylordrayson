@@ -4,7 +4,7 @@ use App\Models\Fuel;
 
 it('shows the stored fuel map image on the timeline', function () {
     $fuel = Fuel::factory()->create(['station_name' => 'Test Garage', 'occurred_at' => now()]);
-    $fuel->addMediaFromString('PNG')->usingFileName('m.png')->toMediaCollection('map');
+    $fuel->addMediaFromString(mapPng())->usingFileName('m.png')->toMediaCollection('map');
 
     $page = visit('/');
 

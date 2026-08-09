@@ -13,7 +13,7 @@ beforeEach(function () {
 
 it('generates and attaches a static pin map for an event with coordinates', function () {
     config()->set('services.mapbox.token', 'test-token');
-    Http::fake(['api.mapbox.com/*' => Http::response('PNGBYTES', 200)]);
+    Http::fake(['api.mapbox.com/*' => Http::response(mapPng(), 200)]);
 
     $event = Event::factory()->create(['latitude' => 51.5129, 'longitude' => -0.1201]);
 
@@ -29,8 +29,8 @@ it('generates and attaches a static pin map for an event with coordinates', func
 it('generates both light and dark static pin maps and exposes both URLs on the card', function () {
     config()->set('services.mapbox.token', 'test-token');
     Http::fake([
-        'api.mapbox.com/styles/v1/mapbox/light-v11/*' => Http::response('LIGHT-PNG', 200),
-        'api.mapbox.com/styles/v1/mapbox/dark-v11/*' => Http::response('DARK-PNG', 200),
+        'api.mapbox.com/styles/v1/mapbox/light-v11/*' => Http::response(mapPng(220), 200),
+        'api.mapbox.com/styles/v1/mapbox/dark-v11/*' => Http::response(mapPng(40), 200),
     ]);
 
     $event = Event::factory()->create(['latitude' => 51.5129, 'longitude' => -0.1201]);
@@ -61,7 +61,7 @@ it('returns null when the model has no coordinates', function () {
 
 it('stores light and dark pins using the given marker colour', function () {
     config(['services.mapbox.token' => 'test-token']);
-    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $checkin = Checkin::factory()->create(['latitude' => 51.5, 'longitude' => -0.1]);
 

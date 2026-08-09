@@ -49,8 +49,8 @@ final class CheckinCard
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $model->galleryPhotos(),
                 ),
-                map: $model->getFirstMediaUrl('map') ?: null,
-                mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                map: $model->optimisedUrl('map'),
+                mapDark: $model->optimisedUrl('map_dark'),
                 address: $address !== '' ? $address : null,
             ),
         );

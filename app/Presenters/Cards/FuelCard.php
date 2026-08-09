@@ -35,8 +35,8 @@ final class FuelCard
             accent: 'fuel',
             range: null,
             meta: CardMeta::fuel(
-                map: $model->getFirstMediaUrl('map') ?: null,
-                mapDark: $model->getFirstMediaUrl('map_dark') ?: null,
+                map: $model->optimisedUrl('map'),
+                mapDark: $model->optimisedUrl('map_dark'),
                 brand: $model->brand,
                 brandLogo: $model->logo_url,
             ),
