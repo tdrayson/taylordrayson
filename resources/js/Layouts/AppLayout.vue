@@ -28,13 +28,12 @@ const page = usePage();
         <div class="flex min-w-0 flex-1 flex-col">
             <!-- Single banner: mobile bar and desktop topbar share one <header> outside <main>. -->
             <header>
+                <div class="flex justify-end px-5 pt-2.5 md:hidden">
+                    <StatusBar compact />
+                </div>
                 <MobileNav />
-                <!-- Mobile shares one row between where you are and what's
-                     now, rather than giving the readings a band of their own:
-                     the header is already two deep before any content. -->
-                <div class="flex items-center justify-between gap-4 px-5 py-3 md:hidden">
-                    <Breadcrumb class="min-w-0 flex-1" :items="breadcrumb" />
-                    <StatusBar class="flex-none" compact :readings="['rings', 'weather']" />
+                <div class="px-5 py-3 md:hidden">
+                    <Breadcrumb :items="breadcrumb" />
                 </div>
                 <AppTopbar :breadcrumb="breadcrumb" />
             </header>

@@ -23,10 +23,6 @@ const props = defineProps({
     charging: { type: Boolean, default: true },
     lowPower: { type: Boolean, default: false },
     compact: { type: Boolean, default: false },
-    // Which readings to render, in case a layout has room for some but not
-    // all. Mobile drops time and battery: the phone shows its own directly
-    // above these, so repeating Taylor's reads as the viewer's.
-    readings: { type: Array, default: () => ['rings', 'weather', 'time', 'battery'] },
 });
 
 const { time, date } = useClock();
@@ -92,24 +88,22 @@ const batteryLabel = computed(() => {
         href="/now"
         aria-label="Today's status - open the Now page"
         class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
-        :class="compact ? 'gap-3 text-xs' : 'gap-4 text-sm'"
+        :class="compact ? 'gap-2.5 text-sm' : 'gap-4 text-sm'"
     >
-        <template v-if="readings.includes('rings')">
-            <Tooltip v-if="ringsLabel" :label="ringsLabel">
-                <ActivityRings :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
-            </Tooltip>
-            <ActivityRings v-else :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
-        </template>
+        <Tooltip v-if="ringsLabel" :label="ringsLabel">
+            <ActivityRings :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
+        </Tooltip>
+        <ActivityRings v-else :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
 
-        <Tooltip v-if="readings.includes('weather')" :label="weatherLabel">
+        <Tooltip :label="weatherLabel">
             <WeatherStatus :temp="temp" :condition="condition" :compact="compact" />
         </Tooltip>
 
-        <Tooltip v-if="readings.includes('time')" :label="`${date}, ${zone}`">
+        <Tooltip :label="`${date}, ${zone}`">
             <span class="tnum">{{ time }}</span>
         </Tooltip>
 
-        <Tooltip v-if="readings.includes('battery')" :label="batteryLabel">
+        <Tooltip :label="batteryLabel">
             <BatteryStatus class="text-neutral-500" :level="batteryLevel" :charging="charging" :low-power="lowPower" :compact="compact" />
         </Tooltip>
     </Link>
