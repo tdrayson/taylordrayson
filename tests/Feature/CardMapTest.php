@@ -13,7 +13,7 @@ beforeEach(function () {
 
 it('exposes a stored map url on the fuel card when media is attached', function () {
     $fuel = Fuel::factory()->create(['station_name' => 'Test Garage']);
-    $fuel->addMediaFromString('PNG')->usingFileName('m.png')->toMediaCollection('map');
+    $fuel->addMediaFromString(mapPng())->usingFileName('m.png')->toMediaCollection('map');
 
     $meta = CardPresenter::for($fuel)->meta;
 
@@ -29,7 +29,7 @@ it('has a null map on the fuel card when no media is attached', function () {
 
 it('exposes stored map urls on the activity card while keeping its polyline', function () {
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U']]);
-    $activity->addMediaFromString('PNG')->usingFileName('m.png')->toMediaCollection('map_dark');
+    $activity->addMediaFromString(mapPng())->usingFileName('m.png')->toMediaCollection('map_dark');
 
     $meta = CardPresenter::for($activity)->meta;
 

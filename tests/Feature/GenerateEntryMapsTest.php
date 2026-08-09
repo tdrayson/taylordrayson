@@ -10,10 +10,10 @@ beforeEach(function () {
 });
 
 it('skips rows that already have a map unless forced', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response('PNG', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $fuel = Fuel::factory()->create(['latitude' => 51.3, 'longitude' => -0.1]);
-    $fuel->addMediaFromString('PNG')->usingFileName('m.png')->toMediaCollection('map');
+    $fuel->addMediaFromString(mapPng())->usingFileName('m.png')->toMediaCollection('map');
 
     $this->artisan('maps:generate', ['type' => 'fuel'])->assertSuccessful();
 
@@ -21,7 +21,7 @@ it('skips rows that already have a map unless forced', function () {
 });
 
 it('processes at most the --limit number of entries', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response('PNG', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     Fuel::factory()->count(3)->create(['latitude' => 51.3, 'longitude' => -0.1]);
 

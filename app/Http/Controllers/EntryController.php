@@ -200,7 +200,7 @@ class EntryController extends Controller
         }
 
         if ($model instanceof Media && $model->type === MediaType::Film) {
-            $data['backdrop'] = $model->getFirstMediaUrl('backdrop') ?: null;
+            $data['backdrop'] = $model->optimisedUrl('backdrop');
         }
 
         if ($model instanceof Event) {

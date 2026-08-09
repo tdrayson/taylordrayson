@@ -80,3 +80,24 @@ function stravaPhotoPayload(string $uniqueId, string $createdAt, ?array $locatio
         'location' => $location,
     ], fn ($value): bool => $value !== null);
 }
+
+/**
+ * Real PNG bytes for a faked Mapbox response.
+ *
+ * Placeholder strings ("PNGDATA") were fine while maps had no conversions, but
+ * they now go through Imagick to render the optimised copy, and it throws on
+ * anything it cannot decode. The tint keeps a light and a dark fake
+ * distinguishable.
+ */
+function mapPng(int $tint = 200): string
+{
+    $image = imagecreatetruecolor(40, 21);
+    imagefill($image, 0, 0, imagecolorallocate($image, $tint, $tint, $tint));
+
+    ob_start();
+    imagepng($image);
+    $bytes = ob_get_clean();
+    imagedestroy($image);
+
+    return $bytes;
+}

@@ -17,7 +17,7 @@ beforeEach(function () {
 });
 
 it('draws the right kind of map for the entry it is given', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
     $checkin = Checkin::factory()->create(['latitude' => 51.31, 'longitude' => -0.06]);
@@ -43,12 +43,12 @@ it('draws the right kind of map for the entry it is given', function () {
  * that is already there.
  */
 it('does nothing when the entry already has a map', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
     (new GenerateEntryMap($activity))->handle(...mapActions());
 
-    Http::fake(['*api.mapbox.com*' => Http::response('PNGDATA', 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
     (new GenerateEntryMap($activity->fresh()))->handle(...mapActions());
 
     Http::assertNothingSent();
