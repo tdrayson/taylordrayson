@@ -1,7 +1,9 @@
 <?php
 
+use App\Jobs\GenerateEntryMap;
 use App\Models\Checkin;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     config(['services.foursquare.access_token' => 'test-token']);
@@ -99,6 +101,27 @@ it('stores a newly returned check-in', function () {
         ->and($checkin->venue_name)->toBe('Coffee Bar')
         ->and($checkin->city)->toBe('London')
         ->and($checkin->description)->toBe('Flat white');
+});
+
+/**
+ * A check-in without its pin renders as a bare card, so the map is queued as
+ * soon as the sync stores one rather than waiting for the next maps:generate
+ * sweep. The overlap window re-sends check-ins already stored, which must not
+ * queue a second job to redraw a map that is already there.
+ */
+it('queues the pin for a new check-in, but not for one seen again', function () {
+    Queue::fake();
+
+    fakeSwarmRuns([
+        [swarmItem('same')],
+        [swarmItem('same', 'Added later')],
+    ]);
+
+    $this->artisan('foursquare:sync')->assertSuccessful();
+    Queue::assertPushed(GenerateEntryMap::class, 1);
+
+    $this->artisan('foursquare:sync')->assertSuccessful();
+    Queue::assertPushed(GenerateEntryMap::class, 1);
 });
 
 it('updates rather than duplicates a check-in seen again in the overlap window', function () {

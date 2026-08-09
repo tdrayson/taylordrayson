@@ -4,6 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Actions\Checkins\ImportCheckin;
 use App\Enums\Source;
+use App\Jobs\GenerateEntryMap;
 use App\Models\Checkin;
 use App\Services\Foursquare;
 use Carbon\Carbon;
@@ -55,6 +56,12 @@ class FoursquareSync extends Command
                 }
 
                 if ($result->created) {
+                    // Queue the pin now rather than leaving it to the next
+                    // maps:generate sweep, so a check-in reaches the timeline
+                    // looking finished. Only for new ones: an existing
+                    // check-in already has its map.
+                    GenerateEntryMap::dispatch($result->checkin);
+
                     $this->info(sprintf('%s - %s', $result->checkin->venue_name, date('Y-m-d H:i', $item['createdAt'])));
                 }
             }
