@@ -5,6 +5,7 @@ namespace App\Console\Commands\Fetch;
 use App\Actions\GenerateFlightMap;
 use App\Actions\GenerateLocationMap;
 use App\Actions\GenerateStaticMap;
+use App\Exceptions\MapGenerationFailed;
 use App\Models\Activity;
 use App\Models\Checkin;
 use App\Models\Flight;
@@ -23,11 +24,14 @@ class GenerateEntryMaps extends Command
         $type = $this->argument('type');
         $force = (bool) $this->option('force');
 
+        // Media is eager loaded because the skip check below reads it for every
+        // row: lazily it cost one query per entry, ~1,500 per run for
+        // activities, almost all of them to discover there was nothing to do.
         [$query, $generate] = match ($type) {
-            'fuel' => [Fuel::query()->whereNotNull('latitude'), fn ($m) => $pin($m, TypeColors::hex('fuel'))],
-            'checkin' => [Checkin::query()->whereNotNull('latitude'), fn ($m) => $pin($m, TypeColors::hex('checkin'))],
-            'activity' => [Activity::query(), fn ($m) => $route($m)],
-            'flight' => [Flight::query()->with(['origin', 'destination']), fn ($m) => $arc($m)],
+            'fuel' => [Fuel::query()->whereNotNull('latitude')->with('media'), fn ($m) => $pin($m, TypeColors::hex('fuel'))],
+            'checkin' => [Checkin::query()->whereNotNull('latitude')->with('media'), fn ($m) => $pin($m, TypeColors::hex('checkin'))],
+            'activity' => [Activity::query()->with('media'), fn ($m) => $route($m)],
+            'flight' => [Flight::query()->with(['origin', 'destination', 'media']), fn ($m) => $arc($m)],
             default => [null, null],
         };
 
@@ -57,6 +61,7 @@ class GenerateEntryMaps extends Command
 
         $done = 0;
         $skipped = 0;
+        $failures = [];
 
         $bar = $this->output->createProgressBar($models->count());
         $bar->start();
@@ -64,8 +69,20 @@ class GenerateEntryMaps extends Command
         foreach ($models as $model) {
             if (! $force && $model->getFirstMedia('map')) {
                 $skipped++;
-            } elseif ($generate($model)) {
-                $done++;
+                $bar->advance();
+
+                continue;
+            }
+
+            // One unreachable entry must not abandon the rest of the run: the
+            // sweep exists to catch stragglers, so it collects failures and
+            // reports them rather than stopping at the first.
+            try {
+                if ($generate($model)) {
+                    $done++;
+                }
+            } catch (MapGenerationFailed $exception) {
+                $failures[] = "#{$model->getKey()}: {$exception->getMessage()}";
             }
 
             $bar->advance();
@@ -74,6 +91,14 @@ class GenerateEntryMaps extends Command
         $bar->finish();
         $this->newLine(2);
         $this->info("Generated {$done}, skipped {$skipped}.");
+
+        if ($failures !== []) {
+            $this->warn(count($failures).' failed and will be retried on the next run:');
+
+            foreach (array_slice($failures, 0, 10) as $failure) {
+                $this->line("  {$failure}");
+            }
+        }
 
         return self::SUCCESS;
     }
