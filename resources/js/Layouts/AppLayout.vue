@@ -28,7 +28,10 @@ const page = usePage();
         <div class="flex min-w-0 flex-1 flex-col">
             <!-- Single banner: mobile bar and desktop topbar share one <header> outside <main>. -->
             <header>
-                <div class="flex justify-end px-5 pt-2.5 md:hidden">
+                <!-- A band of its own rather than readings floating over the
+                     header: without an edge and a surface behind them they read
+                     as stray icons instead of ambient chrome. -->
+                <div class="flex justify-end border-b border-neutral-50 bg-neutral-25 px-5 py-1.5 md:hidden">
                     <StatusBar compact />
                 </div>
                 <MobileNav />
