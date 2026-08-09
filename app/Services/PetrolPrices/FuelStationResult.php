@@ -14,6 +14,7 @@ final readonly class FuelStationResult
         public ?string $address,
         public ?string $postcode,
         public ?string $city,
+        public ?string $county,
         public ?float $latitude,
         public ?float $longitude,
         public ?float $distanceKm,

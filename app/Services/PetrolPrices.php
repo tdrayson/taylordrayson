@@ -97,6 +97,7 @@ class PetrolPrices
             address: $address !== '' ? StationNormaliser::address($address) : null,
             postcode: isset($properties['postcode']) ? (string) $properties['postcode'] : null,
             city: StationNormaliser::city($properties['town'] ?? null),
+            county: StationNormaliser::city($properties['county'] ?? null) ?: null,
             latitude: isset($coordinates[1]) ? (float) $coordinates[1] : null,
             longitude: isset($coordinates[0]) ? (float) $coordinates[0] : null,
             distanceKm: $distanceMiles !== null ? round((float) $distanceMiles * self::KM_PER_MILE, 3) : null,
