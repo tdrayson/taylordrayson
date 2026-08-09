@@ -32,6 +32,10 @@ return [
         'access_token' => env('FOURSQUARE_ACCESS_TOKEN'),
     ],
 
+    'google' => [
+        'maps_key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
     'mapbox' => [
         'token' => env('MAPBOX_TOKEN'),
     ],

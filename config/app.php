@@ -79,6 +79,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Site Owner
+    |--------------------------------------------------------------------------
+    |
+    | The single account that can sign in and edit. There is no registration,
+    | so this is the only way an account comes into existence: set these and
+    | run `php artisan db:seed --class=UserSeeder`. Re-running it changes the
+    | password in place, which is also how a forgotten one gets reset.
+    |
+    */
+
+    'owner' => [
+        'name' => env('OWNER_NAME', 'Taylor Drayson'),
+        'email' => env('OWNER_EMAIL'),
+        'password' => env('OWNER_PASSWORD'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

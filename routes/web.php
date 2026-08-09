@@ -1,11 +1,14 @@
 <?php
 
 use App\Http\Controllers\ArchiveController;
+use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LookupController;
+use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
@@ -22,6 +25,33 @@ use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Facades\Route;
+
+// Sign-in, required first: the /{slug} page catch-all at the bottom matches
+// any lowercase word, 'login' included, so registering it later would let a
+// content page shadow the login form.
+require __DIR__.'/auth.php';
+
+// Authoring, session-guarded: the only caller is the editor in a signed-in
+// browser. Above the /{slug} catch-all for the same reason as /login.
+Route::middleware('auth')->group(function (): void {
+    Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+
+    // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
+    Route::get('/new', [AuthoringController::class, 'new'])->name('new');
+    Route::get('/new/{type}', [AuthoringController::class, 'new'])->name('new.type');
+    Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
+    Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
+        ->where('id', '[0-9]+')->name('entries.update');
+
+    // Autocomplete for the fields that cannot be a plain text box.
+    Route::get('/lookup/{source}', LookupController::class)
+        ->where('source', '[a-z]+')->name('lookup');
+    Route::get('/lookup-reverse', [LookupController::class, 'reverse'])->name('lookup.reverse');
+
+    // Drafts have no timeline entry, so they appear in no listing without this.
+    Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+
+});
 
 // Feeds
 Route::feeds();

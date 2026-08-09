@@ -14,6 +14,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/boost (BOOST) - v2
+- laravel/breeze (BREEZE) - v2
 - laravel/mcp (MCP) - v0
 - laravel/pail (PAIL) - v1
 - laravel/pint (PINT) - v1
@@ -129,7 +130,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## Enums
 
-- Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
+- That being said, keys in an Enum should follow existing application Enum conventions.
 
 ## Comments
 

@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Enums\TimelineType;
 use App\Models\Note;
+use App\Support\PortableText;
 use Illuminate\Support\Str;
 
 /**
@@ -20,7 +21,9 @@ final class NoteCard
         return new CardData(
             type: TimelineType::Note,
             icon: 'message-circle',
-            title: Str::limit($model->content, 80),
+            // Notes are Portable Text now, so the card title is the flattened
+            // text rather than the stored value.
+            title: Str::limit(PortableText::plainText($model->content), 80),
             titleLabel: null,
             subtitle: null,
             subtitleTokens: null,
@@ -28,7 +31,7 @@ final class NoteCard
             accent: 'note',
             range: null,
             meta: CardMeta::note(
-                body: $model->content,
+                body: PortableText::text($model->content),
                 photos: array_map(
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $model->galleryPhotos(),

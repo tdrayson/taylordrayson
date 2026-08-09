@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Actions\ResolveMentions;
+use App\Fields\FieldRegistry;
 use App\Models\Page;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -43,12 +45,18 @@ class PageController extends Controller
         }
 
         return Inertia::render('Page', [
+            'id' => $page->id,
+            // ?edit opens the editor in place. Only ever honoured for a
+            // signed-in visitor; the save route enforces it again server-side.
+            'editing' => Auth::check() && request()->has('edit'),
+            'fields' => Auth::check() ? FieldRegistry::for($page) : [],
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'content' => $page->content,
             'published' => $page->published,
             'og' => ['title' => $page->title, 'description' => $page->excerpt],
             'linkPreviews' => (new BuildLinkPreviews)($page->content),
+            'mentions' => (new ResolveMentions)($page->content),
         ]);
     }
 }

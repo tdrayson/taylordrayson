@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkPreviews;
+use App\Actions\ResolveMentions;
 use App\Enums\MediaType;
 use App\Enums\TimelineType;
+use App\Fields\AuthorableTypes;
+use App\Fields\FieldRegistry;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -89,8 +92,21 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
-            'linkPreviews' => $model instanceof Article
+            // Editing in place, offered only for hand-authored types: a synced
+            // activity has no form, and inventing one would let an edit be
+            // silently overwritten by the next sync.
+            'editing' => Auth::check() && request()->has('edit') && AuthorableTypes::forModel($model) !== null,
+            'editType' => Auth::check() ? AuthorableTypes::forModel($model) : null,
+            'fields' => Auth::check() && AuthorableTypes::forModel($model) !== null
+                ? FieldRegistry::for($model)
+                : [],
+            'linkPreviews' => $model instanceof Article || $model instanceof Note
                 ? (new BuildLinkPreviews)($model->content)
+                : [],
+            // Mentions store {kind, id}, so their titles and hrefs are resolved
+            // per request rather than baked into the content at save time.
+            'mentions' => $model instanceof Article || $model instanceof Note
+                ? (new ResolveMentions)($model->content)
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled

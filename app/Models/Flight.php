@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CabinClass;
+use App\Enums\FlightReason;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -45,6 +46,7 @@ class Flight extends Model implements HasMedia, Timelineable
     protected function casts(): array
     {
         return [
+            'reason' => FlightReason::class,
             'occurred_at' => 'datetime',
             'meta' => 'array',
             'duration' => 'integer',
