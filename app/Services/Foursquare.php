@@ -22,11 +22,15 @@ class Foursquare
     /**
      * Yield every check-in item across all pages, newest first.
      *
+     * `$afterTimestamp` (unix seconds) narrows the request to check-ins made
+     * after that moment, which is what makes a recurring sync cheap: without
+     * it every run pages the entire history to find the handful that are new.
+     *
      * @return iterable<array<string, mixed>>
      *
      * @throws RuntimeException When credentials are missing or a request fails.
      */
-    public function checkins(): iterable
+    public function checkins(?int $afterTimestamp = null): iterable
     {
         $token = config('services.foursquare.access_token');
 
@@ -37,13 +41,14 @@ class Foursquare
         $offset = 0;
 
         while (true) {
-            $response = Http::get(self::BASE.'/users/self/checkins', [
+            $response = Http::get(self::BASE.'/users/self/checkins', array_filter([
                 'oauth_token' => $token,
                 'v' => self::API_VERSION,
                 'limit' => self::PER_PAGE,
                 'offset' => $offset,
                 'sort' => 'newestfirst',
-            ]);
+                'afterTimestamp' => $afterTimestamp,
+            ], fn (mixed $value): bool => $value !== null));
 
             if ($response->failed()) {
                 throw new RuntimeException("Foursquare request failed ({$response->status()}): {$response->body()}");

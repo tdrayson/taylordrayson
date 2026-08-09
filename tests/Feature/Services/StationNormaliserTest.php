@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\PetrolFinder\StationNormaliser;
+use App\Services\PetrolPrices\StationNormaliser;
 
 it('title-cases station names while preserving fuel acronyms', function () {
     expect(StationNormaliser::name('GODSTONE ROAD SF CONNECT'))->toBe('Godstone Road SF Connect');
@@ -20,6 +20,21 @@ it('title-cases cities', function () {
     expect(StationNormaliser::city('LONDON GATWICK AIRPORT'))->toBe('London Gatwick Airport');
     expect(StationNormaliser::city(null))->toBeNull();
 });
+
+it('takes the forecourt name from the trailing parenthetical', function (?string $label, ?string $expected) {
+    expect(StationNormaliser::tradingName($label))->toBe($expected);
+})->with([
+    // "BRAND TOWN (TRADING NAME)": the parenthetical is the forecourt's own name.
+    ['BP WHYTELEAFE (GODSTONE ROAD SF CONNECT)', 'Godstone Road SF Connect'],
+    ['ESSO BRIGHTON ROAD (MFG HAYLING DOWN)', 'MFG Hayling Down'],
+    ['ESSO OXTED (RSS OLD OXTED)', 'RSS Old Oxted'],
+    // Some repeat the generated label, which is still the best name available.
+    ['SHELL WHYTELEAFE (SHELL WHYTELEAFE)', 'Shell Whyteleafe'],
+    // No parenthetical, so the whole label stands.
+    ['ASDA EXPRESS BIGGIN HILL', 'Asda Express Biggin Hill'],
+    [null, null],
+    ['', null],
+]);
 
 it('title-cases addresses but keeps postcode fragments uppercase', function () {
     $address = StationNormaliser::address('PURLEY WAY SERVICE STATION LTD, 514, PURLEY WAY, CROYDON, CR0 4RE, CROYDON');

@@ -2,6 +2,7 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { decodePolyline } from '../../lib/geo.js';
+import { loadMaplibre } from '../../lib/maplibre.js';
 
 const props = defineProps({
     // Encoded polyline strings; each is drawn as one faint line, so overlapping
@@ -11,7 +12,6 @@ const props = defineProps({
     heightClass: { type: String, default: 'h-full min-h-80' },
 });
 
-const MAPLIBRE_VERSION = '4.7.1';
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 const FIT_OPTIONS = { padding: 32, maxZoom: 14 };
 
@@ -27,47 +27,10 @@ function recenter() {
     }
 }
 
-function loadStylesheet(href) {
-    if (document.querySelector(`link[href="${href}"]`)) {
-        return;
-    }
-
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-}
-
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const existing = document.querySelector(`script[src="${src}"]`);
-
-        if (existing) {
-            window.maplibregl ? resolve() : (existing.addEventListener('load', resolve), existing.addEventListener('error', reject));
-
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
 onMounted(async () => {
-    loadStylesheet(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`);
+    const maplibregl = await loadMaplibre();
 
-    try {
-        await loadScript(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`);
-    } catch (error) {
-        console.error('[RouteHeatmap] failed to load MapLibre', error);
-
-        return;
-    }
-
-    if (!window.maplibregl) {
+    if (!maplibregl) {
         return;
     }
 
@@ -77,8 +40,6 @@ onMounted(async () => {
     if (lines.length === 0) {
         return;
     }
-
-    const { maplibregl } = window;
 
     // Bounds span every route so the fit shows the whole footprint.
     const bounds = lines.flat().reduce(
