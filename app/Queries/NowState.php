@@ -22,7 +22,9 @@ final class NowState
      * @var array<string, array<string, string>>
      */
     private const FIELDS = [
-        'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower', 'device' => 'device'],
+        // `device` is not here because it is not sent: it changes once every few
+        // years, so it comes from config and is attached below.
+        'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower'],
         // `high`/`low` are still accepted and stored, but nothing renders them:
         // the widget shows humidity and wind instead, which say more about what
         // stepping outside feels like than a forecast range does.
@@ -52,6 +54,13 @@ final class NowState
 
         foreach (self::FIELDS as $group => $map) {
             $groups[$group] = $this->group($entries["now.{$group}"] ?? null, $map);
+        }
+
+        // Only alongside a real reading: the device name on its own says
+        // nothing, and would have the tile claim a battery it has never been
+        // told about.
+        if ($groups['battery'] !== null) {
+            $groups['battery']['device'] = config('app.device');
         }
 
         return $groups;

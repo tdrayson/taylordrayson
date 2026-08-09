@@ -79,12 +79,12 @@ it('describes what it accepts, so a shortcut can be checked from the phone', fun
     $this->withToken('test-token')->getJson('/api/v1/now')
         ->assertOk()
         ->assertJsonPath('data.ok', true)
-        ->assertJsonPath('data.accepts.battery', ['percent', 'charging', 'low_power', 'device']);
+        ->assertJsonPath('data.accepts.battery', ['percent', 'charging', 'low_power']);
 });
 
 it('shares the last sent readings with every page, so the status bar has them too', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
-        'battery' => ['percent' => 41, 'charging' => true, 'device' => 'iPhone 16 Pro'],
+        'battery' => ['percent' => 41, 'charging' => true],
         'location' => ['city' => 'Whyteleafe, UK', 'latitude' => 51.31, 'longitude' => -0.06, 'timezone' => 'Europe/London'],
     ])->assertOk();
 
@@ -92,10 +92,43 @@ it('shares the last sent readings with every page, so the status bar has them to
         ->component('Now')
         ->where('ambient.battery.percent', 41)
         ->where('ambient.battery.charging', true)
-        ->where('ambient.battery.device', 'iPhone 16 Pro')
         ->where('ambient.location.city', 'Whyteleafe, UK')
         // Never sent, so the widget keeps its own placeholder rather than blanking.
         ->where('ambient.weather', null)
+    );
+});
+
+/**
+ * The device name changes once every few years, so it is configured rather
+ * than repeated in every reading. Sending it is now an error, which is the
+ * point: a shortcut still sending it should be told rather than have the value
+ * silently ignored.
+ */
+it('takes the device name from config, and refuses it in the payload', function () {
+    config()->set('app.device', 'iPhone 16 Pro');
+
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'battery' => ['percent' => 41, 'device' => 'iPhone 16 Pro'],
+    ])->assertStatus(422)->assertJsonValidationErrors(['battery.device']);
+
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'battery' => ['percent' => 41],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.battery'))->not->toHaveKey('device');
+
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.battery.device', 'iPhone 16 Pro')
+    );
+});
+
+/**
+ * A device name with no reading beside it would have the tile claim a battery
+ * it has never been told about.
+ */
+it('does not invent a battery group just to carry the device name', function () {
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.battery', null)
     );
 });
 

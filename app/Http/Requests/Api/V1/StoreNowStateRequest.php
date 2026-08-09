@@ -27,7 +27,7 @@ class StoreNowStateRequest extends FormRequest
      * @var array<string, array<int, string>>
      */
     public const SCHEMA = [
-        'battery' => ['percent', 'charging', 'low_power', 'device'],
+        'battery' => ['percent', 'charging', 'low_power'],
         'weather' => ['condition', 'temp', 'high', 'low', 'humidity', 'wind'],
         // Field names mirror Apple's own labels so building the Shortcuts
         // dictionary is a straight copy. Note `state` is the administrative
@@ -199,7 +199,6 @@ class StoreNowStateRequest extends FormRequest
             'battery.percent' => ['sometimes', 'integer', 'between:0,100'],
             'battery.charging' => ['sometimes', 'boolean'],
             'battery.low_power' => ['sometimes', 'boolean'],
-            'battery.device' => ['sometimes', 'string', 'max:50'],
 
             'weather' => ['sometimes', 'array'],
             'weather.condition' => ['sometimes', 'string', 'max:40'],
