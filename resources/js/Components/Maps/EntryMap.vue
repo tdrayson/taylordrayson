@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
-import { mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
+import { loadMaplibre, mapStyleForTheme, swapBasemapStyle } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 import PhotoMarker from './PhotoMarker.vue';
 
@@ -19,8 +19,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['open-photo']);
-
-const MAPLIBRE_VERSION = '4.7.1';
 
 const { resolved } = useTheme();
 
@@ -54,40 +52,6 @@ function recenter() {
     if (map && savedBounds) {
         map.fitBounds(savedBounds, FIT_OPTIONS);
     }
-}
-
-function loadStylesheet(href) {
-    if (document.querySelector(`link[href="${href}"]`)) {
-        return;
-    }
-
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-}
-
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const existing = document.querySelector(`script[src="${src}"]`);
-
-        if (existing) {
-            if (window.maplibregl) {
-                resolve();
-            } else {
-                existing.addEventListener('load', resolve);
-                existing.addEventListener('error', reject);
-            }
-
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
 }
 
 function resolveColor(value) {
@@ -134,31 +98,19 @@ function decodePolyline(value) {
 }
 
 onMounted(async () => {
-    loadStylesheet(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`);
+    const maplibregl = await loadMaplibre();
 
-    try {
-        await loadScript(`https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`);
-    } catch (error) {
-        console.error('[EntryMap] failed to load MapLibre script', error);
-
+    if (!maplibregl) {
         return;
     }
 
     const coords = decodePolyline(props.polyline);
-
-    if (!window.maplibregl) {
-        console.error('[EntryMap] window.maplibregl is undefined after script load');
-
-        return;
-    }
 
     if (coords.length === 0) {
         console.warn('[EntryMap] polyline decoded to 0 coordinates', props.polyline?.slice(0, 30));
 
         return;
     }
-
-    const { maplibregl } = window;
 
     const bounds = coords.reduce(
         (box, coordinate) => box.extend(coordinate),
