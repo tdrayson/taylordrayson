@@ -23,6 +23,10 @@ const props = defineProps({
     charging: { type: Boolean, default: true },
     lowPower: { type: Boolean, default: false },
     compact: { type: Boolean, default: false },
+    // Renders the place name as text rather than leaving it to the weather
+    // tooltip. Set on touch layouts, where there is no hover and so no way to
+    // reach any of the tooltips below.
+    showPlace: { type: Boolean, default: false },
 });
 
 const { time, date } = useClock();
@@ -106,5 +110,7 @@ const batteryLabel = computed(() => {
         <Tooltip :label="batteryLabel">
             <BatteryStatus class="text-neutral-500" :level="batteryLevel" :charging="charging" :low-power="lowPower" :compact="compact" />
         </Tooltip>
+
+        <span v-if="showPlace" class="ml-auto truncate text-neutral-500">{{ place }}</span>
     </Link>
 </template>

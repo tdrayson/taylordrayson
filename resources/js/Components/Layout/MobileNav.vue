@@ -6,9 +6,7 @@ import Icon from '../Ui/Icon.vue';
 import StatusBar from './StatusBar.vue';
 import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
-import SocialLinks from '../Profile/SocialLinks.vue';
 import Avatar from '../Profile/Avatar.vue';
-import StreakBadge from './StreakBadge.vue';
 import { useSettings } from '../../useSettings';
 
 const { openSettings } = useSettings();
@@ -62,7 +60,7 @@ onUnmounted(() => {
 
 <template>
     <div class="md:hidden" :class="shellFixed ? 'fixed inset-0 z-50 flex flex-col bg-neutral-0' : ''">
-        <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
+        <div class="flex flex-none items-center justify-between px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
@@ -79,23 +77,24 @@ onUnmounted(() => {
             </button>
         </div>
 
+        <div class="flex-none border-b border-neutral-50 px-5 pb-2.5">
+            <StatusBar compact show-place />
+        </div>
+
         <Transition name="menu-body" @after-leave="onAfterLeave">
             <div v-if="open" id="mobile-menu" class="flex flex-1 flex-col overflow-y-auto px-5 py-6">
-                <SearchBar class="menu-search mb-5" />
                 <SidebarNav />
-                <div class="menu-foot mt-auto space-y-5 border-t border-neutral-50 pt-6">
-                    <StatusBar />
-                    <SocialLinks />
+                <SearchBar class="menu-search mt-5" />
+                <div class="menu-foot mt-auto border-t border-neutral-50 pt-4">
                     <button
                         type="button"
                         aria-label="Open settings"
-                        class="-ml-3 flex w-[calc(100%+0.75rem)] items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        class="-ml-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                         @click="openSettingsFromMenu"
                     >
                         <Icon name="Settings01Icon" class="size-5 flex-none text-neutral-500" />
                         Settings
                     </button>
-                    <StreakBadge />
                 </div>
             </div>
         </Transition>
@@ -114,8 +113,7 @@ onUnmounted(() => {
     transform: translateY(-8px);
 }
 
-/* Stagger the search pill, each nav group (top links + sections), and the
-   footer as they enter. */
+/* Stagger each nav group, then the search pill below them, then the footer. */
 .menu-search,
 #mobile-menu :deep(nav > *),
 #mobile-menu .menu-foot {
@@ -146,8 +144,12 @@ onUnmounted(() => {
     animation-delay: 0.24s;
 }
 
-#mobile-menu .menu-foot {
+.menu-search {
     animation-delay: 0.28s;
+}
+
+#mobile-menu .menu-foot {
+    animation-delay: 0.32s;
 }
 
 @keyframes menu-item-in {

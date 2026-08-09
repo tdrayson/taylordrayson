@@ -2,7 +2,6 @@
 import { ref, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
-import SocialLinks from './SocialLinks.vue';
 
 defineProps({
     name: { type: String, default: 'Taylor Drayson' },
@@ -191,7 +190,6 @@ onBeforeUnmount(() => {
             <Link href="/" class="p-name u-url u-uid">{{ name }}</Link>
         </p>
         <p class="mb-4 max-w-50 p-note text-caption text-neutral-500">{{ bio }}</p>
-        <SocialLinks />
 
         <Teleport to="body">
             <Avatar
