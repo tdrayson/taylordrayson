@@ -16,7 +16,6 @@ const props = defineProps({
     move: { type: Number, default: 62 },
     exercise: { type: Number, default: 25 },
     stand: { type: Number, default: 75 },
-    steps: { type: [Number, String], default: '11,240' },
     moveKcal: { type: [Number, String], default: 137 },
     exerciseMins: { type: [Number, String], default: 3 },
     standHrs: { type: [Number, String], default: 9 },
@@ -27,10 +26,10 @@ const props = defineProps({
 });
 
 const { time, date } = useClock();
+const page = usePage();
 
 // Ambient readings shared from the server; each falls back to the prop (and so
 // to this component's own default) until the phone has sent that value.
-const page = usePage();
 const battery = computed(() => page.props.ambient?.battery ?? {});
 const weather = computed(() => page.props.ambient?.weather ?? {});
 const location = computed(() => page.props.ambient?.location ?? {});
@@ -46,7 +45,6 @@ const temp = computed(() => (weather.value.temp === undefined ? props.temp : `${
 const condition = computed(() => weather.value.condition ?? props.condition);
 const place = computed(() => location.value.city ?? props.location);
 const zone = computed(() => location.value.tzAbbr ?? props.timezone);
-const steps = computed(() => rings.value.steps ?? props.steps);
 const move = computed(() => ringPercent(rings.value.move, rings.value.moveGoal, props.move));
 const exercise = computed(() => ringPercent(rings.value.exercise, rings.value.exerciseGoal, props.exercise));
 const stand = computed(() => ringPercent(rings.value.stand, rings.value.standGoal, props.stand));
@@ -54,7 +52,21 @@ const batteryLevel = computed(() => (battery.value.percent === undefined ? props
 const charging = computed(() => battery.value.charging ?? props.charging);
 const lowPower = computed(() => battery.value.lowPower ?? props.lowPower);
 
-const ringsLabel = computed(() => `${steps.value} steps`);
+/**
+ * Two sources report today's steps: the count the phone pushes alongside the
+ * rings, and the one the Rovi sync caches. The pushed count is preferred so the
+ * tooltip agrees with the rings drawn beside it; the synced count covers the
+ * days no Shortcut fires. Null when neither has reported, never a placeholder.
+ */
+const steps = computed(() => {
+    const value = rings.value.steps ?? page.props.todaySteps;
+
+    return value === undefined || value === null ? null : Number(value);
+});
+
+// Null while there is no count, which drops the tooltip rather than captioning
+// the rings with a number we do not have.
+const ringsLabel = computed(() => (steps.value === null ? null : `${steps.value.toLocaleString()} steps`));
 // The condition arrives as a slug, so the label comes from the shared table
 // rather than the raw value: this read "mostly-sunny in Whyteleafe".
 const weatherLabel = computed(() => `${weatherFor(condition.value).label} in ${place.value}`);
@@ -78,9 +90,10 @@ const batteryLabel = computed(() => {
         class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
         :class="compact ? 'gap-3 text-xs' : 'gap-4 text-sm'"
     >
-        <Tooltip :label="ringsLabel">
+        <Tooltip v-if="ringsLabel" :label="ringsLabel">
             <ActivityRings :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
         </Tooltip>
+        <ActivityRings v-else :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
 
         <Tooltip :label="weatherLabel">
             <WeatherStatus :temp="temp" :condition="condition" :compact="compact" />
