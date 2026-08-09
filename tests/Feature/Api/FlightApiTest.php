@@ -1,11 +1,17 @@
 <?php
 
+use App\Jobs\GenerateEntryMap;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Flight;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     config()->set('services.api.token', 'test-token');
+
+    // Creating a flight queues its arc map. The queue is sync under test, so
+    // without this the job would run inline and call Mapbox for real.
+    Queue::fake();
 
     Airline::factory()->create(['icao_code' => 'BAW', 'iata_code' => 'BA', 'name' => 'British Airways']);
     Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick']);
@@ -67,6 +73,23 @@ it('is idempotent on the natural key', function () {
 
     expect(Flight::count())->toBe(1)
         ->and(Flight::first()->distance)->toBe(1245700);
+});
+
+/**
+ * The map is what makes a flight look finished on the timeline, so it should
+ * start being drawn the moment the flight is logged rather than waiting for the
+ * next maps:generate sweep. A retry of the same flight must not queue it twice.
+ */
+it('queues the arc map when the flight is new, and not again on a retry', function () {
+    $this->withToken('test-token')->postJson('/api/v1/flights', validFlightPayload())->assertCreated();
+
+    Queue::assertPushed(GenerateEntryMap::class, 1);
+
+    $this->withToken('test-token')
+        ->postJson('/api/v1/flights', array_merge(validFlightPayload(), ['distance' => 1245700]))
+        ->assertOk();
+
+    Queue::assertPushed(GenerateEntryMap::class, 1);
 });
 
 it('is idempotent when the retry uses a different timestamp format', function () {
