@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Icon from '../Ui/Icon.vue';
+import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
@@ -36,6 +37,14 @@ function toggle() {
     }
 }
 
+// Enter toggles the highlighted option rather than closing, since the whole
+// point of a multi-select is picking more than one without reaching for the
+// mouse between each.
+const { active, onKeydown } = useListNavigation(filtered, {
+    onSelect: (option) => option !== undefined && toggleOption(option),
+    onDismiss: () => (open.value = false),
+});
+
 function onDocumentClick(event) {
     if (root.value && !root.value.contains(event.target)) {
         open.value = false;
@@ -47,7 +56,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
 </script>
 
 <template>
-    <div ref="root" class="relative" @keydown.esc="open = false">
+    <div ref="root" class="relative" @keydown="open && onKeydown($event)" @keydown.esc="open = false">
         <button
             type="button"
             aria-haspopup="true"
@@ -73,12 +82,15 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 >
             </div>
             <ul class="max-h-56 overflow-y-auto py-1">
-                <li v-for="option in filtered" :key="option">
+                <li v-for="(option, index) in filtered" :key="option">
                     <button
                         type="button"
                         :aria-pressed="isSelected(option)"
                         class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
-                        :class="isSelected(option) ? 'text-neutral-900' : 'text-neutral-700'"
+                        :class="[
+                            isSelected(option) ? 'text-neutral-900' : 'text-neutral-700',
+                            index === active ? 'bg-neutral-25' : '',
+                        ]"
                         @click="toggleOption(option)"
                     >
                         <span

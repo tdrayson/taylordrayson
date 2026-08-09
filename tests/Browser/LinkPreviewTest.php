@@ -1,12 +1,11 @@
 <?php
 
 use App\Models\Article;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-// Pest.php only binds TestCase/RefreshDatabase to tests/Feature, so a Browser
-// test needs the same binding locally to get a real (migrated) database.
-uses(TestCase::class, RefreshDatabase::class);
+// No local uses() here: Pest.php binds TestCase and RefreshDatabase to Browser
+// as well as Feature. Rebinding TestCase locally made the whole directory
+// unloadable ("already uses the test case"), so `test tests/Browser` aborted
+// before running anything and the browser tests could only be run file by file.
 
 it('shows a preview card when hovering an internal content link', function () {
     // Target article the source links to. Aligning the seeded slug with the

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, markRaw } from 'vue';
-import { setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps, usePage } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import { GridStack } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
@@ -9,16 +9,16 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import { setupWidgetTilt } from '../lib/widgetTilt.js';
 import Button from '../Components/Ui/Button.vue';
 import Icon from '../Components/Ui/Icon.vue';
-import ChargingWidget from '../Components/Now/widgets/ChargingWidget.vue';
-import ActivityWidget from '../Components/Now/widgets/ActivityWidget.vue';
-import WeatherWidget from '../Components/Now/widgets/WeatherWidget.vue';
-import PhotosWidget from '../Components/Now/widgets/PhotosWidget.vue';
-import TimeWidget from '../Components/Now/widgets/TimeWidget.vue';
-import SleepWidget from '../Components/Now/widgets/SleepWidget.vue';
-import EntriesWidget from '../Components/Now/widgets/EntriesWidget.vue';
-import ReadingWidget from '../Components/Now/widgets/ReadingWidget.vue';
-import LocationWidget from '../Components/Now/widgets/LocationWidget.vue';
-import PodcastWidget from '../Components/Now/widgets/PodcastWidget.vue';
+import ChargingWidget from '../Components/Now/ChargingWidget.vue';
+import ActivityWidget from '../Components/Now/ActivityWidget.vue';
+import WeatherWidget from '../Components/Now/WeatherWidget.vue';
+import PhotosWidget from '../Components/Now/PhotosWidget.vue';
+import TimeWidget from '../Components/Now/TimeWidget.vue';
+import SleepWidget from '../Components/Now/SleepWidget.vue';
+import EntriesWidget from '../Components/Now/EntriesWidget.vue';
+import ReadingWidget from '../Components/Now/ReadingWidget.vue';
+import LocationWidget from '../Components/Now/LocationWidget.vue';
+import PodcastWidget from '../Components/Now/PodcastWidget.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -37,6 +37,10 @@ setLayoutProps({
     breadcrumb: [{ label: 'Now' }],
 });
 
+// Ambient readings are a shared prop, since the status bar needs them on
+// every page, not just this one.
+const page = usePage();
+
 const LAYOUT_KEY = 'now-layout-v1';
 
 // Only forward data props to a widget when the backend supplied something, so an
@@ -45,15 +49,39 @@ const sleepProps = props.sleep ?? {};
 const entriesProps = props.entryCounts.length ? { counts: props.entryCounts } : {};
 const photosProps = props.photos.length ? { photos: props.photos } : {};
 
+// Ambient groups follow the same rule, per widget prop rather than per group:
+// a value the phone has never sent leaves that prop on the widget's own
+// placeholder. `observedAt` describes the reading rather than being one of the
+// widget's props, so it never gets forwarded.
+function ambient(group, keys) {
+    const values = page.props.ambient?.[group] ?? {};
+
+    return Object.fromEntries(
+        keys.filter((key) => values[key] !== undefined).map((key) => [key, values[key]]),
+    );
+}
+
+const chargingProps = ambient('battery', ['device', 'percent', 'charging', 'lowPower']);
+const weatherProps = ambient('weather', ['condition', 'temp', 'humidity', 'wind']);
+const locationProps = ambient('location', ['city', 'latitude', 'longitude']);
+const ringsProps = ambient('rings', ['move', 'moveGoal', 'exercise', 'exerciseGoal', 'stand', 'standGoal']);
+
+// The clock reads the same location group, under the prop names it declares.
+const timeProps = ambient('location', ['timezone']);
+
+if (locationProps.city) {
+    timeProps.location = locationProps.city;
+}
+
 // The default bento, expressed as a 4-column grid. `x`/`y`/`w`/`h` are grid
 // cells; markRaw keeps Vue from making the component definitions reactive.
 // `sizes` is unused for now but reserved for future per-widget size presets.
 const defaultWidgets = [
-    { id: 'time', component: markRaw(TimeWidget), x: 0, y: 0, w: 1, h: 1, props: {} },
-    { id: 'location', component: markRaw(LocationWidget), x: 1, y: 0, w: 1, h: 1, props: {} },
-    { id: 'activity', component: markRaw(ActivityWidget), x: 2, y: 0, w: 2, h: 1, props: { variant: 'dark', fill: true } },
-    { id: 'charging', component: markRaw(ChargingWidget), x: 0, y: 1, w: 1, h: 1, props: { device: 'iPhone', percent: 72, timeLeft: '25 min left', charging: true } },
-    { id: 'weather', component: markRaw(WeatherWidget), x: 1, y: 1, w: 1, h: 1, props: { condition: 'hot' } },
+    { id: 'time', component: markRaw(TimeWidget), x: 0, y: 0, w: 1, h: 1, props: { ...timeProps } },
+    { id: 'location', component: markRaw(LocationWidget), x: 1, y: 0, w: 1, h: 1, props: { ...locationProps } },
+    { id: 'activity', component: markRaw(ActivityWidget), x: 2, y: 0, w: 2, h: 1, props: { variant: 'dark', fill: true, ...ringsProps } },
+    { id: 'charging', component: markRaw(ChargingWidget), x: 0, y: 1, w: 1, h: 1, props: { ...chargingProps } },
+    { id: 'weather', component: markRaw(WeatherWidget), x: 1, y: 1, w: 1, h: 1, props: { ...weatherProps } },
     { id: 'photos', component: markRaw(PhotosWidget), x: 2, y: 1, w: 2, h: 2, props: { ...photosProps } },
     { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: { ...sleepProps } },
     { id: 'podcast', component: markRaw(PodcastWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },

@@ -3,11 +3,11 @@
 // import. Named imports stay tree-shakeable — only icons listed here are
 // pulled onto pages that use <Icon>.
 //
-// Weather condition icons stay in WeatherStatus (top bar) and WeatherWidget
-// (Now page) as local API-driven maps — not in this registry. StatusBar already
-// loads them site-wide; keeping them out of icons.js avoids also tying them to
-// every <Icon> consumer. Add a new UI icon by adding its export name to both
-// lists below.
+// Weather condition icons live in lib/weather.js, the one table both the top
+// bar and the Now tile read — not in this registry. StatusBar already loads
+// them site-wide; keeping them out of icons.js avoids also tying them to every
+// <Icon> consumer. Add a new UI icon by adding its export name to both lists
+// below.
 import {
     Airplane01Icon,
     AirplaneTakeOff01Icon,
@@ -33,6 +33,7 @@ import {
     Dish02Icon,
     DragDropVerticalIcon,
     File01Icon,
+    File02Icon,
     Film01Icon,
     FireIcon,
     GithubIcon,
@@ -97,6 +98,7 @@ export const icons = {
     Dish02Icon,
     DragDropVerticalIcon,
     File01Icon,
+    File02Icon,
     Film01Icon,
     FireIcon,
     GithubIcon,

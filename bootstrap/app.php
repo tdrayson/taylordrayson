@@ -11,6 +11,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,7 +36,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // An API route must answer in JSON whatever the client asked for. Apple
+        // Shortcuts sends no Accept header, which would otherwise turn a
+        // validation failure into a 302 redirect the phone cannot read.
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
+        );
+
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request): Response {
+            // A rejected payload is logged by field, never by value, so a
+            // misbuilt shortcut can be diagnosed from the server without the
+            // readings themselves (location included) landing in a log file.
+            if ($response->getStatusCode() === 422 && $request->is('api/*')) {
+                Log::info('api validation failed', [
+                    'path' => $request->path(),
+                    'errors' => $exception instanceof ValidationException ? array_keys($exception->errors()) : null,
+                ]);
+            }
+
             if ($response->getStatusCode() === 404 && ! $request->expectsJson()) {
                 $entries = Cache::remember('error.entry_count', now()->addHour(), fn (): int => TimelineEntry::count());
                 $days = Cache::remember('error.day_count', now()->addHour(), fn (): int => TimelineEntry::query()

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Enums\CabinClass;
+use App\Enums\FlightReason;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Rules\ExistsOnModel;
@@ -74,7 +75,7 @@ class UpdateFlightRequest extends FormRequest
             'duration' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'distance' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'cabin_class' => ['sometimes', 'nullable', Rule::enum(CabinClass::class)],
-            'reason' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'reason' => ['sometimes', 'nullable', Rule::enum(FlightReason::class)],
             'departure_timezone' => ['sometimes', 'nullable', 'timezone'],
             'arrival_timezone' => ['sometimes', 'nullable', 'timezone'],
             'meta' => ['sometimes', 'nullable', 'array'],

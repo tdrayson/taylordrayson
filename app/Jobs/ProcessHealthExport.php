@@ -58,7 +58,7 @@ class ProcessHealthExport implements ShouldQueue
         $unhandled = array_values(array_diff($metricNames, $claimed));
 
         if ($unhandled !== []) {
-            Log::info('health.ingest unhandled metrics', ['metrics' => $unhandled]);
+            Log::info('health.export unhandled metrics', ['metrics' => $unhandled]);
         }
 
         if ($failures !== []) {
