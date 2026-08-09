@@ -33,3 +33,4 @@ storage/backups/
 
 # Local database backups (never commit: real data, large binaries)
 storage/backups/
+/docs/superpowers/

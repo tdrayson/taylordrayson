@@ -19,7 +19,7 @@ afterEach(function () {
     File::deleteDirectory(storage_path('app/test-receipts'));
     File::delete(storage_path('app/fuel/test-review.csv'));
     File::delete(storage_path('app/test-fuel.csv'));
-    File::delete(public_path('logos/brands/testco.png'));
+    File::delete(public_path('logos/brands/texaco.png'));
     File::delete(public_path('logos/brands/asda.png'));
 });
 
@@ -33,14 +33,17 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
     });
 
     Http::fake([
-        '*/api/brands*' => Http::response(['brands' => [
-            ['brand' => 'Asda', 'logo' => 'https://cdn.brandfetch.io/asda.com'],
-        ]]),
-        '*/api/search*' => Http::response(['stations' => [[
-            'name' => 'ASDA WALLINGTON', 'brand' => 'ASDA', 'address' => 'MARLOW WAY',
-            'postcode' => 'CR0 4XS', 'city' => 'CROYDON',
-            'latitude' => 51.3767, 'longitude' => -0.1313, 'distance' => 0.4,
-        ]]]),
+        '*petrolprices.com/app/geojson*' => Http::response(['data' => ['features' => [[
+            'type' => 'Feature',
+            'geometry' => ['coordinates' => [-0.1313, 51.3767]],
+            'properties' => [
+                'fuel_brand_name' => 'ASDA',
+                'name' => 'ASDA CROYDON (ASDA WALLINGTON)',
+                'address1' => 'MARLOW WAY', 'address2' => '',
+                'town' => 'CROYDON', 'county' => 'GREATER LONDON', 'postcode' => 'CR0 4XS',
+                'distance_in_miles_from_given_coords' => 0.4,
+            ],
+        ]]]]),
     ]);
 
     $fuel = Fuel::factory()->create(['occurred_at' => '2026-05-07 20:52:23', 'station_name' => null]);
@@ -91,16 +94,11 @@ it('applies a reviewed csv onto fuel rows and regenerates the backup csv', funct
 
 it('fetches brand logos after applying the reviewed csv', function () {
     config(['services.logodev.token' => 'test-token']);
-    Http::fake([
-        '*/api/brands*' => Http::response(['brands' => [
-            ['brand' => 'Testco', 'logo' => 'https://cdn.brandfetch.io/testco.example'],
-        ]]),
-        '*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png']),
-    ]);
+    Http::fake(['*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
 
     $fuel = Fuel::factory()->create(['station_name' => null]);
     $header = 'receipt_file,receipt_time,fuel_id,fuel_occurred_at,delta_minutes,receipt_lat,receipt_lng,station_name,brand,address,postcode,city,station_lat,station_lng,distance_km,alt1_name,alt2_name,flag';
-    $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,TESTCO COBHAM,Testco,,,,51.37,-0.13,0.4,,,ok";
+    $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,TEXACO COBHAM,Texaco,,,,51.37,-0.13,0.4,,,ok";
     File::put($this->review, $header."\n".$row."\n");
 
     $this->artisan('import:fuel-receipts', [
@@ -110,5 +108,5 @@ it('fetches brand logos after applying the reviewed csv', function () {
         '--export' => storage_path('app/test-fuel.csv'),
     ])->assertSuccessful();
 
-    expect(File::exists(public_path('logos/brands/testco.png')))->toBeTrue();
+    expect(File::exists(public_path('logos/brands/texaco.png')))->toBeTrue();
 });

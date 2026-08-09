@@ -4,67 +4,64 @@ use App\Models\Fuel;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Texaco is a real brand, so it resolves to a logo domain, and texaco.png is
+ * not one of the logos already on disk, so these tests cannot clobber one.
+ */
 beforeEach(function () {
     config(['services.logodev.token' => 'test-token']);
 });
 
 afterEach(function () {
-    foreach (['testco'] as $slug) {
+    foreach (['texaco'] as $slug) {
         File::delete(public_path("logos/brands/{$slug}.png"));
     }
 });
 
-function fakeBrandLogoHttp(): void
-{
-    Http::fake([
-        '*petrolfinder.uk/api/brands*' => Http::response([
-            'brands' => [
-                ['brand' => 'Testco', 'logo' => 'https://cdn.brandfetch.io/testco.example?c=abc'],
-            ],
-        ], 200),
-        '*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png']),
-    ]);
-}
-
 it('downloads and stores a logo for a fuel brand', function () {
-    fakeBrandLogoHttp();
-    Fuel::factory()->create(['brand' => 'Testco']);
+    Http::fake(['*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
+    Fuel::factory()->create(['brand' => 'Texaco']);
 
     $this->artisan('fuel:brand-logos')->assertExitCode(0);
 
-    expect(File::exists(public_path('logos/brands/testco.png')))->toBeTrue();
-    expect(File::get(public_path('logos/brands/testco.png')))->toBe('PNG-BYTES');
+    expect(File::exists(public_path('logos/brands/texaco.png')))->toBeTrue();
+    expect(File::get(public_path('logos/brands/texaco.png')))->toBe('PNG-BYTES');
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'texaco.com'));
 });
 
 it('skips a brand whose logo already exists without --force', function () {
-    fakeBrandLogoHttp();
-    Fuel::factory()->create(['brand' => 'Testco']);
+    Http::fake(['*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
+    Fuel::factory()->create(['brand' => 'Texaco']);
     File::ensureDirectoryExists(public_path('logos/brands'));
-    File::put(public_path('logos/brands/testco.png'), 'existing');
+    File::put(public_path('logos/brands/texaco.png'), 'existing');
 
     $this->artisan('fuel:brand-logos')->assertExitCode(0);
 
     Http::assertNothingSent();
-    expect(File::get(public_path('logos/brands/testco.png')))->toBe('existing');
+    expect(File::get(public_path('logos/brands/texaco.png')))->toBe('existing');
 });
 
 it('writes no file when logo.dev has no logo for the brand', function () {
-    Http::fake([
-        '*petrolfinder.uk/api/brands*' => Http::response([
-            'brands' => [['brand' => 'Testco', 'logo' => 'https://cdn.brandfetch.io/testco.example?c=abc']],
-        ], 200),
-        '*img.logo.dev*' => Http::response('', 404),
-    ]);
-    Fuel::factory()->create(['brand' => 'Testco']);
+    Http::fake(['*img.logo.dev*' => Http::response('', 404)]);
+    Fuel::factory()->create(['brand' => 'Texaco']);
 
     $this->artisan('fuel:brand-logos')->assertExitCode(0);
 
-    expect(File::exists(public_path('logos/brands/testco.png')))->toBeFalse();
+    expect(File::exists(public_path('logos/brands/texaco.png')))->toBeFalse();
+});
+
+it('does not call logo.dev for a brand with no known domain', function () {
+    Http::fake(['*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
+    Fuel::factory()->create(['brand' => 'Indie Fuels']);
+
+    $this->artisan('fuel:brand-logos')->assertExitCode(0);
+
+    Http::assertNothingSent();
 });
 
 it('errors when the logo.dev token is not set', function () {
     config(['services.logodev.token' => null]);
-    Fuel::factory()->create(['brand' => 'Testco']);
+    Fuel::factory()->create(['brand' => 'Texaco']);
 
     $this->artisan('fuel:brand-logos')->assertExitCode(1);
 });
