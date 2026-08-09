@@ -78,13 +78,23 @@ it('leaves the original in place', function () {
 /**
  * Vector art rasterised to 1920 would be a downgrade, and an animated GIF
  * flattened by Imagick loses the animation silently.
+ *
+ * Only `full` is withheld. Withholding `card` too broke /photos outright:
+ * getUrl() resolves against registered conversions, so an unregistered `card`
+ * throws InvalidConversion even where the file already exists on disk. The
+ * gallery read is exercised here because that is what actually fell over.
  */
-it('leaves svg and gif exactly as they were', function (string $bytes, string $name) {
+it('leaves svg and gif out of full without breaking the gallery', function (string $bytes, string $name) {
     $activity = activityWithPhoto($bytes, $name);
     $media = $activity->getFirstMedia('photos');
 
-    expect($media->hasGeneratedConversion('full'))->toBeFalse()
-        ->and($media->hasGeneratedConversion('card'))->toBeFalse();
+    expect($media->hasGeneratedConversion('full'))->toBeFalse();
+
+    $photos = $activity->galleryPhotos();
+
+    expect($photos)->toHaveCount(1)
+        ->and($photos[0]['src'])->toBeString()
+        ->and($photos[0]['full'])->toBeString();
 })->with([
     'svg' => ['<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>', 'logo.svg'],
     'gif' => [base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'), 'loop.gif'],

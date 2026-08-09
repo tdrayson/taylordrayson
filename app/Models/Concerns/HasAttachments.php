@@ -54,10 +54,6 @@ trait HasAttachments
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        if (in_array($media?->mime_type, self::UNCONVERTED_TYPES, true)) {
-            return;
-        }
-
         $this->addMediaConversion('card')
             ->fit(Fit::Max, 640, 640)
             ->format('webp')
@@ -67,6 +63,15 @@ trait HasAttachments
             // it was never going to produce.
             ->performOnCollections('cover', 'photos', 'artwork')
             ->withResponsiveImages();
+
+        // Only `full` is withheld from these, never `card`. Skipping every
+        // conversion for a type unregisters `card` as well, and getUrl()
+        // resolves against REGISTERED conversions, not generated ones: the one
+        // stored GIF already had a card file on disk and /photos still died
+        // with "There is no conversion named `card`".
+        if (in_array($media?->mime_type, self::UNCONVERTED_TYPES, true)) {
+            return;
+        }
 
         // No responsive variants: this is the one full-size render, shown on its
         // own in a lightbox or behind a card, never picked from a srcset.
