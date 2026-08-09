@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { loadMaplibre, mapStyleForTheme } from '../../../lib/maplibre.js';
-import { useTheme } from '../../../useTheme.js';
+import { loadMaplibre, mapStyleForTheme } from '../../lib/maplibre.js';
+import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
     name: { type: String, default: 'Taylor' },

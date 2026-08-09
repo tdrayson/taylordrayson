@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { player, playAudio, togglePlay, isCurrent } from '../../../lib/player.js';
+import { player, playAudio, togglePlay, isCurrent } from '../../lib/player.js';
 
 const props = defineProps({
     // Latest episode from the backend: { season, episode, publishedAt, duration, url }.

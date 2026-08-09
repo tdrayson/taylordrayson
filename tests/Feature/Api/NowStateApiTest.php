@@ -79,12 +79,12 @@ it('describes what it accepts, so a shortcut can be checked from the phone', fun
     $this->withToken('test-token')->getJson('/api/v1/now')
         ->assertOk()
         ->assertJsonPath('data.ok', true)
-        ->assertJsonPath('data.accepts.battery', ['percent', 'charging', 'low_power', 'device']);
+        ->assertJsonPath('data.accepts.battery', ['percent', 'charging', 'low_power']);
 });
 
 it('shares the last sent readings with every page, so the status bar has them too', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
-        'battery' => ['percent' => 41, 'charging' => true, 'device' => 'iPhone 16 Pro'],
+        'battery' => ['percent' => 41, 'charging' => true],
         'location' => ['city' => 'Whyteleafe, UK', 'latitude' => 51.31, 'longitude' => -0.06, 'timezone' => 'Europe/London'],
     ])->assertOk();
 
@@ -92,10 +92,43 @@ it('shares the last sent readings with every page, so the status bar has them to
         ->component('Now')
         ->where('ambient.battery.percent', 41)
         ->where('ambient.battery.charging', true)
-        ->where('ambient.battery.device', 'iPhone 16 Pro')
         ->where('ambient.location.city', 'Whyteleafe, UK')
         // Never sent, so the widget keeps its own placeholder rather than blanking.
         ->where('ambient.weather', null)
+    );
+});
+
+/**
+ * The device name changes once every few years, so it is configured rather
+ * than repeated in every reading. Sending it is now an error, which is the
+ * point: a shortcut still sending it should be told rather than have the value
+ * silently ignored.
+ */
+it('takes the device name from config, and refuses it in the payload', function () {
+    config()->set('app.device', 'iPhone 16 Pro');
+
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'battery' => ['percent' => 41, 'device' => 'iPhone 16 Pro'],
+    ])->assertStatus(422)->assertJsonValidationErrors(['battery.device']);
+
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'battery' => ['percent' => 41],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.battery'))->not->toHaveKey('device');
+
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.battery.device', 'iPhone 16 Pro')
+    );
+});
+
+/**
+ * A device name with no reading beside it would have the tile claim a battery
+ * it has never been told about.
+ */
+it('does not invent a battery group just to carry the device name', function () {
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.battery', null)
     );
 });
 
@@ -174,17 +207,36 @@ it('takes humidity and wind with their units attached', function () {
         ->toEqual(['temp' => 21.0, 'humidity' => 62.0, 'wind' => 8.0]);
 });
 
-it('renders whole temperatures while storing what was sent', function () {
+it('renders whole readings while storing what was sent', function () {
     $this->withToken('test-token')->postJson('/api/v1/now', [
-        'weather' => ['temp' => 20.6, 'high' => 24.4, 'low' => 13.5],
+        'weather' => ['temp' => 20.6, 'humidity' => 61.7, 'wind' => 8.4],
     ])->assertOk();
 
-    expect(app(StateStore::class)->get('now.weather'))->toEqual(['temp' => 20.6, 'high' => 24.4, 'low' => 13.5]);
+    expect(app(StateStore::class)->get('now.weather'))->toEqual(['temp' => 20.6, 'humidity' => 61.7, 'wind' => 8.4]);
 
     $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
         ->where('ambient.weather.temp', 21)
-        ->where('ambient.weather.high', 24)
-        ->where('ambient.weather.low', 14)
+        ->where('ambient.weather.humidity', 62)
+        ->where('ambient.weather.wind', 8)
+    );
+});
+
+/**
+ * `high` and `low` are still accepted and stored, since the phone sends what
+ * Apple gives it, but the widget shows humidity and wind instead, so nothing
+ * should be putting a forecast range on the page.
+ */
+it('stores high and low without rendering them', function () {
+    $this->withToken('test-token')->postJson('/api/v1/now', [
+        'weather' => ['temp' => 20.0, 'high' => 24.0, 'low' => 13.0],
+    ])->assertOk();
+
+    expect(app(StateStore::class)->get('now.weather'))->toHaveKeys(['high', 'low']);
+
+    $this->get('/now')->assertOk()->assertInertia(fn ($page) => $page
+        ->where('ambient.weather.temp', 20)
+        ->missing('ambient.weather.high')
+        ->missing('ambient.weather.low')
     );
 });
 

@@ -22,8 +22,13 @@ final class NowState
      * @var array<string, array<string, string>>
      */
     private const FIELDS = [
-        'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower', 'device' => 'device'],
-        'weather' => ['condition' => 'condition', 'temp' => 'temp', 'high' => 'high', 'low' => 'low'],
+        // `device` is not here because it is not sent: it changes once every few
+        // years, so it comes from config and is attached below.
+        'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower'],
+        // `high`/`low` are still accepted and stored, but nothing renders them:
+        // the widget shows humidity and wind instead, which say more about what
+        // stepping outside feels like than a forecast range does.
+        'weather' => ['condition' => 'condition', 'temp' => 'temp', 'humidity' => 'humidity', 'wind' => 'wind'],
         'location' => ['city' => 'city', 'state' => 'state', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
         'rings' => ['move' => 'move', 'move_goal' => 'moveGoal', 'exercise' => 'exercise', 'exercise_goal' => 'exerciseGoal', 'stand' => 'stand', 'stand_goal' => 'standGoal', 'steps' => 'steps'],
     ];
@@ -49,6 +54,13 @@ final class NowState
 
         foreach (self::FIELDS as $group => $map) {
             $groups[$group] = $this->group($entries["now.{$group}"] ?? null, $map);
+        }
+
+        // Only alongside a real reading: the device name on its own says
+        // nothing, and would have the tile claim a battery it has never been
+        // told about.
+        if ($groups['battery'] !== null) {
+            $groups['battery']['device'] = config('app.device');
         }
 
         return $groups;
@@ -77,10 +89,10 @@ final class NowState
             return null;
         }
 
-        // Temperatures are stored as sent but shown whole: a widget reading
-        // "20.5°" is precision nobody asked for. Rounded here rather than in
+        // Readings are stored as sent but shown whole: a widget reading "20.5°"
+        // or "62.4%" is precision nobody asked for. Rounded here rather than in
         // each consumer so the status bar and the widget cannot disagree.
-        foreach (['temp', 'high', 'low'] as $reading) {
+        foreach (['temp', 'humidity', 'wind'] as $reading) {
             if (isset($shaped[$reading])) {
                 $shaped[$reading] = (int) round((float) $shaped[$reading]);
             }

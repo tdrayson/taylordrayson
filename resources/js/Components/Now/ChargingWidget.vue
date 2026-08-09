@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { BATTERY_COLOURS, batteryState } from '../../lib/battery.js';
 
 const props = defineProps({
     device: { type: String, default: 'iPhone' },
@@ -12,48 +13,51 @@ const props = defineProps({
 });
 
 const clamped = computed(() => Math.round(Math.max(0, Math.min(100, props.percent))));
-const isLow = computed(() => clamped.value <= 20);
 
+// The tile holds a percentage; the shared rule works in a 0-1 fraction.
+const state = computed(() => batteryState({
+    level: clamped.value / 100,
+    charging: props.charging,
+    lowPower: props.lowPower,
+}));
+
+/**
+ * Deliberately not driven by `state`: the label describes what the phone is
+ * doing, and a phone charging in Low Power Mode is still charging, whereas the
+ * colour follows iOS in showing Low Power Mode. Keeping them separate is why the
+ * two disagree in that one case.
+ */
 const statusText = computed(() => {
     if (props.charging) {
         return 'Charging…';
     }
 
     if (props.lowPower) {
-        return 'Low Power';
+        return 'Low Power Mode';
     }
 
-    return isLow.value ? 'Low battery' : 'On battery';
+    return state.value === 'low' ? 'Low battery' : 'On battery';
 });
 
 const subText = computed(() => (props.charging ? props.timeLeft : 'remaining'));
 const hasSubText = computed(() => Boolean(subText.value));
 
-// Colour priority mirrors iOS: Low Power (orange) > low (red) > charging
+// Colour priority mirrors iOS: Low Power Mode (orange) > low (red) > charging
 // (green) > idle (neutral foreground).
-const valueColor = computed(() => {
-    if (props.lowPower) {
-        return '#FF9500';
-    }
+const VALUE_COLOURS = {
+    ...BATTERY_COLOURS,
+    idle: 'var(--color-neutral-900)',
+};
 
-    if (isLow.value) {
-        return '#FA3532';
-    }
+const FILL_MODIFIERS = {
+    'low-power': 'charging__fill--power',
+    low: 'charging__fill--low',
+    charging: 'charging__fill--charging',
+    idle: 'charging__fill--idle',
+};
 
-    return props.charging ? '#1BC95A' : 'var(--color-neutral-900)';
-});
-
-const fillModifier = computed(() => {
-    if (props.lowPower) {
-        return 'charging__fill--power';
-    }
-
-    if (isLow.value) {
-        return 'charging__fill--low';
-    }
-
-    return props.charging ? 'charging__fill--charging' : 'charging__fill--idle';
-});
+const valueColor = computed(() => VALUE_COLOURS[state.value]);
+const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
 </script>
 
 <template>

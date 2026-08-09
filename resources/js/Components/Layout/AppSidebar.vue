@@ -3,7 +3,7 @@ import Icon from '../Ui/Icon.vue';
 import ProfileCard from '../Profile/ProfileCard.vue';
 import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
-import StreakBadge from '../Now/StreakBadge.vue';
+import StreakBadge from './StreakBadge.vue';
 import { useSettings } from '../../useSettings';
 
 const { openSettings } = useSettings();

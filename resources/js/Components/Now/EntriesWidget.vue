@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import Tooltip from '../../Ui/Tooltip.vue';
+import Tooltip from '../Ui/Tooltip.vue';
 
 const props = defineProps({
     label: { type: String, default: 'entries' },
