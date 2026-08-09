@@ -3,7 +3,6 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Menu01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
-import StatusBar from './StatusBar.vue';
 import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
 import Avatar from '../Profile/Avatar.vue';
@@ -60,7 +59,7 @@ onUnmounted(() => {
 
 <template>
     <div class="md:hidden" :class="shellFixed ? 'fixed inset-0 z-50 flex flex-col bg-neutral-0' : ''">
-        <div class="flex flex-none items-center justify-between px-5 py-3">
+        <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
@@ -75,10 +74,6 @@ onUnmounted(() => {
             >
                 <Icon :icon="open ? Cancel01Icon : Menu01Icon" class="size-6" />
             </button>
-        </div>
-
-        <div class="flex-none border-b border-neutral-50 px-5 pb-2.5">
-            <StatusBar compact show-place />
         </div>
 
         <Transition name="menu-body" @after-leave="onAfterLeave">

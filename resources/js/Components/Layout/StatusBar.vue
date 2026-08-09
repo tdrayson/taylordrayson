@@ -23,10 +23,10 @@ const props = defineProps({
     charging: { type: Boolean, default: true },
     lowPower: { type: Boolean, default: false },
     compact: { type: Boolean, default: false },
-    // Renders the place name as text rather than leaving it to the weather
-    // tooltip. Set on touch layouts, where there is no hover and so no way to
-    // reach any of the tooltips below.
-    showPlace: { type: Boolean, default: false },
+    // Which readings to render, in case a layout has room for some but not
+    // all. Mobile drops time and battery: the phone shows its own directly
+    // above these, so repeating Taylor's reads as the viewer's.
+    readings: { type: Array, default: () => ['rings', 'weather', 'time', 'battery'] },
 });
 
 const { time, date } = useClock();
@@ -94,23 +94,23 @@ const batteryLabel = computed(() => {
         class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
         :class="compact ? 'gap-3 text-xs' : 'gap-4 text-sm'"
     >
-        <Tooltip v-if="ringsLabel" :label="ringsLabel">
-            <ActivityRings :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
-        </Tooltip>
-        <ActivityRings v-else :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
+        <template v-if="readings.includes('rings')">
+            <Tooltip v-if="ringsLabel" :label="ringsLabel">
+                <ActivityRings :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
+            </Tooltip>
+            <ActivityRings v-else :move="move" :exercise="exercise" :stand="stand" :compact="compact" />
+        </template>
 
-        <Tooltip :label="weatherLabel">
+        <Tooltip v-if="readings.includes('weather')" :label="weatherLabel">
             <WeatherStatus :temp="temp" :condition="condition" :compact="compact" />
         </Tooltip>
 
-        <Tooltip :label="`${date}, ${zone}`">
+        <Tooltip v-if="readings.includes('time')" :label="`${date}, ${zone}`">
             <span class="tnum">{{ time }}</span>
         </Tooltip>
 
-        <Tooltip :label="batteryLabel">
+        <Tooltip v-if="readings.includes('battery')" :label="batteryLabel">
             <BatteryStatus class="text-neutral-500" :level="batteryLevel" :charging="charging" :low-power="lowPower" :compact="compact" />
         </Tooltip>
-
-        <span v-if="showPlace" class="ml-auto truncate text-neutral-500">{{ place }}</span>
     </Link>
 </template>
