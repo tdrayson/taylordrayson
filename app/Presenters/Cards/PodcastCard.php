@@ -29,12 +29,12 @@ final class PodcastCard
             meta: CardMeta::media(MediaData::withoutSrcset(
                 id: $model->id,
                 title: $model->title,
-                audioUrl: $model->audio_url,
+                audioUrl: $model->audioSrc(),
                 videoUrl: $model->video_url,
                 // The wide 16:9 video still fronts the timeline card; the square
                 // artwork (audioCover) is what the bottom audio player shows.
-                thumbnail: $model->cover_image ?? $model->thumbnail,
-                audioCover: $model->thumbnail ?? $model->cover_image,
+                thumbnail: $model->wideArtworkSrc() ?? $model->squareArtworkSrc(),
+                audioCover: $model->squareArtworkSrc() ?? $model->wideArtworkSrc(),
                 duration: $model->duration,
                 url: $model->url(),
             )),

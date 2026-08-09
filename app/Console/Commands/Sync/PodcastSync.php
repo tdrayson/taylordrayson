@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
+use App\Jobs\StorePodcastMedia;
 use App\Models\Podcast;
 use App\Services\ThisWeekWith;
 use App\Support\HtmlSanitizer;
@@ -68,6 +69,12 @@ class PodcastSync extends Command
                 if ($podcast->wasRecentlyCreated) {
                     $created++;
                     $consecutiveKnown = 0;
+
+                    // Mirror it now rather than waiting for the next back-fill,
+                    // so a new episode stops depending on the publisher as soon
+                    // as it appears. Only for new episodes: a --full re-map
+                    // walks all 255 and would re-queue the whole archive.
+                    StorePodcastMedia::dispatch($podcast);
 
                     continue;
                 }
