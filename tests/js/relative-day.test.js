@@ -40,6 +40,18 @@ describe('relativeDay', () => {
         assert.equal(relativeDay(daysAgo(-1)), null);
     });
 
+    it('reads a timestamp by the calendar day the reader is in', () => {
+        // Podcasts, leaderboard scores and drafts carry a time, not a bare date.
+        // Late last night is "Yesterday" this morning, not "Today", which is
+        // what an elapsed-hours count would have said.
+        const lateYesterday = new Date();
+        lateYesterday.setDate(lateYesterday.getDate() - 1);
+        lateYesterday.setHours(23, 45, 0, 0);
+
+        assert.equal(relativeDay(lateYesterday.toISOString()), 'Yesterday');
+        assert.equal(relativeDay(new Date().toISOString()), 'Today');
+    });
+
     it('falls back on a missing or unparseable date', () => {
         assert.equal(relativeDay(null), null);
         assert.equal(relativeDay(''), null);

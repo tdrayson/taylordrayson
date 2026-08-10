@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { player, playAudio, togglePlay, isCurrent } from '../../lib/player.js';
+import { relativeDay } from '../../lib/format.js';
 
 const props = defineProps({
     // Latest episode from the backend: { season, episode, publishedAt, duration, url }.
@@ -23,25 +24,9 @@ const seasonEpisode = computed(() => {
     return `S${props.episode.season}, E${props.episode.episode}`;
 });
 
+// Compact absolute fallback ("3 May") once the shared relative window lapses.
 function relativeDate(iso) {
-    const published = new Date(iso);
-    const now = new Date();
-    const days = Math.floor((now - published) / 86400000);
-
-    if (days <= 0) {
-        return 'Today';
-    }
-    if (days === 1) {
-        return 'Yesterday';
-    }
-    if (days < 7) {
-        return `${days} days ago`;
-    }
-    if (days < 28) {
-        const weeks = Math.round(days / 7);
-        return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
-    }
-    return published.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return relativeDay(iso) ?? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 function durationLabel(seconds) {

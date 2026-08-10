@@ -86,7 +86,7 @@ class AuthoringController extends Controller
                 ->map(fn (Model $model): array => [
                     'title' => $this->titleFor($model),
                     'url' => $this->urlFor($model).'?edit',
-                    'updated' => $model->updated_at?->diffForHumans(),
+                    'updated' => $model->updated_at?->toIso8601String(),
                 ])
                 ->all();
 
