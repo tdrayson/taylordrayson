@@ -48,12 +48,16 @@ setLayoutProps({
             :next="{ label: String(year + 1), href: `/${year + 1}` }"
         />
 
-        <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
+        <!-- Both summarise the whole year, so later pages of the feed omit them
+             (the server sends neither past page 1). -->
+        <template v-if="currentPage === 1">
+            <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
 
-        <section v-if="entriesCount">
-            <SectionHead :title="heatmapTitle" :meta="`${Object.keys(heatmap).length} days logged`" />
-            <Heatmap :days="heatmap" :year="year" />
-        </section>
+            <section v-if="entriesCount">
+                <SectionHead :title="heatmapTitle" :meta="`${Object.keys(heatmap).length} days logged`" />
+                <Heatmap :days="heatmap" :year="year" />
+            </section>
+        </template>
 
         <section v-if="entriesCount" class="mt-12">
             <Deferred data="groups">
