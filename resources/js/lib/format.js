@@ -83,8 +83,29 @@ export function dateLongFromYmd(value) {
 }
 
 /**
- * Relative day label for a 'YYYY-MM-DD' date, or null once it is older than
- * the cutoff so the caller falls back to its absolute date.
+ * Local midnight on the day a value falls on, or null if it cannot be read.
+ * A bare 'YYYY-MM-DD' is a wall-clock date and is taken as written; a full
+ * timestamp is an instant, so the calendar day the reader is in is the one
+ * that decides whether it was "yesterday".
+ */
+function startOfDay(value) {
+    const bare = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (bare) {
+        return new Date(Number(bare[1]), Number(bare[2]) - 1, Number(bare[3]));
+    }
+
+    const parsed = new Date(value);
+
+    return Number.isNaN(parsed.getTime())
+        ? null
+        : new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
+/**
+ * Relative day label for a 'YYYY-MM-DD' date or an ISO timestamp, or null once
+ * it is older than the cutoff so the caller falls back to its absolute date.
+ * The one relative-date rule on the site; every surface reads from here.
  *
  * Counted in calendar days rather than elapsed hours: something logged at 11pm
  * yesterday reads as "Yesterday" at 1am, not "Today". Rounding absorbs the 23
@@ -95,10 +116,9 @@ export function relativeDay(value, cutoffDays = 14) {
         return null;
     }
 
-    const [year, month, day] = value.split('-').map(Number);
-    const then = new Date(year, month - 1, day);
+    const then = startOfDay(value);
 
-    if (Number.isNaN(then.getTime())) {
+    if (then === null) {
         return null;
     }
 

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 class LeaderboardEntry extends Model
 {
@@ -14,6 +13,8 @@ class LeaderboardEntry extends Model
      * The leaderboard, keeping only each player's best score, highest first.
      * Each row carries the date that best was reached and a public fingerprint
      * (a one-way hash of the player id) used for highlighting and disambiguation.
+     * The date ships as an ISO timestamp: the client owns relative labels, so
+     * they cannot go stale in a cached page.
      *
      * @return array<int, array{name: string, score: int, date: string|null, fp: string}>
      */
@@ -30,7 +31,7 @@ class LeaderboardEntry extends Model
                     $best[$entry->player_id] = [
                         'name' => $entry->name,
                         'score' => (int) $entry->score,
-                        'date' => self::relativeDate($entry->created_at),
+                        'date' => $entry->created_at?->toIso8601String(),
                         'fp' => self::fingerprint($entry->player_id),
                     ];
                 }
@@ -47,31 +48,6 @@ class LeaderboardEntry extends Model
     public static function fingerprint(?string $playerId): string
     {
         return substr(hash('sha256', (string) $playerId), 0, 6);
-    }
-
-    /**
-     * A short, human relative label for when a score landed: "2 hours ago",
-     * "Yesterday", "3 days ago", or an absolute date once it's over a week old.
-     */
-    private static function relativeDate(?Carbon $time): ?string
-    {
-        if ($time === null) {
-            return null;
-        }
-
-        if ($time->diffInSeconds(now()) < 60) {
-            return 'Just now';
-        }
-
-        if ($time->isYesterday()) {
-            return 'Yesterday';
-        }
-
-        if ($time->diffInDays(now()) < 7) {
-            return $time->diffForHumans(['parts' => 1]);
-        }
-
-        return $time->isoFormat('D MMM YYYY');
     }
 
     /**

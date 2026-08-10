@@ -2,6 +2,7 @@
 import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
+import { relativeDay } from '../lib/format.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -9,6 +10,15 @@ defineProps({
     // One group per draftable type, empty groups already dropped server-side.
     groups: { type: Array, default: () => [] },
 });
+
+// "Edited" reads better than a bare date against a title you were just working on.
+function editedLabel(iso) {
+    const relative = relativeDay(iso);
+
+    return relative === null
+        ? `Edited ${new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+        : relative;
+}
 
 setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
 </script>
@@ -36,7 +46,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
                         class="flex items-baseline justify-between gap-4 py-2.5 transition-colors hover:text-accent-500"
                     >
                         <span class="min-w-0 truncate text-body text-neutral-900">{{ row.title }}</span>
-                        <span class="shrink-0 text-caption text-neutral-500">{{ row.updated }}</span>
+                        <span class="shrink-0 text-caption text-neutral-500">{{ editedLabel(row.updated) }}</span>
                     </Link>
                 </li>
             </ul>
