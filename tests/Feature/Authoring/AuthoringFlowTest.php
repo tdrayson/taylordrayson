@@ -62,6 +62,22 @@ it('expands a dotted field name into the nested value it addresses', function ()
     expect($fuel->fresh()->litres)->toEqual(20);
 });
 
+it('publishes and unpublishes through the same save endpoint', function () {
+    // The editor's Publish button sends the flag with the rest of the form, so
+    // it has to survive validation built from the field definitions.
+    $article = Article::factory()->create(['published' => false]);
+
+    $this->patch("/entries/article/{$article->id}", ['published' => true]);
+
+    expect($article->fresh()->published)->toBeTrue()
+        ->and($article->fresh()->timelineEntry()->exists())->toBeTrue();
+
+    $this->patch("/entries/article/{$article->id}", ['published' => false]);
+
+    expect($article->fresh()->published)->toBeFalse()
+        ->and($article->fresh()->timelineEntry()->exists())->toBeFalse();
+});
+
 it('lists drafts grouped by type, newest edited first', function () {
     Article::factory()->create(['title' => 'Draft article', 'published' => false]);
     Article::factory()->create(['title' => 'Published', 'published' => true]);

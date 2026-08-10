@@ -20,7 +20,7 @@ final class PageFields
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL: /about, /colophon.'),
-            FieldData::primary('published', 'Published', FieldType::Boolean, 'Unpublished pages are visible only to you.'),
+            FieldData::primary('published', 'Published', FieldType::Published),
             FieldData::optional('excerpt', 'Excerpt', FieldType::Textarea, 'Used for search and social previews.'),
         ];
     }

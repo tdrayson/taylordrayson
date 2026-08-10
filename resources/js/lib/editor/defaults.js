@@ -33,6 +33,7 @@ export function defaultValueFor(field) {
         case 'tags':
             return [];
         case 'boolean':
+        case 'published':
             return false;
         // Unset, not the first option: a required choice must be made, not
         // silently made for you. The input renders a placeholder row for this.

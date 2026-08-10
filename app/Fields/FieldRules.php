@@ -49,7 +49,7 @@ final class FieldRules
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
-            FieldType::Boolean => ['boolean'],
+            FieldType::Boolean, FieldType::Published => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
             // Both resolve to a name the lookup filled in, which stays

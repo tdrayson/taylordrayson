@@ -19,7 +19,7 @@ final class ArticleFields
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
-            FieldData::primary('published', 'Published', FieldType::Boolean, 'Drafts are visible only to you and appear in /drafts.'),
+            FieldData::primary('published', 'Published', FieldType::Published),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('excerpt', 'Excerpt', FieldType::Textarea, 'Used for search and social previews.'),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Sets the URL.', defaultsToNow: true),

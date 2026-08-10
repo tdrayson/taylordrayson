@@ -29,6 +29,11 @@ const form = useForm({ ...props.values });
 const titleField = computed(() => props.fields.find((field) => field.isTitle) ?? null);
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
+// Publish state is the save action, not a field: it lives in the footer beside
+// the button so the button can say what it will actually do.
+const publishField = computed(() => props.fields.find((field) => field.isPublished) ?? null);
+const isPublished = computed(() => publishField.value !== null && form[publishField.value.name] === true);
+
 /**
  * Whether a field stacks rather than collapsing to a chip. Chips suit short,
  * usually-empty values; rich text and location need room, and a required field
@@ -42,7 +47,7 @@ function stacks(field) {
         || field.required;
 }
 
-const offered = computed(() => props.fields.filter((field) => !field.hidden));
+const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
 const stacked = computed(() => offered.value.filter((field) => stacks(field) && !field.isTitle && !field.isBody));
 
 /**
@@ -188,7 +193,7 @@ const slugField = computed(() => props.fields.find((field) => field.type === 'sl
 const slugEdited = ref(Boolean(props.values[slugField.value?.name]));
 
 watch(() => (titleField.value ? form[titleField.value.name] : null), (title) => {
-    if (! slugField.value || slugEdited.value || form.published === true) {
+    if (! slugField.value || slugEdited.value || isPublished.value) {
         return;
     }
 
@@ -226,17 +231,26 @@ function applyFill(values) {
 
 const status = computed(() => {
     if (form.processing) {
-        return 'Posting...';
+        return publishField.value ? 'Saving...' : 'Posting...';
     }
 
     if (form.isDirty) {
-        return 'Changes not posted';
+        return 'Unsaved changes';
+    }
+
+    if (publishField.value) {
+        return isPublished.value ? 'Published, live to everyone' : 'Draft, only you can see this';
     }
 
     return props.method === 'post' ? 'Not posted yet' : 'Posted';
 });
 
-function submit() {
+/** Save, optionally flipping publish state in the same request. */
+function submit(published = null) {
+    if (published !== null && publishField.value) {
+        form[publishField.value.name] = published;
+    }
+
     form[props.method](props.action, { preserveScroll: true });
 }
 </script>
@@ -353,7 +367,29 @@ function submit() {
         <div class="mt-8 flex flex-col-reverse items-stretch gap-3 border-t border-neutral-50 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-center text-caption text-neutral-500 sm:text-left sm:text-meta">{{ status }}</p>
 
-            <Button variant="primary" size="lg" class="w-full sm:w-auto" :disabled="form.processing" @click="submit">
+            <div v-if="publishField" class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+                <Button
+                    :variant="isPublished ? 'ghost' : 'secondary'"
+                    size="lg"
+                    class="w-full sm:w-auto"
+                    :disabled="form.processing"
+                    @click="submit(isPublished ? false : null)"
+                >
+                    {{ isPublished ? 'Unpublish' : 'Save draft' }}
+                </Button>
+
+                <Button
+                    variant="primary"
+                    size="lg"
+                    class="w-full sm:w-auto"
+                    :disabled="form.processing"
+                    @click="submit(isPublished ? null : true)"
+                >
+                    {{ isPublished ? 'Update' : 'Publish' }}
+                </Button>
+            </div>
+
+            <Button v-else variant="primary" size="lg" class="w-full sm:w-auto" :disabled="form.processing" @click="submit">
                 {{ submitLabel }}
             </Button>
         </div>
