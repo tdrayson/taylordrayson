@@ -26,13 +26,13 @@ final class FuelFields
             FieldData::optional('price_per_litre', 'Price per litre', FieldType::Number, prefix: '£', suffix: '/L'),
             FieldData::optional('fuel_card_cost', 'Fuel card cost', FieldType::Number, prefix: '£'),
             FieldData::optional('odometer', 'Odometer', FieldType::Number, suffix: 'mi'),
-            FieldData::optional('address', 'Address', FieldType::Text),
-            FieldData::optional('postcode', 'Postcode', FieldType::Text),
-            FieldData::optional('city', 'City', FieldType::Text),
-            FieldData::optional('county', 'County', FieldType::Text),
-            FieldData::optional('country', 'Country', FieldType::Text),
-            FieldData::optional('latitude', 'Latitude', FieldType::Number),
-            FieldData::optional('longitude', 'Longitude', FieldType::Number),
+            FieldData::optional('address', 'Street', FieldType::Text, group: 'Address'),
+            FieldData::optional('postcode', 'Postcode', FieldType::Text, group: 'Address'),
+            FieldData::optional('city', 'City', FieldType::Text, group: 'Address'),
+            FieldData::optional('county', 'County', FieldType::Text, group: 'Address'),
+            FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
+            FieldData::hidden('latitude', 'Latitude', FieldType::Number),
+            FieldData::hidden('longitude', 'Longitude', FieldType::Number),
         ];
     }
 

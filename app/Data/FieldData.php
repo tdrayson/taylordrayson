@@ -17,6 +17,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      * @param  string|null  $source  Which /lookup source backs a Lookup or Location field.
      * @param  string|null  $prefix  Unit shown inside the input, before the value ("£").
      * @param  string|null  $suffix  Unit shown inside the input, after the value ("L").
+     * @param  string|null  $group  Fields sharing a group are offered as one item, e.g. "Address".
+     * @param  bool  $hidden  Saved and filled by a lookup, but never offered in the UI.
      */
     private function __construct(
         public string $name,
@@ -31,6 +33,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public ?string $relativeTo,
         public ?string $prefix,
         public ?string $suffix,
+        public ?string $group,
+        public bool $hidden,
     ) {}
 
     /**
@@ -39,9 +43,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix);
+        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, false);
     }
 
     /**
@@ -49,9 +53,18 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null): self
+    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null): self
     {
-        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix);
+        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, false);
+    }
+
+    /**
+     * A field the UI never offers, kept so a lookup can fill it and a save can
+     * carry it: coordinates come from picking a place, not from typing.
+     */
+    public static function hidden(string $name, string $label, FieldType $type): self
+    {
+        return new self($name, $label, $type, false, false, null, [], null, false, null, null, null, null, true);
     }
 
     /**
@@ -95,6 +108,14 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->suffix !== null) {
             $data['suffix'] = $this->suffix;
+        }
+
+        if ($this->group !== null) {
+            $data['group'] = $this->group;
+        }
+
+        if ($this->hidden) {
+            $data['hidden'] = true;
         }
 
         return $data;
