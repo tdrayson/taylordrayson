@@ -67,14 +67,46 @@ function onMove(event) {
     const rect = container.value.getBoundingClientRect();
     props.cursor.set(Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)));
 }
+
+/**
+ * A press places the cursor on its own, because on touch `pointermove` only
+ * fires while a finger is down AND moving: tapping the chart without dragging
+ * never moved it, so nothing appeared. Capturing the pointer also keeps a
+ * scrub tracking once the finger wanders past the chart's edges.
+ */
+function onDown(event) {
+    onMove(event);
+
+    // Capture keeps a scrub tracking once the finger wanders past the chart's
+    // edges. Placing the cursor comes first and is guarded separately, because
+    // capturing a pointer id that is no longer active throws, and losing the
+    // reading to that would be worse than losing the capture.
+    try {
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+    } catch {
+        // Best effort: without capture a scrub simply stops at the edges.
+    }
+}
+
+/**
+ * Keep the readout after a touch lifts; only clear when a mouse leaves. A
+ * lifting finger raises this too, which wiped the value in the same moment the
+ * tap placed it. Matches SleepStages, which already reads touch this way.
+ */
+function onLeave(event) {
+    if (event.pointerType !== 'touch') {
+        props.cursor.clear();
+    }
+}
 </script>
 
 <template>
     <div
         ref="container"
         class="relative h-40 w-full touch-none select-none"
+        @pointerdown="onDown"
         @pointermove="onMove"
-        @pointerleave="cursor.clear()"
+        @pointerleave="onLeave"
     >
         <svg class="absolute inset-0 size-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <defs>

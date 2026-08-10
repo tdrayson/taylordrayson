@@ -21,11 +21,11 @@ final class MediaCard
         $title = ShowTitle::for($model) ?? $model->title;
 
         $detail = match ($model->type) {
-            MediaType::Film => $model->meta['year'] ?? null,
-            MediaType::TvEpisode => isset($model->meta['season'], $model->meta['episode'])
-                ? sprintf('S%02dE%02d', $model->meta['season'], $model->meta['episode'])
+            MediaType::Film => $model->meta->year,
+            MediaType::TvEpisode => $model->meta->season !== null && $model->meta->episode !== null
+                ? sprintf('S%02dE%02d', $model->meta->season, $model->meta->episode)
                 : null,
-            MediaType::Book => $model->meta['author'] ?? null,
+            MediaType::Book => $model->meta->author,
             default => null,
         };
 

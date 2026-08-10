@@ -3,10 +3,8 @@
 namespace App\Queries;
 
 use App\Models\Activity;
-use App\Models\Appearance;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
-use App\Models\Media;
 use App\Support\GalleryPhotos;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +14,8 @@ use Illuminate\Support\Collection;
 /**
  * Every real photo across the timeline, newest first, backing both the /photos
  * gallery and the "Life lately" widget so the two cannot drift. Enrichment art
- * (video thumbnails, film and book posters) is excluded.
+ * (video thumbnails, film and book posters) is excluded by
+ * GalleryPhotos::contributesPhotos().
  */
 final class PhotoStream
 {
@@ -55,12 +54,10 @@ final class PhotoStream
     {
         return Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNotIn('model_type', [Appearance::class, Media::class])
+            ->whereNotIn('model_type', GalleryPhotos::ENRICHMENT_MODELS)
             ->with(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith([Activity::class => ['media']])])
             ->get()
-            // Non-timeline models (Series) use cover/photos for their own art, so
-            // this guards on Timelineable rather than on null.
-            ->filter(fn (Attachment $attachment): bool => $attachment->model instanceof Timelineable)
+            ->filter(fn (Attachment $attachment): bool => GalleryPhotos::contributesPhotos($attachment->model))
             ->groupBy(fn (Attachment $attachment): string => $attachment->model_type.':'.$attachment->model_id)
             ->map(fn (EloquentCollection $group): array => [
                 'model' => $group->first()->model,

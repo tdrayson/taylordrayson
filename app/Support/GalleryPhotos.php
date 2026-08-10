@@ -2,7 +2,9 @@
 
 namespace App\Support;
 
+use App\Models\Appearance;
 use App\Models\Concerns\Timelineable;
+use App\Models\Media as MediaEntry;
 use App\Presenters\CardPresenter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -14,6 +16,26 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  */
 class GalleryPhotos
 {
+    /**
+     * Models whose cover/photos collections hold enrichment art rather than
+     * photographs: appearance thumbnails derived from video, and film/TV/book
+     * posters fetched from TMDB.
+     *
+     * @var list<class-string>
+     */
+    public const ENRICHMENT_MODELS = [Appearance::class, MediaEntry::class];
+
+    /**
+     * Whether a model's cover/photos are real photographs. Non-timeline models
+     * (a Series poster, say) are excluded too, hence the Timelineable guard
+     * rather than a null check.
+     */
+    public static function contributesPhotos(?Model $model): bool
+    {
+        return $model instanceof Timelineable
+            && ! in_array($model::class, self::ENRICHMENT_MODELS, true);
+    }
+
     /**
      * @param  Collection<int, Media>  $media  Cover + photos media, in display order.
      * @return array<int, array<string, mixed>>

@@ -24,6 +24,7 @@ use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\TripForEntry;
+use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonInterface;
@@ -168,7 +169,21 @@ class EntryController extends Controller
             $model->loadMissing('tags');
         }
 
-        $data = Arr::except($model->toArray(), ['created_at', 'updated_at', 'heart_rate', 'altitude', 'speed', 'track']);
+        // `timeline_entry` is dropped because show() sets that relation and it
+        // carries `timelineable` -- a second, unfiltered copy of this very
+        // model. Serialised, it defeated every exclusion below it: the stream
+        // arrays were shipped despite being excluded here and deferred
+        // separately, and meta went out whole. Nothing on the client reads it.
+        $data = Arr::except($model->toArray(), [
+            'created_at', 'updated_at', 'heart_rate', 'altitude', 'speed', 'track', 'timeline_entry',
+        ]);
+
+        // meta is the one remaining attribute the syncs fill with more than the
+        // page shows, so it is narrowed to the keys EntryMeta names rather than
+        // sent whole. See that class for why the default points this way.
+        if (array_key_exists('meta', $data)) {
+            $data['meta'] = EntryMeta::published($model);
+        }
 
         if (method_exists($model, 'tagNames')) {
             $data['tags'] = $model->tags
