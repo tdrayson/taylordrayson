@@ -19,6 +19,7 @@ const props = defineProps({
 // Home / New / Article, with New linking back to the picker: changing your
 // mind should be the breadcrumb you already expect, not a separate link.
 setLayoutProps({
+    minimal: true,
     breadcrumb: props.type
         ? [{ label: 'New', href: '/new' }, { label: props.type.charAt(0).toUpperCase() + props.type.slice(1) }]
         : [{ label: 'New' }],

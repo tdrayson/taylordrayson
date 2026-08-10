@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { clock } from '../../lib/format.js';
 import { slugify } from '../../lib/editor/defaults.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import Button from '../Ui/Button.vue';
@@ -113,12 +114,23 @@ function add(item) {
     closeExtras();
 }
 
+const tick = ref(new Date());
+let ticker = null;
+
+onMounted(() => {
+    ticker = setInterval(() => {
+        tick.value = new Date();
+    }, 1000);
+});
+
+onBeforeUnmount(() => clearInterval(ticker));
+
 /** The value on the chip itself, so a field that is set reads at a glance. */
 function fieldSummary(field) {
     const value = form[field.name];
 
     if (value === null || value === undefined || value === '' || value === false) {
-        return null;
+        return field.defaultsToNow ? `Now - ${clock(tick.value)}` : null;
     }
 
     if (value === true) {

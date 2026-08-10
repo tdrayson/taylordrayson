@@ -8,6 +8,10 @@ import SidebarNav from './SidebarNav.vue';
 import Avatar from '../Profile/Avatar.vue';
 import { useSettings } from '../../useSettings';
 
+const props = defineProps({
+    minimal: { type: Boolean, default: false },
+});
+
 const { openSettings } = useSettings();
 const open = ref(false);
 
@@ -65,6 +69,7 @@ onUnmounted(() => {
                 <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
             </Link>
             <button
+                v-if="! props.minimal"
                 type="button"
                 class="flex text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                 :aria-expanded="open"

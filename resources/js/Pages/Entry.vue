@@ -95,6 +95,7 @@ const SINGULAR_TYPES = ['sleep', 'calorie', 'fuel', 'note'];
 const crumbLabel = computed(() => (SINGULAR_TYPES.includes(props.type) ? meta.value.label : props.title));
 
 setLayoutProps({
+    minimal: props.editing,
     breadcrumb: [
         { label: year, href: `/${year}` },
         { label: monthName.value, href: `/${year}/${month}` },

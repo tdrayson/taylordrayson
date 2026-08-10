@@ -26,7 +26,7 @@ const props = defineProps({
     mentions: { type: Object, default: () => ({}) },
 });
 
-setLayoutProps({ breadcrumb: [{ label: props.title }] });
+setLayoutProps({ minimal: props.editing, breadcrumb: [{ label: props.title }] });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
 
