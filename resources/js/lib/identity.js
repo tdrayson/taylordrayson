@@ -1,4 +1,4 @@
-import { GithubIcon, NewTwitterIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { GithubIcon } from '@hugeicons-pro/core-stroke-rounded';
 
 /**
  * The profiles that say "this is the same person elsewhere". One source, so
@@ -6,7 +6,6 @@ import { GithubIcon, NewTwitterIcon } from '@hugeicons-pro/core-stroke-rounded';
  */
 export const profiles = [
     { icon: GithubIcon, href: 'https://github.com/tdrayson', label: 'GitHub' },
-    { icon: NewTwitterIcon, href: '#', label: 'X' },
 ];
 
 /**
