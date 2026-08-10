@@ -88,7 +88,7 @@ const batteryLabel = computed(() => {
         href="/now"
         aria-label="Today's status - open the Now page"
         class="flex items-center font-medium text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
-        :class="compact ? 'gap-3 text-xs' : 'gap-4 text-sm'"
+        :class="compact ? 'gap-2.5 text-sm' : 'gap-4 text-sm'"
     >
         <Tooltip v-if="ringsLabel" :label="ringsLabel">
             <ActivityRings :move="move" :exercise="exercise" :stand="stand" :compact="compact" />

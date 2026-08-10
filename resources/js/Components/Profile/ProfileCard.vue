@@ -2,7 +2,7 @@
 import { ref, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
-import SocialLinks from './SocialLinks.vue';
+import { identityProfiles } from '../../lib/identity.js';
 
 defineProps({
     name: { type: String, default: 'Taylor Drayson' },
@@ -191,7 +191,10 @@ onBeforeUnmount(() => {
             <Link href="/" class="p-name u-url u-uid">{{ name }}</Link>
         </p>
         <p class="mb-4 max-w-50 p-note text-caption text-neutral-500">{{ bio }}</p>
-        <SocialLinks />
+
+        <!-- Hidden, not dropped: microformats and IndieAuth read the DOM and
+             ignore CSS, so identity survives without the icons being on screen. -->
+        <a v-for="profile in identityProfiles" :key="profile.href" :href="profile.href" rel="me" class="u-url" hidden>{{ profile.label }}</a>
 
         <Teleport to="body">
             <Avatar
