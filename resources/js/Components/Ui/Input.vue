@@ -19,9 +19,6 @@ defineOptions({ inheritAttrs: false });
 
 const hasAffix = computed(() => Boolean(props.prefix || props.suffix));
 
-// 16px on small screens: iOS Safari zooms the page on a smaller focused input.
-const FIELD_TEXT = 'text-base sm:text-meta';
-
 const border = computed(() =>
     props.invalid
         ? 'border-red-500 focus-within:border-red-500'
@@ -30,8 +27,7 @@ const border = computed(() =>
 
 const wrapperClasses = computed(() =>
     cn(
-        'flex w-full items-center gap-1.5 rounded-md border bg-neutral-0 px-3 transition-colors',
-        FIELD_TEXT,
+        'flex w-full items-center gap-1.5 rounded-md border bg-neutral-0 px-3 text-meta transition-colors',
         border.value,
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
@@ -40,8 +36,7 @@ const wrapperClasses = computed(() =>
 
 const bareClasses = computed(() =>
     cn(
-        'w-full rounded-md border bg-neutral-0 px-3 py-2.5 text-neutral-900 transition-colors placeholder:text-neutral-500 focus:outline-none',
-        FIELD_TEXT,
+        'w-full rounded-md border bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:outline-none',
         props.invalid ? 'border-red-500 focus:border-red-500' : 'border-neutral-100 focus:border-accent-500',
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,

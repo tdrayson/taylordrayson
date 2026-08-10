@@ -121,7 +121,7 @@ function setTimePart(value) {
         <button
             :id="id"
             type="button"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-base text-neutral-900 sm:text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="toggle"
         >
             {{ label }}
@@ -175,7 +175,7 @@ function setTimePart(value) {
                     <input
                         type="date"
                         :value="parts.date"
-                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-base text-neutral-900 sm:text-meta focus:border-accent-500 focus:outline-none"
+                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setDatePart($event.target.value)"
                     >
                 </label>
@@ -185,7 +185,7 @@ function setTimePart(value) {
                     <input
                         type="time"
                         :value="parts.time"
-                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-base text-neutral-900 sm:text-meta focus:border-accent-500 focus:outline-none"
+                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setTimePart($event.target.value)"
                     >
                 </label>
@@ -197,7 +197,7 @@ function setTimePart(value) {
                     type="text"
                     :value="timezone"
                     :placeholder="Intl.DateTimeFormat().resolvedOptions().timeZone"
-                    class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-base text-neutral-900 sm:text-meta focus:border-accent-500 focus:outline-none"
+                    class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                     @input="emit('update:timezone', $event.target.value)"
                 >
             </label>
