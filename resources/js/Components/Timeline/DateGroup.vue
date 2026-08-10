@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import TimelineFeed from './TimelineFeed.vue';
+import { relativeDay } from '../../lib/format.js';
 
 const props = defineProps({
     label: { type: String, required: true },
@@ -15,30 +16,8 @@ const props = defineProps({
     headingLevel: { type: [String, Number], default: 2 },
 });
 
-function toKey(value) {
-    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
-}
-
-// Relative label computed client-side so a cached page never shows a stale "Today".
-const relative = computed(() => {
-    if (!props.date) {
-        return null;
-    }
-
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (props.date === toKey(now)) {
-        return 'Today';
-    }
-
-    if (props.date === toKey(yesterday)) {
-        return 'Yesterday';
-    }
-
-    return null;
-});
+// Computed client-side so a cached page never shows a stale "Today".
+const relative = computed(() => relativeDay(props.date));
 
 const isToday = computed(() => relative.value === 'Today');
 const displayLabel = computed(() => relative.value ?? props.label);
