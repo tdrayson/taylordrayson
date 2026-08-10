@@ -82,6 +82,47 @@ export function dateLongFromYmd(value) {
     });
 }
 
+/**
+ * Relative day label for a 'YYYY-MM-DD' date, or null once it is older than
+ * the cutoff so the caller falls back to its absolute date.
+ *
+ * Counted in calendar days rather than elapsed hours: something logged at 11pm
+ * yesterday reads as "Yesterday" at 1am, not "Today". Rounding absorbs the 23
+ * and 25 hour days either side of a DST change.
+ */
+export function relativeDay(value, cutoffDays = 14) {
+    if (!value) {
+        return null;
+    }
+
+    const [year, month, day] = value.split('-').map(Number);
+    const then = new Date(year, month - 1, day);
+
+    if (Number.isNaN(then.getTime())) {
+        return null;
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const days = Math.round((today - then) / 86400000);
+
+    // Future dates fall through to the absolute label rather than reading as
+    // "-2 days ago".
+    if (days < 0 || days > cutoffDays) {
+        return null;
+    }
+
+    if (days === 0) {
+        return 'Today';
+    }
+
+    if (days === 1) {
+        return 'Yesterday';
+    }
+
+    return `${days} days ago`;
+}
+
 /** Canonical clock format used everywhere: 6:55am, 9:00pm, 12:30pm. */
 export function clock(date) {
     const hours = date.getHours();
