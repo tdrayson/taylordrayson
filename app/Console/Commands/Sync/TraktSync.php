@@ -207,15 +207,15 @@ class TraktSync extends Command
 
         $group
             ->sort(function (Media $a, Media $b): int {
-                $seasonA = $a->meta['season'] ?? 0;
-                $seasonB = $b->meta['season'] ?? 0;
+                $seasonA = $a->meta->season ?? 0;
+                $seasonB = $b->meta->season ?? 0;
 
                 if ($seasonA !== $seasonB) {
                     return $seasonA <=> $seasonB;
                 }
 
-                $episodeA = $a->meta['episode'] ?? 0;
-                $episodeB = $b->meta['episode'] ?? 0;
+                $episodeA = $a->meta->episode ?? 0;
+                $episodeB = $b->meta->episode ?? 0;
 
                 if ($episodeA !== $episodeB) {
                     return $episodeA <=> $episodeB;
@@ -278,7 +278,7 @@ class TraktSync extends Command
 
         Media::query()->where('source', 'trakt')->where('type', $mediaType)->get()
             ->each(function (Media $media) use ($ratings): void {
-                $traktId = $media->meta['ids']['trakt'] ?? null;
+                $traktId = $media->meta->ids->trakt;
 
                 if ($traktId === null || ! array_key_exists($traktId, $ratings)) {
                     return;
@@ -309,11 +309,14 @@ class TraktSync extends Command
 
             $rating = $ratings[$series->trakt_id];
 
-            if (($series->meta['rating'] ?? null) === $rating) {
+            // Compared numerically: the stored rating and the one Trakt
+            // sends can differ in type without differing in value, and a
+            // strict comparison would re-save every show on every run.
+            if ($series->meta->rating !== null && (float) $series->meta->rating === (float) $rating) {
                 return;
             }
 
-            $series->meta = array_merge($series->meta ?? [], ['rating' => $rating]);
+            $series->meta = $series->meta->merge(['rating' => $rating]);
             $series->save();
         });
     }
@@ -501,7 +504,7 @@ class TraktSync extends Command
      */
     private function seriesIsBare(Series $series): bool
     {
-        return ! $series->hasMedia('cover') || empty($series->meta['tmdb']);
+        return ! $series->hasMedia('cover') || $series->meta->tmdb->isEmpty();
     }
 
     /**
@@ -536,10 +539,10 @@ class TraktSync extends Command
         $seasons = $show['seasons'] ?? $summary['seasons'] ?? null;
         $seasons = is_countable($seasons) ? count($seasons) : $seasons;
 
-        $series->meta = array_merge($series->meta ?? [], array_filter([
+        $series->meta = $series->meta->merge(array_filter([
             'ids' => $show['ids'] ?? [],
-            'aired_episodes' => $airedEpisodes ?? ($series->meta['aired_episodes'] ?? null),
-            'seasons' => $seasons ?? ($series->meta['seasons'] ?? null),
+            'aired_episodes' => $airedEpisodes ?? $series->meta->airedEpisodes,
+            'seasons' => $seasons ?? $series->meta->seasons,
         ], fn ($value): bool => $value !== null));
 
         $series->save();

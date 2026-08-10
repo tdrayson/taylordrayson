@@ -29,11 +29,11 @@ final class TraktUrl
         }
 
         return match ($media->type) {
-            MediaType::Film => self::film($media->meta['ids']['slug'] ?? null),
+            MediaType::Film => self::film($media->meta->ids->slug),
             MediaType::TvEpisode => self::episode(
-                $media->meta['show_slug'] ?? null,
-                $media->meta['season'] ?? null,
-                $media->meta['episode'] ?? null,
+                $media->meta->showSlug,
+                $media->meta->season,
+                $media->meta->episode,
             ),
             default => null,
         };
@@ -53,7 +53,7 @@ final class TraktUrl
      * All three parts are required: a season or episode number missing would
      * otherwise produce a URL pointing at the wrong episode, or at none.
      */
-    public static function episode(?string $showSlug, int|string|null $season, int|string|null $episode): ?string
+    public static function episode(?string $showSlug, ?int $season, ?int $episode): ?string
     {
         if (! $showSlug || $season === null || $episode === null) {
             return null;

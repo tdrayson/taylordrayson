@@ -4,7 +4,6 @@ namespace App\Queries;
 
 use App\Data\EpisodeRow;
 use App\Data\SeasonGroup;
-use App\Data\SeasonSummary;
 use App\Data\SeriesHeader;
 use App\Data\SeriesShow;
 use App\Data\WatchDateGroup;
@@ -29,14 +28,12 @@ final class SeriesShowData
             series: $this->header($series),
             stats: ($this->watchStats)($series),
             seasons: $this->seasons($series->episodes),
-            seasonList: $this->seasonList($series),
+            seasonList: $series->meta->seasonList,
         );
     }
 
     private function header(Series $series): SeriesHeader
     {
-        $slug = $series->meta['ids']['slug'] ?? null;
-
         return new SeriesHeader(
             slug: $series->slug,
             title: $series->title,
@@ -45,29 +42,10 @@ final class SeriesShowData
             poster: $series->getFirstMediaUrl('cover', 'card') ?: null,
             backdrop: $series->optimisedUrl('backdrop'),
             logo: $series->optimisedUrl('logo'),
-            network: $series->meta['tmdb']['network'] ?? null,
-            rating: $series->meta['rating'] ?? null,
-            platformUrl: TraktUrl::show($slug),
+            network: $series->meta->tmdb->network,
+            rating: $series->meta->rating,
+            platformUrl: TraktUrl::show($series->meta->ids->slug),
         );
-    }
-
-    /**
-     * TMDB's season structure (`meta.season_list`), camelCased for the show
-     * page's season overview. Independent of which episodes we've actually
-     * watched, unlike seasons()/groupByWatchDate() below.
-     *
-     * @return list<SeasonSummary>
-     */
-    private function seasonList(Series $series): array
-    {
-        return collect($series->meta['season_list'] ?? [])
-            ->map(fn (array $season): SeasonSummary => new SeasonSummary(
-                number: $season['number'] ?? null,
-                name: $season['name'] ?? null,
-                episodeCount: $season['episode_count'] ?? null,
-                airDate: $season['air_date'] ?? null,
-            ))
-            ->all();
     }
 
     /**
@@ -79,7 +57,7 @@ final class SeriesShowData
     private function seasons(Collection $episodes): array
     {
         return $episodes
-            ->groupBy(fn (Media $episode): int => (int) ($episode->meta['season'] ?? 0))
+            ->groupBy(fn (Media $episode): int => $episode->meta->season ?? 0)
             ->map(fn (Collection $group, int $season): SeasonGroup => new SeasonGroup(
                 season: $season,
                 dates: $this->groupByWatchDate($group),
@@ -102,8 +80,8 @@ final class SeriesShowData
                 anchor: "watch-{$date}",
                 episodes: $group->map(fn (Media $episode): EpisodeRow => new EpisodeRow(
                     id: $episode->id,
-                    season: $episode->meta['season'] ?? null,
-                    episode: $episode->meta['episode'] ?? null,
+                    season: $episode->meta->season,
+                    episode: $episode->meta->episode,
                     title: $episode->title,
                     occurredAt: $episode->occurred_at->toIso8601String(),
                     rating: $episode->rating,

@@ -15,7 +15,7 @@ class UpdateBook
     public function __invoke(Media $book, array $attributes): Media
     {
         if (array_key_exists('meta', $attributes)) {
-            $attributes['meta'] = [...$book->meta ?? [], ...$attributes['meta']];
+            $attributes['meta'] = $book->meta->merge($attributes['meta']);
         }
 
         $book->fill($attributes)->save();

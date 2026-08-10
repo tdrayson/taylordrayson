@@ -36,7 +36,7 @@ class TraktDiagnoseSingleEpisodeRemoval extends Command
             ->get();
 
         $targets = $rows
-            ->mapWithKeys(fn (Media $row): array => [(int) data_get($row->meta, 'ids.trakt') => $row->meta['show_title'] ?? $row->title])
+            ->mapWithKeys(fn (Media $row): array => [(int) $row->meta->ids->trakt => $row->meta->showTitle ?? $row->title])
             ->filter(fn ($label, $id): bool => $id !== 0);
 
         try {

@@ -39,7 +39,7 @@ class EnrichMediaCommand extends Command
                 return;
             }
 
-            EnrichMedia::dispatch($series, 'tv', $series->meta['ids']['tmdb'] ?? null, null);
+            EnrichMedia::dispatch($series, 'tv', $series->meta->ids->tmdb, null);
             $dispatched++;
         });
 
@@ -56,7 +56,7 @@ class EnrichMediaCommand extends Command
                     return;
                 }
 
-                EnrichMedia::dispatch($media, 'movie', $media->meta['ids']['tmdb'] ?? null, null);
+                EnrichMedia::dispatch($media, 'movie', $media->meta->ids->tmdb, null);
                 $dispatched++;
             });
 
@@ -69,11 +69,11 @@ class EnrichMediaCommand extends Command
      */
     private function seriesIsBare(Series $series): bool
     {
-        return ! $series->hasMedia('cover') || empty($series->meta['tmdb']);
+        return ! $series->hasMedia('cover') || $series->meta->tmdb->isEmpty();
     }
 
     private function mediaIsBare(Media $media): bool
     {
-        return ! $media->hasMedia('cover') || empty($media->meta['tmdb']);
+        return ! $media->hasMedia('cover') || $media->meta->tmdb->isEmpty();
     }
 }

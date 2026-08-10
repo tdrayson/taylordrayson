@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\MediaMeta;
 use App\Enums\MediaType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
@@ -40,7 +41,7 @@ class Media extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'type' => MediaType::class,
-            'meta' => 'array',
+            'meta' => MediaMeta::class,
         ];
     }
 

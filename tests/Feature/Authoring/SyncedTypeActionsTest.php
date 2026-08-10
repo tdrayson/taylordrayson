@@ -69,7 +69,7 @@ it('creates a book as a media row of type book', function () {
     ]);
 
     expect($book->type)->toBe(MediaType::Book)
-        ->and($book->meta['author'])->toBe('Pat Barker')
+        ->and($book->meta->author)->toBe('Pat Barker')
         ->and(Media::count())->toBe(1);
 });
 
@@ -81,11 +81,15 @@ it('merges book meta on update rather than replacing it', function () {
 
     app(UpdateBook::class)($book, ['meta' => ['author' => 'Someone Else']]);
 
-    // Editing the author must not drop the ISBN alongside it.
-    expect($book->fresh()->meta)->toMatchArray([
-        'author' => 'Someone Else',
-        'isbn' => '9780241983201',
-    ]);
+    // Editing the author must not drop the ISBN alongside it. Asserted on
+    // the stored shape as well as the typed one, because `isbn` is a key
+    // MediaMeta does not name: it survives only if the DTO round-trips the
+    // keys it does not recognise.
+    expect($book->fresh()->meta->author)->toBe('Someone Else')
+        ->and($book->fresh()->meta->toArray())->toMatchArray([
+            'author' => 'Someone Else',
+            'isbn' => '9780241983201',
+        ]);
 });
 
 it('assigns the active car when a fill-up does not name one', function () {
