@@ -139,6 +139,18 @@ it('serves the month tail and photos strip', function () {
             ->where('groups.0.date', '2025-05-03')));
 });
 
+it('sends the period summary on the first page only', function () {
+    foreach (range(1, 12) as $day) {
+        Note::factory()->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
+    }
+
+    get('/2025/05')->assertInertia(fn ($page) => $page->has('stats')->has('days')->has('photos'));
+    get('/2025/05?page=2')->assertInertia(fn ($page) => $page->missing('stats')->missing('days')->missing('photos'));
+
+    get('/2025')->assertInertia(fn ($page) => $page->has('stats')->has('heatmap'));
+    get('/2025?page=2')->assertInertia(fn ($page) => $page->missing('stats')->missing('heatmap'));
+});
+
 it('shows every photo in the month, uncapped', function () {
     Storage::fake('public');
     $note = Note::factory()->create(['occurred_at' => '2025-05-03 10:00:00']);

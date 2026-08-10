@@ -81,20 +81,24 @@ setLayoutProps({
             :next="{ label: monthLabel(nextMonth), href: monthUrl(nextMonth) }"
         />
 
-        <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
+        <!-- All three summarise the whole month, so later pages of the feed omit
+             them (the server sends none of them past page 1). -->
+        <template v-if="currentPage === 1">
+            <StatGrid v-if="stats.length" :stats="stats" class="mt-8" />
 
-        <CalendarMonth :year="year" :month="month" :days="days" />
+            <CalendarMonth :year="year" :month="month" :days="days" />
 
-        <section v-if="photos.length">
-            <SectionHead title="Photos" size="title" :meta="`${photos.length} this month`" />
-            <!-- Same masonry + hover-context tiles and column count as /photos. -->
-            <PhotoGrid :photos="visiblePhotos" :columns="3" @open="lightboxIndex = $event" />
-            <Lightbox v-model:index="lightboxIndex" :photos="visiblePhotos" />
+            <section v-if="photos.length">
+                <SectionHead title="Photos" size="title" :meta="`${photos.length} this month`" />
+                <!-- Same masonry + hover-context tiles and column count as /photos. -->
+                <PhotoGrid :photos="visiblePhotos" :columns="3" @open="lightboxIndex = $event" />
+                <Lightbox v-model:index="lightboxIndex" :photos="visiblePhotos" />
 
-            <div v-if="!showAllPhotos && photos.length > PHOTO_PREVIEW" class="mt-6 flex justify-center">
-                <Button @click="showAllPhotos = true">Show all {{ photos.length }} photos</Button>
-            </div>
-        </section>
+                <div v-if="!showAllPhotos && photos.length > PHOTO_PREVIEW" class="mt-6 flex justify-center">
+                    <Button @click="showAllPhotos = true">Show all {{ photos.length }} photos</Button>
+                </div>
+            </section>
+        </template>
 
         <section v-if="entriesCount" class="mt-12">
             <Deferred data="groups">
