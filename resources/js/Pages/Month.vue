@@ -10,6 +10,7 @@ import SectionHead from '../Components/Ui/SectionHead.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
+import Button from '../Components/Ui/Button.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
 import FutureNote from '../Components/Timeline/FutureNote.vue';
 
@@ -30,6 +31,14 @@ const props = defineProps({
 
 // Which photo the lightbox is showing (null = closed).
 const lightboxIndex = ref(null);
+
+const PHOTO_PREVIEW = 12;
+const showAllPhotos = ref(false);
+
+// A busy month can run to 35 photos, which pushes the day-by-day feed several
+// screens down, so the strip opens at a screenful. The rest are already in the
+// payload, so revealing them costs no request.
+const visiblePhotos = computed(() => (showAllPhotos.value ? props.photos : props.photos.slice(0, PHOTO_PREVIEW)));
 
 const pad = (value) => String(value).padStart(2, '0');
 const date = computed(() => new Date(props.year, props.month - 1, 1));
@@ -79,8 +88,12 @@ setLayoutProps({
         <section v-if="photos.length">
             <SectionHead title="Photos" size="title" :meta="`${photos.length} this month`" />
             <!-- Same masonry + hover-context tiles and column count as /photos. -->
-            <PhotoGrid :photos="photos" :columns="3" @open="lightboxIndex = $event" />
-            <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+            <PhotoGrid :photos="visiblePhotos" :columns="3" @open="lightboxIndex = $event" />
+            <Lightbox v-model:index="lightboxIndex" :photos="visiblePhotos" />
+
+            <div v-if="!showAllPhotos && photos.length > PHOTO_PREVIEW" class="mt-6 flex justify-center">
+                <Button @click="showAllPhotos = true">Show all {{ photos.length }} photos</Button>
+            </div>
         </section>
 
         <section v-if="entriesCount" class="mt-12">
