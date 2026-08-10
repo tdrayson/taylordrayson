@@ -3,10 +3,8 @@
 namespace App\Queries;
 
 use App\Models\Activity;
-use App\Models\Appearance;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
-use App\Models\Media;
 use App\Support\GalleryPhotos;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -19,9 +17,8 @@ use Illuminate\Support\Collection;
  * for both the /photos gallery and the "Life lately" widget on /now, so the two
  * can never drift apart on what counts as a photo or how they are ordered.
  *
- * Enrichment art is deliberately excluded so only photos actually taken remain:
- * appearance video thumbnails and media (film/TV/book) posters by model type,
- * plus any non-timeline model (e.g. a Series poster) via the Timelineable guard.
+ * Enrichment art is excluded so only photos actually taken remain, per
+ * GalleryPhotos::contributesPhotos().
  */
 final class PhotoStream
 {
@@ -61,13 +58,10 @@ final class PhotoStream
     {
         return Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNotIn('model_type', [Appearance::class, Media::class])
+            ->whereNotIn('model_type', GalleryPhotos::ENRICHMENT_MODELS)
             ->with(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith([Activity::class => ['media']])])
             ->get()
-            // Some non-timeline models (e.g. Series) also use the cover/photos
-            // collections for their own art, so guard on Timelineable rather
-            // than a mere null check.
-            ->filter(fn (Attachment $attachment): bool => $attachment->model instanceof Timelineable)
+            ->filter(fn (Attachment $attachment): bool => GalleryPhotos::contributesPhotos($attachment->model))
             ->groupBy(fn (Attachment $attachment): string => $attachment->model_type.':'.$attachment->model_id)
             ->map(fn (EloquentCollection $group): array => [
                 'model' => $group->first()->model,

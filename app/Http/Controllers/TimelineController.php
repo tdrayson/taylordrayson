@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildMonthCalendar;
 use App\Actions\BuildTimelineFeed;
-use App\Models\Appearance;
 use App\Models\Podcast;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
@@ -13,6 +12,7 @@ use App\Queries\PeriodStats;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Inertia\DeferProp;
@@ -128,6 +128,16 @@ class TimelineController extends Controller
         ]);
     }
 
+    /**
+     * Whether this request is the first page of a paginated archive. The stats,
+     * calendar, heatmap and photos all summarise the whole period, so later
+     * pages of the feed neither render nor pay to build them.
+     */
+    private function isFirstPage(): bool
+    {
+        return Paginator::resolveCurrentPage() === 1;
+    }
+
     public function year(int $year): Response
     {
         $start = Carbon::create($year, 1, 1)->startOfDay();
@@ -137,8 +147,10 @@ class TimelineController extends Controller
             'year' => $year,
             'og' => OgMeta::year($year),
             'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
-            'stats' => ($this->periodStats)($start, $end, withSuperlative: true),
-            'heatmap' => ($this->heatmapDays)($start, $end),
+            ...$this->isFirstPage() ? [
+                'stats' => ($this->periodStats)($start, $end, withSuperlative: true),
+                'heatmap' => ($this->heatmapDays)($start, $end),
+            ] : [],
             ...$this->periodTail($start, $end),
         ]);
     }
@@ -156,6 +168,29 @@ class TimelineController extends Controller
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
 
+        return Inertia::render('Month', [
+            'year' => $year,
+            'month' => $month,
+            'og' => OgMeta::month($year, $month),
+            'entriesCount' => $entries->count(),
+            ...$this->monthSummary($entries, $start, $end),
+            ...$this->periodTail($start, $end),
+        ]);
+    }
+
+    /**
+     * Stats, day calendar and photos covering the whole month, or nothing on
+     * later pages of the feed, which repeat neither.
+     *
+     * @param  Collection<int, TimelineEntry>  $entries
+     * @return array<string, mixed>
+     */
+    private function monthSummary(Collection $entries, Carbon $start, Carbon $end): array
+    {
+        if (! $this->isFirstPage()) {
+            return [];
+        }
+
         $timelineables = $entries->map(fn (TimelineEntry $entry) => $entry->timelineable);
 
         /**
@@ -166,24 +201,18 @@ class TimelineController extends Controller
         $timelineables->groupBy(fn ($model): string => $model::class)
             ->each(fn (Collection $group): EloquentCollection => EloquentCollection::make($group->values())->loadMissing('media'));
 
-        return Inertia::render('Month', [
-            'year' => $year,
-            'month' => $month,
-            'og' => OgMeta::month($year, $month),
-            'entriesCount' => $entries->count(),
+        return [
             'days' => ($this->monthCalendar)($entries, $start, $end),
             'stats' => ($this->periodStats)($start, $end),
             // Same shaped payload as the /photos gallery (masonry dimensions,
-            // caption/accent, entry link) so the month strip shares its markup.
-            // Appearance covers are derived video thumbnails, excluded like /photos does.
+            // caption/accent, entry link) so the month strip shares its markup,
+            // and the same rule about what counts as a photograph.
             'photos' => $timelineables
-                ->reject(fn ($model): bool => $model instanceof Appearance)
+                ->filter(fn ($model): bool => GalleryPhotos::contributesPhotos($model))
                 ->flatMap(fn ($model): array => GalleryPhotos::shape($model, $model->getMedia('cover')->merge($model->getMedia('photos'))))
-                ->take(12)
                 ->values()
                 ->all(),
-            ...$this->periodTail($start, $end),
-        ]);
+        ];
     }
 
     public function day(int $year, int $month, int $day): Response
