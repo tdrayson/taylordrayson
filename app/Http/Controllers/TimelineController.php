@@ -178,7 +178,6 @@ class TimelineController extends Controller
             'photos' => $timelineables
                 ->filter(fn ($model): bool => GalleryPhotos::contributesPhotos($model))
                 ->flatMap(fn ($model): array => GalleryPhotos::shape($model, $model->getMedia('cover')->merge($model->getMedia('photos'))))
-                ->take(12)
                 ->values()
                 ->all(),
             ...$this->periodTail($start, $end),

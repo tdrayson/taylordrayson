@@ -139,7 +139,7 @@ it('serves the month tail and photos strip', function () {
             ->where('groups.0.date', '2025-05-03')));
 });
 
-it('caps the month photos strip at 12 even when more are attached', function () {
+it('shows every photo in the month, uncapped', function () {
     Storage::fake('public');
     $note = Note::factory()->create(['occurred_at' => '2025-05-03 10:00:00']);
 
@@ -149,5 +149,5 @@ it('caps the month photos strip at 12 even when more are attached', function () 
 
     get('/2025/05')->assertInertia(fn ($page) => $page
         ->component('Month')
-        ->has('photos', 12));
+        ->has('photos', 13));
 });
