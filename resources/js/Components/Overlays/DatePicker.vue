@@ -160,7 +160,6 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
         </button>
 
         <div v-if="open" class="absolute left-0 z-50 mt-2 w-64 rounded-lg border border-neutral-50 bg-neutral-0 p-3 shadow-card">
-            <!-- Days view -->
             <template v-if="pickerView === 'days'">
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(-1)">
@@ -190,7 +189,6 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 </div>
             </template>
 
-            <!-- Months view -->
             <template v-else-if="pickerView === 'months'">
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous year" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepYear(-1)">
@@ -217,7 +215,6 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 </div>
             </template>
 
-            <!-- Years view -->
             <template v-else>
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(-1)">

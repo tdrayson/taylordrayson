@@ -5,13 +5,8 @@ import Input from '../Ui/Input.vue';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 
 /**
- * A date and time, with the shortcuts you actually reach for and an explicit
- * timezone.
- *
- * The value is wall-clock text, never an instant: entries store the clock on
- * the wall where they happened, so parsing through Date and back would walk
- * the time by the browser's offset. chrono is already a dependency here, used
- * by the command palette, so "yesterday 9am" costs nothing extra.
+ * A date and time with an explicit timezone. The value is wall-clock text, never
+ * an instant: parsing through Date and back would walk it by the browser's offset.
  */
 const props = defineProps({
     // 'YYYY-MM-DD HH:mm:ss' or the T-separated form.

@@ -16,14 +16,9 @@ use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Backfill map coordinates onto Strava photos that are already downloaded,
- * without re-fetching image bytes.
- *
- * Per activity it fetches the (small) photos payload and the GPS stream, then
- * resolves each stored photo's coordinate via {@see ResolvePhotoCoordinate}:
- * Strava's own per-photo `location` first, falling back to stream
- * interpolation. Stored media are matched back to their Strava photo by the
- * unique id embedded in the filename.
+ * Backfill map coordinates onto already-downloaded Strava photos without
+ * re-fetching image bytes. Stored media are matched back to their Strava photo
+ * by the unique id embedded in the filename.
  */
 #[Signature('strava:photo-locations {--limit=0 : Max activities to locate photos for (0 = all)} {--force : Re-derive coordinates for photos that already have them}')]
 #[Description('Backfill map coordinates onto already-downloaded Strava photos')]
@@ -92,13 +87,8 @@ class StravaPhotoLocations extends Command
 
     /**
      * Fetch each activity's photos and stream, then write coordinates onto its
-     * stored media, pausing when the Strava rate-limit window fills up.
-     *
-     * The photos payload carries Strava's own per-photo `location`, which
-     * places most photos without needing the stream at all; the stream (and
-     * the summary's UTC start_date) are only the fallback for photos Strava
-     * did not geotag. An activity with neither a usable location nor a stream
-     * simply locates nothing and moves on.
+     * stored media, pausing when the Strava rate-limit window fills up. The
+     * stream is only a fallback for photos Strava did not geotag itself.
      *
      * @param  Collection<int, Activity>  $targets
      * @param  array<string, array{start_date: ?string, total_photo_count: int}>  $remote

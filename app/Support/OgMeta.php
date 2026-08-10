@@ -7,12 +7,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
- * The single source of per-view Open Graph / document metadata. Every controller
- * hands one of these arrays to its Inertia page as `og`, and AppHead.vue renders
- * the document head from it. The gallery preview builds its sample cards from the
- * same methods, so the copy lives in exactly one place.
- *
- * Shape (see {@see make()}):
+ * Per-view Open Graph and document metadata. Controllers hand one of these to
+ * their Inertia page as `og`, and AppHead.vue renders the head from it.
  *
  * @phpstan-type OgPayload array{
  *     title: ?string,

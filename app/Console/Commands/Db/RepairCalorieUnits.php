@@ -10,27 +10,17 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Corrects food rows whose macros were imported in milligrams into columns that
- * hold grams, leaving values a thousand times too large.
- *
- * A command rather than a data migration because of when each runs. On a new
- * server, migrate builds an empty schema and any data migration would sweep
- * nothing; the rows only arrive afterwards, via db:copy. Fixing the source
- * database before the copy is the only ordering that works, and this is
- * re-runnable and reports what it would do first.
+ * hold grams, leaving values a thousand times too large. A command, not a data
+ * migration, because the rows arrive after migrate via db:copy.
  */
 #[Signature('calories:repair-units {--pretend : Show what would change, and write nothing}')]
 #[Description('Correct food rows whose macros were stored in milligrams')]
 class RepairCalorieUnits extends Command
 {
     /**
-     * How far above the portion's own weight a macro must be before it is
-     * treated as a unit error.
-     *
-     * Food cannot contain more of anything than it weighs, so any excess is
-     * wrong. The threshold is high because only the thousand-fold errors can be
-     * corrected with confidence: rows overshooting by a factor of two or three
-     * are wrong in some other way (a portion size, a per-100g figure) and
-     * dividing those by a thousand would replace bad numbers with worse ones.
+     * How far above the portion's own weight a macro must be before it counts as
+     * a unit error. Set high: a row overshooting by two or three is wrong some
+     * other way, and dividing it by a thousand would make it worse.
      */
     private const FACTOR = 100;
 
@@ -90,11 +80,8 @@ class RepairCalorieUnits extends Command
     }
 
     /**
-     * Rows whose macros exceed their own weight by more than {@see FACTOR}.
-     *
-     * Only gram-quantified rows can be judged this way. A row measured in
-     * servings or pieces has no weight to compare against, so it is left alone
-     * even where the numbers look wrong.
+     * Rows whose macros exceed their own weight by more than {@see FACTOR}. Only
+     * gram-quantified rows qualify; servings and pieces have no weight to judge.
      *
      * @return Collection<int, object>
      */

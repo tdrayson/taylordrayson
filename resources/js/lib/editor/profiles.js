@@ -5,12 +5,8 @@ import { Placeholder } from '@tiptap/extensions';
 import { PreserveKeys, Video, Callout } from './nodes';
 
 /**
- * What each kind of writing is allowed to contain.
- *
- * `document` is `prose` spread into a longer list rather than a second list of
- * its own. Two independent lists would agree on the day they were written and
- * drift the first time prose changed: a document is a note with more room, not
- * a different kind of text.
+ * What each kind of writing is allowed to contain. `document` spreads `prose`
+ * rather than repeating it, since a document is a note with more room.
  */
 
 /** Everything the shorter form allows. */

@@ -7,15 +7,9 @@ use App\Services\PetrolFinder;
 use App\Services\PetrolFinder\FuelStationResult;
 
 /**
- * Petrol stations, from the fuel API rather than a general place search.
- *
- * It knows what a filling station is, which a geocoder does not: searching a
- * town returns the stations in it rather than the streets. It also returns the
- * brand and the address already split, so one pick fills the whole row.
- *
- * Stations already filled up at are offered too, and are all there is when the
- * fuel API is unreachable, which it has been observed to be. The same garage
- * twice is the common case anyway.
+ * Petrol stations, from the fuel API rather than a geocoder, which would return a
+ * town's streets instead of its filling stations. Stations already used are also
+ * offered, and are all there is when that API is down.
  */
 final class StationLookup
 {

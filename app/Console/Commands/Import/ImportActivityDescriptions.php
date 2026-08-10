@@ -13,12 +13,9 @@ use Illuminate\Console\Command;
 class ImportActivityDescriptions extends Command
 {
     /**
-     * The old-site export keeps each activity's real description inside the JSON
-     * blob in its "Activity data" column (the "Content" column is a placeholder),
-     * keyed by "Activity ID" which is the Strava id we store as source_id.
-     * Match on that and fill the description, skipping rows already set unless
-     * --overwrite is given. The CSV seed is not written: run
-     * `export:csv data/activities.csv activity` afterwards to refresh it.
+     * Fill descriptions from the old-site export, which hides the real text in the
+     * "Activity data" JSON blob keyed by "Activity ID" (our source_id), not in the
+     * placeholder "Content" column. Run `export:csv` afterwards to refresh the seed.
      */
     public function handle(): int
     {

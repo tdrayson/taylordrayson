@@ -52,16 +52,12 @@ final class ActivityCard
 
     private function cardSubtitle(Activity $model): ?string
     {
-        // Data-driven, not a hardcoded cardio type list: strength activities
-        // carry sets; everything else describes itself by whatever metrics it
-        // recorded, so new distance-based types scale in without an allow-list.
+        // Keyed on sets rather than an activity-type allow-list, so new distance
+        // types need no change here.
         if (is_array($model->meta['sets'] ?? null)) {
             return $this->strengthSubtitle($model->meta['sets']);
         }
 
-        // Distance and duration read as one clause ("1.6 mi in 22m") when both are
-        // present; duration only gets a bare leading value when there is no
-        // distance to attach it to. Calories always stays comma-joined.
         $distancePart = $model->distance ? Distance::miles($model->distance, 1).' mi' : null;
         $durationPart = $model->duration ? $this->durationForHumans($model->duration) : null;
 
@@ -107,8 +103,6 @@ final class ActivityCard
      */
     private function subtitleTokens(Activity $model): ?array
     {
-        // Data-driven (see cardSubtitle): sets => strength; otherwise show
-        // whatever metrics exist, so new distance types need no allow-list.
         if (is_array($model->meta['sets'] ?? null)) {
             return $this->strengthTokens($model->meta['sets']);
         }

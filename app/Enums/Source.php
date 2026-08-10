@@ -3,12 +3,9 @@
 namespace App\Enums;
 
 /**
- * Reference enum for the `source` values the app gives behaviour to, NOT a
- * model cast.
- *
- * `source` spans five models (Activity, Checkin, Media, Sleep, Calorie) with
- * legacy/aliased values, so the column stays a plain string and unknown
- * values simply won't match a case here.
+ * Reference enum for the `source` values the app gives behaviour to, NOT a model
+ * cast. `source` spans five models with legacy and aliased values, so the column
+ * stays a string and unknown values match no case here.
  */
 enum Source: string
 {

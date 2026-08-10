@@ -8,13 +8,9 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Client for the TMDB API v3 (api.themoviedb.org), used for enrichment only
- * (season/episode structure, poster/backdrop/logo images). Never authoritative
- * for identity; our own slug + Trakt id remain the source of truth.
- *
- * Authenticates via the `api_key` query param. Every public method maps to a
- * single endpoint and returns the decoded JSON array, or null when the
- * request fails.
+ * Client for the TMDB API v3, used for enrichment only (season/episode structure,
+ * artwork). Never authoritative for identity: our own slug and the Trakt id
+ * remain the source of truth. Methods return decoded JSON, or null on failure.
  */
 class Tmdb
 {

@@ -6,15 +6,10 @@ use App\Timeline\TypeRegistry;
 use Illuminate\Routing\Route;
 
 /**
- * Builds the contextual feed-autodiscovery <link>s for the current route. When a
- * page targets a single timeline type (an archive index or its taxonomy sub-page,
- * both of which carry a `type` route default), the layout advertises that type's
- * narrowed feed (`/feed/rss?types=article`) alongside the always-present site-wide
- * feeds, so a reader landing on /articles is offered the articles-only feed.
- *
- * Rendered into the server-side root shell (app.blade.php) rather than via Inertia's
- * client <Head>, because feed readers autodiscover by parsing HTML without running
- * JavaScript.
+ * Builds the feed-autodiscovery <link>s for the current route, advertising a
+ * type-narrowed feed alongside the site-wide ones on any page with a `type` route
+ * default. Rendered server-side in app.blade.php, not Inertia's client <Head>,
+ * because feed readers parse HTML without running JavaScript.
  */
 class FeedDiscovery
 {

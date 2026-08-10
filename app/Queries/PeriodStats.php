@@ -64,9 +64,8 @@ final class PeriodStats
             $stats[] = ['label' => 'Avg sleep', 'seconds' => $avgSleep];
         }
 
-        // Food as a daily rhythm (avg calories per logged day) rather than the
-        // contextless "365 days logged": averaged over days that were logged, so
-        // a partial period isn't diluted by untracked days.
+        // Averaged over logged days only, so a partial period isn't diluted by
+        // untracked ones.
         $foodDays = (int) $between(Calorie::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
 
         if ($foodDays > 0) {

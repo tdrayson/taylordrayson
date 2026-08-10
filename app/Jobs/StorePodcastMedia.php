@@ -59,13 +59,9 @@ class StorePodcastMedia implements ShouldQueue
     }
 
     /**
-     * Download one file into one single-file collection, leaving an existing
-     * copy alone unless this run was forced.
-     *
-     * Streamed to a temporary file rather than read into a string: holding a
-     * 55MB body in memory per worker is avoidable, and addMedia() wants a path
-     * anyway. It moves the temporary file, so there is nothing to clean up
-     * after a successful store.
+     * Download one file into one single-file collection, leaving an existing copy
+     * alone unless forced. Streamed to a temporary file rather than held in memory;
+     * addMedia() moves it, so there is nothing to clean up.
      */
     private function store(string $collection, ?string $url, ?string $fallbackExtension = null): void
     {

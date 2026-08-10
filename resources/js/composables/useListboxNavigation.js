@@ -1,13 +1,9 @@
 import { ref, watch, nextTick } from 'vue';
 
 /**
- * Shared keyboard navigation for a search-and-select listbox (the command
- * palette and the archive taxonomy filter both use this): a wrapping
- * active-index driven by the arrow keys, Enter to select the highlight, and the
- * highlighted option kept scrolled into view.
- *
- * The option element for the highlighted index must carry `data-active="true"`
- * so it can be scrolled into view.
+ * Shared keyboard navigation for a search-and-select listbox: a wrapping active
+ * index on the arrow keys, Enter to select, and the highlight scrolled into view.
+ * The highlighted option element must carry `data-active="true"`.
  *
  * @param {import('vue').Ref<Array>} items  Reactive list of navigable options.
  * @param {object} opts

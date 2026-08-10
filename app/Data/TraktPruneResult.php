@@ -6,13 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * Outcome of a Trakt history prune.
- *
- * `deleted` is the count confirmed gone by re-reading the authenticated
- * history after the removal, NOT the remove endpoint's own count: that count
- * has proven unreliable (a false success, and a zero for already-removed
- * plays), so it is never trusted to decide what to clear locally. `notFound`
- * is whatever the caller asked to remove that is still present afterwards.
+ * Outcome of a Trakt history prune. `deleted` is confirmed by re-reading the
+ * authenticated history, never taken from the remove endpoint's own count, which
+ * reports false successes.
  */
 final readonly class TraktPruneResult implements Arrayable, JsonSerializable
 {

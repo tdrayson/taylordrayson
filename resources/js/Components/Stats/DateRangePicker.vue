@@ -14,7 +14,6 @@ const open = ref(false);
 
 const presets = ['Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 90 days', 'This month', 'This year', 'All time'];
 
-// --- calendar state ---------------------------------------------------------
 const today = new Date();
 const viewYear = ref(today.getFullYear());
 const viewMonth = ref(today.getMonth());

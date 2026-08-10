@@ -7,8 +7,7 @@ import Icon from './Icon.vue';
 </script>
 
 <template>
-    <!-- Fixed bg-black/text-white (not neutral-900/neutral-0): this chip overlays
-         a photo and is an intentional dark surface in both themes. -->
+    <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
     <span class="flex size-7 items-center justify-center rounded-md bg-black/55 text-white">
         <Icon name="ZoomInAreaIcon" class="size-4" />
     </span>

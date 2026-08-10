@@ -51,13 +51,8 @@ class HeartRateProcessor implements HealthProcessor
 
     /**
      * Merge this run's samples into the activity's stored series and persist.
-     * The time-series is always rebuilt, since no other source provides it.
-     *
-     * The average and max are decided independently: each is filled from the
-     * samples only where it is currently empty, so a richer source's value
-     * (e.g. Strava's average) is preserved while a missing max is still
-     * completed from the same data. $overwrite recomputes both regardless. The
-     * computed peak defends any prior stored maximum so it is never lowered.
+     * Average and max are filled independently and only where empty, so a richer
+     * source's value survives; $overwrite recomputes both.
      *
      * @param  array{avg: int, max: int, series: list<array{time: string, bpm: int}>}  $aggregate
      * @return array{average_heart_rate: int|float|null, max_heart_rate: int|float|null, heart_rate: list<array{time: string, bpm: int}>}

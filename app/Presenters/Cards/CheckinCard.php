@@ -16,20 +16,13 @@ final class CheckinCard
 {
     public function present(Checkin $model): CardData
     {
-        // The full address always renders beneath the map, whether or not the
-        // check-in has a note. Country is included so overseas check-ins read
-        // correctly; domestic ones simply tail with "United Kingdom".
         $address = collect([$model->address, $model->city, $model->county, $model->country])
             ->filter()
             ->implode(', ');
 
-        // The subtitle is the check-in's own note/shout and nothing else; the
-        // address renders in its own row beneath the map.
         $subtitle = $model->description ?: null;
 
-        // An attached Swarm event (a gig, screening, race meet) becomes the
-        // headline: "Bug Jam 2026 at Santa Pod Raceway". The URL slug still comes
-        // from the venue name (Checkin::slug()), so this is display-only.
+        // Display-only: the URL slug still comes from the venue (Checkin::slug()).
         $title = $model->event_name
             ? "{$model->event_name} at {$model->venue_name}"
             : $model->venue_name;

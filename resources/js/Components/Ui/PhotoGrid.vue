@@ -122,9 +122,8 @@ function rowSpan(photo) {
                 :aria-label="`View photo from ${photo.caption}, ${photo.date}`"
                 @click="emit('open', index)"
             >
-                <!-- The tile height comes from the row span (photo aspect); the
-                     image fills it with object-cover so a slightly-off span crops
-                     a hair rather than leaving dead space below a landscape shot. -->
+                <!-- object-cover so a slightly-off row span crops a hair rather than
+                     leaving dead space below a landscape shot. -->
                 <img
                     :src="photo.src"
                     :srcset="photo.srcset || undefined"
@@ -133,9 +132,7 @@ function rowSpan(photo) {
                     loading="lazy"
                     class="size-full object-cover"
                 >
-                <!-- Fixed from-black/text-white (not neutral-900/neutral-0): the hover
-                     caption scrim is an intentional dark overlay on the photo in both
-                     themes, so it must not invert with the neutral ramp. -->
+                <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover/photo:opacity-100 group-focus-within/photo:opacity-100">
                     <p class="truncate text-meta font-medium text-white">{{ photo.caption }}</p>
                     <p class="text-caption text-white/80">{{ photo.date }}</p>

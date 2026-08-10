@@ -12,12 +12,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 
 /**
- * The stream of real photos (the cover + photos collections) across every
- * timeline entry, newest first by the entry's date. This is the single source
- * for both the /photos gallery and the "Life lately" widget on /now, so the two
- * can never drift apart on what counts as a photo or how they are ordered.
- *
- * Enrichment art is excluded so only photos actually taken remain, per
+ * Every real photo across the timeline, newest first, backing both the /photos
+ * gallery and the "Life lately" widget so the two cannot drift. Enrichment art
+ * (video thumbnails, film and book posters) is excluded by
  * GalleryPhotos::contributesPhotos().
  */
 final class PhotoStream
@@ -30,9 +27,8 @@ final class PhotoStream
     {
         $photos = [];
 
-        // Ordering is decided cheaply up front, so only the photos actually
-        // wanted get the expensive card presentation and URL generation. The
-        // gallery shapes everything (null); the /now deck only its first few.
+        // Ordered up front so only the photos actually wanted pay for card
+        // presentation and URL generation.
         foreach ($this->orderedGroups() as $group) {
             foreach (GalleryPhotos::shape($group['model'], $group['media']) as $photo) {
                 $photos[] = $photo;

@@ -26,18 +26,10 @@ class RoviFoodSync extends Command
     private const MAX_PAGES = 100;
 
     /**
-     * Re-sync a rolling window of the Rovi food diary. The window is the last
-     * --days, extended back to the newest already-synced day when that is older
-     * (so a gap that opened while the sync was not running self-heals instead of
-     * being stranded behind the fixed window), bounded by MAX_CATCHUP_DAYS.
-     * Within that window each diary item is upserted by its Rovi id (so a food
-     * logged today for an earlier day appears, and edits update in place), and
-     * any Rovi-sourced row that has since vanished from Rovi is removed. Only source=rovi rows are
-     * ever touched, so the historical CSV-imported calories are left alone. The
-     * per-day timeline entry is maintained by the CalorieTimelineObserver.
-     *
-     * A failed fetch returns early without reconciling, so an API outage can
-     * never wipe the window.
+     * Re-sync a rolling window of the Rovi food diary, upserting by Rovi id and
+     * dropping rows that have since vanished. The window extends back to the
+     * newest synced day so a gap self-heals, bounded by MAX_CATCHUP_DAYS. Only
+     * source=rovi rows are touched, and a failed fetch skips reconciliation.
      */
     public function handle(Rovi $rovi): int
     {
@@ -175,12 +167,10 @@ class RoviFoodSync extends Command
     }
 
     /**
-     * Reconcile the synced window. Within [from, to] a row is removed when it is
-     * either (A) a Rovi row no longer in the diary (deleted or re-logged), or
-     * (B) a non-Rovi row on a date Rovi now owns, so the boundary day where the
-     * historical CSV import meets the live diary is not double counted. Dates
-     * Rovi did not log keep their historical rows. Rows are deleted as instances
-     * so the timeline observer re-anchors or removes each day's entry.
+     * Reconcile the synced window, removing Rovi rows no longer in the diary and
+     * non-Rovi rows on dates Rovi now owns, so the boundary between the CSV import
+     * and the live diary is not double counted. Deleted as instances so the
+     * timeline observer re-anchors each day.
      *
      * @param  list<string>  $roviDates  The distinct dateKeys Rovi returned.
      * @param  list<string>  $seenIds

@@ -36,8 +36,6 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="space-y-8">
-        <!-- The event category now renders as a tag in the shared footer, so it
-             is no longer repeated as a pill here. -->
         <p v-if="range" class="text-meta text-neutral-500">
             {{ range.long }} ({{ range.days }} days)
         </p>

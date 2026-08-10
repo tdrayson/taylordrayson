@@ -5,13 +5,9 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Client for the Strava API (strava.com/api/v3).
- *
- * Owns the OAuth refresh-token flow: it exchanges the configured refresh token
- * for a short-lived access token, caches it until just before expiry, and
- * transparently re-authenticates once when a request returns 401. Every public
- * method maps to a single endpoint and returns the decoded JSON, or null when
- * the request (or token refresh) fails.
+ * Client for the Strava API. Owns the OAuth refresh-token flow, caching the
+ * access token until just before expiry and re-authenticating once on a 401.
+ * Methods return the decoded JSON, or null when the request fails.
  */
 class Strava
 {

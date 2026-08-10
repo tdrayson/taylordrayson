@@ -6,14 +6,10 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * A single structured subtitle token, consumed by FeedItem.vue to compose the
- * card subtitle client-side (so distance/weight react to the visitor's unit
- * toggle instead of being baked into a pre-formatted string).
- *
- * Only the keys relevant to the token's variant are serialised: dist emits
- * {t,m,p}, wt emits {t,kg,p}, text emits {t,v}, plus an optional `sep` that
- * joins the token onto the previous one with a light connective (e.g. ' in ')
- * instead of the default ', ' list comma.
+ * A structured subtitle token, composed client-side by FeedItem.vue so distance
+ * and weight react to the visitor's unit toggle. Each variant serialises only its
+ * own keys: dist {t,m,p}, wt {t,kg,p}, text {t,v}, plus an optional `sep`
+ * connective replacing the default ', '.
  */
 final readonly class SubtitleToken implements Arrayable, JsonSerializable
 {

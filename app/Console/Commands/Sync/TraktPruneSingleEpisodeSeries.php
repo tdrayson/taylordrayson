@@ -18,20 +18,9 @@ class TraktPruneSingleEpisodeSeries extends Command
     use AuthorisesTrakt;
 
     /**
-     * Plays to remove from series with exactly one watched episode.
-     *
-     * The first twelve share a contiguous play-id block (8582881738 to
-     * 8582913308) despite watch dates spanning 2018 to 2020, and cluster on
-     * 20:15/21:15. Trakt ids increment on creation, so these were written in
-     * one backdated batch - an imported viewing history, where anything that
-     * auto-played got logged as a watch. Their timestamps are fabricated.
-     *
-     * `House` is not part of that batch (standalone id, ordinary 19:05
-     * scrobble) but was confirmed as a mis-click too.
-     *
-     * `A Small Light` is deliberately absent: also a genuine scrobble, and
-     * the most recent episode in the history, so it is likely still being
-     * watched rather than abandoned.
+     * Plays to remove from series with exactly one watched episode. Hand-checked:
+     * most come from one backdated import batch whose timestamps are fabricated,
+     * and genuine scrobbles of shows still in progress are deliberately absent.
      *
      * @var list<array{label: string, play: int}>
      */

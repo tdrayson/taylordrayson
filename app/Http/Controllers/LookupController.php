@@ -16,13 +16,9 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Autocomplete for the fields that cannot be a plain text box: airports,
- * airlines, books and places.
- *
- * One endpoint with a source segment rather than four controllers, since every
- * one answers the same question and returns the same shape. A result may carry
- * `fill`, which sets other fields on the form too: picking a book should not
- * mean retyping its author.
+ * Autocomplete for airports, airlines, books and places: one endpoint with a
+ * source segment, since each returns the same shape. A result may carry `fill`,
+ * which populates other fields on the form too.
  */
 class LookupController extends Controller
 {

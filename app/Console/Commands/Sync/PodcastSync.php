@@ -17,14 +17,9 @@ use RuntimeException;
 class PodcastSync extends Command
 {
     /**
-     * How many already-stored episodes in a row end an incremental run.
-     *
-     * The endpoint returns newest first, so one known episode usually means
-     * everything older is known too. Requiring a run of them costs a few
-     * upserts and buys two things: the newest episodes are re-mapped every
-     * run, so show notes or a transcript added after publication are picked
-     * up, and a hole left by a half-finished run is filled rather than being
-     * stranded behind a stop-at-the-first-known rule.
+     * How many already-stored episodes in a row end an incremental run. More than
+     * one so late-added show notes get re-mapped and a half-finished run's hole
+     * is filled rather than stranded.
      */
     private const CONSECUTIVE_KNOWN_LIMIT = 5;
 
@@ -44,12 +39,9 @@ class PodcastSync extends Command
     ];
 
     /**
-     * Pull new episodes, stopping as soon as the feed reaches episodes already
-     * stored. Every run used to walk all six pages and re-upsert all 254
-     * episodes to find the nought or one that were new.
-     *
-     * `--full` restores that whole-feed pass, which is what a backfill or a
-     * re-map after changing `mapEpisode()` wants.
+     * Pull new episodes, stopping once the feed reaches ones already stored.
+     * `--full` walks the whole feed instead, for a backfill or a re-map after
+     * changing `mapEpisode()`.
      */
     public function handle(ThisWeekWith $thisWeekWith): int
     {

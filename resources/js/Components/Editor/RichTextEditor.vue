@@ -26,12 +26,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 /**
- * The menu's state lives here rather than inside the suggestion factory.
- *
- * TipTap builds that factory once, when the plugin is created, and reuses the
- * object it returns for every `@` afterwards. `onKeyDown` is handed only the
- * event, never the current items or the command that inserts one, so both have
- * to live somewhere the whole lifecycle can reach.
+ * The menu state lives here, not in the suggestion factory: TipTap builds that
+ * once and hands `onKeyDown` only the event, never the current items or the
+ * insert command.
  */
 const menu = reactive({ open: false, items: [], active: 0, rect: null });
 let insert = null;

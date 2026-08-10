@@ -11,14 +11,8 @@ const PREFIX = 'pref:';
 const registry = {};
 
 /**
- * Define a reactive, localStorage-backed preference in one line. `allowed`
- * (optional) whitelists valid values; anything stored outside it falls back to
- * `fallback`. Returns { value: Ref, set(v) }.
- *
- * This is the extension point. Project B adds settings like:
- *   const distanceUnit = defineSetting('distanceUnit', 'mi', ['mi', 'km']);
- *   const timeFormat  = defineSetting('timeFormat', '12h', ['12h', '24h']);
- * and reads `distanceUnit.value` reactively in its formatters.
+ * Define a reactive, localStorage-backed preference. `allowed` whitelists valid
+ * values; anything stored outside it falls back. Returns { value: Ref, set(v) }.
  */
 export function defineSetting(key, fallback, allowed = null) {
     if (registry[key]) {

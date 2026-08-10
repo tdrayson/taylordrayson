@@ -9,15 +9,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
- * A reading of whatever the phone knows and the server cannot work out for
- * itself: battery, weather, where I am, today's rings so far. Everything else
- * on the Now page (sleep, podcast, photos, entry counts) is derived from data
- * already in the database and must not be sent.
- *
- * Every group is optional, so one shortcut can send the lot on a schedule while
- * another sends only `battery` when the phone is plugged in. Unknown keys are
- * rejected rather than ignored: a typo in a shortcut should announce itself,
- * not read as a working send that quietly changes nothing.
+ * A reading of whatever the phone knows and the server cannot derive: battery,
+ * weather, location, today's rings. Every group is optional so one shortcut can
+ * send the lot and another only `battery`. Unknown keys are rejected rather than
+ * ignored, so a typo announces itself.
  */
 class StoreNowStateRequest extends FormRequest
 {
@@ -52,11 +47,9 @@ class StoreNowStateRequest extends FormRequest
     ];
 
     /**
-     * Take Shortcuts' output as it actually arrives rather than making the
-     * shortcut do the tidying: booleans can come through as "true"/"false"
-     * strings, a temperature carries its unit ("21°C") once it lands in a
-     * dictionary, and a condition is human text ("Partly Cloudy") where the
-     * widget wants a slug.
+     * Take Shortcuts' output as it arrives rather than making the shortcut tidy
+     * it: booleans as "true"/"false", temperatures carrying "°C", conditions as
+     * human text where the widget wants a slug.
      */
     protected function prepareForValidation(): void
     {
@@ -91,9 +84,8 @@ class StoreNowStateRequest extends FormRequest
     }
 
     /**
-     * Coordinates are stored exactly as sent. They are coarsened on the way
-     * out instead ({@see NowState}), so the precise position
-     * stays available to anything private while never reaching a public page.
+     * Coordinates are stored exactly as sent and coarsened on the way out
+     * ({@see NowState}), so the precise position stays available privately.
      *
      * @return array<string, mixed>|null
      */
@@ -134,14 +126,9 @@ class StoreNowStateRequest extends FormRequest
     }
 
     /**
-     * A number Shortcuts has stringified with its unit attached, or null when
-     * the value is not that shape.
-     *
-     * Deliberately strict about what follows the digits: a unit ("kcal", "%",
-     * "°C", "mph") or nothing at all. Grabbing the first number in any string
-     * would read "2026-08-03" as 2026, turning a mis-mapped shortcut variable
-     * into a plausible reading that passes validation. Anything else is left
-     * alone so the rules reject it and the phone is told.
+     * A number Shortcuts stringified with its unit attached, or null. Strict about
+     * what may follow the digits: grabbing the first number in any string would
+     * read "2026-08-03" as a plausible reading and pass validation.
      */
     private function numberIn(mixed $value): int|float|null
     {

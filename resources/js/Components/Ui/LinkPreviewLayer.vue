@@ -137,13 +137,8 @@ function unbind(el) {
     el.removeEventListener('focusout', handleFocusOut);
 }
 
-// `props.container` is a template ref owned by the parent (BlockContent.vue),
-// which is itself the element the layer is mounted inside of. At the moment
-// this component's onMounted would fire, the parent's ref is still null (its
-// element hasn't been assigned yet), so binding once on mount misses it
-// entirely. Watching the prop instead binds as soon as the element becomes
-// available, and re-binds if it ever changes (e.g. a different container is
-// passed in), regardless of ref-assignment timing.
+// Watched rather than bound in onMounted: the parent's template ref is still
+// null at that point, so binding once on mount would miss it entirely.
 watch(
     () => props.container,
     (el, prev) => {

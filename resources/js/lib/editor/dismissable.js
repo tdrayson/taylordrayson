@@ -1,12 +1,9 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 /**
- * One popup open at a time, closing on outside click and on Escape.
- *
- * Every field that opens something — a lookup list, the tag suggestions, the
- * date picker, the + menu — shares this, because without it they stack: open
- * a date, tap a lookup, and two panels overlap with no way to tell which the
- * keyboard is talking to.
+ * One popup open at a time, closing on outside click and on Escape. Shared by
+ * every field that opens something, which would otherwise stack panels with no
+ * way to tell which one the keyboard is talking to.
  */
 let openId = ref(null);
 let nextId = 0;

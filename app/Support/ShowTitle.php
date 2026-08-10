@@ -6,18 +6,9 @@ use App\Enums\MediaType;
 use App\Models\Media;
 
 /**
- * The show a TV episode belongs to.
- *
- * A Media row's `title` is the episode's, so anything naming the show has to
- * resolve it separately. Two places did, in opposite orders: the single-episode
- * card read the denormalised `meta.show_title` first, the collapsed binge card
- * read the `series` relation first. Identical while the two agree, and two
- * different names on the same page once a show is renamed.
- *
- * The relation wins, because it is the record that can be corrected. That is
- * only affordable because `series` is eager-loaded with the feed
- * (TimelineEntry::cardRelations); reading it per row otherwise would be an N+1
- * across the timeline.
+ * The show a TV episode belongs to, since a Media row's `title` is the episode's.
+ * The `series` relation wins over the denormalised `meta.show_title` because it
+ * is the record that can be corrected; it is eager-loaded to avoid an N+1.
  */
 final class ShowTitle
 {

@@ -12,12 +12,9 @@ use Spatie\MediaLibrary\Conversions\FileManipulator;
 use Throwable;
 
 /**
- * Renders the optimised `full` copy of every stored image.
- *
- * Writes only. The originals are left exactly where they are, so the two can
- * be compared and the saving checked against real output before anything is
- * removed; deleting them is a separate, later decision. Re-runnable, and skips
- * images that already have their copy.
+ * Renders the optimised `full` copy of every stored image. Writes only: originals
+ * stay put so the output can be checked before {@see PruneOriginals} removes them.
+ * Re-runnable, and skips images that already have their copy.
  */
 #[Signature('media:optimise
     {--collection=* : Limit to these collections}
@@ -72,14 +69,9 @@ class OptimiseStoredImages extends Command
      */
     private function convert(FileManipulator $manipulator, Collection $images): void
     {
-        // The conversions are queued by default, which is right for a single
-        // upload and wrong for a back-fill you want to watch and measure.
-        //
-        // This flag and not queue.default: each Conversion reads it when it is
-        // built, so flipping it here makes them run inline. Switching the queue
-        // connection instead leaves the already-resolved manager pointing at
-        // the database queue, and the run reports nothing while a worker
-        // quietly does the work afterwards.
+        // This flag rather than queue.default: each Conversion reads it as it is
+        // built, whereas switching the connection leaves the already-resolved
+        // manager pointing at the database queue and the run reports nothing.
         if ($this->option('now')) {
             config(['media-library.queue_conversions_by_default' => false]);
         }

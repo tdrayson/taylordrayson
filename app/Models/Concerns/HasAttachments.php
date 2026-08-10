@@ -7,11 +7,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Shared Media Library setup: a single `cover`, a `photos` gallery, a single
- * generated `map` (with a `map_dark` twin for dark mode), single-file
- * `backdrop`/`logo` collections (TMDB enrichment art), a square `artwork`
- * collection and an `audio` collection (mirrored podcast episodes), plus an
- * optimised, responsive `card` conversion for feeds.
+ * Shared Media Library setup: the collections every timeline model can carry,
+ * plus the `card` and `full` conversions feeds and lightboxes render from.
  */
 trait HasAttachments
 {
@@ -29,24 +26,12 @@ trait HasAttachments
         $this->addMediaCollection('audio')->singleFile();
     }
 
-    /**
-     * Every stored image, at the largest size anything on the site displays.
-     *
-     * Nothing here is over 1920 to begin with (maps are 1600x1000, photos
-     * mostly 1440x1920), so the resize is a backstop and the saving is almost
-     * entirely the format: a 436KB map PNG becomes 21KB of WebP, and a 497KB
-     * photo becomes 310KB. Serving this in place of the original takes the
-     * library from ~3.5GB to roughly 400MB.
-     */
+    /** The largest size anything on the site displays. */
     private const FULL_DIMENSION = 1920;
 
     /**
-     * Formats left exactly as uploaded.
-     *
-     * SVG is vector: rasterising it to 1920 would be a downgrade, and the six
-     * stored are ~20KB in total. GIF is skipped because Imagick would flatten
-     * an animated one to a single frame, which is a silent loss of the thing
-     * that made it a GIF.
+     * Formats left exactly as uploaded: rasterising vector SVG is a downgrade,
+     * and Imagick flattens an animated GIF to a single frame.
      *
      * @var array<int, string>
      */
@@ -58,23 +43,17 @@ trait HasAttachments
             ->fit(Fit::Max, 640, 640)
             ->format('webp')
             ->quality(78)
-            // Not `audio`: the conversion pipeline is an image one, and pointing
-            // it at an MP3 would have every mirrored episode fail a conversion
-            // it was never going to produce.
+            // Not `audio`: an image conversion pointed at an MP3 fails every time.
             ->performOnCollections('cover', 'photos', 'artwork')
             ->withResponsiveImages();
 
-        // Only `full` is withheld from these, never `card`. Skipping every
-        // conversion for a type unregisters `card` as well, and getUrl()
-        // resolves against REGISTERED conversions, not generated ones: the one
-        // stored GIF already had a card file on disk and /photos still died
-        // with "There is no conversion named `card`".
+        // Returning before `card` is registered would break getUrl('card'), which
+        // resolves against registered conversions rather than generated files.
         if (in_array($media?->mime_type, self::UNCONVERTED_TYPES, true)) {
             return;
         }
 
-        // No responsive variants: this is the one full-size render, shown on its
-        // own in a lightbox or behind a card, never picked from a srcset.
+        // No responsive variants: shown on its own, never picked from a srcset.
         $this->addMediaConversion('full')
             ->fit(Fit::Max, self::FULL_DIMENSION, self::FULL_DIMENSION)
             ->format('webp')
@@ -84,11 +63,7 @@ trait HasAttachments
 
     /**
      * The optimised render of a single-file collection, falling back to the
-     * stored original.
-     *
-     * The fallback carries real weight while the back-fill runs and for the
-     * formats above that never get a conversion, so callers can move to this
-     * without waiting for every conversion to exist.
+     * stored original where no conversion exists.
      */
     public function optimisedUrl(string $collection): ?string
     {
@@ -102,9 +77,8 @@ trait HasAttachments
     }
 
     /**
-     * The entry's photos in display order (cover first, then the gallery), each
-     * with the optimised card source, its responsive srcset, the full-size
-     * original for the lightbox, and the route coordinate where known.
+     * The entry's photos in display order, cover first, each with its card
+     * source, srcset, lightbox render and route coordinate where known.
      *
      * @return array<int, array{src: string, srcset: ?string, full: string, latitude: ?float, longitude: ?float}>
      */
@@ -115,10 +89,8 @@ trait HasAttachments
             ->map(fn (Media $media): array => [
                 'src' => $media->getUrl('card'),
                 'srcset' => $media->getSrcset('card') ?: null,
-                // The optimised render, not the import. A phone photo went to
-                // the lightbox as its original multi-megabyte JPEG (or, for the
-                // 28 stored HEICs, as a file most browsers cannot display at
-                // all); this serves a 1920 WebP instead.
+                // The optimised render, not the import: originals are multi-megabyte
+                // JPEGs, and the stored HEICs most browsers cannot display at all.
                 'full' => $media->hasGeneratedConversion('full') ? $media->getUrl('full') : $media->getUrl(),
                 'latitude' => $media->getCustomProperty('latitude'),
                 'longitude' => $media->getCustomProperty('longitude'),

@@ -163,9 +163,7 @@ const cursor = computed(() => {
                 :style="{ left: `${cursor.x}%` }"
             />
 
-            <!-- Fixed bg-black/text-white (not neutral-900/neutral-0): this hover
-                 tooltip is an intentional dark chip in both themes (same pattern as
-                 Tooltip.vue), so it must not invert with the neutral ramp. -->
+            <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
             <div
                 v-if="cursor"
                 class="pointer-events-none absolute -top-2 z-10 flex -translate-x-1/2 -translate-y-full items-center gap-1.5 whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-card"

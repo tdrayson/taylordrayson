@@ -35,7 +35,6 @@ setLayoutProps({
 
 const s = computed(() => props.story);
 
-// --- formatting helpers ----------------------------------------------------
 
 /**
  * Format a number with thousands separators (86834 becomes "86,834").
@@ -56,7 +55,6 @@ const heroKpis = computed(() => [
     { value: n(s.value.kpis.countries), label: 'Countries' },
 ]);
 
-// --- derived narrative figures ---------------------------------------------
 
 const byYear = computed(() => s.value.byYear);
 
@@ -66,7 +64,6 @@ const peakYear = computed(() => byYear.value.reduce((most, year) => (year.flight
 /** The biggest single gap with no flights at all (the lost-record stretch). */
 const biggestGap = computed(() => s.value.gaps[0]);
 
-// --- chart configs ---------------------------------------------------------
 
 /**
  * Flights per year as bars: grey for context, the busiest year (the surge)

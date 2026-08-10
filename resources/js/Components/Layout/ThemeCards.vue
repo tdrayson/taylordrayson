@@ -23,7 +23,6 @@ const cards = [
             class="group flex flex-col gap-2 rounded-lg p-1.5 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="setTheme(card.value)"
         >
-            <!-- Stylised theme preview thumbnail. -->
             <span
                 class="block overflow-hidden rounded-md border-2 transition"
                 :class="theme === card.value ? 'border-accent-500' : 'border-neutral-100 group-hover:border-neutral-300'"

@@ -17,22 +17,10 @@ class TraktPruneDuplicatePlays extends Command
     use AuthorisesTrakt;
 
     /**
-     * The plays to remove, decided per-group from Trakt's real `watched_at`
-     * and play ids rather than from local `occurred_at`.
-     *
-     * Two reasons this is a hand-checked manifest and not a heuristic:
-     *
-     * 1. Local `occurred_at` is not Trakt's `watched_at`. TraktSync's
-     *    `nudgeTiedGroup()` spreads bulk-mark ties a second apart, so the
-     *    stored times are derived, not observed.
-     * 2. No single rule is correct for every group. Young Sheldon is a
-     *    double-scrobble a minute apart where the FIRST play is genuine;
-     *    Georgie & Mandy is a partial-then-full watch where the LAST play is
-     *    genuine. A rule that gets one right gets the other wrong.
-     *
-     * `local_only` marks a play Trakt has already lost, where just the local
-     * row needs clearing. Play ids are Trakt history ids (`media.source_id`),
-     * NOT episode ids.
+     * The plays to remove, hand-checked against Trakt's real `watched_at` because
+     * no single rule fits every group: some duplicates keep the first play, some
+     * the last. `local_only` marks a play Trakt has already lost. Play ids are
+     * history ids (`media.source_id`), NOT episode ids.
      *
      * @var list<array{label: string, delete: int, keep: int, reason: string, local_only?: bool}>
      */
@@ -72,15 +60,8 @@ class TraktPruneDuplicatePlays extends Command
     ];
 
     /**
-     * Execute the console command.
-     *
-     * Order matters: Trakt is the source of truth, so nothing is removed
-     * locally until Trakt has confirmed the corresponding play is gone. A
-     * local row whose Trakt delete failed is left in place to be retried,
-     * which is recoverable; the reverse would silently resurrect the play on
-     * the next full sync.
-     *
-     * @return int Command exit code
+     * Remove the manifest's duplicate plays. Nothing is deleted locally until
+     * Trakt confirms its own removal, or the next full sync resurrects the play.
      */
     public function handle(Trakt $trakt, RemovePlays $removePlays): int
     {

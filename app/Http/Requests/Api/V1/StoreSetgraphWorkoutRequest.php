@@ -7,11 +7,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreSetgraphWorkoutRequest extends FormRequest
 {
     /**
-     * `occurred_at` takes anything strtotime understands, including the ISO 8601
-     * Shortcuts produces natively. Any offset it carries is read as wall-clock
-     * time, so `timezone` still has to name the zone (an offset alone cannot:
-     * +01:00 is Europe/London, Europe/Paris and Africa/Lagos alike). Omitted, it
-     * falls back to the home timezone.
+     * `occurred_at` takes anything strtotime understands, read as wall-clock time.
+     * `timezone` must still name the zone, since an offset alone cannot (+01:00 is
+     * London, Paris and Lagos alike); omitted, it falls back to home.
      *
      * @return array<string, array<int, string>>
      */

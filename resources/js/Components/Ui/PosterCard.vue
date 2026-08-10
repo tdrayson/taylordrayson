@@ -35,7 +35,6 @@ const label = computed(() => (props.year ? `${props.title}, ${props.year}` : pro
                 loading="lazy"
                 class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
             >
-            <!-- Graceful placeholder for shows still missing a synced poster. -->
             <div v-else class="flex size-full flex-col items-center justify-center gap-2 text-neutral-400">
                 <Icon :icon="Film01Icon" class="size-7" />
                 <span class="font-display text-item-title">{{ title.charAt(0) }}</span>

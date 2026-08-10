@@ -53,28 +53,17 @@ it('opens the lightbox at the right photo when a marker is clicked', function ()
 
     $page = visit($activity->url());
 
-    // A synthetic Playwright mouse click races the marker (a DOM button) against
-    // the map's WebGL canvas: mousedown and mouseup can briefly disagree on
-    // which element is topmost at the exact pixel, so the browser resolves the
-    // resulting "click" to their nearest common ancestor (the canvas container)
-    // instead of the marker. This is a headless-canvas hit-testing artifact, not
-    // a wiring bug (confirmed: the marker sits correctly in the DOM, at a stable
-    // position, with the right listener attached). Dispatching the click event
-    // directly on the marker still exercises the real Vue @click handler and
-    // proves the wiring end-to-end without depending on synthetic pointer
-    // hit-testing against the canvas.
+    // Dispatched directly rather than via a synthetic click: against the WebGL
+    // canvas, mousedown and mouseup can disagree on the topmost element and the
+    // click resolves to their common ancestor instead of the marker.
     $page->assertScript(
         "(() => { document.querySelector('[data-testid=\"photo-marker\"]').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); return true; })()",
         true,
     );
 
-    // The Lightbox dialog is a real element, so its presence proves the click landed.
-    // But presence alone doesn't prove the RIGHT photo opened: the dialog renders
-    // for any valid index (0 or 1, both < photos.length of 2). A filter-then-map
-    // regression would renumber the located photo from its true index 1 down to 0,
-    // and the dialog would still exist. The counter text ("n / total") is the only
-    // rendered signal that reveals which index actually opened, so assert it reads
-    // "2 / 2" (the located photo is the second of two), not "1 / 2".
+    // The dialog's presence only proves a click landed, not that the right photo
+    // opened. The counter is the one rendered signal of which index it was, so a
+    // filter-then-map regression renumbering 1 down to 0 is caught here.
     $page->assertScript(
         "(() => { const dialog = document.querySelector('[role=\"dialog\"]'); return dialog !== null && dialog.textContent.includes('2 / 2'); })()",
         true,
@@ -99,12 +88,9 @@ it('keeps the hover scale off the positioned marker element so it cannot jump', 
 
     $page = visit($activity->url());
 
-    // MapLibre positions the marker by writing an inline transform onto the
-    // [data-testid=photo-marker] element itself. A hover scale on that same
-    // element replaces the positioning transform, so the marker jumps to the map
-    // origin on hover. The scale must therefore live on an inner element: the
-    // positioned root must not carry it, and a descendant must. This fails if the
-    // scale utility is ever moved back onto the button.
+    // MapLibre writes an inline transform onto the marker root, so a hover scale
+    // there replaces it and jumps the marker to the map origin. The scale must
+    // stay on a descendant.
     $page->assertScript(
         "(() => {
             const root = document.querySelector('[data-testid=\"photo-marker\"]');

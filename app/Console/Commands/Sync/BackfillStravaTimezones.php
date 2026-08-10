@@ -16,13 +16,8 @@ use Illuminate\Support\Str;
 class BackfillStravaTimezones extends Command
 {
     /**
-     * Execute the console command.
-     *
-     * Pages all Strava summary activities, finds matching local Activity rows by
-     * source_id, and updates occurred_at (to local wall-clock) and timezone
-     * (IANA name). Does not write the CSV seed file.
-     *
-     * @return int Command exit code
+     * Page all Strava summary activities and update the matching local rows'
+     * occurred_at and timezone. Does not write the CSV seed file.
      */
     public function handle(Strava $strava): int
     {

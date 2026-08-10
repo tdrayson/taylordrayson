@@ -32,11 +32,9 @@ class BackfillStravaDescriptions extends Command
     private const MAX_CONSECUTIVE_FAILURES = 5;
 
     /**
-     * Walk existing Strava activities oldest-first, fetch each one's detail, and
-     * store its description (null when Strava has none). Progress is a cursor on
-     * the activity id held in the cache, so the command resumes from where it
-     * stopped; --restart clears it. The CSV seed is not written here: run
-     * `export:csv activity data/activities.csv` afterwards to refresh it.
+     * Walk existing Strava activities oldest-first and store each description.
+     * Resumes from a cached cursor on the activity id; --restart clears it. Run
+     * `export:csv activity data/activities.csv` afterwards to refresh the seed.
      */
     public function handle(Strava $strava): int
     {

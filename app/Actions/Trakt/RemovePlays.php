@@ -8,13 +8,9 @@ use App\Models\Series;
 use App\Services\Trakt;
 
 /**
- * Remove plays from Trakt history and clear the local rows that mirrored them.
- *
- * Trakt is the source of truth, so a local row is only deleted once Trakt has
- * confirmed the matching play is gone. Leaving a local row whose remote delete
- * failed is recoverable (re-run and it clears); deleting it early is not, as
- * the next full sync would quietly re-import the play and the mismatch would
- * look like a fresh watch.
+ * Remove plays from Trakt history and clear the local rows mirroring them. A local
+ * row is deleted only once Trakt confirms: deleting early is unrecoverable, since
+ * the next full sync re-imports the play as if it were a fresh watch.
  */
 final class RemovePlays
 {
@@ -69,11 +65,8 @@ final class RemovePlays
     }
 
     /**
-     * Delete series rows left with no episodes.
-     *
-     * Scoped to the series this run actually touched, so a series that was
-     * already empty for some unrelated reason is left alone rather than being
-     * swept up as a side effect of pruning something else.
+     * Delete series rows left with no episodes, scoped to those this run touched so
+     * an unrelated empty series is not swept up.
      *
      * @param  array<int, int>  $seriesIds
      */

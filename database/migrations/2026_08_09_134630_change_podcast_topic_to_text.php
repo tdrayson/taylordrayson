@@ -7,13 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * An episode topic is a sentence, not a title: 31 of the 255 stored are
-     * already longer than the varchar(255) the column was declared as, the
-     * longest 387 characters.
-     *
-     * SQLite does not enforce a varchar length, so they stored fine and nothing
-     * ever complained. MySQL does, and would have truncated or refused every
-     * one of them. show_notes beside it is already text.
+     * An episode topic is a sentence, not a title, and many stored ones exceed
+     * varchar(255). SQLite does not enforce the length so nothing complained;
+     * MySQL would truncate or refuse them.
      */
     public function up(): void
     {

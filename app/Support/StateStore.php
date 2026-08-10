@@ -7,12 +7,9 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Arr;
 
 /**
- * Read and write server-side ambient state.
- *
- * Values are stored JSON-encoded, so what goes in comes back the same type
- * without a companion type column. One row holds one group (`now.battery`),
- * because the things that arrive together are read together, and a per-group
- * row gives each group its own `observed_at` for display.
+ * Read and write server-side ambient state. Values are JSON-encoded so types
+ * round-trip, and one row holds one group (`now.battery`) so each carries its
+ * own `observed_at`.
  */
 class StateStore
 {
@@ -48,8 +45,8 @@ class StateStore
     }
 
     /**
-     * Read several keys in one query, for callers that need a whole set (the
-     * status bar renders on every page, so it must not cost a query per group).
+     * Read several keys in one query. The status bar renders on every page, so
+     * it must not cost a query per group.
      *
      * @param  array<int, string>  $keys
      * @return array<string, array{value: mixed, observedAt: ?string, updatedAt: string}>
@@ -79,10 +76,8 @@ class StateStore
     }
 
     /**
-     * Merge into an array value, leaving keys the caller did not mention alone.
-     *
-     * This is what makes a partial send safe: a shortcut that reports only the
-     * battery percentage cannot blank the charging flag written by another.
+     * Merge into an array value, leaving unmentioned keys alone, so a shortcut
+     * sending only the battery percentage cannot blank the charging flag.
      *
      * @param  array<string, mixed>  $values
      */

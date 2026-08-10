@@ -31,14 +31,9 @@ it('generates a base slug, then disambiguates by year, then by suffix', function
         ->and($c)->toBe('the-office-2001-2');
 });
 
-// Each collection is exercised in its own test (rather than two collections
-// per test) because Spatie Media Library's singleFile enforcement only
-// re-checks the collection touched by the *first* toMediaCollection() call
-// of the request; a second, unrelated collection touched afterwards in the
-// same test is left untrimmed regardless of registration. That's a library
-// quirk unrelated to whether our collections are registered, reproducible
-// even on the pre-existing `cover`/`map` collections, so isolating each
-// collection per test keeps the assertion meaningful.
+// One collection per test: Media Library's singleFile enforcement only re-checks
+// the collection touched by the first toMediaCollection() call of the request, so
+// a second one in the same test is left untrimmed regardless of registration.
 it('stores a single-file backdrop image on a series', function () {
     Storage::fake(config('media-library.disk_name'));
 

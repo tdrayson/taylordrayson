@@ -54,13 +54,8 @@ class Podcast extends Model implements HasMedia, Timelineable
     }
 
     /**
-     * The episode audio: the mirrored copy once it has been stored, otherwise
-     * the publisher's URL.
-     *
-     * The fallback is the point of the pair. Mirroring 255 episodes is not
-     * instant and a download can fail, so every consumer asks for the local
-     * copy and quietly streams from the publisher until there is one, rather
-     * than the player going silent while the archive fills up.
+     * The episode audio: the mirrored copy once stored, otherwise the publisher's
+     * URL, so the player keeps working while the archive fills up.
      */
     public function audioSrc(): ?string
     {

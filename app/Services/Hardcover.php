@@ -9,13 +9,9 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Client for the Hardcover GraphQL API (api.hardcover.app), used to look up
- * books for the media timeline. Authenticates with a static Bearer token
- * (`HARDCOVER_API_KEY`); there is no OAuth refresh flow.
- *
- * Public methods fail closed: a failed HTTP response or a GraphQL `errors`
- * payload throws {@see HardcoverException} rather than being treated as an
- * empty result set.
+ * Client for the Hardcover GraphQL API, used to look up books for the media
+ * timeline. A failed response or a GraphQL `errors` payload throws rather than
+ * returning an empty result set.
  */
 class Hardcover
 {
@@ -48,11 +44,8 @@ class Hardcover
     }
 
     /**
-     * Search Hardcover for books matching the query string.
-     *
-     * Returns the `search` payload (`error`, `page`, `per_page`, `query`,
-     * `query_type`, `results`), where `results.hits` holds the matched
-     * documents.
+     * Search Hardcover for books, returning the raw `search` payload whose
+     * `results.hits` holds the matched documents.
      *
      * @return array{error: mixed, page: int|null, per_page: int|null, query: string|null, query_type: string|null, results: array<string, mixed>|null}
      */

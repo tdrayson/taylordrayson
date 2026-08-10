@@ -4,19 +4,10 @@ import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 
-// Callout tint per variant (GitHub-alert set). The neutral ramp covers
-// 'note'; 'important' reuses the accent/blueberry brand ramp; 'tip'
-// (green), 'warning' (amber) and 'caution' borrow the closest-hue timeline
-// data-type tokens (activity, fuel, media) since the palette has no
-// dedicated success/warning/danger scale of its own. Chip text stays
-// neutral-900/accent-700 (both proven-contrast pairs elsewhere in the
-// design system) rather than colouring text with the single-value hue
-// tokens, which have no dark shade to guarantee contrast.
-// Statamic-hot-tip flavour: a flat pastel panel (no border) with a chunky
-// tilted label overlapping the panel's top edge. Chips are OPAQUE solids in
-// the full-strength hue so they pop against the panel and nothing shows
-// through where they overlap its edge. Hues reuse existing tokens:
-// neutral / activity green / accent / fuel amber / media red.
+// Callout tint per variant (GitHub-alert set). Hues borrow the closest timeline
+// data-type tokens, the palette having no success/warning/danger scale of its
+// own. Chip text stays neutral-900/accent-700: the hue tokens are single values
+// with no dark shade to guarantee contrast.
 const CALLOUT_VARIANTS = {
     note: { label: 'Note', panel: 'bg-neutral-25', chip: 'bg-neutral-900 text-neutral-0' },
     tip: { label: 'Tip', panel: 'bg-activity/10', chip: 'bg-activity text-neutral-0' },
@@ -253,14 +244,9 @@ function renderCode(node) {
 function renderCallout(node) {
     const variant = CALLOUT_VARIANTS[node.variant] ?? CALLOUT_VARIANTS.note;
 
-    // not-prose: a self-contained panel, like CodeBlock; prose's paragraph
-    // rhythm must not leak in. max-w-media (the image width) keeps the panel
-    // edge-aligned with images/videos while its padding brings the text
-    // inside back to roughly the prose measure. The outer pt-3 reserves
-    // headroom for the label, which sits half above the panel (Statamic
-    // hot-tip style) via absolute -top.
-    // my-8 puts the breathing room OUTSIDE the panel; interior padding stays
-    // compact (pt-7 just clears the overlapping chip).
+    // not-prose so the paragraph rhythm cannot leak into a self-contained panel.
+    // The outer pt-3 reserves headroom for the label, which sits half above the
+    // panel on an absolute -top.
     return h('div', { key: node._key, class: 'not-prose my-8 max-w-media pt-3' }, [
         h('div', { class: `relative rounded-2xl px-6 pb-5 pt-7 ${variant.panel}` }, [
             h('span', {

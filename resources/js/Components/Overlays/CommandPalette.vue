@@ -312,8 +312,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                 class="overlay fixed inset-0 flex items-start justify-center px-4"
                 @click.self="close"
             >
-                <!-- Fixed bg-black (not bg-neutral-900): the palette backdrop is an
-                     intentional dim scrim in both themes, so it must not invert. -->
+                <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="backdrop absolute inset-0 bg-black/45" @click="close" />
 
                 <div

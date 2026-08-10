@@ -12,18 +12,9 @@ use App\Support\Health\SleepScore;
 use Illuminate\Support\Facades\Log;
 
 /**
- * The job calls each processor's process() with only the payload, so it
- * always exercises each processor's production CSV default. Binding a real
- * CSV path override into that call-site (rather than renaming the tracked
- * data/sleep.csv out of the way) would change what's under test, so instead
- * this binds the container to a subclass of the real processor whose
- * process(array $payload): void (matching the HealthProcessor interface, so
- * the job's single-argument call-site is untouched) delegates to
- * parent::process() with a unique, nonexistent temp CSV path appended. A
- * nonexistent path keeps mirrorToCsv()/scoreAll() on their documented no-op
- * branch, so the tracked file is never opened, renamed, or raced. The real
- * dependencies are resolved from the container, so aggregation/scoring logic
- * is exercised unchanged.
+ * Bind a processor subclass that appends a nonexistent temp CSV path, keeping
+ * mirrorToCsv()/scoreAll() on their no-op branch so the tracked data/sleep.csv is
+ * never opened, while the job's single-argument call-site stays untouched.
  */
 function bindSleepProcessorWithTempCsv(): string
 {

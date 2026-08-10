@@ -5,12 +5,9 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Client for the logo.dev image API.
- *
- * Fetches a brand logo as raw image bytes, keyed by the brand's web domain.
- * The `fallback=404` parameter makes logo.dev return a 404 (rather than a
- * generated monogram placeholder) when it has no real logo, so a miss is
- * reported as unavailable instead of saved.
+ * Client for the logo.dev image API, fetching a brand logo by web domain.
+ * `fallback=404` is set so a miss 404s instead of returning a generated
+ * monogram placeholder, which would otherwise be saved as if it were real.
  */
 class LogoDev
 {

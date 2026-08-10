@@ -9,14 +9,9 @@ use App\Models\Series;
 use Illuminate\Support\Collection;
 
 /**
- * Poster grid of every show with at least one watched episode, ordered by the
- * most recently watched episode first.
- *
- * Avoids hydrating every show's full `episodes` collection: the sort key comes
- * from a `MAX(occurred_at)` aggregate, and progress is computed from one lean
- * query over just `series_id`/`meta` that builds no models at all. `media` is
- * still eager-loaded so poster resolution stays a single query, not one per
- * series.
+ * Poster grid of every show with a watched episode, most recent first. Sorts on a
+ * `MAX(occurred_at)` aggregate and computes progress from one lean query rather
+ * than hydrating each show's full `episodes` collection.
  */
 final class WatchedSeriesIndex
 {

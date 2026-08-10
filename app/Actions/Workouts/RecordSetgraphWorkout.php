@@ -8,16 +8,9 @@ use App\Models\Activity;
 use Carbon\CarbonImmutable;
 
 /**
- * Record a Setgraph share against the day's gym session.
- *
- * Setgraph normally arrives first: the phone shares the moment the workout
- * ends, while Strava has to upload and then wait for the next `strava:sync`.
- * So when no activity sits near the given time this creates one, sourced to
- * Setgraph and carrying no heart rate. `StravaSync` later finds that unclaimed
- * row and adopts it rather than creating a duplicate.
- *
- * When Strava did get there first, the sets are merged onto the existing
- * activity and nothing new is created.
+ * Record a Setgraph share against the day's gym session, merging onto an existing
+ * activity or creating one when Setgraph got there first. `StravaSync` later
+ * adopts the unclaimed row rather than duplicating it.
  */
 class RecordSetgraphWorkout
 {
@@ -70,14 +63,9 @@ class RecordSetgraphWorkout
     }
 
     /**
-     * When the workout began, worked back from the share.
-     *
-     * Setgraph shares once the session is over, so the raw timestamp is the end.
-     * Taking the stated length off it lands near the real start, which matters
-     * for more than tidiness: measured from the end, a two-hour session sits
-     * further from its Strava start than the match window allows and would
-     * duplicate the activity. With no stated length the share time is all we
-     * have, and Strava corrects it on the next sync anyway.
+     * When the workout began, worked back from the share, which Setgraph sends at
+     * the end. Without this a long session sits outside the match window and
+     * duplicates its Strava activity.
      */
     private function estimatedStart(CarbonImmutable $sharedAt, SetgraphWorkout $workout): CarbonImmutable
     {
@@ -87,18 +75,10 @@ class RecordSetgraphWorkout
     }
 
     /**
-     * The gym session this share belongs to, whichever source logged it first.
-     *
-     * Overlapping clock time decides it, not proximity. Racquet sports and
-     * crossfit all map to the generic `workout` type, so an afternoon of tennis
-     * followed by an evening in the gym puts two candidates in any sensible
-     * window; only one of them actually runs at the same time as the sets being
-     * recorded. Where several overlap, the longest shared stretch wins.
-     *
-     * A share with no stated length has no range to compare, so it falls back
-     * to the nearest start, and only against `weight-training`. That keeps the
-     * tennis session out of it at the cost of missing a gym session Strava
-     * happened to record as a generic workout, which the next sync then adopts.
+     * The gym session this share belongs to, decided by overlapping clock time
+     * rather than proximity, since racquet sports and crossfit share the generic
+     * `workout` type. A share with no stated length has no range to compare, so it
+     * falls back to the nearest `weight-training` start.
      */
     private function matchingActivity(CarbonImmutable $occurredAt, ?int $duration): ?Activity
     {

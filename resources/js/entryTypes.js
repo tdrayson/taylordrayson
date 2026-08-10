@@ -1,13 +1,9 @@
 /**
- * Visual metadata for each timeline data type, keyed by the `type` string
- * returned from each model's card() method. The `accent` colour is supplied
- * separately by the server (card['accent']) since a few types diverge
- * (e.g. calorie → food).
+ * Visual metadata for each timeline data type, keyed by the card's `type` string.
+ * `icon` is an icon-registry name, `href` mirrors the archive slugs in
+ * App\Timeline\TypeRegistry, and `accent` is the --color-* token key, which
+ * matches the type key except where it diverges server-side (calorie -> food).
  */
-// `icon` is an icon-registry name string (resolved by Icon.vue), so this map
-// carries no direct hugeicons imports. `href` mirrors the archive slugs in
-// App\Timeline\TypeRegistry (PHP). `accent` is the --color-* token key, which
-// matches the type key except where it diverges server-side (calorie → food).
 export const entryTypes = {
     activity: { icon: 'WorkoutRunIcon', label: 'Activity', href: '/activities', accent: 'activity' },
     sleep: { icon: 'Moon02Icon', label: 'Sleep', href: '/sleep', accent: 'sleep' },

@@ -33,11 +33,8 @@ class PortableText
     }
 
     /**
-     * The document's text with its paragraph breaks intact.
-     *
-     * {@see plainText()} collapses all whitespace, which is right for a card
-     * title or an OG description and wrong for a note's body, where the breaks
-     * the author typed are part of what they wrote.
+     * The document's text with its paragraph breaks intact, unlike
+     * {@see plainText()} which collapses all whitespace.
      *
      * @param  array<int, array<string, mixed>>|string|null  $document
      */
@@ -99,12 +96,8 @@ class PortableText
     /**
      * Convert plain text to Portable Text, so a client that can only send a
      * string (Shortcuts, Micropub, a CSV import) still produces valid content.
-     *
-     * Blank lines separate blocks. Wrapping the whole string in one block
-     * instead would keep the newlines inside a single span, where the renderer
-     * has no reason to honour them and the paragraph break is simply lost.
-     * A single newline stays inside its block, being a soft break the dialect
-     * has no node for.
+     * Blank lines separate blocks; a single newline stays inside its block, the
+     * dialect having no soft-break node.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -136,8 +129,8 @@ class PortableText
     }
 
     /**
-     * One-way conversion of a stored Editor.js document. Inline HTML is
-     * stripped to plain spans (the only stored document is factory lorem).
+     * One-way conversion of a stored Editor.js document, stripping inline HTML
+     * to plain spans.
      *
      * @return array<int, array<string, mixed>>
      */

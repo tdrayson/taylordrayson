@@ -6,12 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * The playable media block on an appearance/podcast card. `thumbnail` is the
- * wide (16:9) card image; `audioCover` is the square artwork the bottom audio
- * player shows and is emitted only when set (podcasts). Appearance always
- * carries a (possibly null) responsive `srcset` for its stored cover; Podcast
- * has no such conversion, so the key is omitted entirely rather than emitted
- * as null.
+ * The playable media block on an appearance/podcast card. `thumbnail` is the wide
+ * card image, `audioCover` the square artwork the audio player shows. Keys with no
+ * counterpart on a given type are omitted rather than emitted null.
  */
 final readonly class MediaData implements Arrayable, JsonSerializable
 {

@@ -11,12 +11,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Deletes the imported original of every image that has an optimised copy,
- * making the 1920px WebP the stored master.
- *
- * Irreversible, and not only for the picture: Media Library regenerates
- * conversions FROM the original, so once it is gone the `card` size and the
- * responsive set can never be rebuilt. Dry run unless --force is given.
+ * Deletes the imported original of every image that has an optimised copy, making
+ * the 1920px WebP the stored master. Irreversible: conversions regenerate FROM the
+ * original, so `card` and the responsive set can never be rebuilt afterwards.
+ * Dry run unless --force is given.
  */
 #[Signature('media:prune-originals
     {--collection=* : Limit to these collections}

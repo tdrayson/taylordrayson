@@ -33,14 +33,9 @@ use App\Models\Project;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The types that can be written by hand, and what to reach for per type.
- *
- * One table rather than a controller full of branches: adding a type means
- * adding a row here, its fields class, and its actions. Everything else — the
- * form, the properties panel, /new, /drafts, validation — reads from this.
- *
- * Absent by design: activities, sleep, calories, check-ins, podcasts, flights
- * and the Trakt-sourced media types all arrive from a sync.
+ * The types that can be written by hand, and what to reach for per type. One
+ * table rather than a controller full of branches: the form, properties panel,
+ * /new, /drafts and validation all read from it. Synced types are absent.
  */
 final class AuthorableTypes
 {
@@ -94,13 +89,9 @@ final class AuthorableTypes
     }
 
     /**
-     * Everything offered on /new, in the order the tiles appear: the quickest
-     * and most frequent first, so the common case is the first thing thumbed.
-     *
-     * Icon names match resources/js/entryTypes.js wherever a type already has
-     * one, so a tile and its timeline entry never show different marks. Pages
-     * are not a timeline type and have no entry there, hence File02Icon beside
-     * the article's File01Icon.
+     * Everything offered on /new, quickest and most frequent first. Icon names
+     * match resources/js/entryTypes.js so a tile and its timeline entry never
+     * show different marks.
      *
      * @return list<array{type: string, label: string, icon: string}>
      */

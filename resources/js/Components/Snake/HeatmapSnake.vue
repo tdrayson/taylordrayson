@@ -2,12 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 /**
- * Snake played on a contribution-heatmap grid. The dark snake leaves accent
- * "contributions" behind: each pellet (accent) it eats stays lit in the same
- * colour, so the board fills in like a busy week. One point per square.
- *
- * Pure game component. It owns play state and emits `start`, `score` (live)
- * and `gameover` so a parent can drive the leaderboard.
+ * Snake played on a contribution-heatmap grid, where each pellet eaten stays lit
+ * so the board fills in like a busy week. Owns play state and emits `start`,
+ * `score` and `gameover` for a parent to drive the leaderboard.
  */
 const COLUMNS = 20;
 const ROWS = 12;

@@ -8,14 +8,10 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
- * Download an activity's Strava photos and store them as media: the first photo
- * becomes the single `cover`, the rest fill the `photos` gallery. Existing photo
- * media is cleared first so re-running is idempotent.
- *
- * Each photo's map coordinate is resolved by {@see ResolvePhotoCoordinate}:
- * Strava's own per-photo `location` first, then interpolation from the GPS
- * stream when a stream and the activity's UTC start are supplied. A photo that
- * cannot be placed is still stored, just without coordinates.
+ * Download an activity's Strava photos as media, the first becoming `cover` and
+ * the rest the `photos` gallery. Existing media is cleared first, so re-running is
+ * idempotent, and a photo {@see ResolvePhotoCoordinate} cannot place is still
+ * stored, just without coordinates.
  */
 class SyncStravaPhotos
 {

@@ -6,14 +6,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 /**
- * Every run rewrites the CSV mirror, so each test points it at a scratch file.
- * Without this the suite truncates the real data/podcasts.csv to whatever the
- * test factories happened to create.
- *
- * The queue is faked because a new episode dispatches StorePodcastMedia, and
- * the sync queue driver in tests would run it inline: it would consume the
- * faked API responses meant for the next page and count towards the request
- * assertions below.
+ * Each test points the CSV mirror at a scratch file, or the run truncates the real
+ * data/podcasts.csv. The queue is faked because StorePodcastMedia would otherwise
+ * run inline and consume the faked responses meant for the next page.
  */
 beforeEach(function () {
     $this->csv = sys_get_temp_dir().'/podcasts-test-'.getmypid().'.csv';

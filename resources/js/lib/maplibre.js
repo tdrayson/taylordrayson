@@ -7,12 +7,9 @@ export function mapStyleForTheme(resolved) {
 }
 
 /**
- * Swap the basemap style while preserving the given custom source + layer ids.
- * A plain `setStyle` drops every custom source/layer, and its post-swap event
- * (`style.load`) does not reliably fire when maplibre diffs the two styles, so
- * a re-add-on-style.load approach leaves routes/arcs missing until reload.
- * `transformStyle` instead carries our layers into the new style atomically, so
- * they stay drawn across a theme toggle with no re-add timing dance.
+ * Swap the basemap style while preserving the given custom source and layer ids.
+ * `transformStyle` carries them across atomically; a plain `setStyle` drops them
+ * and its `style.load` event does not reliably fire when maplibre diffs styles.
  */
 export function swapBasemapStyle(map, styleUrl, ids) {
     map.setStyle(styleUrl, {
@@ -36,17 +33,10 @@ export function swapBasemapStyle(map, styleUrl, ids) {
 }
 
 /**
- * Lazily load MapLibre GL and its stylesheet, resolving with the module (or
- * null if the chunk failed to load).
- *
- * Imported dynamically rather than at the top of the file so the ~1MB library
- * is a chunk of its own, fetched when a map is actually created instead of by
- * every visitor who loads a page that happens to import this module for
- * `greatCircle` or `mapStyleForTheme`.
- *
- * The version comes from package.json. It used to be a hardcoded CDN URL,
- * which had drifted to loading v4 from unpkg while the bundled dependency was
- * v5, so two different majors were in play depending on which map you opened.
+ * Lazily load MapLibre GL and its stylesheet, resolving with the module or null.
+ * Imported dynamically so the ~1MB library is its own chunk, fetched when a map
+ * is created rather than by anyone importing this module for `greatCircle`. The
+ * version comes from package.json so the CSS cannot drift from the bundle.
  */
 export async function loadMaplibre() {
     try {

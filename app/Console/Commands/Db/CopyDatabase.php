@@ -11,18 +11,12 @@ use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 /**
- * Copies every row from a SQLite file into the app's database, primary keys and
- * all.
+ * Copies every row from a SQLite file into the app's database, preserving primary
+ * keys because media files live in directories named after their row id.
  *
- * Written for the move to MySQL. A SQL dump is the obvious route and the wrong
- * one: SQLite writes string literals verbatim, MySQL reads a backslash inside
- * one as an escape, and timeline_entries.timelineable_type holds a class name
- * with two of them in every row. A dump imports without a single error and
- * leaves the polymorphic relation broken on all of them. Going through PDO
- * means the driver does the escaping and that cannot happen.
- *
- * Primary keys are preserved deliberately: media files live in directories
- * named after their row id, so changing the ids would strand every attachment.
+ * Goes through PDO rather than a SQL dump: MySQL reads a backslash in a string
+ * literal as an escape, so a dump silently corrupts every
+ * timeline_entries.timelineable_type class name.
  */
 #[Signature('db:copy
     {--from= : Path to the source SQLite file}
@@ -33,9 +27,8 @@ use Throwable;
 class CopyDatabase extends Command
 {
     /**
-     * Runtime state rather than content. The target rebuilds `migrations` by
-     * running migrate, and the rest is cache, queue and session scratch that
-     * would only carry stale entries onto a fresh install.
+     * Runtime state rather than content: migrate rebuilds `migrations`, and the
+     * rest is cache, queue and session scratch.
      *
      * @var list<string>
      */
@@ -131,11 +124,8 @@ class CopyDatabase extends Command
     }
 
     /**
-     * Columns on one side and not the other.
-     *
-     * Checked up front rather than discovered mid-copy: a source column the
-     * target lacks would be dropped by the insert without complaint, which is
-     * the one failure here that leaves no trace.
+     * Columns on one side and not the other, checked up front because an insert
+     * drops an unmatched source column without complaint.
      *
      * @param  list<string>  $tables
      * @return list<string>
@@ -239,11 +229,8 @@ class CopyDatabase extends Command
     }
 
     /**
-     * Insert a chunk, falling back to one row at a time if it is rejected.
-     *
-     * The fallback is for the report, not the recovery: a bad chunk says only
-     * that something in those 250 rows was refused, which is no use against
-     * 25,000 of them. Retrying individually names the row.
+     * Insert a chunk, falling back to one row at a time if it is rejected. The
+     * fallback exists to name the offending row, not to recover.
      *
      * @param  list<array<string, mixed>>  $records
      */

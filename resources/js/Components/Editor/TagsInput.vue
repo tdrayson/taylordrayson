@@ -4,16 +4,9 @@ import { useDismissable } from '../../lib/editor/dismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**
- * Tags as chips, with autocomplete over the tags that already exist.
- *
- * The point of the autocomplete is consistency rather than speed: without it
- * the same idea ends up filed under "Theatre", "theatre" and "theater", and
- * three tag pages each hold a third of the entries. Existing tags are offered
- * first and ranked by how much they are already used.
- *
- * A comma commits, as does Enter or picking from the list. Backspace on an
- * empty field removes the last chip, which is what every tag field does and
- * what fingers expect.
+ * Tags as chips, autocompleting over existing tags ranked by use, so the same
+ * idea does not end up split across "Theatre", "theatre" and "theater". Comma or
+ * Enter commits; backspace on an empty field removes the last chip.
  */
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },

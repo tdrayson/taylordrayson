@@ -11,11 +11,8 @@ use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Shapes a Timelineable model's photos (cover + gallery, in that order) into
- * the payload shared by the photo gallery and any per-period photo strip:
- * optimised src, responsive srcset, full-size original, pixel dimensions
- * (parsed from the responsive filenames), caption/accent from the card, and
- * the entry link.
+ * Shapes a Timelineable model's photos, cover first, into the payload shared by
+ * the photo gallery and any per-period photo strip.
  */
 class GalleryPhotos
 {
@@ -60,9 +57,8 @@ class GalleryPhotos
     }
 
     /**
-     * The card-conversion pixel dimensions, parsed from the responsive-image
-     * filenames (e.g. `…_card_480_640.webp`), so a masonry tile can reserve its
-     * aspect ratio and avoid layout shift. Null when no responsive set exists.
+     * Card pixel dimensions parsed from the responsive filenames
+     * (`…_card_480_640.webp`), so a masonry tile can reserve its aspect ratio.
      *
      * @return array{width: int|null, height: int|null}
      */

@@ -34,8 +34,7 @@ const titleId = useId();
     <Teleport to="body">
         <Transition name="fade">
             <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <!-- Fixed bg-black (not bg-neutral-900): the backdrop is an intentional
-                     dim scrim in both themes, so it must not invert with the neutral ramp. -->
+                <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="absolute inset-0 bg-black/50" @click="closeOnBackdrop && close()" />
 
                 <div

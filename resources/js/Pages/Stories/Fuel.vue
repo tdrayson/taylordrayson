@@ -31,7 +31,6 @@ setLayoutProps({
 
 const s = computed(() => props.story);
 
-// --- formatting helpers ----------------------------------------------------
 
 /**
  * Format a number with thousands separators (44968 becomes "44,968").
@@ -89,7 +88,6 @@ const heroKpis = computed(() => [
     { value: `${s.value.kpis.avgMpg}`, label: 'Average MPG' },
 ]);
 
-// --- chart configs ---------------------------------------------------------
 
 /**
  * Price per litre across every fill, as a line over time (the rollercoaster).

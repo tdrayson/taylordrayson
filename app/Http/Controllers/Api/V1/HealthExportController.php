@@ -11,16 +11,10 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Take a payload from the Health Auto Export app. Like the Setgraph route, the
- * path is named for the app that sends it, because the payload's shape is that
- * app's contract rather than ours.
- *
- * Metrics arrive in bulk (a fortnight of sleep runs to four figures of points),
- * so the work is queued and this only acknowledges receipt. Which metrics are
- * actually used is {@see ProcessHealthExport}'s business.
- *
- * Authentication is the shared `api.token` middleware; there is no separate
- * health-export token.
+ * Take a payload from the Health Auto Export app. The path is named for the app
+ * because the payload shape is that app's contract, not ours. Metrics arrive in
+ * bulk, so this only acknowledges receipt and {@see ProcessHealthExport} does
+ * the work.
  */
 class HealthExportController extends Controller
 {

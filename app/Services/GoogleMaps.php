@@ -6,13 +6,9 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Client for Google Places and Geocoding, used by the location field.
- *
- * Google rather than Mapbox for place search specifically: Mapbox ranks streets
- * above businesses, so searching a venue or a garage returned the road it sits
- * on. Google knows the venue has a name.
- *
- * Mapbox still renders every stored map; this is only about finding a place.
+ * Client for Google Places and Geocoding, used by the location field. Google
+ * rather than Mapbox here because Mapbox ranks streets above businesses, so
+ * venue searches returned the road instead. Mapbox still renders the maps.
  */
 class GoogleMaps
 {

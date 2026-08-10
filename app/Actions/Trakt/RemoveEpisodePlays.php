@@ -9,14 +9,9 @@ use App\Services\Trakt;
 use Illuminate\Support\Collection;
 
 /**
- * Remove whole episodes from Trakt history (by episode trakt id) and clear the
- * local rows that mirrored them.
- *
- * The episode-level sibling of {@see RemovePlays}: use this when an episode
- * should not appear at all, rather than when one specific play among several
- * must go. As with RemovePlays, a local row is only deleted once Trakt has
- * confirmed the episode is gone, so a failed remote removal leaves a
- * recoverable mismatch rather than a silently resurrecting one.
+ * Remove whole episodes from Trakt history and clear the local rows mirroring
+ * them. The episode-level sibling of {@see RemovePlays}. A local row is deleted
+ * only once Trakt confirms, so a failed removal is recoverable.
  */
 final class RemoveEpisodePlays
 {
@@ -62,11 +57,8 @@ final class RemoveEpisodePlays
     }
 
     /**
-     * Local episode rows whose meta trakt id is in the confirmed-gone set.
-     *
-     * Matched in PHP rather than with a JSON `where`, since production is not
-     * SQLite and the codebase avoids JSON-path predicates for portability.
-     * The candidate set is bounded to Trakt episodes, so the scan is cheap.
+     * Local episode rows whose meta trakt id is in the confirmed-gone set. Matched
+     * in PHP rather than by JSON path, which is not portable across drivers.
      *
      * @param  array<int, int>  $episodeTraktIds
      * @return Collection<int, Media>

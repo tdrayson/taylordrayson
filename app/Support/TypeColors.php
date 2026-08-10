@@ -3,13 +3,9 @@
 namespace App\Support;
 
 /**
- * The 13 timeline data-type accent colours, read from their single source of
- * truth: the `--color-{type}` custom properties in resources/css/app.css (where
- * the whole site's UI also reads them via `var(--color-{type})`).
- *
- * The backend needs them as hex (for Mapbox overlays and the Browsershot OG
- * cards), so this parses the CSS once per request and converts HSL to hex,
- * keeping a single definition rather than a second hand-maintained list.
+ * The timeline data-type accent colours, parsed from the `--color-{type}` custom
+ * properties in resources/css/app.css and converted to hex for Mapbox overlays
+ * and the OG cards, so there is no second hand-maintained list.
  */
 class TypeColors
 {

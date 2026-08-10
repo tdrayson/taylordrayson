@@ -6,13 +6,9 @@ use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 
 /**
- * Resolve where a Strava photo sits on the map.
- *
- * Strava usually returns each photo's own GPS fix in a `location` field, which
- * is exact and needs no stream, so that is preferred. Only when it is absent
- * (older or EXIF-stripped uploads) do we fall back to interpolating position
- * from the photo's capture time against the activity's GPS stream via
- * {@see LocatePhotoOnRoute}.
+ * Resolve where a Strava photo sits on the map, preferring the photo's own exact
+ * `location` fix and falling back to {@see LocatePhotoOnRoute} against the GPS
+ * stream for older or EXIF-stripped uploads.
  */
 final class ResolvePhotoCoordinate
 {

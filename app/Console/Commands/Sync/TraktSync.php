@@ -41,36 +41,25 @@ class TraktSync extends Command
     private array $showSummaries = [];
 
     /**
-     * Series ids that received a new episode this run, keyed by id. Bounds
-     * `normalizeEpisodeOrder()` to only the series touched this run instead
-     * of a full-table scan: ties only ever arise from newly-imported
-     * episodes, so a series untouched this run has no new ties to fix.
+     * Series ids that received a new episode this run, bounding
+     * `normalizeEpisodeOrder()` away from a full-table scan.
      *
      * @var array<int, true>
      */
     private array $affectedSeriesIds = [];
 
     /**
-     * Series ids that already had `EnrichMedia` dispatched this run, keyed
-     * by id. A batch of many episodes belonging to the same bare show would
-     * otherwise re-dispatch enrichment once per episode; this caps it to one
-     * dispatch per series per run.
+     * Series ids that already had `EnrichMedia` dispatched, capping it at one
+     * per series per run rather than one per episode.
      *
      * @var array<int, true>
      */
     private array $enrichDispatched = [];
 
     /**
-     * History and ratings are separable because they cost wildly different
-     * amounts. A history run with a short window is a page request per type
-     * that usually comes back empty, so it is cheap enough to poll every
-     * minute. `syncRatings()` pages the entire ratings library and then walks
-     * every Trakt-sourced row in PHP, which is a daily job.
-     *
-     * The two flags are mutually exclusive halves, so the frequent schedule and
-     * the daily one never do the same work and cannot race to create the same
-     * row. A plain run still does both, which is what a manual or `--full`
-     * invocation wants.
+     * Sync watch history, ratings, or both. The two flags are mutually exclusive
+     * halves so the every-minute history schedule and the daily ratings one can
+     * never race; a plain run does both.
      */
     public function handle(Trakt $trakt): int
     {
@@ -110,13 +99,9 @@ class TraktSync extends Command
     }
 
     /**
-     * Resolve the incremental sync's lower bound, self-healing past a
-     * missed or broken schedule: rather than trusting `--days` alone (which
-     * would silently skip anything watched between `--days` ago and the
-     * last successful sync), the window widens back to the newest synced
-     * watch, capped at `MAX_CATCHUP_DAYS` so a very stale sync doesn't
-     * trigger an unbounded backfill. `--full` always wins and fetches
-     * everything.
+     * Resolve the incremental sync's lower bound. The window widens back to the
+     * newest synced watch so a missed schedule self-heals, capped at
+     * `MAX_CATCHUP_DAYS`. `--full` fetches everything.
      */
     private function resolveStartAt(): ?string
     {
@@ -142,18 +127,9 @@ class TraktSync extends Command
     }
 
     /**
-     * Trakt bulk-marks episodes as watched with the exact same `watched_at`
-     * second, so ties between episodes of the same series sort in whatever
-     * arbitrary order the database returns them (e.g. S1E7 before S1E6).
-     * Nudge each tied episode apart by one second, ordered by
-     * (season, episode), so a plain time-sort is correct everywhere.
-     *
-     * Bounded to `$affectedSeriesIds`: only series that received a new
-     * episode this run are re-scanned, rather than every synced episode on
-     * every run. Ties only ever arise from newly-imported episodes, so a
-     * series untouched this run can't have a new tie to fix, and it's
-     * idempotent: once a group has been nudged its timestamps are no longer
-     * identical, so a re-run finds no ties there and leaves it untouched.
+     * Nudge episodes sharing an exact `watched_at` one second apart, ordered by
+     * (season, episode), so a plain time-sort is correct. Trakt bulk-marks give
+     * every episode the same second, which otherwise sorts arbitrarily.
      */
     private function normalizeEpisodeOrder(): void
     {
@@ -176,12 +152,9 @@ class TraktSync extends Command
     }
 
     /**
-     * Reassign `occurred_at` for a group of episodes that all share the same
-     * timestamp: the (season, episode) sorted first keeps the shared base
-     * time, and each subsequent one gets base + its 0-based rank in seconds.
-     * The base is captured once, before any row in the group is reassigned,
-     * so every offset in the group is computed from the original shared
-     * moment rather than a previously-nudged row.
+     * Reassign `occurred_at` across a tied group: first by (season, episode)
+     * keeps the base time, the rest get base + rank in seconds. The base is
+     * captured before any reassignment so offsets never compound.
      *
      * @param  Collection<int, Media>  $group  Episodes sharing one exact `occurred_at`.
      */
@@ -238,11 +211,8 @@ class TraktSync extends Command
     }
 
     /**
-     * Pull the user's personal star ratings (1-10) for movies, shows, and
-     * episodes, and apply them onto the matching Media/Series rows. This is
-     * Taylor's own opinion, not an aggregate external score, so it's synced
-     * separately from watch history and applied by matching each item's
-     * `meta.ids.trakt` (or `Series.trakt_id`) against the ratings payload.
+     * Pull personal star ratings (1-10) and apply them onto matching Media/Series
+     * rows by `meta.ids.trakt` or `Series.trakt_id`.
      */
     private function syncRatings(Trakt $trakt): void
     {
@@ -261,12 +231,9 @@ class TraktSync extends Command
     }
 
     /**
-     * Apply ratings onto every Media row of the given type whose
-     * `meta.ids.trakt` matches an id in the ratings map. Matching happens in
-     * PHP against the loaded collection (not a JSON-path `where`) since
-     * production isn't SQLite. A film/episode watched (and rated) multiple
-     * times has multiple rows sharing the same Trakt id, so every matching
-     * row gets the rating.
+     * Apply ratings onto every Media row whose `meta.ids.trakt` matches. Matched
+     * in PHP rather than by JSON path because production is not SQLite, and every
+     * matching row is updated since a rewatch has several.
      *
      * @param  array<int|string, int>  $ratings  Trakt id => rating.
      */
@@ -322,11 +289,8 @@ class TraktSync extends Command
     }
 
     /**
-     * Page through a ratings endpoint until an empty batch signals the end,
-     * building a flat map of Trakt id => rating. `ratingsPage` fails closed
-     * (throws `TraktException` on a failed request), so an empty batch here
-     * only ever means "nothing rated in that category", never a swallowed
-     * failure.
+     * Page a ratings endpoint into a flat map of Trakt id => rating. `ratingsPage`
+     * throws on failure, so an empty batch always means genuinely nothing rated.
      *
      * @return array<int|string, int>
      */
@@ -400,10 +364,8 @@ class TraktSync extends Command
     }
 
     /**
-     * Page through a history endpoint until an empty batch signals the end.
-     * `historyPage` fails closed (throws `TraktException` on a failed
-     * request), so an empty batch here only ever means "no more pages",
-     * never a swallowed failure.
+     * Page a history endpoint to exhaustion. `historyPage` throws on failure, so
+     * an empty batch always means no more pages.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -508,10 +470,8 @@ class TraktSync extends Command
     }
 
     /**
-     * Resolve the episode's series by Trakt id, generating a persisted,
-     * service-independent slug on first creation. `meta.aired_episodes` and
-     * `meta.seasons` are refreshed from the show summary every run so
-     * progress stats stay current as new episodes air.
+     * Resolve the episode's series by Trakt id, minting a persisted slug on first
+     * creation and refreshing the aired-episode counts every run.
      *
      * @param  array<string, mixed>  $show
      * @param  array<string, mixed>|null  $summary  The `/shows/{id}` response, if one was needed.
@@ -551,9 +511,8 @@ class TraktSync extends Command
     }
 
     /**
-     * Fetch the show summary from `/shows/{id}`, memoising the result for
-     * the rest of this run so a batch with dozens of episodes of the same
-     * show only triggers one request per show.
+     * Fetch the show summary from `/shows/{id}`, memoised for the run so a batch
+     * of episodes from one show costs a single request.
      *
      * @return array<string, mixed>|null
      */
