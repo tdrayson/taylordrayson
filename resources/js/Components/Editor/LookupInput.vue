@@ -38,11 +38,18 @@ watch(() => props.modelValue, (value) => {
     }
 });
 
-async function search() {
+async function search(coords = null) {
     searching.value = true;
 
+    const params = new URLSearchParams({ q: query.value });
+
+    if (coords) {
+        params.set('lat', coords.latitude);
+        params.set('lng', coords.longitude);
+    }
+
     try {
-        const response = await fetch(`/lookup/${props.source}?q=${encodeURIComponent(query.value)}`, {
+        const response = await fetch(`/lookup/${props.source}?${params}`, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
@@ -56,6 +63,8 @@ async function search() {
         searching.value = false;
     }
 }
+
+defineExpose({ searchNear: (coords) => search(coords) });
 
 function onInput(value) {
     query.value = value;

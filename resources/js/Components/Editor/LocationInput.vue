@@ -19,6 +19,7 @@ defineProps({
 
 const emit = defineEmits(['update:modelValue', 'fill']);
 
+const lookup = ref(null);
 const locating = ref(false);
 const error = ref(null);
 // The full address of whatever was picked, shown as confirmation. The name
@@ -82,29 +83,9 @@ function useMyLocation() {
         const { latitude, longitude } = position.coords;
 
         try {
-            const response = await fetch(`/lookup-reverse?lat=${latitude}&lng=${longitude}`, {
-                headers: { Accept: 'application/json' },
-                credentials: 'same-origin',
-            });
-
-            const place = response.ok ? (await response.json()).data : null;
-
-            // The coordinates are the useful part and are kept even when the
-            // name cannot be resolved, since the map only needs the position.
-            onFill({
-                latitude,
-                longitude,
-                ...(place?.address ? { address: place.address } : {}),
-                ...(place?.city ? { city: place.city } : {}),
-                ...(place?.postcode ? { postcode: place.postcode } : {}),
-                ...(place?.country ? { country: place.country } : {}),
-            });
-
-            if (place?.name) {
-                emit('update:modelValue', place.name);
-            }
-        } catch {
-            emit('fill', { latitude, longitude });
+            // Where you are narrows the search; it is not the answer. Picking a
+            // result is what sets the place and its address.
+            await lookup.value?.searchNear({ latitude, longitude });
         } finally {
             locating.value = false;
         }
@@ -130,6 +111,7 @@ function useMyLocation() {
         <div class="flex items-start gap-2">
             <LookupInput
                 :id="id"
+                ref="lookup"
                 :model-value="modelValue"
                 :source="source"
                 :placeholder="placeholder"
@@ -142,8 +124,8 @@ function useMyLocation() {
                 type="button"
                 class="shrink-0 rounded-md border border-neutral-100 p-2 text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700 disabled:opacity-40"
                 :disabled="locating"
-                :aria-label="locating ? 'Getting your location' : 'Use my location'"
-                :title="locating ? 'Getting your location' : 'Use my location'"
+                :aria-label="locating ? 'Finding places near you' : 'Find places near me'"
+                :title="locating ? 'Finding places near you' : 'Find places near me'"
                 @click="useMyLocation"
             >
                 <Icon name="CenterFocusIcon" :class="['size-5', locating && 'animate-pulse']" />

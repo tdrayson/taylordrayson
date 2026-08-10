@@ -91,9 +91,12 @@ function textToTags(value) {
             v-else-if="field.type === 'select'"
             :id="field.name"
             :value="modelValue ?? ''"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta focus:border-accent-500 focus:outline-none"
+            :class="modelValue ? 'text-neutral-900' : 'text-neutral-500'"
             @change="$emit('update:modelValue', $event.target.value)"
         >
+            <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>
+
             <option v-for="option in field.options ?? []" :key="option.value" :value="option.value">
                 {{ option.label }}
             </option>

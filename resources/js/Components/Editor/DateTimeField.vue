@@ -39,7 +39,7 @@ const parts = computed(() => {
 
 const label = computed(() => {
     if (! parts.value.date) {
-        return 'No date';
+        return 'Now, when posted';
     }
 
     const [y, m, d] = parts.value.date.split('-');
@@ -111,6 +111,12 @@ function setDatePart(value) {
     emit('update:modelValue', `${value} ${parts.value.time || '12:00'}:00`);
 }
 
+function clear() {
+    emit('update:modelValue', null);
+    typed.value = '';
+    close();
+}
+
 function setTimePart(value) {
     emit('update:modelValue', `${parts.value.date || stamp(new Date()).slice(0, 10)} ${value}:00`);
 }
@@ -169,23 +175,23 @@ function setTimePart(value) {
                 </li>
             </ul>
 
-            <div class="grid grid-cols-5 gap-2">
-                <label class="col-span-3 text-label uppercase text-neutral-500">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-5">
+                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-3">
                     Date
                     <input
                         type="date"
                         :value="parts.date"
-                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                        class="mt-1 w-full max-w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setDatePart($event.target.value)"
                     >
                 </label>
 
-                <label class="col-span-2 text-label uppercase text-neutral-500">
+                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-2">
                     Time
                     <input
                         type="time"
                         :value="parts.time"
-                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                        class="mt-1 w-full max-w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setTimePart($event.target.value)"
                     >
                 </label>
@@ -197,18 +203,29 @@ function setTimePart(value) {
                     type="text"
                     :value="timezone"
                     :placeholder="Intl.DateTimeFormat().resolvedOptions().timeZone"
-                    class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                    class="mt-1 w-full max-w-full rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                     @input="emit('update:timezone', $event.target.value)"
                 >
             </label>
 
-            <button
-                type="button"
-                class="mt-2 w-full rounded-md bg-neutral-25 py-1.5 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                @click="close"
-            >
-                Done
-            </button>
+            <div class="mt-2 flex gap-2">
+                <button
+                    v-if="parts.date"
+                    type="button"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    @click="clear"
+                >
+                    Clear
+                </button>
+
+                <button
+                    type="button"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    @click="close"
+                >
+                    Done
+                </button>
+            </div>
         </div>
     </div>
 </template>
