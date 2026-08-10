@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildMonthCalendar;
 use App\Actions\BuildTimelineFeed;
-use App\Models\Appearance;
 use App\Models\Podcast;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
@@ -174,10 +173,10 @@ class TimelineController extends Controller
             'days' => ($this->monthCalendar)($entries, $start, $end),
             'stats' => ($this->periodStats)($start, $end),
             // Same shaped payload as the /photos gallery (masonry dimensions,
-            // caption/accent, entry link) so the month strip shares its markup.
-            // Appearance covers are derived video thumbnails, excluded like /photos does.
+            // caption/accent, entry link) so the month strip shares its markup,
+            // and the same rule about what counts as a photograph.
             'photos' => $timelineables
-                ->reject(fn ($model): bool => $model instanceof Appearance)
+                ->filter(fn ($model): bool => GalleryPhotos::contributesPhotos($model))
                 ->flatMap(fn ($model): array => GalleryPhotos::shape($model, $model->getMedia('cover')->merge($model->getMedia('photos'))))
                 ->take(12)
                 ->values()
