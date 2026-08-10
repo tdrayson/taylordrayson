@@ -42,7 +42,9 @@ const stats = computed(() => [
     { label: 'Calories', value: number(props.entry.calories), unit: 'kcal' },
     { label: 'Avg HR', value: number(props.entry.average_heart_rate), unit: 'bpm' },
     { label: 'Max HR', value: number(props.entry.max_heart_rate), unit: 'bpm' },
-    { label: 'Elevation', value: number(props.entry.meta?.elevation_gain), unit: 'm' },
+    // Strava's key is `total_elevation_gain`; this read `elevation_gain`, which
+    // never existed, so the row silently vanished on every activity page.
+    { label: 'Elevation', value: number(props.entry.meta?.total_elevation_gain), unit: 'm' },
 ]);
 
 const exercises = computed(() => {
