@@ -110,9 +110,17 @@ function useMyLocation() {
         }
     }, (positionError) => {
         locating.value = false;
-        error.value = positionError.code === 1
-            ? 'Location permission was declined.'
-            : 'Could not get a location.';
+        if (positionError.code !== 1) {
+            error.value = 'Could not get a location.';
+
+            return;
+        }
+
+        // Browsers refuse location outright on an insecure origin, reporting it
+        // as a denied permission with no prompt ever shown.
+        error.value = window.isSecureContext
+            ? 'Location is blocked for this site. Allow it in your browser settings, then try again.'
+            : 'Location needs a secure connection. Open the site over https and try again.';
     }, { enableHighAccuracy: true, timeout: 10000 });
 }
 </script>

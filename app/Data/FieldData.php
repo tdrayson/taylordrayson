@@ -15,6 +15,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
     /**
      * @param  list<array{value: string, label: string}>  $options  Choices, for a Select field.
      * @param  string|null  $source  Which /lookup source backs a Lookup or Location field.
+     * @param  string|null  $prefix  Unit shown inside the input, before the value ("£").
+     * @param  string|null  $suffix  Unit shown inside the input, after the value ("L").
      */
     private function __construct(
         public string $name,
@@ -27,6 +29,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public ?string $source,
         public bool $defaultsToNow,
         public ?string $relativeTo,
+        public ?string $prefix,
+        public ?string $suffix,
     ) {}
 
     /**
@@ -35,9 +39,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo);
+        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix);
     }
 
     /**
@@ -45,9 +49,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null): self
+    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null): self
     {
-        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo);
+        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix);
     }
 
     /**
@@ -83,6 +87,14 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->relativeTo !== null) {
             $data['relativeTo'] = $this->relativeTo;
+        }
+
+        if ($this->prefix !== null) {
+            $data['prefix'] = $this->prefix;
+        }
+
+        if ($this->suffix !== null) {
+            $data['suffix'] = $this->suffix;
         }
 
         return $data;

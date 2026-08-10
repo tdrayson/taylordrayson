@@ -8,8 +8,6 @@ use App\Enums\FieldType;
 /**
  * A fill-up. The garage is stored flat on the row rather than as a relation,
  * so its name and location are ordinary fields here.
- *
- * Money is 2dp everywhere except price per litre, which is the 3dp exception.
  */
 final class FuelFields
 {
@@ -20,14 +18,14 @@ final class FuelFields
     {
         return [
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
-            FieldData::primary('litres', 'Litres', FieldType::Number, required: true),
-            FieldData::primary('cost', 'Cost', FieldType::Number, 'Total paid, to 2dp.', required: true),
+            FieldData::primary('litres', 'Litres', FieldType::Number, required: true, suffix: 'L'),
+            FieldData::primary('cost', 'Cost', FieldType::Number, required: true, prefix: '£'),
             FieldData::primary('station_name', 'Garage', FieldType::Location, 'Search stations, or use your location.', source: 'station'),
             FieldData::primary('vehicle_id', 'Vehicle', FieldType::Select, null, self::vehicleOptions()),
             FieldData::optional('brand', 'Brand', FieldType::Lookup, 'Drives the logo shown on the card.', source: 'fuel-brand'),
-            FieldData::optional('price_per_litre', 'Price per litre', FieldType::Number, 'The 3dp exception to 2dp money.'),
-            FieldData::optional('fuel_card_cost', 'Fuel card cost', FieldType::Number),
-            FieldData::optional('odometer', 'Odometer', FieldType::Number),
+            FieldData::optional('price_per_litre', 'Price per litre', FieldType::Number, prefix: '£', suffix: '/L'),
+            FieldData::optional('fuel_card_cost', 'Fuel card cost', FieldType::Number, prefix: '£'),
+            FieldData::optional('odometer', 'Odometer', FieldType::Number, suffix: 'mi'),
             FieldData::optional('address', 'Address', FieldType::Text),
             FieldData::optional('postcode', 'Postcode', FieldType::Text),
             FieldData::optional('city', 'City', FieldType::Text),

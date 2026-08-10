@@ -159,7 +159,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <span class="flex-1 truncate">{{ display ?? defaultPlaceholder }}</span>
         </button>
 
-        <div v-if="open" class="absolute left-0 z-50 mt-2 w-64 rounded-lg border border-neutral-50 bg-neutral-0 p-3 shadow-card">
+        <div v-if="open" class="absolute inset-x-0 z-50 mt-2 rounded-lg border border-neutral-50 bg-neutral-0 p-3 shadow-card sm:right-auto sm:w-64">
             <template v-if="pickerView === 'days'">
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(-1)">

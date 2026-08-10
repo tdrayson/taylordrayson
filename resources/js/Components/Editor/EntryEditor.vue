@@ -20,6 +20,7 @@ const props = defineProps({
     method: { type: String, default: 'patch' },
     resolved: { type: Object, default: () => ({}) },
     submitLabel: { type: String, default: 'Post' },
+    heading: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -177,6 +178,18 @@ function applyFill(values) {
     });
 }
 
+const status = computed(() => {
+    if (form.processing) {
+        return 'Posting...';
+    }
+
+    if (form.isDirty) {
+        return 'Changes not posted';
+    }
+
+    return props.method === 'post' ? 'Not posted yet' : 'Posted';
+});
+
 function submit() {
     form[props.method](props.action, { preserveScroll: true });
 }
@@ -187,6 +200,9 @@ function submit() {
          page on the site starts at the same left edge, and centring made the
          editor jump 112px right of the page you arrived from. -->
     <div class="w-full max-w-2xl">
+        <p v-if="heading && titleField" class="mb-2 text-eyebrow uppercase text-neutral-500">{{ heading }}</p>
+        <h1 v-else-if="heading" class="mb-6 font-display text-display text-neutral-900">{{ heading }}</h1>
+
         <!-- The heading: an input that reads as the title it will become, not a
              form field with a label above it. -->
         <input
@@ -223,8 +239,7 @@ function submit() {
             />
         </div>
 
-        <!-- Everything else, as chips that open in place. -->
-        <div v-if="visibleChips.length || remainingExtras.length" class="mt-6 flex flex-wrap items-center gap-1.5">
+        <div v-if="visibleChips.length || remainingExtras.length" ref="extrasRoot" class="relative mt-6 flex flex-wrap items-center gap-1.5">
             <button
                 v-for="field in visibleChips"
                 :key="field.name"
@@ -247,31 +262,31 @@ function submit() {
                 <span v-if="summary(field)" class="min-w-0 truncate font-medium">{{ summary(field) }}</span>
             </button>
 
-            <div v-if="remainingExtras.length" ref="extrasRoot" class="relative">
-                <button
-                    type="button"
-                    class="rounded-md border border-neutral-100 px-2.5 py-1.5 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700"
-                    aria-label="Add another field"
-                    @click="toggleExtras"
-                >
-                    +
-                </button>
+            <button
+                v-if="remainingExtras.length"
+                type="button"
+                class="grid size-8 shrink-0 place-items-center rounded-md border border-neutral-100 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700"
+                aria-label="Add another field"
+                :aria-expanded="showExtras"
+                @click="toggleExtras"
+            >
+                +
+            </button>
 
-                <ul
-                    v-if="showExtras"
-                    class="absolute left-0 z-20 mt-1 w-52 rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
-                >
-                    <li v-for="field in remainingExtras" :key="field.name">
-                        <button
-                            type="button"
-                            class="w-full px-3 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                            @click="add(field)"
-                        >
-                            {{ field.label }}
-                        </button>
-                    </li>
-                </ul>
-            </div>
+            <ul
+                v-if="showExtras"
+                class="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg sm:right-auto sm:w-52"
+            >
+                <li v-for="field in remainingExtras" :key="field.name">
+                    <button
+                        type="button"
+                        class="w-full px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700 sm:py-1.5"
+                        @click="add(field)"
+                    >
+                        {{ field.label }}
+                    </button>
+                </li>
+            </ul>
         </div>
 
         <!-- An opened chip appears here, under the row, in the flow. -->
@@ -287,15 +302,12 @@ function submit() {
             />
         </div>
 
-        <div class="mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 pt-4">
-            <p class="text-meta text-neutral-500">
-                <span v-if="form.processing">Posting...</span>
-                <span v-else-if="form.isDirty">Changes not posted</span>
-                <span v-else-if="method === 'post'">Not posted yet</span>
-                <span v-else>Posted</span>
-            </p>
+        <div class="mt-8 flex flex-col-reverse items-stretch gap-3 border-t border-neutral-50 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-center text-caption text-neutral-500 sm:text-left sm:text-meta">{{ status }}</p>
 
-            <Button variant="primary" :disabled="form.processing" @click="submit">{{ submitLabel }}</Button>
+            <Button variant="primary" size="lg" class="w-full sm:w-auto" :disabled="form.processing" @click="submit">
+                {{ submitLabel }}
+            </Button>
         </div>
     </div>
 </template>
