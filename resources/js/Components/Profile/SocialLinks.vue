@@ -1,13 +1,13 @@
 <script setup>
-import { GithubIcon, NewTwitterIcon, RssIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { RssIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import { profiles } from '../../lib/identity.js';
 
 defineProps({
     links: {
         type: Array,
         default: () => [
-            { icon: GithubIcon, href: 'https://github.com/tdrayson', label: 'GitHub', rel: 'me' },
-            { icon: NewTwitterIcon, href: '#', label: 'X', rel: 'me' },
+            ...profiles.map((profile) => ({ ...profile, rel: 'me' })),
             { icon: RssIcon, href: '/feeds', label: 'Feeds', rel: null },
         ],
     },
