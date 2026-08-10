@@ -76,7 +76,7 @@ function dayUrl(day) {
                         <Icon :icon="sleepIcon" class="size-3" />{{ sleepHours(days[cell].sleep) }}
                     </span>
                     <span v-if="days[cell]?.calories" class="inline-flex items-center gap-1">
-                        <Icon :icon="foodIcon" class="size-3" />{{ days[cell].calories.toLocaleString() }}
+                        <Icon :icon="foodIcon" class="size-3" />{{ days[cell].calories.toLocaleString() }}kcal
                     </span>
                 </div>
 
