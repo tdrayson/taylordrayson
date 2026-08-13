@@ -70,6 +70,19 @@ class FuelBrands
     ];
 
     /**
+     * Every canonical brand name, alphabetically. Keys share display names.
+     *
+     * @return list<string>
+     */
+    public static function names(): array
+    {
+        $names = array_values(array_unique(array_column(self::BRANDS, 'name')));
+        sort($names);
+
+        return $names;
+    }
+
+    /**
      * Canonical display name for a brand, title-cased when it is not a known
      * brand so independents still read properly.
      */
