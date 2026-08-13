@@ -30,3 +30,24 @@ it('shows a map for a location that has resolved coordinates', function () {
         ->assertPresent('canvas.maplibregl-canvas')
         ->assertNoJavascriptErrors();
 });
+
+it('collapses the address to a summary that opens on demand', function () {
+    $this->actingAs(User::factory()->create());
+
+    $fuel = Fuel::factory()->create([
+        'occurred_at' => '2026-08-13 12:00:00',
+        'station_name' => 'Beddington Lane Service Station',
+        'address' => '35 Beddington Lane',
+        'postcode' => 'CR0 4TJ',
+        'city' => 'Croydon',
+    ]);
+
+    $page = visit($fuel->url().'?edit');
+
+    // Closed, the address reads as one line and its inputs are not in the DOM.
+    $page->assertSee('35 Beddington Lane, CR0 4TJ, Croydon')
+        ->assertMissing('#postcode')
+        ->click('Edit')
+        ->assertPresent('#postcode')
+        ->assertNoJavascriptErrors();
+});

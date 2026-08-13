@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/vue3';
 import { slugify } from '../../lib/editor/defaults.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import Button from '../Ui/Button.vue';
+import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
 
 /**
@@ -52,6 +53,31 @@ const { isOpen: showExtras, root: extrasRoot, close: closeExtras, toggle: toggle
 // Declaration order, not primary-then-added: the fields class decides the order,
 // and a field should not jump position because it came from the + menu.
 const visible = computed(() => rest.value.filter((field) => field.primary || added.value.includes(field.name)));
+
+// Grouped fields are drawn inside their group block, not loose in the stack.
+const stack = computed(() => visible.value.filter((field) => ! field.group));
+
+const groups = computed(() => {
+    const items = new Map();
+
+    visible.value.filter((field) => field.group).forEach((field) => {
+        const existing = items.get(field.group);
+
+        existing
+            ? existing.fields.push(field)
+            : items.set(field.group, { key: field.group, label: field.group, fields: [field] });
+    });
+
+    return [...items.values()];
+});
+
+/** The group's set values on one line, so it reads without being opened. */
+function groupSummary(item) {
+    return item.fields
+        .map((field) => form[field.name])
+        .filter((value) => value !== null && value !== undefined && value !== '')
+        .join(', ');
+}
 
 /** Unadded optionals, with a group offered as one item rather than five. */
 const remainingItems = computed(() => {
@@ -184,9 +210,9 @@ function submit(published = null) {
             @fill="applyFill"
         />
 
-        <div v-if="visible.length" class="mt-6 space-y-4">
+        <div v-if="stack.length" class="mt-6 space-y-4">
             <FieldInput
-                v-for="field in visible"
+                v-for="field in stack"
                 :key="field.name"
                 :field="field"
                 :model-value="form[field.name]"
@@ -197,6 +223,24 @@ function submit(published = null) {
                 @update:model-value="onFieldInput(field, $event)"
                 @fill="applyFill"
             />
+        </div>
+
+        <div v-if="groups.length" class="mt-4 space-y-4">
+            <FieldGroup
+                v-for="item in groups"
+                :key="item.key"
+                :label="item.label"
+                :summary="groupSummary(item)"
+            >
+                <FieldInput
+                    v-for="field in item.fields"
+                    :key="field.name"
+                    :field="field"
+                    :model-value="form[field.name]"
+                    @update:model-value="onFieldInput(field, $event)"
+                    @fill="applyFill"
+                />
+            </FieldGroup>
         </div>
 
         <div v-if="remainingItems.length" ref="extrasRoot" class="relative mt-6">
