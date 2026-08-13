@@ -1,7 +1,6 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { clock } from '../../lib/format.js';
 import { slugify } from '../../lib/editor/defaults.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import Button from '../Ui/Button.vue';
@@ -10,9 +9,8 @@ import FieldInput from './FieldInput.vue';
 /**
  * The editing surface for any type: one column, mobile first, nothing floating.
  *
- * Shaped after Quill and HQ's add-task sheet. A title, a body, then a quiet row
- * of chips for the rest, each opening in place. Nothing sits in a panel beside
- * the content, because on a phone there is no beside.
+ * A title, a body, then every offered field stacked beneath. Nothing sits in a
+ * panel beside the content, because on a phone there is no beside.
  */
 const props = defineProps({
     fields: { type: Array, required: true },
@@ -34,56 +32,10 @@ const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? n
 const publishField = computed(() => props.fields.find((field) => field.isPublished) ?? null);
 const isPublished = computed(() => publishField.value !== null && form[publishField.value.name] === true);
 
-/**
- * Whether a field stacks rather than collapsing to a chip. Chips suit short,
- * usually-empty values; rich text and location need room, and a required field
- * behind a chip is a trap.
- */
-function stacks(field) {
-    return field.isTitle
-        || field.isBody
-        || field.type === 'rich-text'
-        || field.type === 'location'
-        || field.required;
-}
-
 const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
-const stacked = computed(() => offered.value.filter((field) => stacks(field) && !field.isTitle && !field.isBody));
 
-/**
- * Chips, with grouped fields collapsed into one item: an address is a single
- * thing to fill in, not five separate offers.
- */
-const chips = computed(() => {
-    const items = [];
-    const groups = new Map();
-
-    offered.value.filter((field) => !stacks(field)).forEach((field) => {
-        if (!field.group) {
-            items.push({ key: field.name, label: field.label, fields: [field], primary: field.primary });
-
-            return;
-        }
-
-        const existing = groups.get(field.group);
-
-        if (existing) {
-            existing.fields.push(field);
-            existing.primary = existing.primary || field.primary;
-
-            return;
-        }
-
-        const item = { key: field.group, label: field.group, fields: [field], primary: field.primary };
-        groups.set(field.group, item);
-        items.push(item);
-    });
-
-    return items;
-});
-
-const primaryChips = computed(() => chips.value.filter((item) => item.primary));
-const extraChips = computed(() => chips.value.filter((item) => !item.primary));
+// Title and body are drawn above the stack, so they never appear in it.
+const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));
 
 function filled(name) {
     const value = props.values[name];
@@ -93,100 +45,42 @@ function filled(name) {
         : value !== null && value !== undefined && value !== '' && value !== false;
 }
 
-/** Which chips are open, and which extras have been added to the row. */
-const expanded = ref([]);
-const added = ref(extraChips.value.filter((item) => item.fields.some((field) => filled(field.name))).map((item) => item.key));
+// An optional field already carrying a value is shown without being asked for.
+const added = ref(rest.value.filter((field) => !field.primary && filled(field.name)).map((field) => field.name));
 const { isOpen: showExtras, root: extrasRoot, close: closeExtras, toggle: toggleExtras } = useDismissable();
 
-// Declaration order, not primary-then-added: the fields class is where the
-// order is decided, and a chip should not jump position because it was added
-// from the + menu rather than shown by default.
-const visibleChips = computed(() => chips.value.filter(
-    (item) => item.primary || added.value.includes(item.key),
-));
+// Declaration order, not primary-then-added: the fields class decides the order,
+// and a field should not jump position because it came from the + menu.
+const visible = computed(() => rest.value.filter((field) => field.primary || added.value.includes(field.name)));
 
-const remainingExtras = computed(() => extraChips.value.filter((item) => !added.value.includes(item.key)));
+/** Unadded optionals, with a group offered as one item rather than five. */
+const remainingItems = computed(() => {
+    const items = [];
+    const seen = new Set();
 
-function toggle(key) {
-    expanded.value = expanded.value.includes(key)
-        ? expanded.value.filter((item) => item !== key)
-        : [...expanded.value, key];
-}
+    rest.value
+        .filter((field) => !field.primary && !added.value.includes(field.name))
+        .forEach((field) => {
+            const key = field.group ?? field.name;
 
-function add(item) {
-    added.value.push(item.key);
-    expanded.value.push(item.key);
-    closeExtras();
-}
+            if (seen.has(key)) {
+                return;
+            }
 
-const tick = ref(new Date());
-let ticker = null;
+            seen.add(key);
+            items.push({
+                key,
+                label: field.group ?? field.label,
+                fields: rest.value.filter((candidate) => (candidate.group ?? candidate.name) === key),
+            });
+        });
 
-onMounted(() => {
-    ticker = setInterval(() => {
-        tick.value = new Date();
-    }, 1000);
+    return items;
 });
 
-onBeforeUnmount(() => clearInterval(ticker));
-
-/** Cut to length without leaving the separator it was cut on dangling. */
-function clip(text, length) {
-    return String(text).slice(0, length).replace(/[\s,]+$/, '');
-}
-
-/** The value on the chip itself, so a field that is set reads at a glance. */
-function fieldSummary(field) {
-    const value = form[field.name];
-
-    if (value === null || value === undefined || value === '' || value === false) {
-        return field.defaultsToNow ? `Now - ${clock(tick.value)}` : null;
-    }
-
-    if (value === true) {
-        return 'Yes';
-    }
-
-    if (Array.isArray(value)) {
-        return value.length ? value.join(', ') : null;
-    }
-
-    if (field.type === 'select') {
-        return field.options?.find((option) => option.value === value)?.label ?? String(value);
-    }
-
-    // A chip is a glance, so a stored timestamp reads as a date rather than as
-    // the database value it happens to be.
-    if (field.type === 'datetime') {
-        const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
-
-        if (match) {
-            const [, y, mo, d, h, mi] = match;
-            const date = new Date(Number(y), Number(mo) - 1, Number(d));
-
-            return `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${h}:${mi}`;
-        }
-    }
-
-    if (field.type === 'duration') {
-        const total = Number(value);
-        const hours = Math.floor(total / 3600);
-        const minutes = Math.round((total % 3600) / 60);
-
-        return [hours ? `${hours}h` : null, minutes ? `${minutes}m` : null].filter(Boolean).join(' ');
-    }
-
-    if (field.type === 'distance') {
-        return `${Math.round((Number(value) / 1609.344) * 10) / 10} mi`;
-    }
-
-    return clip(value, 24);
-}
-
-function summary(item) {
-    const parts = item.fields.map((field) => fieldSummary(field)).filter(Boolean);
-
-    return parts.length ? clip(parts.join(', '), 40) : null;
+function add(item) {
+    item.fields.forEach((field) => added.value.push(field.name));
+    closeExtras();
 }
 
 /**
@@ -226,10 +120,10 @@ function applyFill(values) {
 
         form[key] = value;
 
-        const item = chips.value.find((candidate) => candidate.fields.some((field) => field.name === key));
+        const field = rest.value.find((candidate) => candidate.name === key);
 
-        if (item && ! item.primary && ! added.value.includes(item.key)) {
-            added.value.push(item.key);
+        if (field && ! field.primary && ! added.value.includes(key)) {
+            added.value.push(key);
         }
     });
 }
@@ -290,10 +184,9 @@ function submit(published = null) {
             @fill="applyFill"
         />
 
-        <!-- Fields that have to be seen to be filled. -->
-        <div v-if="stacked.length" class="mt-6 space-y-4">
+        <div v-if="visible.length" class="mt-6 space-y-4">
             <FieldInput
-                v-for="field in stacked"
+                v-for="field in visible"
                 :key="field.name"
                 :field="field"
                 :model-value="form[field.name]"
@@ -304,69 +197,31 @@ function submit(published = null) {
             />
         </div>
 
-        <div v-if="visibleChips.length || remainingExtras.length" ref="extrasRoot" class="relative mt-6 flex flex-wrap items-center gap-1.5">
+        <div v-if="remainingItems.length" ref="extrasRoot" class="relative mt-6">
             <button
-                v-for="item in visibleChips"
-                :key="item.key"
                 type="button"
-                class="inline-flex max-w-full items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-meta transition-colors"
-                :class="[
-                    // Three states, not two: open is the accent, set is a quiet
-                    // fill, empty is an outline. Without the distinction a
-                    // field with data looks identical to the one you are
-                    // currently editing.
-                    expanded.includes(item.key)
-                        ? 'border-accent-500 bg-accent-50 text-accent-700'
-                        : summary(item)
-                            ? 'border-neutral-100 bg-neutral-25 text-neutral-900'
-                            : 'border-neutral-100 text-neutral-700 hover:border-accent-500 hover:text-accent-700',
-                ]"
-                @click="toggle(item.key)"
-            >
-                <span :class="summary(item) ? 'text-neutral-500' : ''">{{ item.label }}</span>
-                <span v-if="summary(item)" class="min-w-0 truncate font-medium">{{ summary(item) }}</span>
-            </button>
-
-            <button
-                v-if="remainingExtras.length"
-                type="button"
-                class="grid size-8 shrink-0 place-items-center rounded-md border border-neutral-100 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700"
-                aria-label="Add another field"
+                class="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-100 px-3 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 :aria-expanded="showExtras"
                 @click="toggleExtras"
             >
-                +
+                <span aria-hidden="true">+</span>
+                Add field
             </button>
 
             <ul
                 v-if="showExtras"
                 class="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg sm:right-auto sm:w-52"
             >
-                <li v-for="item in remainingExtras" :key="item.key">
+                <li v-for="item in remainingItems" :key="item.key">
                     <button
                         type="button"
-                        class="w-full px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700 sm:py-1.5"
+                        class="flex min-h-11 w-full items-center px-3 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:min-h-0 sm:py-1.5"
                         @click="add(item)"
                     >
                         {{ item.label }}
                     </button>
                 </li>
             </ul>
-        </div>
-
-        <!-- An opened chip appears here, under the row, in the flow. -->
-        <div v-if="expanded.length" class="mt-4 space-y-4 rounded-lg border border-neutral-50 bg-neutral-25 p-4">
-            <template v-for="item in visibleChips.filter((chip) => expanded.includes(chip.key))" :key="item.key">
-                <FieldInput
-                    v-for="field in item.fields"
-                    :key="field.name"
-                    :field="field"
-                    :model-value="form[field.name]"
-                    :relative-to-value="field.relativeTo ? String(form[field.relativeTo] ?? '') : null"
-                    @update:model-value="onFieldInput(field, $event)"
-                    @fill="applyFill"
-                />
-            </template>
         </div>
 
         <div class="mt-8 flex flex-col-reverse items-stretch gap-3 border-t border-neutral-50 pt-4 sm:flex-row sm:items-center sm:justify-between">
