@@ -1,5 +1,7 @@
 <script setup>
+import { computed } from 'vue';
 import Input from '../Ui/Input.vue';
+import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
 import LookupInput from './LookupInput.vue';
 import LocationInput from './LocationInput.vue';
@@ -13,7 +15,7 @@ import DistanceInput from './DistanceInput.vue';
  * only thing deciding what appears, so a field added in PHP needs no change
  * here unless it introduces a genuinely new kind of input.
  */
-defineProps({
+const props = defineProps({
     field: { type: Object, required: true },
     modelValue: { type: [String, Number, Boolean, Array, Object], default: null },
     // kind:id -> resolved mention, forwarded to the rich-text editor.
@@ -22,6 +24,18 @@ defineProps({
     hideLabel: { type: Boolean, default: false },
     // The value of the field this one is measured from, when it declares one.
     relativeToValue: { type: String, default: null },
+    // Filled by the location lookup and never typed, so the map is the only
+    // way to check them.
+    latitude: { type: [Number, String], default: null },
+    longitude: { type: [Number, String], default: null },
+});
+
+/** The picked point, or null while the lookup has not resolved one. */
+const coordinates = computed(() => {
+    const lat = Number(props.latitude);
+    const lng = Number(props.longitude);
+
+    return Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0) ? { lat, lng } : null;
 });
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
@@ -161,6 +175,16 @@ function textToTags(value) {
             :prefix="field.prefix"
             :suffix="field.suffix"
             @update:model-value="$emit('update:modelValue', $event)"
+        />
+
+        <LocationMap
+            v-if="field.type === 'location' && coordinates"
+            :lat="coordinates.lat"
+            :lng="coordinates.lng"
+            :label="String(modelValue ?? '')"
+            :zoom="15"
+            height-class="h-40 sm:h-56"
+            class="mt-3 overflow-hidden rounded-lg"
         />
 
         <!-- Lookup and location fields already show the help as their

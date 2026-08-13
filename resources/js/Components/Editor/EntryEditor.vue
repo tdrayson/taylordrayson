@@ -192,6 +192,8 @@ function submit(published = null) {
                 :model-value="form[field.name]"
                 :resolved="resolved"
                 :relative-to-value="field.relativeTo ? String(form[field.relativeTo] ?? '') : null"
+                :latitude="form.latitude ?? null"
+                :longitude="form.longitude ?? null"
                 @update:model-value="onFieldInput(field, $event)"
                 @fill="applyFill"
             />
