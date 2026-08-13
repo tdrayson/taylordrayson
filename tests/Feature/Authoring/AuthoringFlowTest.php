@@ -137,6 +137,7 @@ it('keeps the field order the fields class declares', function () {
 
 it('sends a new fuel entry to the finished entry, not back to a form', function () {
     $response = $this->post('/entries/fuel', [
+        'occurred_at' => '2026-08-13 12:00:00',
         'cost' => 51.87,
         'price_per_litre' => 1.599,
         'station_name' => 'Beddington Lane Service Station',

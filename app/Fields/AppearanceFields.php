@@ -18,13 +18,13 @@ final class AppearanceFields
     {
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
-            FieldData::primary('show_name', 'Show', FieldType::Text),
-            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
+            FieldData::primary('show_name', 'Show', FieldType::Text, required: true),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::primary('type', 'Kind', FieldType::Select, null, [
                 ['value' => 'podcast', 'label' => 'Podcast'],
                 ['value' => 'interview', 'label' => 'Interview'],
                 ['value' => 'livestream', 'label' => 'Livestream'],
-            ]),
+            ], required: true),
             FieldData::optional('url', 'Link', FieldType::Url),
             FieldData::optional('video_url', 'Video', FieldType::Url, 'A YouTube URL also supplies the thumbnail.'),
             FieldData::optional('audio_url', 'Audio', FieldType::Url),

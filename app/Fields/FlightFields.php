@@ -26,8 +26,8 @@ final class FlightFields
             FieldData::primary('occurred_at', 'Departs', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::primary('origin_iata', 'From', FieldType::Lookup, 'Airport code.', required: true, source: 'airport'),
             FieldData::primary('destination_iata', 'To', FieldType::Lookup, 'Airport code.', required: true, source: 'airport'),
-            FieldData::primary('airline_icao', 'Airline', FieldType::Lookup, source: 'airline'),
-            FieldData::primary('flight_number', 'Flight number', FieldType::Text),
+            FieldData::primary('airline_icao', 'Airline', FieldType::Lookup, required: true, source: 'airline'),
+            FieldData::primary('flight_number', 'Flight number', FieldType::Text, required: true),
             FieldData::optional('cabin_class', 'Cabin', FieldType::Select, options: array_map(
                 fn (CabinClass $class): array => ['value' => $class->value, 'label' => $class->label()],
                 CabinClass::cases(),
