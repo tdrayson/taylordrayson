@@ -270,14 +270,15 @@ function submit(published = null) {
             </ul>
         </div>
 
-        <div class="mt-8 flex flex-col-reverse items-stretch gap-3 border-t border-neutral-50 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-center text-caption text-neutral-500 sm:text-left sm:text-meta">{{ status }}</p>
+        <!-- Sticky rather than fixed, so it needs no bottom padding on the form
+             and settles at the end of the page on desktop. -->
+        <div class="sticky bottom-0 z-10 mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4">
+            <p class="text-caption text-neutral-500 sm:text-meta">{{ status }}</p>
 
-            <div v-if="publishField" class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+            <div v-if="publishField" class="flex shrink-0 items-center gap-2">
                 <Button
                     :variant="isPublished ? 'ghost' : 'secondary'"
                     size="lg"
-                    class="w-full sm:w-auto"
                     :disabled="form.processing"
                     @click="submit(isPublished ? false : null)"
                 >
@@ -287,7 +288,6 @@ function submit(published = null) {
                 <Button
                     variant="primary"
                     size="lg"
-                    class="w-full sm:w-auto"
                     :disabled="form.processing"
                     @click="submit(isPublished ? null : true)"
                 >
@@ -295,7 +295,7 @@ function submit(published = null) {
                 </Button>
             </div>
 
-            <Button v-else variant="primary" size="lg" class="w-full sm:w-auto" :disabled="form.processing" @click="submit">
+            <Button v-else variant="primary" size="lg" class="shrink-0" :disabled="form.processing" @click="submit">
                 {{ submitLabel }}
             </Button>
         </div>

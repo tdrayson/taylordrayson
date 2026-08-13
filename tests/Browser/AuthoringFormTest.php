@@ -51,3 +51,4 @@ it('collapses the address to a summary that opens on demand', function () {
         ->assertPresent('#postcode')
         ->assertNoJavascriptErrors();
 });
+
