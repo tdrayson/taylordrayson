@@ -45,7 +45,7 @@ class AuthoringController extends Controller
 
         $model = app($definition['create'])($this->expand($attributes));
 
-        return redirect($this->urlFor($model).'?edit');
+        return $this->afterSave($model);
     }
 
     public function update(Request $request, string $type, int $id): RedirectResponse
@@ -58,7 +58,18 @@ class AuthoringController extends Controller
 
         app($definition['update'])($model, $this->expand($attributes));
 
-        return back();
+        return $this->afterSave($model->refresh());
+    }
+
+    /**
+     * Saving means done, so it lands on the finished entry. A draft has no entry
+     * to show yet and stays in the editor.
+     */
+    private function afterSave(Model $model): RedirectResponse
+    {
+        $isDraft = $model->getAttribute('published') === false;
+
+        return redirect($this->urlFor($model).($isDraft ? '?edit' : ''));
     }
 
     /**
