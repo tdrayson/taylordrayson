@@ -36,7 +36,7 @@ const wrapperClasses = computed(() =>
 
 const bareClasses = computed(() =>
     cn(
-        'w-full rounded-md border bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:outline-none',
+        'w-full rounded-md border bg-neutral-0 px-3 py-3 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:outline-none',
         props.invalid ? 'border-red-500 focus:border-red-500' : 'border-neutral-100 focus:border-accent-500',
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
@@ -54,7 +54,7 @@ const bareClasses = computed(() =>
             :value="modelValue"
             :placeholder="placeholder"
             :disabled="disabled"
-            class="w-full min-w-0 border-none bg-transparent py-2.5 text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+            class="w-full min-w-0 border-none bg-transparent py-3 text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
             @input="$emit('update:modelValue', $event.target.value)"
         >
 

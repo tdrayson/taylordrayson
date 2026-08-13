@@ -140,7 +140,7 @@ function setTimePart(value) {
         <button
             :id="id"
             type="button"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-3 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="parts.date ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
@@ -162,7 +162,7 @@ function setTimePart(value) {
                 <li v-for="option in relativeOptions" :key="option.label">
                     <button
                         type="button"
-                        class="flex w-full items-baseline justify-between gap-4 rounded px-2 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(option.date)"
                     >
                         <span>{{ option.label }}</span>
@@ -178,7 +178,7 @@ function setTimePart(value) {
                 <li v-for="shortcut in shortcuts" :key="shortcut.label">
                     <button
                         type="button"
-                        class="flex w-full items-baseline justify-between gap-4 rounded px-2 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(shortcut.date)"
                     >
                         <span>{{ shortcut.label }}</span>

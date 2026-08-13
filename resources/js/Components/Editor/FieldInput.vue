@@ -72,16 +72,16 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-3 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
-        <label v-else-if="field.type === 'boolean'" class="flex items-center gap-2 text-meta text-neutral-900">
+        <label v-else-if="field.type === 'boolean'" class="flex min-h-11 items-center gap-2 text-meta text-neutral-900">
             <input
                 :id="field.name"
                 type="checkbox"
                 :checked="Boolean(modelValue)"
-                class="size-4 rounded border-neutral-100 text-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="size-5 rounded border-neutral-100 text-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500"
                 @change="$emit('update:modelValue', $event.target.checked)"
             >
             {{ field.help || field.label }}
@@ -91,7 +91,7 @@ function textToTags(value) {
             v-else-if="field.type === 'select'"
             :id="field.name"
             :value="modelValue ?? ''"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta focus:border-accent-500 focus:outline-none"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-3 text-meta focus:border-accent-500 focus:outline-none"
             :class="modelValue ? 'text-neutral-900' : 'text-neutral-500'"
             @change="$emit('update:modelValue', $event.target.value)"
         >
