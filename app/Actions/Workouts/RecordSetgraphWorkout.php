@@ -36,7 +36,8 @@ class RecordSetgraphWorkout
     {
         $workout = ($this->parse)($text);
         $occurredAt = $this->estimatedStart($sharedAt, $workout);
-        $activity = $this->matchingActivity($occurredAt, $workout->duration);
+        $activity = $this->matchingActivity($occurredAt, $workout->duration)
+            ?? $this->sessionOnDay($sharedAt);
         $created = $activity === null;
 
         if ($activity === null) {
@@ -107,8 +108,31 @@ class RecordSetgraphWorkout
                 'overlap' => $this->overlapSeconds($activity, $occurredAt, $end),
             ])
             ->filter(fn (array $candidate): bool => $candidate['overlap'] > 0)
-            ->sortByDesc('overlap')
+            // Weights win a tie: a squash recording left running covers the gym.
+            ->sortBy(fn (array $candidate): array => [
+                $candidate['activity']->type === self::DEFAULT_TYPE ? 0 : 1,
+                -$candidate['overlap'],
+            ])
             ->first()['activity'] ?? null;
+    }
+
+    /**
+     * The day's unclaimed gym session, for a share sent too late for the clock
+     * to line up. Scoped to the share's day, since a date alone arrives as
+     * midnight and subtracting the length would land on the day before.
+     */
+    private function sessionOnDay(CarbonImmutable $sharedAt): ?Activity
+    {
+        return Activity::query()
+            ->where('type', self::DEFAULT_TYPE)
+            ->whereBetween('occurred_at', [
+                $sharedAt->startOfDay()->format('Y-m-d H:i:s'),
+                $sharedAt->endOfDay()->format('Y-m-d H:i:s'),
+            ])
+            ->get()
+            ->filter(fn (Activity $activity): bool => ! isset($activity->meta['sets']))
+            ->sortBy(fn (Activity $activity): int => (int) abs($activity->occurred_at->diffInSeconds($sharedAt)))
+            ->first();
     }
 
     /**
