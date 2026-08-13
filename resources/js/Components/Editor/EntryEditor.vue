@@ -130,6 +130,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => clearInterval(ticker));
 
+/** Cut to length without leaving the separator it was cut on dangling. */
+function clip(text, length) {
+    return String(text).slice(0, length).replace(/[\s,]+$/, '');
+}
+
 /** The value on the chip itself, so a field that is set reads at a glance. */
 function fieldSummary(field) {
     const value = form[field.name];
@@ -175,13 +180,13 @@ function fieldSummary(field) {
         return `${Math.round((Number(value) / 1609.344) * 10) / 10} mi`;
     }
 
-    return String(value).slice(0, 24);
+    return clip(value, 24);
 }
 
 function summary(item) {
     const parts = item.fields.map((field) => fieldSummary(field)).filter(Boolean);
 
-    return parts.length ? parts.join(', ').slice(0, 40) : null;
+    return parts.length ? clip(parts.join(', '), 40) : null;
 }
 
 /**
