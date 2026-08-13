@@ -57,3 +57,27 @@ TEXT;
     expect($sets)->toHaveCount(12)
         ->and(array_unique(array_column($sets, 'exercise')))->toHaveCount(4);
 });
+
+it('reads a fixed weight with varying reps, the mirror of a rep count with varying weights', function () {
+    $sets = (new ParseGymSets)('Lat Pulldown • 32 kg: 12, 12, 10 rep');
+
+    expect($sets)->toHaveCount(3)
+        ->and($sets[0])->toBe(['exercise' => 'Lat Pulldown', 'reps' => 12, 'weight_kg' => 32.0])
+        ->and($sets[2])->toBe(['exercise' => 'Lat Pulldown', 'reps' => 10, 'weight_kg' => 32.0]);
+});
+
+it('reads a share that states no length', function () {
+    $text = <<<'TEXT'
+Chest Supported Incline Dumbbell Row • 3 sets: 10 rep 12 kg
+Lat Pulldown • 32 kg: 12, 12, 10 rep
+Ring Row • 3 sets: 15 rep
+TRX Bicep Curl • 3 sets: 15 rep
+
+Tracked on Setgraph
+TEXT;
+
+    $sets = (new ParseGymSets)($text);
+
+    expect($sets)->toHaveCount(12)
+        ->and(array_unique(array_column($sets, 'exercise')))->toHaveCount(4);
+});
