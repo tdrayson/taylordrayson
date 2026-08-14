@@ -3,30 +3,33 @@
 namespace App\Queries\Lookups;
 
 use App\Models\Fuel;
-use App\Services\PetrolFinder;
-use App\Services\PetrolFinder\FuelStationResult;
+use App\Services\PetrolPrices;
+use App\Services\PetrolPrices\FuelStationResult;
 
 /**
- * Petrol stations, from the fuel API rather than a geocoder, which would return a
- * town's streets instead of its filling stations. Stations already used are also
- * offered, and are all there is when that API is down.
+ * Petrol stations, from the forecourt feed rather than a geocoder, which would
+ * return a town's streets instead of its filling stations. Stations already used
+ * are also offered, and are all there is when that feed is down.
  */
 final class StationLookup
 {
-    public function __construct(private PetrolFinder $stations) {}
+    public function __construct(private PetrolPrices $stations) {}
 
     /**
      * @return list<array{value: string, label: string, detail: string|null, fill: array<string, mixed>}>
      */
     public function __invoke(string $query, ?float $latitude = null, ?float $longitude = null): array
     {
-        if (trim($query) === '' && $latitude === null) {
+        $query = trim($query);
+
+        if ($query === '' && $latitude === null) {
             return [];
         }
 
-        $results = $latitude !== null && $longitude !== null && trim($query) === ''
-            ? $this->stations->search(null, $latitude, $longitude)
-            : $this->stations->search($query);
+        // The feed searches by coordinate alone, so typing narrows what is nearby.
+        $results = $latitude !== null && $longitude !== null
+            ? $this->matching($this->stations->search($latitude, $longitude), $query)
+            : [];
 
         if ($results === []) {
             return $this->previouslyUsed($query);
@@ -45,6 +48,25 @@ final class StationLookup
                 'longitude' => $station->longitude,
             ], fn ($value): bool => $value !== null && $value !== ''),
         ], array_slice($results, 0, 10)));
+    }
+
+    /**
+     * The stations whose name, brand or address contains what was typed.
+     *
+     * @param  array<int, FuelStationResult>  $stations
+     * @return array<int, FuelStationResult>
+     */
+    private function matching(array $stations, string $query): array
+    {
+        if ($query === '') {
+            return $stations;
+        }
+
+        return array_values(array_filter($stations, function (FuelStationResult $station) use ($query): bool {
+            $haystack = implode(' ', array_filter([$station->stationName, $station->brand, $station->address]));
+
+            return str_contains(mb_strtolower($haystack), mb_strtolower($query));
+        }));
     }
 
     /**

@@ -3,24 +3,21 @@
 namespace App\Queries\Lookups;
 
 use App\Models\Fuel;
-use App\Services\PetrolFinder;
+use App\Services\PetrolPrices\FuelBrands;
 
 /**
- * Fuel brands, from the canonical list the fuel API publishes, since the brand
- * spelling is what picks a card's logo. Brands already recorded are merged in and
- * stand alone when that API is down, which it has been.
+ * Fuel brands, from the canonical list the app keeps, since the brand spelling is
+ * what picks a card's logo. Brands already recorded are merged in, so an
+ * independent typed once is offered again.
  */
 final class FuelBrandLookup
 {
-    public function __construct(private PetrolFinder $stations) {}
-
     /**
      * @return list<array{value: string, label: string, detail: string|null}>
      */
     public function __invoke(string $query): array
     {
-        $brands = collect($this->stations->brands())
-            ->map(fn (array $brand): string => $brand['name'])
+        $brands = collect(FuelBrands::names())
             ->merge(Fuel::query()->whereNotNull('brand')->distinct()->pluck('brand'))
             ->filter()
             ->unique()

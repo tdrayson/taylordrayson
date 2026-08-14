@@ -57,7 +57,9 @@ class StationNormaliser
             return null;
         }
 
-        $value = trim($value);
+        // Feed fields carry their own commas and padding, so joined parts double up.
+        $value = trim(preg_replace('/\s+/u', ' ', preg_replace('/\s+([,.])/u', '$1', $value)));
+
         if ($value === '') {
             return $value;
         }
