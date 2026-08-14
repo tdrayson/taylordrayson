@@ -7,7 +7,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreSetgraphWorkoutRequest extends FormRequest
 {
     /**
-     * `occurred_at` takes anything strtotime understands, read as wall-clock time.
+     * `occurred_at` is when the workout *finished*, not when it started, since the
+     * share sheet carries no date and Setgraph is normally shared on the way out of
+     * the gym. It takes anything strtotime understands, read as wall-clock time.
      * `timezone` must still name the zone, since an offset alone cannot (+01:00 is
      * London, Paris and Lagos alike); omitted, it falls back to home.
      *

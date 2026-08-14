@@ -27,6 +27,19 @@ it('reads an hours summary as well as minutes', function () {
     expect($workout->duration)->toBe(7200);
 });
 
+it('reads the hours and minutes Setgraph writes for a session past the hour', function (string $summary) {
+    $workout = app(ParseSetgraphWorkout::class)("Squat • 5 rep 60 kg\n\n{$summary}");
+
+    expect($workout->duration)->toBe(3840);
+})->with(['Pull • 1 h 4 min', 'Pull • 1h 4min', 'Pull • 1 hr 4 min']);
+
+it('does not read an exercise line as the summary when it states a time', function () {
+    $workout = app(ParseSetgraphWorkout::class)("Plank • 2 min\n\nCore • 25 min");
+
+    expect($workout->duration)->toBe(1500)
+        ->and($workout->label)->toBe('Core');
+});
+
 it('leaves duration null when no summary line is shared', function () {
     $workout = app(ParseSetgraphWorkout::class)('Squat • 5 rep 60 kg');
 

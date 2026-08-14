@@ -59,6 +59,20 @@ class ParseGymSets
             ]);
         }
 
+        // One weight, varying reps: the mirror of the "12 rep: 32, 36 kg" line below.
+        if (preg_match('/^([\d.]+)\s*kg:\s*([\d,\s]+?)\s*reps?$/i', $details, $repListMatches)) {
+            $weight = (float) $repListMatches[1];
+
+            return array_map(
+                fn (int $reps): array => [
+                    'exercise' => $exercise,
+                    'reps' => $reps,
+                    'weight_kg' => $weight,
+                ],
+                $this->parseRepList($repListMatches[2]),
+            );
+        }
+
         if (preg_match('/^(\d+)\s+rep(?:s)?:\s*([\d.,\s]+)\s*kg$/i', $details, $weightListMatches)) {
             $reps = (int) $weightListMatches[1];
             $weights = $this->parseWeightList($weightListMatches[2]);
@@ -108,6 +122,17 @@ class ParseGymSets
             'reps' => (int) $matches[1],
             'weight_kg' => (float) ($matches[2] ?? 0),
         ];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function parseRepList(string $reps): array
+    {
+        return array_values(array_filter(array_map(
+            fn (string $rep): ?int => $rep === '' ? null : (int) $rep,
+            array_map(trim(...), explode(',', $reps)),
+        )));
     }
 
     /**

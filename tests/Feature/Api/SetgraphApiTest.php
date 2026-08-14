@@ -231,6 +231,124 @@ it('leaves tennis alone when the gym session has not synced yet', function () {
         ->and(Activity::count())->toBe(2);
 });
 
+it('picks the gym over a squash recording left running across it', function () {
+    // Squash stopped late, so its range covers the gym session that followed and
+    // it overlaps the share by more than the gym itself does.
+    $squash = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 18:00:00',
+        'type' => 'workout',
+        'name' => 'Squash',
+        'duration' => 7200,
+        'source' => 'strava',
+        'source_id' => '777',
+        'meta' => ['sport_type' => 'Squash'],
+    ]);
+
+    $gym = Activity::factory()->create([
+        'occurred_at' => '2026-07-27 19:20:00',
+        'type' => 'weight-training',
+        'duration' => 1200,
+        'source' => 'strava',
+        'source_id' => '888',
+        'meta' => ['sport_type' => 'WeightTraining'],
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => "Squat • 5 rep 60 kg\n\nOther • 38 min",
+        'occurred_at' => '2026-07-27T19:55:00+01:00',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $gym->id);
+
+    expect($squash->fresh()->meta['sets'] ?? null)->toBeNull();
+});
+
+it('attaches a workout pushed days later to that day\'s gym session', function () use ($share) {
+    $monday = Activity::factory()->create([
+        'occurred_at' => '2026-08-10 20:05:23',
+        'type' => 'weight-training',
+        'name' => 'Evening Weight Training',
+        'duration' => 1935,
+        'source' => 'strava',
+        'source_id' => '19532725079',
+        // The factory seeds sets of its own, which is what an unclaimed row lacks.
+        'meta' => ['sport_type' => 'WeightTraining'],
+    ]);
+
+    // Shared on the Wednesday, with only a rough time picked for the Monday.
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-08-10 18:30:00',
+        'timezone' => 'Europe/London',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $monday->id)
+        ->assertJsonPath('data.created', false);
+
+    expect(Activity::count())->toBe(1)
+        ->and($monday->fresh()->meta['sets'])->toHaveCount(6);
+});
+
+it('matches the day when only a date was picked, with no time to go on', function () use ($share) {
+    // A date-only pick arrives as midnight. Working the stated 38 minutes back
+    // off that lands on the day before, so the day search cannot use it.
+    $monday = Activity::factory()->create([
+        'occurred_at' => '2026-08-10 20:05:23',
+        'type' => 'weight-training',
+        'duration' => 1935,
+        'source' => 'strava',
+        'source_id' => '19532725079',
+        'meta' => ['sport_type' => 'WeightTraining'],
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-08-10',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $monday->id);
+
+    expect(Activity::count())->toBe(1);
+});
+
+it('leaves a session that already has its sets alone when backdating', function () use ($share) {
+    $claimed = Activity::factory()->create([
+        'occurred_at' => '2026-08-10 08:00:00',
+        'type' => 'weight-training',
+        'duration' => 1800,
+        'source' => 'strava',
+        'source_id' => '111',
+        'meta' => ['sets' => [['exercise' => 'Bench Press', 'reps' => 5, 'weight_kg' => 60]]],
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-08-10 20:30:00',
+    ])->assertCreated();
+
+    expect($claimed->fresh()->meta['sets'])->toHaveCount(1)
+        ->and(Activity::count())->toBe(2);
+});
+
+it('does not hand a backdated share to a generic workout that could be tennis', function () use ($share) {
+    Activity::factory()->create([
+        'occurred_at' => '2026-08-10 17:30:00',
+        'type' => 'workout',
+        'name' => 'Tennis',
+        'duration' => 3600,
+        'source' => 'strava',
+        'source_id' => '777',
+        'meta' => ['sport_type' => 'Tennis'],
+    ]);
+
+    $this->withToken('test-token')->postJson('/api/v1/setgraph', [
+        'text' => $share,
+        'occurred_at' => '2026-08-10 21:00:00',
+    ])->assertCreated();
+
+    expect(Activity::count())->toBe(2);
+});
+
 it('requires the share text', function () {
     $this->withToken('test-token')->postJson('/api/v1/setgraph', [])
         ->assertUnprocessable()

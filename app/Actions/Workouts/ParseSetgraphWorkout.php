@@ -23,7 +23,8 @@ use App\Data\SetgraphWorkout;
  */
 class ParseSetgraphWorkout
 {
-    private const DURATION_PATTERN = '/^(?<label>.+?)\s*[•·]\s*(?<value>\d+)\s*(?<unit>min|mins|minutes|h|hr|hrs|hour|hours)$/iu';
+    /** Both parts are optional: Setgraph writes past the hour as "1 h 4 min". */
+    private const DURATION_PATTERN = '/^(?<label>.+?)\s*[•·]\s*(?=\d)(?:(?<hours>\d+)\s*(?:hours|hour|hrs|hr|h)\b)?\s*(?:(?<minutes>\d+)\s*(?:minutes|minute|mins|min)\b)?$/iu';
 
     public function __construct(private ParseGymSets $parseSets) {}
 
@@ -46,16 +47,31 @@ class ParseSetgraphWorkout
      */
     private function summary(string $text): array
     {
+        $summary = [null, null];
+
         foreach (preg_split('/\R/', trim($text)) as $line) {
-            if (! preg_match(self::DURATION_PATTERN, trim($line), $matches)) {
+            $line = trim($line);
+
+            // A line that yields sets is an exercise, not the summary.
+            if (($this->parseSets)($line) !== []) {
                 continue;
             }
 
-            $multiplier = str_starts_with(strtolower($matches['unit']), 'h') ? 3600 : 60;
+            if (! preg_match(self::DURATION_PATTERN, $line, $matches)) {
+                continue;
+            }
 
-            return [(int) $matches['value'] * $multiplier, trim($matches['label'])];
+            $hours = (int) ($matches['hours'] ?? 0);
+            $minutes = (int) ($matches['minutes'] ?? 0);
+
+            if ($hours === 0 && $minutes === 0) {
+                continue;
+            }
+
+            // Last match wins: a timed exercise ("Plank • 2 min") matches too.
+            $summary = [$hours * 3600 + $minutes * 60, trim($matches['label'])];
         }
 
-        return [null, null];
+        return $summary;
     }
 }
