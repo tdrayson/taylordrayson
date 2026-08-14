@@ -15,7 +15,7 @@ it('renders an episode card from canonical meta', function () {
     expect(CardPresenter::for($media)->subtitle)->toContain('S01E03');
 });
 
-it('leads an episode card with the show, not the episode title', function () {
+it('leads an episode card with the episode, and names the show in the subtitle', function () {
     $media = Media::factory()->make([
         'type' => 'episode',
         'title' => 'Pilot',
@@ -25,9 +25,9 @@ it('leads an episode card with the show, not the episode title', function () {
 
     $card = CardPresenter::for($media);
 
-    // Without this the card reads "Pilot", with nothing naming the show.
-    expect($card->title)->toBe('Severance')
-        ->and($card->subtitle)->toBe('S01E03, Pilot');
+    // A day of one show would otherwise repeat the same title down the feed.
+    expect($card->title)->toBe('Pilot')
+        ->and($card->subtitle)->toBe('Severance, S01E03');
 });
 
 it('keeps the episode title in the heading when no show can be resolved', function () {
