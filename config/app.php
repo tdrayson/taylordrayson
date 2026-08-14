@@ -79,7 +79,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Site Owner
+    | Control Panel
     |--------------------------------------------------------------------------
     |
     | The single account that can sign in and edit. There is no registration,
@@ -89,10 +89,10 @@ return [
     |
     */
 
-    'owner' => [
-        'name' => env('OWNER_NAME', 'Taylor Drayson'),
-        'email' => env('OWNER_EMAIL'),
-        'password' => env('OWNER_PASSWORD'),
+    'cp' => [
+        'name' => env('CP_NAME', 'Taylor Drayson'),
+        'email' => env('CP_EMAIL'),
+        'password' => env('CP_PASSWORD'),
     ],
 
     /*
