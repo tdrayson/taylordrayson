@@ -20,24 +20,24 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = config('app.owner.email');
-        $password = config('app.owner.password');
+        $email = config('app.cp.email');
+        $password = config('app.cp.password');
 
         if (! is_string($email) || $email === '' || ! is_string($password) || $password === '') {
-            throw new RuntimeException('Set OWNER_EMAIL and OWNER_PASSWORD before seeding the owner account.');
+            throw new RuntimeException('Set CP_EMAIL and CP_PASSWORD before seeding the control panel account.');
         }
 
         $user = User::query()->updateOrCreate(
             ['email' => $email],
             [
-                'name' => config('app.owner.name'),
+                'name' => config('app.cp.name'),
                 'password' => Hash::make($password),
                 'email_verified_at' => now(),
             ],
         );
 
         $this->command?->info($user->wasRecentlyCreated
-            ? "Created the owner account for {$email}."
+            ? "Created the control panel account for {$email}."
             : "Updated the password for {$email}.");
     }
 }
