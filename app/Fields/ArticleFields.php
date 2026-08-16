@@ -21,7 +21,7 @@ final class ArticleFields
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('published', 'Published', FieldType::Published),
             FieldData::optional('excerpt', 'Excerpt', FieldType::Textarea, 'Used for search and social previews.'),
-            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Sets the URL.', defaultsToNow: true),
+            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Part of the URL, so changing it moves the article.', defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('slug', 'Slug', FieldType::Slug, 'Generated from the title when left blank.'),

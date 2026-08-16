@@ -26,10 +26,6 @@ setLayoutProps({
 });
 
 const values = computed(() => valuesFor(props.fields));
-
-const label = computed(() => props.types.find((entry) => entry.type === props.type)?.label ?? props.type);
-const heading = computed(() => (props.type ? `New ${label.value.toLowerCase()}` : null));
-
 </script>
 
 <template>
@@ -57,7 +53,6 @@ const heading = computed(() => (props.type ? `New ${label.value.toLowerCase()}` 
         <EntryEditor
             :fields="fields"
             :values="values"
-            :heading="heading"
             :action="`/entries/${type}`"
             method="post"
             submit-label="Post"

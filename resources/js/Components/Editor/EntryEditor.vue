@@ -20,7 +20,6 @@ const props = defineProps({
     method: { type: String, default: 'patch' },
     resolved: { type: Object, default: () => ({}) },
     submitLabel: { type: String, default: 'Post' },
-    heading: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -204,9 +203,6 @@ function submit(published = null) {
          page on the site starts at the same left edge, and centring made the
          editor jump 112px right of the page you arrived from. -->
     <div class="w-full max-w-2xl">
-        <p v-if="heading && titleField" class="mb-2 text-eyebrow uppercase text-neutral-500">{{ heading }}</p>
-        <h1 v-else-if="heading" class="mb-6 font-display text-display text-neutral-900">{{ heading }}</h1>
-
         <!-- The heading: an input that reads as the title it will become, not a
              form field with a label above it. -->
         <input
