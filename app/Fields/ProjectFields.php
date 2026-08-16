@@ -31,6 +31,7 @@ final class ProjectFields
             FieldData::optional('featured', 'Featured', FieldType::Boolean),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
             FieldData::optional('slug', 'Slug', FieldType::Slug),
         ];
     }

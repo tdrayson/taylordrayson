@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import Input from '../Ui/Input.vue';
+import Switch from '../Ui/Switch.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
 import LookupInput from './LookupInput.vue';
@@ -83,7 +84,7 @@ function textToTags(value) {
 
 <template>
     <div>
-        <label v-if="! hideLabel" :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
+        <label v-if="! hideLabel && field.type !== 'boolean'" :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
 
         <RichTextEditor
             v-if="field.type === 'rich-text'"
@@ -103,16 +104,20 @@ function textToTags(value) {
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
-        <label v-else-if="field.type === 'boolean'" class="flex min-h-11 items-center gap-2 text-meta text-neutral-900">
-            <input
+        <!-- A toggle labels itself, so it carries its own text in the row rather
+             than repeating the label drawn above every other field. -->
+        <div
+            v-else-if="field.type === 'boolean'"
+            :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3 text-neutral-900']"
+        >
+            <span>{{ field.help || field.label }}</span>
+
+            <Switch
                 :id="field.name"
-                type="checkbox"
-                :checked="Boolean(modelValue)"
-                class="size-5 rounded border-neutral-100 text-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500"
-                @change="$emit('update:modelValue', $event.target.checked)"
-            >
-            {{ field.help || field.label }}
-        </label>
+                :model-value="Boolean(modelValue)"
+                @update:model-value="$emit('update:modelValue', $event)"
+            />
+        </div>
 
         <select
             v-else-if="field.type === 'select'"
@@ -214,7 +219,7 @@ function textToTags(value) {
         <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
 
         <!-- Lookup and location fields already show the help as their
-             placeholder, and a boolean shows it beside the checkbox. -->
+             placeholder, and a boolean shows it beside the toggle. -->
         <p
             v-else-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
             class="mt-1 text-caption text-neutral-500"

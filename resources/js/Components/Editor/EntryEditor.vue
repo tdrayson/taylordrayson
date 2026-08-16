@@ -71,15 +71,27 @@ function groupSummary(item) {
 const slugField = computed(() => props.fields.find((field) => field.type === 'slug') ?? null);
 
 /**
- * A saved entry's URL is a promise, whether or not it was ever published: it may
- * already be linked, bookmarked or in a feed. So the slug is settled by the
- * first save and cannot be edited afterwards, only read.
+ * Publishing settles the URL: it can be linked, bookmarked or in a feed from
+ * that moment, so the slug stops following the title and stops being editable.
+ * A draft has none of that, and keeps tracking its title however often it is
+ * saved. A type with no publish state goes live at its first save, which is
+ * where its slug settles instead.
  */
-const slugLocked = computed(() => props.method !== 'post');
+const slugLocked = computed(() => (publishField.value ? isPublished.value : props.method !== 'post'));
 
-// Until then it follows the title, unless it has been typed by hand: writing a
-// slug yourself is the way to say you want that one.
-const slugEdited = ref(Boolean(props.values[slugField.value?.name]));
+/**
+ * Until then it follows the title, unless it has been typed by hand: writing a
+ * slug yourself is the way to say you want that one.
+ *
+ * A reloaded draft has to work that out from the values alone. A slug matching
+ * its title is one this generated, so it carries on generating; anything else
+ * was chosen, and is left alone.
+ */
+const slugEdited = ref((() => {
+    const slug = props.values[slugField.value?.name];
+
+    return Boolean(slug) && slug !== slugify(props.values[titleField.value?.name]);
+})());
 
 watch(() => (titleField.value ? form[titleField.value.name] : null), (title) => {
     if (! slugField.value || slugEdited.value || slugLocked.value) {

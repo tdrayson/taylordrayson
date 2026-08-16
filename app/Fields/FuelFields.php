@@ -35,6 +35,7 @@ final class FuelFields
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
         ];
     }
 

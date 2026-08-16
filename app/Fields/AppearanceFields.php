@@ -30,6 +30,7 @@ final class AppearanceFields
             FieldData::optional('duration', 'Duration', FieldType::Duration),
             FieldData::optional('description', 'About', FieldType::Textarea),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
         ];
     }
 }
