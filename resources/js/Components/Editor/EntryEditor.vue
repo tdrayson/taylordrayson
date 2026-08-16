@@ -43,21 +43,32 @@ function pairedWith(name) {
     return props.fields.find((field) => field.pairsWith === name) ?? null;
 }
 
-// Grouped fields are drawn inside their group block, not loose in the stack.
-const stack = computed(() => rest.value.filter((field) => ! field.group));
+/**
+ * The stack in declaration order, a group standing where its first field was
+ * declared. Drawing every group after every loose field instead put an address
+ * a whole form away from the venue lookup that fills it.
+ */
+const rows = computed(() => {
+    const seen = new Set();
 
-const groups = computed(() => {
-    const items = new Map();
+    return rest.value.flatMap((field) => {
+        if (! field.group) {
+            return [{ kind: 'field', key: field.name, field }];
+        }
 
-    rest.value.filter((field) => field.group).forEach((field) => {
-        const existing = items.get(field.group);
+        if (seen.has(field.group)) {
+            return [];
+        }
 
-        existing
-            ? existing.fields.push(field)
-            : items.set(field.group, { key: field.group, label: field.group, fields: [field] });
+        seen.add(field.group);
+
+        return [{
+            kind: 'group',
+            key: field.group,
+            label: field.group,
+            fields: rest.value.filter((candidate) => candidate.group === field.group),
+        }];
     });
-
-    return [...items.values()];
 });
 
 /** The group's set values on one line, so it reads without being opened. */
@@ -182,44 +193,42 @@ function submit(published = null) {
             @fill="applyFill"
         />
 
-        <div v-if="stack.length" class="mt-6 space-y-4">
-            <FieldInput
-                v-for="field in stack"
-                :key="field.name"
-                :field="field"
-                :model-value="form[field.name]"
-                :resolved="resolved"
-                :relative-to-value="field.relativeTo ? String(form[field.relativeTo] ?? '') : null"
-                :latitude="form.latitude ?? null"
-                :longitude="form.longitude ?? null"
-                :paired="pairedWith(field.name)"
-                :paired-value="pairedWith(field.name) ? form[pairedWith(field.name).name] : null"
-                :error="form.errors[field.name]"
-                :readonly="field.type === 'slug' && slugLocked"
-                @update:model-value="onFieldInput(field, $event)"
-                @update:paired="form[pairedWith(field.name).name] = $event"
-                @fill="applyFill"
-            />
-        </div>
-
-        <div v-if="groups.length" class="mt-4 space-y-4">
-            <FieldGroup
-                v-for="item in groups"
-                :key="item.key"
-                :label="item.label"
-                :summary="groupSummary(item)"
-                :invalid="item.fields.some((field) => form.errors[field.name])"
-            >
+        <div v-if="rows.length" class="mt-6 space-y-4">
+            <template v-for="row in rows" :key="row.key">
                 <FieldInput
-                    v-for="field in item.fields"
-                    :key="field.name"
-                    :field="field"
-                    :model-value="form[field.name]"
-                    :error="form.errors[field.name]"
-                    @update:model-value="onFieldInput(field, $event)"
+                    v-if="row.kind === 'field'"
+                    :field="row.field"
+                    :model-value="form[row.field.name]"
+                    :resolved="resolved"
+                    :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
+                    :latitude="form.latitude ?? null"
+                    :longitude="form.longitude ?? null"
+                    :paired="pairedWith(row.field.name)"
+                    :paired-value="pairedWith(row.field.name) ? form[pairedWith(row.field.name).name] : null"
+                    :error="form.errors[row.field.name]"
+                    :readonly="row.field.type === 'slug' && slugLocked"
+                    @update:model-value="onFieldInput(row.field, $event)"
+                    @update:paired="form[pairedWith(row.field.name).name] = $event"
                     @fill="applyFill"
                 />
-            </FieldGroup>
+
+                <FieldGroup
+                    v-else
+                    :label="row.label"
+                    :summary="groupSummary(row)"
+                    :invalid="row.fields.some((field) => form.errors[field.name])"
+                >
+                    <FieldInput
+                        v-for="field in row.fields"
+                        :key="field.name"
+                        :field="field"
+                        :model-value="form[field.name]"
+                        :error="form.errors[field.name]"
+                        @update:model-value="onFieldInput(field, $event)"
+                        @fill="applyFill"
+                    />
+                </FieldGroup>
+            </template>
         </div>
 
         <!-- Sticky rather than fixed, so it needs no bottom padding on the form
