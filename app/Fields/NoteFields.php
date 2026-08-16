@@ -19,9 +19,9 @@ final class NoteFields
     {
         return [
             FieldData::primary('content', 'Note', FieldType::Textarea, required: true),
+            FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
-            FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL this note lives at.', required: true),
         ];
     }

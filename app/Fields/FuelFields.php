@@ -20,7 +20,6 @@ final class FuelFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::primary('cost', 'Cost', FieldType::Number, required: true, prefix: '£'),
             FieldData::primary('price_per_litre', 'Price per litre', FieldType::Number, required: true, prefix: '£', suffix: '/L'),
             FieldData::primary('station_name', 'Garage', FieldType::Location, 'Use your location, or pick a garage used before.', source: 'station'),
@@ -35,6 +34,7 @@ final class FuelFields
             FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
         ];
     }
 

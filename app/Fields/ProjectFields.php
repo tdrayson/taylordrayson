@@ -29,8 +29,8 @@ final class ProjectFields
             FieldData::optional('long_description', 'Full write-up', FieldType::RichText),
             FieldData::optional('github_url', 'Repository', FieldType::Url),
             FieldData::optional('featured', 'Featured', FieldType::Boolean),
-            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
+            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('slug', 'Slug', FieldType::Slug),
         ];
     }

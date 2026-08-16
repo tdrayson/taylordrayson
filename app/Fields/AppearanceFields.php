@@ -19,7 +19,6 @@ final class AppearanceFields
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('show_name', 'Show', FieldType::Text, required: true),
-            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::primary('type', 'Kind', FieldType::Select, null, [
                 ['value' => 'podcast', 'label' => 'Podcast'],
                 ['value' => 'interview', 'label' => 'Interview'],
@@ -30,6 +29,7 @@ final class AppearanceFields
             FieldData::optional('audio_url', 'Audio', FieldType::Url),
             FieldData::optional('duration', 'Duration', FieldType::Duration),
             FieldData::optional('description', 'Description', FieldType::Textarea),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
         ];
     }
 }
