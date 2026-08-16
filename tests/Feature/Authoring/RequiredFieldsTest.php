@@ -18,6 +18,7 @@ it('refuses a create without a newly required field', function (string $type, ar
     'flight airline' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'flight_number' => 'BA117'], 'airline_icao'],
     'flight number' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'airline_icao' => 'BAW'], 'flight_number'],
     'fuel date' => ['fuel', ['cost' => 51.87, 'price_per_litre' => 1.599], 'occurred_at'],
+    'note slug' => ['note', ['content' => 'A thought.'], 'slug'],
 ]);
 
 it('still allows an update that touches one field', function () {

@@ -6,8 +6,9 @@ use App\Data\FieldData;
 use App\Enums\FieldType;
 
 /**
- * A note is a quick capture: the body is the whole point, so everything else
- * stays out of the way until asked for.
+ * A note is a quick capture: the body is the whole point. The slug is asked for
+ * rather than derived, since a note has no title to derive one from and a
+ * generated one reads as noise in the URL.
  */
 final class NoteFields
 {
@@ -18,10 +19,10 @@ final class NoteFields
     {
         return [
             FieldData::primary('content', 'Note', FieldType::Textarea, required: true),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
-            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
-            FieldData::optional('slug', 'Slug', FieldType::Slug, 'Generated from the content when left blank.'),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, 'Where it was written.', source: 'timezone'),
+            FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL this note lives at.', required: true),
         ];
     }
 }

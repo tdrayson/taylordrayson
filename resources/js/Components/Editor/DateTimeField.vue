@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as chrono from 'chrono-node';
 import Input from '../Ui/Input.vue';
 import { clock } from '../../lib/format.js';
@@ -15,6 +15,7 @@ const props = defineProps({
     id: { type: String, default: null },
     // The timezone stored alongside, if the type keeps one.
     timezone: { type: String, default: null },
+    timezoneLabel: { type: String, default: 'Timezone' },
     // The value this one is measured from, when the field declares a
     // relativeTo: an event's end is nearly always a few hours after its start.
     relativeToValue: { type: String, default: null },
@@ -49,6 +50,25 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => clearInterval(ticker));
+
+// Frozen when the popover opens rather than read from the ticking clock, which
+// would rewrite the time input from under a half-typed value.
+const openedAt = ref(stamp(new Date()));
+
+watch(open, (isOpen) => {
+    if (isOpen) {
+        openedAt.value = stamp(new Date());
+    }
+});
+
+/**
+ * What the date and time inputs show. An unset field would otherwise open on two
+ * blanks, when what it will actually save is now; the value itself stays unset
+ * until one of them is touched.
+ */
+const shown = computed(() => (parts.value.date
+    ? parts.value
+    : { date: openedAt.value.slice(0, 10), time: openedAt.value.slice(11, 16) }));
 
 const label = computed(() => {
     if (! parts.value.date) {
@@ -121,7 +141,7 @@ function parseTyped() {
 }
 
 function setDatePart(value) {
-    emit('update:modelValue', `${value} ${parts.value.time || '12:00'}:00`);
+    emit('update:modelValue', `${value} ${shown.value.time}:00`);
 }
 
 function clear() {
@@ -131,7 +151,7 @@ function clear() {
 }
 
 function setTimePart(value) {
-    emit('update:modelValue', `${parts.value.date || stamp(new Date()).slice(0, 10)} ${value}:00`);
+    emit('update:modelValue', `${shown.value.date} ${value}:00`);
 }
 </script>
 
@@ -194,7 +214,7 @@ function setTimePart(value) {
                     Date
                     <input
                         type="date"
-                        :value="parts.date"
+                        :value="shown.date"
                         class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setDatePart($event.target.value)"
                     >
@@ -204,7 +224,7 @@ function setTimePart(value) {
                     Time
                     <input
                         type="time"
-                        :value="parts.time"
+                        :value="shown.time"
                         class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setTimePart($event.target.value)"
                     >
@@ -212,7 +232,7 @@ function setTimePart(value) {
             </div>
 
             <label v-if="timezone !== null" class="mt-2 block text-label uppercase text-neutral-500">
-                Timezone
+                {{ timezoneLabel }}
                 <input
                     type="text"
                     :value="timezone"

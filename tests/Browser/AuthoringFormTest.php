@@ -16,6 +16,39 @@ it('draws every primary field as an input, not a chip', function () {
         ->assertNoJavascriptErrors();
 });
 
+it('draws a short form whole, with nothing left behind the add menu', function () {
+    $this->actingAs(User::factory()->create());
+
+    // A note offers few enough fields that every one is shown, including the
+    // optionals that a longer type would keep behind "+ Add field".
+    visit('/new/note')
+        ->assertPresent('#occurred_at')
+        ->assertPresent('#tags')
+        ->assertPresent('#slug')
+        ->assertDontSee('Add field')
+        ->assertNoJavascriptErrors();
+});
+
+it('keeps the timezone inside the date it qualifies, not beside it', function () {
+    $this->actingAs(User::factory()->create());
+
+    $page = visit('/new/note');
+
+    $page->assertDontSee('Timezone')
+        ->click('#occurred_at')
+        ->assertSee('Timezone')
+        ->assertNoJavascriptErrors();
+});
+
+it('keeps a long form behind the add menu', function () {
+    $this->actingAs(User::factory()->create());
+
+    visit('/new/event')
+        ->assertSee('Add field')
+        ->assertMissing('#organiser')
+        ->assertNoJavascriptErrors();
+});
+
 it('shows a map for a location that has resolved coordinates', function () {
     $this->actingAs(User::factory()->create());
 
@@ -51,4 +84,3 @@ it('collapses the address to a summary that opens on demand', function () {
         ->assertPresent('#postcode')
         ->assertNoJavascriptErrors();
 });
-

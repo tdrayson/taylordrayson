@@ -35,8 +35,14 @@ const isPublished = computed(() => publishField.value !== null && form[publishFi
 
 const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
 
-// Title and body are drawn above the stack, so they never appear in it.
-const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));
+// Title and body are drawn above the stack; a paired field is drawn inside the
+// control it pairs with. None of them appear in the stack.
+const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody && !field.pairsWith));
+
+/** The field drawn inside this one's control, e.g. a timezone inside its date. */
+function pairedWith(name) {
+    return props.fields.find((field) => field.pairsWith === name) ?? null;
+}
 
 function filled(name) {
     const value = props.values[name];
@@ -50,9 +56,18 @@ function filled(name) {
 const added = ref(rest.value.filter((field) => !field.primary && filled(field.name)).map((field) => field.name));
 const { isOpen: showExtras, root: extrasRoot, close: closeExtras, toggle: toggleExtras } = useDismissable();
 
+// A short form is drawn whole: hiding four fields behind a menu costs more
+// reading than it saves, and the menu itself is one more thing to notice.
+const SHOW_ALL_UP_TO = 6;
+
+/** Fields as the + menu counts them, with a group counting once. */
+const itemCount = computed(() => new Set(rest.value.map((field) => field.group ?? field.name)).size);
+
+const showAll = computed(() => itemCount.value <= SHOW_ALL_UP_TO);
+
 // Declaration order, not primary-then-added: the fields class decides the order,
 // and a field should not jump position because it came from the + menu.
-const visible = computed(() => rest.value.filter((field) => field.primary || added.value.includes(field.name)));
+const visible = computed(() => rest.value.filter((field) => showAll.value || field.primary || added.value.includes(field.name)));
 
 // Grouped fields are drawn inside their group block, not loose in the stack.
 const stack = computed(() => visible.value.filter((field) => ! field.group));
@@ -81,6 +96,10 @@ function groupSummary(item) {
 
 /** Unadded optionals, with a group offered as one item rather than five. */
 const remainingItems = computed(() => {
+    if (showAll.value) {
+        return [];
+    }
+
     const items = [];
     const seen = new Set();
 
@@ -220,7 +239,10 @@ function submit(published = null) {
                 :relative-to-value="field.relativeTo ? String(form[field.relativeTo] ?? '') : null"
                 :latitude="form.latitude ?? null"
                 :longitude="form.longitude ?? null"
+                :paired="pairedWith(field.name)"
+                :paired-value="pairedWith(field.name) ? form[pairedWith(field.name).name] : null"
                 @update:model-value="onFieldInput(field, $event)"
+                @update:paired="form[pairedWith(field.name).name] = $event"
                 @fill="applyFill"
             />
         </div>

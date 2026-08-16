@@ -28,6 +28,10 @@ const props = defineProps({
     // way to check them.
     latitude: { type: [Number, String], default: null },
     longitude: { type: [Number, String], default: null },
+    // A field drawn inside this one's control rather than as its own row: a
+    // timezone belongs to the date it qualifies, not beside it.
+    paired: { type: Object, default: null },
+    pairedValue: { type: String, default: null },
 });
 
 /** The picked point, or null while the lookup has not resolved one. */
@@ -41,7 +45,7 @@ const coordinates = computed(() => {
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
 // what other fields exist.
-defineEmits(['update:modelValue', 'fill']);
+defineEmits(['update:modelValue', 'update:paired', 'fill']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -128,7 +132,10 @@ function textToTags(value) {
             :id="field.name"
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
+            :timezone="paired ? String(pairedValue ?? '') : null"
+            :timezone-label="paired?.label ?? 'Timezone'"
             @update:model-value="$emit('update:modelValue', $event)"
+            @update:timezone="$emit('update:paired', $event)"
         />
 
         <DurationInput
