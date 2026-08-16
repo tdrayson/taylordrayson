@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { cn } from '../../lib/cn.js';
+import { CONTROL } from '../../lib/editor/control.js';
 
 const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
@@ -27,7 +28,8 @@ const border = computed(() =>
 
 const wrapperClasses = computed(() =>
     cn(
-        'flex w-full items-center gap-1.5 rounded-md border bg-neutral-0 px-3 text-meta transition-colors',
+        CONTROL,
+        'flex items-center gap-1.5 py-0',
         border.value,
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
@@ -36,7 +38,8 @@ const wrapperClasses = computed(() =>
 
 const bareClasses = computed(() =>
     cn(
-        'w-full rounded-md border bg-neutral-0 px-3 py-3 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:outline-none',
+        CONTROL,
+        'text-neutral-900 placeholder:text-neutral-500 focus:outline-none',
         props.invalid ? 'border-red-500 focus:border-red-500' : 'border-neutral-100 focus:border-accent-500',
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
@@ -54,7 +57,7 @@ const bareClasses = computed(() =>
             :value="modelValue"
             :placeholder="placeholder"
             :disabled="disabled"
-            class="w-full min-w-0 border-none bg-transparent py-3 text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+            class="w-full min-w-0 border-none bg-transparent py-2 text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
             @input="$emit('update:modelValue', $event.target.value)"
         >
 

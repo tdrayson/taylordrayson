@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as chrono from 'chrono-node';
 import Input from '../Ui/Input.vue';
+import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 
@@ -51,6 +52,12 @@ onMounted(() => {
 
 onBeforeUnmount(() => clearInterval(ticker));
 
+/** Now as wall-clock parts, ticking, so an unset field reads as what it would be stamped with. */
+const nowParts = computed(() => ({
+    date: stamp(tick.value).slice(0, 10),
+    time: stamp(tick.value).slice(11, 16),
+}));
+
 // Frozen when the popover opens rather than read from the ticking clock, which
 // would rewrite the time input from under a half-typed value.
 const openedAt = ref(stamp(new Date()));
@@ -70,15 +77,21 @@ const shown = computed(() => (parts.value.date
     ? parts.value
     : { date: openedAt.value.slice(0, 10), time: openedAt.value.slice(11, 16) }));
 
-const label = computed(() => {
-    if (! parts.value.date) {
-        return `Now - ${clock(tick.value)}`;
-    }
+/**
+ * The site's timestamp shape, matching LocalTime's "D j M Y, g:ia", with the
+ * year dropped when it is this one and the timezone appended when the field
+ * keeps one: an entry's date is only unambiguous alongside its zone.
+ */
+function readable({ date, time }) {
+    const day = new Date(`${date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const year = date.slice(0, 4) === String(tick.value.getFullYear()) ? '' : ` ${date.slice(0, 4)}`;
 
-    const [y, m, d] = parts.value.date.split('-');
+    return [`${day}${year}, ${clock(new Date(`${date}T${time}`))}`, props.timezone].filter(Boolean).join(', ');
+}
 
-    return `${new Date(`${parts.value.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} ${y === String(new Date().getFullYear()) ? '' : y} ${parts.value.time}`.replace(/\s+/g, ' ').trim();
-});
+// Unset reads as the stamp it would be given, in the same shape as a set one:
+// the muted colour is what says it is not chosen yet.
+const label = computed(() => readable(parts.value.date ? parts.value : nowParts.value));
 
 /** The shortcuts from a real calendar, computed rather than hardcoded. */
 const shortcuts = computed(() => {
@@ -160,8 +173,11 @@ function setTimePart(value) {
         <button
             :id="id"
             type="button"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-3 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            :class="parts.date ? 'text-neutral-900' : 'text-neutral-500'"
+            :class="[
+                CONTROL,
+                'border-neutral-100 text-left hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                parts.date ? 'text-neutral-900' : 'text-neutral-500',
+            ]"
             @click="toggle"
         >
             {{ label }}
@@ -215,7 +231,7 @@ function setTimePart(value) {
                     <input
                         type="date"
                         :value="shown.date"
-                        class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                        :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                         @input="setDatePart($event.target.value)"
                     >
                 </label>
@@ -225,7 +241,7 @@ function setTimePart(value) {
                     <input
                         type="time"
                         :value="shown.time"
-                        class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                        :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                         @input="setTimePart($event.target.value)"
                     >
                 </label>
@@ -237,7 +253,7 @@ function setTimePart(value) {
                     type="text"
                     :value="timezone"
                     :placeholder="Intl.DateTimeFormat().resolvedOptions().timeZone"
-                    class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                    :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                     @input="emit('update:timezone', $event.target.value)"
                 >
             </label>

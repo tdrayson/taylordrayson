@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import Input from '../Ui/Input.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
@@ -90,7 +91,7 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-3 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+            :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
@@ -109,8 +110,7 @@ function textToTags(value) {
             v-else-if="field.type === 'select'"
             :id="field.name"
             :value="modelValue ?? ''"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-3 text-meta focus:border-accent-500 focus:outline-none"
-            :class="modelValue ? 'text-neutral-900' : 'text-neutral-500'"
+            :class="[CONTROL, CONTROL_BORDER, modelValue ? 'text-neutral-900' : 'text-neutral-500']"
             @change="$emit('update:modelValue', $event.target.value)"
         >
             <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>

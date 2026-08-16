@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { CONTROL } from '../../lib/editor/control.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
@@ -108,7 +109,7 @@ function onBackspace() {
 
 <template>
     <div ref="root" class="relative">
-        <div class="flex min-h-11 flex-wrap items-center gap-1.5 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 transition-colors focus-within:border-accent-500">
+        <div :class="[CONTROL, 'flex flex-wrap items-center gap-1.5 border-neutral-100 focus-within:border-accent-500']">
             <span
                 v-for="tag in tags"
                 :key="tag"
