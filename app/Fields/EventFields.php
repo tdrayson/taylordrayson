@@ -31,7 +31,7 @@ final class EventFields
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
             FieldData::optional('url', 'Link', FieldType::Url),
-            FieldData::optional('description', 'Notes', FieldType::Textarea),
+            FieldData::optional('description', 'About', FieldType::Textarea),
         ];
     }
 }

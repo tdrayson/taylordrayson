@@ -65,7 +65,7 @@ const lightboxIndex = ref(null);
         <StatGrid v-if="facts.length" :stats="facts" />
 
         <div v-if="entry.description">
-            <SectionHead title="Notes" />
+            <SectionHead title="About" />
             <p v-twemoji class="text-body text-neutral-700">{{ entry.description }}</p>
         </div>
 

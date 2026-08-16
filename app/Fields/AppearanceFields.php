@@ -28,7 +28,7 @@ final class AppearanceFields
             FieldData::optional('video_url', 'Video', FieldType::Url, 'A YouTube URL also supplies the thumbnail.'),
             FieldData::optional('audio_url', 'Audio', FieldType::Url),
             FieldData::optional('duration', 'Duration', FieldType::Duration),
-            FieldData::optional('description', 'Description', FieldType::Textarea),
+            FieldData::optional('description', 'About', FieldType::Textarea),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
         ];
     }
