@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Article;
 use App\Models\Fuel;
 use App\Models\User;
 
@@ -40,12 +41,43 @@ it('keeps the timezone inside the date it qualifies, not beside it', function ()
         ->assertNoJavascriptErrors();
 });
 
-it('keeps a long form behind the add menu', function () {
+it('draws even a long form whole', function () {
     $this->actingAs(User::factory()->create());
 
+    // An event offers the most fields of any type, including rarely-set ones
+    // that used to sit behind "+ Add field".
     visit('/new/event')
-        ->assertSee('Add field')
-        ->assertMissing('#organiser')
+        ->assertDontSee('Add field')
+        ->assertPresent('#organiser')
+        ->assertPresent('#url')
+        ->assertNoJavascriptErrors();
+});
+
+it('slugifies the title as it is typed, until the slug is written by hand', function () {
+    $this->actingAs(User::factory()->create());
+
+    $page = visit('/new/article');
+
+    $page->type('#title', 'A Piece About Coffee')
+        ->assertValue('#slug', 'a-piece-about-coffee')
+        // Typing a slug is how you say you want that one, so the title stops
+        // driving it.
+        ->fill('#slug', 'coffee')
+        ->type('#title', ' Again')
+        ->assertValue('#slug', 'coffee')
+        ->assertNoJavascriptErrors();
+});
+
+it('settles the slug at the first save, and stops it being edited', function () {
+    $this->actingAs(User::factory()->create());
+
+    $article = Article::factory()->create(['title' => 'Before', 'slug' => 'before', 'published' => false]);
+
+    $page = visit($article->url().'?edit');
+
+    $page->assertPresent('#slug[readonly]')
+        ->type('#title', 'After')
+        ->assertValue('#slug', 'before')
         ->assertNoJavascriptErrors();
 });
 

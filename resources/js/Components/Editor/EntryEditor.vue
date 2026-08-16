@@ -68,16 +68,21 @@ function groupSummary(item) {
         .join(', ');
 }
 
-/**
- * The slug follows the title until it is edited by hand, and only while the
- * entry is unpublished: once something is public its URL is a promise, and
- * retitling it must not quietly move the page.
- */
 const slugField = computed(() => props.fields.find((field) => field.type === 'slug') ?? null);
+
+/**
+ * A saved entry's URL is a promise, whether or not it was ever published: it may
+ * already be linked, bookmarked or in a feed. So the slug is settled by the
+ * first save and cannot be edited afterwards, only read.
+ */
+const slugLocked = computed(() => props.method !== 'post');
+
+// Until then it follows the title, unless it has been typed by hand: writing a
+// slug yourself is the way to say you want that one.
 const slugEdited = ref(Boolean(props.values[slugField.value?.name]));
 
 watch(() => (titleField.value ? form[titleField.value.name] : null), (title) => {
-    if (! slugField.value || slugEdited.value || isPublished.value) {
+    if (! slugField.value || slugEdited.value || slugLocked.value) {
         return;
     }
 
@@ -178,6 +183,7 @@ function submit(published = null) {
                 :paired="pairedWith(field.name)"
                 :paired-value="pairedWith(field.name) ? form[pairedWith(field.name).name] : null"
                 :error="form.errors[field.name]"
+                :readonly="field.type === 'slug' && slugLocked"
                 @update:model-value="onFieldInput(field, $event)"
                 @update:paired="form[pairedWith(field.name).name] = $event"
                 @fill="applyFill"

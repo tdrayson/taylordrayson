@@ -35,6 +35,8 @@ const props = defineProps({
     pairedValue: { type: String, default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
+    // Settled and no longer editable, like a slug after the entry's first save.
+    readonly: { type: Boolean, default: false },
 });
 
 const borderClass = computed(() => (props.error
@@ -183,6 +185,8 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :invalid="Boolean(error)"
+            :readonly="readonly || undefined"
+            :class="readonly ? 'text-neutral-500' : ''"
             :type="field.type === 'number' ? 'number' : 'text'"
             :inputmode="field.type === 'number' ? 'decimal' : undefined"
             :step="field.type === 'number' ? 'any' : undefined"
@@ -204,6 +208,10 @@ function textToTags(value) {
         <!-- The error replaces the help rather than stacking under it: what is
              wrong now matters more than what the field is for. -->
         <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
+
+        <!-- The field's own help describes filling it in, which is no longer
+             something that can happen. -->
+        <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
 
         <!-- Lookup and location fields already show the help as their
              placeholder, and a boolean shows it beside the checkbox. -->
