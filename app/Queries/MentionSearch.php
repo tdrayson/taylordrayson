@@ -15,6 +15,10 @@ use Illuminate\Support\Str;
  * Read-only and side-effect free. Only kinds worth pointing at from prose are
  * here: things that arrive from a sync (activities, check-ins, sleep) are not
  * what anyone reaches for mid-sentence.
+ *
+ * Drafts are not offered. A mention of one renders as plain text to everyone but
+ * the author, so linking to it would read as finished writing while being a dead
+ * end for every visitor.
  */
 final class MentionSearch
 {
@@ -57,6 +61,7 @@ final class MentionSearch
     private function articles(string $query): array
     {
         return Article::query()
+            ->where('published', true)
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -66,7 +71,7 @@ final class MentionSearch
                 'group' => 'Articles',
                 'id' => $article->id,
                 'label' => $article->title,
-                'detail' => $article->published ? null : 'Draft',
+                'detail' => $article->occurred_at?->format('j M Y'),
             ])
             ->all();
     }
@@ -77,6 +82,7 @@ final class MentionSearch
     private function pages(string $query): array
     {
         return Page::query()
+            ->where('published', true)
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderBy('title')
             ->limit(self::PER_GROUP)

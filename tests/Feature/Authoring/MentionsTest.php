@@ -124,6 +124,18 @@ it('groups mention candidates by kind for the menu', function () {
         ->toBe(['Articles', 'Pages', 'Projects']);
 });
 
+it('keeps drafts out of the menu, having nothing to link a reader to', function () {
+    Article::factory()->create(['title' => 'Alpha draft', 'published' => false]);
+    Page::factory()->create(['title' => 'Alpha draft page', 'published' => false]);
+    Article::factory()->create(['title' => 'Alpha published', 'published' => true]);
+
+    $data = collect($this->actingAs(User::factory()->create())
+        ->getJson('/mentions/search?q=Alpha')
+        ->json('data'));
+
+    expect($data->pluck('label')->all())->toBe(['Alpha published']);
+});
+
 it('caps each kind before concatenating, so no group is starved on an empty query', function () {
     Article::factory()->count(8)->create(['published' => true]);
     Page::factory()->count(8)->create(['published' => true]);
