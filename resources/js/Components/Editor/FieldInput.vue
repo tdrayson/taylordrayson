@@ -33,7 +33,13 @@ const props = defineProps({
     // timezone belongs to the date it qualifies, not beside it.
     paired: { type: Object, default: null },
     pairedValue: { type: String, default: null },
+    // The server's validation message for this field, if the last save was refused.
+    error: { type: String, default: null },
 });
+
+const borderClass = computed(() => (props.error
+    ? 'border-red-500 focus:border-red-500 focus:outline-none'
+    : CONTROL_BORDER));
 
 /** The picked point, or null while the lookup has not resolved one. */
 const coordinates = computed(() => {
@@ -91,7 +97,7 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"
+            :class="[CONTROL, borderClass, 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
@@ -110,7 +116,7 @@ function textToTags(value) {
             v-else-if="field.type === 'select'"
             :id="field.name"
             :value="modelValue ?? ''"
-            :class="[CONTROL, CONTROL_BORDER, modelValue ? 'text-neutral-900' : 'text-neutral-500']"
+            :class="[CONTROL, borderClass, modelValue ? 'text-neutral-900' : 'text-neutral-500']"
             @change="$emit('update:modelValue', $event.target.value)"
         >
             <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>
@@ -176,6 +182,7 @@ function textToTags(value) {
             v-else
             :id="field.name"
             :model-value="modelValue ?? ''"
+            :invalid="Boolean(error)"
             :type="field.type === 'number' ? 'number' : 'text'"
             :inputmode="field.type === 'number' ? 'decimal' : undefined"
             :step="field.type === 'number' ? 'any' : undefined"
@@ -194,10 +201,14 @@ function textToTags(value) {
             class="mt-3 overflow-hidden rounded-lg"
         />
 
+        <!-- The error replaces the help rather than stacking under it: what is
+             wrong now matters more than what the field is for. -->
+        <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
+
         <!-- Lookup and location fields already show the help as their
              placeholder, and a boolean shows it beside the checkbox. -->
         <p
-            v-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
+            v-else-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
             class="mt-1 text-caption text-neutral-500"
         >
             {{ field.help }}

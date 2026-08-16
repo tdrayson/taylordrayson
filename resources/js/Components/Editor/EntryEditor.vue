@@ -2,7 +2,6 @@
 import { computed, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { slugify } from '../../lib/editor/defaults.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
@@ -11,7 +10,8 @@ import FieldInput from './FieldInput.vue';
  * The editing surface for any type: one column, mobile first, nothing floating.
  *
  * A title, a body, then every offered field stacked beneath. Nothing sits in a
- * panel beside the content, because on a phone there is no beside.
+ * panel beside the content, because on a phone there is no beside, and nothing
+ * hides behind a menu: a field you cannot see is a field you forget exists.
  */
 const props = defineProps({
     fields: { type: Array, required: true },
@@ -43,38 +43,13 @@ function pairedWith(name) {
     return props.fields.find((field) => field.pairsWith === name) ?? null;
 }
 
-function filled(name) {
-    const value = props.values[name];
-
-    return Array.isArray(value)
-        ? value.length > 0
-        : value !== null && value !== undefined && value !== '' && value !== false;
-}
-
-// An optional field already carrying a value is shown without being asked for.
-const added = ref(rest.value.filter((field) => !field.primary && filled(field.name)).map((field) => field.name));
-const { isOpen: showExtras, root: extrasRoot, close: closeExtras, toggle: toggleExtras } = useDismissable();
-
-// A short form is drawn whole: hiding four fields behind a menu costs more
-// reading than it saves, and the menu itself is one more thing to notice.
-const SHOW_ALL_UP_TO = 6;
-
-/** Fields as the + menu counts them, with a group counting once. */
-const itemCount = computed(() => new Set(rest.value.map((field) => field.group ?? field.name)).size);
-
-const showAll = computed(() => itemCount.value <= SHOW_ALL_UP_TO);
-
-// Declaration order, not primary-then-added: the fields class decides the order,
-// and a field should not jump position because it came from the + menu.
-const visible = computed(() => rest.value.filter((field) => showAll.value || field.primary || added.value.includes(field.name)));
-
 // Grouped fields are drawn inside their group block, not loose in the stack.
-const stack = computed(() => visible.value.filter((field) => ! field.group));
+const stack = computed(() => rest.value.filter((field) => ! field.group));
 
 const groups = computed(() => {
     const items = new Map();
 
-    visible.value.filter((field) => field.group).forEach((field) => {
+    rest.value.filter((field) => field.group).forEach((field) => {
         const existing = items.get(field.group);
 
         existing
@@ -91,40 +66,6 @@ function groupSummary(item) {
         .map((field) => form[field.name])
         .filter((value) => value !== null && value !== undefined && value !== '')
         .join(', ');
-}
-
-/** Unadded optionals, with a group offered as one item rather than five. */
-const remainingItems = computed(() => {
-    if (showAll.value) {
-        return [];
-    }
-
-    const items = [];
-    const seen = new Set();
-
-    rest.value
-        .filter((field) => !field.primary && !added.value.includes(field.name))
-        .forEach((field) => {
-            const key = field.group ?? field.name;
-
-            if (seen.has(key)) {
-                return;
-            }
-
-            seen.add(key);
-            items.push({
-                key,
-                label: field.group ?? field.label,
-                fields: rest.value.filter((candidate) => (candidate.group ?? candidate.name) === key),
-            });
-        });
-
-    return items;
-});
-
-function add(item) {
-    item.fields.forEach((field) => added.value.push(field.name));
-    closeExtras();
 }
 
 /**
@@ -151,30 +92,26 @@ function onFieldInput(field, value) {
     form[field.name] = value;
 }
 
-/**
- * Apply the sibling values a lookup resolved, and surface the ones that were
- * hidden. A pick that quietly fills City and Country behind a + menu looks
- * like it did nothing.
- */
+/** Apply the sibling values a lookup resolved: a book's author, a place's coordinates. */
 function applyFill(values) {
     Object.entries(values).forEach(([key, value]) => {
-        if (! (key in form)) {
-            return;
-        }
-
-        form[key] = value;
-
-        const field = rest.value.find((candidate) => candidate.name === key);
-
-        if (field && ! field.primary && ! added.value.includes(key)) {
-            added.value.push(key);
+        if (key in form) {
+            form[key] = value;
         }
     });
 }
 
+const errorCount = computed(() => Object.keys(form.errors).length);
+
 const status = computed(() => {
     if (form.processing) {
         return publishField.value ? 'Saving...' : 'Posting...';
+    }
+
+    // Ahead of the dirty check: a rejected save leaves the form dirty, and
+    // "Unsaved changes" would read as nothing having gone wrong.
+    if (errorCount.value) {
+        return errorCount.value === 1 ? 'Not saved, one field needs fixing' : `Not saved, ${errorCount.value} fields need fixing`;
     }
 
     if (form.isDirty) {
@@ -214,11 +151,14 @@ function submit(published = null) {
             class="w-full border-none bg-transparent p-0 font-display text-display text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
         >
 
+        <p v-if="titleField && form.errors[titleField.name]" class="mt-1 text-caption text-red-600">{{ form.errors[titleField.name] }}</p>
+
         <FieldInput
             v-if="bodyField"
             :field="bodyField"
             :model-value="form[bodyField.name]"
             :resolved="resolved"
+            :error="form.errors[bodyField.name]"
             hide-label
             :class="titleField ? 'mt-4' : ''"
             @update:model-value="form[bodyField.name] = $event"
@@ -237,6 +177,7 @@ function submit(published = null) {
                 :longitude="form.longitude ?? null"
                 :paired="pairedWith(field.name)"
                 :paired-value="pairedWith(field.name) ? form[pairedWith(field.name).name] : null"
+                :error="form.errors[field.name]"
                 @update:model-value="onFieldInput(field, $event)"
                 @update:paired="form[pairedWith(field.name).name] = $event"
                 @fill="applyFill"
@@ -249,43 +190,18 @@ function submit(published = null) {
                 :key="item.key"
                 :label="item.label"
                 :summary="groupSummary(item)"
+                :invalid="item.fields.some((field) => form.errors[field.name])"
             >
                 <FieldInput
                     v-for="field in item.fields"
                     :key="field.name"
                     :field="field"
                     :model-value="form[field.name]"
+                    :error="form.errors[field.name]"
                     @update:model-value="onFieldInput(field, $event)"
                     @fill="applyFill"
                 />
             </FieldGroup>
-        </div>
-
-        <div v-if="remainingItems.length" ref="extrasRoot" class="relative mt-6">
-            <button
-                type="button"
-                class="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-100 px-3 text-meta text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                :aria-expanded="showExtras"
-                @click="toggleExtras"
-            >
-                <span aria-hidden="true">+</span>
-                Add field
-            </button>
-
-            <ul
-                v-if="showExtras"
-                class="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg sm:right-auto sm:w-52"
-            >
-                <li v-for="item in remainingItems" :key="item.key">
-                    <button
-                        type="button"
-                        class="flex min-h-11 w-full items-center px-3 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:min-h-0 sm:py-1.5"
-                        @click="add(item)"
-                    >
-                        {{ item.label }}
-                    </button>
-                </li>
-            </ul>
         </div>
 
         <!-- Sticky rather than fixed, so it needs no bottom padding on the form

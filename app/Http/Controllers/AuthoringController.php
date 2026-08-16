@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\FieldData;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
@@ -41,7 +42,9 @@ class AuthoringController extends Controller
         $definition = $this->definition($type);
         $fields = FieldRegistry::for($this->blank($type));
 
-        $attributes = $request->validate(FieldRules::for($fields, creating: true));
+        $this->stampDefaults($request, $fields);
+
+        $attributes = $request->validate(FieldRules::for($fields, creating: true), [], FieldRules::labels($fields));
 
         $model = app($definition['create'])($this->expand($attributes));
 
@@ -54,11 +57,27 @@ class AuthoringController extends Controller
         $model = $definition['model']::query()->findOrFail($id);
         $fields = FieldRegistry::for($model);
 
-        $attributes = $request->validate(FieldRules::for($fields, creating: false));
+        $attributes = $request->validate(FieldRules::for($fields, creating: false), [], FieldRules::labels($fields));
 
         app($definition['update'])($model, $this->expand($attributes));
 
         return $this->afterSave($model->refresh());
+    }
+
+    /**
+     * Stamp the fields that declare they default to now. The editor deliberately
+     * sends them empty so an entry is dated when it is saved rather than when the
+     * form was opened, which leaves the server to supply the value.
+     *
+     * @param  list<FieldData>  $fields
+     */
+    private function stampDefaults(Request $request, array $fields): void
+    {
+        foreach ($fields as $field) {
+            if ($field->defaultsToNow && blank($request->input($field->name))) {
+                $request->merge([$field->name => now()->format('Y-m-d H:i:s')]);
+            }
+        }
     }
 
     /**

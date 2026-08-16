@@ -1,20 +1,36 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 /**
  * A set of fields shown as one summary line until opened. The address a lookup
  * filled is usually right, so it reads as a value rather than five inputs.
  */
-defineProps({
+const props = defineProps({
     label: { type: String, required: true },
     summary: { type: String, default: '' },
+    // One of the fields inside was refused by the server.
+    invalid: { type: Boolean, default: false },
 });
 
-const open = ref(false);
+const expanded = ref(false);
+
+// A rejected field cannot be fixed while it is collapsed out of sight.
+watch(() => props.invalid, (isInvalid) => {
+    if (isInvalid) {
+        expanded.value = true;
+    }
+}, { immediate: true });
+
+const open = computed({
+    get: () => expanded.value || props.invalid,
+    set: (value) => {
+        expanded.value = value;
+    },
+});
 </script>
 
 <template>
-    <div class="rounded-lg border border-neutral-50 bg-neutral-25 p-3">
+    <div class="rounded-lg border bg-neutral-25 p-3" :class="invalid ? 'border-red-500' : 'border-neutral-50'">
         <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
                 <p class="text-label uppercase text-neutral-500">{{ label }}</p>

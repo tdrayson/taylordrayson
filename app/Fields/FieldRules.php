@@ -37,6 +37,22 @@ final class FieldRules
     }
 
     /**
+     * The label each field is drawn with, so a message names what the form calls
+     * it: "The link field must be a valid URL", not "The url field...".
+     *
+     * @param  list<FieldData>  $fields
+     * @return array<string, string>
+     */
+    public static function labels(array $fields): array
+    {
+        return array_column(
+            array_map(fn (FieldData $field): array => [$field->name, strtolower($field->label)], $fields),
+            1,
+            0,
+        );
+    }
+
+    /**
      * @return array<int, string>
      */
     private static function typeRules(FieldData $field): array

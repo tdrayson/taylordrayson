@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Article;
+use App\Models\Fuel;
 use App\Models\User;
 
 beforeEach(fn () => $this->actingAs(User::factory()->create()));
@@ -8,7 +9,6 @@ beforeEach(fn () => $this->actingAs(User::factory()->create()));
 it('refuses a create without a newly required field', function (string $type, array $payload, string $missing) {
     $this->postJson("/entries/{$type}", $payload)->assertJsonValidationErrors($missing);
 })->with([
-    'event date' => ['event', ['name' => 'A gig', 'tags' => ['music']], 'occurred_at'],
     'event category' => ['event', ['name' => 'A gig', 'occurred_at' => '2026-08-13 19:00:00'], 'tags'],
     'book author' => ['book', ['title' => 'A book', 'occurred_at' => '2026-08-13 19:00:00'], 'meta.author'],
     'appearance show' => ['appearance', ['title' => 'A talk', 'occurred_at' => '2026-08-13 19:00:00', 'type' => 'podcast'], 'show_name'],
@@ -17,9 +17,24 @@ it('refuses a create without a newly required field', function (string $type, ar
     'project status' => ['project', ['title' => 'A project', 'description' => 'A summary'], 'status'],
     'flight airline' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'flight_number' => 'BA117'], 'airline_icao'],
     'flight number' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'airline_icao' => 'BAW'], 'flight_number'],
-    'fuel date' => ['fuel', ['cost' => 51.87, 'price_per_litre' => 1.599], 'occurred_at'],
     'note slug' => ['note', ['content' => 'A thought.'], 'slug'],
 ]);
+
+it('stamps a date that defaults to now rather than refusing the save', function () {
+    // The editor sends it empty on purpose, so the entry is dated when it is
+    // saved rather than when the form was opened.
+    $this->freezeTime();
+
+    $this->post('/entries/fuel', ['cost' => 51.87, 'price_per_litre' => 1.599])->assertRedirect();
+
+    expect(Fuel::sole()->occurred_at->format('Y-m-d H:i'))->toBe(now()->format('Y-m-d H:i'));
+});
+
+it('names the field the way the form labels it', function () {
+    $this->postJson('/entries/appearance', [
+        'title' => 'A talk', 'show_name' => 'A show', 'type' => 'podcast', 'url' => 'not a url',
+    ])->assertJsonPath('errors.url.0', 'The link field must be a valid URL.');
+});
 
 it('still allows an update that touches one field', function () {
     // required applies only on create, so an edit may send a single field.
