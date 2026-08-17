@@ -144,7 +144,7 @@ const editor = useEditor({
     extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention }),
     editorProps: {
         attributes: {
-            class: 'prose-editor focus:outline-none min-h-[8rem]',
+            class: 'prose-editor focus:outline-none min-h-32',
         },
     },
     onUpdate: ({ editor: instance }) => {

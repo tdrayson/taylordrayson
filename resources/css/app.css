@@ -532,7 +532,8 @@
 @media (pointer: coarse) {
     input:not([data-text-size]),
     select,
-    textarea {
+    textarea,
+    [contenteditable]:not([data-text-size]) {
         font-size: 16px;
     }
 }

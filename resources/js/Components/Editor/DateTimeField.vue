@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import * as chrono from 'chrono-node';
 import Input from '../Ui/Input.vue';
+import { clock } from '../../lib/format.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 
 /**
@@ -37,9 +38,21 @@ const parts = computed(() => {
         : { date: '', time: '' };
 });
 
+// Ticks so an unset field reads as the time it would actually be stamped with.
+const tick = ref(new Date());
+let ticker = null;
+
+onMounted(() => {
+    ticker = setInterval(() => {
+        tick.value = new Date();
+    }, 1000);
+});
+
+onBeforeUnmount(() => clearInterval(ticker));
+
 const label = computed(() => {
     if (! parts.value.date) {
-        return 'No date';
+        return `Now - ${clock(tick.value)}`;
     }
 
     const [y, m, d] = parts.value.date.split('-');
@@ -111,6 +124,12 @@ function setDatePart(value) {
     emit('update:modelValue', `${value} ${parts.value.time || '12:00'}:00`);
 }
 
+function clear() {
+    emit('update:modelValue', null);
+    typed.value = '';
+    close();
+}
+
 function setTimePart(value) {
     emit('update:modelValue', `${parts.value.date || stamp(new Date()).slice(0, 10)} ${value}:00`);
 }
@@ -121,7 +140,8 @@ function setTimePart(value) {
         <button
             :id="id"
             type="button"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            :class="parts.date ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
             {{ label }}
@@ -129,7 +149,7 @@ function setTimePart(value) {
 
         <div
             v-if="open"
-            class="absolute z-30 mt-1 w-80 rounded-lg border border-neutral-100 bg-neutral-0 p-3 shadow-lg"
+            class="absolute inset-x-0 z-30 mt-1 rounded-lg border border-neutral-100 bg-neutral-0 p-3 shadow-lg sm:right-auto sm:w-80"
         >
             <Input
                 v-model="typed"
@@ -169,23 +189,23 @@ function setTimePart(value) {
                 </li>
             </ul>
 
-            <div class="grid grid-cols-5 gap-2">
-                <label class="col-span-3 text-label uppercase text-neutral-500">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-5">
+                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-3">
                     Date
                     <input
                         type="date"
                         :value="parts.date"
-                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-1.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                        class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setDatePart($event.target.value)"
                     >
                 </label>
 
-                <label class="col-span-2 text-label uppercase text-neutral-500">
+                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-2">
                     Time
                     <input
                         type="time"
                         :value="parts.time"
-                        class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-1.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                        class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                         @input="setTimePart($event.target.value)"
                     >
                 </label>
@@ -197,18 +217,29 @@ function setTimePart(value) {
                     type="text"
                     :value="timezone"
                     :placeholder="Intl.DateTimeFormat().resolvedOptions().timeZone"
-                    class="mt-1 w-full rounded-md border border-neutral-100 px-2 py-1.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+                    class="mt-1 w-full min-w-0 max-w-full appearance-none rounded-md border border-neutral-100 px-2 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
                     @input="emit('update:timezone', $event.target.value)"
                 >
             </label>
 
-            <button
-                type="button"
-                class="mt-2 w-full rounded-md bg-neutral-25 py-1.5 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                @click="close"
-            >
-                Done
-            </button>
+            <div class="mt-2 flex gap-2">
+                <button
+                    v-if="parts.date"
+                    type="button"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    @click="clear"
+                >
+                    Clear
+                </button>
+
+                <button
+                    type="button"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    @click="close"
+                >
+                    Done
+                </button>
+            </div>
         </div>
     </div>
 </template>

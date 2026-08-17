@@ -38,11 +38,18 @@ watch(() => props.modelValue, (value) => {
     }
 });
 
-async function search() {
+async function search(coords = null) {
     searching.value = true;
 
+    const params = new URLSearchParams({ q: query.value });
+
+    if (coords) {
+        params.set('lat', coords.latitude);
+        params.set('lng', coords.longitude);
+    }
+
     try {
-        const response = await fetch(`/lookup/${props.source}?q=${encodeURIComponent(query.value)}`, {
+        const response = await fetch(`/lookup/${props.source}?${params}`, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
@@ -56,6 +63,8 @@ async function search() {
         searching.value = false;
     }
 }
+
+defineExpose({ searchNear: (coords) => search(coords) });
 
 function onInput(value) {
     query.value = value;
@@ -95,7 +104,7 @@ function pick(result) {
 
         <ul
             v-if="open && results.length"
-            class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
+            class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             role="listbox"
         >
             <li v-for="(result, index) in results" :key="result.value + result.label">
@@ -103,12 +112,12 @@ function pick(result) {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    class="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-meta transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(result)"
                 >
-                    <span class="min-w-0 truncate">{{ result.label }}</span>
-                    <span v-if="result.detail" class="shrink-0 text-caption text-neutral-500">{{ result.detail }}</span>
+                    <span class="w-full truncate font-medium">{{ result.label }}</span>
+                    <span v-if="result.detail" class="w-full truncate text-caption text-neutral-500">{{ result.detail }}</span>
                 </button>
             </li>
         </ul>

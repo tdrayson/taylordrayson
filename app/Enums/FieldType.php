@@ -21,6 +21,7 @@ enum FieldType: string
     case Duration = 'duration';
     case Distance = 'distance';
     case Boolean = 'boolean';
+    case Published = 'published';
     case Select = 'select';
     case Tags = 'tags';
     case Lookup = 'lookup';
@@ -40,6 +41,7 @@ enum FieldType: string
             self::Duration => 'Duration',
             self::Distance => 'Distance',
             self::Boolean => 'Toggle',
+            self::Published => 'Publish state',
             self::Select => 'Choice',
             self::Tags => 'Tags',
             self::Lookup => 'Lookup',
@@ -63,5 +65,15 @@ enum FieldType: string
     public function isTitle(): bool
     {
         return $this === self::Title;
+    }
+
+    /**
+     * Whether this field decides public visibility. The editor draws it as the
+     * save action itself rather than as a checkbox, so "Post" can never claim
+     * an entry is live while it is still a draft.
+     */
+    public function isPublished(): bool
+    {
+        return $this === self::Published;
     }
 }

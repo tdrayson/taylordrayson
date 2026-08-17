@@ -16,10 +16,10 @@ export function nowStamp() {
 }
 
 export function defaultValueFor(field) {
-    // A field that says it defaults to now should open showing now, not empty
-    // with a promise underneath it.
+    // Left empty so the server stamps it at save. Filling it on load dates the
+    // entry when the form opened, which is wrong by however long you took.
     if (field.defaultsToNow) {
-        return nowStamp();
+        return null;
     }
 
     // Where you are is a better guess than where you live, and it is the whole
@@ -33,11 +33,12 @@ export function defaultValueFor(field) {
         case 'tags':
             return [];
         case 'boolean':
+        case 'published':
             return false;
-        // A select bound to '' matches no option and renders blank, which reads
-        // as broken rather than as unset. The first option is the sane default.
+        // Unset, not the first option: a required choice must be made, not
+        // silently made for you. The input renders a placeholder row for this.
         case 'select':
-            return field.options?.[0]?.value ?? '';
+            return '';
         default:
             return '';
     }

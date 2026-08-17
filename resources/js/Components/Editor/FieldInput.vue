@@ -72,7 +72,7 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
@@ -91,9 +91,12 @@ function textToTags(value) {
             v-else-if="field.type === 'select'"
             :id="field.name"
             :value="modelValue ?? ''"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta focus:border-accent-500 focus:outline-none"
+            :class="modelValue ? 'text-neutral-900' : 'text-neutral-500'"
             @change="$emit('update:modelValue', $event.target.value)"
         >
+            <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>
+
             <option v-for="option in field.options ?? []" :key="option.value" :value="option.value">
                 {{ option.label }}
             </option>
@@ -153,6 +156,10 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :type="field.type === 'number' ? 'number' : 'text'"
+            :inputmode="field.type === 'number' ? 'decimal' : undefined"
+            :step="field.type === 'number' ? 'any' : undefined"
+            :prefix="field.prefix"
+            :suffix="field.suffix"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

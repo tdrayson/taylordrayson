@@ -11,6 +11,9 @@ import SettingsModal from '../Components/Layout/SettingsModal.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: () => [] },
+    // Writing screens drop the ambient chrome: wayfinding and identity stay,
+    // the status readings and the menu do not.
+    minimal: { type: Boolean, default: false },
 });
 
 const page = usePage();
@@ -31,14 +34,14 @@ const page = usePage();
                 <!-- A band of its own rather than readings floating over the
                      header: without an edge and a surface behind them they read
                      as stray icons instead of ambient chrome. -->
-                <div class="flex justify-end border-b border-neutral-50 bg-neutral-25 px-5 py-1.5 md:hidden">
+                <div v-if="! minimal" class="flex justify-end border-b border-neutral-50 bg-neutral-25 px-5 py-1.5 md:hidden">
                     <StatusBar compact />
                 </div>
-                <MobileNav />
+                <MobileNav :minimal="minimal" />
                 <div class="px-5 py-3 md:hidden">
                     <Breadcrumb :items="breadcrumb" />
                 </div>
-                <AppTopbar :breadcrumb="breadcrumb" />
+                <AppTopbar :breadcrumb="breadcrumb" :minimal="minimal" />
             </header>
             <main id="main-content" class="flex min-w-0 flex-1 flex-col">
                 <div :key="page.url" class="content-grid w-full animate-fade-in pb-28 pt-8">

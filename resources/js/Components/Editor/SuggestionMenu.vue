@@ -35,14 +35,38 @@ const groups = computed(() => {
     return out;
 });
 
-const style = computed(() => props.rect
-    ? { top: `${props.rect.bottom + 6}px`, left: `${props.rect.left}px` }
-    : { display: 'none' });
+const MARGIN = 8;
+const WIDTH = 288;
+const MIN_SPACE_BELOW = 220;
+
+/**
+ * Below the caret when there is room, above it when there is not. With a
+ * keyboard up the space below is a sliver, and a menu pinned under the caret
+ * covers the line being typed. Flipping anchors the bottom edge instead, so the
+ * menu never has to know its own height.
+ */
+const style = computed(() => {
+    if (! props.rect) {
+        return { display: 'none' };
+    }
+
+    const viewport = window.visualViewport;
+    const height = viewport?.height ?? window.innerHeight;
+    const width = Math.min(WIDTH, window.innerWidth - MARGIN * 2);
+    const left = Math.max(MARGIN, Math.min(props.rect.left, window.innerWidth - width - MARGIN));
+    const below = height - props.rect.bottom;
+
+    if (below < MIN_SPACE_BELOW && props.rect.top > below) {
+        return { left: `${left}px`, width: `${width}px`, bottom: `${window.innerHeight - props.rect.top + 6}px` };
+    }
+
+    return { left: `${left}px`, width: `${width}px`, top: `${props.rect.bottom + 6}px` };
+});
 </script>
 
 <template>
     <div
-        class="fixed z-50 max-h-80 w-72 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
+        class="fixed z-50 max-h-64 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
         :style="style"
         role="listbox"
     >

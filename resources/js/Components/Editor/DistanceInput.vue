@@ -37,8 +37,5 @@ function onInput(value) {
 </script>
 
 <template>
-    <div class="flex items-center gap-2">
-        <Input :id="id" :model-value="text" type="number" placeholder="0" class="flex-1" @update:model-value="onInput" />
-        <span class="shrink-0 text-meta text-neutral-500">miles</span>
-    </div>
+    <Input :id="id" :model-value="text" type="number" inputmode="decimal" step="any" suffix="miles" placeholder="0" @update:model-value="onInput" />
 </template>

@@ -19,12 +19,16 @@ const props = defineProps({
 // Home / New / Article, with New linking back to the picker: changing your
 // mind should be the breadcrumb you already expect, not a separate link.
 setLayoutProps({
+    minimal: true,
     breadcrumb: props.type
         ? [{ label: 'New', href: '/new' }, { label: props.type.charAt(0).toUpperCase() + props.type.slice(1) }]
         : [{ label: 'New' }],
 });
 
 const values = computed(() => valuesFor(props.fields));
+
+const label = computed(() => props.types.find((entry) => entry.type === props.type)?.label ?? props.type);
+const heading = computed(() => (props.type ? `New ${label.value.toLowerCase()}` : null));
 
 </script>
 
@@ -53,6 +57,7 @@ const values = computed(() => valuesFor(props.fields));
         <EntryEditor
             :fields="fields"
             :values="values"
+            :heading="heading"
             :action="`/entries/${type}`"
             method="post"
             submit-label="Post"

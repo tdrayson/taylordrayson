@@ -6,23 +6,23 @@ use App\Models\Fuel;
 
 class CreateFuel
 {
+    public function __construct(private DeriveFuelFigures $derive) {}
+
     /**
-     * Price per litre is derived when not given, so a fill-up entered from a
-     * receipt needs only the two figures printed on it.
+     * Litres and price per litre derive from each other and the cost.
      *
-     * @param  array{occurred_at?: string|null, litres: float, cost: float, price_per_litre?: float|null, station_name?: string|null, brand?: string|null, address?: string|null, postcode?: string|null, city?: string|null, county?: string|null, country?: string|null, latitude?: float|null, longitude?: float|null, fuel_card_cost?: float|null, odometer?: int|null}  $attributes
+     * @param  array{occurred_at?: string|null, litres?: float, cost: float, price_per_litre?: float|null, station_name?: string|null, brand?: string|null, address?: string|null, postcode?: string|null, city?: string|null, county?: string|null, country?: string|null, latitude?: float|null, longitude?: float|null, fuel_card_cost?: float|null, odometer?: int|null}  $attributes
      */
     public function __invoke(array $attributes): Fuel
     {
-        $litres = (float) $attributes['litres'];
-        $cost = (float) $attributes['cost'];
+        $attributes = ($this->derive)($attributes);
 
         return Fuel::create([
             ...$attributes,
             'occurred_at' => $attributes['occurred_at'] ?? now(),
             'vehicle_id' => $attributes['vehicle_id'] ?? self::defaultVehicleId(),
-            'price_per_litre' => $attributes['price_per_litre']
-                ?? ($litres > 0 ? round($cost / $litres, 3) : null),
+            // NOT NULL, and nothing is derivable from a zero cost and price.
+            'litres' => $attributes['litres'] ?? 0.0,
         ]);
     }
 

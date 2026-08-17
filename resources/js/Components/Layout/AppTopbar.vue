@@ -5,6 +5,7 @@ import StatusBar from './StatusBar.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: undefined },
+    minimal: { type: Boolean, default: false },
 });
 </script>
 
@@ -15,7 +16,7 @@ defineProps({
         <div class="flex min-w-0 flex-1 items-center">
             <Breadcrumb :items="breadcrumb" />
         </div>
-        <div class="flex items-center justify-end gap-4">
+        <div v-if="! minimal" class="flex items-center justify-end gap-4">
             <div class="hidden sm:block">
                 <StatusBar />
             </div>
