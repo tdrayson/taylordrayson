@@ -15,9 +15,32 @@ const props = defineProps({
 const container = ref(null);
 let map = null;
 let marker = null;
+let maplibre = null;
 let stopThemeWatch;
 
 const { resolved } = useTheme();
+
+/**
+ * Follow the coordinates rather than being built once and left: the editor's
+ * location field repoints this map every time another place is picked.
+ */
+watch(() => [props.lat, props.lng, props.label], ([lat, lng, label]) => {
+    if (! map) {
+        return;
+    }
+
+    map.easeTo({ center: [lng, lat], duration: 400 });
+
+    // Absent until the style has loaded, which the first pick can beat.
+    map.getSource('place')?.setData({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+    });
+
+    // Recreated rather than moved, since the label text changes with the place.
+    marker?.remove();
+    marker = label && maplibre ? placeLabel(maplibre, { lat, lng }, label).addTo(map) : null;
+});
 
 onMounted(async () => {
     const maplibregl = await loadMaplibre();
@@ -25,6 +48,8 @@ onMounted(async () => {
     if (!maplibregl || !container.value) {
         return;
     }
+
+    maplibre = maplibregl;
 
     const color = resolveColor(props.color);
 

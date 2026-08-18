@@ -18,19 +18,20 @@ final class ProjectFields
     {
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
-            FieldData::primary('description', 'Description', FieldType::Textarea, 'The one-line summary shown on cards.'),
+            FieldData::primary('description', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY, required: true),
             FieldData::primary('status', 'Status', FieldType::Select, null, [
                 ['value' => 'active', 'label' => 'Active'],
                 ['value' => 'maintained', 'label' => 'Maintained'],
                 ['value' => 'on_hold', 'label' => 'On hold'],
                 ['value' => 'archived', 'label' => 'Archived'],
-            ]),
+            ], required: true),
             FieldData::primary('url', 'Link', FieldType::Url),
-            FieldData::primary('tags', 'Tags', FieldType::Tags),
-            FieldData::optional('long_description', 'Full write-up', FieldType::RichText),
+            FieldData::optional('long_description', 'About', FieldType::RichText),
             FieldData::optional('github_url', 'Repository', FieldType::Url),
             FieldData::optional('featured', 'Featured', FieldType::Boolean),
+            FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
             FieldData::optional('slug', 'Slug', FieldType::Slug),
         ];
     }

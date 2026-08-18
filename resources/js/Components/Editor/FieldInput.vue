@@ -1,5 +1,9 @@
 <script setup>
+import { computed } from 'vue';
+import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import Input from '../Ui/Input.vue';
+import Switch from '../Ui/Switch.vue';
+import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
 import LookupInput from './LookupInput.vue';
 import LocationInput from './LocationInput.vue';
@@ -13,7 +17,7 @@ import DistanceInput from './DistanceInput.vue';
  * only thing deciding what appears, so a field added in PHP needs no change
  * here unless it introduces a genuinely new kind of input.
  */
-defineProps({
+const props = defineProps({
     field: { type: Object, required: true },
     modelValue: { type: [String, Number, Boolean, Array, Object], default: null },
     // kind:id -> resolved mention, forwarded to the rich-text editor.
@@ -22,12 +26,36 @@ defineProps({
     hideLabel: { type: Boolean, default: false },
     // The value of the field this one is measured from, when it declares one.
     relativeToValue: { type: String, default: null },
+    // Filled by the location lookup and never typed, so the map is the only
+    // way to check them.
+    latitude: { type: [Number, String], default: null },
+    longitude: { type: [Number, String], default: null },
+    // A field drawn inside this one's control rather than as its own row: a
+    // timezone belongs to the date it qualifies, not beside it.
+    paired: { type: Object, default: null },
+    pairedValue: { type: String, default: null },
+    // The server's validation message for this field, if the last save was refused.
+    error: { type: String, default: null },
+    // Settled and no longer editable, like a slug after the entry's first save.
+    readonly: { type: Boolean, default: false },
+});
+
+const borderClass = computed(() => (props.error
+    ? 'border-red-500 focus:border-red-500 focus:outline-none'
+    : CONTROL_BORDER));
+
+/** The picked point, or null while the lookup has not resolved one. */
+const coordinates = computed(() => {
+    const lat = Number(props.latitude);
+    const lng = Number(props.longitude);
+
+    return Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0) ? { lat, lng } : null;
 });
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
 // what other fields exist.
-defineEmits(['update:modelValue', 'fill']);
+defineEmits(['update:modelValue', 'update:paired', 'fill']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -56,7 +84,7 @@ function textToTags(value) {
 
 <template>
     <div>
-        <label v-if="! hideLabel" :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
+        <label v-if="! hideLabel && field.type !== 'boolean'" :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
 
         <RichTextEditor
             v-if="field.type === 'rich-text'"
@@ -72,27 +100,30 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 focus:border-accent-500 focus:outline-none"
+            :class="[CONTROL, borderClass, 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
-        <label v-else-if="field.type === 'boolean'" class="flex items-center gap-2 text-meta text-neutral-900">
-            <input
+        <!-- A toggle labels itself, so it carries its own text in the row rather
+             than repeating the label drawn above every other field. -->
+        <div
+            v-else-if="field.type === 'boolean'"
+            :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3 text-neutral-900']"
+        >
+            <span>{{ field.help || field.label }}</span>
+
+            <Switch
                 :id="field.name"
-                type="checkbox"
-                :checked="Boolean(modelValue)"
-                class="size-4 rounded border-neutral-100 text-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500"
-                @change="$emit('update:modelValue', $event.target.checked)"
-            >
-            {{ field.help || field.label }}
-        </label>
+                :model-value="Boolean(modelValue)"
+                @update:model-value="$emit('update:modelValue', $event)"
+            />
+        </div>
 
         <select
             v-else-if="field.type === 'select'"
             :id="field.name"
             :value="modelValue ?? ''"
-            class="w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta focus:border-accent-500 focus:outline-none"
-            :class="modelValue ? 'text-neutral-900' : 'text-neutral-500'"
+            :class="[CONTROL, borderClass, modelValue ? 'text-neutral-900' : 'text-neutral-500']"
             @change="$emit('update:modelValue', $event.target.value)"
         >
             <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>
@@ -114,7 +145,10 @@ function textToTags(value) {
             :id="field.name"
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
+            :timezone="paired ? String(pairedValue ?? '') : null"
+            :timezone-label="paired?.label ?? 'Timezone'"
             @update:model-value="$emit('update:modelValue', $event)"
+            @update:timezone="$emit('update:paired', $event)"
         />
 
         <DurationInput
@@ -155,6 +189,9 @@ function textToTags(value) {
             v-else
             :id="field.name"
             :model-value="modelValue ?? ''"
+            :invalid="Boolean(error)"
+            :readonly="readonly || undefined"
+            :class="readonly ? 'text-neutral-500' : ''"
             :type="field.type === 'number' ? 'number' : 'text'"
             :inputmode="field.type === 'number' ? 'decimal' : undefined"
             :step="field.type === 'number' ? 'any' : undefined"
@@ -163,10 +200,28 @@ function textToTags(value) {
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
+        <LocationMap
+            v-if="field.type === 'location' && coordinates"
+            :lat="coordinates.lat"
+            :lng="coordinates.lng"
+            :label="String(modelValue ?? '')"
+            :zoom="15"
+            height-class="h-40 sm:h-56"
+            class="mt-3 overflow-hidden rounded-lg"
+        />
+
+        <!-- The error replaces the help rather than stacking under it: what is
+             wrong now matters more than what the field is for. -->
+        <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
+
+        <!-- The field's own help describes filling it in, which is no longer
+             something that can happen. -->
+        <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
+
         <!-- Lookup and location fields already show the help as their
-             placeholder, and a boolean shows it beside the checkbox. -->
+             placeholder, and a boolean shows it beside the toggle. -->
         <p
-            v-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
+            v-else-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
             class="mt-1 text-caption text-neutral-500"
         >
             {{ field.help }}

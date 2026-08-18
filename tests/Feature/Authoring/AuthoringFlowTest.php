@@ -27,7 +27,7 @@ it('404s a type nobody authors', function () {
 });
 
 it('creates an entry and lands on the finished entry', function () {
-    $response = $this->post('/entries/note', ['content' => 'A thought.']);
+    $response = $this->post('/entries/note', ['content' => 'A thought.', 'slug' => 'a-thought']);
 
     $response->assertRedirect();
 
@@ -132,11 +132,12 @@ it('rejects a flight reason that is not one of the enum cases', function () {
 it('keeps the field order the fields class declares', function () {
     $names = collect($this->get('/new/flight')->viewData('page')['props']['fields'])->pluck('name');
 
-    expect($names->take(3)->all())->toBe(['occurred_at', 'origin_iata', 'destination_iata']);
+    expect($names->take(3)->all())->toBe(['occurred_at', 'departure_timezone', 'origin_iata']);
 });
 
 it('sends a new fuel entry to the finished entry, not back to a form', function () {
     $response = $this->post('/entries/fuel', [
+        'occurred_at' => '2026-08-13 12:00:00',
         'cost' => 51.87,
         'price_per_litre' => 1.599,
         'station_name' => 'Beddington Lane Service Station',

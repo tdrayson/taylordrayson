@@ -19,19 +19,19 @@ final class EventFields
     {
         return [
             FieldData::primary('name', 'Name', FieldType::Title, required: true),
-            FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, defaultsToNow: true),
+            FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, required: true, defaultsToNow: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('ends_at', 'Ends', FieldType::DateTime, relativeTo: 'occurred_at'),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, 'Search, or use your location.', source: 'place'),
-            FieldData::primary('tags', 'Category', FieldType::Tags, 'The first tag is shown as the category.'),
-            FieldData::optional('ends_at', 'Ends', FieldType::DateTime, 'Set for multi-day events; shows a date range.', relativeTo: 'occurred_at'),
-            FieldData::optional('all_day', 'All day', FieldType::Boolean),
-            FieldData::optional('organiser', 'Organiser', FieldType::Text, 'Only shown when it differs from the name.'),
             FieldData::optional('city', 'City', FieldType::Text, group: 'Address'),
             FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
+            FieldData::primary('tags', 'Category', FieldType::Tags, 'The first tag is shown as the category.', required: true),
+            FieldData::optional('all_day', 'All day', FieldType::Boolean),
+            FieldData::optional('organiser', 'Organiser', FieldType::Text),
             FieldData::optional('url', 'Link', FieldType::Url),
-            FieldData::optional('description', 'Notes', FieldType::Textarea),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::optional('description', 'About', FieldType::Textarea),
         ];
     }
 }

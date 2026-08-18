@@ -17,6 +17,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
+    'timezone',
     'vehicle_id',
     'station_name',
     'brand',

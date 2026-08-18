@@ -18,6 +18,11 @@ class GoogleMaps
      */
     private const PLACES = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
 
+    private const NEARBY = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
+
+    /** Wide enough to reach the venue you are standing outside, not the next town. */
+    private const NEARBY_RADIUS_METRES = 500;
+
     private const GEOCODE = 'https://maps.googleapis.com/maps/api/geocode/json';
 
     /**
@@ -27,8 +32,12 @@ class GoogleMaps
      */
     public function search(string $query, ?float $latitude = null, ?float $longitude = null): array
     {
+        // Text Search needs words. With a position but nothing typed the answer
+        // is "what is around here", which is a different endpoint.
         if (trim($query) === '') {
-            return [];
+            return $latitude !== null && $longitude !== null
+                ? $this->nearby($latitude, $longitude)
+                : [];
         }
 
         $parameters = ['query' => $query, 'key' => $this->key()];
@@ -41,6 +50,30 @@ class GoogleMaps
         }
 
         $response = Http::get(self::PLACES, $parameters);
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return array_values(array_map(
+            fn (array $place): array => $this->place($place),
+            $response->json('results') ?? [],
+        ));
+    }
+
+    /**
+     * The named places around a position, ranked by distance: what the locate
+     * button offers when nothing has been typed to search for.
+     *
+     * @return list<array{name: string, address: string|null, latitude: float|null, longitude: float|null}>
+     */
+    private function nearby(float $latitude, float $longitude): array
+    {
+        $response = Http::get(self::NEARBY, [
+            'location' => "{$latitude},{$longitude}",
+            'radius' => self::NEARBY_RADIUS_METRES,
+            'key' => $this->key(),
+        ]);
 
         if ($response->failed()) {
             return [];
@@ -96,7 +129,8 @@ class GoogleMaps
         // than by an extra call per row in a list nobody may choose from.
         return [
             'name' => $place['name'] ?? '',
-            'address' => $place['formatted_address'] ?? null,
+            // Nearby Search names it `vicinity`, Text Search `formatted_address`.
+            'address' => $place['formatted_address'] ?? $place['vicinity'] ?? null,
             'street' => null,
             'postcode' => null,
             'city' => null,

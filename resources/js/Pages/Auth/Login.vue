@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/vue3';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Button from '../../Components/Ui/Button.vue';
+import Checkbox from '../../Components/Ui/Checkbox.vue';
 import Input from '../../Components/Ui/Input.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -70,12 +71,8 @@ function submit() {
                  so the form never reveals which. -->
             <p v-if="form.errors.email" class="text-meta text-red-600">{{ form.errors.email }}</p>
 
-            <label class="flex items-center gap-2 text-meta text-neutral-700">
-                <input
-                    v-model="form.remember"
-                    type="checkbox"
-                    class="size-4 rounded border-neutral-100 text-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500"
-                >
+            <label class="flex min-h-11 cursor-pointer items-center gap-2 text-meta text-neutral-700">
+                <Checkbox v-model="form.remember" />
                 Stay signed in
             </label>
 

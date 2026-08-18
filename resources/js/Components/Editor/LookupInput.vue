@@ -40,6 +40,9 @@ watch(() => props.modelValue, (value) => {
 
 async function search(coords = null) {
     searching.value = true;
+    // Opened before the request, not after it: the panel is where the waiting
+    // is shown, so it has to be on screen while the waiting happens.
+    show();
 
     const params = new URLSearchParams({ q: query.value });
 
@@ -55,7 +58,6 @@ async function search(coords = null) {
         });
 
         results.value = response.ok ? (await response.json()).data ?? [] : [];
-        show();
     } catch {
         // A failed lookup leaves what was typed alone rather than clearing it.
         results.value = [];
@@ -103,10 +105,14 @@ function pick(result) {
         />
 
         <ul
-            v-if="open && results.length"
+            v-if="open && (results.length || searching)"
             class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             role="listbox"
         >
+            <li v-if="searching && ! results.length" role="presentation" class="px-3 py-2 text-meta text-neutral-500">
+                Searching...
+            </li>
+
             <li v-for="(result, index) in results" :key="result.value + result.label">
                 <button
                     type="button"
@@ -121,7 +127,5 @@ function pick(result) {
                 </button>
             </li>
         </ul>
-
-        <p v-if="searching" class="mt-1 text-caption text-neutral-500">Searching...</p>
     </div>
 </template>

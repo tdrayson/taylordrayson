@@ -21,6 +21,15 @@ use LogicException;
  * Resolves a model to the fields the authoring UI offers for it, mirroring
  * {@see CardPresenter::for()}. Types absent here arrive from a sync rather than
  * being hand-authored. Deliberately not a runtime field builder.
+ *
+ * Declaration order is the order drawn, and every type declares the same shape
+ * so moving between them is not a hunt: identity (title, body), then what makes
+ * the type itself, then the common tail of Tags, Date, Slug.
+ *
+ * A date named for the type is that type's data and leads with it (a flight
+ * departs, a book is finished); one merely labelled "Date" is metadata and joins
+ * the tail, where it sits at the same place on every form. A timezone is not a
+ * row of its own, it pairs with the date it qualifies.
  */
 final class FieldRegistry
 {

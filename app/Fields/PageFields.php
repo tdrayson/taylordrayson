@@ -19,9 +19,9 @@ final class PageFields
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
-            FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL: /about, /colophon.'),
             FieldData::primary('published', 'Published', FieldType::Published),
-            FieldData::optional('excerpt', 'Excerpt', FieldType::Textarea, 'Used for search and social previews.'),
+            FieldData::optional('excerpt', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY),
+            FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL: /about, /colophon.'),
         ];
     }
 }
