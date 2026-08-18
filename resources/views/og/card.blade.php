@@ -2,16 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('og.fonts')
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body { width: 1200px; height: 630px; }
 
         body {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter Variable', system-ui, sans-serif;
             background: #ffffff;
         }
 
@@ -64,7 +62,7 @@
 
         .title {
             margin-top: 26px;
-            font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+            font-family: 'Bricolage Grotesque Variable', system-ui, sans-serif;
             font-weight: 800;
             font-size: 74px;
             line-height: 1.03;

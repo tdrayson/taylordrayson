@@ -1,4 +1,10 @@
 @import 'tailwindcss';
+
+/* Self-hosted via Fontsource. Bricolage takes the `opsz` cut (not the smaller
+   `wght` one) because the display sizes rely on optical sizing. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
+
 @plugin '@tailwindcss/typography';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -11,8 +17,8 @@
 
 @theme static {
     /* Typography */
-    --font-sans: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
-    --font-display: 'Bricolage Grotesque', 'Inter', sans-serif;
+    --font-sans: 'Inter Variable', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', sans-serif;
 
     /* Type scale — each token bakes size + line-height + weight + tracking.
        Display tokens render in Bricolage; pair with `font-display`. */
