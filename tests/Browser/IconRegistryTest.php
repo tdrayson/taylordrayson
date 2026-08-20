@@ -8,7 +8,7 @@ use App\Models\Note;
 it('renders map-driven registry-name icons as svg', function () {
     $page = visit('/')->resize(1280, 900);
 
-    $page->click('Search')
+    $page->click('[aria-label="Open search"]')
         ->type('[role="dialog"] input', 'Calendar')
         ->assertScript(
             // Calendar03Icon from pageCommands — assert a real SVG, not an empty button.

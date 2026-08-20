@@ -66,4 +66,19 @@ class ActivityFactory extends Factory
             'meta' => $meta,
         ];
     }
+
+    /**
+     * A cardio activity of a given type, carrying none of the strength meta the
+     * random type in definition() may have produced. Overriding `type` alone is
+     * not enough: meta is derived from whichever type was rolled, so a "run"
+     * can end up holding gym sets, and its card then shows those instead of a
+     * distance.
+     */
+    public function cardio(string $type = 'run'): self
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type' => $type,
+            'meta' => [],
+        ]);
+    }
 }
