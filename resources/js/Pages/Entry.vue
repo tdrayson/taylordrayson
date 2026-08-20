@@ -112,7 +112,17 @@ setLayoutProps({
 <template>
     <AppHead :og="og" />
 
-    <header class="relative">
+    <!-- Editing replaces the entry rather than sitting under it: the editor
+         draws its own title and body, so showing both repeats them. Same split
+         as Page.vue. -->
+    <EntryEditor
+        v-if="editing"
+        :fields="fields"
+        :values="editorValues"
+        :action="`/entries/${editType}/${entry.id}`"
+    />
+
+    <header v-else class="relative">
         <div class="min-w-0">
             <div class="relative">
                 <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
@@ -133,25 +143,17 @@ setLayoutProps({
         </div>
     </header>
 
-    <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
-
-    <EntryEditor
-        v-if="editing"
-        :fields="fields"
-        :values="editorValues"
-        :action="`/entries/${editType}/${entry.id}`"
-        class="mt-10"
-    />
+    <EntryMap v-if="! editing && polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
     <component
-        v-else-if="detailComponent"
+        v-if="! editing && detailComponent"
         :is="detailComponent"
         :entry="entry"
         v-bind="['article', 'note'].includes(type) ? { linkPreviews, linkFavicons } : {}"
         class="mt-10"
     />
 
-    <p v-if="signedIn && editType && ! editing" class="mt-6">
+    <p v-if="! editing && signedIn && editType" class="mt-6">
         <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
     </p>
 

@@ -161,6 +161,11 @@ function submit(published = null) {
          page on the site starts at the same left edge, and centring made the
          editor jump 112px right of the page you arrived from. -->
     <div class="w-full max-w-2xl">
+        <!-- The page still needs exactly one h1 for the outline, and the title
+             here is an input rather than a heading. Same fallback Entry.vue
+             uses for the types that show no headline. -->
+        <h1 class="sr-only">{{ (titleField ? form[titleField.name] : '') || 'Untitled' }}</h1>
+
         <!-- The heading: an input that reads as the title it will become, not a
              form field with a label above it. -->
         <input
