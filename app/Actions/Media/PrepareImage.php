@@ -45,6 +45,10 @@ class PrepareImage
             return $path;
         }
 
+        if ($this->alreadyPrepared($path)) {
+            return $path;
+        }
+
         $target = pathinfo($path, PATHINFO_DIRNAME).'/'.pathinfo($path, PATHINFO_FILENAME).'.webp';
 
         try {
@@ -74,5 +78,25 @@ class PrepareImage
         }
 
         return $target;
+    }
+
+    /**
+     * Whether the file is already what this action would produce. The editor
+     * shrinks and re-encodes in the browser, so without this the happy path
+     * pays a second lossy pass that only loses quality.
+     */
+    private function alreadyPrepared(string $path): bool
+    {
+        if (strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'webp') {
+            return false;
+        }
+
+        try {
+            $image = Image::load($path);
+        } catch (Throwable) {
+            return false;
+        }
+
+        return max($image->getWidth(), $image->getHeight()) <= self::MAX_DIMENSION;
     }
 }

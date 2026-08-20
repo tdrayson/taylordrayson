@@ -211,7 +211,7 @@ class EntryController extends Controller
         // means every consumer prefers local storage without the page having to
         // know a mirror exists.
         if ($model instanceof Podcast) {
-            $data['audio_url'] = $model->audioSrc();
+            $data['audio_url'] = $model->audio_url;
             $data['cover_image'] = $model->wideArtworkSrc();
             $data['thumbnail'] = $model->squareArtworkSrc();
         }

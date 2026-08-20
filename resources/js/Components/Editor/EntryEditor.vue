@@ -34,14 +34,8 @@ const isPublished = computed(() => publishField.value !== null && form[publishFi
 
 const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
 
-// Title and body are drawn above the stack; a paired field is drawn inside the
-// control it pairs with. None of them appear in the stack.
-const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody && !field.pairsWith));
-
-/** The field drawn inside this one's control, e.g. a timezone inside its date. */
-function pairedWith(name) {
-    return props.fields.find((field) => field.pairsWith === name) ?? null;
-}
+// Title and body are drawn above the stack, so neither appears in it.
+const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));
 
 /**
  * The stack in declaration order, a group standing where its first field was
@@ -203,12 +197,9 @@ function submit(published = null) {
                     :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
                     :latitude="form.latitude ?? null"
                     :longitude="form.longitude ?? null"
-                    :paired="pairedWith(row.field.name)"
-                    :paired-value="pairedWith(row.field.name) ? form[pairedWith(row.field.name).name] : null"
                     :error="form.errors[row.field.name]"
                     :readonly="row.field.type === 'slug' && slugLocked"
                     @update:model-value="onFieldInput(row.field, $event)"
-                    @update:paired="form[pairedWith(row.field.name).name] = $event"
                     @fill="applyFill"
                 />
 

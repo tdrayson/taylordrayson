@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
  */
 final class PendingUploads
 {
-    /** How long an unattached upload is kept before the next upload sweeps it. */
+    /** How long an unattached upload is kept before a sweep discards it. */
     private const KEEP_HOURS = 24;
 
     public static function directory(): string
@@ -69,9 +69,11 @@ final class PendingUploads
     }
 
     /**
-     * Drop anything left behind by a form that was never submitted.
+     * Drop anything left behind by a form that was never submitted. Called on
+     * every upload and from `media:prune-pending`, since uploads can stop for
+     * long enough that sweeping only on the next one leaves files for months.
      */
-    private static function prune(): void
+    public static function prune(): void
     {
         if (! File::isDirectory(self::directory())) {
             return;

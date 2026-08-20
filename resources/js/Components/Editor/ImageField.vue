@@ -49,14 +49,15 @@ const QUALITY = 0.82;
  * something nothing ever serves at that size, and uploading it wastes the
  * author's connection as much as the server's disk.
  *
- * HEIC and SVG are left alone: canvas cannot decode the first and rasterising
- * the second is a downgrade. The server caps those instead.
+ * SVG is left alone, since rasterising a vector is a downgrade. HEIC is tried:
+ * Safari decodes it and iPhone photos are the large ones worth shrinking before
+ * they are sent, and anywhere that cannot decode it falls through to the server.
  *
  * Re-encoding drops EXIF, which loses the embedded GPS along with everything
  * else. That suits a public photo, but it is a real loss, not a free win.
  */
 async function shrink(file) {
-    if (! ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    if (! ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'].includes(file.type)) {
         return file;
     }
 

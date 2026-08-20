@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\PendingUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Image\Image;
 
 beforeEach(fn () => $this->actingAs(User::factory()->create()));
 
@@ -109,4 +110,37 @@ it('leaves a gif alone rather than flattening it', function () {
     $path = PendingUploads::path(substr($response->json('data.id'), strlen('pending:')));
 
     expect($path)->toEndWith('.gif');
+});
+
+it('leaves an already optimised webp alone rather than re-encoding it', function () {
+    $source = sys_get_temp_dir().'/source-'.uniqid().'.jpg';
+    UploadedFile::fake()->image('already.jpg', 1000, 700)->move(dirname($source), basename($source));
+
+    $webp = sys_get_temp_dir().'/already-'.uniqid().'.webp';
+    Image::load($source)->format('webp')->quality(82)->save($webp);
+    $before = filesize($webp);
+
+    $response = $this->postJson('/media/pending', [
+        'file' => new UploadedFile($webp, 'already.webp', 'image/webp', null, true),
+    ])->assertOk();
+
+    $stored = PendingUploads::path(substr($response->json('data.id'), strlen('pending:')));
+
+    expect(filesize($stored))->toBe($before);
+});
+
+it('converts a heic upload to webp, since browsers cannot display heic', function () {
+    $source = base_path('tests/Fixtures/photo.heic');
+    $upload = sys_get_temp_dir().'/heic-'.uniqid().'.heic';
+    copy($source, $upload);
+
+    $response = $this->postJson('/media/pending', [
+        'file' => new UploadedFile($upload, 'photo.heic', 'image/heic', null, true),
+    ])->assertOk();
+
+    $stored = PendingUploads::path(substr($response->json('data.id'), strlen('pending:')));
+    $image = new Imagick($stored);
+
+    expect($image->getImageFormat())->toBe('WEBP')
+        ->and(max($image->getImageWidth(), $image->getImageHeight()))->toBeLessThanOrEqual(1920);
 });
