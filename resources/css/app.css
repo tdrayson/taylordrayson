@@ -729,6 +729,14 @@
     vertical-align: 0.15em;
 }
 
+/* Dismissing the keyboard on a phone leaves the selection in place, so the blue
+   highlight stays on screen over an editor nobody is in. The selection itself is
+   kept: the formatting bar acts on it, and clicking a button in that bar blurs
+   the editor. */
+.ProseMirror:not(.ProseMirror-focused) ::selection {
+    background: transparent;
+}
+
 /* The placeholder, shown on an empty line rather than as real content. */
 .ProseMirror p.is-editor-empty:first-child::before,
 .ProseMirror p.is-empty::before {
