@@ -6,7 +6,7 @@ use App\Links\LinkResolvers;
 use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
-use App\Services\DuckDuckGo;
+use App\Services\GoogleFavicons;
 use App\Support\Links;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\File;
@@ -93,22 +93,31 @@ it('maps only the hosts whose favicon has actually been stored', function () {
     File::delete($path);
 });
 
-it('treats a placeholder favicon as no favicon', function () {
-    // The service answers for unknown domains with a tiny placeholder rather
-    // than a 404, and storing those would put a blank mark on real links.
+it('treats a refused favicon as no favicon', function () {
+    // Google answers an unknown domain with a generic globe rather than a 404,
+    // so a refusal is the only "no icon" this can tell apart. A globe is stored
+    // as a real icon, which beats the blank the previous service returned.
     Http::fake([
-        'icons.duckduckgo.com/*' => Http::response('tiny', 200, ['content-type' => 'image/png']),
+        'www.google.com/s2/favicons*' => Http::response('', 404),
     ]);
 
-    expect((new DuckDuckGo)->icon('nowhere.test')['status'])->toBe('unavailable');
+    expect((new GoogleFavicons)->icon('nowhere.test')['status'])->toBe('unavailable');
+});
+
+it('treats a non-image answer as an error rather than storing it', function () {
+    Http::fake([
+        'www.google.com/s2/favicons*' => Http::response('<html>nope</html>', 200, ['content-type' => 'text/html']),
+    ]);
+
+    expect((new GoogleFavicons)->icon('example.com')['status'])->toBe('error');
 });
 
 it('returns the bytes for a real favicon', function () {
     Http::fake([
-        'icons.duckduckgo.com/*' => Http::response(str_repeat('a', 400), 200, ['content-type' => 'image/x-icon']),
+        'www.google.com/s2/favicons*' => Http::response(str_repeat('a', 400), 200, ['content-type' => 'image/png']),
     ]);
 
-    expect((new DuckDuckGo)->icon('example.com'))
+    expect((new GoogleFavicons)->icon('example.com'))
         ->status->toBe('saved')
         ->body->toHaveLength(400);
 });

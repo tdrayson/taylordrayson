@@ -57,7 +57,7 @@ const Link = TiptapLink.extend({
                 // Straight from the icon service while writing; the published
                 // page serves the copy stored at save time, so a reader never
                 // makes a request to a third party.
-                ? { style: `--editor-link-favicon: url(https://icons.duckduckgo.com/ip3/${host}.ico)` }
+                ? { style: `--editor-link-favicon: url(https://www.google.com/s2/favicons?domain=${host}&sz=64)` }
                 : { 'data-internal': '' }),
         }, 0];
     },

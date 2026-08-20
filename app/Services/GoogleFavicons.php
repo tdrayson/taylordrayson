@@ -5,16 +5,19 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 
 /**
- * DuckDuckGo's favicon service. Given a domain it returns that site's icon,
- * having already resolved which of the several competing icon declarations a
- * page actually uses.
+ * Google's favicon service. Given a domain it returns that site's icon, having
+ * already resolved which of the several competing icon declarations a page
+ * actually uses.
  *
- * The request goes to DuckDuckGo, never to the linked site, so an author-supplied
+ * The request goes to Google, never to the linked site, so an author-supplied
  * URL never becomes a request this app makes to an arbitrary host.
  */
-class DuckDuckGo
+class GoogleFavicons
 {
-    private const BASE = 'https://icons.duckduckgo.com/ip3';
+    private const BASE = 'https://www.google.com/s2/favicons';
+
+    /** Retina-friendly and still small; the service only serves fixed sizes. */
+    private const SIZE = 64;
 
     private const TIMEOUT_SECONDS = 8;
 
@@ -26,7 +29,7 @@ class DuckDuckGo
     public function icon(string $domain): array
     {
         $response = Http::timeout(self::TIMEOUT_SECONDS)
-            ->get(self::BASE.'/'.$domain.'.ico');
+            ->get(self::BASE, ['domain' => $domain, 'sz' => self::SIZE]);
 
         if ($response->status() === 404) {
             return ['status' => 'unavailable', 'body' => null];
@@ -36,10 +39,9 @@ class DuckDuckGo
             return ['status' => 'error', 'body' => null];
         }
 
-        // The service answers for unknown domains with a placeholder rather than
-        // a 404, and that placeholder is tiny. Treat a suspiciously small body
-        // as "no icon" so those do not get stored as if they were real.
-        if (strlen($response->body()) < 100) {
+        // A domain it knows nothing about answers with a generic globe rather
+        // than a 404, so an empty body is the only "no icon" this can detect.
+        if ($response->body() === '') {
             return ['status' => 'unavailable', 'body' => null];
         }
 

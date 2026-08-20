@@ -2,7 +2,7 @@
 
 namespace App\Actions\Links;
 
-use App\Services\DuckDuckGo;
+use App\Services\GoogleFavicons;
 use App\Support\Links;
 use Illuminate\Support\Facades\File;
 
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\File;
  */
 class StoreFavicon
 {
-    public function __construct(private DuckDuckGo $duckDuckGo) {}
+    public function __construct(private GoogleFavicons $favicons) {}
 
     /**
      * @return 'saved'|'unavailable'|'error'|'skipped' 'skipped' when one is already stored
@@ -26,7 +26,7 @@ class StoreFavicon
             return 'skipped';
         }
 
-        $result = $this->duckDuckGo->icon($host);
+        $result = $this->favicons->icon($host);
 
         if ($result['status'] === 'saved') {
             File::ensureDirectoryExists(dirname($path));

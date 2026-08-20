@@ -670,7 +670,7 @@
 }
 
 /* A link while writing. Not an anchor: see the Link override in profiles.js.
-   The favicon is set as a background image from the DuckDuckGo icon service so
+   The favicon is set as a background image from Google's icon service so
    it appears the moment a URL is typed, where the published page serves the
    copy stored at save time. */
 .ProseMirror .editor-link {
