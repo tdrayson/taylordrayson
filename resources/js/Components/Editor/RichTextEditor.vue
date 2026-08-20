@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import TiptapImage from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -10,6 +10,7 @@ import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
 import SuggestionMenu from './SuggestionMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
+import BlockHandles from './BlockHandles.vue';
 import CalloutBlock from './CalloutBlock.vue';
 import ImageBlock from './ImageBlock.vue';
 import CodeBlockView from './CodeBlockView.vue';
@@ -27,6 +28,9 @@ const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     profile: { type: String, default: 'document' },
     placeholder: { type: String, default: '' },
+    // Shown instead on a narrow screen, where the full hint wraps to three
+    // lines and pushes the first line of writing down the page.
+    placeholderShort: { type: String, default: '' },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -36,17 +40,35 @@ const emit = defineEmits(['update:modelValue']);
  * once and hands `onKeyDown` only the event, never the current items or the
  * insert command.
  */
-const menu = reactive({ open: false, items: [], active: 0, rect: null });
+const menu = reactive({ open: false, items: [], active: 0, rect: null, getRect: null });
 let insert = null;
 
 // The block menu keeps its own state: both triggers can never be open at once,
 // but sharing one object would leak the mention menu's items into the block
 // list on a fast "/" after an unfinished "@".
-const blockMenu = reactive({ open: false, items: [], active: 0, rect: null });
+const blockMenu = reactive({ open: false, items: [], active: 0, rect: null, getRect: null });
 let insertBlock = null;
 
 /** Guards against the editor's own update echoing back in as a prop change. */
 const emitting = ref(false);
+
+// Read here rather than on mount: the editor view mounts first, so waiting
+// would show the long hint for a frame before swapping it. Guarded for SSR.
+const viewport = typeof window === 'undefined' ? null : window.matchMedia('(max-width: 40rem)');
+const narrow = ref(viewport?.matches ?? false);
+
+/**
+ * Repaint on a resize across the breakpoint. The placeholder is a decoration,
+ * so it is only rebuilt when a transaction runs; an empty one swaps the text
+ * without touching the document.
+ */
+function syncViewport() {
+    narrow.value = viewport.matches;
+    editor.value?.view.dispatch(editor.value.state.tr);
+}
+
+onMounted(() => viewport?.addEventListener('change', syncViewport));
+onBeforeUnmount(() => viewport?.removeEventListener('change', syncViewport));
 
 /** Replace the typed trigger with a link to what was picked. */
 function insertEntryLink(instance, range, picked) {
@@ -93,6 +115,7 @@ const mention = suggestionExtension('entryLinks').configure({
                 menu.items = p.items;
                 menu.active = 0;
                 menu.rect = p.clientRect?.() ?? null;
+                menu.getRect = p.clientRect ?? null;
                 menu.open = true;
             },
             onUpdate(p) {
@@ -100,6 +123,7 @@ const mention = suggestionExtension('entryLinks').configure({
                 menu.items = p.items;
                 menu.active = 0;
                 menu.rect = p.clientRect?.() ?? null;
+                menu.getRect = p.clientRect ?? null;
             },
             onKeyDown: ({ event }) => mentionKeys(event),
             onExit() {
@@ -144,6 +168,7 @@ const slash = suggestionExtension('blockMenu').configure({
                 blockMenu.items = p.items;
                 blockMenu.active = 0;
                 blockMenu.rect = p.clientRect?.() ?? null;
+                blockMenu.getRect = p.clientRect ?? null;
                 blockMenu.open = true;
             },
             onUpdate(p) {
@@ -151,6 +176,7 @@ const slash = suggestionExtension('blockMenu').configure({
                 blockMenu.items = p.items;
                 blockMenu.active = 0;
                 blockMenu.rect = p.clientRect?.() ?? null;
+                blockMenu.getRect = p.clientRect ?? null;
             },
             onKeyDown: ({ event }) => blockKeys(event),
             onExit() {
@@ -199,7 +225,14 @@ const image = TiptapImage.extend({
 
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
-    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash, callout, image, codeBlock }),
+    extensions: extensionsFor(props.profile, {
+        placeholder: () => (narrow.value && props.placeholderShort ? props.placeholderShort : props.placeholder),
+        mention,
+        slash,
+        callout,
+        image,
+        codeBlock,
+    }),
     editorProps: {
         attributes: {
             class: 'prose-editor focus:outline-none min-h-32',
@@ -271,11 +304,14 @@ onBeforeUnmount(() => editor.value?.destroy());
 
         <SelectionToolbar v-if="editor" :editor="editor" />
 
+        <BlockHandles v-if="editor" :editor="editor" />
+
         <SuggestionMenu
             v-if="menu.open"
             :items="menu.items"
             :active="menu.active"
             :rect="menu.rect"
+            :get-rect="menu.getRect"
             empty-label="Nothing to mention"
             @pick="pick"
         />
@@ -285,6 +321,7 @@ onBeforeUnmount(() => editor.value?.destroy());
             :items="blockMenu.items"
             :active="blockMenu.active"
             :rect="blockMenu.rect"
+            :get-rect="blockMenu.getRect"
             empty-label="No matching block"
             @pick="pickBlock"
         />
