@@ -52,3 +52,15 @@ it('does not offer the writing hint inside an empty heading', function () {
     $page->assertScript("document.querySelectorAll('.prose-editor h2').length", 1)
         ->assertScript("document.querySelector('.prose-editor h2').getAttribute('data-placeholder') || ''", '');
 });
+
+it('still starts a new paragraph when the caret sits in a link', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'see https://github.com ');
+    $page->assertScript("document.querySelectorAll('.prose-editor a').length", 1);
+
+    $page->keys('.prose-editor', ['Enter']);
+    $page->typeSlowly('.prose-editor', 'next line');
+
+    $page->assertScript("document.querySelectorAll('.prose-editor p').length", 2);
+});

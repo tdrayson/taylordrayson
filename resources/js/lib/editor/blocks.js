@@ -21,7 +21,7 @@ export const BLOCKS = [
     {
         id: 'paragraph',
         group: 'Text',
-        label: 'Text',
+        label: 'Paragraph',
         requires: 'paragraph',
         run: (editor, range) => at(editor, range).setNode('paragraph').run(),
     },

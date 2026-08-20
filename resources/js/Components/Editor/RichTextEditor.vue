@@ -180,35 +180,39 @@ const editor = useEditor({
         },
     },
     onUpdate: ({ editor: instance }) => {
+        const document = fromProseMirror(instance.getJSON());
+
+        lastEmitted = JSON.stringify(document);
         emitting.value = true;
-        emit('update:modelValue', fromProseMirror(instance.getJSON()));
+        emit('update:modelValue', document);
         emitting.value = false;
     },
 });
 
 /**
- * A document's shape, ignoring keys. Keys are minted fresh for any node that
- * has none, so two conversions of the same editor state never stringify alike
- * and a straight comparison would always look like an outside change.
+ * The document exactly as it was last handed out, so an update can be
+ * recognised as our own coming back.
+ *
+ * Re-converting to compare does not work: keys are minted fresh for any node or
+ * link that has none, and a span references its link by that key, so no two
+ * conversions of the same state ever match. Comparing against what was actually
+ * emitted sidesteps the whole problem.
  */
-function shapeOf(document) {
-    return JSON.stringify(document, (key, value) => (key === '_key' ? undefined : value));
-}
+let lastEmitted = null;
 
 /**
  * Only reload when the change came from outside.
  *
  * The guard cannot be a flag alone: the parent's update arrives a tick later,
- * by which time the flag is down. Comparing shapes is what makes a new line
- * survive, because a trailing empty paragraph is dropped on the way out and the
- * stored document never matches the editor exactly.
+ * by which time the flag is already down. Without this, every keystroke resets
+ * the content, which takes a new empty line with it.
  */
 watch(() => props.modelValue, (value) => {
     if (emitting.value || ! editor.value) {
         return;
     }
 
-    if (shapeOf(value) === shapeOf(fromProseMirror(editor.value.getJSON()))) {
+    if (JSON.stringify(value) === lastEmitted) {
         return;
     }
 

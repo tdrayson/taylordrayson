@@ -92,7 +92,7 @@ const style = computed(() => {
         </p>
 
         <div v-for="group in groups" :key="group.name">
-            <p class="px-3 pb-1 pt-2 text-label uppercase text-neutral-500">{{ group.name }}</p>
+            <p class="px-3 pb-1 pt-3 text-label uppercase text-neutral-500 first:pt-2">{{ group.name }}</p>
 
             <button
                 v-for="row in group.rows"
