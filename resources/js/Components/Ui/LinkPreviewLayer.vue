@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { nextTick, ref, watch, onBeforeUnmount } from 'vue';
 import LinkPreviewCard from './LinkPreviewCard.vue';
 
 const props = defineProps({
@@ -10,6 +10,7 @@ const props = defineProps({
 });
 
 const active = ref(null);
+const popEl = ref(null);
 const pos = ref({ top: 0, left: 0, placement: 'top' });
 const CARD_W = 320;
 const URL_W = 360;
@@ -36,10 +37,15 @@ function placeFor(el, width, minRoomAbove) {
 
 function open(el, preview, immediate = false) {
     clearTimeout(closeTimer);
-    const run = () => {
+    const run = async () => {
         const isUrl = preview.kind === 'url';
         pos.value = placeFor(el, isUrl ? URL_W : CARD_W, isUrl ? 80 : 280);
         active.value = preview;
+
+        if (isUrl) {
+            await nextTick();
+            pos.value = placeFor(el, popEl.value?.getBoundingClientRect().width ?? URL_W, 80);
+        }
     };
     if (immediate) {
         run();
@@ -180,8 +186,9 @@ onBeforeUnmount(() => {
         <Transition name="fade">
             <div
                 v-if="active"
+                ref="popEl"
                 class="fixed z-50 motion-reduce:transition-none"
-                :class="active.kind === 'url' ? 'w-90' : 'w-80'"
+                :class="active.kind === 'url' ? 'w-fit max-w-90' : 'w-80'"
                 :style="{
                     top: `${pos.top}px`,
                     left: `${pos.left}px`,

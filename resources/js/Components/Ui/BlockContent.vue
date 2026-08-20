@@ -51,7 +51,7 @@ const contentEl = ref(null);
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
     <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-body text-neutral-900">
-        <PortableTextBlocks :nodes="nodes" :favicons="linkFavicons" @image-click="openImage" />
+        <PortableTextBlocks :nodes="nodes" :favicons="linkFavicons" :previews="linkPreviews" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
 
@@ -75,6 +75,17 @@ const contentEl = ref(null);
 
 .block-content :deep(a:hover) {
     color: var(--color-accent-700);
+}
+
+/* Wins over the generic :deep(a) rule above, which would otherwise underline
+   the chip and repaint its text. */
+.block-content :deep(a.entry-chip) {
+    color: var(--color-accent-700);
+    text-decoration: none;
+}
+
+.block-content :deep(a.entry-chip:hover) {
+    background-color: var(--color-accent-100);
 }
 
 /* Inline-code chips only — code inside <pre> belongs to CodeBlock's own styling. */

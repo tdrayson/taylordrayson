@@ -3,6 +3,7 @@ import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
+import { entryType } from '../../entryTypes';
 
 // Callout tint per variant (GitHub-alert set). Hues borrow the closest timeline
 // data-type tokens, the palette having no success/warning/danger scale of its
@@ -114,10 +115,38 @@ function renderExternalLink(def, label, text, favicons) {
     ]);
 }
 
+/**
+ * An internal link that resolves to an entry: a chip carrying the entry type's
+ * own glyph and colour, so a reference that keeps you on the site reads
+ * differently from one that leaves it. A link with no entry behind it (an
+ * archive page, an unpublished target) stays an ordinary link.
+ */
+function renderInternalLink(def, label, previews) {
+    const preview = previews[def.href];
+
+    if (! preview) {
+        return h('a', { href: def.href }, label);
+    }
+
+    const { icon, accent } = entryType(preview.type);
+
+    return h('a', {
+        href: def.href,
+        class: 'entry-chip rounded bg-accent-50 px-1 py-0.5 font-medium',
+    }, [
+        h(Icon, {
+            icon,
+            class: 'mb-0.5 mr-1 inline size-3.5 align-middle',
+            style: { color: `var(--color-${preview.accent ?? accent})` },
+        }),
+        label,
+    ]);
+}
+
 // Render one span, nesting its marks around the text node: decorators
 // (strong/em/code) map directly to tags; any other mark key is a markDef
 // reference, currently only 'link' is understood.
-function renderSpan(span, markDefs, favicons) {
+function renderSpan(span, markDefs, favicons, previews) {
     let node = span.text;
 
     for (const mark of span.marks ?? []) {
@@ -133,7 +162,7 @@ function renderSpan(span, markDefs, favicons) {
             if (def?._type === 'link' && def.href) {
                 node = def.href.startsWith('http')
                     ? renderExternalLink(def, node, span.text, favicons)
-                    : h('a', { href: def.href }, node);
+                    : renderInternalLink(def, node, previews);
             }
         }
     }
@@ -141,8 +170,8 @@ function renderSpan(span, markDefs, favicons) {
     return node;
 }
 
-function renderChildren(block, favicons) {
-    return (block.children ?? []).map((span) => renderSpan(span, block.markDefs, favicons));
+function renderChildren(block, favicons, previews) {
+    return (block.children ?? []).map((span) => renderSpan(span, block.markDefs, favicons, previews));
 }
 
 // Parse a flat run of consecutive listItem blocks into a nested <ul>/<ol>
@@ -150,7 +179,7 @@ function renderChildren(block, favicons) {
 // the previous <li>. Returns where the run stopped so a sibling list starting
 // at the same level (different listItem type, e.g. bullet then number) can
 // be parsed as a separate list by the caller.
-function buildListTree(items, startIndex, level, listItem, isTop, favicons) {
+function buildListTree(items, startIndex, level, listItem, isTop, favicons, previews) {
     const children = [];
     let i = startIndex;
 
@@ -158,10 +187,10 @@ function buildListTree(items, startIndex, level, listItem, isTop, favicons) {
         const node = items[i];
         i += 1;
 
-        const liContent = [h('span', renderChildren(node, favicons))];
+        const liContent = [h('span', renderChildren(node, favicons, previews))];
 
         if (i < items.length && (items[i].level ?? 1) > level) {
-            const nested = buildListTree(items, i, items[i].level, items[i].listItem, false, favicons);
+            const nested = buildListTree(items, i, items[i].level, items[i].listItem, false, favicons, previews);
             liContent.push(nested.vnode);
             i = nested.nextIndex;
         }
@@ -182,14 +211,14 @@ function buildListTree(items, startIndex, level, listItem, isTop, favicons) {
 // A run may contain more than one top-level list (e.g. a bullet list directly
 // followed by a numbered list at the same level); keep parsing fresh lists
 // until the whole run is consumed.
-function renderListRun(run, favicons) {
+function renderListRun(run, favicons, previews) {
     const vnodes = [];
     let index = 0;
 
     while (index < run.length) {
         const level = run[index].level ?? 1;
         const listItem = run[index].listItem;
-        const { vnode, nextIndex } = buildListTree(run, index, level, listItem, true, favicons);
+        const { vnode, nextIndex } = buildListTree(run, index, level, listItem, true, favicons, previews);
 
         vnodes.push(vnode);
         index = nextIndex;
@@ -208,9 +237,9 @@ const HEADING_CLASSES = {
     h6: 'text-base font-semibold',
 };
 
-function renderTextBlock(node, headingIds, favicons) {
+function renderTextBlock(node, headingIds, favicons, previews) {
     const key = node._key;
-    const children = renderChildren(node, favicons);
+    const children = renderChildren(node, favicons, previews);
 
     if (isHeading(node.style)) {
         const id = headingIds.get(node);
@@ -288,7 +317,7 @@ function renderCode(node) {
     });
 }
 
-function renderCallout(node, favicons) {
+function renderCallout(node, favicons, previews) {
     const variant = CALLOUT_VARIANTS[node.variant] ?? CALLOUT_VARIANTS.note;
 
     // not-prose so the paragraph rhythm cannot leak into a self-contained panel.
@@ -299,7 +328,7 @@ function renderCallout(node, favicons) {
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),
-            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node, favicons)),
+            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
         ]),
     ]);
 }
@@ -327,9 +356,9 @@ function renderVideo(node) {
     ]);
 }
 
-function renderNode(node, headingIds, onImageClick, favicons) {
+function renderNode(node, headingIds, onImageClick, favicons, previews) {
     if (node._type === 'block') {
-        return renderTextBlock(node, headingIds, favicons);
+        return renderTextBlock(node, headingIds, favicons, previews);
     }
 
     if (node._type === 'image') {
@@ -341,7 +370,7 @@ function renderNode(node, headingIds, onImageClick, favicons) {
     }
 
     if (node._type === 'callout') {
-        return renderCallout(node, favicons);
+        return renderCallout(node, favicons, previews);
     }
 
     if (node._type === 'video') {
@@ -357,7 +386,7 @@ function renderNode(node, headingIds, onImageClick, favicons) {
 
 // Single pass over the document: consecutive listItem blocks are peeled off
 // into their own grouped run (see renderListRun); everything else renders node-by-node.
-function renderDocument(nodes, headingIds, onImageClick, favicons) {
+function renderDocument(nodes, headingIds, onImageClick, favicons, previews) {
     const out = [];
     let i = 0;
 
@@ -372,9 +401,9 @@ function renderDocument(nodes, headingIds, onImageClick, favicons) {
                 i += 1;
             }
 
-            out.push(...renderListRun(run, favicons));
+            out.push(...renderListRun(run, favicons, previews));
         } else {
-            const vnode = renderNode(node, headingIds, onImageClick, favicons);
+            const vnode = renderNode(node, headingIds, onImageClick, favicons, previews);
 
             if (vnode) {
                 out.push(vnode);
@@ -395,13 +424,15 @@ export default {
         nodes: { type: Array, default: () => [] },
         // Map of host -> stored favicon URL, for external link chips.
         favicons: { type: Object, default: () => ({}) },
+        // Map of internal href -> preview, so a resolved link renders as a chip.
+        previews: { type: Object, default: () => ({}) },
     },
     emits: ['image-click'],
     setup(props, { emit }) {
         return () => {
             const headingIds = assignHeadingIds(props.nodes);
 
-            return renderDocument(props.nodes, headingIds, (url) => emit('image-click', url), props.favicons);
+            return renderDocument(props.nodes, headingIds, (url) => emit('image-click', url), props.favicons, props.previews);
         };
     },
 };
