@@ -23,4 +23,14 @@ enum TimelineType: string
     case Project = 'project';
     case Article = 'article';
     case Note = 'note';
+
+    /**
+     * The --color-* token key for this type. Matches the case value everywhere
+     * except food, where the type is named for the row and the colour for the
+     * subject.
+     */
+    public function accent(): string
+    {
+        return $this === self::Calorie ? 'food' : $this->value;
+    }
 }

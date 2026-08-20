@@ -1,9 +1,11 @@
 <?php
 
 use App\Actions\BuildLinkFavicons;
-use App\Actions\BuildLinkPreviews;
 use App\Jobs\ResolveLinkFavicons;
+use App\Links\LinkResolvers;
+use App\Models\Article;
 use App\Models\Note;
+use App\Models\Page;
 use App\Services\DuckDuckGo;
 use App\Support\Links;
 use App\Support\PortableText;
@@ -142,23 +144,36 @@ it('does not queue anything for an entry with no external links', function () {
     Queue::assertNothingPushed();
 });
 
-it('resolves a data story, and leaves other site pages as ordinary links', function () {
-    $blocks = [[
-        '_type' => 'block',
-        'markDefs' => [
-            ['_key' => 'a', '_type' => 'link', 'href' => '/stories/fuel'],
-            ['_key' => 'b', '_type' => 'link', 'href' => '/now'],
-            ['_key' => 'c', '_type' => 'link', 'href' => '/flights'],
-            ['_key' => 'd', '_type' => 'link', 'href' => '/stories/nonexistent'],
-        ],
-        'children' => [],
-    ]];
+it('resolves each kind of internal destination to its own card', function () {
+    Article::factory()->create(['occurred_at' => '2026-05-04 09:00:00', 'published' => true]);
 
-    $previews = (new BuildLinkPreviews)($blocks);
+    $resolve = fn (string $path): ?array => app(LinkResolvers::class)->resolve($path)?->toArray();
 
-    // Navigation and archive pages are not entries: a chip claiming otherwise
-    // would misrepresent them, so they stay plain.
-    expect(array_keys($previews))->toBe(['/stories/fuel'])
-        ->and($previews['/stories/fuel']['type'])->toBe('story')
-        ->and($previews['/stories/fuel']['title'])->not->toBeEmpty();
+    expect($resolve('/stories/fuel'))->type->toBe('story')
+        ->and($resolve('/flights'))->type->toBe('flight')
+        ->and($resolve('/now'))->type->toBe('live')
+        ->and($resolve('/2026/05'))->type->toBe('period')
+        ->and($resolve('/2026'))->type->toBe('period');
+
+    // An archive says how much is behind it, which is the point of previewing
+    // a page that is a list rather than a thing.
+    expect($resolve('/flights')['excerpt'])->toContain('flight')
+        ->and($resolve('/2026/05')['title'])->toBe('May 2026');
+});
+
+it('gives back nothing for a path no resolver owns', function () {
+    $resolve = fn (string $path): ?array => app(LinkResolvers::class)->resolve($path)?->toArray();
+
+    expect($resolve('/stories/nonexistent'))->toBeNull()
+        ->and($resolve('/tags/not-a-tag'))->toBeNull()
+        ->and($resolve('/1999/01'))->toBeNull()
+        ->and($resolve('/design-system'))->toBeNull();
+});
+
+it('lets a literal route win over the page catch-all', function () {
+    // PageResolver matches any single lowercase segment, so a Page whose slug
+    // collides with a real route must not shadow it.
+    Page::factory()->create(['slug' => 'now', 'title' => 'Not the Now page', 'published' => true]);
+
+    expect(app(LinkResolvers::class)->resolve('/now')->type)->toBe('live');
 });

@@ -104,7 +104,7 @@ class EntryController extends Controller
                 ? FieldRegistry::for($model)
                 : [],
             'linkPreviews' => $model instanceof Article || $model instanceof Note
-                ? (new BuildLinkPreviews)($model->content)
+                ? app(BuildLinkPreviews::class)($model->content)
                 : [],
             'linkFavicons' => $model instanceof Article || $model instanceof Note
                 ? (new BuildLinkFavicons)($model->content)
