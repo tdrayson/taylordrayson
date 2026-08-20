@@ -142,6 +142,7 @@
     /* Motion */
     --animate-fade-in: fade-in 0.25s ease;
     --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
 
     @keyframes fade-in {
         from {
@@ -152,6 +153,19 @@
         to {
             opacity: 1;
             transform: none;
+        }
+    }
+
+    @keyframes ping-slow {
+        0% {
+            transform: scale(1);
+            opacity: 0.75;
+        }
+
+        15%,
+        100% {
+            transform: scale(2);
+            opacity: 0;
         }
     }
 
