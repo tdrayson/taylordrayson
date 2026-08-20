@@ -67,6 +67,13 @@ function isBareUrl(text, href) {
     return typeof text === 'string' && strip(text.trim()) === strip(href);
 }
 
+/** A destination on another site, as opposed to a path or a URL back to this one. */
+function isExternalHref(href) {
+    const host = hostOf(href);
+
+    return host !== null && host !== hostOf(window.location.href);
+}
+
 /**
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
@@ -157,7 +164,10 @@ function renderSpan(span, markDefs, favicons, previews) {
             const def = (markDefs ?? []).find((markDef) => markDef._key === mark);
 
             if (def?._type === 'link' && def.href) {
-                node = def.href.startsWith('http')
+                // By host, not by protocol: an absolute URL to this site is
+                // still an internal link, and treating it as external would
+                // open our own page in a new tab.
+                node = isExternalHref(def.href)
                     ? renderExternalLink(def, node, span.text, favicons)
                     : renderInternalLink(def, node, previews);
             }

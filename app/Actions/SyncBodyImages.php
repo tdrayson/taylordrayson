@@ -30,15 +30,74 @@ class SyncBodyImages
             return $values;
         }
 
+        $edited = false;
+
         foreach ($fields as $field) {
             if (! $field->type->isBody() || ! is_array($values[$field->name] ?? null)) {
                 continue;
             }
 
             $values[$field->name] = $this->rewrite($model, $values[$field->name]);
+            $edited = true;
+        }
+
+        // Absent means "not edited", which is not the same as a document that
+        // no longer mentions an image: an update touching one field must not
+        // delete what it never sent.
+        if ($edited) {
+            $this->detachRemoved($model, $values, $fields);
         }
 
         return $values;
+    }
+
+    /**
+     * Delete any body image the document no longer points at.
+     *
+     * Attaching without this leaks: an image removed in the editor keeps both
+     * its attachment row and its file, and nothing else ever cleans them up.
+     *
+     * @param  array<string, mixed>  $values
+     * @param  list<FieldData>  $fields
+     */
+    private function detachRemoved(Model&HasMedia $model, array $values, array $fields): void
+    {
+        $referenced = [];
+
+        foreach ($fields as $field) {
+            if ($field->type->isBody() && is_array($values[$field->name] ?? null)) {
+                $this->collectUrls($values[$field->name], $referenced);
+            }
+        }
+
+        foreach ($model->refresh()->getMedia(self::COLLECTION) as $media) {
+            if (! in_array($media->getUrl(), $referenced, true)) {
+                $media->delete();
+            }
+        }
+    }
+
+    /**
+     * Every image URL in a document, however deeply nested.
+     *
+     * @param  array<int, mixed>  $document
+     * @param  list<string>  $urls
+     */
+    private function collectUrls(array $document, array &$urls): void
+    {
+        foreach ($document as $node) {
+            if (! is_array($node)) {
+                continue;
+            }
+
+            if (($node['_type'] ?? null) === 'image' && is_string($node['url'] ?? null)) {
+                $urls[] = $node['url'];
+            }
+
+            if (is_array($node['children'] ?? null)) {
+                $this->collectUrls($node['children'], $urls);
+            }
+        }
     }
 
     /**

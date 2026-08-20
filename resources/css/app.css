@@ -599,6 +599,28 @@
     padding: 0.1em 0.3em;
 }
 
+/* A code block, matching the panel CodeBlock.vue renders on the page. Without
+   this a `pre` is unstyled and its `code` keeps the inline treatment, so a
+   whole block reads as a run of inline code. */
+.ProseMirror pre {
+    background: var(--color-neutral-25);
+    border: 1px solid var(--color-neutral-50);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    tab-size: 4;
+}
+
+.ProseMirror pre code {
+    background: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: inherit;
+    white-space: pre;
+}
+
 .ProseMirror a {
     color: var(--color-accent-500);
     text-decoration: underline;
@@ -627,10 +649,22 @@
     border-radius: 2px;
 }
 
-/* Internal links have no host to fetch an icon for, so they read as the entry
-   chip the published page renders instead. */
+/* Internal links have no host to fetch an icon for. They carry a generic entry
+   glyph here; the published page swaps in the real per-type icon, which it can
+   because it has resolved the target. */
 .ProseMirror .editor-link[data-internal]::before {
-    display: none;
+    background: none;
+    width: 0.9em;
+    height: 0.9em;
+    margin-right: 0.2em;
+    vertical-align: -0.1em;
+    -webkit-mask: var(--editor-link-glyph) center/contain no-repeat;
+    mask: var(--editor-link-glyph) center/contain no-repeat;
+    background-color: currentColor;
+}
+
+:root {
+    --editor-link-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1'/%3E%3Cpath d='M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1'/%3E%3C/svg%3E");
 }
 
 .ProseMirror .editor-link[data-internal] {

@@ -41,11 +41,13 @@ function shouldShow({ editor: instance, from, to }) {
 }
 
 /** Open the href field, prefilled when the selection is already a link. */
-/** A destination on another host, which is what defaults to a new tab. */
+/** A destination on another site, which is what defaults to a new tab. */
 function isExternal(value) {
-    const url = String(value ?? '').trim();
-
-    return /^https?:\/\//i.test(url) && ! url.includes(window.location.host);
+    try {
+        return new URL(String(value ?? '').trim(), window.location.href).host !== window.location.host;
+    } catch {
+        return false;
+    }
 }
 
 function startLink() {

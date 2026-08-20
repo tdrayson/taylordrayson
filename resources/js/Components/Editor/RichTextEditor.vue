@@ -45,6 +45,19 @@ let insertBlock = null;
 /** Guards against the editor's own update echoing back in as a prop change. */
 const emitting = ref(false);
 
+/** Replace the typed trigger with a link to what was picked. */
+function insertEntryLink(instance, range, picked) {
+    instance
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent([{ type: 'text', text: picked.label, marks: [{ type: 'link', attrs: { href: picked.url } }] }])
+        // Off the link mark, or the words typed next join the link.
+        .unsetMark('link')
+        .insertContent(' ')
+        .run();
+}
+
 async function fetchCandidates(query) {
     try {
         const response = await fetch(`/mentions/search?q=${encodeURIComponent(query ?? '')}`, {
@@ -69,15 +82,7 @@ const mention = suggestionExtension('entryLinks').configure({
         // A picked entry becomes an ordinary link, so it renders as the same
         // chip a pasted internal URL does and survives a later rename the same
         // way. Nothing bespoke is stored.
-        command: ({ editor: instance, range, props: entry }) => instance
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .insertContent([{ type: 'text', text: entry.label, marks: [{ type: 'link', attrs: { href: entry.url } }] }])
-            // Off the link mark, or the words typed next join the link.
-            .unsetMark('link')
-            .insertContent(' ')
-            .run(),
+        command: ({ editor: instance, range, props: entry }) => insertEntryLink(instance, range, entry),
         items: ({ query }) => fetchCandidates(query),
         render: () => ({
             onStart(p) {

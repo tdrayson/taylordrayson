@@ -24,7 +24,8 @@ function hostOf(href) {
 const Link = TiptapLink.extend({
     renderHTML({ HTMLAttributes }) {
         const href = HTMLAttributes.href ?? '';
-        const host = hostOf(href);
+        // A URL back to this site is internal, however it is written.
+        const host = hostOf(href) === hostOf(window.location.href) ? null : hostOf(href);
 
         return ['span', {
             class: 'editor-link',
