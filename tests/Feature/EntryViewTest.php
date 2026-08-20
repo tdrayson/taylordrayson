@@ -1,9 +1,11 @@
 <?php
 
+use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
+use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
 
@@ -117,4 +119,22 @@ it('returns 404 for an unknown entry slug', function () {
     ]);
 
     get('/2026/03/15/does-not-exist')->assertNotFound();
+});
+
+it('renders a media entry via Inertia', function () {
+    $media = Media::factory()->create([
+        'type' => MediaType::TvEpisode,
+        'title' => 'Episode 1',
+        'occurred_at' => '2026-03-15 21:00:00',
+        'meta' => ['show_title' => 'Jet Lag: The Game', 'season' => 19, 'episode' => 1],
+    ]);
+
+    get('/'.entryUrl($media))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Entry')
+            ->where('type', 'media')
+            ->where('title', 'Episode 1')
+            ->where('entry.meta.show_title', 'Jet Lag: The Game')
+        );
 });
