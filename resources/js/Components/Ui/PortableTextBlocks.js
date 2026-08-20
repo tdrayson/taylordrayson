@@ -116,10 +116,15 @@ function renderExternalLink(def, label, text, favicons) {
 }
 
 /**
- * An internal link that resolves to an entry: a chip carrying the entry type's
- * own glyph and colour, so a reference that keeps you on the site reads
- * differently from one that leaves it. A link with no entry behind it (an
- * archive page, an unpublished target) stays an ordinary link.
+ * An internal link that resolves to an entry: a chip carrying that entry type's
+ * glyph, so a reference that keeps you on the site reads differently from one
+ * that leaves it. A link with no entry behind it (an archive page, an
+ * unpublished target) stays an ordinary link.
+ *
+ * The glyph inherits the chip's own colour rather than taking the type accent:
+ * the shape already says which type it is, and a second hue inside a chip that
+ * is itself an accent object just muddies it (article's is a desaturated
+ * grey-blue, which reads as a dead mark on the fill).
  */
 function renderInternalLink(def, label, previews) {
     const preview = previews[def.href];
@@ -128,17 +133,11 @@ function renderInternalLink(def, label, previews) {
         return h('a', { href: def.href }, label);
     }
 
-    const { icon, accent } = entryType(preview.type);
-
     return h('a', {
         href: def.href,
-        class: 'entry-chip rounded bg-accent-50 px-1 py-0.5 font-medium',
+        class: 'entry-chip box-decoration-clone rounded bg-accent-50 px-1 py-0.5 font-medium',
     }, [
-        h(Icon, {
-            icon,
-            class: 'mb-0.5 mr-1 inline size-3.5 align-middle',
-            style: { color: `var(--color-${preview.accent ?? accent})` },
-        }),
+        h(Icon, { icon: entryType(preview.type).icon, class: 'mb-0.5 mr-1 inline size-3.5 align-middle' }),
         label,
     ]);
 }
