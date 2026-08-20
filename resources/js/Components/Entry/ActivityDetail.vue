@@ -100,7 +100,7 @@ function weightLabel(value) {
 
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />
 
-        <Deferred v-if="!exercises.length" data="profile">
+        <Deferred data="profile">
             <template #fallback>
                 <div class="h-40 w-full animate-pulse rounded-lg bg-neutral-25" />
             </template>

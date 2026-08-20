@@ -20,3 +20,20 @@ it('renders the profile charts on an activity with streams', function () {
     // Rendered DOM: the profile section renders three SVG charts (one per series).
     $page->assertPresent('[data-testid="activity-profile"] svg');
 });
+
+it('renders the profile charts alongside the exercise list on a gym session', function () {
+    $activity = Activity::factory()->create([
+        'type' => 'weight-training',
+        'occurred_at' => now(),
+        'duration' => 1200,
+        'heart_rate' => collect(range(0, 20))
+            ->map(fn ($i) => ['time' => now()->addSeconds($i)->format('Y-m-d H:i:s'), 'bpm' => 120 + $i])
+            ->all(),
+        'meta' => ['sets' => [['exercise' => 'Barbell Skullcrusher', 'reps' => 12, 'weight_kg' => 16]]],
+    ]);
+
+    $page = visit($activity->url());
+
+    $page->assertPresent('[data-testid="activity-profile"] svg')
+        ->assertSee('Barbell Skullcrusher');
+});
