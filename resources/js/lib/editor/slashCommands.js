@@ -1,29 +1,37 @@
 import { Extension } from '@tiptap/core';
+import { PluginKey } from '@tiptap/pm/state';
 import Suggestion from '@tiptap/suggestion';
 
 /**
- * The "/" block menu, built on the same suggestion plugin as @-mentions so both
- * menus behave identically: same keys, same dismissal, same positioning.
+ * A suggestion trigger, built on the same plugin @-mentions and "/" both use so
+ * the two menus behave identically: same keys, same dismissal, same placement.
  *
- * The extension only wires the trigger. Which blocks appear, and what each one
- * inserts, lives in blocks.js.
+ * Named per trigger, and given its own plugin key: the suggestion plugin
+ * defaults to a shared one, and ProseMirror refuses two keyed plugins with the
+ * same key, which takes the whole editor down rather than just the second menu.
+ *
+ * @param {string} name
  */
-export const SlashCommands = Extension.create({
-    name: 'slashCommands',
+export function suggestionExtension(name) {
+    return Extension.create({
+        name,
 
-    addOptions() {
-        return {
-            suggestion: {
-                char: '/',
-                // Mid-word slashes are paths and dates, not a block menu.
-                allowSpaces: false,
-                startOfLine: false,
-                command: ({ editor, range, props }) => props.run(editor, range),
-            },
-        };
-    },
+        addOptions() {
+            return {
+                suggestion: {
+                    // Mid-word triggers are paths and email addresses, not menus.
+                    allowSpaces: false,
+                    startOfLine: false,
+                },
+            };
+        },
 
-    addProseMirrorPlugins() {
-        return [Suggestion({ editor: this.editor, ...this.options.suggestion })];
-    },
-});
+        addProseMirrorPlugins() {
+            return [Suggestion({
+                editor: this.editor,
+                pluginKey: new PluginKey(name),
+                ...this.options.suggestion,
+            })];
+        },
+    });
+}

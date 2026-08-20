@@ -29,7 +29,6 @@ export const PreserveKeys = Extension.create({
                 'image',
                 'video',
                 'callout',
-                'mention',
             ],
             attributes: {
                 _key: { default: null, rendered: false },
@@ -132,3 +131,4 @@ export const Callout = Node.create({
         return ['aside', { 'data-callout': '', ...HTMLAttributes }, 0];
     },
 });
+

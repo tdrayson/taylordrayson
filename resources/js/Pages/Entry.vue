@@ -140,7 +140,6 @@ setLayoutProps({
         :fields="fields"
         :values="editorValues"
         :action="`/entries/${editType}/${entry.id}`"
-        :resolved="mentions"
         class="mt-10"
     />
 

@@ -48,15 +48,15 @@ function spanToText(span, markDefs) {
 }
 
 /**
- * The inline content of a block. A mention is a child alongside spans rather than
- * a mark, since it stores a reference rather than decorating text.
+ * The inline content of a block.
+ *
+ * Mentions are dropped rather than converted: picking an entry now inserts an
+ * ordinary link, and the schema no longer has a mention node to emit one as.
  */
 function inlineContent(block) {
     return (block.children ?? [])
-        .filter((child) => child._type === 'mention' || (child.text ?? '') !== '')
-        .map((child) => child._type === 'mention'
-            ? { type: 'mention', attrs: { _key: child._key, kind: child.kind ?? null, id: child.id ?? null } }
-            : spanToText(child, block.markDefs));
+        .filter((child) => child._type !== 'mention' && (child.text ?? '') !== '')
+        .map((child) => spanToText(child, block.markDefs));
 }
 
 /** A paragraph, heading or blockquote, i.e. any block that is not a list item. */

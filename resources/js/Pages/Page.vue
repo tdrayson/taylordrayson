@@ -51,8 +51,7 @@ const editorValues = computed(() => valuesFor(props.fields, {
             :fields="fields"
             :values="editorValues"
             :action="`/entries/page/${id}`"
-            :resolved="mentions"
-        />
+            />
     </div>
 
     <!-- No width cap here: the heading/excerpt carry their own measure below, and

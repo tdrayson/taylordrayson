@@ -40,7 +40,7 @@ final class MentionSearch
      * Fixed order, so the list does not reshuffle under the arrow keys as the
      * query narrows.
      *
-     * @return list<array{kind: string, group: string, id: int, label: string, detail: string|null}>
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
      */
     public function __invoke(string $query): array
     {
@@ -56,7 +56,7 @@ final class MentionSearch
     }
 
     /**
-     * @return list<array{kind: string, group: string, id: int, label: string, detail: string|null}>
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
      */
     private function articles(string $query): array
     {
@@ -70,6 +70,7 @@ final class MentionSearch
                 'kind' => 'article',
                 'group' => 'Articles',
                 'id' => $article->id,
+                'url' => $article->url(),
                 'label' => $article->title,
                 'detail' => $article->occurred_at?->format('j M Y'),
             ])
@@ -77,7 +78,7 @@ final class MentionSearch
     }
 
     /**
-     * @return list<array{kind: string, group: string, id: int, label: string, detail: string|null}>
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
      */
     private function pages(string $query): array
     {
@@ -91,6 +92,7 @@ final class MentionSearch
                 'kind' => 'page',
                 'group' => 'Pages',
                 'id' => $page->id,
+                'url' => $page->url(),
                 'label' => $page->title,
                 'detail' => '/'.$page->slug,
             ])
@@ -98,7 +100,7 @@ final class MentionSearch
     }
 
     /**
-     * @return list<array{kind: string, group: string, id: int, label: string, detail: string|null}>
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
      */
     private function projects(string $query): array
     {
@@ -111,6 +113,7 @@ final class MentionSearch
                 'kind' => 'project',
                 'group' => 'Projects',
                 'id' => $project->id,
+                'url' => $project->url(),
                 'label' => $project->title,
                 'detail' => $project->status,
             ])
@@ -118,7 +121,7 @@ final class MentionSearch
     }
 
     /**
-     * @return list<array{kind: string, group: string, id: int, label: string, detail: string|null}>
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
      */
     private function events(string $query): array
     {
@@ -131,6 +134,7 @@ final class MentionSearch
                 'kind' => 'event',
                 'group' => 'Events',
                 'id' => $event->id,
+                'url' => $event->url(),
                 'label' => $event->name,
                 'detail' => $event->occurred_at?->format('j M Y'),
             ])
@@ -140,7 +144,7 @@ final class MentionSearch
     /**
      * Notes have no title, so the first words of the content stand in.
      *
-     * @return list<array{kind: string, group: string, id: int, label: string, detail: string|null}>
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
      */
     private function notes(string $query): array
     {
@@ -153,6 +157,7 @@ final class MentionSearch
                 'kind' => 'note',
                 'group' => 'Notes',
                 'id' => $note->id,
+                'url' => $note->url(),
                 'label' => Str::limit(strip_tags((string) $note->content), 60),
                 'detail' => $note->occurred_at?->format('j M Y'),
             ])

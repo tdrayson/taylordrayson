@@ -42,7 +42,7 @@ function choose(value) {
             <ul
                 v-if="open"
                 contenteditable="false"
-                class="absolute -top-1 left-6 z-20 w-40 overflow-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
+                class="absolute -top-1 left-6 z-20 w-40 list-none overflow-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             >
                 <li v-for="option in options" :key="option.value">
                     <button

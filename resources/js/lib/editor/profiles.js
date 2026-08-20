@@ -1,8 +1,46 @@
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
+import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
 import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes';
+
+/** The display host for a URL, or null for an internal path. */
+function hostOf(href) {
+    try {
+        return new URL(href).hostname.toLowerCase().replace(/^www\./, '');
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * The link mark drawn as a span, not an anchor.
+ *
+ * An anchor inside a contenteditable is still an anchor, and a target="_blank"
+ * one is followed by the browser on click whatever the editor does about it.
+ * There is nowhere in a draft you want to be taken, so the address rides on a
+ * data attribute and the toolbar is the only way to reach it.
+ */
+const Link = TiptapLink.extend({
+    renderHTML({ HTMLAttributes }) {
+        const href = HTMLAttributes.href ?? '';
+        const host = hostOf(href);
+
+        return ['span', {
+            class: 'editor-link',
+            'data-href': href,
+            'data-target': HTMLAttributes.target,
+            // An internal link has no host to fetch an icon for, so it reads as
+            // the entry chip the published page renders instead.
+            ...(host
+                // Straight from the icon service while writing; the published
+                // page serves the copy stored at save time, so a reader never
+                // makes a request to a third party.
+                ? { style: `--editor-link-favicon: url(https://icons.duckduckgo.com/ip3/${host}.ico)` }
+                : { 'data-internal': '' }),
+        }, 0];
+    },
+});
 
 /**
  * What each kind of writing is allowed to contain. `document` spreads `prose`
@@ -16,6 +54,9 @@ const PROSE = [
         blockquote: false,
         horizontalRule: false,
         codeBlock: false,
+        // Ours renders as a span rather than an anchor; two marks named `link`
+        // is a duplicate the schema refuses to build.
+        link: false,
     }),
     Link.configure({ openOnClick: false, linkOnPaste: true }),
 ];
@@ -24,6 +65,7 @@ const PROSE = [
 const DOCUMENT = [
     StarterKit.configure({
         heading: { levels: [2, 3, 4, 5, 6] },
+        link: false,
     }),
     // linkOnPaste: a URL pasted over selected words links them rather than
     // replacing them, which is what pasting a link onto text is meant to do.

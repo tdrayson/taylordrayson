@@ -605,6 +605,51 @@
     text-underline-offset: 2px;
 }
 
+/* A link while writing. Not an anchor: see the Link override in profiles.js.
+   The favicon is set as a background image from the DuckDuckGo icon service so
+   it appears the moment a URL is typed, where the published page serves the
+   copy stored at save time. */
+.ProseMirror .editor-link {
+    color: var(--color-accent-500);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.ProseMirror .editor-link::before {
+    content: '';
+    display: inline-block;
+    width: 0.875em;
+    height: 0.875em;
+    margin-right: 0.25em;
+    vertical-align: -0.125em;
+    background: #fff center/contain no-repeat var(--editor-link-favicon, none);
+    border-radius: 2px;
+}
+
+/* Internal links have no host to fetch an icon for, so they read as the entry
+   chip the published page renders instead. */
+.ProseMirror .editor-link[data-internal]::before {
+    display: none;
+}
+
+.ProseMirror .editor-link[data-internal] {
+    background: var(--color-accent-50);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.3em;
+    text-decoration: none;
+    font-weight: 500;
+    box-decoration-break: clone;
+}
+
+/* Says the destination leaves the site, matching the toolbar's own toggle. */
+.ProseMirror .editor-link[data-target="_blank"]::after {
+    content: '↗';
+    font-size: 0.75em;
+    margin-left: 0.15em;
+    vertical-align: 0.15em;
+}
+
 /* The placeholder, shown on an empty line rather than as real content. */
 .ProseMirror p.is-editor-empty:first-child::before,
 .ProseMirror p.is-empty::before {

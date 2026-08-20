@@ -18,7 +18,6 @@ const props = defineProps({
     values: { type: Object, required: true },
     action: { type: String, required: true },
     method: { type: String, default: 'patch' },
-    resolved: { type: Object, default: () => ({}) },
     submitLabel: { type: String, default: 'Post' },
 });
 
@@ -179,7 +178,6 @@ function submit(published = null) {
             v-if="bodyField"
             :field="bodyField"
             :model-value="form[bodyField.name]"
-            :resolved="resolved"
             :error="form.errors[bodyField.name]"
             hide-label
             :class="titleField ? 'mt-4' : ''"
@@ -193,7 +191,6 @@ function submit(published = null) {
                     v-if="row.kind === 'field'"
                     :field="row.field"
                     :model-value="form[row.field.name]"
-                    :resolved="resolved"
                     :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
                     :latitude="form.latitude ?? null"
                     :longitude="form.longitude ?? null"

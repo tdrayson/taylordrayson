@@ -21,8 +21,6 @@ import ImageField from './ImageField.vue';
 const props = defineProps({
     field: { type: Object, required: true },
     modelValue: { type: [String, Number, Boolean, Array, Object], default: null },
-    // kind:id -> resolved mention, forwarded to the rich-text editor.
-    resolved: { type: Object, default: () => ({}) },
     // The body carries no label: the placeholder says what it is.
     hideLabel: { type: Boolean, default: false },
     // The value of the field this one is measured from, when it declares one.
@@ -88,7 +86,6 @@ function textToTags(value) {
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
             placeholder="Write something. Type / for blocks, @ to mention an entry."
-            :resolved="resolved"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

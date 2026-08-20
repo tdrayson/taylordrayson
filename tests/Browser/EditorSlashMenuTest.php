@@ -105,9 +105,11 @@ it('opens the link editor when the caret rests in a link, rather than following 
     // linkOnPaste turns a typed URL into a link as soon as it is complete.
     $page->click('.prose-editor')->typeSlowly('.prose-editor', 'https://github.com ');
 
-    $page->assertScript("document.querySelectorAll('.prose-editor a').length", 1);
+    // A span, not an anchor: a link in a draft is not a destination.
+    $page->assertScript("document.querySelectorAll('.prose-editor .editor-link').length", 1)
+        ->assertScript("document.querySelectorAll('.prose-editor a').length", 0);
 
-    $page->click('.prose-editor a');
+    $page->click('.prose-editor .editor-link');
 
     $page->assertScript("document.querySelector('[aria-label=\"Edit link\"], [aria-label=\"Apply link\"]') !== null", true)
         // Still on the editor: the click must not have navigated away.
@@ -138,7 +140,7 @@ it('toggles whether a link opens in a new tab', function () {
     $page = visit('/new/article');
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', 'https://github.com ');
-    $page->click('.prose-editor a');
+    $page->click('.prose-editor .editor-link');
     $page->click('[aria-label="Edit link"]');
 
     // External defaults to opening away, so the toggle starts pressed.
@@ -147,5 +149,5 @@ it('toggles whether a link opens in a new tab', function () {
     $page->click('[aria-label="Opens in a new tab"]');
     $page->click('[aria-label="Apply link"]');
 
-    $page->assertScript("document.querySelector('.prose-editor a').getAttribute('target')", '_self');
+    $page->assertScript("document.querySelector('.prose-editor .editor-link').getAttribute('data-target')", '_self');
 });

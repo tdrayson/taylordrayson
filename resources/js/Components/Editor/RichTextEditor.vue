@@ -1,20 +1,18 @@
 <script setup>
 import { onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
-import Mention from '@tiptap/extension-mention';
 import TiptapImage from '@tiptap/extension-image';
 import { Callout } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
-import MentionChip from './MentionChip.vue';
 import SuggestionMenu from './SuggestionMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
 import CalloutBlock from './CalloutBlock.vue';
 import ImageBlock from './ImageBlock.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
-import { SlashCommands } from '../../lib/editor/slashCommands';
+import { suggestionExtension } from '../../lib/editor/slashCommands';
 
 /**
  * The writing surface. Speaks Portable Text on both sides: it takes the stored
@@ -26,9 +24,6 @@ const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     profile: { type: String, default: 'document' },
     placeholder: { type: String, default: '' },
-    // kind:id -> {title, url, exists}, so a loaded document can label its
-    // mentions before anything is typed.
-    resolved: { type: Object, default: () => ({}) },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -68,25 +63,21 @@ async function fetchCandidates(query) {
     }
 }
 
-const mention = Mention.extend({
-    // Selectable so a click takes the whole chip: the default leaves it
-    // unselectable, which is what lets a caret land beside its parts.
-    selectable: true,
-
-    addAttributes() {
-        return {
-            kind: { default: null },
-            id: { default: null },
-        };
-    },
-    addNodeView() {
-        return VueNodeViewRenderer(MentionChip);
-    },
-}).configure({
-    // Read by the chip to label a mention without storing the label.
-    resolved: props.resolved,
+const mention = suggestionExtension('entryLinks').configure({
     suggestion: {
         char: '@',
+        // A picked entry becomes an ordinary link, so it renders as the same
+        // chip a pasted internal URL does and survives a later rename the same
+        // way. Nothing bespoke is stored.
+        command: ({ editor: instance, range, props: entry }) => instance
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent([{ type: 'text', text: entry.label, marks: [{ type: 'link', attrs: { href: entry.url } }] }])
+            // Off the link mark, or the words typed next join the link.
+            .unsetMark('link')
+            .insertContent(' ')
+            .run(),
         items: ({ query }) => fetchCandidates(query),
         render: () => ({
             onStart(p) {
@@ -118,10 +109,7 @@ function pick(item) {
         return;
     }
 
-    // Label the chip immediately; the server resolves it properly on save.
-    props.resolved[`${item.kind}:${item.id}`] = { title: item.label, url: null, exists: true };
-
-    insert({ kind: item.kind, id: item.id });
+    insert(item);
     menu.open = false;
 }
 
@@ -136,7 +124,7 @@ function pickBlock(item) {
 
 const blockKeys = suggestionKeys(blockMenu, pickBlock);
 
-const slash = SlashCommands.configure({
+const slash = suggestionExtension('blockMenu').configure({
     suggestion: {
         char: '/',
         allowSpaces: false,
