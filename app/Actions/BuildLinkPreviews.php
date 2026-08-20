@@ -89,6 +89,7 @@ class BuildLinkPreviews
                 'accent' => 'page',
                 'date' => null,
                 'cover' => null,
+                'coverDark' => null,
             ];
         }
 
@@ -104,6 +105,12 @@ class BuildLinkPreviews
     private function fromCard(Model&Timelineable $model, string $href): array
     {
         $card = CardPresenter::for($model);
+        // Same order the timeline card prefers: a real photo, then a poster or
+        // artwork, then the stored route/location map. Only the map has a dark
+        // variant, so coverDark stays null for the other two.
+        $cover = $card->meta->photos[0]->src
+            ?? $card->meta->media?->thumbnail
+            ?? $card->meta->map;
 
         return [
             'url' => $href,
@@ -112,7 +119,8 @@ class BuildLinkPreviews
             'type' => $card->type->value,
             'accent' => $card->accent,
             'date' => $model->occurredAtForDisplay()?->toDateString(),
-            'cover' => $card->meta->photos[0]->src ?? null,
+            'cover' => $cover,
+            'coverDark' => $cover === $card->meta->map ? $card->meta->mapDark : null,
         ];
     }
 }

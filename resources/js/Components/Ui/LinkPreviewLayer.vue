@@ -24,27 +24,50 @@ let closeTimer = null;
 // Touch devices have no hover; skip previews there entirely.
 const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
-// Place the card centered over the link, clamped to the viewport, flipping
-// below the link when there isn't room above.
-function placeFor(el, width, minRoomAbove) {
-    const rect = el.getBoundingClientRect();
-    let left = rect.left + rect.width / 2 - width / 2;
-    left = Math.max(GAP, Math.min(left, window.innerWidth - width - GAP));
-    const placement = rect.top > minRoomAbove ? 'top' : 'bottom';
-    const top = placement === 'top' ? rect.top - GAP : rect.bottom + GAP;
-    return { top, left, placement };
+/**
+ * The line fragment to anchor to. A link that wraps has one box per line, and
+ * the union of them spans both, so centring on it puts the card nowhere near
+ * the words under the pointer. Prefer the fragment the pointer is actually on.
+ */
+function anchorRect(el, point) {
+    const rects = [...el.getClientRects()];
+
+    if (rects.length < 2) {
+        return el.getBoundingClientRect();
+    }
+
+    return (point && rects.find((rect) => point.y >= rect.top && point.y <= rect.bottom)) || rects[0];
 }
 
-function open(el, preview, immediate = false) {
+// Centre over that fragment, clamped to the viewport, flipping below when the
+// card does not actually fit above.
+function placeFor(el, size, point) {
+    const rect = anchorRect(el, point);
+    const left = Math.max(GAP, Math.min(
+        rect.left + rect.width / 2 - size.width / 2,
+        window.innerWidth - size.width - GAP,
+    ));
+    const placement = rect.top > size.height + GAP * 2 ? 'top' : 'bottom';
+
+    return { top: placement === 'top' ? rect.top - GAP : rect.bottom + GAP, left, placement };
+}
+
+function open(el, preview, point, immediate = false) {
     clearTimeout(closeTimer);
     const run = async () => {
         const isUrl = preview.kind === 'url';
-        pos.value = placeFor(el, isUrl ? URL_W : CARD_W, isUrl ? 80 : 280);
+        // An estimate first so the card never paints at 0,0, then the real
+        // measurement once it exists: both kinds are content-sized in at least
+        // one axis, so the true box is only knowable after render.
+        pos.value = placeFor(el, { width: isUrl ? URL_W : CARD_W, height: isUrl ? 40 : 280 }, point);
         active.value = preview;
 
-        if (isUrl) {
-            await nextTick();
-            pos.value = placeFor(el, popEl.value?.getBoundingClientRect().width ?? URL_W, 80);
+        await nextTick();
+
+        const box = popEl.value?.getBoundingClientRect();
+
+        if (box) {
+            pos.value = placeFor(el, { width: box.width, height: box.height }, point);
         }
     };
     if (immediate) {
@@ -97,7 +120,7 @@ function handleMouseOver(event) {
         return;
     }
     openLink = link;
-    open(link, preview);
+    open(link, preview, { y: event.clientY });
 }
 
 function handleMouseOut(event) {
@@ -124,7 +147,7 @@ function handleFocusIn(event) {
         return;
     }
     openLink = link;
-    open(link, preview, true);
+    open(link, preview, null, true);
 }
 
 function handleFocusOut(event) {

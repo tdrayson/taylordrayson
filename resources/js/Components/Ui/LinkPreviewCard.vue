@@ -1,6 +1,6 @@
 <script setup>
 defineProps({
-    // One preview: { url, title, excerpt, type, accent, date, cover }.
+    // One preview: { url, title, excerpt, type, accent, date, cover, coverDark }.
     preview: { type: Object, required: true },
 });
 </script>
@@ -16,6 +16,15 @@ defineProps({
             alt=""
             loading="lazy"
             class="aspect-video w-full object-cover"
+            :class="preview.coverDark ? 'dark:hidden' : ''"
+        >
+
+        <img
+            v-if="preview.coverDark"
+            :src="preview.coverDark"
+            alt=""
+            loading="lazy"
+            class="hidden aspect-video w-full object-cover dark:block"
         >
         <div class="space-y-1.5 p-3">
             <div class="flex items-center gap-2 text-label uppercase tracking-wide">
