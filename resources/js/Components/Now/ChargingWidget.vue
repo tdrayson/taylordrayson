@@ -165,12 +165,12 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
     background: rgba(6, 80, 36, 0.22);
 }
 
-/* Idle (not charging) — a white battery, outlined so it reads on the track. */
-/* On battery — dark, matching the percentage's own colour in this state. A
-   white fill was invisible against the white card. */
+/* On battery — grey rather than near-black. A white fill is invisible against
+   the white card, but the full-strength neutral read as a heavy slab beside the
+   other widgets, so the fill sits two steps up the ramp. */
 .charging__fill--idle {
-    background: linear-gradient(180deg, var(--color-neutral-700), var(--color-neutral-900) 60%);
-    box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.18);
+    background: linear-gradient(180deg, var(--color-neutral-500), var(--color-neutral-700) 60%);
+    box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.12);
 }
 
 .charging__fill--idle::before {
