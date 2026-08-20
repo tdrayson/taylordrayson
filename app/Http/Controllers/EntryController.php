@@ -6,7 +6,6 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
-use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
@@ -25,6 +24,7 @@ use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
+use App\Queries\MediaArtwork;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
@@ -224,8 +224,8 @@ class EntryController extends Controller
             $data['photos'] = $model->galleryPhotos();
         }
 
-        if ($model instanceof Media && $model->type === MediaType::Film) {
-            $data['backdrop'] = $model->optimisedUrl('backdrop');
+        if ($model instanceof Media) {
+            $data = [...$data, ...(new MediaArtwork)($model)];
         }
 
         if ($model instanceof Event) {
