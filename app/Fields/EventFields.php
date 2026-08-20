@@ -20,7 +20,7 @@ final class EventFields
         return [
             FieldData::primary('name', 'Name', FieldType::Title, required: true),
             FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('ends_at', 'Ends', FieldType::DateTime, relativeTo: 'occurred_at'),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, 'Search, or use your location.', source: 'place'),
             FieldData::optional('city', 'City', FieldType::Text, group: 'Address'),

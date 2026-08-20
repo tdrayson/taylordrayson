@@ -35,7 +35,7 @@ final class FuelFields
             FieldData::optional('fuel_card_cost', 'Fuel card cost', FieldType::Number, prefix: '£'),
             FieldData::optional('odometer', 'Odometer', FieldType::Number, suffix: 'mi'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
         ];
     }
 

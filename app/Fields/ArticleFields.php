@@ -24,7 +24,7 @@ final class ArticleFields
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Part of the URL, so changing it moves the article.', defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('slug', 'Slug', FieldType::Slug, 'Generated from the title when left blank.'),
         ];
     }

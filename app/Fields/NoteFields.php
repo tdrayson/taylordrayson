@@ -22,7 +22,7 @@ final class NoteFields
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL this note lives at.', required: true),
         ];
     }
