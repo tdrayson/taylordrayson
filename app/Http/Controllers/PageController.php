@@ -45,12 +45,18 @@ class PageController extends Controller
             throw new NotFoundHttpException;
         }
 
+        $fields = Auth::check() ? FieldRegistry::for($page) : [];
+
         return Inertia::render('Page', [
             'id' => $page->id,
             // ?edit opens the editor in place. Only ever honoured for a
             // signed-in visitor; the save route enforces it again server-side.
             'editing' => Auth::check() && request()->has('edit'),
-            'fields' => Auth::check() ? FieldRegistry::for($page) : [],
+            'fields' => $fields,
+            // Taken from the field list rather than named one by one: a field
+            // the editor offers but has no value for saves back as empty, and
+            // for the slug that means a page that will not save at all.
+            'values' => $page->only(array_column($fields, 'name')),
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'content' => $page->content,

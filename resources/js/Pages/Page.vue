@@ -19,6 +19,8 @@ const props = defineProps({
     editing: { type: Boolean, default: false },
     // Field definitions from FieldRegistry, driving the properties panel.
     fields: { type: Array, default: () => [] },
+    // The record's own value per offered field, for the editor to start from.
+    values: { type: Object, default: () => ({}) },
     og: { type: Object, default: () => ({}) },
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
@@ -31,14 +33,10 @@ setLayoutProps({ minimal: props.editing, breadcrumb: [{ label: props.title }] })
 
 const signedIn = computed(() => usePage().props.signedIn === true);
 
-// Current values for the shared editor, read off the props this page already
-// receives rather than a second copy of the record.
-const editorValues = computed(() => valuesFor(props.fields, {
-    title: props.title,
-    excerpt: props.excerpt,
-    content: props.content,
-    published: props.published,
-}));
+// Straight off the record, not rebuilt from the display props: listing the
+// keys by hand meant any field not on that list opened empty and was saved
+// back empty.
+const editorValues = computed(() => valuesFor(props.fields, props.values));
 </script>
 
 <template>
@@ -59,14 +57,19 @@ const editorValues = computed(() => valuesFor(props.fields, {
          block, so a narrower ancestor would clip the wider (media) blocks. -->
     <article v-else>
         <header>
-            <!-- Unpublished pages are only visible to the logged-in owner; badge them so it's obvious. -->
-            <Pill v-if="!published" label="Draft" variant="accent" class="mb-3" />
             <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
             <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
 
-            <Link v-if="signedIn" :href="`?edit`" class="mt-3 inline-block text-meta text-accent-500 underline underline-offset-2">
-                Edit this page
-            </Link>
+            <!-- Both only mean anything to the owner, so they sit together
+                 below the page rather than the badge interrupting the title.
+                 Unpublished pages are visible to nobody else. -->
+            <div v-if="signedIn || !published" class="mt-3 flex items-center gap-3">
+                <Pill v-if="!published" label="Draft" variant="accent" />
+
+                <Link v-if="signedIn" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">
+                    Edit this page
+                </Link>
+            </div>
         </header>
 
         <BlockContent :document="content" :link-previews="linkPreviews" :link-favicons="linkFavicons" class="mt-8" />
