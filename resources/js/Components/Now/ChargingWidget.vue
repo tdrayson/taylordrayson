@@ -165,7 +165,6 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
     background: rgba(6, 80, 36, 0.22);
 }
 
-/* Grey, not white: a white fill is invisible on the white card. */
 .charging__fill--idle {
     background: linear-gradient(180deg, var(--color-neutral-500), var(--color-neutral-700) 60%);
     box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.12);
