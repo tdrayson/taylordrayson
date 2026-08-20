@@ -63,34 +63,57 @@ class NowController extends Controller
     }
 
     /**
-     * The last seven nights (oldest first) plus the most recent night's stage
-     * split, shaped for the sleep widget. Durations are in hours; returns null
-     * so the widget falls back to its own placeholder when there is no data.
+     * The last seven calendar nights, oldest first, each carrying its own date
+     * so the widget never has to infer one, plus the stage split for whichever
+     * night the headline shows.
      *
-     * @return array{nights: array<int, float>, stageHours: array{deep: float, core: float, rem: float, awake: float}}|null
+     * Dated rather than "the last seven records": taking the seven most recent
+     * rows and counting back from today labelled them with dates they did not
+     * happen on the moment a night was missing.
+     *
+     * A night is attributed to the morning it ends, so the night just gone is
+     * today's row. Missing nights carry a null duration and draw no bar.
+     *
+     * @return array{nights: array<int, array{date: string, hours: float|null}>, lastNight: array{date: string, hours: float, stageHours: array{deep: float, core: float, rem: float, awake: float}}|null}
      */
-    private function recentSleep(): ?array
+    private function recentSleep(): array
     {
-        $nights = Sleep::query()
-            ->latest('occurred_at')
-            ->take(7)
+        $today = Carbon::today();
+        $start = $today->copy()->subDays(6);
+
+        $byDate = Sleep::query()
+            ->where('occurred_at', '>=', $start)
             ->get()
-            ->reverse()
-            ->values();
+            ->keyBy(fn (Sleep $night): string => $night->occurred_at->toDateString());
 
-        if ($nights->isEmpty()) {
-            return null;
-        }
+        $nights = collect(range(0, 6))
+            ->map(function (int $offset) use ($start, $byDate): array {
+                $date = $start->copy()->addDays($offset)->toDateString();
+                $night = $byDate->get($date);
 
-        $last = $nights->last();
+                return [
+                    'date' => $date,
+                    'hours' => $night ? round($night->duration / 3600, 2) : null,
+                ];
+            })
+            ->all();
+
+        // The night just gone, or the one before it. Beyond that there is
+        // nothing recent enough to call last night, and the widget says so.
+        $headline = $byDate->get($today->toDateString())
+            ?? $byDate->get($today->copy()->subDay()->toDateString());
 
         return [
-            'nights' => $nights->map(fn (Sleep $night): float => round($night->duration / 3600, 2))->all(),
-            'stageHours' => [
-                'deep' => round($last->deep / 3600, 2),
-                'core' => round($last->core / 3600, 2),
-                'rem' => round($last->rem / 3600, 2),
-                'awake' => round($last->awake / 3600, 2),
+            'nights' => $nights,
+            'lastNight' => $headline === null ? null : [
+                'date' => $headline->occurred_at->toDateString(),
+                'hours' => round($headline->duration / 3600, 2),
+                'stageHours' => [
+                    'deep' => round($headline->deep / 3600, 2),
+                    'core' => round($headline->core / 3600, 2),
+                    'rem' => round($headline->rem / 3600, 2),
+                    'awake' => round($headline->awake / 3600, 2),
+                ],
             ],
         ];
     }
