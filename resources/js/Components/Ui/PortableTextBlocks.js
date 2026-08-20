@@ -122,10 +122,10 @@ function renderExternalLink(def, label, text, favicons) {
  * that leaves it. A link with no entry behind it (an archive page, an
  * unpublished target) stays an ordinary link.
  *
- * The glyph takes the type's hue; the fill stays neutral. Tinting the fill per
+ * The glyph takes the type's hue and nothing else does. Tinting the fill per
  * type would put a dozen colours through a paragraph and move the text contrast
- * with each one, where a coloured glyph on a constant ground says the same
- * thing and stays legible even for the desaturated types.
+ * with each one; an accent fill is worse still, since accent blue is itself a
+ * hue and fights whichever type colour lands on it.
  */
 function renderInternalLink(def, label, previews) {
     const preview = previews[def.href];
@@ -136,7 +136,7 @@ function renderInternalLink(def, label, previews) {
 
     return h('a', {
         href: def.href,
-        class: 'entry-chip box-decoration-clone rounded bg-accent-50 px-1 py-0.5 font-medium',
+        class: 'entry-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline',
     }, [
         h(Icon, {
             icon: entryType(preview.type).icon,
@@ -335,7 +335,10 @@ function renderCallout(node, favicons, previews) {
     // The outer pt-3 reserves headroom for the label, which sits half above the
     // panel on an absolute -top.
     return h('div', { key: node._key, class: 'not-prose my-8 max-w-media pt-3' }, [
-        h('div', { class: `relative rounded-2xl px-6 pb-5 pt-7 ${variant.panel}` }, [
+        h('div', {
+            class: `callout-panel relative rounded-2xl px-6 pb-5 pt-7 ${variant.panel}`,
+            style: { '--callout-code': variant.code },
+        }, [
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),

@@ -27,7 +27,11 @@ function choose(value) {
 
 <template>
     <NodeViewWrapper class="not-prose my-8 max-w-media pt-3">
-        <div ref="root" :class="['relative rounded-2xl px-6 pb-5 pt-7', variant.panel]">
+        <div
+            ref="root"
+            :class="['callout-panel relative rounded-2xl px-6 pb-5 pt-7', variant.panel]"
+            :style="{ '--callout-code': variant.code }"
+        >
             <button
                 type="button"
                 contenteditable="false"

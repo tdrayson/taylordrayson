@@ -587,6 +587,21 @@
 .ProseMirror li + li { margin-top: 0.375rem; }
 .ProseMirror li > p { margin: 0; }
 
+/* Undo the above inside a block's own chrome. A picker or a line-number gutter
+   is a list in markup only, and these rules are more specific than any utility
+   class on the element, so it would otherwise get markers and list spacing.
+   Keyed on contenteditable, which is what already separates chrome from
+   content everywhere in the editor. */
+.ProseMirror ul[contenteditable="false"],
+.ProseMirror ol[contenteditable="false"],
+.ProseMirror [contenteditable="false"] ul,
+.ProseMirror [contenteditable="false"] ol {
+    list-style: none;
+    padding-left: 0;
+}
+
+.ProseMirror [contenteditable="false"] li + li { margin-top: 0; }
+
 .ProseMirror hr {
     border: 0;
     border-top: 1px solid var(--color-neutral-100);
@@ -597,6 +612,12 @@
     background: var(--color-neutral-25);
     border-radius: 0.25rem;
     padding: 0.1em 0.3em;
+}
+
+/* Inline code inside a callout takes the panel's own hue a shade darker. The
+   default grey chip reads as a patch of some other component laid on top. */
+.callout-panel :where(code) {
+    background: var(--callout-code);
 }
 
 /* A code block, matching the panel CodeBlock.vue renders on the page. Layout
@@ -688,8 +709,11 @@
     --editor-link-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1'/%3E%3Cpath d='M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1'/%3E%3C/svg%3E");
 }
 
+/* Neutral ground and neutral text: the published chip colours its glyph by
+   entry type, and an accent fill would clash with whichever hue that is. */
 .ProseMirror .editor-link[data-internal] {
-    background: var(--color-accent-50);
+    background: var(--color-neutral-25);
+    color: var(--color-neutral-900);
     border-radius: 0.25rem;
     padding: 0.1em 0.3em;
     text-decoration: none;
