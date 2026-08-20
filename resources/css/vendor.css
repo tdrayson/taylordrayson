@@ -1,0 +1,29 @@
+/* Plyr media player — themed to the accent and made to fill its (docking) box. */
+:root {
+    --plyr-color-main: var(--color-accent-500);
+    --plyr-border-radius: var(--radius-lg);
+}
+
+.plyr,
+.plyr--video,
+.plyr--video .plyr__video-wrapper {
+    height: 100%;
+}
+
+.plyr--video .plyr__video-wrapper {
+    padding-bottom: 0 !important;
+}
+
+.plyr--video iframe {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+}
+
+/* GridStack drag chrome: match the widgets' rounded-3xl so corners stay round
+   while dragging/dropping (the placeholder and the drag shadow are otherwise square). */
+.now-grid .grid-stack-item-content,
+.now-grid .grid-stack-placeholder > .placeholder-content {
+    border-radius: 1.5rem;
+}

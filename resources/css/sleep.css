@@ -1,0 +1,45 @@
+/* Staggered reveal for the sleep entry charts */
+@keyframes sleep-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sleep-seg-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-rise {
+    animation: sleep-rise 0.5s ease both;
+}
+
+.hypnogram-seg {
+    animation: sleep-seg-in 0.45s ease both;
+}
+
+.ring-fill {
+    transition: stroke-dashoffset 0.7s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-rise,
+    .hypnogram-seg {
+        animation: none;
+    }
+
+    .ring-fill {
+        transition: none;
+    }
+}

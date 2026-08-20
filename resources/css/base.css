@@ -1,0 +1,103 @@
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--color-neutral-0);
+        color: var(--color-neutral-900);
+        font-family: var(--font-sans);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-display);
+        letter-spacing: -0.025em;
+    }
+
+    /* Clickable elements show a pointer cursor (Tailwind v4 no longer sets it
+       on buttons). Disabled controls keep the default cursor. */
+    button:not(:disabled),
+    label,
+    select,
+    summary,
+    [role='button']:not([aria-disabled='true']) {
+        cursor: pointer;
+    }
+
+    /* Twemoji replaces native emoji glyphs with CDN images (see v-twemoji);
+       size and align them like a character in the surrounding text. */
+    img.emoji {
+        display: inline-block;
+        height: 1em;
+        width: 1em;
+        margin: 0 0.05em 0 0.1em;
+        vertical-align: -0.1em;
+    }
+
+    /* Abbreviations with a title are tooltips, not links: a dotted underline (vs
+       the solid underline used for links) and a help cursor signal "hover me". */
+    abbr[title] {
+        text-decoration: underline dotted;
+        text-decoration-color: var(--color-neutral-300);
+        text-underline-offset: 2px;
+        cursor: help;
+    }
+
+    /* Colour changes on interactive elements always ease rather than snap. */
+    a,
+    button,
+    select,
+    input,
+    textarea,
+    summary,
+    [role='button'] {
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+            text-decoration-color 0.15s ease, fill 0.15s ease, stroke 0.15s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        a,
+        button,
+        select,
+        input,
+        textarea,
+        summary,
+        [role='button'] {
+            transition: none;
+        }
+    }
+}
+
+@layer utilities {
+    .font-display {
+        font-family: var(--font-display);
+    }
+
+    .tnum {
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+/* iOS Safari zooms the page when a focused control's font-size is under 16px.
+   Hold a 16px floor on touch devices; unlayered so it beats text-size utilities.
+
+   `data-text-size` opts an input out. It is a floor, not a cap: a control that
+   is deliberately far larger than 16px has no zoom problem to solve, and
+   clamping it makes a display-sized title render smaller than the body text
+   under it. Only use it where the size is unambiguously above the floor. */
+@media (pointer: coarse) {
+    input:not([data-text-size]),
+    select,
+    textarea,
+    [contenteditable]:not([data-text-size]) {
+        font-size: 16px;
+    }
+}
