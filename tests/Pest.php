@@ -1,9 +1,7 @@
 <?php
 
 use App\Models\Activity;
-use App\Support\OptimisingFileAdder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\MediaLibrary\MediaCollections\FileAdder;
 use Tests\TestCase;
 
 /*
@@ -114,23 +112,6 @@ function activityWithPhoto(string $bytes, string $name = 'photo.jpg'): Activity
     $activity->addMediaFromString($bytes)->usingFileName($name)->toMediaCollection('photos');
 
     return $activity->fresh();
-}
-
-/**
- * An activity whose photo is stored exactly as it arrived, the way every import
- * did before {@see OptimisingFileAdder}. Media stored that way is
- * what `media:optimise` and `media:prune-originals` exist to repair, so testing
- * them needs a way back to it.
- */
-function activityWithUnoptimisedPhoto(string $bytes, string $name = 'photo.jpg'): Activity
-{
-    app()->bind(FileAdder::class, fn ($app): FileAdder => $app->build(FileAdder::class));
-
-    try {
-        return activityWithPhoto($bytes, $name);
-    } finally {
-        app()->bind(FileAdder::class, OptimisingFileAdder::class);
-    }
 }
 
 /**
