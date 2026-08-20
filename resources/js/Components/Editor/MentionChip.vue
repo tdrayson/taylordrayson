@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { NodeViewWrapper } from '@tiptap/vue-3';
+import Icon from '../Ui/Icon.vue';
+import { entryType } from '../../entryTypes';
 
 /**
  * How a mention is drawn while the editor is open. The node stores kind and id
@@ -23,18 +25,28 @@ const resolved = computed(() => {
 const label = computed(() => resolved.value?.title ?? `@${props.node.attrs.kind ?? 'unknown'}`);
 
 const missing = computed(() => resolved.value !== null && resolved.value.exists === false);
+
+// The mention's kind is the entry type, so the chip can carry the same glyph
+// the rendered page shows without resolving anything extra.
+const icon = computed(() => entryType(props.node.attrs.kind)?.icon ?? null);
 </script>
 
 <template>
     <NodeViewWrapper as="span" class="inline">
+        <!-- contenteditable=false: an atom node still lets the caret inside its
+             node view without this, so the chip could be typed into and split. -->
         <span
+            contenteditable="false"
             :class="[
-                'inline-flex items-center rounded px-1 py-0.5 text-meta font-medium',
+                'inline-flex items-center gap-1 rounded px-1 py-0.5 text-meta font-medium',
                 missing
                     ? 'bg-neutral-25 text-neutral-500 line-through'
                     : 'bg-accent-50 text-accent-700',
             ]"
             :title="missing ? 'This entry no longer exists' : null"
-        >{{ label }}</span>
+        >
+            <Icon v-if="icon && ! missing" :icon="icon" class="size-3.5 shrink-0" />
+            {{ label }}
+        </span>
     </NodeViewWrapper>
 </template>

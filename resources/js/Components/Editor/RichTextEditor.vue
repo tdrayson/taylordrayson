@@ -2,12 +2,14 @@
 import { onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import Mention from '@tiptap/extension-mention';
+import { Callout } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
 import MentionChip from './MentionChip.vue';
 import SuggestionMenu from './SuggestionMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
+import CalloutBlock from './CalloutBlock.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { SlashCommands } from '../../lib/editor/slashCommands';
@@ -65,6 +67,10 @@ async function fetchCandidates(query) {
 }
 
 const mention = Mention.extend({
+    // Selectable so a click takes the whole chip: the default leaves it
+    // unselectable, which is what lets a caret land beside its parts.
+    selectable: true,
+
     addAttributes() {
         return {
             kind: { default: null },
@@ -157,9 +163,17 @@ const slash = SlashCommands.configure({
     },
 });
 
+// The panel is drawn as it will be published, and its label doubles as the
+// control that changes which kind it is.
+const callout = Callout.extend({
+    addNodeView() {
+        return VueNodeViewRenderer(CalloutBlock);
+    },
+});
+
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
-    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash }),
+    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash, callout }),
     editorProps: {
         attributes: {
             class: 'prose-editor focus:outline-none min-h-32',

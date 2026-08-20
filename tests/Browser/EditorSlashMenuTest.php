@@ -52,16 +52,28 @@ it('shows a formatting toolbar over a selection', function () {
     $page->assertScript("document.querySelector('[aria-label=\"Bold\"]') !== null", true);
 });
 
-it('inserts a callout of the chosen variant, and keeps it', function () {
+it('inserts a callout and keeps it through the round trip', function () {
     $page = visit('/new/article');
 
-    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/warning');
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/callout');
     $page->keys('.prose-editor', ['Enter']);
 
-    // Survives the round trip: an empty callout is what inserting one produces,
-    // and the schema rejects a callout with no blocks in it.
-    $page->assertScript("document.querySelectorAll('.prose-editor [data-callout]').length", 1)
-        ->assertScript("document.querySelector('.prose-editor [data-callout]').getAttribute('variant')", 'warning');
+    // An empty callout is what inserting one produces, and the schema rejects a
+    // callout holding no blocks, so this is the case that used to disappear.
+    $page->assertScript("document.querySelectorAll('.prose-editor [aria-label=\"Change callout kind\"]').length", 1)
+        ->assertScript("document.querySelector('.prose-editor [aria-label=\"Change callout kind\"]').innerText.trim()", 'NOTE');
+});
+
+it('changes a callout kind from the panel itself', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/callout');
+    $page->keys('.prose-editor', ['Enter']);
+
+    $page->click('[aria-label="Change callout kind"]');
+    $page->click('.prose-editor li:nth-child(4) button');
+
+    $page->assertScript("document.querySelector('.prose-editor [aria-label=\"Change callout kind\"]').innerText.trim()", 'WARNING');
 });
 
 it('scrolls the armed row into view when arrowing past the fold', function () {

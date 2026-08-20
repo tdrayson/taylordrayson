@@ -38,10 +38,13 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string, mention?: object, slash?: object}} options
+ * @param {{placeholder?: string, mention?: object, slash?: object, callout?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null } = {}) {
-    const base = profile === 'document' ? DOCUMENT : PROSE;
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null } = {}) {
+    // The caller's callout replaces the plain node, so the editor can draw it
+    // with its picker while the renderer keeps the bare definition.
+    const base = (profile === 'document' ? DOCUMENT : PROSE)
+        .map((extension) => (callout && extension.name === 'callout' ? callout : extension));
 
     return [
         ...base,

@@ -4,18 +4,8 @@ import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
+import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
 
-// Callout tint per variant (GitHub-alert set). Hues borrow the closest timeline
-// data-type tokens, the palette having no success/warning/danger scale of its
-// own. Chip text stays neutral-900/accent-700: the hue tokens are single values
-// with no dark shade to guarantee contrast.
-const CALLOUT_VARIANTS = {
-    note: { label: 'Note', panel: 'bg-neutral-25', chip: 'bg-neutral-900 text-neutral-0' },
-    tip: { label: 'Tip', panel: 'bg-activity/10', chip: 'bg-activity text-neutral-0' },
-    important: { label: 'Important', panel: 'bg-accent-50', chip: 'bg-accent-500 text-neutral-0' },
-    warning: { label: 'Warning', panel: 'bg-fuel/10', chip: 'bg-fuel text-neutral-900' },
-    caution: { label: 'Caution', panel: 'bg-media/10', chip: 'bg-media text-neutral-0' },
-};
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
 // collapsed to single hyphens, leading/trailing hyphens trimmed.
