@@ -22,12 +22,12 @@ const accentStyle = { color: 'var(--color-media)' };
 const subtitle = computed(() => `${props.series.length} ${props.series.length === 1 ? 'show' : 'shows'} watched`);
 
 setLayoutProps({
-    breadcrumb: [{ label: 'Media', href: '/media' }, { label: 'TV' }],
+    breadcrumb: [{ label: 'Media', href: '/media' }, { label: 'TV series' }],
 });
 </script>
 
 <template>
-    <AppHead :og="{ title: 'TV', heading: 'TV', accent: 'media' }" />
+    <AppHead :og="{ title: 'TV series', heading: 'TV series', accent: 'media' }" />
 
     <header class="relative">
         <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:-left-16 lg:flex" :style="accentStyle">
@@ -35,7 +35,7 @@ setLayoutProps({
         </span>
         <div class="min-w-0">
             <Link href="/media" class="text-eyebrow uppercase transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">Media</Link>
-            <h1 class="mt-1 font-display text-display">TV</h1>
+            <h1 class="mt-1 font-display text-display">TV series</h1>
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>
     </header>

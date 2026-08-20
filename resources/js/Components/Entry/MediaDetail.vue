@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import DetailList from '../Ui/DetailList.vue';
 import Pill from '../Ui/Pill.vue';
-import MediaHero from './MediaHero.vue';
+import MediaHero from '../Ui/MediaHero.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({

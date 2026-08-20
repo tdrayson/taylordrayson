@@ -41,6 +41,6 @@ it('renders the backdrop hero and season overview from TMDB enrichment', functio
 
     $page = visit('/media/tv/severance');
 
-    $page->assertPresent('[data-testid="series-backdrop"]')
+    $page->assertPresent('[data-testid="media-hero"]')
         ->assertPresent('[data-testid="season-overview"]');
 });
