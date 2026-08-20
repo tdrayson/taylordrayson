@@ -38,4 +38,7 @@ storage/backups/
 # Failure screenshots written by Pest browser tests, not artefacts to keep.
 /tests/Browser/Screenshots/
 
+# Scratch snapshots written by the Playwright MCP server.
+/.playwright-mcp/
+
 /docs/superpowers/
