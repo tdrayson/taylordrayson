@@ -59,6 +59,28 @@ export const CodeBlockMeta = Extension.create({
 });
 
 /**
+ * TipTap's image node speaks `src`, while the stored document speaks `url` and
+ * carries a caption and alt text alongside it. Declared here so none of them
+ * are dropped on load.
+ */
+export const ImageMeta = Extension.create({
+    name: 'imageMeta',
+
+    addGlobalAttributes() {
+        return [{
+            types: ['image'],
+            attributes: {
+                url: { default: null, rendered: false },
+                alt: { default: null, rendered: false },
+                caption: { default: null, rendered: false },
+                width: { default: null, rendered: false },
+                height: { default: null, rendered: false },
+            },
+        }];
+    },
+});
+
+/**
  * A video embed. Streams from an external host rather than being uploaded, so
  * the node holds a URL and never a file.
  */

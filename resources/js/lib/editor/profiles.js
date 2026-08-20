@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, CodeBlockMeta, Video, Callout } from './nodes';
+import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes';
 
 /**
  * What each kind of writing is allowed to contain. `document` spreads `prose`
@@ -32,19 +32,22 @@ const DOCUMENT = [
     Video,
     Callout,
     CodeBlockMeta,
+    ImageMeta,
 ];
 
 /**
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string, mention?: object, slash?: object, callout?: object}} options
+ * @param {{placeholder?: string, mention?: object, slash?: object, callout?: object, image?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null } = {}) {
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null } = {}) {
     // The caller's callout replaces the plain node, so the editor can draw it
     // with its picker while the renderer keeps the bare definition.
+    const overrides = { callout, image };
+
     const base = (profile === 'document' ? DOCUMENT : PROSE)
-        .map((extension) => (callout && extension.name === 'callout' ? callout : extension));
+        .map((extension) => overrides[extension.name] ?? extension);
 
     return [
         ...base,

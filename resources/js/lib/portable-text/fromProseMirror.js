@@ -5,10 +5,10 @@
  */
 
 /** ProseMirror mark -> Portable Text decorator. Link is handled separately. */
-const DECORATORS = { bold: 'strong', italic: 'em', code: 'code' };
+const DECORATORS = { bold: 'strong', italic: 'em', code: 'code', underline: 'underline', strike: 'strike-through' };
 
 /** Decorator order is normalised so the same document always serialises identically. */
-const DECORATOR_ORDER = ['strong', 'em', 'code'];
+const DECORATOR_ORDER = ['strong', 'em', 'underline', 'strike-through', 'code'];
 
 let keyCounter = 0;
 
@@ -152,6 +152,8 @@ function customToBlock(node) {
                 _type: node.type,
                 _key: key,
                 url: node.attrs?.url ?? null,
+                // Video carries no alt; the key is simply absent for one.
+                ...(node.type === 'image' ? { alt: node.attrs?.alt ?? null } : {}),
                 caption: node.attrs?.caption ?? null,
                 width: node.attrs?.width ?? null,
                 height: node.attrs?.height ?? null,

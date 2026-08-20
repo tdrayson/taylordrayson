@@ -2,6 +2,7 @@
 import { onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import Mention from '@tiptap/extension-mention';
+import TiptapImage from '@tiptap/extension-image';
 import { Callout } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
@@ -10,6 +11,7 @@ import MentionChip from './MentionChip.vue';
 import SuggestionMenu from './SuggestionMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
 import CalloutBlock from './CalloutBlock.vue';
+import ImageBlock from './ImageBlock.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { SlashCommands } from '../../lib/editor/slashCommands';
@@ -171,12 +173,36 @@ const callout = Callout.extend({
     },
 });
 
+// Drawn as the figure it will become, with its own dropzone while it is empty.
+const image = TiptapImage.extend({
+    addNodeView() {
+        return VueNodeViewRenderer(ImageBlock);
+    },
+});
+
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
-    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash, callout }),
+    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash, callout, image }),
     editorProps: {
         attributes: {
             class: 'prose-editor focus:outline-none min-h-32',
+        },
+        /**
+         * Never leave the draft by clicking a link in it. `openOnClick: false`
+         * stops TipTap opening one, but a target="_blank" anchor is followed by
+         * the browser itself even inside a contenteditable, so the click has to
+         * be swallowed here.
+         */
+        handleClick(view, position, event) {
+            const link = event.target?.closest?.('a');
+
+            if (! link) {
+                return false;
+            }
+
+            event.preventDefault();
+
+            return false;
         },
     },
     onUpdate: ({ editor: instance }) => {

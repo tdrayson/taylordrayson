@@ -75,21 +75,10 @@ export const BLOCKS = [
         id: 'image',
         group: 'Blocks',
         label: 'Image',
-        detail: 'by URL',
         requires: 'image',
-        // Prompted rather than uploaded: an image in the body stores a plain
-        // URL, and nothing yet gives an upload a durable one.
-        run: (editor, range) => {
-            const url = window.prompt('Image URL');
-
-            if (! url) {
-                at(editor, range).run();
-
-                return;
-            }
-
-            at(editor, range).insertContent({ type: 'image', attrs: { url } }).run();
-        },
+        // Inserted empty: the block itself offers the dropzone and the URL
+        // field, which beats answering a prompt before you can see anything.
+        run: (editor, range) => at(editor, range).insertContent({ type: 'image' }).run(),
     },
     {
         id: 'video',

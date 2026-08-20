@@ -26,6 +26,8 @@ trait HasAttachments
         $this->addMediaCollection('map_dark')->singleFile();
         $this->addMediaCollection('backdrop')->singleFile();
         $this->addMediaCollection('logo')->singleFile();
+        // Images dropped inside a document, as opposed to the gallery.
+        $this->addMediaCollection('body');
         $this->addMediaCollection('artwork')->singleFile();
     }
 

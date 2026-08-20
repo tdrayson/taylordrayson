@@ -149,6 +149,10 @@ function renderSpan(span, markDefs, favicons, previews) {
             node = h('em', node);
         } else if (mark === 'code') {
             node = h('code', node);
+        } else if (mark === 'underline') {
+            node = h('u', node);
+        } else if (mark === 'strike-through') {
+            node = h('s', node);
         } else {
             const def = (markDefs ?? []).find((markDef) => markDef._key === mark);
 

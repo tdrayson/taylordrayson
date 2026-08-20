@@ -1,0 +1,125 @@
+<script setup>
+import { computed, ref } from 'vue';
+import { NodeViewWrapper } from '@tiptap/vue-3';
+import Icon from '../Ui/Icon.vue';
+import { uploadPending } from '../../lib/editor/uploads';
+
+/**
+ * An image inside a document. Empty until it has a source, so inserting one
+ * gives you the place to drop a file or paste a URL rather than a prompt.
+ */
+const props = defineProps({
+    node: { type: Object, required: true },
+    updateAttributes: { type: Function, required: true },
+    deleteNode: { type: Function, required: true },
+});
+
+const dragging = ref(false);
+const uploading = ref(false);
+const error = ref(null);
+const typedUrl = ref('');
+
+const url = computed(() => props.node.attrs.url);
+
+async function upload(file) {
+    if (! file?.type?.startsWith('image/')) {
+        return;
+    }
+
+    uploading.value = true;
+    error.value = null;
+
+    try {
+        const parked = await uploadPending(file);
+
+        // The parked URL stands in until the entry saves, at which point the
+        // server attaches the file and rewrites this to where it landed.
+        props.updateAttributes({ url: parked.url, alt: props.node.attrs.alt ?? '' });
+    } catch {
+        error.value = 'That image could not be uploaded.';
+    } finally {
+        uploading.value = false;
+    }
+}
+
+function useTypedUrl() {
+    const value = typedUrl.value.trim();
+
+    if (value !== '') {
+        props.updateAttributes({ url: value });
+    }
+}
+</script>
+
+<template>
+    <NodeViewWrapper class="not-prose my-8 max-w-media">
+        <figure v-if="url" class="group relative">
+            <img :src="url" :alt="node.attrs.alt ?? ''" class="w-full rounded-lg">
+
+            <button
+                type="button"
+                contenteditable="false"
+                class="absolute right-2 top-2 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
+                aria-label="Remove image"
+                @click="deleteNode()"
+            ><Icon name="Delete02Icon" class="size-4" /></button>
+
+            <figcaption contenteditable="false" class="mt-2 space-y-1">
+                <input
+                    :value="node.attrs.caption ?? ''"
+                    type="text"
+                    placeholder="Caption (optional)"
+                    class="w-full bg-transparent text-caption text-neutral-700 placeholder:text-neutral-400 focus:outline-none"
+                    @input="updateAttributes({ caption: $event.target.value })"
+                >
+
+                <!-- Alt is separate from the caption: one describes the picture
+                     for someone who cannot see it, the other comments on it. -->
+                <input
+                    :value="node.attrs.alt ?? ''"
+                    type="text"
+                    placeholder="Alt text, describing the image"
+                    class="w-full bg-transparent text-caption text-neutral-500 placeholder:text-neutral-400 focus:outline-none"
+                    :class="{ 'text-red-600 placeholder:text-red-400': ! node.attrs.alt }"
+                    @input="updateAttributes({ alt: $event.target.value })"
+                >
+            </figcaption>
+        </figure>
+
+        <div
+            v-else
+            contenteditable="false"
+            class="rounded-lg border border-dashed p-4 transition-colors"
+            :class="dragging ? 'border-accent-500 bg-accent-50' : 'border-neutral-100'"
+            @dragover.prevent="dragging = true"
+            @dragleave.prevent="dragging = false"
+            @drop.prevent="dragging = false; upload($event.dataTransfer?.files?.[0])"
+        >
+            <label class="flex min-h-11 cursor-pointer items-center justify-center gap-2 text-meta text-neutral-500 transition-colors hover:text-accent-700">
+                <Icon name="Image01Icon" class="size-4 shrink-0" />
+                <span v-if="uploading">Uploading...</span>
+                <span v-else>Drop an image here, or choose one</span>
+
+                <input type="file" accept="image/*" class="sr-only" @change="upload($event.target.files?.[0])">
+            </label>
+
+            <div class="mt-3 flex items-center gap-2 border-t border-neutral-50 pt-3">
+                <input
+                    v-model="typedUrl"
+                    type="url"
+                    placeholder="or paste an image URL"
+                    class="min-w-0 flex-1 bg-transparent text-meta text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+                    @keydown.enter.prevent="useTypedUrl"
+                >
+
+                <button
+                    type="button"
+                    class="rounded px-2 py-1 text-caption text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    @click="useTypedUrl"
+                >Use</button>
+            </div>
+
+            <p v-if="error" class="mt-2 text-caption text-red-600">{{ error }}</p>
+        </div>
+    </NodeViewWrapper>
+</template>

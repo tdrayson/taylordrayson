@@ -8,7 +8,7 @@
  */
 
 /** Decorator marks that map straight onto a ProseMirror mark of the same meaning. */
-const DECORATORS = { strong: 'bold', em: 'italic', code: 'code' };
+const DECORATORS = { strong: 'bold', em: 'italic', code: 'code', underline: 'underline', 'strike-through': 'strike' };
 
 /**
  * Convert one Portable Text span into a ProseMirror text node, turning its
@@ -130,6 +130,7 @@ function customToNode(node) {
                 attrs: {
                     _key: node._key,
                     url: node.url ?? null,
+                    alt: node.alt ?? null,
                     caption: node.caption ?? null,
                     width: node.width ?? null,
                     height: node.height ?? null,
