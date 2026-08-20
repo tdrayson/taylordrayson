@@ -1,11 +1,15 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 
 /**
- * The formatting bar that appears over a selection. Marks only: blocks are the
- * slash menu's job, so this stays to what you reach for mid-sentence.
+ * The formatting bar over a selection, and the editor's only way to reach a
+ * link: clicking one opens this rather than navigating, since following a link
+ * out of a half-written draft is never what was meant.
+ *
+ * Marks only. Blocks are the slash menu's job, so this stays to what you reach
+ * for mid-sentence.
  */
 const props = defineProps({
     editor: { type: Object, required: true },
@@ -14,6 +18,11 @@ const props = defineProps({
 // Open only while editing the href, so the bar returns to its buttons after.
 const editingLink = ref(false);
 const href = ref('');
+
+// A destination on another host. Relative paths and same-host URLs stay in the
+// tab; everything else is opened in a new one by the renderer.
+const isExternal = computed(() => /^https?:\/\//i.test(href.value.trim())
+    && ! href.value.includes(window.location.host));
 
 const BUTTONS = [
     { mark: 'bold', icon: 'TextBoldIcon', label: 'Bold' },
@@ -24,6 +33,14 @@ const BUTTONS = [
 
 function toggle(mark) {
     props.editor.chain().focus().toggleMark(mark).run();
+}
+
+/**
+ * Over a selection, or with the caret merely resting inside a link: the second
+ * is what makes clicking a link open the bar instead of following it.
+ */
+function shouldShow({ editor: instance, from, to }) {
+    return from !== to || instance.isActive('link');
 }
 
 /** Open the href field, prefilled when the selection is already a link. */
@@ -52,6 +69,7 @@ function cancelLink() {
     <BubbleMenu
         :editor="editor"
         :options="{ placement: 'top' }"
+        :should-show="shouldShow"
         class="flex items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-0 p-1 shadow-lg"
     >
         <template v-if="editingLink">
@@ -64,6 +82,15 @@ function cancelLink() {
                 @keydown.enter.prevent="applyLink"
                 @keydown.esc.prevent="cancelLink"
             >
+
+            <!-- External links open in a new tab when rendered, decided by the
+                 host rather than stored per link, so this reports it. -->
+            <Icon
+                v-if="isExternal"
+                name="ArrowUpRight01Icon"
+                class="size-4 shrink-0 text-neutral-500"
+                title="Opens in a new tab"
+            />
 
             <button
                 type="button"
