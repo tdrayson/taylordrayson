@@ -86,6 +86,7 @@ function textToTags(value) {
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
             placeholder="Write something. Type / for blocks, @ to mention an entry."
+            placeholder-short="Write something."
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

@@ -104,7 +104,7 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string, mention?: object, slash?: object, callout?: object, image?: object, codeBlock?: object}} options
+ * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, codeBlock?: object}} options
  */
 export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, codeBlock = null } = {}) {
     // The caller's callout replaces the plain node, so the editor can draw it
@@ -120,7 +120,11 @@ export function extensionsFor(profile, { placeholder = '', mention = null, slash
         Placeholder.configure({
             // Paragraphs only. An empty heading is a title waiting to be typed,
             // and telling it to "write something" describes the wrong thing.
-            placeholder: ({ node }) => (node.type.name === 'paragraph' ? placeholder : ''),
+            // Called rather than read, so a caller can vary the hint after the
+            // editor is built. Trimming it on a narrow screen needs that.
+            placeholder: ({ node }) => (node.type.name !== 'paragraph'
+                ? ''
+                : (typeof placeholder === 'function' ? placeholder() : placeholder)),
             showOnlyWhenEditable: true,
             // The line the caret is on, and only that one: several blank lines
             // would otherwise each repeat the same hint down the page.

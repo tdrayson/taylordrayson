@@ -185,7 +185,13 @@ function submit(published = null) {
             @fill="applyFill"
         />
 
-        <div v-if="rows.length" class="mt-6 space-y-4">
+        <!-- Ruled off from the writing surface: what follows is metadata about
+             the entry rather than more of the entry. -->
+        <div
+            v-if="rows.length"
+            class="space-y-4"
+            :class="bodyField ? 'mt-12 border-t border-neutral-50 pt-8' : 'mt-6'"
+        >
             <template v-for="row in rows" :key="row.key">
                 <FieldInput
                     v-if="row.kind === 'field'"
