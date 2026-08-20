@@ -128,3 +128,19 @@ it('leaves an already optimised webp alone rather than re-encoding it', function
 
     expect(filesize($stored))->toBe($before);
 });
+
+it('converts a heic upload to webp, since browsers cannot display heic', function () {
+    $source = base_path('tests/Fixtures/photo.heic');
+    $upload = sys_get_temp_dir().'/heic-'.uniqid().'.heic';
+    copy($source, $upload);
+
+    $response = $this->postJson('/media/pending', [
+        'file' => new UploadedFile($upload, 'photo.heic', 'image/heic', null, true),
+    ])->assertOk();
+
+    $stored = PendingUploads::path(substr($response->json('data.id'), strlen('pending:')));
+    $image = new Imagick($stored);
+
+    expect($image->getImageFormat())->toBe('WEBP')
+        ->and(max($image->getImageWidth(), $image->getImageHeight()))->toBeLessThanOrEqual(1920);
+});
