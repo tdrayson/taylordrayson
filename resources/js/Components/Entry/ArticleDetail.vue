@@ -8,6 +8,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
     // Map of href -> preview data for internal content links, forwarded to BlockContent.
     linkPreviews: { type: Object, default: () => ({}) },
+    linkFavicons: { type: Object, default: () => ({}) },
 });
 
 // Normalise the stored document (bare node array or JSON string) the same way
@@ -59,7 +60,7 @@ const headingCount = computed(() => contentNodes.value.filter(
         <div class="relative max-w-media space-y-8">
             <p v-if="entry.excerpt" v-twemoji class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
-            <BlockContent :document="entry.content" :link-previews="linkPreviews" />
+            <BlockContent :document="entry.content" :link-previews="linkPreviews" :link-favicons="linkFavicons" />
 
             <!-- Mounted after BlockContent so its headings are already in the DOM
                  when TableOfContents's onMounted queries for them. -->

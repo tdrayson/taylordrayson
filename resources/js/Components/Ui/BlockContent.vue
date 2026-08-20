@@ -11,6 +11,8 @@ const props = defineProps({
     // Map of href -> preview data for internal content links (page prop from
     // the entry/page controller), forwarded to LinkPreviewLayer.
     linkPreviews: { type: Object, default: () => ({}) },
+    // Map of host -> stored favicon URL, for the external link chips.
+    linkFavicons: { type: Object, default: () => ({}) },
 });
 
 const nodes = computed(() => {
@@ -49,7 +51,7 @@ const contentEl = ref(null);
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
     <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-body text-neutral-900">
-        <PortableTextBlocks :nodes="nodes" @image-click="openImage" />
+        <PortableTextBlocks :nodes="nodes" :favicons="linkFavicons" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
 

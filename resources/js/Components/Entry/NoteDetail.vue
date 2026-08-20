@@ -8,6 +8,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
     // Map of href -> preview card for internal links, forwarded to the renderer.
     linkPreviews: { type: Object, default: () => ({}) },
+    linkFavicons: { type: Object, default: () => ({}) },
 });
 
 const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
@@ -19,7 +20,7 @@ const lightboxIndex = ref(null);
 <template>
     <div class="max-w-prose space-y-4">
         <!-- Notes have no headline, so the content is the page's primary text. -->
-        <BlockContent :document="entry.content" :link-previews="linkPreviews" class="text-lg leading-relaxed" />
+        <BlockContent :document="entry.content" :link-previews="linkPreviews" :link-favicons="linkFavicons" class="text-lg leading-relaxed" />
 
         <ul v-if="photos.length" :class="photos.length > 1 ? 'grid grid-cols-2 gap-2.5' : ''">
             <li v-for="(photo, index) in photos" :key="index">

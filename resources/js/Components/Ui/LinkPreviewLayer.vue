@@ -12,6 +12,7 @@ const props = defineProps({
 const active = ref(null);
 const pos = ref({ top: 0, left: 0, placement: 'top' });
 const CARD_W = 320;
+const URL_W = 360;
 const GAP = 8;
 const OPEN_DELAY = 350;
 const CLOSE_DELAY = 150;
@@ -24,11 +25,11 @@ const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hov
 
 // Place the card centered over the link, clamped to the viewport, flipping
 // below the link when there isn't room above.
-function placeFor(el) {
+function placeFor(el, width, minRoomAbove) {
     const rect = el.getBoundingClientRect();
-    let left = rect.left + rect.width / 2 - CARD_W / 2;
-    left = Math.max(GAP, Math.min(left, window.innerWidth - CARD_W - GAP));
-    const placement = rect.top > 280 ? 'top' : 'bottom';
+    let left = rect.left + rect.width / 2 - width / 2;
+    left = Math.max(GAP, Math.min(left, window.innerWidth - width - GAP));
+    const placement = rect.top > minRoomAbove ? 'top' : 'bottom';
     const top = placement === 'top' ? rect.top - GAP : rect.bottom + GAP;
     return { top, left, placement };
 }
@@ -36,7 +37,8 @@ function placeFor(el) {
 function open(el, preview, immediate = false) {
     clearTimeout(closeTimer);
     const run = () => {
-        pos.value = placeFor(el);
+        const isUrl = preview.kind === 'url';
+        pos.value = placeFor(el, isUrl ? URL_W : CARD_W, isUrl ? 80 : 280);
         active.value = preview;
     };
     if (immediate) {
@@ -65,12 +67,26 @@ let openLink = null;
 // look up `props.previews` live on every event, so they stay correct across
 // Inertia navigations that patch the container's content in place rather
 // than remounting it (per-anchor listeners would otherwise go stale).
+function previewFor(link) {
+    const preview = props.previews[link.getAttribute('href')];
+
+    if (preview) {
+        return { kind: 'card', preview };
+    }
+
+    // No entry behind it, so it points off-site. The href is the whole payload:
+    // the chip shows a shortened label, this shows exactly where it lands.
+    return link.dataset.external !== undefined
+        ? { kind: 'url', url: link.getAttribute('href') }
+        : null;
+}
+
 function handleMouseOver(event) {
     const link = event.target.closest('a[href]');
     if (!link || link === openLink) {
         return;
     }
-    const preview = props.previews[link.getAttribute('href')];
+    const preview = previewFor(link);
     if (!preview) {
         return;
     }
@@ -97,7 +113,7 @@ function handleFocusIn(event) {
     if (!link) {
         return;
     }
-    const preview = props.previews[link.getAttribute('href')];
+    const preview = previewFor(link);
     if (!preview) {
         return;
     }
@@ -164,7 +180,8 @@ onBeforeUnmount(() => {
         <Transition name="fade">
             <div
                 v-if="active"
-                class="fixed z-50 w-80 motion-reduce:transition-none"
+                class="fixed z-50 motion-reduce:transition-none"
+                :class="active.kind === 'url' ? 'w-90' : 'w-80'"
                 :style="{
                     top: `${pos.top}px`,
                     left: `${pos.left}px`,
@@ -173,13 +190,24 @@ onBeforeUnmount(() => {
                 @mouseenter="keepOpen"
                 @mouseleave="scheduleClose"
             >
-                <LinkPreviewCard :preview="active" />
+                <LinkPreviewCard v-if="active.kind === 'card'" :preview="active.preview" />
+
+                <p
+                    v-else
+                    class="url-preview rounded-lg border border-neutral-100 bg-neutral-0 px-2.5 py-1.5 font-mono text-caption text-neutral-500 shadow-card"
+                >{{ active.url }}</p>
             </div>
         </Transition>
     </Teleport>
 </template>
 
 <style scoped>
+/* A URL has no spaces to break on, so it would otherwise push the popover
+   past its own width. */
+.url-preview {
+    overflow-wrap: anywhere;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.12s ease;
