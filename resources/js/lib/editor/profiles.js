@@ -46,12 +46,13 @@ export function extensionsFor(profile, { placeholder = '', mention = null, slash
         ...base,
         PreserveKeys,
         Placeholder.configure({
-            placeholder,
-            // A document is a page you live in, so every empty line offers the
-            // hint. A note is not: a blank third line mid-note is a pause in
-            // writing, and drawing the hint there interrupts it.
+            // Paragraphs only. An empty heading is a title waiting to be typed,
+            // and telling it to "write something" describes the wrong thing.
+            placeholder: ({ node }) => (node.type.name === 'paragraph' ? placeholder : ''),
             showOnlyWhenEditable: true,
-            showOnlyCurrent: profile !== 'document',
+            // The line the caret is on, and only that one: several blank lines
+            // would otherwise each repeat the same hint down the page.
+            showOnlyCurrent: true,
         }),
         ...(mention ? [mention] : []),
         ...(slash ? [slash] : []),

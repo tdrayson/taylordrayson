@@ -172,10 +172,29 @@ const editor = useEditor({
     },
 });
 
-// Only reload when the change came from outside: re-setting content on our own
-// emit would move the caret to the start on every keystroke.
+/**
+ * A document's shape, ignoring keys. Keys are minted fresh for any node that
+ * has none, so two conversions of the same editor state never stringify alike
+ * and a straight comparison would always look like an outside change.
+ */
+function shapeOf(document) {
+    return JSON.stringify(document, (key, value) => (key === '_key' ? undefined : value));
+}
+
+/**
+ * Only reload when the change came from outside.
+ *
+ * The guard cannot be a flag alone: the parent's update arrives a tick later,
+ * by which time the flag is down. Comparing shapes is what makes a new line
+ * survive, because a trailing empty paragraph is dropped on the way out and the
+ * stored document never matches the editor exactly.
+ */
 watch(() => props.modelValue, (value) => {
     if (emitting.value || ! editor.value) {
+        return;
+    }
+
+    if (shapeOf(value) === shapeOf(fromProseMirror(editor.value.getJSON()))) {
         return;
     }
 

@@ -22,6 +22,11 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 defineProps({
     og: { type: Object, default: () => ({}) },
+    // A sample document exercising every link treatment, with the maps the
+    // chips resolve against, exactly as an entry page supplies them.
+    smartLinks: { type: Array, default: () => [] },
+    linkPreviews: { type: Object, default: () => ({}) },
+    linkFavicons: { type: Object, default: () => ({}) },
 });
 
 setLayoutProps({
@@ -250,8 +255,18 @@ function swatchInk(step) {
                 <p class="max-w-prose text-body text-neutral-700">
                     Links in prose use the editor style:
                     <a href="#" class="text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">an inline link</a>.
-                    They come from the editor content; bare URLs are not auto-linked.
                 </p>
+            </div>
+            <div>
+                <div class="ds-sub mb-1.5">Smart links</div>
+                <!-- The real renderer over a real document, so this section
+                     cannot drift from what an entry actually shows. -->
+                <BlockContent
+                    class="max-w-prose"
+                    :document="smartLinks"
+                    :link-previews="linkPreviews"
+                    :link-favicons="linkFavicons"
+                />
             </div>
         </section>
 

@@ -8,7 +8,7 @@ beforeEach(fn () => $this->actingAs(User::factory()->create()));
 it('opens the block menu on a slash and inserts the chosen block', function () {
     $page = visit('/new/article');
 
-    $page->click('.prose-editor')->type('.prose-editor', '/');
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/');
 
     // The rendered menu, not the registry: a block list that never reaches the
     // DOM would still pass a JS-level assertion.
@@ -22,7 +22,7 @@ it('opens the block menu on a slash and inserts the chosen block', function () {
 it('filters the block menu as you type and inserts on enter', function () {
     $page = visit('/new/article');
 
-    $page->click('.prose-editor')->type('.prose-editor', '/quote');
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/quote');
     $page->assertScript("document.querySelectorAll('[role=\"option\"]').length", 1);
 
     $page->keys('.prose-editor', ['Enter']);
@@ -35,7 +35,7 @@ it('filters the block menu as you type and inserts on enter', function () {
 it('shows a formatting toolbar over a selection', function () {
     $page = visit('/new/article');
 
-    $page->click('.prose-editor')->type('.prose-editor', 'format me');
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'format me');
     $page->assertScript("
         (() => {
             const el = document.querySelector('.prose-editor p');

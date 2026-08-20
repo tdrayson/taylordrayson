@@ -10,22 +10,14 @@
 const at = (editor, range) => editor.chain().focus().deleteRange(range);
 
 export const BLOCKS = [
-    {
-        id: 'h2',
+    ...[2, 3, 4].map((level) => ({
+        id: `h${level}`,
         group: 'Headings',
-        label: 'Heading',
-        detail: 'H2',
+        label: `Heading ${level}`,
+        detail: '#'.repeat(level),
         requires: 'heading',
-        run: (editor, range) => at(editor, range).setNode('heading', { level: 2 }).run(),
-    },
-    {
-        id: 'h3',
-        group: 'Headings',
-        label: 'Subheading',
-        detail: 'H3',
-        requires: 'heading',
-        run: (editor, range) => at(editor, range).setNode('heading', { level: 3 }).run(),
-    },
+        run: (editor, range) => at(editor, range).setNode('heading', { level }).run(),
+    })),
     {
         id: 'paragraph',
         group: 'Text',

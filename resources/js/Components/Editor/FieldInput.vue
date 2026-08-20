@@ -87,7 +87,7 @@ function textToTags(value) {
             v-if="field.type === 'rich-text'"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
-            placeholder="Write something. Type @ to mention an entry."
+            placeholder="Write something. Type / for blocks, @ to mention an entry."
             :resolved="resolved"
             @update:model-value="$emit('update:modelValue', $event)"
         />
