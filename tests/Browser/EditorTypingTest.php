@@ -57,7 +57,8 @@ it('still starts a new paragraph when the caret sits in a link', function () {
     $page = visit('/new/article');
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', 'see https://github.com ');
-    $page->assertScript("document.querySelectorAll('.prose-editor a').length", 1);
+    // A span, not an anchor: a link in a draft is not a destination.
+    $page->assertScript("document.querySelectorAll('.prose-editor .editor-link').length", 1);
 
     $page->keys('.prose-editor', ['Enter']);
     $page->typeSlowly('.prose-editor', 'next line');

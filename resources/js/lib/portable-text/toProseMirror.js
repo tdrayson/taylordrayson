@@ -131,6 +131,7 @@ function customToNode(node) {
                     _key: node._key,
                     url: node.url ?? null,
                     alt: node.alt ?? null,
+                    ratio: node.ratio ?? null,
                     caption: node.caption ?? null,
                     width: node.width ?? null,
                     height: node.height ?? null,

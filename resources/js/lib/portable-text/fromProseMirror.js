@@ -153,7 +153,9 @@ function customToBlock(node) {
                 _key: key,
                 url: node.attrs?.url ?? null,
                 // Video carries no alt; the key is simply absent for one.
-                ...(node.type === 'image' ? { alt: node.attrs?.alt ?? null } : {}),
+                ...(node.type === 'image'
+                    ? { alt: node.attrs?.alt ?? null, ratio: node.attrs?.ratio ?? null }
+                    : {}),
                 caption: node.attrs?.caption ?? null,
                 width: node.attrs?.width ?? null,
                 height: node.attrs?.height ?? null,

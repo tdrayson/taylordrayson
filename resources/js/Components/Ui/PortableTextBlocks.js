@@ -122,10 +122,10 @@ function renderExternalLink(def, label, text, favicons) {
  * that leaves it. A link with no entry behind it (an archive page, an
  * unpublished target) stays an ordinary link.
  *
- * The glyph inherits the chip's own colour rather than taking the type accent:
- * the shape already says which type it is, and a second hue inside a chip that
- * is itself an accent object just muddies it (article's is a desaturated
- * grey-blue, which reads as a dead mark on the fill).
+ * The glyph takes the type's hue; the fill stays neutral. Tinting the fill per
+ * type would put a dozen colours through a paragraph and move the text contrast
+ * with each one, where a coloured glyph on a constant ground says the same
+ * thing and stays legible even for the desaturated types.
  */
 function renderInternalLink(def, label, previews) {
     const preview = previews[def.href];
@@ -138,7 +138,11 @@ function renderInternalLink(def, label, previews) {
         href: def.href,
         class: 'entry-chip box-decoration-clone rounded bg-accent-50 px-1 py-0.5 font-medium',
     }, [
-        h(Icon, { icon: entryType(preview.type).icon, class: 'mb-0.5 mr-1 inline size-3.5 align-middle' }),
+        h(Icon, {
+            icon: entryType(preview.type).icon,
+            class: 'mb-0.5 mr-1 inline size-3.5 align-middle',
+            style: preview.accent ? { color: `var(--color-${preview.accent})` } : null,
+        }),
         label,
     ]);
 }

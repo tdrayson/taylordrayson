@@ -1,7 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
+import BlockOptions from './BlockOptions.vue';
+import { blockOptionsFor } from '../../lib/editor/blockOptions';
 
 /**
  * The formatting bar over a selection, and the editor's only way to reach a
@@ -33,12 +35,21 @@ function toggle(mark) {
 }
 
 /**
- * Over a selection, or with the caret merely resting inside a link: the second
- * is what makes clicking a link open the bar instead of following it.
+ * Over a selection, with the caret resting inside a link, or inside a block that
+ * has options. The second is what makes clicking a link open the bar instead of
+ * following it; the third is where a code block's language lives.
  */
 function shouldShow({ editor: instance, from, to }) {
-    return from !== to || instance.isActive('link');
+    return from !== to || instance.isActive('link') || blockOptionsFor(instance) !== null;
 }
+
+// Recomputed per show, since the caret decides which block is being configured.
+const blockDefinition = computed(() => {
+    // Touch the selection so this re-evaluates as the caret moves.
+    props.editor.state.selection;
+
+    return blockOptionsFor(props.editor);
+});
 
 /** Open the href field, prefilled when the selection is already a link. */
 /** A destination on another site, which is what defaults to a new tab. */
@@ -85,8 +96,11 @@ function cancelLink() {
         :editor="editor"
         :options="{ placement: 'top' }"
         :should-show="shouldShow"
-        class="flex items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-0 p-1 shadow-lg"
+        class="flex items-center gap-0.5"
     >
+        <BlockOptions v-if="blockDefinition" :editor="editor" :definition="blockDefinition" />
+
+        <div v-else class="flex items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-0 p-1 shadow-lg">
         <template v-if="editingLink">
             <input
                 v-model="href"
@@ -141,5 +155,6 @@ function cancelLink() {
                 @click="startLink"
             ><Icon name="Link02Icon" class="size-4" /></button>
         </template>
+        </div>
     </BubbleMenu>
 </template>

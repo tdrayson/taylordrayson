@@ -54,7 +54,13 @@ function useTypedUrl() {
 <template>
     <NodeViewWrapper class="not-prose my-8 max-w-media">
         <figure v-if="url" class="group relative">
-            <img :src="url" :alt="node.attrs.alt ?? ''" class="w-full rounded-lg">
+            <img
+                :src="url"
+                :alt="node.attrs.alt ?? ''"
+                class="w-full rounded-lg"
+                :class="node.attrs.ratio && node.attrs.ratio !== 'original' ? 'object-cover' : ''"
+                :style="node.attrs.ratio && node.attrs.ratio !== 'original' ? { aspectRatio: node.attrs.ratio } : null"
+            >
 
             <button
                 type="button"
@@ -64,25 +70,8 @@ function useTypedUrl() {
                 @click="deleteNode()"
             ><Icon name="Delete02Icon" class="size-4" /></button>
 
-            <figcaption contenteditable="false" class="mt-2 space-y-1">
-                <input
-                    :value="node.attrs.caption ?? ''"
-                    type="text"
-                    placeholder="Caption (optional)"
-                    class="w-full bg-transparent text-caption text-neutral-700 placeholder:text-neutral-400 focus:outline-none"
-                    @input="updateAttributes({ caption: $event.target.value })"
-                >
-
-                <!-- Alt is separate from the caption: one describes the picture
-                     for someone who cannot see it, the other comments on it. -->
-                <input
-                    :value="node.attrs.alt ?? ''"
-                    type="text"
-                    placeholder="Alt text, describing the image"
-                    class="w-full bg-transparent text-caption text-neutral-500 placeholder:text-neutral-400 focus:outline-none"
-                    :class="{ 'text-red-600 placeholder:text-red-400': ! node.attrs.alt }"
-                    @input="updateAttributes({ alt: $event.target.value })"
-                >
+            <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-caption text-neutral-500">
+                {{ node.attrs.caption }}
             </figcaption>
         </figure>
 

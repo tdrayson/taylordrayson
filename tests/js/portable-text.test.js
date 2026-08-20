@@ -107,7 +107,7 @@ describe('portable text round trip', () => {
     ]);
 
     survives('an image', [
-        { _type: 'image', _key: 'm1', url: '/storage/1/a.jpg', alt: 'A dog', caption: 'A caption', width: 1200, height: 800 },
+        { _type: 'image', _key: 'm1', url: '/storage/1/a.jpg', alt: 'A dog', ratio: '16/9', caption: 'A caption', width: 1200, height: 800 },
     ]);
 
     survives('a video', [

@@ -22,6 +22,26 @@ function hostOf(href) {
  * data attribute and the toolbar is the only way to reach it.
  */
 const Link = TiptapLink.extend({
+    /**
+     * Anchors, plus this mark's own output.
+     *
+     * Copying from the editor puts spans on the clipboard, not anchors, so
+     * without the second rule pasting the editor's own content back into it
+     * drops every link in the selection.
+     */
+    parseHTML() {
+        return [
+            { tag: 'a[href]' },
+            {
+                tag: 'span[data-href]',
+                getAttrs: (element) => ({
+                    href: element.getAttribute('data-href'),
+                    target: element.getAttribute('data-target'),
+                }),
+            },
+        ];
+    },
+
     renderHTML({ HTMLAttributes }) {
         const href = HTMLAttributes.href ?? '';
         // A URL back to this site is internal, however it is written.

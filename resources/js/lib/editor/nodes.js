@@ -46,6 +46,38 @@ export const PreserveKeys = Extension.create({
 export const CodeBlockMeta = Extension.create({
     name: 'codeBlockMeta',
 
+    /**
+     * Tab indents inside a code block rather than leaving it. Everywhere else
+     * Tab belongs to the browser, moving focus to the next control, so this is
+     * deliberately scoped to the one place indentation is the point.
+     */
+    addKeyboardShortcuts() {
+        return {
+            Tab: () => {
+                if (! this.editor.isActive('codeBlock')) {
+                    return false;
+                }
+
+                return this.editor.commands.insertContent('    ');
+            },
+            'Shift-Tab': () => {
+                if (! this.editor.isActive('codeBlock')) {
+                    return false;
+                }
+
+                const { state } = this.editor;
+                const { from } = state.selection;
+                const line = state.doc.textBetween(Math.max(0, from - 4), from);
+
+                // Only unindent a full stop's worth of spaces, so Shift-Tab
+                // never eats code.
+                return line === '    '
+                    ? this.editor.commands.deleteRange({ from: from - 4, to: from })
+                    : true;
+            },
+        };
+    },
+
     addGlobalAttributes() {
         return [{
             types: ['codeBlock'],
@@ -71,6 +103,7 @@ export const ImageMeta = Extension.create({
             attributes: {
                 url: { default: null, rendered: false },
                 alt: { default: null, rendered: false },
+                ratio: { default: null, rendered: false },
                 caption: { default: null, rendered: false },
                 width: { default: null, rendered: false },
                 height: { default: null, rendered: false },

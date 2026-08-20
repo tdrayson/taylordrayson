@@ -113,7 +113,7 @@ it('opens the link editor when the caret rests in a link, rather than following 
 
     $page->assertScript("document.querySelector('[aria-label=\"Edit link\"], [aria-label=\"Apply link\"]') !== null", true)
         // Still on the editor: the click must not have navigated away.
-        ->assertScript("window.location.pathname", '/new/article');
+        ->assertScript('window.location.pathname', '/new/article');
 });
 
 it('offers underline alongside the other marks', function () {
@@ -150,4 +150,29 @@ it('toggles whether a link opens in a new tab', function () {
     $page->click('[aria-label="Apply link"]');
 
     $page->assertScript("document.querySelector('.prose-editor .editor-link').getAttribute('data-target')", '_self');
+});
+
+it('keeps existing links when the editor content is pasted back in', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'see https://github.com here');
+    $page->assertScript("document.querySelectorAll('.prose-editor .editor-link').length", 1);
+
+    // Copying from the editor puts spans on the clipboard, not anchors, so this
+    // is the case where the mark has to recognise its own output.
+    $page->assertScript("
+        (() => {
+            const el = document.querySelector('.prose-editor');
+            const html = el.innerHTML;
+            el.focus();
+            document.execCommand('selectAll');
+            const data = new DataTransfer();
+            data.setData('text/html', html);
+            el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+            return true;
+        })()
+    ", true);
+
+    $page->assertScript("document.querySelectorAll('.prose-editor .editor-link').length > 0", true)
+        ->assertScript("document.querySelector('.prose-editor .editor-link').getAttribute('data-href')", 'https://github.com');
 });
