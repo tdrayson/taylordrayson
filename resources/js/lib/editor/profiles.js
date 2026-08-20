@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, Video, Callout } from './nodes';
+import { PreserveKeys, CodeBlockMeta, Video, Callout } from './nodes';
 
 /**
  * What each kind of writing is allowed to contain. `document` spreads `prose`
@@ -31,6 +31,7 @@ const DOCUMENT = [
     Image,
     Video,
     Callout,
+    CodeBlockMeta,
 ];
 
 /**

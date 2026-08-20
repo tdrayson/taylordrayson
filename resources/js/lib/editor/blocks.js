@@ -53,15 +53,17 @@ export const BLOCKS = [
         requires: 'codeBlock',
         run: (editor, range) => at(editor, range).toggleCodeBlock().run(),
     },
-    {
-        id: 'callout',
-        group: 'Blocks',
-        label: 'Callout',
+    // One row per variant, matching CALLOUT_VARIANTS in the renderer: picking
+    // the kind up front beats inserting a note and changing it after.
+    ...['note', 'tip', 'important', 'warning', 'caution'].map((variant) => ({
+        id: `callout-${variant}`,
+        group: 'Callouts',
+        label: `${variant.charAt(0).toUpperCase()}${variant.slice(1)} callout`,
         requires: 'callout',
         run: (editor, range) => at(editor, range)
-            .insertContent({ type: 'callout', attrs: { variant: 'note' }, content: [{ type: 'paragraph' }] })
+            .insertContent({ type: 'callout', attrs: { variant }, content: [{ type: 'paragraph' }] })
             .run(),
-    },
+    })),
     {
         id: 'divider',
         group: 'Blocks',

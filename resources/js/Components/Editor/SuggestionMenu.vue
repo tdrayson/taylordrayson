@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 /**
  * The menu behind both suggestion triggers, @-mentions and the "/" block list.
@@ -16,6 +16,20 @@ const props = defineProps({
 });
 
 defineEmits(['pick']);
+
+const list = ref(null);
+
+/**
+ * Keep the armed row in view. The list scrolls, so arrowing past its edge would
+ * otherwise move a selection the reader cannot see.
+ */
+watch(() => props.active, async () => {
+    await nextTick();
+
+    list.value
+        ?.querySelector('[aria-selected="true"]')
+        ?.scrollIntoView({ block: 'nearest' });
+});
 
 // Grouped for display while `items` stays flat, since the arrow keys move
 // through one list regardless of where the group boundaries fall.
@@ -68,6 +82,7 @@ const style = computed(() => {
 
 <template>
     <div
+        ref="list"
         class="fixed z-50 max-h-64 overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
         :style="style"
         role="listbox"

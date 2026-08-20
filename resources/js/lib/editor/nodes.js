@@ -39,6 +39,26 @@ export const PreserveKeys = Extension.create({
 });
 
 /**
+ * `language` comes from StarterKit's code block, but `filename` and
+ * `lineNumbers` do not exist there. Undeclared attributes are dropped on load,
+ * so without this, opening an article silently strips both from every code
+ * block it contains.
+ */
+export const CodeBlockMeta = Extension.create({
+    name: 'codeBlockMeta',
+
+    addGlobalAttributes() {
+        return [{
+            types: ['codeBlock'],
+            attributes: {
+                filename: { default: null, rendered: false },
+                lineNumbers: { default: null, rendered: false },
+            },
+        }];
+    },
+});
+
+/**
  * A video embed. Streams from an external host rather than being uploaded, so
  * the node holds a URL and never a file.
  */

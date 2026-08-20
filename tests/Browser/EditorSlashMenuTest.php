@@ -51,3 +51,38 @@ it('shows a formatting toolbar over a selection', function () {
 
     $page->assertScript("document.querySelector('[aria-label=\"Bold\"]') !== null", true);
 });
+
+it('inserts a callout of the chosen variant, and keeps it', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/warning');
+    $page->keys('.prose-editor', ['Enter']);
+
+    // Survives the round trip: an empty callout is what inserting one produces,
+    // and the schema rejects a callout with no blocks in it.
+    $page->assertScript("document.querySelectorAll('.prose-editor [data-callout]').length", 1)
+        ->assertScript("document.querySelector('.prose-editor [data-callout]').getAttribute('variant')", 'warning');
+});
+
+it('scrolls the armed row into view when arrowing past the fold', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '/');
+
+    // Enough rows to overflow the menu's max height, so the last is out of sight.
+    $page->assertScript("document.querySelectorAll('[role=\"option\"]').length > 8", true);
+
+    $count = 12;
+    for ($i = 0; $i < $count; $i++) {
+        $page->keys('.prose-editor', ['ArrowDown']);
+    }
+
+    $page->assertScript("
+        (() => {
+            const row = document.querySelector('[aria-selected=\"true\"]');
+            const box = row.closest('[role=\"listbox\"]').getBoundingClientRect();
+            const rect = row.getBoundingClientRect();
+            return rect.top >= box.top - 1 && rect.bottom <= box.bottom + 1;
+        })()
+    ", true);
+});

@@ -152,12 +152,17 @@ function customToNode(node) {
             };
         case 'divider':
             return { type: 'horizontalRule', attrs: { _key: node._key } };
-        case 'callout':
+        case 'callout': {
+            const content = toProseMirror(node.children ?? []).content;
+
             return {
                 type: 'callout',
                 attrs: { _key: node._key, variant: node.variant ?? 'note' },
-                content: toProseMirror(node.children ?? []).content,
+                // `block+`: an empty callout is rejected outright, and one is
+                // exactly what inserting a fresh callout produces.
+                content: content.length ? content : [{ type: 'paragraph' }],
             };
+        }
         default:
             return null;
     }
