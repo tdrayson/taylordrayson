@@ -20,12 +20,12 @@ final class ArticleFields
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('published', 'Published', FieldType::Published),
-            FieldData::optional('excerpt', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY),
+            FieldData::optional('excerpt', 'Summary', FieldType::Textarea),
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
-            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Part of the URL, so changing it moves the article.', defaultsToNow: true),
+            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('slug', 'Slug', FieldType::Slug, 'Generated from the title when left blank.'),
+            FieldData::optional('slug', 'Slug', FieldType::Slug),
         ];
     }
 }

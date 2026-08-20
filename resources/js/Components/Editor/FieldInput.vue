@@ -87,7 +87,7 @@ function textToTags(value) {
             v-if="field.type === 'rich-text'"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
-            :placeholder="field.help || 'Write something. Type @ to mention an entry.'"
+            placeholder="Write something. Type @ to mention an entry."
             :resolved="resolved"
             @update:model-value="$emit('update:modelValue', $event)"
         />
@@ -116,7 +116,7 @@ function textToTags(value) {
             v-else-if="field.type === 'boolean'"
             :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3 text-neutral-900']"
         >
-            <span>{{ field.help || field.label }}</span>
+            <span>{{ field.label }}</span>
 
             <Switch
                 :id="field.name"
@@ -173,7 +173,6 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source"
-            :placeholder="field.help ?? ''"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -183,7 +182,6 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source ?? 'place'"
-            :placeholder="field.help ?? ''"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -213,21 +211,8 @@ function textToTags(value) {
             class="mt-3 overflow-hidden rounded-lg"
         />
 
-        <!-- The error replaces the help rather than stacking under it: what is
-             wrong now matters more than what the field is for. -->
         <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
 
-        <!-- The field's own help describes filling it in, which is no longer
-             something that can happen. -->
         <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
-
-        <!-- Lookup and location fields already show the help as their
-             placeholder, and a boolean shows it beside the toggle. -->
-        <p
-            v-else-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
-            class="mt-1 text-caption text-neutral-500"
-        >
-            {{ field.help }}
-        </p>
     </div>
 </template>

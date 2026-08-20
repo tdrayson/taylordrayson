@@ -27,7 +27,6 @@ trait HasAttachments
         $this->addMediaCollection('backdrop')->singleFile();
         $this->addMediaCollection('logo')->singleFile();
         $this->addMediaCollection('artwork')->singleFile();
-        $this->addMediaCollection('audio')->singleFile();
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -36,7 +35,6 @@ trait HasAttachments
             ->fit(Fit::Max, 640, 640)
             ->format('webp')
             ->quality(78)
-            // Not `audio`: an image conversion pointed at an MP3 fails every time.
             ->performOnCollections('cover', 'photos', 'artwork')
             ->withResponsiveImages();
     }

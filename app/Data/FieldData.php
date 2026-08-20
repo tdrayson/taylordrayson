@@ -27,7 +27,6 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public FieldType $type,
         public bool $primary,
         public bool $required,
-        public ?string $help,
         public array $options,
         public ?string $source,
         public bool $defaultsToNow,
@@ -45,9 +44,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null): self
+    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false);
+        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false);
     }
 
     /**
@@ -55,9 +54,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null): self
+    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null): self
     {
-        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false);
+        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false);
     }
 
     /**
@@ -66,7 +65,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function hidden(string $name, string $label, FieldType $type): self
     {
-        return new self($name, $label, $type, false, false, null, [], null, false, null, null, null, null, null, true);
+        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true);
     }
 
     /**
@@ -84,10 +83,6 @@ final readonly class FieldData implements Arrayable, JsonSerializable
             'isTitle' => $this->type->isTitle(),
             'isPublished' => $this->type->isPublished(),
         ];
-
-        if ($this->help !== null) {
-            $data['help'] = $this->help;
-        }
 
         if ($this->options !== []) {
             $data['options'] = $this->options;

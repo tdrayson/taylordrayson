@@ -21,11 +21,11 @@ final class BookFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('title', 'Title', FieldType::Lookup, 'Search Hardcover.', required: true, source: 'book'),
+            FieldData::primary('title', 'Title', FieldType::Lookup, required: true, source: 'book'),
             FieldData::primary('meta.author', 'Author', FieldType::Text, required: true),
             FieldData::primary('occurred_at', 'Finished', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('rating', 'Rating', FieldType::Number, 'Out of 10.'),
+            FieldData::optional('rating', 'Rating', FieldType::Number),
             FieldData::optional('meta.year', 'Published', FieldType::Number),
             FieldData::optional('meta.isbn', 'ISBN', FieldType::Text),
         ];

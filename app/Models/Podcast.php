@@ -54,15 +54,6 @@ class Podcast extends Model implements HasMedia, Timelineable
     }
 
     /**
-     * The episode audio: the mirrored copy once stored, otherwise the publisher's
-     * URL, so the player keeps working while the archive fills up.
-     */
-    public function audioSrc(): ?string
-    {
-        return $this->getFirstMediaUrl('audio') ?: $this->audio_url;
-    }
-
-    /**
      * The wide 16:9 episode art, mirrored copy first. Serves the optimised
      * `card` conversion rather than the stored original, as covers elsewhere do.
      */
