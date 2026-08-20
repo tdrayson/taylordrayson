@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\PendingUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Image\Image;
 
 beforeEach(fn () => $this->actingAs(User::factory()->create()));
 
@@ -109,4 +110,21 @@ it('leaves a gif alone rather than flattening it', function () {
     $path = PendingUploads::path(substr($response->json('data.id'), strlen('pending:')));
 
     expect($path)->toEndWith('.gif');
+});
+
+it('leaves an already optimised webp alone rather than re-encoding it', function () {
+    $source = sys_get_temp_dir().'/source-'.uniqid().'.jpg';
+    UploadedFile::fake()->image('already.jpg', 1000, 700)->move(dirname($source), basename($source));
+
+    $webp = sys_get_temp_dir().'/already-'.uniqid().'.webp';
+    Image::load($source)->format('webp')->quality(82)->save($webp);
+    $before = filesize($webp);
+
+    $response = $this->postJson('/media/pending', [
+        'file' => new UploadedFile($webp, 'already.webp', 'image/webp', null, true),
+    ])->assertOk();
+
+    $stored = PendingUploads::path(substr($response->json('data.id'), strlen('pending:')));
+
+    expect(filesize($stored))->toBe($before);
 });
