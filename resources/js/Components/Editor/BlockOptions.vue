@@ -51,7 +51,7 @@ function update(name, value) {
                 class="rounded-md border border-neutral-100 bg-neutral-0 px-2 py-1 text-meta text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 @change="update(field.name, $event.target.value || null)"
             >
-                <option value="">{{ field.label }}</option>
+                <option value="">{{ field.empty ?? field.label }}</option>
                 <option v-for="option in field.options" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
 

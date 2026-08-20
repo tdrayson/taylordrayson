@@ -5,8 +5,12 @@
  * knowing anything about the block itself.
  */
 
-/** Languages offered for a code block, matching what the renderer highlights. */
-const LANGUAGES = ['bash', 'css', 'html', 'javascript', 'json', 'php', 'python', 'sql', 'vue', 'yaml']
+/**
+ * Only the grammars registered in lowlight.js and CodeBlock.vue. Offering one
+ * that is not registered looks like highlighting is broken, when in fact the
+ * language was never loaded.
+ */
+const LANGUAGES = ['bash', 'css', 'javascript', 'json', 'php', 'sql', 'typescript', 'xml', 'yaml']
     .map((value) => ({ value, label: value }));
 
 export const BLOCK_OPTIONS = {
@@ -15,7 +19,7 @@ export const BLOCK_OPTIONS = {
         label: 'Code',
         icon: 'SourceCodeIcon',
         fields: [
-            { name: 'language', label: 'Language', type: 'select', options: LANGUAGES },
+            { name: 'language', label: 'Language', type: 'select', options: LANGUAGES, empty: 'Auto' },
             { name: 'filename', label: 'Filename', type: 'text', wide: true },
             { name: 'lineNumbers', label: 'Line numbers', type: 'boolean' },
         ],

@@ -87,6 +87,8 @@ const DOCUMENT = [
     StarterKit.configure({
         heading: { levels: [2, 3, 4, 5, 6] },
         link: false,
+        // Replaced by the lowlight code block, which highlights as you type.
+        codeBlock: false,
     }),
     // linkOnPaste: a URL pasted over selected words links them rather than
     // replacing them, which is what pasting a link onto text is meant to do.
@@ -102,9 +104,9 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string, mention?: object, slash?: object, callout?: object, image?: object}} options
+ * @param {{placeholder?: string, mention?: object, slash?: object, callout?: object, image?: object, codeBlock?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null } = {}) {
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, codeBlock = null } = {}) {
     // The caller's callout replaces the plain node, so the editor can draw it
     // with its picker while the renderer keeps the bare definition.
     const overrides = { callout, image };
@@ -126,5 +128,8 @@ export function extensionsFor(profile, { placeholder = '', mention = null, slash
         }),
         ...(mention ? [mention] : []),
         ...(slash ? [slash] : []),
+        // Appended rather than swapped in: StarterKit's own code block is off,
+        // so there is nothing in the base list to replace.
+        ...(codeBlock && profile === 'document' ? [codeBlock] : []),
     ];
 }

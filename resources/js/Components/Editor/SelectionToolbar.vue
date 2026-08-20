@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 import BlockOptions from './BlockOptions.vue';
@@ -35,21 +35,107 @@ function toggle(mark) {
 }
 
 /**
- * Over a selection, with the caret resting inside a link, or inside a block that
- * has options. The second is what makes clicking a link open the bar instead of
- * following it; the third is where a code block's language lives.
+ * Over a selection, or with the caret resting inside a link, which is what makes
+ * clicking a link open the bar instead of following it.
+ *
+ * Block options are deliberately not here: they belong to the block, not to
+ * where the caret happens to be, so they get their own panel below.
  */
 function shouldShow({ editor: instance, from, to }) {
-    return from !== to || instance.isActive('link') || blockOptionsFor(instance) !== null;
+    return from !== to || instance.isActive('link');
 }
 
-// Recomputed per show, since the caret decides which block is being configured.
-const blockDefinition = computed(() => {
-    // Touch the selection so this re-evaluates as the caret moves.
-    props.editor.state.selection;
+// Tracked rather than computed: the caret moving is an editor event, not a
+// reactive dependency Vue can see on its own.
+const block = ref(null);
+const panel = ref(null);
 
-    return blockOptionsFor(props.editor);
+// Set by a click outside, cleared the moment the editor is used again. A flag
+// rather than a focus check: focus moves into the panel's own fields, and a
+// blur fires before the new element is current, so neither says what is meant.
+let dismissed = false;
+
+/**
+ * The configurable block the caret is inside, with the screen rect of its own
+ * element. Anchoring to the element rather than the selection is what stops the
+ * panel drifting along the line as you type.
+ */
+function trackBlock() {
+    const definition = dismissed ? null : blockOptionsFor(props.editor);
+
+    if (! definition) {
+        block.value = null;
+
+        return;
+    }
+
+    const { selection } = props.editor.state;
+    const { $from } = selection;
+    let position = null;
+
+    // A leaf like an image is selected, never entered, so there is no ancestor
+    // to walk up to: the selection itself is the node.
+    if (selection.node?.type.name === definition.type) {
+        position = $from.pos;
+    } else {
+        for (let depth = $from.depth; depth > 0; depth--) {
+            if ($from.node(depth).type.name === definition.type) {
+                position = $from.before(depth);
+                break;
+            }
+        }
+    }
+
+    const element = position === null ? null : props.editor.view.nodeDOM(position);
+
+    block.value = element?.getBoundingClientRect
+        ? { definition, rect: element.getBoundingClientRect() }
+        : null;
+}
+
+/**
+ * Anything outside the block and its panel puts it away. The caret leaving is
+ * already handled by trackBlock, but clicking elsewhere on the page leaves the
+ * selection where it was, so the panel would otherwise stay up over a block
+ * nobody is editing.
+ */
+function onDocumentPointerDown(event) {
+    const inPanel = panel.value?.contains(event.target);
+    const inEditor = props.editor.view.dom.contains(event.target);
+
+    dismissed = ! inPanel && ! inEditor;
+
+    if (dismissed) {
+        block.value = null;
+    }
+}
+
+onMounted(() => {
+    props.editor.on('selectionUpdate', trackBlock);
+    props.editor.on('transaction', trackBlock);
+
+    window.addEventListener('scroll', trackBlock, true);
+    window.addEventListener('resize', trackBlock);
+    document.addEventListener('pointerdown', onDocumentPointerDown, true);
 });
+
+onBeforeUnmount(() => {
+    props.editor.off('selectionUpdate', trackBlock);
+    props.editor.off('transaction', trackBlock);
+
+    window.removeEventListener('scroll', trackBlock, true);
+    window.removeEventListener('resize', trackBlock);
+    document.removeEventListener('pointerdown', onDocumentPointerDown, true);
+});
+
+/** Spanning the block it configures, sitting just above it. */
+const blockStyle = computed(() => (block.value
+    ? {
+        left: `${block.value.rect.left}px`,
+        width: `${block.value.rect.width}px`,
+        top: `${block.value.rect.top - 46}px`,
+    }
+    : { display: 'none' }));
 
 /** Open the href field, prefilled when the selection is already a link. */
 /** A destination on another site, which is what defaults to a new tab. */
@@ -92,15 +178,14 @@ function cancelLink() {
 </script>
 
 <template>
+    <div>
     <BubbleMenu
         :editor="editor"
         :options="{ placement: 'top' }"
         :should-show="shouldShow"
         class="flex items-center gap-0.5"
     >
-        <BlockOptions v-if="blockDefinition" :editor="editor" :definition="blockDefinition" />
-
-        <div v-else class="flex items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-0 p-1 shadow-lg">
+        <div class="flex items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-0 p-1 shadow-lg">
         <template v-if="editingLink">
             <input
                 v-model="href"
@@ -157,4 +242,11 @@ function cancelLink() {
         </template>
         </div>
     </BubbleMenu>
+
+    <!-- Outside the bubble menu: fixed to the block it configures, so it holds
+         still while you type inside that block. -->
+    <div v-if="block" ref="panel" class="fixed z-40" :style="blockStyle">
+        <BlockOptions :editor="editor" :definition="block.definition" />
+    </div>
+    </div>
 </template>

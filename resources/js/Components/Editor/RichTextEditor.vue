@@ -2,6 +2,8 @@
 import { onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import TiptapImage from '@tiptap/extension-image';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { lowlight } from '../../lib/editor/lowlight';
 import { Callout } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
@@ -10,6 +12,7 @@ import SuggestionMenu from './SuggestionMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
 import CalloutBlock from './CalloutBlock.vue';
 import ImageBlock from './ImageBlock.vue';
+import CodeBlockView from './CodeBlockView.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { suggestionExtension } from '../../lib/editor/slashCommands';
@@ -166,6 +169,27 @@ const callout = Callout.extend({
     },
 });
 
+// Highlighted as it is typed, wrapped in the chrome the published page shows.
+const codeBlock = CodeBlockLowlight.extend({
+    /**
+     * `language` comes from the parent. `filename` and `lineNumbers` do not
+     * exist there, and an undeclared attribute is dropped on load, so an article
+     * would silently lose both from every code block it contains.
+     */
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            filename: { default: null, rendered: false },
+            // On by default: a code block without them is the exception.
+            lineNumbers: { default: true, rendered: false },
+        };
+    },
+
+    addNodeView() {
+        return VueNodeViewRenderer(CodeBlockView);
+    },
+}).configure({ lowlight });
+
 // Drawn as the figure it will become, with its own dropzone while it is empty.
 const image = TiptapImage.extend({
     addNodeView() {
@@ -175,7 +199,7 @@ const image = TiptapImage.extend({
 
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
-    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash, callout, image }),
+    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash, callout, image, codeBlock }),
     editorProps: {
         attributes: {
             class: 'prose-editor focus:outline-none min-h-32',

@@ -37,12 +37,7 @@ export const PreserveKeys = Extension.create({
     },
 });
 
-/**
- * `language` comes from StarterKit's code block, but `filename` and
- * `lineNumbers` do not exist there. Undeclared attributes are dropped on load,
- * so without this, opening an article silently strips both from every code
- * block it contains.
- */
+/** Tab handling for code blocks. Their attributes live on the node itself. */
 export const CodeBlockMeta = Extension.create({
     name: 'codeBlockMeta',
 
@@ -78,15 +73,6 @@ export const CodeBlockMeta = Extension.create({
         };
     },
 
-    addGlobalAttributes() {
-        return [{
-            types: ['codeBlock'],
-            attributes: {
-                filename: { default: null, rendered: false },
-                lineNumbers: { default: null, rendered: false },
-            },
-        }];
-    },
 });
 
 /**
