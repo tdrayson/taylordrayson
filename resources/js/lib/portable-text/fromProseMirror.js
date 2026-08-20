@@ -84,12 +84,19 @@ function inlineToSpans(content) {
 }
 
 /**
- * A block carrying nothing at all is not worth storing: it is what an untouched
- * editor produces, and saving it would give every new entry a phantom empty
- * paragraph.
+ * A plain paragraph carrying nothing is not worth storing: it is what an
+ * untouched editor produces, and saving it would give every new entry a phantom
+ * empty paragraph.
+ *
+ * A styled or listed block is different. An empty quote or heading is one the
+ * author has just inserted and is about to type into, and dropping it here
+ * deletes it from under them on the very next round trip.
  */
-function isEmpty(block) {
-    return (block.children ?? []).length === 0;
+function isDiscardable(block) {
+    return block._type === 'block'
+        && (block.style ?? 'normal') === 'normal'
+        && block.listItem === undefined
+        && (block.children ?? []).length === 0;
 }
 
 /** Build a Portable Text block, omitting markDefs when the block has no links. */
@@ -198,5 +205,5 @@ export function fromProseMirror(doc) {
         }
     }
 
-    return out.filter((block) => block._type !== 'block' || ! isEmpty(block));
+    return out.filter((block) => ! isDiscardable(block));
 }
