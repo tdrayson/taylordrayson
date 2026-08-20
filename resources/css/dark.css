@@ -1,0 +1,79 @@
+/* Dark theme — redefine the design tokens under a .dark scope. Because every
+   component reads these tokens, the whole site (utilities, inline styles,
+   chart/map props) flips with no per-component edits. Neutral ramp keeps its
+   positional meaning: low = surface, high = ink. Values are a tuned starting
+   point; refine during the visual audit (Task 10). */
+.dark {
+    /* Neutral ramp — 0 = base surface (not pure black), 900 = near-white ink. */
+    --color-neutral-0: #191919;
+    --color-neutral-25: #1e1e1e;
+    --color-neutral-50: #242424;
+    --color-neutral-100: #2e2e2e;
+    --color-neutral-200: #3a3a3a;
+    --color-neutral-300: #4d4d4d;
+    --color-neutral-400: #6f6f6f;
+    --color-neutral-500: #909090;
+    --color-neutral-600: #b0b0b0;
+    --color-neutral-700: #cccccc;
+    --color-neutral-800: #e5e5e5;
+    --color-neutral-900: #f2f2f2;
+
+    /* Accent ramp — inverted so low = dark tint, high = light; 500 brightened to pop. */
+    --color-accent-50: #171f3d;
+    --color-accent-100: #1e2a52;
+    --color-accent-200: #263466;
+    --color-accent-300: #35468f;
+    --color-accent-400: #5b78ff;
+    --color-accent-500: #6c84f2;
+    --color-accent-600: #8ba0ff;
+    --color-accent-700: #a9b9ff;
+    --color-accent-800: #c7d1ff;
+    --color-accent-900: #e3e8ff;
+
+    /* Heat ramp — quiet (dark blue) → busy (bright). */
+    --color-heat-1: #1e2a52;
+    --color-heat-2: #35468f;
+    --color-heat-3: #5b78ff;
+    --color-heat-4: #8ba0ff;
+
+    /* 13 data-type hues — lightened to read on dark. */
+    --color-activity: hsl(152 48% 55%);
+    --color-sleep: hsl(245 60% 70%);
+    --color-food: hsl(25 85% 62%);
+    --color-media: hsl(340 65% 65%);
+    --color-event: hsl(270 60% 68%);
+    --color-appearance: hsl(320 60% 66%);
+    --color-podcast: hsl(210 70% 62%);
+    --color-flight: hsl(200 80% 62%);
+    --color-checkin: hsl(170 50% 52%);
+    --color-fuel: hsl(45 85% 58%);
+    --color-project: hsl(185 55% 55%);
+    --color-article: hsl(215 20% 62%);
+    --color-note: hsl(36 45% 62%);
+
+    /* Sleep stages */
+    --color-sleep-awake: hsl(0 65% 68%);
+    --color-sleep-rem: hsl(210 65% 66%);
+    --color-sleep-light: hsl(210 45% 62%);
+    --color-sleep-deep: hsl(245 55% 64%);
+
+    /* Macros */
+    --color-macro-protein: hsl(200 75% 60%);
+    --color-macro-carbs: hsl(35 85% 62%);
+    --color-macro-fat: hsl(340 65% 66%);
+
+    /* Sleep-score bands */
+    --color-score-excellent: hsl(152 50% 54%);
+    --color-score-high: hsl(110 45% 56%);
+    --color-score-ok: hsl(40 85% 60%);
+    --color-score-low: hsl(25 85% 62%);
+    --color-score-poor: hsl(0 70% 66%);
+
+    /* Sleep-score ring segments */
+    --color-score-duration: hsl(212 85% 66%);
+    --color-score-bedtime: hsl(168 60% 54%);
+    --color-score-interruptions: hsl(5 78% 68%);
+
+    /* Elevation — black shadows vanish on dark; use a hairline + deeper shadow. */
+    --shadow-card: rgba(255, 255, 255, 0.04) 0 0 0 1px, rgba(0, 0, 0, 0.4) 0 4px 14px 0;
+}

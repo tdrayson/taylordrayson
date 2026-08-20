@@ -1,0 +1,71 @@
+/* Content grid — children sit in a centered `content` column; `.breakout` and
+   `.full-width` opt into wider columns, so full-bleed elements need no negative
+   margins. See https://docs.automaticcss.com/3.0/grids/content-grid */
+.content-grid {
+    --content-max-width: 56rem;
+    --breakout-max-width: 75rem;
+    --padding-inline: 1.25rem;
+    --breakout-size: calc((var(--breakout-max-width) - var(--content-max-width)) / 2);
+
+    display: grid;
+    /* The edge gutter is its own fixed track, so `inset` is a real column
+       (full bleed minus gutter) and needs no margin tricks; it follows
+       --padding-inline across breakpoints automatically. */
+    grid-template-columns:
+        [full-width-start] var(--padding-inline)
+        [inset-start] minmax(0, 1fr)
+        [breakout-start] minmax(0, var(--breakout-size))
+        [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-width)) [content-end]
+        minmax(0, var(--breakout-size)) [breakout-end]
+        minmax(0, 1fr) [inset-end]
+        var(--padding-inline) [full-width-end];
+}
+
+@media (min-width: 768px) {
+    .content-grid {
+        --padding-inline: 2.5rem;
+    }
+}
+
+@layer components {
+    /* Children default to the content column; the utilities below opt out.
+       min-width: 0 stops a grid item's auto min-content (e.g. a long unbroken
+       URL) from blowing the track wider than the viewport. */
+    .content-grid > * {
+        grid-column: content;
+        min-width: 0;
+    }
+}
+
+/* Column-placement utilities — defined with @utility so responsive variants
+   (e.g. md:breakout, lg:full-width) and other modifiers work. */
+/* Content images: cap the rendered height so portrait images don't tower
+   over the prose; width follows the ratio (pair with w-auto). Companion to
+   max-w-media. The lightbox shows the full size. */
+@utility max-h-media {
+    max-height: clamp(20rem, 75vh, 34rem);
+}
+
+@utility content-width {
+    grid-column: content;
+}
+
+@utility breakout {
+    grid-column: breakout;
+}
+
+@utility full-width {
+    grid-column: full-width;
+}
+
+/* Full bleed, but inset by the gutter (a rounded box that never touches the
+   edge). A real grid column, so no margin/width interactions. */
+@utility full-width-inset {
+    grid-column: inset;
+}
+
+/* Full bleed box whose inner content respects the gutter (ACSS "full width safe"). */
+@utility full-width-safe {
+    grid-column: full-width;
+    padding-inline: var(--padding-inline);
+}
