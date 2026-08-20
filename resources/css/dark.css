@@ -31,10 +31,10 @@
     --color-accent-900: #e3e8ff;
 
     /* Heat ramp — quiet (dark blue) → busy (bright). */
-    --color-heat-1: #1e2a52;
-    --color-heat-2: #35468f;
-    --color-heat-3: #5b78ff;
-    --color-heat-4: #8ba0ff;
+    --color-heat-1: var(--color-accent-100);
+    --color-heat-2: var(--color-accent-300);
+    --color-heat-3: var(--color-accent-400);
+    --color-heat-4: var(--color-accent-600);
 
     /* 13 data-type hues — lightened to read on dark. */
     --color-activity: hsl(152 48% 55%);

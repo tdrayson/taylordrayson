@@ -100,9 +100,9 @@
 
     /* Heatmap ramp (quiet → busy) */
     --color-heat-1: #e3e8ff;
-    --color-heat-2: #9fb1ff;
-    --color-heat-3: #6c84f2;
-    --color-heat-4: #3858e9;
+    --color-heat-2: var(--color-accent-300);
+    --color-heat-3: var(--color-accent-400);
+    --color-heat-4: var(--color-accent-500);
 
     /* Radius */
     --radius-sm: 8px;
