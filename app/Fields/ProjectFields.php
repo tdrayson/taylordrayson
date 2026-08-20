@@ -30,6 +30,7 @@ final class ProjectFields
             FieldData::optional('github_url', 'Repository', FieldType::Url),
             FieldData::optional('featured', 'Featured', FieldType::Boolean),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
+            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
             FieldData::optional('slug', 'Slug', FieldType::Slug),

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAttachments;
 use App\Observers\LinkFaviconObserver;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
 
 /**
  * A standalone, CP-managed content page (e.g. /sleep-score), rendered with the
@@ -21,8 +23,10 @@ use Illuminate\Database\Eloquent\Model;
     'published',
 ])]
 #[ObservedBy(LinkFaviconObserver::class)]
-class Page extends Model
+class Page extends Model implements HasMedia
 {
+    use HasAttachments;
+
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 

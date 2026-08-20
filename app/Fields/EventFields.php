@@ -28,6 +28,7 @@ final class EventFields
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
             FieldData::primary('tags', 'Category', FieldType::Tags, 'The first tag is shown as the category.', required: true),
+            FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
             FieldData::optional('all_day', 'All day', FieldType::Boolean),
             FieldData::optional('organiser', 'Organiser', FieldType::Text),
             FieldData::optional('url', 'Link', FieldType::Url),

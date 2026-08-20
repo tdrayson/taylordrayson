@@ -26,6 +26,8 @@ enum FieldType: string
     case Tags = 'tags';
     case Lookup = 'lookup';
     case Location = 'location';
+    case Image = 'image';
+    case Gallery = 'gallery';
 
     public function label(): string
     {
@@ -46,7 +48,19 @@ enum FieldType: string
             self::Tags => 'Tags',
             self::Lookup => 'Lookup',
             self::Location => 'Location',
+            self::Image => 'Image',
+            self::Gallery => 'Photos',
         };
+    }
+
+    /**
+     * Whether this field holds uploaded media rather than a column value, which
+     * means it is synced to a Media Library collection after the save rather
+     * than passed through as an attribute.
+     */
+    public function isMedia(): bool
+    {
+        return $this === self::Image || $this === self::Gallery;
     }
 
     /**

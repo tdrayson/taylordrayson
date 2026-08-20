@@ -11,6 +11,7 @@ import DateTimeField from './DateTimeField.vue';
 import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
+import ImageField from './ImageField.vue';
 
 /**
  * One field, drawn from its definition. The `type` on the definition is the
@@ -102,6 +103,15 @@ function textToTags(value) {
             rows="4"
             :class="[CONTROL, borderClass, 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
+        />
+
+        <ImageField
+            v-else-if="field.type === 'image' || field.type === 'gallery'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :multiple="field.type === 'gallery'"
+            :invalid="Boolean(error)"
+            @update:model-value="$emit('update:modelValue', $event)"
         />
 
         <!-- A toggle labels itself, so it carries its own text in the row rather

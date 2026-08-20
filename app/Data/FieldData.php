@@ -19,6 +19,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      * @param  string|null  $suffix  Unit shown inside the input, after the value ("L").
      * @param  string|null  $group  Fields sharing a group are offered as one item, e.g. "Address".
      * @param  string|null  $pairsWith  Drawn inside that field's control instead of as its own row.
+     * @param  string|null  $collection  Media Library collection an Image or Gallery field syncs to.
      * @param  bool  $hidden  Saved and filled by a lookup, but never offered in the UI.
      */
     private function __construct(
@@ -36,6 +37,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public ?string $suffix,
         public ?string $group,
         public ?string $pairsWith,
+        public ?string $collection,
         public bool $hidden,
     ) {}
 
@@ -45,9 +47,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $pairsWith = null): self
+    public static function primary(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $pairsWith = null, ?string $collection = null): self
     {
-        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $pairsWith, false);
+        return new self($name, $label, $type, true, $required, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $pairsWith, $collection, false);
     }
 
     /**
@@ -55,9 +57,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $pairsWith = null): self
+    public static function optional(string $name, string $label, FieldType $type, ?string $help = null, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $pairsWith = null, ?string $collection = null): self
     {
-        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $pairsWith, false);
+        return new self($name, $label, $type, false, false, $help, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $pairsWith, $collection, false);
     }
 
     /**
@@ -66,7 +68,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function hidden(string $name, string $label, FieldType $type): self
     {
-        return new self($name, $label, $type, false, false, null, [], null, false, null, null, null, null, null, true);
+        return new self($name, $label, $type, false, false, null, [], null, false, null, null, null, null, null, null, true);
     }
 
     /**

@@ -21,6 +21,7 @@ final class PageFields
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('published', 'Published', FieldType::Published),
             FieldData::optional('excerpt', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY),
+            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::primary('slug', 'Slug', FieldType::Slug, 'The URL: /about, /colophon.'),
         ];
     }

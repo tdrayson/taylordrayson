@@ -45,6 +45,7 @@ const props = defineProps({
     // consumes it, so it's bound conditionally below rather than on every type.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
+    media: { type: Object, default: () => ({}) },
     // kind:id -> resolved mention, for content that carries any.
     mentions: { type: Object, default: () => ({}) },
     // Editing in place: only hand-authored types get a form at all.
@@ -57,7 +58,9 @@ const signedIn = computed(() => usePage().props.signedIn === true);
 
 // Current values for the form, read off the entry payload. Dotted field names
 // address into meta, which is where a book keeps its author.
-const editorValues = computed(() => valuesFor(props.fields, props.entry));
+// Media lives in collections, not columns, so it arrives beside the entry
+// rather than on it.
+const editorValues = computed(() => valuesFor(props.fields, { ...props.entry, ...props.media }));
 
 const DETAIL_COMPONENTS = {
     activity: ActivityDetail,

@@ -21,6 +21,7 @@ final class ArticleFields
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('published', 'Published', FieldType::Published),
             FieldData::optional('excerpt', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY),
+            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, 'Part of the URL, so changing it moves the article.', defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),

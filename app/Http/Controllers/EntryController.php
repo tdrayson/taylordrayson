@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
@@ -102,6 +103,11 @@ class EntryController extends Controller
             'editType' => Auth::check() ? AuthorableTypes::forModel($model) : null,
             'fields' => Auth::check() && AuthorableTypes::forModel($model) !== null
                 ? FieldRegistry::for($model)
+                : [],
+            // What the media fields already hold, so the editor opens showing
+            // the attachments rather than an empty picker.
+            'media' => Auth::check() && AuthorableTypes::forModel($model) !== null
+                ? app(AttachedMediaValues::class)($model, FieldRegistry::for($model))
                 : [],
             'linkPreviews' => $model instanceof Article || $model instanceof Note
                 ? app(BuildLinkPreviews::class)($model->content)
