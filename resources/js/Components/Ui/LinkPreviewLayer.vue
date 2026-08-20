@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { nextTick, ref, watch, onBeforeUnmount } from 'vue';
 import LinkPreviewCard from './LinkPreviewCard.vue';
 
 const props = defineProps({
@@ -10,8 +10,10 @@ const props = defineProps({
 });
 
 const active = ref(null);
+const popEl = ref(null);
 const pos = ref({ top: 0, left: 0, placement: 'top' });
 const CARD_W = 320;
+const URL_W = 360;
 const GAP = 8;
 const OPEN_DELAY = 350;
 const CLOSE_DELAY = 150;
@@ -22,22 +24,51 @@ let closeTimer = null;
 // Touch devices have no hover; skip previews there entirely.
 const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
-// Place the card centered over the link, clamped to the viewport, flipping
-// below the link when there isn't room above.
-function placeFor(el) {
-    const rect = el.getBoundingClientRect();
-    let left = rect.left + rect.width / 2 - CARD_W / 2;
-    left = Math.max(GAP, Math.min(left, window.innerWidth - CARD_W - GAP));
-    const placement = rect.top > 280 ? 'top' : 'bottom';
-    const top = placement === 'top' ? rect.top - GAP : rect.bottom + GAP;
-    return { top, left, placement };
+/**
+ * The line fragment to anchor to. A link that wraps has one box per line, and
+ * the union of them spans both, so centring on it puts the card nowhere near
+ * the words under the pointer. Prefer the fragment the pointer is actually on.
+ */
+function anchorRect(el, point) {
+    const rects = [...el.getClientRects()];
+
+    if (rects.length < 2) {
+        return el.getBoundingClientRect();
+    }
+
+    return (point && rects.find((rect) => point.y >= rect.top && point.y <= rect.bottom)) || rects[0];
 }
 
-function open(el, preview, immediate = false) {
+// Centre over that fragment, clamped to the viewport, flipping below when the
+// card does not actually fit above.
+function placeFor(el, size, point) {
+    const rect = anchorRect(el, point);
+    const left = Math.max(GAP, Math.min(
+        rect.left + rect.width / 2 - size.width / 2,
+        window.innerWidth - size.width - GAP,
+    ));
+    const placement = rect.top > size.height + GAP * 2 ? 'top' : 'bottom';
+
+    return { top: placement === 'top' ? rect.top - GAP : rect.bottom + GAP, left, placement };
+}
+
+function open(el, preview, point, immediate = false) {
     clearTimeout(closeTimer);
-    const run = () => {
-        pos.value = placeFor(el);
+    const run = async () => {
+        const isUrl = preview.kind === 'url';
+        // An estimate first so the card never paints at 0,0, then the real
+        // measurement once it exists: both kinds are content-sized in at least
+        // one axis, so the true box is only knowable after render.
+        pos.value = placeFor(el, { width: isUrl ? URL_W : CARD_W, height: isUrl ? 40 : 280 }, point);
         active.value = preview;
+
+        await nextTick();
+
+        const box = popEl.value?.getBoundingClientRect();
+
+        if (box) {
+            pos.value = placeFor(el, { width: box.width, height: box.height }, point);
+        }
     };
     if (immediate) {
         run();
@@ -65,17 +96,31 @@ let openLink = null;
 // look up `props.previews` live on every event, so they stay correct across
 // Inertia navigations that patch the container's content in place rather
 // than remounting it (per-anchor listeners would otherwise go stale).
+function previewFor(link) {
+    const preview = props.previews[link.getAttribute('href')];
+
+    if (preview) {
+        return { kind: 'card', preview };
+    }
+
+    // No entry behind it, so it points off-site. The href is the whole payload:
+    // the chip shows a shortened label, this shows exactly where it lands.
+    return link.dataset.external !== undefined
+        ? { kind: 'url', url: link.getAttribute('href') }
+        : null;
+}
+
 function handleMouseOver(event) {
     const link = event.target.closest('a[href]');
     if (!link || link === openLink) {
         return;
     }
-    const preview = props.previews[link.getAttribute('href')];
+    const preview = previewFor(link);
     if (!preview) {
         return;
     }
     openLink = link;
-    open(link, preview);
+    open(link, preview, { y: event.clientY });
 }
 
 function handleMouseOut(event) {
@@ -97,12 +142,12 @@ function handleFocusIn(event) {
     if (!link) {
         return;
     }
-    const preview = props.previews[link.getAttribute('href')];
+    const preview = previewFor(link);
     if (!preview) {
         return;
     }
     openLink = link;
-    open(link, preview, true);
+    open(link, preview, null, true);
 }
 
 function handleFocusOut(event) {
@@ -164,7 +209,9 @@ onBeforeUnmount(() => {
         <Transition name="fade">
             <div
                 v-if="active"
-                class="fixed z-50 w-80 motion-reduce:transition-none"
+                ref="popEl"
+                class="fixed z-50 motion-reduce:transition-none"
+                :class="active.kind === 'url' ? 'w-fit max-w-90' : 'w-80'"
                 :style="{
                     top: `${pos.top}px`,
                     left: `${pos.left}px`,
@@ -173,13 +220,24 @@ onBeforeUnmount(() => {
                 @mouseenter="keepOpen"
                 @mouseleave="scheduleClose"
             >
-                <LinkPreviewCard :preview="active" />
+                <LinkPreviewCard v-if="active.kind === 'card'" :preview="active.preview" />
+
+                <p
+                    v-else
+                    class="url-preview rounded-lg border border-neutral-100 bg-neutral-0 px-2.5 py-1.5 font-mono text-caption text-neutral-500 shadow-card"
+                >{{ active.url }}</p>
             </div>
         </Transition>
     </Teleport>
 </template>
 
 <style scoped>
+/* A URL has no spaces to break on, so it would otherwise push the popover
+   past its own width. */
+.url-preview {
+    overflow-wrap: anywhere;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.12s ease;

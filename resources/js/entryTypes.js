@@ -18,6 +18,13 @@ export const entryTypes = {
     project: { icon: 'RocketIcon', label: 'Project', href: '/projects', accent: 'project' },
     article: { icon: 'File01Icon', label: 'Article', href: '/articles', accent: 'article' },
     note: { icon: 'Note01Icon', label: 'Note', href: '/notes', accent: 'note' },
+    // Not timeline types: the other things an internal link can point at, so a
+    // link preview has a glyph for each. See App\\Links\\Resolvers.
+    story: { icon: 'BookOpen01Icon', label: 'Story', href: '/stories', accent: 'article' },
+    page: { icon: 'File02Icon', label: 'Page', href: '/pages', accent: 'article' },
+    period: { icon: 'Calendar03Icon', label: 'Archive', href: '/', accent: 'article' },
+    tag: { icon: 'Tag01Icon', label: 'Tag', href: '/tags', accent: 'article' },
+    live: { icon: 'Clock01Icon', label: 'Now', href: '/now', accent: 'activity' },
 };
 
 export function entryType(type) {

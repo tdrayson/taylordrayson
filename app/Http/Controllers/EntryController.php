@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
 use App\Enums\MediaType;
@@ -103,7 +104,10 @@ class EntryController extends Controller
                 ? FieldRegistry::for($model)
                 : [],
             'linkPreviews' => $model instanceof Article || $model instanceof Note
-                ? (new BuildLinkPreviews)($model->content)
+                ? app(BuildLinkPreviews::class)($model->content)
+                : [],
+            'linkFavicons' => $model instanceof Article || $model instanceof Note
+                ? (new BuildLinkFavicons)($model->content)
                 : [],
             // Mentions store {kind, id}, so their titles and hrefs are resolved
             // per request rather than baked into the content at save time.

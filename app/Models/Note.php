@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
+use App\Observers\LinkFaviconObserver;
 use App\Observers\TimelineEntryObserver;
 use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 
-#[ObservedBy(TimelineEntryObserver::class)]
+#[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
 #[Fillable([
     'occurred_at',
     'content',

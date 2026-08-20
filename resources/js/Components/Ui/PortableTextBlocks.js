@@ -3,6 +3,7 @@ import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
+import { entryType } from '../../entryTypes';
 
 // Callout tint per variant (GitHub-alert set). Hues borrow the closest timeline
 // data-type tokens, the palette having no success/warning/danger scale of its
@@ -58,10 +59,93 @@ function assignHeadingIds(nodes) {
     return ids;
 }
 
+// The display host for a URL: lowercase, no leading www. Mirrors Links::host()
+// on the server so a favicon looked up here matches the one stored there.
+function hostOf(href) {
+    try {
+        return new URL(href).hostname.toLowerCase().replace(/^www\./, '');
+    } catch {
+        return null;
+    }
+}
+
+// True when the link text is just the address, i.e. a pasted URL rather than
+// words the author chose. Only then may the label be replaced.
+function isBareUrl(text, href) {
+    const strip = (value) => value.replace(/\/$/, '').replace(/^https?:\/\//, '');
+
+    return typeof text === 'string' && strip(text.trim()) === strip(href);
+}
+
+/**
+ * An external link: the site's favicon, then the author's own words. The text is
+ * never swapped for a fetched title, or anchor text like "click here" would turn
+ * into nonsense. A pasted URL is the one exception, collapsing to the domain
+ * rather than sitting in the sentence as a raw address.
+ */
+function renderExternalLink(def, label, text, favicons) {
+    const host = hostOf(def.href);
+    const favicon = host ? favicons[host] : null;
+
+    const mark = favicon
+        // not-prose: the typography plugin styles every img as a block figure
+        // with a 2em margin, which drops an inline favicon onto its own line.
+        // bg-white, not a token: a monochrome favicon (GitHub's is pure black)
+        // vanishes on the dark theme without a light ground, same reason the
+        // fuel brand logos carry one.
+        ? h('img', {
+            src: favicon,
+            alt: '',
+            loading: 'lazy',
+            class: 'not-prose mb-0.5 mr-1 inline size-3.5 rounded-sm bg-white object-contain align-middle',
+        })
+        // A globe rather than nothing: without it some external links carry a
+        // mark and some do not, which reads as broken rather than deliberate.
+        : h(Icon, { icon: 'Globe02Icon', class: 'mb-0.5 mr-1 inline size-3.5 align-middle text-neutral-400' });
+
+    return h('a', {
+        href: def.href,
+        rel: 'noopener noreferrer',
+        target: '_blank',
+        'data-external': '',
+    }, [
+        mark,
+        isBareUrl(text, def.href) && host ? host : label,
+        h('span', { class: 'sr-only' }, ', opens in a new tab'),
+    ]);
+}
+
+/**
+ * An internal link that resolves to an entry: a chip carrying that entry type's
+ * glyph, so a reference that keeps you on the site reads differently from one
+ * that leaves it. A link with no entry behind it (an archive page, an
+ * unpublished target) stays an ordinary link.
+ *
+ * The glyph inherits the chip's own colour rather than taking the type accent:
+ * the shape already says which type it is, and a second hue inside a chip that
+ * is itself an accent object just muddies it (article's is a desaturated
+ * grey-blue, which reads as a dead mark on the fill).
+ */
+function renderInternalLink(def, label, previews) {
+    const preview = previews[def.href];
+
+    if (! preview) {
+        return h('a', { href: def.href }, label);
+    }
+
+    return h('a', {
+        href: def.href,
+        class: 'entry-chip box-decoration-clone rounded bg-accent-50 px-1 py-0.5 font-medium',
+    }, [
+        h(Icon, { icon: entryType(preview.type).icon, class: 'mb-0.5 mr-1 inline size-3.5 align-middle' }),
+        label,
+    ]);
+}
+
 // Render one span, nesting its marks around the text node: decorators
 // (strong/em/code) map directly to tags; any other mark key is a markDef
 // reference, currently only 'link' is understood.
-function renderSpan(span, markDefs) {
+function renderSpan(span, markDefs, favicons, previews) {
     let node = span.text;
 
     for (const mark of span.marks ?? []) {
@@ -75,18 +159,9 @@ function renderSpan(span, markDefs) {
             const def = (markDefs ?? []).find((markDef) => markDef._key === mark);
 
             if (def?._type === 'link' && def.href) {
-                // Match the site's external-link convention (see ExternalLink.vue):
-                // absolute URLs open in a new tab with the arrow icon and the
-                // ", opens in a new tab" screen-reader suffix, in prose typography.
-                const external = def.href.startsWith('http');
-
-                node = external
-                    ? h('a', { href: def.href, rel: 'noopener noreferrer', target: '_blank' }, [
-                        node,
-                        h('span', { class: 'sr-only' }, ', opens in a new tab'),
-                        h(Icon, { icon: 'ArrowUpRight01Icon', class: 'mb-0.5 ml-0.5 inline size-3.5 align-middle' }),
-                    ])
-                    : h('a', { href: def.href }, node);
+                node = def.href.startsWith('http')
+                    ? renderExternalLink(def, node, span.text, favicons)
+                    : renderInternalLink(def, node, previews);
             }
         }
     }
@@ -94,8 +169,8 @@ function renderSpan(span, markDefs) {
     return node;
 }
 
-function renderChildren(block) {
-    return (block.children ?? []).map((span) => renderSpan(span, block.markDefs));
+function renderChildren(block, favicons, previews) {
+    return (block.children ?? []).map((span) => renderSpan(span, block.markDefs, favicons, previews));
 }
 
 // Parse a flat run of consecutive listItem blocks into a nested <ul>/<ol>
@@ -103,7 +178,7 @@ function renderChildren(block) {
 // the previous <li>. Returns where the run stopped so a sibling list starting
 // at the same level (different listItem type, e.g. bullet then number) can
 // be parsed as a separate list by the caller.
-function buildListTree(items, startIndex, level, listItem, isTop) {
+function buildListTree(items, startIndex, level, listItem, isTop, favicons, previews) {
     const children = [];
     let i = startIndex;
 
@@ -111,10 +186,10 @@ function buildListTree(items, startIndex, level, listItem, isTop) {
         const node = items[i];
         i += 1;
 
-        const liContent = [h('span', renderChildren(node))];
+        const liContent = [h('span', renderChildren(node, favicons, previews))];
 
         if (i < items.length && (items[i].level ?? 1) > level) {
-            const nested = buildListTree(items, i, items[i].level, items[i].listItem, false);
+            const nested = buildListTree(items, i, items[i].level, items[i].listItem, false, favicons, previews);
             liContent.push(nested.vnode);
             i = nested.nextIndex;
         }
@@ -135,14 +210,14 @@ function buildListTree(items, startIndex, level, listItem, isTop) {
 // A run may contain more than one top-level list (e.g. a bullet list directly
 // followed by a numbered list at the same level); keep parsing fresh lists
 // until the whole run is consumed.
-function renderListRun(run) {
+function renderListRun(run, favicons, previews) {
     const vnodes = [];
     let index = 0;
 
     while (index < run.length) {
         const level = run[index].level ?? 1;
         const listItem = run[index].listItem;
-        const { vnode, nextIndex } = buildListTree(run, index, level, listItem, true);
+        const { vnode, nextIndex } = buildListTree(run, index, level, listItem, true, favicons, previews);
 
         vnodes.push(vnode);
         index = nextIndex;
@@ -161,9 +236,9 @@ const HEADING_CLASSES = {
     h6: 'text-base font-semibold',
 };
 
-function renderTextBlock(node, headingIds) {
+function renderTextBlock(node, headingIds, favicons, previews) {
     const key = node._key;
-    const children = renderChildren(node);
+    const children = renderChildren(node, favicons, previews);
 
     if (isHeading(node.style)) {
         const id = headingIds.get(node);
@@ -241,7 +316,7 @@ function renderCode(node) {
     });
 }
 
-function renderCallout(node) {
+function renderCallout(node, favicons, previews) {
     const variant = CALLOUT_VARIANTS[node.variant] ?? CALLOUT_VARIANTS.note;
 
     // not-prose so the paragraph rhythm cannot leak into a self-contained panel.
@@ -252,7 +327,7 @@ function renderCallout(node) {
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),
-            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node)),
+            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
         ]),
     ]);
 }
@@ -280,9 +355,9 @@ function renderVideo(node) {
     ]);
 }
 
-function renderNode(node, headingIds, onImageClick) {
+function renderNode(node, headingIds, onImageClick, favicons, previews) {
     if (node._type === 'block') {
-        return renderTextBlock(node, headingIds);
+        return renderTextBlock(node, headingIds, favicons, previews);
     }
 
     if (node._type === 'image') {
@@ -294,7 +369,7 @@ function renderNode(node, headingIds, onImageClick) {
     }
 
     if (node._type === 'callout') {
-        return renderCallout(node);
+        return renderCallout(node, favicons, previews);
     }
 
     if (node._type === 'video') {
@@ -310,7 +385,7 @@ function renderNode(node, headingIds, onImageClick) {
 
 // Single pass over the document: consecutive listItem blocks are peeled off
 // into their own grouped run (see renderListRun); everything else renders node-by-node.
-function renderDocument(nodes, headingIds, onImageClick) {
+function renderDocument(nodes, headingIds, onImageClick, favicons, previews) {
     const out = [];
     let i = 0;
 
@@ -325,9 +400,9 @@ function renderDocument(nodes, headingIds, onImageClick) {
                 i += 1;
             }
 
-            out.push(...renderListRun(run));
+            out.push(...renderListRun(run, favicons, previews));
         } else {
-            const vnode = renderNode(node, headingIds, onImageClick);
+            const vnode = renderNode(node, headingIds, onImageClick, favicons, previews);
 
             if (vnode) {
                 out.push(vnode);
@@ -346,13 +421,17 @@ export default {
     name: 'PortableTextBlocks',
     props: {
         nodes: { type: Array, default: () => [] },
+        // Map of host -> stored favicon URL, for external link chips.
+        favicons: { type: Object, default: () => ({}) },
+        // Map of internal href -> preview, so a resolved link renders as a chip.
+        previews: { type: Object, default: () => ({}) },
     },
     emits: ['image-click'],
     setup(props, { emit }) {
         return () => {
             const headingIds = assignHeadingIds(props.nodes);
 
-            return renderDocument(props.nodes, headingIds, (url) => emit('image-click', url));
+            return renderDocument(props.nodes, headingIds, (url) => emit('image-click', url), props.favicons, props.previews);
         };
     },
 };

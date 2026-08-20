@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
 use App\Fields\FieldRegistry;
@@ -55,7 +56,8 @@ class PageController extends Controller
             'content' => $page->content,
             'published' => $page->published,
             'og' => ['title' => $page->title, 'description' => $page->excerpt],
-            'linkPreviews' => (new BuildLinkPreviews)($page->content),
+            'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
+            'linkFavicons' => (new BuildLinkFavicons)($page->content),
             'mentions' => (new ResolveMentions)($page->content),
         ]);
     }

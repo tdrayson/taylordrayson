@@ -2,43 +2,29 @@
 
 namespace App\Actions;
 
-use App\Models\Article;
-use App\Models\Concerns\Timelineable;
-use App\Models\Page;
-use App\Models\TimelineEntry;
-use App\Presenters\CardPresenter;
-use Illuminate\Database\Eloquent\Model;
+use App\Links\LinkResolvers;
 
 class BuildLinkPreviews
 {
+    public function __construct(private LinkResolvers $resolvers) {}
+
     /**
      * Build a deduped map of internal-link hrefs to preview cards from Portable
-     * Text content. External, unresolvable, and unpublished targets are omitted.
+     * Text content. External and unresolvable targets are omitted, and the link
+     * renders as an ordinary one.
      *
      * @param  array<int, array<string, mixed>>|null  $blocks
      * @return array<string, array<string, mixed>>
      */
     public function __invoke(?array $blocks): array
     {
-        if ($blocks === null) {
-            return [];
-        }
-
-        $hrefs = [];
-        foreach ($blocks as $block) {
-            foreach ($block['markDefs'] ?? [] as $def) {
-                $href = $def['href'] ?? null;
-                if (($def['_type'] ?? null) === 'link' && is_string($href) && ! str_starts_with($href, 'http')) {
-                    $hrefs[$href] = true;
-                }
-            }
-        }
-
         $previews = [];
-        foreach (array_keys($hrefs) as $href) {
-            $preview = $this->resolve($href);
+
+        foreach ($this->hrefs($blocks) as $href) {
+            $preview = $this->resolvers->resolve($href);
+
             if ($preview !== null) {
-                $previews[$href] = $preview;
+                $previews[$href] = $preview->toArray();
             }
         }
 
@@ -46,73 +32,25 @@ class BuildLinkPreviews
     }
 
     /**
-     * Resolve an internal href to its preview data, or null when not previewable.
+     * Every distinct internal href the document links to.
      *
-     * @return array<string, mixed>|null
+     * @param  array<int, array<string, mixed>>|null  $blocks
+     * @return list<string>
      */
-    private function resolve(string $href): ?array
+    private function hrefs(?array $blocks): array
     {
-        // Entry permalink: /YYYY/MM/DD/slug
-        if (preg_match('#^/(\d{4})/(\d{2})/(\d{2})/([a-z0-9-]+)$#', $href, $m) === 1) {
-            $entry = TimelineEntry::query()
-                ->with('timelineable')
-                ->whereDate('occurred_at', "{$m[1]}-{$m[2]}-{$m[3]}")
-                ->where('url_slug', $m[4])
-                ->first();
+        $hrefs = [];
 
-            $model = $entry?->timelineable;
+        foreach ($blocks ?? [] as $block) {
+            foreach ($block['markDefs'] ?? [] as $def) {
+                $href = $def['href'] ?? null;
 
-            if ($model === null) {
-                return null;
+                if (($def['_type'] ?? null) === 'link' && is_string($href) && ! str_starts_with($href, 'http')) {
+                    $hrefs[$href] = true;
+                }
             }
-
-            if ($model instanceof Article && ! $model->published) {
-                return null;
-            }
-
-            return $this->fromCard($model, $href);
         }
 
-        // Content page: /slug
-        if (preg_match('#^/([a-z][a-z0-9-]*)$#', $href, $m) === 1) {
-            $page = Page::query()->where('slug', $m[1])->where('published', true)->first();
-
-            if ($page === null) {
-                return null;
-            }
-
-            return [
-                'url' => $href,
-                'title' => $page->title,
-                'excerpt' => $page->excerpt,
-                'type' => 'page',
-                'accent' => 'page',
-                'date' => null,
-                'cover' => null,
-            ];
-        }
-
-        return null;
-    }
-
-    /**
-     * Preview data from a timelineable model's card() metadata. Card subtitle
-     * lives at the top level (not nested under meta); only photos nest there.
-     *
-     * @return array<string, mixed>
-     */
-    private function fromCard(Model&Timelineable $model, string $href): array
-    {
-        $card = CardPresenter::for($model);
-
-        return [
-            'url' => $href,
-            'title' => $card->title,
-            'excerpt' => $card->subtitle,
-            'type' => $card->type->value,
-            'accent' => $card->accent,
-            'date' => $model->occurredAtForDisplay()?->toDateString(),
-            'cover' => $card->meta->photos[0]->src ?? null,
-        ];
+        return array_keys($hrefs);
     }
 }

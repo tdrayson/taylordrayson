@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Observers\LinkFaviconObserver;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
     'content',
     'published',
 ])]
+#[ObservedBy(LinkFaviconObserver::class)]
 class Page extends Model
 {
     /** @use HasFactory<PageFactory> */

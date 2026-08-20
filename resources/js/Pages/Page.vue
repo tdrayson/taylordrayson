@@ -22,6 +22,7 @@ const props = defineProps({
     og: { type: Object, default: () => ({}) },
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
+    linkFavicons: { type: Object, default: () => ({}) },
     // kind:id -> {title, url, exists} for the mentions in the content.
     mentions: { type: Object, default: () => ({}) },
 });
@@ -69,6 +70,6 @@ const editorValues = computed(() => valuesFor(props.fields, {
             </Link>
         </header>
 
-        <BlockContent :document="content" :link-previews="linkPreviews" class="mt-8" />
+        <BlockContent :document="content" :link-previews="linkPreviews" :link-favicons="linkFavicons" class="mt-8" />
     </article>
 </template>

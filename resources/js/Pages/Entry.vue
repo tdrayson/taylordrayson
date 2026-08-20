@@ -44,6 +44,7 @@ const props = defineProps({
     // Map of href -> preview data for internal content links; only ArticleDetail
     // consumes it, so it's bound conditionally below rather than on every type.
     linkPreviews: { type: Object, default: () => ({}) },
+    linkFavicons: { type: Object, default: () => ({}) },
     // kind:id -> resolved mention, for content that carries any.
     mentions: { type: Object, default: () => ({}) },
     // Editing in place: only hand-authored types get a form at all.
@@ -144,7 +145,7 @@ setLayoutProps({
         v-else-if="detailComponent"
         :is="detailComponent"
         :entry="entry"
-        v-bind="['article', 'note'].includes(type) ? { linkPreviews } : {}"
+        v-bind="['article', 'note'].includes(type) ? { linkPreviews, linkFavicons } : {}"
         class="mt-10"
     />
 

@@ -110,9 +110,73 @@ class PortableText
         $paragraphs = preg_split('/\R\s*\R/', trim($text)) ?: [];
 
         return array_values(array_map(
-            fn (string $paragraph): array => self::block(trim($paragraph)),
+            fn (string $paragraph): array => self::autolinked(trim($paragraph)),
             array_filter($paragraphs, fn (string $paragraph): bool => trim($paragraph) !== ''),
         ));
+    }
+
+    /**
+     * A paragraph with bare URLs turned into links. The editor does this itself
+     * (Tiptap autolinks as you type), so this is for the clients that can only
+     * send a string and would otherwise leave URLs as dead text.
+     *
+     * @return array<string, mixed>
+     */
+    private static function autolinked(string $paragraph): array
+    {
+        preg_match_all('#\bhttps?://[^\s<>"\']+#i', $paragraph, $matches, PREG_OFFSET_CAPTURE);
+
+        if ($matches[0] === []) {
+            return self::block($paragraph);
+        }
+
+        $children = [];
+        $markDefs = [];
+        $cursor = 0;
+
+        foreach ($matches[0] as [$match, $offset]) {
+            $url = self::withoutTrailingPunctuation($match);
+
+            if ($offset > $cursor) {
+                $children[] = self::span(substr($paragraph, $cursor, $offset - $cursor));
+            }
+
+            $key = self::key();
+            $markDefs[] = ['_key' => $key, '_type' => 'link', 'href' => $url];
+            $children[] = self::span($url, [$key]);
+
+            $cursor = $offset + strlen($url);
+        }
+
+        if ($cursor < strlen($paragraph)) {
+            $children[] = self::span(substr($paragraph, $cursor));
+        }
+
+        return [
+            '_type' => 'block',
+            '_key' => self::key(),
+            'style' => 'normal',
+            'markDefs' => $markDefs,
+            'children' => $children,
+        ];
+    }
+
+    /**
+     * Trim sentence punctuation that the URL pattern greedily swallowed, and any
+     * closing bracket with no opener, so "(see https://example.com/a)" links the
+     * address rather than the address plus the bracket.
+     */
+    private static function withoutTrailingPunctuation(string $url): string
+    {
+        while ($url !== '' && str_contains('.,;:!?', substr($url, -1))) {
+            $url = substr($url, 0, -1);
+        }
+
+        while (str_ends_with($url, ')') && substr_count($url, ')') > substr_count($url, '(')) {
+            $url = substr($url, 0, -1);
+        }
+
+        return $url;
     }
 
     /**
