@@ -61,7 +61,7 @@ function quantity(item) {
     <div class="space-y-10">
         <div v-if="entry.inProgress" class="flex items-center gap-2">
             <span class="relative flex size-2">
-                <span class="absolute inline-flex size-full animate-ping rounded-full bg-food opacity-75" />
+                <span class="absolute inline-flex size-full animate-ping-slow rounded-full bg-food opacity-75" />
                 <span class="relative inline-flex size-2 rounded-full bg-food" />
             </span>
             <span class="text-label uppercase tracking-wide text-food">Still logging today</span>
