@@ -2,21 +2,20 @@
 
 namespace App\Console\Commands\Fetch;
 
+use App\Actions\Links\StoreFavicon;
 use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
-use App\Services\DuckDuckGo;
 use App\Support\Links;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 
 #[Signature('links:favicons {host?* : Specific hosts to fetch; defaults to every host linked from written content} {--force : Re-download favicons that already exist}')]
 #[Description('Download a favicon for every external host linked from articles, pages and notes')]
 class FetchLinkFavicons extends Command
 {
-    public function handle(DuckDuckGo $duckDuckGo): int
+    public function handle(StoreFavicon $storeFavicon): int
     {
         $hosts = $this->argument('host') ?: $this->linkedHosts();
 
@@ -32,18 +31,9 @@ class FetchLinkFavicons extends Command
         $failed = 0;
 
         foreach ($hosts as $host) {
-            $path = Links::faviconPath($host);
-
-            if (! $this->option('force') && File::exists($path)) {
-                $skipped++;
-
-                continue;
-            }
-
-            $result = $duckDuckGo->icon($host);
-
-            match ($result['status']) {
-                'saved' => [$this->store($path, $result['body']), $this->components->task($host), $downloaded++],
+            match ($storeFavicon($host, (bool) $this->option('force'))) {
+                'skipped' => $skipped++,
+                'saved' => [$this->components->task($host), $downloaded++],
                 'unavailable' => [$this->components->warn("{$host} - no favicon available"), $unavailable++],
                 default => [$this->components->error("{$host} - request failed"), $failed++],
             };
@@ -74,11 +64,5 @@ class FetchLinkFavicons extends Command
         }
 
         return array_keys($hosts);
-    }
-
-    private function store(string $path, string $body): void
-    {
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, $body);
     }
 }

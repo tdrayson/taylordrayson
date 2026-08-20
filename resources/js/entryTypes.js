@@ -18,6 +18,8 @@ export const entryTypes = {
     project: { icon: 'RocketIcon', label: 'Project', href: '/projects', accent: 'project' },
     article: { icon: 'File01Icon', label: 'Article', href: '/articles', accent: 'article' },
     note: { icon: 'Note01Icon', label: 'Note', href: '/notes', accent: 'note' },
+    // Not a timeline type: a data story, which links resolve to via StoryRegistry.
+    story: { icon: 'BookOpen01Icon', label: 'Story', href: '/stories', accent: 'article' },
 };
 
 export function entryType(type) {

@@ -1,11 +1,15 @@
 <?php
 
 use App\Actions\BuildLinkFavicons;
+use App\Actions\BuildLinkPreviews;
+use App\Jobs\ResolveLinkFavicons;
+use App\Models\Note;
 use App\Services\DuckDuckGo;
 use App\Support\Links;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 /** The spans of the first block, as [text, isLinked] pairs. */
 function spansOf(array $document): array
@@ -105,4 +109,56 @@ it('returns the bytes for a real favicon', function () {
     expect((new DuckDuckGo)->icon('example.com'))
         ->status->toBe('saved')
         ->body->toHaveLength(400);
+});
+
+it('queues a favicon fetch when an entry is saved with a new external link', function () {
+    Queue::fake();
+
+    $note = Note::factory()->create([
+        'content' => PortableText::fromPlainText('Read https://example.com/a-post today.'),
+    ]);
+
+    Queue::assertPushed(ResolveLinkFavicons::class, fn ($job): bool => $job->hosts === ['example.com']);
+
+    // Re-saving must not re-queue the same download once it is stored.
+    $path = Links::faviconPath('example.com');
+    File::ensureDirectoryExists(dirname($path));
+    File::put($path, 'png-bytes');
+
+    Queue::fake();
+    $note->touch();
+    Queue::assertNothingPushed();
+
+    File::delete($path);
+});
+
+it('does not queue anything for an entry with no external links', function () {
+    // Guards the whole suite: entries are created constantly in tests, and a
+    // dispatch on every one would mean real requests under the sync queue.
+    Queue::fake();
+
+    Note::factory()->create(['content' => PortableText::fromPlainText('Just a thought.')]);
+
+    Queue::assertNothingPushed();
+});
+
+it('resolves a data story, and leaves other site pages as ordinary links', function () {
+    $blocks = [[
+        '_type' => 'block',
+        'markDefs' => [
+            ['_key' => 'a', '_type' => 'link', 'href' => '/stories/fuel'],
+            ['_key' => 'b', '_type' => 'link', 'href' => '/now'],
+            ['_key' => 'c', '_type' => 'link', 'href' => '/flights'],
+            ['_key' => 'd', '_type' => 'link', 'href' => '/stories/nonexistent'],
+        ],
+        'children' => [],
+    ]];
+
+    $previews = (new BuildLinkPreviews)($blocks);
+
+    // Navigation and archive pages are not entries: a chip claiming otherwise
+    // would misrepresent them, so they stay plain.
+    expect(array_keys($previews))->toBe(['/stories/fuel'])
+        ->and($previews['/stories/fuel']['type'])->toBe('story')
+        ->and($previews['/stories/fuel']['title'])->not->toBeEmpty();
 });

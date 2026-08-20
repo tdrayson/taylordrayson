@@ -7,6 +7,7 @@ use App\Models\Concerns\Timelineable;
 use App\Models\Page;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
+use App\Stories\StoryRegistry;
 use Illuminate\Database\Eloquent\Model;
 
 class BuildLinkPreviews
@@ -71,6 +72,29 @@ class BuildLinkPreviews
             }
 
             return $this->fromCard($model, $href);
+        }
+
+        // Data story: /stories/{slug}. Not a model, so it resolves through the
+        // registry that already backs the story pages themselves.
+        if (preg_match('#^/stories/([a-z0-9-]+)$#', $href, $m) === 1) {
+            $story = app(StoryRegistry::class)->find($m[1]);
+
+            if ($story === null) {
+                return null;
+            }
+
+            $card = $story->card();
+
+            return [
+                'url' => $href,
+                'title' => $card['title'],
+                'excerpt' => $card['description'],
+                'type' => 'story',
+                'accent' => $card['accent'],
+                'date' => null,
+                'cover' => null,
+                'coverDark' => null,
+            ];
         }
 
         // Content page: /slug
