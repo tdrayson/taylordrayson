@@ -56,3 +56,15 @@ it('leaves an svg alone, since rasterising a vector is a downgrade', function ()
     expect($media->file_name)->toEndWith('.svg')
         ->and($media->mime_type)->toBe('image/svg+xml');
 });
+
+it('names an svg for what it holds, even when the caller asked for webp', function () {
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
+
+    $media = Activity::factory()->create()
+        ->addMediaFromString($svg)
+        ->usingFileName('logo.webp')
+        ->toMediaCollection('logo');
+
+    expect($media->file_name)->toEndWith('.svg')
+        ->and($media->mime_type)->toBe('image/svg+xml');
+});

@@ -24,35 +24,62 @@ class OptimisingFileAdder extends FileAdder
      */
     private const NOT_CONVERTED = ['image/svg+xml', 'image/gif'];
 
-    /** Whether this adder rewrote the file, so the stored name must follow it. */
-    private bool $converted = false;
+    /**
+     * Extension each stored image format is named with, so a name can be checked
+     * against the bytes it actually points at.
+     *
+     * @var array<string, string>
+     */
+    private const EXTENSIONS = [
+        'image/webp' => 'webp',
+        'image/svg+xml' => 'svg',
+        'image/gif' => 'gif',
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+    ];
+
+    /** The stored file, kept so the name can be aligned to what it holds. */
+    private ?string $storedPath = null;
 
     public function setFile($file): self
     {
         if (is_string($file) && $this->isImage($file)) {
-            $prepared = app(PrepareImage::class)($file);
+            $file = app(PrepareImage::class)($file);
+        }
 
-            if ($prepared !== $file) {
-                $this->converted = true;
-                $file = $prepared;
-            }
+        if (is_string($file)) {
+            $this->storedPath = $file;
         }
 
         return parent::setFile($file);
     }
 
     /**
-     * Keep the extension honest. Callers name the file for the format they
-     * requested from the API, so without this a converted Mapbox render is
-     * stored as `.png` while holding WebP bytes.
+     * Keep the extension honest. Callers name a file for the format they asked
+     * the API for, which is wrong twice over: a converted Mapbox render would be
+     * stored as `.png`, and a TMDB logo that arrived as SVG was stored as
+     * `.webp`, which is served with a content type it cannot be read as.
      */
     public function setFileName(string $fileName): self
     {
-        if ($this->converted) {
-            $fileName = pathinfo($fileName, PATHINFO_FILENAME).'.webp';
+        $extension = self::EXTENSIONS[$this->storedMime()] ?? null;
+
+        if ($extension !== null && strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) !== $extension) {
+            $fileName = pathinfo($fileName, PATHINFO_FILENAME).'.'.$extension;
         }
 
         return parent::setFileName($fileName);
+    }
+
+    private function storedMime(): ?string
+    {
+        if ($this->storedPath === null || ! is_file($this->storedPath)) {
+            return null;
+        }
+
+        $mime = @mime_content_type($this->storedPath);
+
+        return is_string($mime) ? $mime : null;
     }
 
     private function isImage(string $path): bool
