@@ -2,15 +2,17 @@
 import { computed } from 'vue';
 
 /**
- * The @-mention menu. Purely presentational: the editor owns the lifecycle,
- * because TipTap's suggestion `render` factory runs once and its `onKeyDown`
- * is only ever handed the event, never the items or the insert command.
+ * The menu behind both suggestion triggers, @-mentions and the "/" block list.
+ * Purely presentational: the editor owns the lifecycle, because TipTap's
+ * suggestion `render` factory runs once and its `onKeyDown` is only ever handed
+ * the event, never the items or the insert command.
  */
 const props = defineProps({
     items: { type: Array, default: () => [] },
     active: { type: Number, default: 0 },
     // Viewport rect of the caret, so the menu can sit under it.
     rect: { type: Object, default: null },
+    emptyLabel: { type: String, default: 'Nothing to insert' },
 });
 
 defineEmits(['pick']);
@@ -71,7 +73,7 @@ const style = computed(() => {
         role="listbox"
     >
         <p v-if="! items.length" class="px-3 py-2 text-meta text-neutral-500">
-            Nothing to mention
+            {{ emptyLabel }}
         </p>
 
         <div v-for="group in groups" :key="group.name">
@@ -79,7 +81,7 @@ const style = computed(() => {
 
             <button
                 v-for="row in group.rows"
-                :key="`${row.kind}:${row.id}`"
+                :key="row.id ?? row.label"
                 type="button"
                 role="option"
                 :aria-selected="row.index === active"

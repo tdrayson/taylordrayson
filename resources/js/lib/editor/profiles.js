@@ -17,7 +17,7 @@ const PROSE = [
         horizontalRule: false,
         codeBlock: false,
     }),
-    Link.configure({ openOnClick: false }),
+    Link.configure({ openOnClick: false, linkOnPaste: true }),
 ];
 
 /** Everything above, plus the block-level nodes only a long piece needs. */
@@ -25,7 +25,9 @@ const DOCUMENT = [
     StarterKit.configure({
         heading: { levels: [2, 3, 4, 5, 6] },
     }),
-    Link.configure({ openOnClick: false }),
+    // linkOnPaste: a URL pasted over selected words links them rather than
+    // replacing them, which is what pasting a link onto text is meant to do.
+    Link.configure({ openOnClick: false, linkOnPaste: true }),
     Image,
     Video,
     Callout,
@@ -35,9 +37,9 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string, mention?: object}} options
+ * @param {{placeholder?: string, mention?: object, slash?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null } = {}) {
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null } = {}) {
     const base = profile === 'document' ? DOCUMENT : PROSE;
 
     return [
@@ -52,5 +54,6 @@ export function extensionsFor(profile, { placeholder = '', mention = null } = {}
             showOnlyCurrent: profile !== 'document',
         }),
         ...(mention ? [mention] : []),
+        ...(slash ? [slash] : []),
     ];
 }

@@ -7,6 +7,10 @@ import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
 import MentionChip from './MentionChip.vue';
 import SuggestionMenu from './SuggestionMenu.vue';
+import SelectionToolbar from './SelectionToolbar.vue';
+import { blocksFor } from '../../lib/editor/blocks';
+import { suggestionKeys } from '../../lib/editor/suggestionKeys';
+import { SlashCommands } from '../../lib/editor/slashCommands';
 
 /**
  * The writing surface. Speaks Portable Text on both sides: it takes the stored
@@ -32,6 +36,12 @@ const emit = defineEmits(['update:modelValue']);
  */
 const menu = reactive({ open: false, items: [], active: 0, rect: null });
 let insert = null;
+
+// The block menu keeps its own state: both triggers can never be open at once,
+// but sharing one object would leak the mention menu's items into the block
+// list on a fast "/" after an unfinished "@".
+const blockMenu = reactive({ open: false, items: [], active: 0, rect: null });
+let insertBlock = null;
 
 /** Guards against the editor's own update echoing back in as a prop change. */
 const emitting = ref(false);
@@ -84,41 +94,7 @@ const mention = Mention.extend({
                 menu.active = 0;
                 menu.rect = p.clientRect?.() ?? null;
             },
-            onKeyDown({ event }) {
-                if (! menu.open) {
-                    return false;
-                }
-
-                if (event.key === 'ArrowDown') {
-                    menu.active = (menu.active + 1) % Math.max(menu.items.length, 1);
-
-                    return true;
-                }
-
-                if (event.key === 'ArrowUp') {
-                    menu.active = (menu.active - 1 + menu.items.length) % Math.max(menu.items.length, 1);
-
-                    return true;
-                }
-
-                if (event.key === 'Enter' || event.key === 'Tab') {
-                    pick(menu.items[menu.active]);
-
-                    return true;
-                }
-
-                // The plugin exits on Escape whatever this returns. Claiming
-                // the key is what stops it bubbling to the surrounding form,
-                // where one Escape would both close the menu and cancel the
-                // edit behind it.
-                if (event.key === 'Escape') {
-                    menu.open = false;
-
-                    return true;
-                }
-
-                return false;
-            },
+            onKeyDown: ({ event }) => mentionKeys(event),
             onExit() {
                 menu.open = false;
                 menu.items = [];
@@ -126,6 +102,8 @@ const mention = Mention.extend({
         }),
     },
 });
+
+const mentionKeys = suggestionKeys(menu, (item) => pick(item));
 
 function pick(item) {
     if (! item || ! insert) {
@@ -139,9 +117,49 @@ function pick(item) {
     menu.open = false;
 }
 
+function pickBlock(item) {
+    if (! item || ! insertBlock) {
+        return;
+    }
+
+    insertBlock(item);
+    blockMenu.open = false;
+}
+
+const blockKeys = suggestionKeys(blockMenu, pickBlock);
+
+const slash = SlashCommands.configure({
+    suggestion: {
+        char: '/',
+        allowSpaces: false,
+        command: ({ editor: instance, range, props: block }) => block.run(instance, range),
+        items: ({ editor: instance, query }) => blocksFor(instance, query),
+        render: () => ({
+            onStart(p) {
+                insertBlock = p.command;
+                blockMenu.items = p.items;
+                blockMenu.active = 0;
+                blockMenu.rect = p.clientRect?.() ?? null;
+                blockMenu.open = true;
+            },
+            onUpdate(p) {
+                insertBlock = p.command;
+                blockMenu.items = p.items;
+                blockMenu.active = 0;
+                blockMenu.rect = p.clientRect?.() ?? null;
+            },
+            onKeyDown: ({ event }) => blockKeys(event),
+            onExit() {
+                blockMenu.open = false;
+                blockMenu.items = [];
+            },
+        }),
+    },
+});
+
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
-    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention }),
+    extensions: extensionsFor(props.profile, { placeholder: props.placeholder, mention, slash }),
     editorProps: {
         attributes: {
             class: 'prose-editor focus:outline-none min-h-32',
@@ -171,12 +189,24 @@ onBeforeUnmount(() => editor.value?.destroy());
     <div>
         <EditorContent :editor="editor" />
 
+        <SelectionToolbar v-if="editor" :editor="editor" />
+
         <SuggestionMenu
             v-if="menu.open"
             :items="menu.items"
             :active="menu.active"
             :rect="menu.rect"
+            empty-label="Nothing to mention"
             @pick="pick"
+        />
+
+        <SuggestionMenu
+            v-if="blockMenu.open"
+            :items="blockMenu.items"
+            :active="blockMenu.active"
+            :rect="blockMenu.rect"
+            empty-label="No matching block"
+            @pick="pickBlock"
         />
     </div>
 </template>

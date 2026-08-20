@@ -34,6 +34,7 @@
         "@hugeicons-pro/core-stroke-rounded": "^4.2.1",
         "@hugeicons/vue": "^1.0.6",
         "@inertiajs/vue3": "^3.4.0",
+        "@tiptap/extension-bubble-menu": "3.29.2",
         "@tiptap/extension-image": "^3.29.2",
         "@tiptap/extension-link": "^3.29.2",
         "@tiptap/extension-mention": "^3.29.2",
