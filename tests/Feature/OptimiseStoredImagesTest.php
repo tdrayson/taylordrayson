@@ -8,7 +8,7 @@ beforeEach(function () {
 });
 
 it('renders a full copy no larger than 1920 on its longest side', function () {
-    $activity = activityWithPhoto(noisyJpeg());
+    $activity = activityWithUnoptimisedPhoto(noisyJpeg());
 
     $media = $activity->getFirstMedia('photos');
     expect($media->hasGeneratedConversion('full'))->toBeTrue();
@@ -28,14 +28,14 @@ it('renders a full copy no larger than 1920 on its longest side', function () {
  * otherwise look like a success.
  */
 it('produces a smaller file than the original', function () {
-    $activity = activityWithPhoto(noisyJpeg());
+    $activity = activityWithUnoptimisedPhoto(noisyJpeg());
     $media = $activity->getFirstMedia('photos');
 
     expect(filesize($media->getPath('full')))->toBeLessThan($media->size);
 });
 
 it('leaves the original in place', function () {
-    $activity = activityWithPhoto(noisyJpeg());
+    $activity = activityWithUnoptimisedPhoto(noisyJpeg());
     $media = $activity->getFirstMedia('photos');
 
     // The optimised copy sits alongside the import; nothing about rendering it
@@ -80,7 +80,7 @@ it('falls back to the original until a copy exists', function () {
 });
 
 it('reports the saving without deleting anything', function () {
-    $activity = activityWithPhoto(noisyJpeg());
+    $activity = activityWithUnoptimisedPhoto(noisyJpeg());
     $original = $activity->getFirstMedia('photos')->getPath();
 
     $this->artisan('media:optimise --report')
