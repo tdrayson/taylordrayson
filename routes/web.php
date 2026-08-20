@@ -8,6 +8,7 @@ use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
+use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
@@ -50,6 +51,9 @@ Route::middleware('auth')->group(function (): void {
 
     // Drafts have no timeline entry, so they appear in no listing without this.
     Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+
+    Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
+    Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
 
 });
 

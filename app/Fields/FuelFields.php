@@ -22,7 +22,7 @@ final class FuelFields
         return [
             FieldData::primary('cost', 'Cost', FieldType::Number, required: true, prefix: '£'),
             FieldData::primary('price_per_litre', 'Price per litre', FieldType::Number, required: true, prefix: '£', suffix: '/L'),
-            FieldData::primary('station_name', 'Garage', FieldType::Location, 'Use your location, or pick a garage used before.', source: 'station'),
+            FieldData::primary('station_name', 'Garage', FieldType::Location, source: 'station'),
             FieldData::optional('address', 'Street', FieldType::Text, group: 'Address'),
             FieldData::optional('postcode', 'Postcode', FieldType::Text, group: 'Address'),
             FieldData::optional('city', 'City', FieldType::Text, group: 'Address'),
@@ -30,12 +30,12 @@ final class FuelFields
             FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
-            FieldData::primary('vehicle_id', 'Vehicle', FieldType::Select, null, self::vehicleOptions()),
+            FieldData::primary('vehicle_id', 'Vehicle', FieldType::Select, self::vehicleOptions()),
             FieldData::optional('brand', 'Brand', FieldType::Lookup, source: 'fuel-brand'),
             FieldData::optional('fuel_card_cost', 'Fuel card cost', FieldType::Number, prefix: '£'),
             FieldData::optional('odometer', 'Odometer', FieldType::Number, suffix: 'mi'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
         ];
     }
 

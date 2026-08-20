@@ -52,7 +52,7 @@ class SyncStravaPhotos
             $uniqueId = $photo['unique_id'] ?? (string) Str::uuid();
 
             $media = $activity->addMediaFromString($response->body())
-                ->usingFileName($uniqueId.'.jpg');
+                ->usingFileName($uniqueId.'.webp');
 
             $properties = ['strava_photo_id' => $uniqueId];
             $capturedAt = $photo['created_at'] ?? null;

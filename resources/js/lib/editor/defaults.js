@@ -31,6 +31,8 @@ export function defaultValueFor(field) {
     switch (field.type) {
         case 'rich-text':
         case 'tags':
+        case 'image':
+        case 'gallery':
             return [];
         case 'boolean':
         case 'published':

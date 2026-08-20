@@ -18,8 +18,8 @@ final class ProjectFields
     {
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
-            FieldData::primary('description', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY, required: true),
-            FieldData::primary('status', 'Status', FieldType::Select, null, [
+            FieldData::primary('description', 'Summary', FieldType::Textarea, required: true),
+            FieldData::primary('status', 'Status', FieldType::Select, [
                 ['value' => 'active', 'label' => 'Active'],
                 ['value' => 'maintained', 'label' => 'Maintained'],
                 ['value' => 'on_hold', 'label' => 'On hold'],
@@ -30,8 +30,9 @@ final class ProjectFields
             FieldData::optional('github_url', 'Repository', FieldType::Url),
             FieldData::optional('featured', 'Featured', FieldType::Boolean),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
+            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('slug', 'Slug', FieldType::Slug),
         ];
     }

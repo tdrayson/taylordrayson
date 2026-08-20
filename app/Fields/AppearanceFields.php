@@ -19,18 +19,18 @@ final class AppearanceFields
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('show_name', 'Show', FieldType::Text, required: true),
-            FieldData::primary('type', 'Kind', FieldType::Select, null, [
+            FieldData::primary('type', 'Kind', FieldType::Select, [
                 ['value' => 'podcast', 'label' => 'Podcast'],
                 ['value' => 'interview', 'label' => 'Interview'],
                 ['value' => 'livestream', 'label' => 'Livestream'],
             ], required: true),
             FieldData::optional('url', 'Link', FieldType::Url),
-            FieldData::optional('video_url', 'Video', FieldType::Url, 'A YouTube URL also supplies the thumbnail.'),
+            FieldData::optional('video_url', 'Video', FieldType::Url),
             FieldData::optional('audio_url', 'Audio', FieldType::Url),
             FieldData::optional('duration', 'Duration', FieldType::Duration),
             FieldData::optional('description', 'About', FieldType::Textarea),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', pairsWith: 'occurred_at'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
         ];
     }
 }

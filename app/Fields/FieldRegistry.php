@@ -28,8 +28,8 @@ use LogicException;
  *
  * A date named for the type is that type's data and leads with it (a flight
  * departs, a book is finished); one merely labelled "Date" is metadata and joins
- * the tail, where it sits at the same place on every form. A timezone is not a
- * row of its own, it pairs with the date it qualifies.
+ * the tail, where it sits at the same place on every form. A timezone follows
+ * the date it qualifies, as its own row.
  */
 final class FieldRegistry
 {

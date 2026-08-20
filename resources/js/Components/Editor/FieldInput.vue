@@ -11,6 +11,7 @@ import DateTimeField from './DateTimeField.vue';
 import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
+import ImageField from './ImageField.vue';
 
 /**
  * One field, drawn from its definition. The `type` on the definition is the
@@ -30,10 +31,6 @@ const props = defineProps({
     // way to check them.
     latitude: { type: [Number, String], default: null },
     longitude: { type: [Number, String], default: null },
-    // A field drawn inside this one's control rather than as its own row: a
-    // timezone belongs to the date it qualifies, not beside it.
-    paired: { type: Object, default: null },
-    pairedValue: { type: String, default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
     // Settled and no longer editable, like a slug after the entry's first save.
@@ -55,7 +52,7 @@ const coordinates = computed(() => {
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
 // what other fields exist.
-defineEmits(['update:modelValue', 'update:paired', 'fill']);
+defineEmits(['update:modelValue', 'fill']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -90,7 +87,7 @@ function textToTags(value) {
             v-if="field.type === 'rich-text'"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
-            :placeholder="field.help || 'Write something. Type @ to mention an entry.'"
+            placeholder="Write something. Type @ to mention an entry."
             :resolved="resolved"
             @update:model-value="$emit('update:modelValue', $event)"
         />
@@ -104,13 +101,22 @@ function textToTags(value) {
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
+        <ImageField
+            v-else-if="field.type === 'image' || field.type === 'gallery'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :multiple="field.type === 'gallery'"
+            :invalid="Boolean(error)"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
+
         <!-- A toggle labels itself, so it carries its own text in the row rather
              than repeating the label drawn above every other field. -->
         <div
             v-else-if="field.type === 'boolean'"
             :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3 text-neutral-900']"
         >
-            <span>{{ field.help || field.label }}</span>
+            <span>{{ field.label }}</span>
 
             <Switch
                 :id="field.name"
@@ -145,10 +151,7 @@ function textToTags(value) {
             :id="field.name"
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
-            :timezone="paired ? String(pairedValue ?? '') : null"
-            :timezone-label="paired?.label ?? 'Timezone'"
             @update:model-value="$emit('update:modelValue', $event)"
-            @update:timezone="$emit('update:paired', $event)"
         />
 
         <DurationInput
@@ -170,7 +173,6 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source"
-            :placeholder="field.help ?? ''"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -180,7 +182,6 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source ?? 'place'"
-            :placeholder="field.help ?? ''"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -210,21 +211,8 @@ function textToTags(value) {
             class="mt-3 overflow-hidden rounded-lg"
         />
 
-        <!-- The error replaces the help rather than stacking under it: what is
-             wrong now matters more than what the field is for. -->
         <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
 
-        <!-- The field's own help describes filling it in, which is no longer
-             something that can happen. -->
         <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
-
-        <!-- Lookup and location fields already show the help as their
-             placeholder, and a boolean shows it beside the toggle. -->
-        <p
-            v-else-if="field.help && ! ['boolean', 'rich-text', 'lookup', 'location'].includes(field.type)"
-            class="mt-1 text-caption text-neutral-500"
-        >
-            {{ field.help }}
-        </p>
     </div>
 </template>

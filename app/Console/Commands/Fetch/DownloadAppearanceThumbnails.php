@@ -72,7 +72,7 @@ class DownloadAppearanceThumbnails extends Command
 
         $appearance->clearMediaCollection('cover');
         $appearance->addMediaFromString($thumbnail['body'])
-            ->usingFileName("{$videoId}.jpg")
+            ->usingFileName("{$videoId}.webp")
             ->toMediaCollection('cover');
 
         return true;

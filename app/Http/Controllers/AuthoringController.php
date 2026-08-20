@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\SyncEntryMedia;
 use App\Data\FieldData;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
@@ -46,7 +47,9 @@ class AuthoringController extends Controller
 
         $attributes = $request->validate(FieldRules::for($fields, creating: true), [], FieldRules::labels($fields));
 
-        $model = app($definition['create'])($this->expand($attributes));
+        $model = app($definition['create'])($this->expand($attributes, $fields));
+
+        app(SyncEntryMedia::class)($model, $fields, $attributes);
 
         return $this->afterSave($model);
     }
@@ -59,7 +62,9 @@ class AuthoringController extends Controller
 
         $attributes = $request->validate(FieldRules::for($fields, creating: false), [], FieldRules::labels($fields));
 
-        app($definition['update'])($model, $this->expand($attributes));
+        app($definition['update'])($model, $this->expand($attributes, $fields));
+
+        app(SyncEntryMedia::class)($model, $fields, $attributes);
 
         return $this->afterSave($model->refresh());
     }
@@ -127,15 +132,26 @@ class AuthoringController extends Controller
      * Turn dotted field names back into the nested arrays the actions expect,
      * so `meta.author` arrives as `['meta' => ['author' => ...]]`.
      *
+     * Media fields are dropped: they name a Media Library collection, not a
+     * column, and are synced separately once the model exists.
+     *
      * @param  array<string, mixed>  $attributes
+     * @param  list<FieldData>  $fields
      * @return array<string, mixed>
      */
-    private function expand(array $attributes): array
+    private function expand(array $attributes, array $fields): array
     {
+        $media = array_column(
+            array_filter($fields, fn (FieldData $field): bool => $field->type->isMedia()),
+            'name',
+        );
+
         $expanded = [];
 
         foreach ($attributes as $key => $value) {
-            data_set($expanded, $key, $value);
+            if (! in_array($key, $media, true)) {
+                data_set($expanded, $key, $value);
+            }
         }
 
         return $expanded;

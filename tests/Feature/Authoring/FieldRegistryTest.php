@@ -53,6 +53,16 @@ it('names only fields the model can actually be filled with', function (string $
             continue;
         }
 
+        // Media names a Media Library collection, synced after the save by
+        // SyncEntryMedia. It must NOT be fillable, or the list of uuids the
+        // editor posts would be written into a column.
+        if ($field->type->isMedia()) {
+            expect($fillable)->not->toContain($field->name)
+                ->and($field->collection)->not->toBeNull();
+
+            continue;
+        }
+
         // A dotted name addresses a key inside a JSON column, so the column
         // itself is what has to be fillable.
         $column = str_contains($field->name, '.')
