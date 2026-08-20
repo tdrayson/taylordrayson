@@ -59,7 +59,7 @@ trait FetchesMapImages
 
         foreach ($images as $collection => $body) {
             $last = $model->addMediaFromString($body)
-                ->usingFileName(Str::uuid().'.png')
+                ->usingFileName(Str::uuid().'.webp')
                 ->toMediaCollection($collection);
         }
 

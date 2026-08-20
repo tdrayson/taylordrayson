@@ -29,7 +29,7 @@ final class PodcastCard
             meta: CardMeta::media(MediaData::withoutSrcset(
                 id: $model->id,
                 title: $model->title,
-                audioUrl: $model->audioSrc(),
+                audioUrl: $model->audio_url,
                 videoUrl: $model->video_url,
                 // Wide art fronts the card, square art goes to the audio player.
                 thumbnail: $model->wideArtworkSrc() ?? $model->squareArtworkSrc(),

@@ -18,8 +18,8 @@ final class ProjectFields
     {
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
-            FieldData::primary('description', 'Summary', FieldType::Textarea, FieldHelp::SUMMARY, required: true),
-            FieldData::primary('status', 'Status', FieldType::Select, null, [
+            FieldData::primary('description', 'Summary', FieldType::Textarea, required: true),
+            FieldData::primary('status', 'Status', FieldType::Select, [
                 ['value' => 'active', 'label' => 'Active'],
                 ['value' => 'maintained', 'label' => 'Maintained'],
                 ['value' => 'on_hold', 'label' => 'On hold'],

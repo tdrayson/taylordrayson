@@ -14,13 +14,10 @@ use Throwable;
     {--force : Re-download episodes that already have a stored copy}
     {--limit= : Stop after this many episodes, for filling the archive in batches}
     {--now : Download in the foreground instead of queueing, with a progress bar}')]
-#[Description('Mirror This Week With episode audio and artwork into local storage')]
+#[Description('Mirror This Week With episode artwork into local storage')]
 class DownloadPodcastMedia extends Command
 {
-    /**
-     * Back-fill the archive, one job per episode. Queued by default so the ~10GB
-     * catalogue survives an interruption; `--now` runs a handful in the foreground.
-     */
+    /** Back-fill the archive, one job per episode. */
     public function handle(): int
     {
         $episodes = $this->targetEpisodes();
@@ -95,11 +92,10 @@ class DownloadPodcastMedia extends Command
     {
         $query = Podcast::query()
             ->with('media')
-            ->whereNotNull('audio_url')
             ->orderBy('occurred_at');
 
         if (! $this->option('force')) {
-            $query->whereDoesntHave('media', fn ($media) => $media->where('collection_name', 'audio'));
+            $query->whereDoesntHave('media', fn ($media) => $media->where('collection_name', 'artwork'));
         }
 
         if ($limit = $this->option('limit')) {
