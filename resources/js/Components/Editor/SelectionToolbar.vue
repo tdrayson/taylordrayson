@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 
@@ -18,15 +18,12 @@ const props = defineProps({
 // Open only while editing the href, so the bar returns to its buttons after.
 const editingLink = ref(false);
 const href = ref('');
-
-// A destination on another host. Relative paths and same-host URLs stay in the
-// tab; everything else is opened in a new one by the renderer.
-const isExternal = computed(() => /^https?:\/\//i.test(href.value.trim())
-    && ! href.value.includes(window.location.host));
+const blank = ref(false);
 
 const BUTTONS = [
     { mark: 'bold', icon: 'TextBoldIcon', label: 'Bold' },
     { mark: 'italic', icon: 'TextItalicIcon', label: 'Italic' },
+    { mark: 'underline', icon: 'TextUnderlineIcon', label: 'Underline' },
     { mark: 'strike', icon: 'TextStrikethroughIcon', label: 'Strikethrough' },
     { mark: 'code', icon: 'SourceCodeIcon', label: 'Code' },
 ];
@@ -44,8 +41,21 @@ function shouldShow({ editor: instance, from, to }) {
 }
 
 /** Open the href field, prefilled when the selection is already a link. */
+/** A destination on another host, which is what defaults to a new tab. */
+function isExternal(value) {
+    const url = String(value ?? '').trim();
+
+    return /^https?:\/\//i.test(url) && ! url.includes(window.location.host);
+}
+
 function startLink() {
-    href.value = props.editor.getAttributes('link').href ?? '';
+    const link = props.editor.getAttributes('link');
+
+    href.value = link.href ?? '';
+    // A new link to another host defaults to opening away, which is what is
+    // wanted almost every time; the toggle is for the exceptions.
+    // Unset means "decide by host", which for a new external link is a new tab.
+    blank.value = link.target ? link.target === '_blank' : isExternal(href.value);
     editingLink.value = true;
 }
 
@@ -54,7 +64,10 @@ function applyLink() {
     const chain = props.editor.chain().focus().extendMarkRange('link');
 
     // An emptied field is how you remove a link, rather than a separate control.
-    (value === '' ? chain.unsetLink() : chain.setLink({ href: value })).run();
+    (value === ''
+        ? chain.unsetLink()
+        : chain.setLink({ href: value, target: blank.value ? '_blank' : '_self' })
+    ).run();
 
     editingLink.value = false;
 }
@@ -83,14 +96,14 @@ function cancelLink() {
                 @keydown.esc.prevent="cancelLink"
             >
 
-            <!-- External links open in a new tab when rendered, decided by the
-                 host rather than stored per link, so this reports it. -->
-            <Icon
-                v-if="isExternal"
-                name="ArrowUpRight01Icon"
-                class="size-4 shrink-0 text-neutral-500"
-                title="Opens in a new tab"
-            />
+            <button
+                type="button"
+                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                :class="blank ? 'bg-accent-50 text-accent-700' : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
+                :aria-label="blank ? 'Opens in a new tab' : 'Opens in the same tab'"
+                :aria-pressed="blank"
+                @click="blank = ! blank"
+            ><Icon name="ArrowUpRight01Icon" class="size-4" /></button>
 
             <button
                 type="button"

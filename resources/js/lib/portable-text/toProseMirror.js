@@ -27,7 +27,14 @@ function spanToText(span, markDefs) {
         const def = (markDefs ?? []).find((candidate) => candidate._key === mark);
 
         if (def?._type === 'link') {
-            marks.push({ type: 'link', attrs: { href: def.href, _key: def._key } });
+            marks.push({
+                type: 'link',
+                attrs: {
+                    href: def.href,
+                    _key: def._key,
+                    target: def.blank === undefined ? null : (def.blank ? '_blank' : '_self'),
+                },
+            });
         }
     }
 

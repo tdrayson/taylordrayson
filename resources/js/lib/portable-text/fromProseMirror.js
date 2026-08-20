@@ -66,7 +66,17 @@ function inlineToSpans(content) {
                 const key = mark.attrs?._key ?? newKey();
 
                 if (! markDefs.some((def) => def._key === key)) {
-                    markDefs.push({ _key: key, _type: 'link', href: mark.attrs?.href ?? '' });
+                    const def = { _key: key, _type: 'link', href: mark.attrs?.href ?? '' };
+
+                    // Written only once the author has actually chosen, so a
+                    // link left alone keeps deciding by its host.
+                    if (mark.attrs?.target === '_blank') {
+                        def.blank = true;
+                    } else if (mark.attrs?.target === '_self') {
+                        def.blank = false;
+                    }
+
+                    markDefs.push(def);
                 }
 
                 linkKeys.push(key);

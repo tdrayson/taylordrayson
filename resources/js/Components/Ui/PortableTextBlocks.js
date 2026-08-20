@@ -93,15 +93,19 @@ function renderExternalLink(def, label, text, favicons) {
         // mark and some do not, which reads as broken rather than deliberate.
         : h(Icon, { icon: 'Globe02Icon', class: 'mb-0.5 mr-1 inline size-3.5 align-middle text-neutral-400' });
 
+    // The author's choice wins where they made one; otherwise an external
+    // destination opens away, which is the expected default.
+    const away = def.blank ?? true;
+
     return h('a', {
         href: def.href,
-        rel: 'noopener noreferrer',
-        target: '_blank',
+        rel: away ? 'noopener noreferrer' : null,
+        target: away ? '_blank' : null,
         'data-external': '',
     }, [
         mark,
         isBareUrl(text, def.href) && host ? host : label,
-        h('span', { class: 'sr-only' }, ', opens in a new tab'),
+        away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
     ]);
 }
 

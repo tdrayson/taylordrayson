@@ -113,3 +113,39 @@ it('opens the link editor when the caret rests in a link, rather than following 
         // Still on the editor: the click must not have navigated away.
         ->assertScript("window.location.pathname", '/new/article');
 });
+
+it('offers underline alongside the other marks', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'format me');
+    $page->assertScript("
+        (() => {
+            const el = document.querySelector('.prose-editor p');
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            el.dispatchEvent(new Event('mouseup', { bubbles: true }));
+            return true;
+        })()
+    ", true);
+
+    $page->click('[aria-label="Underline"]');
+    $page->assertScript("document.querySelectorAll('.prose-editor u, .prose-editor [style*=\"underline\"]').length > 0", true);
+});
+
+it('toggles whether a link opens in a new tab', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'https://github.com ');
+    $page->click('.prose-editor a');
+    $page->click('[aria-label="Edit link"]');
+
+    // External defaults to opening away, so the toggle starts pressed.
+    $page->assertScript("document.querySelector('[aria-label=\"Opens in a new tab\"]') !== null", true);
+
+    $page->click('[aria-label="Opens in a new tab"]');
+    $page->click('[aria-label="Apply link"]');
+
+    $page->assertScript("document.querySelector('.prose-editor a').getAttribute('target')", '_self');
+});
