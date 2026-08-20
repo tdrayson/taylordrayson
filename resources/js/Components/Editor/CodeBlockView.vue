@@ -48,7 +48,13 @@ const lines = computed(() => Math.max(1, props.node.textContent.split('\n').leng
 </script>
 
 <template>
-    <NodeViewWrapper class="not-prose my-6 max-w-media overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
+    <NodeViewWrapper class="not-prose relative my-6 max-w-media">
+        <!-- Where the options panel is put, if this block is the one being
+             configured. Above the block and out of its way, which is placement
+             the block itself knows and a floating panel has to work out. -->
+        <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
+
+        <div class="overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
         <div
             v-if="filename || language"
             contenteditable="false"
@@ -76,6 +82,7 @@ const lines = computed(() => Math.max(1, props.node.textContent.split('\n').leng
             </div>
 
             <pre class="code-body min-w-0 flex-1"><NodeViewContent as="code" class="code-highlight" /></pre>
+        </div>
         </div>
     </NodeViewWrapper>
 </template>

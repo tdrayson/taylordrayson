@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 import BlockOptions from './BlockOptions.vue';
@@ -56,9 +56,9 @@ const panel = ref(null);
 let dismissed = false;
 
 /**
- * The configurable block the caret is inside, with the screen rect of its own
- * element. Anchoring to the element rather than the selection is what stops the
- * panel drifting along the line as you type.
+ * The configurable block the caret is inside, and the slot inside that block to
+ * put its panel in. Every block renders one, so the panel needs no coordinates:
+ * it lands where the block already says it should go.
  */
 function trackBlock() {
     const definition = dismissed ? null : blockOptionsFor(props.editor);
@@ -87,10 +87,9 @@ function trackBlock() {
     }
 
     const element = position === null ? null : props.editor.view.nodeDOM(position);
+    const anchor = element?.querySelector?.('[data-block-panel]') ?? null;
 
-    block.value = element?.getBoundingClientRect
-        ? { definition, rect: element.getBoundingClientRect() }
-        : null;
+    block.value = anchor ? { definition, anchor } : null;
 }
 
 /**
@@ -114,8 +113,6 @@ onMounted(() => {
     props.editor.on('selectionUpdate', trackBlock);
     props.editor.on('transaction', trackBlock);
 
-    window.addEventListener('scroll', trackBlock, true);
-    window.addEventListener('resize', trackBlock);
     document.addEventListener('pointerdown', onDocumentPointerDown, true);
 });
 
@@ -123,19 +120,8 @@ onBeforeUnmount(() => {
     props.editor.off('selectionUpdate', trackBlock);
     props.editor.off('transaction', trackBlock);
 
-    window.removeEventListener('scroll', trackBlock, true);
-    window.removeEventListener('resize', trackBlock);
     document.removeEventListener('pointerdown', onDocumentPointerDown, true);
 });
-
-/** Spanning the block it configures, sitting just above it. */
-const blockStyle = computed(() => (block.value
-    ? {
-        left: `${block.value.rect.left}px`,
-        width: `${block.value.rect.width}px`,
-        top: `${block.value.rect.top - 46}px`,
-    }
-    : { display: 'none' }));
 
 /** Open the href field, prefilled when the selection is already a link. */
 /** A destination on another site, which is what defaults to a new tab. */
@@ -243,10 +229,12 @@ function cancelLink() {
         </div>
     </BubbleMenu>
 
-    <!-- Outside the bubble menu: fixed to the block it configures, so it holds
-         still while you type inside that block. -->
-    <div v-if="block" ref="panel" class="fixed z-40" :style="blockStyle">
-        <BlockOptions :editor="editor" :definition="block.definition" />
-    </div>
+    <!-- Rendered into the block itself, so it scrolls and moves with it and
+         sits where the block puts it rather than at a computed offset. -->
+    <Teleport v-if="block" :to="block.anchor">
+        <div ref="panel">
+            <BlockOptions :editor="editor" :definition="block.definition" />
+        </div>
+    </Teleport>
     </div>
 </template>

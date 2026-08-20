@@ -52,7 +52,10 @@ function useTypedUrl() {
 </script>
 
 <template>
-    <NodeViewWrapper class="not-prose my-8 max-w-media">
+    <NodeViewWrapper class="not-prose relative my-8 max-w-media">
+        <!-- See CodeBlockView: the block places its own options panel. -->
+        <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
+
         <figure v-if="url" class="group relative">
             <img
                 :src="url"
