@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue';
+import { tooltipSuppressed } from '../../lib/tooltip.js';
 
 const props = defineProps({
     label: { type: String, required: true },
@@ -44,7 +45,18 @@ function reposition() {
     updatePosition();
 }
 
+/** Whether the pointer can hover, i.e. this is not a touch screen. */
+function canHover() {
+    return typeof window === 'undefined' || window.matchMedia('(hover: hover)').matches;
+}
+
 function show() {
+    // Asked on every show rather than once: a tablet gains a pointer the moment
+    // a keyboard is attached, and this costs nothing at hover speed.
+    if (tooltipSuppressed(triggerRef.value, canHover())) {
+        return;
+    }
+
     updatePosition();
     visible.value = true;
     // Only listen while the bubble is actually shown, so idle tooltips (e.g.
