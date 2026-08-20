@@ -805,3 +805,14 @@
 .dark .code-highlight .hljs-subst {
     color: hsl(340 60% 68%);
 }
+
+/* Above every marker, raised or not. MapLibre numbers its markers itself and
+   ships the controls at 2, so a raised marker would sit over the zoom buttons.
+   Qualified by the map class to beat MapLibre's own rule, whose stylesheet is
+   imported dynamically and so cannot be ordered against. */
+.maplibregl-map .maplibregl-ctrl-top-left,
+.maplibregl-map .maplibregl-ctrl-top-right,
+.maplibregl-map .maplibregl-ctrl-bottom-left,
+.maplibregl-map .maplibregl-ctrl-bottom-right {
+    z-index: 901;
+}
