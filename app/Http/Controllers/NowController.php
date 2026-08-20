@@ -51,7 +51,7 @@ class NowController extends Controller
             'media' => [
                 'id' => $episode->id,
                 'title' => $episode->title,
-                'audioUrl' => $episode->audioSrc(),
+                'audioUrl' => $episode->audio_url,
                 'videoUrl' => $episode->video_url,
                 'thumbnail' => $episode->wideArtworkSrc() ?? $episode->squareArtworkSrc(),
                 // Square artwork for the bottom audio player; the widget itself

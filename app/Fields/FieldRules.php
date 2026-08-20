@@ -15,6 +15,8 @@ use App\Enums\FieldType;
  */
 final class FieldRules
 {
+    private const MAX_GALLERY = 24;
+
     /**
      * @param  list<FieldData>  $fields
      * @return array<string, array<int, string>>
@@ -24,6 +26,10 @@ final class FieldRules
         $rules = [];
 
         foreach ($fields as $field) {
+            if ($field->type->isMedia()) {
+                $rules[$field->name.'.*'] = ['string', 'max:100'];
+            }
+
             $rules[$field->name] = [
                 // Only the genuinely mandatory fields are required, and only on
                 // create: an update may touch one field and leave the rest
@@ -72,6 +78,10 @@ final class FieldRules
             // editable afterwards, so neither is constrained to what the
             // source returned.
             FieldType::Lookup, FieldType::Location => ['nullable', 'string', 'max:255'],
+            // An ordered list of media uuids and `pending:` upload tokens; the
+            // items themselves are checked by itemRules() below.
+            FieldType::Image => ['nullable', 'array', 'max:1'],
+            FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
         };
     }
 

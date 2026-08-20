@@ -51,3 +51,12 @@ Schedule::command('strava:streams')->hourly()->withoutOverlapping();
 foreach (['activity', 'flight', 'fuel', 'checkin'] as $mappableType) {
     Schedule::command("maps:generate {$mappableType}")->hourly()->withoutOverlapping();
 }
+
+// Housekeeping: storage the app has stopped referencing but never removes on its
+// own. Both only delete, so a missed run costs disk rather than data.
+
+// Editor uploads abandoned before the entry was saved.
+Schedule::command('media:prune-pending')->dailyAt('03:40');
+
+// Files left behind by deleted attachments, plus conversions no longer declared.
+Schedule::command('media-library:clean --force')->weeklyOn(1, '03:50')->withoutOverlapping();

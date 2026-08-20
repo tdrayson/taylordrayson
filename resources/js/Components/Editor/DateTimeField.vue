@@ -7,23 +7,21 @@ import { clock } from '../../lib/format.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 
 /**
- * A date and time with an explicit timezone. The value is wall-clock text, never
- * an instant: parsing through Date and back would walk it by the browser's offset.
+ * A date and time. The value is wall-clock text, never an instant: parsing
+ * through Date and back would walk it by the browser's offset. The zone that
+ * qualifies it is a field of its own.
  */
 const props = defineProps({
     // 'YYYY-MM-DD HH:mm:ss' or the T-separated form.
     modelValue: { type: String, default: '' },
     id: { type: String, default: null },
-    // The timezone stored alongside, if the type keeps one.
-    timezone: { type: String, default: null },
-    timezoneLabel: { type: String, default: 'Timezone' },
     // The value this one is measured from, when the field declares a
     // relativeTo: an event's end is nearly always a few hours after its start.
     relativeToValue: { type: String, default: null },
     relativeToLabel: { type: String, default: 'start' },
 });
 
-const emit = defineEmits(['update:modelValue', 'update:timezone']);
+const emit = defineEmits(['update:modelValue']);
 
 const { isOpen: open, root, close, toggle } = useDismissable();
 const typed = ref('');
@@ -79,14 +77,14 @@ const shown = computed(() => (parts.value.date
 
 /**
  * The site's timestamp shape, matching LocalTime's "D j M Y, g:ia", with the
- * year dropped when it is this one and the timezone appended when the field
- * keeps one: an entry's date is only unambiguous alongside its zone.
+ * year dropped when it is this one. The zone is its own field, so it is not
+ * repeated here.
  */
 function readable({ date, time }) {
     const day = new Date(`${date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
     const year = date.slice(0, 4) === String(tick.value.getFullYear()) ? '' : ` ${date.slice(0, 4)}`;
 
-    return [`${day}${year}, ${clock(new Date(`${date}T${time}`))}`, props.timezone].filter(Boolean).join(', ');
+    return `${day}${year}, ${clock(new Date(`${date}T${time}`))}`;
 }
 
 // Unset reads as the stamp it would be given, in the same shape as a set one:
@@ -246,17 +244,6 @@ function setTimePart(value) {
                     >
                 </label>
             </div>
-
-            <label v-if="timezone !== null" class="mt-2 block text-label uppercase text-neutral-500">
-                {{ timezoneLabel }}
-                <input
-                    type="text"
-                    :value="timezone"
-                    :placeholder="Intl.DateTimeFormat().resolvedOptions().timeZone"
-                    :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
-                    @input="emit('update:timezone', $event.target.value)"
-                >
-            </label>
 
             <div class="mt-2 flex gap-2">
                 <button

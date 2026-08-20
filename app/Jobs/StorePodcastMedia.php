@@ -14,12 +14,11 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Mirrors one episode's audio and artwork off the publisher and into local
- * storage, so the site stops depending on thisweekwith.co.uk staying up (and on
- * its URLs never changing) in order to play its own back catalogue.
+ * Mirrors one episode's artwork off the publisher and into local storage, so the
+ * site renders its own images rather than hotlinking thisweekwith.co.uk.
  *
- * Queued because an episode is a 27-55MB download: far too slow to do inline
- * during a sync, and worth retrying rather than skipping when it fails.
+ * Audio is deliberately not mirrored: it is served from the publisher's URL,
+ * which is our own, so a second ~10GB copy would buy nothing.
  */
 class StorePodcastMedia implements ShouldQueue
 {
@@ -27,22 +26,13 @@ class StorePodcastMedia implements ShouldQueue
 
     public int $tries = 3;
 
-    /**
-     * Generous because the work is bounded by bandwidth, not by our own code:
-     * the largest episodes are ~55MB, and a slow connection should be waited
-     * out rather than have the job killed halfway and started again.
-     */
-    public int $timeout = 900;
+    public int $timeout = 120;
 
     public function __construct(private Podcast $podcast, private bool $force = false) {}
 
     /**
-     * Never two runs for the same episode at once.
-     *
-     * The queue's `retry_after` is 90 seconds, comfortably shorter than a large
-     * download takes, so a worker will release this job back onto the queue
-     * while the first attempt is still going. Without this the same 55MB would
-     * be pulled twice over and stored twice.
+     * Never two runs for the same episode at once, so a job released back onto
+     * the queue mid-download cannot store the same image twice.
      *
      * @return array<int, object>
      */
@@ -53,7 +43,6 @@ class StorePodcastMedia implements ShouldQueue
 
     public function handle(): void
     {
-        $this->store('audio', $this->podcast->audio_url, 'mp3');
         $this->store('cover', $this->podcast->cover_image);
         $this->store('artwork', $this->podcast->thumbnail);
     }
@@ -63,7 +52,7 @@ class StorePodcastMedia implements ShouldQueue
      * alone unless forced. Streamed to a temporary file rather than held in memory;
      * addMedia() moves it, so there is nothing to clean up.
      */
-    private function store(string $collection, ?string $url, ?string $fallbackExtension = null): void
+    private function store(string $collection, ?string $url): void
     {
         if (! $url || ($this->podcast->getFirstMedia($collection) && ! $this->force)) {
             return;
@@ -85,7 +74,7 @@ class StorePodcastMedia implements ShouldQueue
             throw new RuntimeException("Got {$response->status()} fetching {$url} for episode #{$this->podcast->id}.");
         }
 
-        $extension = pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION) ?: $fallbackExtension;
+        $extension = pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION);
 
         // Named after the episode rather than after the publisher's file, so a
         // stored copy says which episode it is without a database lookup.
