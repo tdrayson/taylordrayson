@@ -4,6 +4,8 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Rules\TextOrDocument;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
  * Validation derived from the field definitions.
@@ -59,14 +61,17 @@ final class FieldRules
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, string|ValidationRule>
      */
     private static function typeRules(FieldData $field): array
     {
         return match ($field->type) {
             FieldType::Title, FieldType::Text => ['nullable', 'string', 'max:255'],
             FieldType::Textarea => ['nullable', 'string', 'max:5000'],
-            FieldType::RichText, FieldType::Prose => ['nullable', 'array'],
+            FieldType::RichText => ['nullable', 'array'],
+            // Blocks from the editor, or a plain string from anything that only
+            // has one; the model normalises a string into a single block.
+            FieldType::Prose => ['nullable', new TextOrDocument],
             FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
