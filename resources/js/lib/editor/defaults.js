@@ -30,6 +30,7 @@ export function defaultValueFor(field) {
 
     switch (field.type) {
         case 'rich-text':
+        case 'prose':
         case 'tags':
         case 'image':
         case 'gallery':

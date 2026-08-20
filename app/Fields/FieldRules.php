@@ -66,7 +66,7 @@ final class FieldRules
         return match ($field->type) {
             FieldType::Title, FieldType::Text => ['nullable', 'string', 'max:255'],
             FieldType::Textarea => ['nullable', 'string', 'max:5000'],
-            FieldType::RichText => ['nullable', 'array'],
+            FieldType::RichText, FieldType::Prose => ['nullable', 'array'],
             FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],

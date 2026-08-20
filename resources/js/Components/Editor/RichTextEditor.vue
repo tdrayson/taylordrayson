@@ -296,6 +296,10 @@ watch(() => props.modelValue, (value) => {
 });
 
 onBeforeUnmount(() => editor.value?.destroy());
+
+// So a wrapper that looks like a text box can hand a click through to the
+// caret, the way clicking the padding of a textarea does.
+defineExpose({ focus: () => editor.value?.commands.focus() });
 </script>
 
 <template>
@@ -304,7 +308,9 @@ onBeforeUnmount(() => editor.value?.destroy());
 
         <SelectionToolbar v-if="editor" :editor="editor" />
 
-        <BlockHandles v-if="editor" :editor="editor" />
+        <!-- Long-form only: a note has no blocks worth reordering, and the
+             controls would sit in the margin of a small bordered box. -->
+        <BlockHandles v-if="editor && profile === 'document'" :editor="editor" />
 
         <SuggestionMenu
             v-if="menu.open"
