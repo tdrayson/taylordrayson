@@ -5,6 +5,7 @@ import { Menu01Icon, Cancel01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import SearchBar from './SearchBar.vue';
 import SidebarNav from './SidebarNav.vue';
+import StatusBar from './StatusBar.vue';
 import Avatar from '../Profile/Avatar.vue';
 import { useSettings } from '../../useSettings';
 
@@ -63,6 +64,15 @@ onUnmounted(() => {
 
 <template>
     <div class="md:hidden" :class="shellFixed ? 'fixed inset-0 z-50 flex flex-col bg-neutral-0' : ''">
+        <!-- Inside the shell so going full-screen carries it along. -->
+        <div
+            v-if="! props.minimal"
+            data-status-band
+            class="flex flex-none justify-end border-b border-neutral-50 bg-neutral-25 px-5 py-1.5"
+        >
+            <StatusBar compact />
+        </div>
+
         <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
