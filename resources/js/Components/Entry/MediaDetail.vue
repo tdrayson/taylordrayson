@@ -8,7 +8,6 @@ import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
-    title: { type: String, default: '' },
 });
 
 const meta = computed(() => props.entry.meta || {});
@@ -39,7 +38,7 @@ const rows = computed(() => [
             :backdrop="entry.backdrop"
             :logo="entry.logo"
             :poster="entry.poster"
-            :title="title"
+            :title="entry.title ?? ''"
         />
 
         <div v-if="entry.rating" class="flex items-center gap-2">
