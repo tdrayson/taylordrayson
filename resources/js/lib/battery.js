@@ -29,7 +29,7 @@ export function batteryState({ level, charging = false, lowPower = false }) {
  * surrounding text colour while the tile uses its own foreground.
  */
 export const BATTERY_COLOURS = {
-    'low-power': '#FF9500',
-    low: '#FA3532',
-    charging: '#1BC95A',
+    'low-power': 'var(--color-battery-power)',
+    low: 'var(--color-battery-low)',
+    charging: 'var(--color-battery-charging)',
 };
