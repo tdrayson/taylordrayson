@@ -86,14 +86,23 @@ onBeforeUnmount(() => {
     box-shadow: var(--shadow-card);
 }
 
+/* Rounded here as well as on the card: a WebGL canvas composites on its own
+   layer, which an ancestor's overflow does not always clip. */
 .location__map {
     position: absolute;
     inset: 0;
     z-index: 0;
+    overflow: hidden;
+    border-radius: inherit;
 }
 
 .location__map :deep(.maplibregl-canvas) {
     outline: none;
+    border-radius: inherit;
+}
+
+.location__map :deep(.maplibregl-canvas-container) {
+    border-radius: inherit;
 }
 
 /* Soft surface-coloured wash rising from the bottom-left so the label stays
