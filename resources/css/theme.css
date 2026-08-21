@@ -104,6 +104,13 @@
     --color-heat-3: var(--color-accent-400);
     --color-heat-4: var(--color-accent-500);
 
+    /* Battery states, following iOS: healthy, charging, low, Low Power Mode.
+       Gradient stops and glows are mixed from these, so one value moves a state. */
+    --color-battery: #34c759;
+    --color-battery-charging: #16d957;
+    --color-battery-low: #fa3532;
+    --color-battery-power: #ff9f0a;
+
     /* Radius */
     --radius-sm: 8px;
     --radius-md: 11px;

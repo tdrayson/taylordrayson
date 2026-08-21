@@ -43,7 +43,7 @@ const subText = computed(() => (props.charging ? props.timeLeft : 'remaining'));
 const hasSubText = computed(() => Boolean(subText.value));
 
 // Colour priority mirrors iOS: Low Power Mode (orange) > low (red) > charging
-// (green) > idle (neutral foreground).
+// (green) > idle (green).
 const VALUE_COLOURS = {
     ...BATTERY_COLOURS,
     idle: 'var(--color-neutral-900)',
@@ -162,20 +162,25 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
     width: 0.6cqw;
     height: 54%;
     border-radius: 2px;
-    background: rgba(6, 80, 36, 0.22);
+    background: rgba(0, 0, 0, 0.22);
 }
 
 .charging__fill--idle {
-    background: linear-gradient(180deg, var(--color-neutral-500), var(--color-neutral-700) 60%);
-    box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.12);
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-battery) 82%, white),
+        var(--color-battery) 60%,
+        color-mix(in srgb, var(--color-battery) 88%, black)
+    );
+    box-shadow: 0 1cqw 2cqw color-mix(in srgb, var(--color-battery) 30%, transparent);
 }
 
 .charging__fill--idle::before {
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(0, 0, 0, 0.22);
 }
 
 .charging__fill--low {
-    background: #fa3532;
+    background: var(--color-battery-low);
 }
 
 .charging__fill--low::before {
@@ -184,22 +189,32 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
 
 /* Low Power Mode — orange, soft static glow. */
 .charging__fill--power {
-    background: linear-gradient(180deg, #ffb347, #ff9f0a 60%, #ff9500);
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-battery-power) 80%, white),
+        var(--color-battery-power) 60%,
+        color-mix(in srgb, var(--color-battery-power) 92%, black)
+    );
     box-shadow:
-        0 0 7cqw 1cqw rgba(255, 149, 0, 0.45),
+        0 0 7cqw 1cqw color-mix(in srgb, var(--color-battery-power) 45%, transparent),
         inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.35);
 }
 
 .charging__fill--power::before {
-    background: rgba(120, 60, 0, 0.22);
+    background: rgba(0, 0, 0, 0.22);
 }
 
 .charging__fill--charging {
     overflow: hidden;
-    background: linear-gradient(180deg, #34e673, #16d957 60%, #10d052);
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-battery-charging) 84%, white),
+        var(--color-battery-charging) 60%,
+        color-mix(in srgb, var(--color-battery-charging) 92%, black)
+    );
     box-shadow:
-        0 0 9cqw 1.8cqw rgba(24, 221, 92, 0.55),
-        0 2.4cqw 6.6cqw rgba(24, 221, 92, 0.35),
+        0 0 9cqw 1.8cqw color-mix(in srgb, var(--color-battery-charging) 55%, transparent),
+        0 2.4cqw 6.6cqw color-mix(in srgb, var(--color-battery-charging) 35%, transparent),
         inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.35);
     animation: charging-breathe 2.6s ease-in-out infinite;
 }
@@ -229,15 +244,15 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
     0%,
     100% {
         box-shadow:
-            0 0 7.8cqw 1.2cqw rgba(24, 221, 92, 0.48),
-            0 2.4cqw 6.6cqw rgba(24, 221, 92, 0.3),
+            0 0 7.8cqw 1.2cqw color-mix(in srgb, var(--color-battery-charging) 48%, transparent),
+            0 2.4cqw 6.6cqw color-mix(in srgb, var(--color-battery-charging) 30%, transparent),
             inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.35);
     }
 
     50% {
         box-shadow:
-            0 0 10.8cqw 2.4cqw rgba(24, 221, 92, 0.62),
-            0 2.4cqw 7.8cqw rgba(24, 221, 92, 0.4),
+            0 0 10.8cqw 2.4cqw color-mix(in srgb, var(--color-battery-charging) 62%, transparent),
+            0 2.4cqw 7.8cqw color-mix(in srgb, var(--color-battery-charging) 40%, transparent),
             inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.4);
     }
 }
