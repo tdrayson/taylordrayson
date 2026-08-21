@@ -43,7 +43,7 @@ const subText = computed(() => (props.charging ? props.timeLeft : 'remaining'));
 const hasSubText = computed(() => Boolean(subText.value));
 
 // Colour priority mirrors iOS: Low Power Mode (orange) > low (red) > charging
-// (green) > idle (neutral foreground).
+// (green) > idle (green).
 const VALUE_COLOURS = {
     ...BATTERY_COLOURS,
     idle: 'var(--color-neutral-900)',
@@ -166,12 +166,12 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
 }
 
 .charging__fill--idle {
-    background: linear-gradient(180deg, var(--color-neutral-500), var(--color-neutral-700) 60%);
-    box-shadow: 0 1cqw 2cqw rgba(20, 22, 30, 0.12);
+    background: linear-gradient(180deg, #4cd471, #34c759 60%, #2bb14c);
+    box-shadow: 0 1cqw 2cqw rgba(20, 70, 35, 0.16);
 }
 
 .charging__fill--idle::before {
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(6, 80, 36, 0.22);
 }
 
 .charging__fill--low {
