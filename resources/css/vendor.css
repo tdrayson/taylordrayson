@@ -27,3 +27,14 @@
 .now-grid .grid-stack-placeholder > .placeholder-content {
     border-radius: 1.5rem;
 }
+
+/* Route intro on an activity map: a photo marker stays hidden until the line
+   being drawn reaches where it was taken. !important because maplibre writes
+   its own opacity onto every marker element as it renders them. */
+.entry-map-photo {
+    transition: opacity 220ms ease-out;
+}
+
+.entry-map-photo--pending {
+    opacity: 0 !important;
+}

@@ -38,6 +38,9 @@ const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
 const ready = ref(false);
+
+/** How long the route takes to draw itself in. */
+const DRAW_DURATION = 900;
 const markerRefs = ref([]);
 let map = null;
 let savedBounds = null;
@@ -46,6 +49,13 @@ let markers = [];
 let stopTrackWatch;
 let stopCursorWatch;
 let routeDot = null;
+let drawFrame = null;
+// How many of the route's coordinates are currently drawn, which is what the
+// layer is built from. Starts at zero only when the intro is going to play.
+let drawn = 0;
+let animating = false;
+/** [{ element, at }] per located photo: the marker and where on the route it sits. */
+let photoReveals = [];
 
 // Re-fit the view to the route's bounds after the visitor has panned or zoomed.
 function recenter() {
@@ -171,10 +181,7 @@ onMounted(async () => {
     function addRouteLayer() {
         map.addSource('route', {
             type: 'geojson',
-            data: {
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: coords },
-            },
+            data: routeUpTo(drawn),
         });
 
         map.addLayer({
@@ -183,6 +190,54 @@ onMounted(async () => {
             source: 'route',
             layout: { 'line-join': 'round', 'line-cap': 'round' },
             paint: { 'line-color': resolveColor(props.color), 'line-width': 3.5 },
+        });
+    }
+
+    /** The route as drawn so far: the first `count` coordinates. */
+    function routeUpTo(count) {
+        return {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: coords.slice(0, Math.max(count, 2)) },
+        };
+    }
+
+    /**
+     * Draws the route on once, from start to finish, revealing each photo as
+     * the line reaches where it was taken. Deceleration at the end stops the
+     * finish feeling abrupt on a long route.
+     */
+    function playDraw() {
+        const start = performance.now();
+
+        function frame(now) {
+            const elapsed = (now - start) / DRAW_DURATION;
+            // Gently eased rather than sharply: a cubic ease-out draws most of a
+            // short route in the first third, which reads as a snap, not a draw.
+            const eased = 1 - (1 - Math.min(elapsed, 1)) ** 2;
+
+            drawn = Math.round(eased * coords.length);
+            map.getSource('route')?.setData(routeUpTo(drawn));
+            revealPhotosUpTo(drawn);
+
+            if (elapsed < 1) {
+                drawFrame = requestAnimationFrame(frame);
+
+                return;
+            }
+
+            drawn = coords.length;
+            drawFrame = null;
+        }
+
+        drawFrame = requestAnimationFrame(frame);
+    }
+
+    /** Show every photo whose nearest point on the route has been drawn. */
+    function revealPhotosUpTo(count) {
+        photoReveals.forEach(({ element, at }) => {
+            if (at <= count) {
+                element.classList.remove('entry-map-photo--pending');
+            }
         });
     }
 
@@ -204,8 +259,41 @@ onMounted(async () => {
                     .setLngLat([photo.longitude, photo.latitude])
                     .addTo(map),
             );
+
+            if (animating) {
+                element.classList.add('entry-map-photo', 'entry-map-photo--pending');
+                photoReveals.push({ element, at: nearestCoordIndex(photo) });
+            }
         });
     }
+
+    /**
+     * The index of the route coordinate closest to a photo, which is when the
+     * draw should reveal it. Squared distance is enough for a comparison, and
+     * a route is a few thousand points against a handful of photos.
+     */
+    function nearestCoordIndex(photo) {
+        let best = 0;
+        let bestDistance = Infinity;
+
+        coords.forEach(([lng, lat], index) => {
+            const distance = (lng - photo.longitude) ** 2 + (lat - photo.latitude) ** 2;
+
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = index;
+            }
+        });
+
+        return best;
+    }
+
+    // The intro plays once, on first load, and only when there is a route to
+    // draw. Someone who asked for less motion gets the finished map instead.
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    animating = coords.length > 1 && ! reducedMotion;
+    drawn = animating ? 0 : coords.length;
 
     map = new maplibregl.Map({
         container: container.value,
@@ -224,7 +312,13 @@ onMounted(async () => {
 
     map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
-    map.on('load', addRouteLayer);
+    map.on('load', () => {
+        addRouteLayer();
+
+        if (animating) {
+            playDraw();
+        }
+    });
 
     // Build/hide the dot for whatever track + cursor state already exists,
     // then keep it in sync as the deferred track arrives and the cursor moves.
@@ -247,6 +341,12 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    if (drawFrame !== null) {
+        cancelAnimationFrame(drawFrame);
+        drawFrame = null;
+    }
+
+    photoReveals = [];
     stopThemeWatch?.();
     markers.forEach((marker) => marker.remove());
     markers = [];
