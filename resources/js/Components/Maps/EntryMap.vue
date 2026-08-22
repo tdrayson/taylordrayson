@@ -45,9 +45,9 @@ const ready = ref(false);
  * line is packed into it. A padel scribble holds ~79x its own bounding-box
  * diagonal in path, against ~1.1x for a straight run, hence the clamp.
  */
-const DRAW_SPEED_PX_PER_MS = 0.35;
-const DRAW_MIN_DURATION = 1500;
-const DRAW_MAX_DURATION = 4200;
+const DRAW_SPEED_PX_PER_MS = 0.22;
+const DRAW_MIN_DURATION = 2200;
+const DRAW_MAX_DURATION = 5500;
 
 /** Breathing room after the map appears, so the draw is not half over by the
  *  time the rest of the page has settled. */
@@ -63,6 +63,8 @@ let routeDot = null;
 let drawFrame = null;
 let drawStartTimer = null;
 let drawHead = null;
+let startMarker = null;
+let finishMarker = null;
 // How many of the route's coordinates are currently drawn, which is what the
 // layer is built from. Starts at zero only when the intro is going to play.
 let drawn = 0;
@@ -259,6 +261,8 @@ onMounted(async () => {
             DRAW_MAX_DURATION,
         );
 
+        startMarker?.getElement().classList.remove('entry-map-endpoint--pending');
+
         drawHead = new maplibregl.Marker({ element: drawHeadElement() })
             .setLngLat(coords[0])
             .addTo(map);
@@ -302,6 +306,8 @@ onMounted(async () => {
         drawn = coords.length;
         map.getSource('route')?.setData(routeUpTo(drawn));
         revealPhotosUpTo(drawn);
+        startMarker?.getElement().classList.remove('entry-map-endpoint--pending');
+        finishMarker?.getElement().classList.remove('entry-map-endpoint--pending');
         retireDrawHead();
     }
 
@@ -373,6 +379,38 @@ onMounted(async () => {
     }
 
     /**
+     * Where the route starts and where it ends. While the intro plays each is
+     * held back until the line reaches it, so they punctuate the draw rather
+     * than giving away its shape in advance.
+     */
+    function addEndpointMarkers() {
+        const start = endpointElement(false);
+        const finish = endpointElement(true);
+
+        if (animating) {
+            start.classList.add('entry-map-endpoint--pending');
+            finish.classList.add('entry-map-endpoint--pending');
+        }
+
+        startMarker = new maplibregl.Marker({ element: start }).setLngLat(coords[0]).addTo(map);
+        finishMarker = new maplibregl.Marker({ element: finish }).setLngLat(coords[coords.length - 1]).addTo(map);
+    }
+
+    /** A route endpoint: a plain dot to start, a chequered one to finish. */
+    function endpointElement(isFinish) {
+        const element = document.createElement('div');
+
+        element.dataset.testid = isFinish ? 'route-finish' : 'route-start';
+        element.className = `entry-map-endpoint size-3.5 rounded-full border-2 ${isFinish ? 'border-neutral-0 entry-map-endpoint--finish' : 'entry-map-endpoint--start'}`;
+
+        element.style.pointerEvents = 'none';
+        // Below the photo markers (2), above the line itself.
+        element.style.zIndex = '1';
+
+        return element;
+    }
+
+    /**
      * The index of the route coordinate closest to a photo, which is when the
      * draw should reveal it. Squared distance is enough for a comparison, and
      * a route is a few thousand points against a handful of photos.
@@ -414,6 +452,7 @@ onMounted(async () => {
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
     addPhotoMarkers();
+    addEndpointMarkers();
 
     map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
@@ -459,6 +498,10 @@ onBeforeUnmount(() => {
     photoReveals = [];
     drawHead?.remove();
     drawHead = null;
+    startMarker?.remove();
+    finishMarker?.remove();
+    startMarker = null;
+    finishMarker = null;
     stopThemeWatch?.();
     markers.forEach((marker) => marker.remove());
     markers = [];
