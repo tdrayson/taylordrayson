@@ -270,6 +270,21 @@ onMounted(async () => {
         const start = performance.now();
         let index = 1;
 
+        /**
+         * The point `target` pixels along the route, interpolated inside the
+         * segment holding it. Without this the line can only grow a whole
+         * coordinate at a time, which on a 20-point walk is a visible step
+         * every hundred milliseconds rather than a smooth draw.
+         */
+        function tipAt(target) {
+            const from = coords[index - 1];
+            const to = coords[index];
+            const span = cumulative[index] - cumulative[index - 1];
+            const along = span > 0 ? Math.min(Math.max((target - cumulative[index - 1]) / span, 0), 1) : 1;
+
+            return [from[0] + (to[0] - from[0]) * along, from[1] + (to[1] - from[1]) * along];
+        }
+
         function frame(now) {
             const elapsed = (now - start) / duration;
             // Gently eased rather than sharply: a cubic ease-out draws most of a
@@ -283,9 +298,14 @@ onMounted(async () => {
                 index++;
             }
 
+            const tip = tipAt(target);
+
             drawn = index;
-            map.getSource('route')?.setData(routeUpTo(drawn));
-            drawHead?.setLngLat(coords[index]);
+            map.getSource('route')?.setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: [...coords.slice(0, index), tip] },
+            });
+            drawHead?.setLngLat(tip);
             revealPhotosUpTo(drawn);
 
             if (elapsed < 1) {
