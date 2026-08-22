@@ -3,17 +3,17 @@ import { computed, ref } from 'vue';
 import PortableTextBlocks from './PortableTextBlocks.js';
 import Lightbox from '../Overlays/Lightbox.vue';
 import LinkPreviewLayer from './LinkPreviewLayer.vue';
+import { useLinkContext } from '../../lib/linkContext.js';
 
 // Read-only renderer for a Portable Text document. Accepts the bare node
 // array (content is cast to an array server-side) or a raw JSON string.
 const props = defineProps({
     document: { type: [Array, String], default: null },
-    // Map of href -> preview data for internal content links (page prop from
-    // the entry/page controller), forwarded to LinkPreviewLayer.
-    linkPreviews: { type: Object, default: () => ({}) },
-    // Map of host -> stored favicon URL, for the external link chips.
-    linkFavicons: { type: Object, default: () => ({}) },
 });
+
+// href -> preview data for internal links, host -> favicon for external ones.
+// Empty when no page provided it, as on the design-system page.
+const links = useLinkContext();
 
 const nodes = computed(() => {
     let doc = props.document;
@@ -51,11 +51,11 @@ const contentEl = ref(null);
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
     <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-body text-neutral-900">
-        <PortableTextBlocks :nodes="nodes" :favicons="linkFavicons" :previews="linkPreviews" @image-click="openImage" />
+        <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
 
-        <LinkPreviewLayer :previews="linkPreviews" :container="contentEl" />
+        <LinkPreviewLayer :previews="links.previews" :container="contentEl" />
     </div>
 </template>
 
