@@ -45,9 +45,9 @@ const ready = ref(false);
  * line is packed into it. A padel scribble holds ~79x its own bounding-box
  * diagonal in path, against ~1.1x for a straight run, hence the clamp.
  */
-const DRAW_SPEED_PX_PER_MS = 0.55;
-const DRAW_MIN_DURATION = 900;
-const DRAW_MAX_DURATION = 2600;
+const DRAW_SPEED_PX_PER_MS = 0.35;
+const DRAW_MIN_DURATION = 1500;
+const DRAW_MAX_DURATION = 4200;
 
 /** Breathing room after the map appears, so the draw is not half over by the
  *  time the rest of the page has settled. */
