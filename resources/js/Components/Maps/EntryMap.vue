@@ -39,8 +39,15 @@ const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 const container = ref(null);
 const ready = ref(false);
 
-/** How long the route takes to draw itself in. */
-const DRAW_DURATION = 900;
+/**
+ * The intro draws at a steady on-screen speed rather than a fixed duration:
+ * fitBounds puts every route in the same frame, so what varies is how much
+ * line is packed into it. A padel scribble holds ~79x its own bounding-box
+ * diagonal in path, against ~1.1x for a straight run, hence the clamp.
+ */
+const DRAW_SPEED_PX_PER_MS = 1.25;
+const DRAW_MIN_DURATION = 500;
+const DRAW_MAX_DURATION = 1800;
 const markerRefs = ref([]);
 let map = null;
 let savedBounds = null;
@@ -202,20 +209,67 @@ onMounted(async () => {
     }
 
     /**
+     * Distance in screen pixels from the route's start to each of its points.
+     * Stepping the draw along this rather than along the coordinate index keeps
+     * the speed even: GPS points bunch up at corners and thin out on straights,
+     * so an index-paced draw crawls through bends and leaps down the straights.
+     *
+     * @return {{ cumulative: number[], total: number }}
+     */
+    function measureRoute() {
+        const cumulative = [0];
+        let total = 0;
+        let previous = map.project(coords[0]);
+
+        for (let index = 1; index < coords.length; index++) {
+            const point = map.project(coords[index]);
+
+            total += Math.hypot(point.x - previous.x, point.y - previous.y);
+            cumulative.push(total);
+            previous = point;
+        }
+
+        return { cumulative, total };
+    }
+
+    /**
      * Draws the route on once, from start to finish, revealing each photo as
      * the line reaches where it was taken. Deceleration at the end stops the
      * finish feeling abrupt on a long route.
      */
     function playDraw() {
+        const { cumulative, total } = measureRoute();
+
+        // A route with no on-screen length (every point projecting to the same
+        // pixel) has nothing to animate, so it goes straight to finished.
+        if (total <= 0) {
+            finishDraw();
+
+            return;
+        }
+
+        const duration = Math.min(
+            Math.max(total / DRAW_SPEED_PX_PER_MS, DRAW_MIN_DURATION),
+            DRAW_MAX_DURATION,
+        );
+
         const start = performance.now();
+        let index = 1;
 
         function frame(now) {
-            const elapsed = (now - start) / DRAW_DURATION;
+            const elapsed = (now - start) / duration;
             // Gently eased rather than sharply: a cubic ease-out draws most of a
             // short route in the first third, which reads as a snap, not a draw.
             const eased = 1 - (1 - Math.min(elapsed, 1)) ** 2;
+            const target = eased * total;
 
-            drawn = Math.round(eased * coords.length);
+            // The pointer only ever moves forward, so the whole draw walks the
+            // route once rather than searching it on every frame.
+            while (index < cumulative.length - 1 && cumulative[index] < target) {
+                index++;
+            }
+
+            drawn = index;
             map.getSource('route')?.setData(routeUpTo(drawn));
             revealPhotosUpTo(drawn);
 
@@ -225,11 +279,18 @@ onMounted(async () => {
                 return;
             }
 
-            drawn = coords.length;
+            finishDraw();
             drawFrame = null;
         }
 
         drawFrame = requestAnimationFrame(frame);
+    }
+
+    /** Show the whole route and every photo on it. */
+    function finishDraw() {
+        drawn = coords.length;
+        map.getSource('route')?.setData(routeUpTo(drawn));
+        revealPhotosUpTo(drawn);
     }
 
     /** Show every photo whose nearest point on the route has been drawn. */
