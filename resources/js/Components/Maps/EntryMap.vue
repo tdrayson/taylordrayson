@@ -45,9 +45,13 @@ const ready = ref(false);
  * line is packed into it. A padel scribble holds ~79x its own bounding-box
  * diagonal in path, against ~1.1x for a straight run, hence the clamp.
  */
-const DRAW_SPEED_PX_PER_MS = 1.25;
-const DRAW_MIN_DURATION = 500;
-const DRAW_MAX_DURATION = 1800;
+const DRAW_SPEED_PX_PER_MS = 0.55;
+const DRAW_MIN_DURATION = 900;
+const DRAW_MAX_DURATION = 2600;
+
+/** Breathing room after the map appears, so the draw is not half over by the
+ *  time the rest of the page has settled. */
+const DRAW_START_DELAY = 400;
 const markerRefs = ref([]);
 let map = null;
 let savedBounds = null;
@@ -57,6 +61,8 @@ let stopTrackWatch;
 let stopCursorWatch;
 let routeDot = null;
 let drawFrame = null;
+let drawStartTimer = null;
+let drawHead = null;
 // How many of the route's coordinates are currently drawn, which is what the
 // layer is built from. Starts at zero only when the intro is going to play.
 let drawn = 0;
@@ -253,6 +259,10 @@ onMounted(async () => {
             DRAW_MAX_DURATION,
         );
 
+        drawHead = new maplibregl.Marker({ element: drawHeadElement() })
+            .setLngLat(coords[0])
+            .addTo(map);
+
         const start = performance.now();
         let index = 1;
 
@@ -271,6 +281,7 @@ onMounted(async () => {
 
             drawn = index;
             map.getSource('route')?.setData(routeUpTo(drawn));
+            drawHead?.setLngLat(coords[index]);
             revealPhotosUpTo(drawn);
 
             if (elapsed < 1) {
@@ -286,11 +297,44 @@ onMounted(async () => {
         drawFrame = requestAnimationFrame(frame);
     }
 
-    /** Show the whole route and every photo on it. */
+    /** Show the whole route and every photo on it, and retire the head dot. */
     function finishDraw() {
         drawn = coords.length;
         map.getSource('route')?.setData(routeUpTo(drawn));
         revealPhotosUpTo(drawn);
+        retireDrawHead();
+    }
+
+    /**
+     * The dot riding the front of the line as it draws. An out-and-back retraces
+     * its own path, so without this the growth is invisible wherever the route
+     * overlaps itself.
+     */
+    function drawHeadElement() {
+        const element = document.createElement('div');
+
+        element.dataset.testid = 'draw-head';
+        element.className = 'entry-map-head size-3 rounded-full border-2 border-neutral-0';
+        element.style.backgroundColor = resolveColor(props.color);
+        // Never intercept a click meant for the map or a photo beneath it.
+        element.style.pointerEvents = 'none';
+        // Below the photo markers (2), same band as the scrub dot.
+        element.style.zIndex = '1';
+
+        return element;
+    }
+
+    /** Fade the head out where it stopped, then drop it. */
+    function retireDrawHead() {
+        if (!drawHead) {
+            return;
+        }
+
+        const retiring = drawHead;
+
+        drawHead = null;
+        retiring.getElement().classList.add('entry-map-head--done');
+        setTimeout(() => retiring.remove(), 260);
     }
 
     /** Show every photo whose nearest point on the route has been drawn. */
@@ -377,7 +421,7 @@ onMounted(async () => {
         addRouteLayer();
 
         if (animating) {
-            playDraw();
+            drawStartTimer = setTimeout(playDraw, DRAW_START_DELAY);
         }
     });
 
@@ -402,12 +446,19 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    if (drawStartTimer !== null) {
+        clearTimeout(drawStartTimer);
+        drawStartTimer = null;
+    }
+
     if (drawFrame !== null) {
         cancelAnimationFrame(drawFrame);
         drawFrame = null;
     }
 
     photoReveals = [];
+    drawHead?.remove();
+    drawHead = null;
     stopThemeWatch?.();
     markers.forEach((marker) => marker.remove());
     markers = [];

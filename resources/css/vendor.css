@@ -38,3 +38,13 @@
 .entry-map-photo--pending {
     opacity: 0 !important;
 }
+
+/* The dot riding the front of the drawing line, fading out where it stops.
+   !important for the same reason as the photo markers above. */
+.entry-map-head {
+    transition: opacity 240ms ease-out;
+}
+
+.entry-map-head--done {
+    opacity: 0 !important;
+}
