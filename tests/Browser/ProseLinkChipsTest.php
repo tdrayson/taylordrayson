@@ -21,3 +21,8 @@ it('draws favicon chips on external links in an article', function () {
     visit($article->url())
         ->assertPresent('.block-content a[href="https://example.com/a-post"] img');
 });
+
+// The favicon lives on disk, not in the database, so RefreshDatabase does not
+// clear it. Left behind it makes SmartLinksTest see the host as already
+// resolved and skip the queue assertion.
+afterEach(fn () => File::delete(Links::faviconPath('example.com')));

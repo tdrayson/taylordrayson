@@ -23,9 +23,9 @@ it('404s an unknown slug', function () {
 });
 
 it('does not shadow an explicit route with a same-slug page', function () {
-    Page::factory()->create(['slug' => 'sleep-score', 'title' => 'Hijack attempt']);
+    Page::factory()->create(['slug' => 'leaderboard', 'title' => 'Hijack attempt']);
 
-    $this->get('/sleep-score')
+    $this->get('/leaderboard')
         ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('SleepScore'));
+        ->assertInertia(fn ($page) => $page->component('Leaderboard'));
 });
