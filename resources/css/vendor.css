@@ -27,3 +27,48 @@
 .now-grid .grid-stack-placeholder > .placeholder-content {
     border-radius: 1.5rem;
 }
+
+/* Route intro on an activity map: a photo marker stays hidden until the line
+   being drawn reaches where it was taken. !important because maplibre writes
+   its own opacity onto every marker element as it renders them. */
+.entry-map-photo {
+    transition: opacity 220ms ease-out;
+}
+
+.entry-map-photo--pending {
+    opacity: 0 !important;
+}
+
+/* The dot riding the front of the drawing line, fading out where it stops.
+   !important for the same reason as the photo markers above. */
+.entry-map-head {
+    transition: opacity 240ms ease-out;
+}
+
+.entry-map-head--done {
+    opacity: 0 !important;
+}
+
+/* Route endpoints: a plain dot where the activity started, a chequered one
+   where it finished. Both wait for the drawing line to reach them. */
+.entry-map-endpoint {
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+    transition: opacity 240ms ease-out;
+}
+
+.entry-map-endpoint--pending {
+    opacity: 0 !important;
+}
+
+/* Inverted against the page rather than tinted with the route colour, which
+   would hide the dot in the line it sits on. Reads in either theme, since the
+   neutral scale flips. */
+.entry-map-endpoint--start {
+    background: var(--color-neutral-0);
+    border-color: var(--color-neutral-900);
+}
+
+/* Four alternating quadrants: at this size a finer grid turns to mush. */
+.entry-map-endpoint--finish {
+    background-image: conic-gradient(#1c1c1c 0 25%, #fafafa 0 50%, #1c1c1c 0 75%, #fafafa 0);
+}
