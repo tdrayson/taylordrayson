@@ -19,6 +19,13 @@ use Illuminate\Support\Str;
 #[Description('Sync new Strava activities to the database')]
 class StravaSync extends Command
 {
+    /**
+     * Upper bound on the automatic catch-up: if the newest stored activity is
+     * older than this, only the most recent window is fetched. A longer gap is
+     * a job for a deliberate backfill, not a cron run.
+     */
+    private const MAX_CATCHUP_DAYS = 90;
+
     /** @var array<string, string> */
     private const TYPE_MAP = [
         'Run' => 'run',
@@ -59,7 +66,7 @@ class StravaSync extends Command
             return self::FAILURE;
         }
 
-        $after = now()->subDays((int) $this->option('days'))->timestamp;
+        $after = $this->resolveAfterTimestamp();
 
         $stravaActivities = $this->fetchActivities($strava, $after);
 
@@ -113,6 +120,37 @@ class StravaSync extends Command
     /**
      * @return array<int, array<string, mixed>>|null
      */
+    /**
+     * The unix timestamp to ask Strava for activities after. Normally --days
+     * back, but the window stretches to the newest stored activity when a
+     * missed run has opened a longer gap, so a cron outage does not strand
+     * activities permanently. The overlap costs nothing: everything already
+     * stored is rejected by source id.
+     */
+    private function resolveAfterTimestamp(): int
+    {
+        $window = Carbon::now()->subDays(max(0, (int) $this->option('days')));
+
+        /** @var string|null $newest */
+        $newest = Activity::query()->where('source', Source::Strava->value)->max('occurred_at');
+
+        if ($newest === null) {
+            return $window->timestamp;
+        }
+
+        // occurred_at is local wall-clock, so anchor to the start of that day:
+        // no timezone offset can then push the boundary past a real activity.
+        $healFrom = Carbon::parse($newest)->startOfDay();
+        $cap = Carbon::now()->subDays(self::MAX_CATCHUP_DAYS);
+
+        if ($healFrom->lt($cap)) {
+            $this->warn(sprintf('Newest activity predates %s; catching up only that far.', $cap->toDateString()));
+            $healFrom = $cap;
+        }
+
+        return $healFrom->min($window)->timestamp;
+    }
+
     private function fetchActivities(Strava $strava, int $after): ?array
     {
         $activities = [];
