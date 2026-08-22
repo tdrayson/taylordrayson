@@ -3,12 +3,11 @@ import { computed } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import DetailList from '../Ui/DetailList.vue';
 import Pill from '../Ui/Pill.vue';
-import MediaHero from './MediaHero.vue';
+import MediaHero from '../Ui/MediaHero.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
-    title: { type: String, default: '' },
 });
 
 const meta = computed(() => props.entry.meta || {});
@@ -39,7 +38,7 @@ const rows = computed(() => [
             :backdrop="entry.backdrop"
             :logo="entry.logo"
             :poster="entry.poster"
-            :title="title"
+            :title="entry.title ?? ''"
         />
 
         <div v-if="entry.rating" class="flex items-center gap-2">

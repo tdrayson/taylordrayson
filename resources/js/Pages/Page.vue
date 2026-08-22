@@ -6,6 +6,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
+import { provideLinkContext } from '../lib/linkContext.js';
 import Pill from '../Components/Ui/Pill.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -26,6 +27,8 @@ const props = defineProps({
     // kind:id -> {title, url, exists} for the mentions in the content.
     mentions: { type: Object, default: () => ({}) },
 });
+
+provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
 
 setLayoutProps({ minimal: props.editing, breadcrumb: [{ label: props.title }] });
 
@@ -70,6 +73,6 @@ const editorValues = computed(() => valuesFor(props.fields, {
             </Link>
         </header>
 
-        <BlockContent :document="content" :link-previews="linkPreviews" :link-favicons="linkFavicons" class="mt-8" />
+        <BlockContent :document="content" class="mt-8" />
     </article>
 </template>

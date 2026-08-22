@@ -23,6 +23,7 @@ import ArticleDetail from '../Components/Entry/ArticleDetail.vue';
 import NoteDetail from '../Components/Entry/NoteDetail.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
+import { provideLinkContext } from '../lib/linkContext.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -55,6 +56,8 @@ const props = defineProps({
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
+
+provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
 
 // Current values for the form, read off the entry payload. Dotted field names
 // address into meta, which is where a book keeps its author.
@@ -152,10 +155,6 @@ setLayoutProps({
         v-else-if="detailComponent"
         :is="detailComponent"
         :entry="entry"
-        v-bind="{
-            ...(['article', 'note'].includes(type) ? { linkPreviews, linkFavicons } : {}),
-            ...(type === 'media' ? { title: title ?? '' } : {}),
-        }"
         class="mt-10"
     />
 
