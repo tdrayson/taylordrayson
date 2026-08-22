@@ -60,9 +60,8 @@ Route::middleware('auth')->group(function (): void {
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
 
-// Directory and pages index
+// Directory
 Route::get('/more', MoreController::class)->name('more');
-Route::get('/pages', [PageController::class, 'index'])->name('pages');
 
 // OG images
 Route::get('/og.png', [OgImageController::class, 'show'])->middleware('throttle:60,1')->name('og');
