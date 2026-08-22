@@ -67,6 +67,57 @@ const contentEl = ref(null);
     overflow-wrap: anywhere;
 }
 
+/* Vertical rhythm, in rem so every gap is a multiple of the body line rather
+   than of the element's own size. The typography plugin scales heading margins
+   from the heading, which leaves a heading further from the text it introduces
+   than paragraphs sit from each other. */
+.block-content :deep(p),
+.block-content :deep(ul),
+.block-content :deep(ol),
+.block-content :deep(blockquote),
+.block-content :deep(figure),
+.block-content :deep(pre),
+.block-content :deep(table) {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* A nested list is part of its parent item, not a new block in the flow. */
+.block-content :deep(li > ul),
+.block-content :deep(li > ol) {
+    margin-bottom: 0;
+}
+
+.block-content :deep(h2),
+.block-content :deep(h3),
+.block-content :deep(h4),
+.block-content :deep(h5),
+.block-content :deep(h6) {
+    margin-bottom: 0.75rem;
+}
+
+.block-content :deep(h2) {
+    margin-top: 3.5rem;
+}
+
+.block-content :deep(h3) {
+    margin-top: 2.75rem;
+}
+
+.block-content :deep(h4),
+.block-content :deep(h5),
+.block-content :deep(h6) {
+    margin-top: 2rem;
+}
+
+.block-content :deep(> :first-child) {
+    margin-top: 0;
+}
+
+.block-content :deep(> :last-child) {
+    margin-bottom: 0;
+}
+
 .block-content :deep(a) {
     color: var(--color-accent-500);
     text-decoration: underline;
