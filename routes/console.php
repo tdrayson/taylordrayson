@@ -1,12 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
 
 // Capture: everything that pulls from a third party. Each is incremental and
 // widens its window to cover a missed run, which is what makes them safe to run
@@ -48,9 +42,10 @@ Schedule::command('podcast:sync')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('strava:streams')->hourly()->withoutOverlapping();
 
 // Static timeline maps for newly located entries of each mappable type.
-foreach (['activity', 'flight', 'fuel', 'checkin'] as $mappableType) {
-    Schedule::command("maps:generate {$mappableType}")->hourly()->withoutOverlapping();
-}
+Schedule::command('maps:generate flight')->hourly()->withoutOverlapping();
+Schedule::command('maps:generate checkin')->hourly()->withoutOverlapping();
+Schedule::command('maps:generate fuel')->hourly()->withoutOverlapping();
+Schedule::command('maps:generate activity')->hourly()->withoutOverlapping();
 
 // Housekeeping: storage the app has stopped referencing but never removes on its
 // own. Both only delete, so a missed run costs disk rather than data.
