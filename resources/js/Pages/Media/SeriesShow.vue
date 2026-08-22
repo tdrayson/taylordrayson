@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { setLayoutProps } from '@inertiajs/vue3';
 import { Film01Icon, StarIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
@@ -8,7 +9,7 @@ import ExternalLink from '../../Components/Ui/ExternalLink.vue';
 import SectionHead from '../../Components/Ui/SectionHead.vue';
 import SeriesStats from '../../Components/Ui/SeriesStats.vue';
 import WatchDateGroup from '../../Components/Ui/WatchDateGroup.vue';
-import BackdropHero from '../../Components/Ui/BackdropHero.vue';
+import MediaHero from '../../Components/Ui/MediaHero.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -25,6 +26,10 @@ const props = defineProps({
 // The site's per-type accent colour (media = pink), matching the eyebrow
 // styling on Archive.vue/Entry.vue for other timeline types.
 const accentStyle = { color: 'var(--color-media)' };
+
+// The hero's logo names the series, so the heading stays for the outline but
+// steps out of the way rather than printing the title twice.
+const titleInHero = computed(() => Boolean(props.series.backdrop && props.series.logo));
 
 // "8 episodes, 2022" (or just one part when the other's missing) for a
 // season overview tile; never both null since seasonList only ever carries
@@ -47,26 +52,19 @@ function seasonMeta(season) {
 setLayoutProps({
     breadcrumb: [
         { label: 'Media', href: '/media' },
-        { label: 'TV', href: '/media/tv' },
+        { label: 'TV series', href: '/media/tv' },
         { label: props.series.title },
     ],
 });
 </script>
 
 <template>
-    <AppHead :og="{ title: series.title, heading: series.title, eyebrow: 'TV', accent: 'media', image: series.backdrop || series.poster }" />
-
-    <!-- Decorative only (no title/logo overlay): the <h1> below carries the title, like the movie pages. -->
-    <BackdropHero
-        v-if="series.backdrop"
-        testid="series-backdrop"
-        :backdrop="series.backdrop"
-        :bleed="false"
-        class="mb-8"
-    />
+    <AppHead :og="{ title: series.title, heading: series.title, eyebrow: 'TV series', accent: 'media', image: series.backdrop || series.poster }" />
 
     <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <div v-if="!series.backdrop" class="aspect-2/3 w-40 shrink-0 overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 sm:w-48">
+        <!-- Without a backdrop there is no hero to carry the poster, so it sits
+             beside the heading instead. -->
+        <div v-if="! series.backdrop" class="aspect-2/3 w-40 shrink-0 overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 sm:w-48">
             <img v-if="series.poster" :src="series.poster" alt="" class="size-full object-cover">
             <div v-else class="flex size-full items-center justify-center text-neutral-400">
                 <Icon :icon="Film01Icon" class="size-10" />
@@ -74,22 +72,32 @@ setLayoutProps({
         </div>
 
         <div class="min-w-0 flex-1">
-            <span class="text-eyebrow uppercase" :style="accentStyle">TV</span>
-            <h1 class="mt-1 font-display text-display">{{ series.title }}</h1>
+            <span class="text-eyebrow uppercase" :style="accentStyle">TV series</span>
+            <h1 :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-display'">{{ series.title }}</h1>
 
-            <div v-if="series.year || series.network" class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-neutral-500">
+            <div v-if="series.year || series.network" class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-neutral-500">
                 <span v-if="series.year">{{ series.year }}</span>
                 <span v-if="series.network">{{ series.network }}</span>
             </div>
-
-            <div v-if="series.rating" data-testid="series-rating" class="mt-2 flex items-center gap-1.5 text-meta text-neutral-500">
-                <Icon :icon="StarIcon" class="size-4 text-accent-500" />
-                <span>{{ series.rating }} / 10</span>
-            </div>
-
-            <ExternalLink v-if="series.platformUrl" :href="series.platformUrl" label="View on Trakt" class="mt-5" />
         </div>
     </header>
+
+    <MediaHero
+        v-if="series.backdrop"
+        :backdrop="series.backdrop"
+        :logo="series.logo"
+        :poster="series.poster"
+        :title="series.title"
+        class="mt-8"
+    />
+
+    <div v-if="series.rating" data-testid="series-rating" class="mt-8 flex items-center gap-2">
+        <Icon :icon="StarIcon" class="size-5 text-accent-500" />
+        <span class="font-display text-stat tnum">{{ series.rating }}</span>
+        <span class="text-meta text-neutral-500">/ 10</span>
+    </div>
+
+    <ExternalLink v-if="series.platformUrl" :href="series.platformUrl" label="View on Trakt" class="mt-6" />
 
     <SeriesStats :stats="stats" class="mt-10" />
 

@@ -43,11 +43,7 @@ it('keeps the tooltip down on a link when the pointer cannot hover', function ()
 });
 
 it('still shows a tooltip on a non-link when the pointer cannot hover', function () {
-    // A night with no record draws no bar, so its column is a plain span with
-    // no link either inside it or around it: a tap there means nothing else.
-    Carbon::setTestNow('2026-08-20 09:00:00');
-
-    $page = visit('/now')->resize(1280, 900);
+    $page = visit('/stats/activities')->resize(1280, 900);
 
     $page->script("
         window.matchMedia = (query) => ({
@@ -56,7 +52,8 @@ it('still shows a tooltip on a non-link when the pointer cannot hover', function
         });
     ");
 
-    $page->hover('.sleep__bars > span:nth-child(2)')
+    // A chart column: a tap there means nothing but "show me this reading".
+    $page->hover('.flex.gap-1 > span:nth-child(2) >> nth=0')
         ->assertScript("document.querySelector('[role=\"tooltip\"]') !== null", true);
 });
 

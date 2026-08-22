@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Media;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
@@ -62,6 +63,13 @@ final class EntryMeta
             return [];
         }
 
-        return Arr::only($model->getAttribute('meta') ?? [], $keys);
+        $meta = $model->getAttribute('meta');
+
+        // Media casts `meta` to a DTO; Arr::only needs the stored array.
+        if ($meta instanceof Arrayable) {
+            $meta = $meta->toArray();
+        }
+
+        return Arr::only($meta ?? [], $keys);
     }
 }

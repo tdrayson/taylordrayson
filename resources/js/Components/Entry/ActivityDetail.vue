@@ -100,13 +100,6 @@ function weightLabel(value) {
 
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />
 
-        <Deferred v-if="!exercises.length" data="profile">
-            <template #fallback>
-                <div class="h-40 w-full animate-pulse rounded-lg bg-neutral-25" />
-            </template>
-            <ActivityProfile v-if="profile" :profile="profile" :duration="entry.duration" :cursor="cursor" />
-        </Deferred>
-
         <div v-if="exercises.length">
             <SectionHead title="Exercises" :meta="totalVolume ? `${weight(totalVolume, 0)} volume` : ''" />
             <div class="space-y-3">
@@ -128,5 +121,12 @@ function weightLabel(value) {
                 </div>
             </div>
         </div>
+
+        <Deferred data="profile">
+            <template #fallback>
+                <div class="h-40 w-full animate-pulse rounded-lg bg-neutral-25" />
+            </template>
+            <ActivityProfile v-if="profile" :profile="profile" :duration="entry.duration" :cursor="cursor" />
+        </Deferred>
     </div>
 </template>

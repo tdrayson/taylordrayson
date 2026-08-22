@@ -25,7 +25,7 @@ const externalIconClass =
 </script>
 
 <template>
-    <div class="max-w-2xl text-xl leading-relaxed tracking-tight text-neutral-700">
+    <div class="max-w-2xl text-xl leading-relaxed text-neutral-700 sm:tracking-tight">
         <p>
             Hi. I'm
             <span class="whitespace-nowrap">

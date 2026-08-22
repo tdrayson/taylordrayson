@@ -45,14 +45,12 @@ function reposition() {
     updatePosition();
 }
 
-/** Whether the pointer can hover, i.e. this is not a touch screen. */
 function canHover() {
     return typeof window === 'undefined' || window.matchMedia('(hover: hover)').matches;
 }
 
 function show() {
-    // Asked on every show rather than once: a tablet gains a pointer the moment
-    // a keyboard is attached, and this costs nothing at hover speed.
+    // Per show: a tablet gains a pointer when a keyboard is attached.
     if (tooltipSuppressed(triggerRef.value, canHover())) {
         return;
     }

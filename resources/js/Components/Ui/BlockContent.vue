@@ -3,17 +3,17 @@ import { computed, ref } from 'vue';
 import PortableTextBlocks from './PortableTextBlocks.js';
 import Lightbox from '../Overlays/Lightbox.vue';
 import LinkPreviewLayer from './LinkPreviewLayer.vue';
+import { useLinkContext } from '../../lib/linkContext.js';
 
 // Read-only renderer for a Portable Text document. Accepts the bare node
 // array (content is cast to an array server-side) or a raw JSON string.
 const props = defineProps({
     document: { type: [Array, String], default: null },
-    // Map of href -> preview data for internal content links (page prop from
-    // the entry/page controller), forwarded to LinkPreviewLayer.
-    linkPreviews: { type: Object, default: () => ({}) },
-    // Map of host -> stored favicon URL, for the external link chips.
-    linkFavicons: { type: Object, default: () => ({}) },
 });
+
+// href -> preview data for internal links, host -> favicon for external ones.
+// Empty when no page provided it, as on the design-system page.
+const links = useLinkContext();
 
 const nodes = computed(() => {
     let doc = props.document;
@@ -51,11 +51,11 @@ const contentEl = ref(null);
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
     <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-body text-neutral-900">
-        <PortableTextBlocks :nodes="nodes" :favicons="linkFavicons" :previews="linkPreviews" @image-click="openImage" />
+        <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
 
-        <LinkPreviewLayer :previews="linkPreviews" :container="contentEl" />
+        <LinkPreviewLayer :previews="links.previews" :container="contentEl" />
     </div>
 </template>
 
@@ -65,6 +65,57 @@ const contentEl = ref(null);
    own horizontal scroll). */
 .block-content {
     overflow-wrap: anywhere;
+}
+
+/* Vertical rhythm, in rem so every gap is a multiple of the body line rather
+   than of the element's own size. The typography plugin scales heading margins
+   from the heading, which leaves a heading further from the text it introduces
+   than paragraphs sit from each other. */
+.block-content :deep(p),
+.block-content :deep(ul),
+.block-content :deep(ol),
+.block-content :deep(blockquote),
+.block-content :deep(figure),
+.block-content :deep(pre),
+.block-content :deep(table) {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* A nested list is part of its parent item, not a new block in the flow. */
+.block-content :deep(li > ul),
+.block-content :deep(li > ol) {
+    margin-bottom: 0;
+}
+
+.block-content :deep(h2),
+.block-content :deep(h3),
+.block-content :deep(h4),
+.block-content :deep(h5),
+.block-content :deep(h6) {
+    margin-bottom: 0.75rem;
+}
+
+.block-content :deep(h2) {
+    margin-top: 3.5rem;
+}
+
+.block-content :deep(h3) {
+    margin-top: 2.75rem;
+}
+
+.block-content :deep(h4),
+.block-content :deep(h5),
+.block-content :deep(h6) {
+    margin-top: 2rem;
+}
+
+.block-content :deep(> :first-child) {
+    margin-top: 0;
+}
+
+.block-content :deep(> :last-child) {
+    margin-bottom: 0;
 }
 
 .block-content :deep(a) {

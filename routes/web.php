@@ -17,7 +17,6 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
-use App\Http\Controllers\SleepScoreController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
@@ -61,9 +60,8 @@ Route::middleware('auth')->group(function (): void {
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
 
-// Directory and pages index
+// Directory
 Route::get('/more', MoreController::class)->name('more');
-Route::get('/pages', [PageController::class, 'index'])->name('pages');
 
 // OG images
 Route::get('/og.png', [OgImageController::class, 'show'])->middleware('throttle:60,1')->name('og');
@@ -91,7 +89,6 @@ Route::get('/now', [NowController::class, 'index'])->name('now');
 
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
-Route::get('/sleep-score', SleepScoreController::class)->name('sleep-score');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.

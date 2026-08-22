@@ -33,7 +33,7 @@ const headingTag = computed(() => `h${props.headingLevel}`);
                 <template v-else>{{ displayLabel }}</template>
             </component>
             <span v-if="isToday" class="relative flex size-2.5 shrink-0" aria-hidden="true">
-                <span class="absolute inline-flex size-full animate-ping rounded-full bg-accent-500 opacity-75" />
+                <span class="absolute inline-flex size-full animate-ping-slow rounded-full bg-accent-500 opacity-75" />
                 <span class="relative inline-flex size-2.5 rounded-full bg-accent-500" />
             </span>
         </component>

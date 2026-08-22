@@ -148,7 +148,7 @@ class TypeRegistry
             'tv' => [MediaType::TvEpisode->value],
             'books' => [MediaType::Book->value],
         ];
-        $labels = ['films' => 'Films', 'tv' => 'TV', 'books' => 'Books'];
+        $labels = ['films' => 'Films', 'tv' => 'TV series', 'books' => 'Books'];
 
         return fn (string $model, string $slug): array => [
             'base' => $slug,

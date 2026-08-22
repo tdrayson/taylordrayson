@@ -1,0 +1,218 @@
+@theme static {
+    /* Typography */
+    --font-sans: 'Inter Variable', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', sans-serif;
+
+    /* Type scale — each token bakes size + line-height + weight + tracking.
+       Display tokens render in Bricolage; pair with `font-display`. */
+    --text-eyebrow: 0.656rem;
+    --text-eyebrow--line-height: 1.2;
+    --text-eyebrow--font-weight: 700;
+    --text-eyebrow--letter-spacing: 0.1em;
+
+    --text-label: 0.6875rem;
+    --text-label--line-height: 1.3;
+    --text-label--font-weight: 600;
+    --text-label--letter-spacing: 0.07em;
+
+    --text-caption: 0.8125rem;
+    --text-caption--line-height: 1.3;
+
+    --text-meta: 0.875rem;
+    --text-meta--line-height: 1.45;
+
+    --text-nav: 0.906rem;
+    --text-nav--line-height: 1.25;
+    --text-nav--font-weight: 500;
+
+    --text-body: 0.9375rem;
+    --text-body--line-height: 1.55;
+
+    --text-section: 1.125rem;
+    --text-section--line-height: 1.2;
+    --text-section--font-weight: 700;
+    --text-section--letter-spacing: -0.02em;
+
+    --text-item-title: 1.4375rem;
+    --text-item-title--line-height: 1.12;
+    --text-item-title--font-weight: 700;
+    --text-item-title--letter-spacing: -0.025em;
+
+    --text-name: 1.5rem;
+    --text-name--line-height: 1.04;
+    --text-name--font-weight: 800;
+    --text-name--letter-spacing: -0.03em;
+
+    --text-stat: 1.9375rem;
+    --text-stat--line-height: 1;
+    --text-stat--font-weight: 800;
+    --text-stat--letter-spacing: -0.03em;
+
+    --text-stat-lg: 2.875rem;
+    --text-stat-lg--line-height: 1;
+    --text-stat-lg--font-weight: 800;
+    --text-stat-lg--letter-spacing: -0.03em;
+
+    --text-display: 2.75rem;
+    --text-display--line-height: 0.98;
+    --text-display--font-weight: 800;
+    --text-display--letter-spacing: -0.035em;
+
+    --text-display-xl: clamp(3.625rem, 9vw, 5.25rem);
+    --text-display-xl--line-height: 0.92;
+    --text-display-xl--font-weight: 800;
+    --text-display-xl--letter-spacing: -0.035em;
+
+    /* ----------------------------------------------------------------
+       Colour scales — uniform, purpose-free. Use these directly:
+       bg-neutral-25, text-neutral-900, border-neutral-100, bg-accent-500.
+       Values are anchored to the old tokens so the look is unchanged.
+       ---------------------------------------------------------------- */
+
+    /* Clear Tailwind's default neutral so we fully own the ramp. */
+    --color-neutral-*: initial;
+
+    /* Neutral ramp: 0 = white floor, 900 = ink. */
+    --color-neutral-0: #ffffff;
+    --color-neutral-25: #f7f7f7;
+    --color-neutral-50: #ebebeb;
+    --color-neutral-100: #dddddd;
+    --color-neutral-200: #c9c9c9;
+    --color-neutral-300: #aeaeae;
+    --color-neutral-400: #8c8c8c;
+    --color-neutral-500: #6a6a6a;
+    --color-neutral-600: #545454;
+    --color-neutral-700: #3f3f3f;
+    --color-neutral-800: #2e2e2e;
+    --color-neutral-900: #222222;
+
+    /* Accent ramp (Blueberry): 500 is the brand. */
+    --color-accent-50: #eef1ff;
+    --color-accent-100: #dbe2ff;
+    --color-accent-200: #c7d1ff;
+    --color-accent-300: #9fb1ff;
+    --color-accent-400: #6c84f2;
+    --color-accent-500: #3858e9;
+    --color-accent-600: #2c4bdf;
+    --color-accent-700: #213fd4;
+    --color-accent-800: #1a3398;
+    --color-accent-900: #12235f;
+
+    /* Heatmap ramp (quiet → busy) */
+    --color-heat-1: #e3e8ff;
+    --color-heat-2: var(--color-accent-300);
+    --color-heat-3: var(--color-accent-400);
+    --color-heat-4: var(--color-accent-500);
+
+    /* Battery states, following iOS: healthy, charging, low, Low Power Mode.
+       Gradient stops and glows are mixed from these, so one value moves a state. */
+    --color-battery: #34c759;
+    --color-battery-charging: #16d957;
+    --color-battery-low: #fa3532;
+    --color-battery-power: #ff9f0a;
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 11px;
+    --radius-lg: 14px;
+
+    /* Long-read column width: prose reads at Tailwind's built-in `max-w-prose`
+       (65ch); charts, images and other blocks sit a touch wider at
+       `max-w-media`; headings keep a tighter `max-w-heading` measure
+       (ch-based, so it scales with the heading's own size). */
+    --container-media: 44rem;
+    --container-heading: 35ch;
+    /* Wide dashboards (e.g. the stats pages) cap here and centre, so cards
+       don't stretch awkwardly on very wide screens (`max-w-dashboard`). */
+    --container-dashboard: 90rem;
+
+    /* Elevation — the single shadow tier */
+    --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
+
+    /* Motion */
+    --animate-fade-in: fade-in 0.25s ease;
+    --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @keyframes ping-slow {
+        0% {
+            transform: scale(1);
+            opacity: 0.75;
+        }
+
+        15%,
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Playful spin-and-jump for the avatar on hover */
+    @keyframes avatar-boop {
+        0% {
+            transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        35% {
+            transform: translateY(-22%) rotate(-12deg) scale(1.06);
+        }
+
+        70% {
+            transform: translateY(0) rotate(372deg) scale(0.95);
+        }
+
+        100% {
+            transform: translateY(0) rotate(360deg) scale(1);
+        }
+    }
+
+    /* 13 data-type accent colours — one per timeline data type */
+    --color-activity: hsl(152 55% 40%);
+    --color-sleep: hsl(245 50% 58%);
+    --color-food: hsl(25 90% 52%);
+    --color-media: hsl(340 60% 52%);
+    --color-event: hsl(270 55% 52%);
+    --color-appearance: hsl(320 55% 50%);
+    --color-podcast: hsl(210 65% 48%);
+    --color-flight: hsl(200 75% 50%);
+    --color-checkin: hsl(170 55% 40%);
+    --color-fuel: hsl(45 85% 48%);
+    --color-project: hsl(185 60% 42%);
+    --color-article: hsl(215 18% 48%);
+    --color-note: hsl(36 40% 50%);
+
+    /* Sleep stage colours */
+    --color-sleep-awake: hsl(0 70% 72%);
+    --color-sleep-rem: hsl(210 60% 58%);
+    --color-sleep-light: hsl(210 50% 75%);
+    --color-sleep-deep: hsl(245 50% 52%);
+
+    /* Macro colours */
+    --color-macro-protein: hsl(200 70% 48%);
+    --color-macro-carbs: hsl(35 85% 52%);
+    --color-macro-fat: hsl(340 60% 55%);
+
+    /* Sleep-score bands: red → amber → green by quality */
+    --color-score-excellent: hsl(152 55% 40%);
+    --color-score-high: hsl(110 48% 45%);
+    --color-score-ok: hsl(40 85% 50%);
+    --color-score-low: hsl(25 85% 55%);
+    --color-score-poor: hsl(0 70% 58%);
+
+    /* Sleep-score ring segments, one colour per component */
+    --color-score-duration: hsl(212 88% 56%);
+    --color-score-bedtime: hsl(168 65% 42%);
+    --color-score-interruptions: hsl(5 80% 66%);
+}

@@ -38,6 +38,20 @@ const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
 const ready = ref(false);
+
+/**
+ * The intro draws at a steady on-screen speed rather than a fixed duration:
+ * fitBounds puts every route in the same frame, so what varies is how much
+ * line is packed into it. A padel scribble holds ~79x its own bounding-box
+ * diagonal in path, against ~1.1x for a straight run, hence the clamp.
+ */
+const DRAW_SPEED_PX_PER_MS = 0.22;
+const DRAW_MIN_DURATION = 2200;
+const DRAW_MAX_DURATION = 5500;
+
+/** Breathing room after the map appears, so the draw is not half over by the
+ *  time the rest of the page has settled. */
+const DRAW_START_DELAY = 400;
 const markerRefs = ref([]);
 let map = null;
 let savedBounds = null;
@@ -46,6 +60,17 @@ let markers = [];
 let stopTrackWatch;
 let stopCursorWatch;
 let routeDot = null;
+let drawFrame = null;
+let drawStartTimer = null;
+let drawHead = null;
+let startMarker = null;
+let finishMarker = null;
+// How many of the route's coordinates are currently drawn, which is what the
+// layer is built from. Starts at zero only when the intro is going to play.
+let drawn = 0;
+let animating = false;
+/** [{ element, at }] per located photo: the marker and where on the route it sits. */
+let photoReveals = [];
 
 // Re-fit the view to the route's bounds after the visitor has panned or zoomed.
 function recenter() {
@@ -171,10 +196,7 @@ onMounted(async () => {
     function addRouteLayer() {
         map.addSource('route', {
             type: 'geojson',
-            data: {
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: coords },
-            },
+            data: routeUpTo(drawn),
         });
 
         map.addLayer({
@@ -183,6 +205,170 @@ onMounted(async () => {
             source: 'route',
             layout: { 'line-join': 'round', 'line-cap': 'round' },
             paint: { 'line-color': resolveColor(props.color), 'line-width': 3.5 },
+        });
+    }
+
+    /** The route as drawn so far: the first `count` coordinates. */
+    function routeUpTo(count) {
+        return {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: coords.slice(0, Math.max(count, 2)) },
+        };
+    }
+
+    /**
+     * Distance in screen pixels from the route's start to each of its points.
+     * Stepping the draw along this rather than along the coordinate index keeps
+     * the speed even: GPS points bunch up at corners and thin out on straights,
+     * so an index-paced draw crawls through bends and leaps down the straights.
+     *
+     * @return {{ cumulative: number[], total: number }}
+     */
+    function measureRoute() {
+        const cumulative = [0];
+        let total = 0;
+        let previous = map.project(coords[0]);
+
+        for (let index = 1; index < coords.length; index++) {
+            const point = map.project(coords[index]);
+
+            total += Math.hypot(point.x - previous.x, point.y - previous.y);
+            cumulative.push(total);
+            previous = point;
+        }
+
+        return { cumulative, total };
+    }
+
+    /**
+     * Draws the route on once, from start to finish, revealing each photo as
+     * the line reaches where it was taken. Deceleration at the end stops the
+     * finish feeling abrupt on a long route.
+     */
+    function playDraw() {
+        const { cumulative, total } = measureRoute();
+
+        // A route with no on-screen length (every point projecting to the same
+        // pixel) has nothing to animate, so it goes straight to finished.
+        if (total <= 0) {
+            finishDraw();
+
+            return;
+        }
+
+        const duration = Math.min(
+            Math.max(total / DRAW_SPEED_PX_PER_MS, DRAW_MIN_DURATION),
+            DRAW_MAX_DURATION,
+        );
+
+        startMarker?.getElement().classList.remove('entry-map-endpoint--pending');
+
+        drawHead = new maplibregl.Marker({ element: drawHeadElement() })
+            .setLngLat(coords[0])
+            .addTo(map);
+
+        const start = performance.now();
+        let index = 1;
+
+        /**
+         * The point `target` pixels along the route, interpolated inside the
+         * segment holding it. Without this the line can only grow a whole
+         * coordinate at a time, which on a 20-point walk is a visible step
+         * every hundred milliseconds rather than a smooth draw.
+         */
+        function tipAt(target) {
+            const from = coords[index - 1];
+            const to = coords[index];
+            const span = cumulative[index] - cumulative[index - 1];
+            const along = span > 0 ? Math.min(Math.max((target - cumulative[index - 1]) / span, 0), 1) : 1;
+
+            return [from[0] + (to[0] - from[0]) * along, from[1] + (to[1] - from[1]) * along];
+        }
+
+        function frame(now) {
+            const elapsed = (now - start) / duration;
+            // Gently eased rather than sharply: a cubic ease-out draws most of a
+            // short route in the first third, which reads as a snap, not a draw.
+            const eased = 1 - (1 - Math.min(elapsed, 1)) ** 2;
+            const target = eased * total;
+
+            // The pointer only ever moves forward, so the whole draw walks the
+            // route once rather than searching it on every frame.
+            while (index < cumulative.length - 1 && cumulative[index] < target) {
+                index++;
+            }
+
+            const tip = tipAt(target);
+
+            drawn = index;
+            map.getSource('route')?.setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: [...coords.slice(0, index), tip] },
+            });
+            drawHead?.setLngLat(tip);
+            revealPhotosUpTo(drawn);
+
+            if (elapsed < 1) {
+                drawFrame = requestAnimationFrame(frame);
+
+                return;
+            }
+
+            finishDraw();
+            drawFrame = null;
+        }
+
+        drawFrame = requestAnimationFrame(frame);
+    }
+
+    /** Show the whole route and every photo on it, and retire the head dot. */
+    function finishDraw() {
+        drawn = coords.length;
+        map.getSource('route')?.setData(routeUpTo(drawn));
+        revealPhotosUpTo(drawn);
+        startMarker?.getElement().classList.remove('entry-map-endpoint--pending');
+        finishMarker?.getElement().classList.remove('entry-map-endpoint--pending');
+        retireDrawHead();
+    }
+
+    /**
+     * The dot riding the front of the line as it draws. An out-and-back retraces
+     * its own path, so without this the growth is invisible wherever the route
+     * overlaps itself.
+     */
+    function drawHeadElement() {
+        const element = document.createElement('div');
+
+        element.dataset.testid = 'draw-head';
+        element.className = 'entry-map-head size-3 rounded-full border-2 border-neutral-0';
+        element.style.backgroundColor = resolveColor(props.color);
+        // Never intercept a click meant for the map or a photo beneath it.
+        element.style.pointerEvents = 'none';
+        // Below the photo markers (2), same band as the scrub dot.
+        element.style.zIndex = '1';
+
+        return element;
+    }
+
+    /** Fade the head out where it stopped, then drop it. */
+    function retireDrawHead() {
+        if (!drawHead) {
+            return;
+        }
+
+        const retiring = drawHead;
+
+        drawHead = null;
+        retiring.getElement().classList.add('entry-map-head--done');
+        setTimeout(() => retiring.remove(), 260);
+    }
+
+    /** Show every photo whose nearest point on the route has been drawn. */
+    function revealPhotosUpTo(count) {
+        photoReveals.forEach(({ element, at }) => {
+            if (at <= count) {
+                element.classList.remove('entry-map-photo--pending');
+            }
         });
     }
 
@@ -204,8 +390,73 @@ onMounted(async () => {
                     .setLngLat([photo.longitude, photo.latitude])
                     .addTo(map),
             );
+
+            if (animating) {
+                element.classList.add('entry-map-photo', 'entry-map-photo--pending');
+                photoReveals.push({ element, at: nearestCoordIndex(photo) });
+            }
         });
     }
+
+    /**
+     * Where the route starts and where it ends. While the intro plays each is
+     * held back until the line reaches it, so they punctuate the draw rather
+     * than giving away its shape in advance.
+     */
+    function addEndpointMarkers() {
+        const start = endpointElement(false);
+        const finish = endpointElement(true);
+
+        if (animating) {
+            start.classList.add('entry-map-endpoint--pending');
+            finish.classList.add('entry-map-endpoint--pending');
+        }
+
+        startMarker = new maplibregl.Marker({ element: start }).setLngLat(coords[0]).addTo(map);
+        finishMarker = new maplibregl.Marker({ element: finish }).setLngLat(coords[coords.length - 1]).addTo(map);
+    }
+
+    /** A route endpoint: a plain dot to start, a chequered one to finish. */
+    function endpointElement(isFinish) {
+        const element = document.createElement('div');
+
+        element.dataset.testid = isFinish ? 'route-finish' : 'route-start';
+        element.className = `entry-map-endpoint size-3.5 rounded-full border-2 ${isFinish ? 'border-neutral-0 entry-map-endpoint--finish' : 'entry-map-endpoint--start'}`;
+
+        element.style.pointerEvents = 'none';
+        // Below the photo markers (2), above the line itself.
+        element.style.zIndex = '1';
+
+        return element;
+    }
+
+    /**
+     * The index of the route coordinate closest to a photo, which is when the
+     * draw should reveal it. Squared distance is enough for a comparison, and
+     * a route is a few thousand points against a handful of photos.
+     */
+    function nearestCoordIndex(photo) {
+        let best = 0;
+        let bestDistance = Infinity;
+
+        coords.forEach(([lng, lat], index) => {
+            const distance = (lng - photo.longitude) ** 2 + (lat - photo.latitude) ** 2;
+
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = index;
+            }
+        });
+
+        return best;
+    }
+
+    // The intro plays once, on first load, and only when there is a route to
+    // draw. Someone who asked for less motion gets the finished map instead.
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    animating = coords.length > 1 && ! reducedMotion;
+    drawn = animating ? 0 : coords.length;
 
     map = new maplibregl.Map({
         container: container.value,
@@ -221,10 +472,17 @@ onMounted(async () => {
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
     addPhotoMarkers();
+    addEndpointMarkers();
 
     map.on('error', (event) => console.error('[EntryMap] MapLibre error', event?.error || event));
 
-    map.on('load', addRouteLayer);
+    map.on('load', () => {
+        addRouteLayer();
+
+        if (animating) {
+            drawStartTimer = setTimeout(playDraw, DRAW_START_DELAY);
+        }
+    });
 
     // Build/hide the dot for whatever track + cursor state already exists,
     // then keep it in sync as the deferred track arrives and the cursor moves.
@@ -247,6 +505,23 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    if (drawStartTimer !== null) {
+        clearTimeout(drawStartTimer);
+        drawStartTimer = null;
+    }
+
+    if (drawFrame !== null) {
+        cancelAnimationFrame(drawFrame);
+        drawFrame = null;
+    }
+
+    photoReveals = [];
+    drawHead?.remove();
+    drawHead = null;
+    startMarker?.remove();
+    finishMarker?.remove();
+    startMarker = null;
+    finishMarker = null;
     stopThemeWatch?.();
     markers.forEach((marker) => marker.remove());
     markers = [];

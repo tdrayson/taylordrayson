@@ -23,6 +23,7 @@ import ArticleDetail from '../Components/Entry/ArticleDetail.vue';
 import NoteDetail from '../Components/Entry/NoteDetail.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
+import { provideLinkContext } from '../lib/linkContext.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -55,6 +56,8 @@ const props = defineProps({
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
+
+provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
 
 // Current values for the form, read off the entry payload. Dotted field names
 // address into meta, which is where a book keeps its author.
@@ -96,6 +99,10 @@ const fullOccurredLabel = computed(() => `${props.occurredLabel} ${props.occurre
 // Aggregate / one-per-day types have a generic slug and a stat-style title, so the
 // type label reads better in the breadcrumb. Everything else uses its title.
 const SINGULAR_TYPES = ['sleep', 'calorie', 'fuel', 'note'];
+// A media hero shows the studio's own title logo, so the heading stays for the
+// outline but steps out of the way rather than printing the title twice.
+const titleInHero = computed(() => Boolean(props.entry?.logo && props.entry?.logoIsTitle));
+
 const crumbLabel = computed(() => (SINGULAR_TYPES.includes(props.type) ? meta.value.label : props.title));
 
 setLayoutProps({
@@ -131,7 +138,7 @@ setLayoutProps({
                 <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
             </div>
             <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-            <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl font-display text-display">{{ title }}</h1>
+            <h1 v-if="title" v-twemoji :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-display'">{{ title }}</h1>
             <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
             <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                 <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
@@ -149,7 +156,6 @@ setLayoutProps({
         v-if="! editing && detailComponent"
         :is="detailComponent"
         :entry="entry"
-        v-bind="['article', 'note'].includes(type) ? { linkPreviews, linkFavicons } : {}"
         class="mt-10"
     />
 

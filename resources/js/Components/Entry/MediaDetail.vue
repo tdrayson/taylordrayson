@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import DetailList from '../Ui/DetailList.vue';
 import Pill from '../Ui/Pill.vue';
-import BackdropHero from '../Ui/BackdropHero.vue';
+import MediaHero from '../Ui/MediaHero.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -33,9 +33,13 @@ const rows = computed(() => [
 
 <template>
     <div class="space-y-8">
-        <!-- Decorative only (bleed off, no title overlay): the entry page's
-             own <h1> above already carries the title. -->
-        <BackdropHero v-if="entry.backdrop" testid="media-backdrop" :backdrop="entry.backdrop" :bleed="false" />
+        <MediaHero
+            v-if="entry.backdrop"
+            :backdrop="entry.backdrop"
+            :logo="entry.logo"
+            :poster="entry.poster"
+            :title="entry.title ?? ''"
+        />
 
         <div v-if="entry.rating" class="flex items-center gap-2">
             <Icon name="StarIcon" class="size-5 text-accent-500" />

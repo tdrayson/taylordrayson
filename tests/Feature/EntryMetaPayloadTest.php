@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Media;
 use App\Support\EntryMeta;
 use Illuminate\Database\Eloquent\Model;
 
@@ -84,4 +86,19 @@ it('does not serialise the booking reference into the entry page', function () {
     $response->assertOk();
     expect($response->getContent())->not->toContain('L3JIDU')
         ->and($response->getContent())->toContain('Airbus A320');
+});
+
+it('reads a media entry whose meta is cast to a DTO', function () {
+    // Media is the one type that casts `meta` to an object, which Arr::only
+    // cannot read: every media entry page returned a 500.
+    $media = Media::factory()->create(['type' => MediaType::TvEpisode, 'meta' => [
+        'show_title' => 'Jet Lag: The Game',
+        'season' => 19,
+        'episode' => 1,
+        'runtime' => 42,
+        'ids' => ['trakt' => 9001],
+    ]]);
+
+    expect(EntryMeta::published($media))
+        ->toBe(['runtime' => 42, 'season' => 19, 'episode' => 1, 'show_title' => 'Jet Lag: The Game']);
 });

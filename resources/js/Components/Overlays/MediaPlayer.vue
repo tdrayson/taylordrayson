@@ -48,8 +48,14 @@ function applyInline() {
 // the 16:9 video area is never squashed (not applied to the inline dock).
 const BAR_HEIGHT = 40;
 
+// A phone is narrow enough that the desktop corner width covers most of the
+// screen, so below `sm` the player shrinks to a peek rather than a viewer.
+const CORNER_WIDTH = 400;
+const CORNER_WIDTH_SMALL = 220;
+
 function cornerBox() {
-    const width = Math.min(400, window.innerWidth - 32);
+    const max = window.innerWidth < 640 ? CORNER_WIDTH_SMALL : CORNER_WIDTH;
+    const width = Math.min(max, window.innerWidth - 32);
     const height = width * (9 / 16) + BAR_HEIGHT;
 
     return { width, height, top: window.innerHeight - height - 16, left: window.innerWidth - width - 16 };
