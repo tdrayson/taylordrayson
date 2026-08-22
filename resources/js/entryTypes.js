@@ -21,7 +21,7 @@ export const entryTypes = {
     // Not timeline types: the other things an internal link can point at, so a
     // link preview has a glyph for each. See App\\Links\\Resolvers.
     story: { icon: 'BookOpen01Icon', label: 'Story', href: '/stories', accent: 'article' },
-    page: { icon: 'File02Icon', label: 'Page', href: '/pages', accent: 'article' },
+    page: { icon: 'File02Icon', label: 'Page', accent: 'article' },
     period: { icon: 'Calendar03Icon', label: 'Archive', href: '/', accent: 'article' },
     tag: { icon: 'Tag01Icon', label: 'Tag', href: '/tags', accent: 'article' },
     live: { icon: 'Clock01Icon', label: 'Now', href: '/now', accent: 'activity' },
