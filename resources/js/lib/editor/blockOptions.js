@@ -52,6 +52,7 @@ export const BLOCK_OPTIONS = {
         fields: [
             { name: 'url', label: 'Video URL', type: 'text', wide: true },
             { name: 'caption', label: 'Caption', type: 'text', wide: true },
+            { name: 'poster', label: 'Thumbnail URL', type: 'text', wide: true },
         ],
     },
 };

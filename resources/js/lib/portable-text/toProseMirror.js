@@ -144,6 +144,7 @@ function customToNode(node) {
                     _key: node._key,
                     url: node.url ?? null,
                     caption: node.caption ?? null,
+                    poster: node.poster ?? null,
                     width: node.width ?? null,
                     height: node.height ?? null,
                 },

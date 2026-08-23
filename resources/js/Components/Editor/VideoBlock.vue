@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue';
 import { NodeViewWrapper } from '@tiptap/vue-3';
 import Icon from '../Ui/Icon.vue';
-import { videoEmbed, videoSource } from '../../lib/video';
+import { videoSource } from '../../lib/video';
+import VideoEmbed from '../Ui/VideoEmbed.vue';
 
 /**
  * A video inside a document, drawn as the embed it will publish as. There is no
@@ -18,7 +19,6 @@ const props = defineProps({
 const typedUrl = ref('');
 
 const url = computed(() => props.node.attrs.url);
-const embed = computed(() => videoEmbed(url.value));
 
 // Recognised by videoSource means it will play; anything else stores fine and
 // then renders as a dead player, which is worth saying before it is published.
@@ -39,24 +39,16 @@ function useTypedUrl() {
         <!-- See CodeBlockView: the block places its own options panel. -->
         <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
 
-        <figure v-if="url" class="group relative" contenteditable="false">
-            <iframe
-                v-if="embed"
-                :src="embed"
-                :title="node.attrs.caption || 'Video'"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-                class="block aspect-video w-full rounded-lg border border-neutral-50"
-            ></iframe>
-
-            <video
-                v-else-if="! unsupported"
-                :src="url"
-                controls
-                preload="metadata"
-                class="block max-h-media w-full rounded-lg border border-neutral-50"
-            ></video>
+        <!-- The published component, not a copy of it: the still an author sets
+             is then the one they are looking at, and the editor stops loading a
+             player for every video in the document. -->
+        <div v-if="url" class="group relative" contenteditable="false">
+            <VideoEmbed
+                v-if="! unsupported"
+                :url="url"
+                :caption="node.attrs.caption"
+                :poster="node.attrs.poster"
+            />
 
             <p v-else class="flex items-center gap-2 rounded-lg border border-dashed border-neutral-100 p-4 text-meta text-neutral-500">
                 <Icon name="Alert02Icon" class="size-4 shrink-0" />
@@ -65,15 +57,11 @@ function useTypedUrl() {
 
             <button
                 type="button"
-                class="absolute right-2 top-2 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
+                class="absolute right-2 top-2 z-10 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
                 aria-label="Remove video"
                 @click="deleteNode()"
             ><Icon name="Delete02Icon" class="size-4" /></button>
-
-            <figcaption v-if="node.attrs.caption" class="mt-2 text-caption text-neutral-500">
-                {{ node.attrs.caption }}
-            </figcaption>
-        </figure>
+        </div>
 
         <div v-else contenteditable="false" class="rounded-lg border border-dashed border-neutral-100 p-4">
             <div class="flex min-h-11 items-center gap-2">

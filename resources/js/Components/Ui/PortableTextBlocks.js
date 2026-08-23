@@ -5,7 +5,7 @@ import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
-import { videoEmbed } from '../../lib/video';
+import VideoEmbed from './VideoEmbed.vue';
 
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
@@ -353,31 +353,16 @@ function renderVideo(node) {
         return null;
     }
 
-    const embed = videoEmbed(node.url);
-
-    return h('figure', { key: node._key, class: 'max-w-media' }, [
-        embed ? h('iframe', {
-            src: embed,
-            title: node.caption || 'Video',
-            loading: 'lazy',
-            allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
-            allowfullscreen: true,
-            class: 'block aspect-video w-full rounded-lg border border-neutral-50',
-        }) : h('video', {
-            src: node.url,
-            controls: true,
-            preload: 'metadata',
-            width: node.width || undefined,
-            height: node.height || undefined,
-            // block: replaced elements are inline by default, which leaves a
-            // stray gap below them in a grid/flex ancestor; block avoids that
-            // the same way the image's button wrapper does for <img>.
-            class: 'block max-h-media w-full rounded-lg border border-neutral-50',
-        }),
-        node.caption
-            ? h('figcaption', { class: 'mt-2 text-left text-meta text-neutral-500' }, node.caption)
-            : null,
-    ]);
+    // The component owns the placeholder-then-embed behaviour, so nothing
+    // off-site loads until the reader presses play.
+    return h(VideoEmbed, {
+        key: node._key,
+        url: node.url,
+        caption: node.caption || null,
+        poster: node.poster || null,
+        width: node.width || null,
+        height: node.height || null,
+    });
 }
 
 function renderNode(node, headingIds, onImageClick, favicons, previews) {
