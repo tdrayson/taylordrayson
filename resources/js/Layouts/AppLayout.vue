@@ -13,9 +13,6 @@ defineProps({
     // Writing screens drop the ambient chrome: wayfinding and identity stay,
     // the status readings and the menu do not.
     minimal: { type: Boolean, default: false },
-    // Map pages fill the viewport below the header: no vertical rhythm padding,
-    // and the content wrapper becomes the flex child that absorbs leftover height.
-    fullscreen: { type: Boolean, default: false },
 });
 
 const page = usePage();
@@ -40,11 +37,7 @@ const page = usePage();
                 <AppTopbar :breadcrumb="breadcrumb" :minimal="minimal" />
             </header>
             <main id="main-content" class="flex min-w-0 flex-1 flex-col">
-                <div
-                    :key="page.url"
-                    class="content-grid w-full animate-fade-in"
-                    :class="fullscreen ? 'min-h-0 flex-1' : 'pb-28 pt-8'"
-                >
+                <div :key="page.url" class="content-grid w-full animate-fade-in pb-28 pt-8">
                     <slot />
                 </div>
             </main>
