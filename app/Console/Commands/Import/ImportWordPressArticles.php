@@ -136,13 +136,37 @@ class ImportWordPressArticles extends Command
 
     private function attach(Article $article, string $url, string $collection): ?Media
     {
-        try {
-            return $article->addMediaFromUrl($url)->toMediaCollection($collection);
-        } catch (Throwable $exception) {
-            $this->components->warn("{$article->slug}: could not fetch {$url} ({$exception->getMessage()})");
+        $failure = null;
 
-            return null;
+        foreach ($this->candidates($url) as $candidate) {
+            try {
+                return $article->addMediaFromUrl($candidate)->toMediaCollection($collection);
+            } catch (Throwable $exception) {
+                $failure = $exception->getMessage();
+            }
         }
+
+        $this->components->warn("{$article->slug}: could not fetch {$url} ({$failure})");
+
+        return null;
+    }
+
+    /**
+     * The URLs to try for one image, best first.
+     *
+     * WordPress writes the dimensions into the filename of every resized copy it
+     * makes, and the editor inserts a copy rather than the upload, so the URL in
+     * the post is routinely smaller than the file behind it. Dropping the suffix
+     * names the original; where that is not a real file (an upload whose own name
+     * happens to end that way) the post's URL is still there to fall back on.
+     *
+     * @return list<string>
+     */
+    private function candidates(string $url): array
+    {
+        $original = preg_replace('/-\d+x\d+(\.[A-Za-z0-9]+)$/', '$1', $url);
+
+        return $original !== null && $original !== $url ? [$original, $url] : [$url];
     }
 
     /**
