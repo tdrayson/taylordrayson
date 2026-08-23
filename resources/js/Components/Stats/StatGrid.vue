@@ -42,19 +42,32 @@ const resolved = computed(() =>
     }),
 );
 
-const big = computed(() => props.size === 'lg');
+// Display size per token, so a stat in a narrow panel stays on the same
+// scale as one on a stats page rather than being hand-sized.
+const SIZES = {
+    sm: { value: 'text-name', unit: 'text-sm', gap: 'gap-x-6 gap-y-5' },
+    md: { value: 'text-stat', unit: 'text-base', gap: 'gap-x-12 gap-y-6' },
+    lg: { value: 'text-stat-lg', unit: 'text-lg', gap: 'gap-x-14 gap-y-8' },
+};
+
+const scale = computed(() => SIZES[props.size] ?? SIZES.md);
 </script>
 
 <template>
-    <dl :class="cn('flex flex-wrap', big ? 'gap-x-14 gap-y-8' : 'gap-x-12 gap-y-6', props.class)">
+    <dl :class="cn('flex flex-wrap', scale.gap, props.class)">
         <!-- dt must precede its dd per the dl content model, so flex-col-reverse
-             puts the value on top while the DOM order stays term-first. -->
+             puts the value on top while the DOM order stays term-first. `sub`
+             rides inside the dt for the same reason: a second dd would be
+             reversed to the top of the stack. -->
         <div v-for="(stat, index) in resolved" :key="index" class="flex flex-col-reverse">
-            <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
-            <dd class="font-display font-extrabold leading-none tracking-tight tnum" :class="big ? 'text-stat-lg' : 'text-stat'">
+            <dt class="mt-1.5 text-label uppercase text-neutral-500">
+                {{ stat.label }}
+                <span v-if="stat.sub" class="mt-1 block normal-case tracking-normal text-neutral-400">{{ stat.sub }}</span>
+            </dt>
+            <dd class="font-display font-extrabold leading-none tracking-tight tnum" :class="scale.value">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />
                 <template v-else>
-                    {{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 font-semibold text-neutral-500 no-underline" :class="big ? 'text-lg' : 'text-base'">{{ stat.unit }}</abbr>
+                    {{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 font-semibold text-neutral-500 no-underline" :class="scale.unit">{{ stat.unit }}</abbr>
                 </template>
             </dd>
         </div>
