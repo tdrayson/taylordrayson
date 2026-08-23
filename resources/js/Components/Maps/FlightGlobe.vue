@@ -21,7 +21,30 @@ const props = defineProps({
 
 const emit = defineEmits(['select']);
 
-const FIT_OPTIONS = { padding: 64, maxZoom: 7 };
+// The panel floats over the map (left rail on desktop, bottom sheet below it),
+// so the fit has to inset by its footprint or the route is framed underneath it.
+// Mirrors the positioning in Pages/Flights/Map.vue.
+const PANEL = { width: 320, sheetHeight: 320, gutter: 16 };
+const DESKTOP = 768;
+
+function fitOptions() {
+    const wide = window.innerWidth >= DESKTOP;
+    // Generous on a desktop so the globe sits in the frame rather than filling
+    // it to the glass; a phone has no room to give any away.
+    const edge = wide ? 96 : 24;
+
+    return {
+        // A single short hop would otherwise fill the screen with one city pair;
+        // capped, it stays a regional view with the globe still readable.
+        maxZoom: 5,
+        padding: {
+            top: edge,
+            right: edge,
+            bottom: wide ? edge : PANEL.sheetHeight + PANEL.gutter,
+            left: wide ? PANEL.width + PANEL.gutter * 2 : edge,
+        },
+    };
+}
 
 // The sidebar list built in a later task is the accessible representation
 // of this data, so camera moves can jump for anyone who prefers less motion.
@@ -48,46 +71,56 @@ function toValidFlights(rawEntries) {
         .filter((entry) => ![entry.origin.lat, entry.origin.lng, entry.destination.lat, entry.destination.lng].some(Number.isNaN));
 }
 
-/** Collapse flights down to one label point per airport, tracking which years it flew in. */
+/** Collapse flights down to one label point per airport. */
 function uniqueLabelPoints(entries) {
     const byIata = new Map();
 
     entries.forEach((entry) => {
         [entry.origin, entry.destination].forEach((point) => {
-            if (!point.iata) {
-                return;
+            if (point.iata && !byIata.has(point.iata)) {
+                byIata.set(point.iata, { iata: point.iata, lat: point.lat, lng: point.lng });
             }
-
-            if (!byIata.has(point.iata)) {
-                byIata.set(point.iata, { iata: point.iata, lat: point.lat, lng: point.lng, years: new Set() });
-            }
-
-            byIata.get(point.iata).years.add(entry.year);
         });
     });
 
     return [...byIata.values()];
 }
 
+/** The flights the year filter and the current selection leave on the map. */
+function visibleFlights() {
+    return flights.filter((entry) => (props.year === null || entry.year === props.year)
+        && (props.selectedId === null || entry.id === props.selectedId));
+}
+
 /**
- * Filter the map to a single year, or clear the filter for all-time, then
- * re-frame the globe on whatever is now visible. setFilter (not setData or
- * addLayer) keeps this to a style update rather than rebuilding the source.
+ * Filter the map to the current year and selection, then re-frame the globe on
+ * whatever is now visible. Selecting a flight hides the rest outright rather
+ * than dimming them: on a globe this dense, a dimmed arc is still a thicket.
+ * setFilter (not setData or addLayer) keeps this to a style update rather than
+ * rebuilding the source.
  */
-function applyYear(year) {
+function applyFilters() {
     if (!map || !map.getLayer('arcs')) {
         return;
     }
 
-    const filter = year === null ? null : ['==', ['get', 'year'], year];
+    const clauses = [
+        ...(props.year === null ? [] : [['==', ['get', 'year'], props.year]]),
+        ...(props.selectedId === null ? [] : [['==', ['get', 'id'], props.selectedId]]),
+    ];
+    const filter = clauses.length === 0 ? null : ['all', ...clauses];
+
     map.setFilter('arcs', filter);
     map.setFilter('endpoints', filter);
 
-    markers.forEach(({ marker, years }) => {
-        marker.getElement().style.display = year === null || years.has(year) ? '' : 'none';
-    });
+    const relevant = visibleFlights();
+    // Labels belong to airports, not flights, so they follow what is left on
+    // the map rather than carrying a filter of their own.
+    const shown = new Set(relevant.flatMap((entry) => [entry.origin.iata, entry.destination.iata]));
 
-    const relevant = year === null ? flights : flights.filter((entry) => entry.year === year);
+    markers.forEach(({ marker, iata }) => {
+        marker.getElement().style.display = shown.has(iata) ? '' : 'none';
+    });
 
     if (relevant.length === 0) {
         return;
@@ -98,7 +131,7 @@ function applyYear(year) {
         new maplibregl.LngLatBounds([relevant[0].origin.lng, relevant[0].origin.lat], [relevant[0].origin.lng, relevant[0].origin.lat]),
     );
 
-    map.fitBounds(bounds, { ...FIT_OPTIONS, animate: !reduceMotion });
+    map.fitBounds(bounds, { ...fitOptions(), animate: !reduceMotion });
 }
 
 /**
@@ -127,7 +160,7 @@ function updateFeatureState() {
     });
 }
 
-watch(() => props.year, applyYear);
+watch(() => [props.year, props.selectedId], applyFilters);
 watch(() => [props.hoveredId, props.selectedId], updateFeatureState);
 
 onMounted(async () => {
@@ -155,7 +188,7 @@ onMounted(async () => {
     // Deliberately not deduped by airport (unlike uniqueLabelPoints below): each point needs its own flight's year for setFilter to work per hub.
     const endpointFeatures = flights.flatMap((entry) => [entry.origin, entry.destination].map((point) => ({
         type: 'Feature',
-        properties: { year: entry.year },
+        properties: { id: entry.id, year: entry.year },
         geometry: { type: 'Point', coordinates: [point.lng, point.lat] },
     })));
 
@@ -210,21 +243,21 @@ onMounted(async () => {
         container: container.value,
         style: mapStyleForTheme(resolved.value),
         bounds,
-        fitBoundsOptions: FIT_OPTIONS,
+        fitBoundsOptions: fitOptions(),
         attributionControl: false,
     });
 
     uniqueLabelPoints(flights).forEach((point) => {
         markers.push({
             marker: iataLabel(maplibregl, point, { locationOccludedOpacity: 0 }).addTo(map),
-            years: point.years,
+            iata: point.iata,
         });
     });
 
     map.on('load', () => {
         applyGlobe(map, resolved.value);
         addRouteLayers();
-        applyYear(props.year);
+        applyFilters();
         updateFeatureState();
 
         map.on('mouseenter', 'arcs', () => {
