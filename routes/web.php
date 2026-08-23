@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
+use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
@@ -103,6 +104,9 @@ Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
 // /media/tv wins over the /media/{value} taxonomy route for the 'tv' value.
 Route::get('/media/tv', [SeriesController::class, 'index'])->name('series.index');
 Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
+
+// Literal segment must beat the archive taxonomy route (/flights/{value}).
+Route::get('/flights/map', FlightMapController::class)->name('flights.map');
 
 // Per-type archive pages and their taxonomy sub-routes. Slugs are literal segments,
 // so they never collide with the digit-constrained /{year}/... routes below.

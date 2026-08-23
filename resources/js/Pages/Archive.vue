@@ -67,7 +67,13 @@ setLayoutProps({
         </div>
     </header>
 
-    <FlightsMap v-if="type === 'flight' && map.length" :routes="map" class="mt-8" />
+    <template v-if="type === 'flight' && map.length">
+        <FlightsMap :routes="map" class="mt-8" />
+        <Link href="/flights/map" class="mt-3 inline-flex items-center gap-1 text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900">
+            View on the globe
+            <Icon name="ArrowRight01Icon" class="size-4" />
+        </Link>
+    </template>
     <StationsMap v-else-if="type === 'fuel' && map.length" :stations="map" class="mt-8" />
     <PlacesMap v-else-if="type === 'checkin' && map.length" :places="map" class="mt-8" />
 
