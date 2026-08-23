@@ -56,6 +56,21 @@ export function dateLong(value) {
     });
 }
 
+/** Compact date for a dense list, e.g. "17 Jul 2025". */
+export function dateShort(value) {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 /**
  * Full date without time from a date-only 'YYYY-MM-DD' string, e.g. a watch-date
  * group anchor. Parses the parts manually rather than `new Date('YYYY-MM-DD')`,
