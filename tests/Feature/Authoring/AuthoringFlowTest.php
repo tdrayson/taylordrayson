@@ -49,6 +49,13 @@ it('validates against the field definitions', function () {
     // And a select only takes one of its declared options.
     $this->post('/entries/project', ['title' => 'A project', 'status' => 'nonsense'])
         ->assertSessionHasErrors('status');
+
+    // A tag is a name. Posting the {name, slug} shape the entry payload uses
+    // for its links is a validation failure, not a TypeError inside the sync.
+    $this->post('/entries/article', [
+        'title' => 'A piece',
+        'tags' => [['name' => 'Fitness', 'slug' => 'fitness']],
+    ])->assertSessionHasErrors('tags.0');
 });
 
 it('saves an edit for any type through one endpoint', function () {
