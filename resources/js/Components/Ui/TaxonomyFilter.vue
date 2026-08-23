@@ -13,6 +13,11 @@ const props = defineProps({
 // The leading "All {type}" chip is always shown first; the rest are the
 // categories, which are the ones that clamp to two rows / feed the popover.
 const allChip = computed(() => props.chips.find((chip) => chip.all) ?? null);
+
+// Whether this taxonomy carries icons at all. Only then does a row without one
+// need the column held open; on a taxonomy with no icons anywhere, reserving
+// the space would indent every label for nothing.
+const hasIcons = computed(() => props.chips.some((chip) => chip.icon));
 const categoryChips = computed(() => props.chips.filter((chip) => !chip.all));
 
 // The full inline sequence (All first, then categories) used for measuring and
@@ -215,6 +220,7 @@ function onSearchKeydown(event) {
                     >
                         <span class="inline-flex min-w-0 items-center gap-1.5">
                             <img v-if="chip.icon" :src="chip.icon" alt="" class="size-4 shrink-0 object-contain">
+                            <span v-else-if="hasIcons" class="size-4 shrink-0" aria-hidden="true"></span>
                             <span class="truncate">{{ chip.label }}</span>
                         </span>
                         <span v-if="chip.count != null" class="shrink-0 text-neutral-400 tnum">{{ number(chip.count) }}</span>
