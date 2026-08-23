@@ -19,8 +19,7 @@ it('renders the flights map page', function () {
     $this->get('/flights/map')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            // Vue page is built in Task 3; skip the on-disk existence check for now.
-            ->component('Flights/Map', false)
+            ->component('Flights/Map')
             ->has('entries', 1)
             ->where('entries.0.distance', 5_500_000)
             ->has('stats.all')
