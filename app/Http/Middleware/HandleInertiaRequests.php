@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Queries\NowState;
+use App\Support\Preferences;
 use App\Support\StateStore;
 use App\Support\TodaySteps;
 use Illuminate\Http\Request;
@@ -41,6 +42,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            // Colour scheme and unit choices, read from cookies so the first
+            // render already matches what the visitor picked.
+            'preferences' => Preferences::for($request),
             // Only whether someone is signed in, never the user record. The
             // client uses this to decide whether to offer an edit affordance;
             // every actual gate is enforced server-side, and sharing the model

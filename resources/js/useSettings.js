@@ -1,26 +1,41 @@
 import { ref } from 'vue';
 import { useTheme } from './useTheme';
+import { readCookie, writeCookie } from './lib/cookies';
 
-// localStorage namespace for factory-defined settings, so they never collide
-// with the app's other keys (theme keeps its own bare 'theme' key, owned by
-// useTheme + the pre-paint script, and is intentionally NOT routed through here).
-const PREFIX = 'pref:';
+// Cookie namespace for factory-defined settings, so they never collide with the
+// app's other keys (theme keeps its own bare 'theme' cookie, owned by useTheme
+// + the pre-paint script, and is intentionally NOT routed through here).
+const PREFIX = 'pref_';
 
 // Module-level registry so each setting is a single shared reactive source
 // across every consumer (idempotent per key).
 const registry = {};
 
 /**
- * Define a reactive, localStorage-backed preference. `allowed` whitelists valid
+ * What the server rendered with. Settings are defined at module scope, which is
+ * too early to reach the Inertia page, and on the server there is no document
+ * to read a cookie from. Both entrypoints seed this before creating the app so
+ * the two sides agree on the first paint.
+ */
+let seeded = {};
+
+export function seedPreferences(preferences) {
+    seeded = preferences?.settings ?? {};
+
+    Object.values(registry).forEach((setting) => setting.refresh());
+}
+
+/**
+ * Define a reactive, cookie-backed preference. `allowed` whitelists valid
  * values; anything stored outside it falls back. Returns { value: Ref, set(v) }.
  */
 export function defineSetting(key, fallback, allowed = null) {
     if (registry[key]) {
         return registry[key];
     }
-    const storageKey = PREFIX + key;
+    const cookieKey = PREFIX + key;
     const read = () => {
-        const raw = localStorage.getItem(storageKey);
+        const raw = readCookie(cookieKey) ?? seeded[key] ?? null;
         if (raw === null || (allowed && !allowed.includes(raw))) {
             return fallback;
         }
@@ -32,9 +47,12 @@ export function defineSetting(key, fallback, allowed = null) {
             return;
         }
         value.value = next;
-        localStorage.setItem(storageKey, next);
+        writeCookie(cookieKey, next);
     };
-    registry[key] = { value, set };
+    // A setting defined before the seed arrives would otherwise hold its
+    // fallback forever.
+    const refresh = () => (value.value = read());
+    registry[key] = { value, set, refresh };
     return registry[key];
 }
 
