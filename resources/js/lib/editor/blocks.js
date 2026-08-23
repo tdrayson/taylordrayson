@@ -84,19 +84,11 @@ export const BLOCKS = [
         id: 'video',
         group: 'Blocks',
         label: 'Video',
-        detail: 'by URL',
+        detail: 'YouTube, Vimeo or a file',
         requires: 'video',
-        run: (editor, range) => {
-            const url = window.prompt('Video URL');
-
-            if (! url) {
-                at(editor, range).run();
-
-                return;
-            }
-
-            at(editor, range).insertContent({ type: 'video', attrs: { url } }).run();
-        },
+        // Inserted empty for the same reason as the image: the block carries its
+        // own URL field, and it can show you what you pasted.
+        run: (editor, range) => at(editor, range).insertContent({ type: 'video' }).run(),
     },
 ];
 

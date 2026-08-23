@@ -104,12 +104,12 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, codeBlock?: object}} options
+ * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, codeBlock?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, codeBlock = null } = {}) {
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, codeBlock = null } = {}) {
     // The caller's callout replaces the plain node, so the editor can draw it
     // with its picker while the renderer keeps the bare definition.
-    const overrides = { callout, image };
+    const overrides = { callout, image, video };
 
     const base = (profile === 'document' ? DOCUMENT : PROSE)
         .map((extension) => overrides[extension.name] ?? extension);

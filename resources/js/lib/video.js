@@ -38,3 +38,21 @@ export function videoSource(url) {
 
     return null;
 }
+
+// Player URLs for the hosts that need an iframe. YouTube goes through nocookie
+// for the same reason the docked player does: no tracking cookie for a video
+// nobody has pressed play on yet.
+const EMBEDS = {
+    youtube: (id) => `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
+    vimeo: (id) => `https://player.vimeo.com/video/${id}`,
+};
+
+/**
+ * The iframe URL for a video held by a provider. Null for a direct file, which
+ * belongs in a <video> element, and for anything unrecognised.
+ */
+export function videoEmbed(url) {
+    const source = videoSource(url);
+
+    return source && EMBEDS[source.provider] ? EMBEDS[source.provider](source.id) : null;
+}
