@@ -82,6 +82,21 @@ const contentEl = ref(null);
     margin-bottom: 1.5rem;
 }
 
+/* A Twemoji glyph is a character, not a figure. base.css sizes it, but the
+   typography plugin's img margins sit in a later cascade layer and win there,
+   which pushes the emoji off its own line. */
+.block-content :deep(img.emoji) {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* A list belongs to the line that introduces it, so it sits closer to that than
+   two unrelated paragraphs sit to each other. */
+.block-content :deep(p:has(+ ul)),
+.block-content :deep(p:has(+ ol)) {
+    margin-bottom: 0.75rem;
+}
+
 /* A nested list is part of its parent item, not a new block in the flow. */
 .block-content :deep(li > ul),
 .block-content :deep(li > ol) {
