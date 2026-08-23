@@ -5,6 +5,7 @@ import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
+import { videoSource } from '../../lib/video';
 
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
@@ -347,13 +348,31 @@ function renderCallout(node, favicons, previews) {
     ]);
 }
 
+// Embed URLs for the hosts videoSource recognises. YouTube goes through
+// nocookie for the same reason the docked player does: no tracking cookie for
+// a video nobody has pressed play on yet.
+const EMBEDS = {
+    youtube: (id) => `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
+    vimeo: (id) => `https://player.vimeo.com/video/${id}`,
+};
+
 function renderVideo(node) {
     if (!node.url) {
         return null;
     }
 
+    const source = videoSource(node.url);
+    const embed = source && EMBEDS[source.provider];
+
     return h('figure', { key: node._key, class: 'max-w-media' }, [
-        h('video', {
+        embed ? h('iframe', {
+            src: embed(source.id),
+            title: node.caption || 'Video',
+            loading: 'lazy',
+            allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+            allowfullscreen: true,
+            class: 'block aspect-video w-full rounded-lg border border-neutral-50',
+        }) : h('video', {
             src: node.url,
             controls: true,
             preload: 'metadata',
