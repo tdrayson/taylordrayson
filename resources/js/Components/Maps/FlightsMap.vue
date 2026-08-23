@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
             </button>
             <button
                 type="button"
-                class="rounded-md border border-neutral-100 bg-neutral-0/95 px-2.5 py-1.5 text-label font-semibold text-neutral-700 shadow-card transition-colors hover:text-accent-500"
+                class="flex h-8 items-center rounded-md border border-neutral-100 bg-neutral-0 px-2.5 text-label font-semibold text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                 :aria-pressed="showLabels"
                 @click="showLabels = !showLabels"
             >
