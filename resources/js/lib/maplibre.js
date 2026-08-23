@@ -118,16 +118,31 @@ export function greatCircle(a, b, segments = 128) {
     return points;
 }
 
+/**
+ * Apply the 3D globe projection and a matching sky.
+ * Projection and sky are style-level state, so this must be re-applied after
+ * every setStyle: swapBasemapStyle carries sources and layers across, not these.
+ * @param {object} map The maplibre map instance.
+ * @param {string} resolved The active colour scheme, 'dark' or 'light'.
+ */
+export function applyGlobe(map, resolved) {
+    map.setProjection({ type: 'globe' });
+
+    map.setSky(resolved === 'dark'
+        ? { 'sky-color': '#0b1020', 'horizon-color': '#1b2740', 'fog-color': '#0b1020', 'atmosphere-blend': 0.6 }
+        : { 'sky-color': '#cfe4ff', 'horizon-color': '#eaf2ff', 'fog-color': '#ffffff', 'atmosphere-blend': 0.5 });
+}
+
 /** Build a small pill label marker (e.g. an airport code or a venue name) that floats above its pin. */
-export function placeLabel(maplibregl, point, text) {
+export function placeLabel(maplibregl, point, text, options = {}) {
     const element = document.createElement('div');
     element.textContent = text;
     element.className = 'pointer-events-none max-w-48 truncate rounded-md border border-neutral-100 bg-neutral-0 px-1.5 py-0.5 text-label font-bold text-neutral-700 shadow-card';
 
-    return new maplibregl.Marker({ element, anchor: 'bottom', offset: [0, -9] }).setLngLat([point.lng, point.lat]);
+    return new maplibregl.Marker({ element, anchor: 'bottom', offset: [0, -9], ...options }).setLngLat([point.lng, point.lat]);
 }
 
 /** Build an IATA-code label marker element styled like a small pill. */
-export function iataLabel(maplibregl, point) {
-    return placeLabel(maplibregl, point, point.iata);
+export function iataLabel(maplibregl, point, options = {}) {
+    return placeLabel(maplibregl, point, point.iata, options);
 }
