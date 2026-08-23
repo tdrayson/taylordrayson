@@ -38,9 +38,13 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
-            'synchronous' => null,
+            // WAL lets the queue worker write while the site reads, instead of
+            // each blocking the other. busy_timeout gives a blocked write a
+            // window to retry rather than failing outright; NORMAL is the
+            // standard pairing with WAL, which keeps its own crash guarantee.
+            'busy_timeout' => 5000,
+            'journal_mode' => 'WAL',
+            'synchronous' => 'NORMAL',
             'transaction_mode' => 'DEFERRED',
         ],
 
