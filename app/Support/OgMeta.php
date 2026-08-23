@@ -282,6 +282,21 @@ class OgMeta
      * @return OgPayload
      */
     /**
+     * A hand-authored content page. The excerpt is optional, so it is dropped
+     * when empty rather than publishing a blank description.
+     *
+     * @return OgPayload
+     */
+    public static function page(string $title, ?string $excerpt): array
+    {
+        return self::make(array_filter([
+            'title' => $title,
+            'heading' => $title,
+            'description' => $excerpt,
+        ], fn (?string $value): bool => $value !== null && $value !== ''));
+    }
+
+    /**
      * @return OgPayload
      */
     public static function tags(): array

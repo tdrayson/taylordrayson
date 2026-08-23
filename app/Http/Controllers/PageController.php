@@ -7,6 +7,7 @@ use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
+use App\Support\OgMeta;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,7 +43,7 @@ class PageController extends Controller
             'excerpt' => $page->excerpt,
             'content' => $page->content,
             'published' => $page->published,
-            'og' => ['title' => $page->title, 'description' => $page->excerpt],
+            'og' => OgMeta::page($page->title, $page->excerpt),
             'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
             'linkFavicons' => (new BuildLinkFavicons)($page->content),
             'mentions' => (new ResolveMentions)($page->content),
