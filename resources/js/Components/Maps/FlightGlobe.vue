@@ -75,7 +75,7 @@ function uniqueLabelPoints(entries) {
  * addLayer) keeps this to a style update rather than rebuilding the source.
  */
 function applyYear(year) {
-    if (!map) {
+    if (!map || !map.getLayer('arcs')) {
         return;
     }
 
@@ -152,6 +152,7 @@ onMounted(async () => {
         geometry: { type: 'LineString', coordinates: greatCircle(entry.origin, entry.destination) },
     }));
 
+    // Deliberately not deduped by airport (unlike uniqueLabelPoints below): each point needs its own flight's year for setFilter to work per hub.
     const endpointFeatures = flights.flatMap((entry) => [entry.origin, entry.destination].map((point) => ({
         type: 'Feature',
         properties: { year: entry.year },
