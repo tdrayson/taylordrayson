@@ -15,4 +15,5 @@
 return [
     'checkins' => 'places',
     'vehicles' => 'fuel',
+    'checkin-map' => 'places',
 ];
