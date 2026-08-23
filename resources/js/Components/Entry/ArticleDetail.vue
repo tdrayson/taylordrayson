@@ -43,10 +43,11 @@ const headingCount = computed(() => contentNodes.value.filter(
         <!-- The wrapper, not the img, is the grid item: replaced elements don't
              stretch to their grid area, block boxes do. -->
         <div v-if="entry.cover" class="mb-6 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
+            <!-- The stored original, not the card conversion: that one is capped
+                 at 640px for a timeline thumbnail, and a hero renders it near
+                 twice that. The original is already the optimised 1920px WebP. -->
             <img
-                :src="entry.cover.src"
-                :srcset="entry.cover.srcset || undefined"
-                sizes="100vw"
+                :src="entry.cover.full"
                 alt=""
                 class="size-full object-cover"
             >
