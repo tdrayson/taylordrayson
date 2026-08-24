@@ -37,7 +37,36 @@ final class Links
     }
 
     /**
-     * Every external host a document links to, deduplicated.
+     * The site-relative path an href points at, or null when it leaves the site.
+     *
+     * An author typing a link writes a path, but one pasted from the address bar
+     * carries the whole address. Both name the same page, so both have to reach
+     * the same resolver rather than the absolute form being read as somebody
+     * else's site.
+     */
+    public static function internalPath(string $href): ?string
+    {
+        if ($href === '' || str_starts_with($href, '#')) {
+            return null;
+        }
+
+        if (! preg_match('#^[a-z][a-z0-9+.-]*://#i', $href)) {
+            // A path is already what we want; a mailto: or tel: is not a page.
+            return str_starts_with($href, '/') ? $href : null;
+        }
+
+        if (self::host($href) !== self::host((string) config('app.url'))) {
+            return null;
+        }
+
+        $path = parse_url($href, PHP_URL_PATH);
+
+        return is_string($path) && $path !== '' ? $path : '/';
+    }
+
+    /**
+     * Every external host a document links to, deduplicated. A link back to this
+     * site is not one, however it was written.
      *
      * @param  array<int, array<string, mixed>>|null  $blocks
      * @return list<string>
@@ -51,6 +80,10 @@ final class Links
                 $href = $def['href'] ?? null;
 
                 if (($def['_type'] ?? null) !== 'link' || ! is_string($href) || ! str_starts_with($href, 'http')) {
+                    continue;
+                }
+
+                if (self::internalPath($href) !== null) {
                     continue;
                 }
 
