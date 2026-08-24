@@ -63,7 +63,7 @@ const site = [
 
     <section>
         <SectionHead title="What I track" :meta="`${tracked.length} types`" />
-        <ul class="grid gap-x-8 sm:grid-cols-2">
+        <ul class="grid gap-x-24 sm:grid-cols-2">
             <li v-for="item in tracked" :key="item.type">
                 <Link
                     :href="item.href"
@@ -82,7 +82,7 @@ const site = [
 
     <section>
         <SectionHead title="Site" />
-        <ul class="grid gap-x-8 sm:grid-cols-2">
+        <ul class="grid gap-x-24 sm:grid-cols-2">
             <li v-for="item in site" :key="item.href">
                 <Link
                     :href="item.href"
