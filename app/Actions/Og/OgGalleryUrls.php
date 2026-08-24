@@ -10,6 +10,7 @@ use App\Support\TypeColors;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Build the card URLs shown on the temp OG gallery/preview pages: the
@@ -132,7 +133,7 @@ final class OgGalleryUrls
 
             $cards[] = [
                 'label' => $label,
-                'url' => $this->ogUrl(OgMeta::archive($type, $label, $label, $accentToken, false, null)),
+                'url' => $this->ogUrl(OgMeta::archive($type, $label, $label, $accentToken, false, Str::lower(Str::singular($label)), 0)),
             ];
         }
 

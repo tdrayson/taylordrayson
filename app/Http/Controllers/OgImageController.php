@@ -38,7 +38,7 @@ class OgImageController extends Controller
         $layout = $request->query('variant') === 'home' ? 'home' : 'text';
 
         $disk = Storage::disk('local');
-        $path = 'og/'.md5(implode('|', [config('og.version'), $layout, $title, (string) $eyebrow, (string) $date, $accent])).'.png';
+        $path = 'og/'.md5(implode('|', [OgRenderer::signature(), $layout, $title, (string) $eyebrow, (string) $date, $accent])).'.png';
 
         if (! $disk->exists($path)) {
             $disk->makeDirectory('og');
@@ -75,7 +75,7 @@ class OgImageController extends Controller
         abort_if($card === null, 404);
 
         $disk = Storage::disk('local');
-        $path = 'og/entry/'.md5(implode('|', [config('og.version'), $entry->id, $this->entryOgData->entryTimestamp($entry)])).'.png';
+        $path = 'og/entry/'.md5(implode('|', [OgRenderer::signature(), $entry->id, $this->entryOgData->entryTimestamp($entry)])).'.png';
 
         if (! $disk->exists($path)) {
             $disk->makeDirectory('og/entry');
@@ -87,7 +87,7 @@ class OgImageController extends Controller
 
     /**
      * TEMP: render (and cache) one sample card per data type for the gallery.
-     * Cached by og version, so bump OG_VERSION (or run `og:clear`) to refresh
+     * Cached by card signature, so editing the template is enough to refresh
      * after a design tweak.
      */
     public function preview(string $type): BinaryFileResponse
@@ -97,7 +97,7 @@ class OgImageController extends Controller
         abort_unless(isset($cards[$type]), 404);
 
         $disk = Storage::disk('local');
-        $path = 'og/preview/'.md5(config('og.version').'|'.$type).'.png';
+        $path = 'og/preview/'.md5(OgRenderer::signature().'|'.$type).'.png';
 
         if (! $disk->exists($path)) {
             $disk->makeDirectory('og/preview');

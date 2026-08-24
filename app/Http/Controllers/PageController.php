@@ -9,6 +9,7 @@ use App\Actions\ResolveMentions;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
 use App\Support\OgMeta;
+use App\Support\PortableText;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -51,7 +52,7 @@ class PageController extends Controller
             'cover' => $page->coverPhoto(),
             'content' => $page->content,
             'published' => $page->published,
-            'og' => OgMeta::page($page->title, $page->excerpt),
+            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content)),
             'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
             'linkFavicons' => (new BuildLinkFavicons)($page->content),
             'mentions' => (new ResolveMentions)($page->content),

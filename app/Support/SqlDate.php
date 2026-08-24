@@ -43,6 +43,26 @@ final class SqlDate
             : "strftime('%m-%d', {$expression})";
     }
 
+    /**
+     * The four-digit year as an integer.
+     */
+    public static function year(string $expression): string
+    {
+        return self::isMysql()
+            ? "YEAR({$expression})"
+            : "CAST(strftime('%Y', {$expression}) AS INTEGER)";
+    }
+
+    /**
+     * The calendar date as a "YYYY-MM-DD" string, dropping the time.
+     */
+    public static function date(string $expression): string
+    {
+        return self::isMysql()
+            ? "DATE({$expression})"
+            : "strftime('%Y-%m-%d', {$expression})";
+    }
+
     private static function isMysql(): bool
     {
         return in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true);

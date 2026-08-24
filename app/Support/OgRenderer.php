@@ -20,6 +20,26 @@ final class OgRenderer
         $this->browsershot($view)->save($path);
     }
 
+    /**
+     * The prefix every card's cache key is built on: the configured version,
+     * plus a digest of the card template.
+     *
+     * Cards are served `immutable`, so a design change is invisible until the
+     * key moves. Leaving that to a hand-bumped OG_VERSION meant the home card
+     * shipped a tagline that production never showed. Hashing the template
+     * makes editing it enough.
+     */
+    public static function signature(): string
+    {
+        static $signature = null;
+
+        return $signature ??= config('og.version').'|'.substr(
+            (string) md5_file(resource_path('views/og/card.blade.php')),
+            0,
+            8,
+        );
+    }
+
     public function serve(string $path, string $cacheControl): BinaryFileResponse
     {
         return response()->file($path, [

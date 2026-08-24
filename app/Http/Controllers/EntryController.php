@@ -88,7 +88,7 @@ class EntryController extends Controller
             // truncated content, which the detail body already shows in full.
             'title' => $card->type === TimelineType::Note ? null : $card->title,
             ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
-            'og' => OgMeta::entry($entry, $card->title),
+            'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'trip' => $this->trip($model),
             'entry' => $model instanceof Calorie

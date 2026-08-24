@@ -2,7 +2,13 @@
 
 namespace App\Support;
 
+use App\Data\CardData;
+use App\Models\Article;
+use App\Models\Media;
+use App\Models\Project;
 use App\Models\TimelineEntry;
+use App\Presenters\EntryDescription;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -288,17 +294,22 @@ class OgMeta
      * @param  string  $title  The page title (the type label, or a taxonomy phrase).
      * @param  string  $accentToken  The card accent token (e.g. "checkin", "food").
      * @param  bool  $isTaxonomy  Whether this is a taxonomy sub-page rather than the index.
-     * @param  string|null  $subtitle  The count line used as the meta description.
+     * @param  string  $noun  The type's singular noun (e.g. "activity"), pluralised against the total.
+     * @param  int  $total  How many entries the archive holds.
      * @return OgPayload
      */
-    public static function archive(string $type, string $label, string $title, string $accentToken, bool $isTaxonomy, ?string $subtitle): array
+    public static function archive(string $type, string $label, string $title, string $accentToken, bool $isTaxonomy, string $noun, int $total): array
     {
         return self::make([
-            'title' => $title,
+            'title' => $isTaxonomy ? $title : "All {$title}",
             'eyebrow' => $label,
             'heading' => $isTaxonomy ? $title : (OgPhrases::pick("archive.{$type}", [], $type) ?? $title),
             'accent' => TypeColors::hex($accentToken),
-            'description' => $subtitle ?: 'All my '.Str::lower($title).'.',
+            // A taxonomy title already names what it holds ("Ride activities"),
+            // so it leads and the count follows; the index has no such phrase.
+            'description' => $isTaxonomy
+                ? sprintf('%s: all %s, newest first.', $title, number_format($total))
+                : sprintf("All %s %s I've logged, newest first.", number_format($total), Str::plural($noun, $total)),
         ]);
     }
 
@@ -323,18 +334,52 @@ class OgMeta
      * @return OgPayload
      */
     /**
-     * A hand-authored content page. The excerpt is optional, so it is dropped
-     * when empty rather than publishing a blank description.
+     * A hand-authored content page. The excerpt is the author's own summary and
+     * always wins; without one the page's opening prose stands in, which beats
+     * falling back to the site description on every untended page.
      *
+     * @param  string|null  $content  The page body as plain text, used only when there is no excerpt.
      * @return OgPayload
      */
-    public static function page(string $title, ?string $excerpt): array
+    public static function page(string $title, ?string $excerpt, ?string $content = null): array
     {
+        $description = Text::excerpt($excerpt, 200) ?: Text::excerpt($content, 200);
+
         return self::make(array_filter([
             'title' => $title,
             'heading' => $title,
-            'description' => $excerpt,
+            'description' => $description,
         ], fn (?string $value): bool => $value !== null && $value !== ''));
+    }
+
+    /**
+     * A TV show's own page, described by how much of it I have watched.
+     *
+     * @param  string  $title  The show's title.
+     * @param  int  $episodes  How many episodes have been watched.
+     * @param  int|null  $seasons  How many seasons those episodes span, when known.
+     * @param  string|null  $span  The watch period (e.g. "Mar 2024 to Aug 2026").
+     * @return OgPayload
+     */
+    public static function seriesShow(string $title, int $episodes, ?int $seasons, ?string $span): array
+    {
+        $across = $seasons ? sprintf(' across %s %s', $seasons, Str::plural('season', $seasons)) : '';
+        $when = $span ? ", {$span}" : '';
+
+        return self::make([
+            'title' => $title,
+            'eyebrow' => 'TV',
+            'heading' => $title,
+            'accent' => TypeColors::hex('media'),
+            'description' => sprintf(
+                "I've watched %s %s of %s%s%s.",
+                number_format($episodes),
+                Str::plural('episode', $episodes),
+                $title,
+                $across,
+                $when,
+            ),
+        ]);
     }
 
     /**
@@ -350,13 +395,23 @@ class OgMeta
         ]);
     }
 
-    public static function tag(string $name): array
+    /**
+     * @param  string  $name  The tag's display name.
+     * @param  int  $total  How many entries carry the tag, across every type.
+     * @return OgPayload
+     */
+    public static function tag(string $name, int $total): array
     {
         return self::make([
             'title' => "Tagged {$name}",
             'eyebrow' => 'Tag',
             'heading' => "Tagged {$name}",
-            'description' => "Everything tagged {$name}.",
+            'description' => sprintf(
+                'Everything tagged %s: %s %s from across every type I track, newest first.',
+                $name,
+                number_format($total),
+                Str::plural('entry', $total),
+            ),
         ]);
     }
 
@@ -384,16 +439,40 @@ class OgMeta
      * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
      *                                     the model has no spine row (e.g. an unpublished article
      *                                     previewed by its author), in which case the OG image is omitted.
-     * @param  string  $title  The entry's display title.
+     * @param  Model  $model  The entry's content, which its description is written from.
+     * @param  CardData  $card  The built card, for its title, subtitle and date.
      * @return OgPayload
      */
-    public static function entry(?TimelineEntry $entry, string $title): array
+    public static function entry(?TimelineEntry $entry, Model $model, CardData $card): array
     {
         return self::make([
-            'title' => $title,
-            'description' => $title,
+            'title' => self::entryTitle($model, $card),
+            'description' => EntryDescription::for($model, $card),
             'image' => $entry !== null ? route('og.entry', $entry) : null,
+            'type' => $model instanceof Article ? 'article' : 'website',
         ]);
+    }
+
+    /**
+     * A page title that identifies one entry among its type's thousands.
+     *
+     * Log entries repeat their titles heavily: 655 walks are all called "Walk",
+     * and a search result listing them is useless. Dating them is what tells
+     * one from another. Hand-authored pieces are already named deliberately, so
+     * they keep the title as written.
+     */
+    private static function entryTitle(Model $model, CardData $card): string
+    {
+        if ($model instanceof Article || $model instanceof Project) {
+            return $card->title;
+        }
+
+        // An episode's card title is the episode's alone, which off the show's
+        // page names nothing: "Netherlands (Race)" needs "Formula 1" in front.
+        $show = $model instanceof Media ? ShowTitle::for($model) : null;
+        $title = $show !== null ? "{$show}: {$card->title}" : $card->title;
+
+        return Text::excerpt($title, 60).', '.$card->occurredAt->format('j F Y');
     }
 
     /**

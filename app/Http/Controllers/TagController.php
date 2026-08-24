@@ -49,7 +49,7 @@ class TagController extends Controller
         abort_if($entries->isEmpty(), 404);
 
         return Inertia::render('Tag', [
-            'og' => OgMeta::tag($tag->name),
+            'og' => OgMeta::tag($tag->name, $entries->count()),
             'name' => $tag->name,
             'groups' => $this->feed->groupByDay($entries),
         ]);
