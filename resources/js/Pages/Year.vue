@@ -9,6 +9,7 @@ import SectionHead from '../Components/Ui/SectionHead.vue';
 import Heatmap from '../Components/Stats/Heatmap.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import FutureNote from '../Components/Timeline/FutureNote.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -71,7 +72,8 @@ setLayoutProps({
                     </div>
                 </template>
 
-                <div class="flex flex-col gap-14">
+                <div class="h-feed flex flex-col gap-14">
+                    <AuthorRef />
                     <DateGroup
                         v-for="group in groups"
                         :key="group.date"

@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import TimelineFeed from '../Components/Timeline/TimelineFeed.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pill from '../Components/Ui/Pill.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -53,7 +54,8 @@ setLayoutProps({
     <!-- Not a data-type page: plain H1, no eyebrow. -->
     <ViewHeader title="On this day" :subtitle="subtitle" />
 
-    <div v-if="groups.length" class="mt-10 flex flex-col gap-14">
+    <div v-if="groups.length" class="h-feed mt-10 flex flex-col gap-14">
+        <AuthorRef />
         <section v-for="group in groups" :key="group.date">
             <h2 class="mb-6 flex items-center gap-3 font-display text-item-title">
                 <Link

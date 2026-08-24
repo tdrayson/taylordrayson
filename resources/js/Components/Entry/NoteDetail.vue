@@ -18,7 +18,7 @@ const lightboxIndex = ref(null);
 <template>
     <div class="max-w-prose space-y-4">
         <!-- Notes have no headline, so the content is the page's primary text. -->
-        <BlockContent :document="entry.content" class="text-lg leading-relaxed" />
+        <BlockContent :document="entry.content" class="e-content text-lg leading-relaxed" />
 
         <ul v-if="photos.length" :class="photos.length > 1 ? 'grid grid-cols-2 gap-2.5' : ''">
             <li v-for="(photo, index) in photos" :key="index">

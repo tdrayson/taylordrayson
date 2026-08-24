@@ -9,6 +9,7 @@ import CalendarMonth from '../Components/Stats/CalendarMonth.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
 import Button from '../Components/Ui/Button.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
@@ -111,7 +112,8 @@ setLayoutProps({
                     </div>
                 </template>
 
-                <div class="flex flex-col gap-14">
+                <div class="h-feed flex flex-col gap-14">
+                    <AuthorRef />
                     <DateGroup
                         v-for="group in groups"
                         :key="group.date"

@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import IntroBlock from '../Components/Timeline/IntroBlock.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -36,6 +37,7 @@ const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(pro
 
     <div v-if="groups.length" class="h-feed flex flex-col gap-14">
         <h1 class="p-name sr-only">Taylor Drayson timeline</h1>
+        <AuthorRef />
         <DateGroup
             v-for="group in groups"
             :key="group.label"
