@@ -4,6 +4,7 @@ namespace App\Search;
 
 use App\Models\Page;
 use App\Models\Series;
+use App\Models\Tag;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -120,7 +121,7 @@ final class SuggestSearch
                 'section' => 'TV',
                 'type' => 'media',
                 'tag' => false,
-                'url' => '/media/tv/'.$series->slug,
+                'url' => $series->url(),
             ])
             ->all();
     }
@@ -153,7 +154,7 @@ final class SuggestSearch
                 'section' => 'Page',
                 'type' => 'page',
                 'tag' => false,
-                'url' => '/'.$page->slug,
+                'url' => $page->url(),
             ])
             ->all();
     }
@@ -190,7 +191,7 @@ final class SuggestSearch
                         // Tags go to the cross-type feed, so the same tag on several
                         // types collapses to one destination (deduped by url below).
                         'url' => $taxonomy['param'] === 'tag'
-                            ? '/tags/'.$value['value']
+                            ? Tag::urlFor($value['value'])
                             : '/'.$taxonomy['base'].'/'.$value['value'],
                         'rank' => str_starts_with(Str::lower($value['label']), $needle) ? 0 : 1,
                     ])

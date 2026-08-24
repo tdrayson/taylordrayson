@@ -92,9 +92,9 @@ final class MentionSearch
                 'kind' => 'page',
                 'group' => 'Pages',
                 'id' => $page->id,
-                'url' => '/'.$page->slug,
+                'url' => $page->url(),
                 'label' => $page->title,
-                'detail' => '/'.$page->slug,
+                'detail' => $page->url(),
             ])
             ->all();
     }
