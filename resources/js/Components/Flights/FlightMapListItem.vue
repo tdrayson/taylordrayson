@@ -71,7 +71,16 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
 
             <div class="mt-1.5 flex items-baseline justify-between gap-3 text-label text-neutral-500">
                 <span class="flex min-w-0 items-center gap-1.5">
-                    <img v-if="airline?.icon" :src="airline.icon" :alt="airline.name || 'Airline logo'" class="h-4 w-auto shrink-0 object-contain">
+                    <!-- The logo replaces the name rather than joining it, so
+                         without a title the airline is only readable to whoever
+                         already recognises the mark. -->
+                    <img
+                        v-if="airline?.icon"
+                        :src="airline.icon"
+                        :alt="airline.name || 'Airline logo'"
+                        :title="airline.name"
+                        class="h-4 w-auto shrink-0 object-contain"
+                    >
                     <span v-else-if="airline?.name" class="truncate">{{ airline.name }}</span>
                     <span class="shrink-0 tnum">{{ flightNumberLabel }}</span>
                 </span>
