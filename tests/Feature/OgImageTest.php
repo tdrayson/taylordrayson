@@ -5,8 +5,8 @@ use App\Support\OgRenderer;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * The hash mirrors OgImageController: md5 of
- * "signature|layout|title|eyebrow|date|accent|subtitle". Seeding the cached file
+ * Mirrors OgImageController: cards live under og/<generation>/, named md5 of
+ * "layout|title|eyebrow|date|accent|subtitle". Seeding the cached file
  * lets us exercise routing, input handling, and serving without invoking
  * Browsershot (which needs Chromium), so it has to stay in step with the
  * controller: a stale key here does not fail, it quietly renders for real.
@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Storage;
 function seedCard(string $title, string $eyebrow = '', string $accent = '3858e9', string $layout = 'text', string $date = '', string $subtitle = ''): void
 {
     Storage::fake('local');
-    $hash = md5(implode('|', [OgRenderer::signature(), $layout, $title, $eyebrow, $date, $accent, $subtitle]));
-    Storage::disk('local')->put("og/{$hash}.png", 'fake-png-bytes');
+    $hash = md5(implode('|', [$layout, $title, $eyebrow, $date, $accent, $subtitle]));
+    Storage::disk('local')->put('og/'.OgRenderer::generation()."/{$hash}.png", 'fake-png-bytes');
 }
 
 it('serves a cached og card as a png for each url variant', function (string $url, array $seed) {

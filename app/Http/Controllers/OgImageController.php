@@ -46,10 +46,11 @@ class OgImageController extends Controller
             : null;
 
         $disk = Storage::disk('local');
-        $path = 'og/'.md5(implode('|', [OgRenderer::signature(), $layout, $title, (string) $eyebrow, (string) $date, $accent, (string) $subtitle])).'.png';
+        $directory = 'og/'.OgRenderer::generation();
+        $path = $directory.'/'.md5(implode('|', [$layout, $title, (string) $eyebrow, (string) $date, $accent, (string) $subtitle])).'.png';
 
         if (! $disk->exists($path)) {
-            $disk->makeDirectory('og');
+            $disk->makeDirectory($directory);
 
             $card = [
                 'layout' => $layout,
@@ -83,10 +84,11 @@ class OgImageController extends Controller
         abort_if($card === null, 404);
 
         $disk = Storage::disk('local');
-        $path = 'og/entry/'.md5(implode('|', [OgRenderer::signature(), $entry->id, $this->entryOgData->entryTimestamp($entry)])).'.png';
+        $directory = 'og/'.OgRenderer::generation().'/entry';
+        $path = $directory.'/'.md5($entry->id.'|'.$this->entryOgData->entryTimestamp($entry)).'.png';
 
         if (! $disk->exists($path)) {
-            $disk->makeDirectory('og/entry');
+            $disk->makeDirectory($directory);
             $this->renderer->screenshot(view('og.card', $card), $disk->path($path));
         }
 
@@ -105,10 +107,11 @@ class OgImageController extends Controller
         abort_unless(isset($cards[$type]), 404);
 
         $disk = Storage::disk('local');
-        $path = 'og/preview/'.md5(OgRenderer::signature().'|'.$type).'.png';
+        $directory = 'og/'.OgRenderer::generation().'/preview';
+        $path = $directory.'/'.md5($type).'.png';
 
         if (! $disk->exists($path)) {
-            $disk->makeDirectory('og/preview');
+            $disk->makeDirectory($directory);
 
             $card = array_merge($cards[$type], [
                 'cutout' => $this->galleryUrls->dataUri('taylor-cutout.png', 'image/png'),
