@@ -1,8 +1,11 @@
 <?php
 
+use App\Models\Attachment;
 use App\Models\Note;
 use App\Models\TimelineEntry;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 it('passes on a healthy database', function () {
     Note::factory()->create(['occurred_at' => '2025-05-01 10:00:00']);
@@ -54,5 +57,44 @@ it('finds two entries claiming one URL on the same day', function () {
 
     $this->artisan('db:check')
         ->expectsOutputToContain('claimed 2 times')
+        ->assertFailed();
+});
+
+it('finds an attachment whose file was deleted from disk', function () {
+    Storage::fake('public');
+
+    $note = Note::factory()->create(['occurred_at' => '2025-05-01 10:00:00']);
+    $note->addMedia(UploadedFile::fake()->image('photo.jpg', 20, 20))
+        ->toMediaCollection('photos');
+
+    $attachment = Attachment::firstOrFail();
+
+    $this->artisan('db:check')->assertSuccessful();
+
+    // The row stays, so nothing but the disk can see this.
+    Storage::disk('public')->delete($attachment->getPathRelativeToRoot());
+
+    $this->artisan('db:check')
+        ->expectsOutputToContain('Note: 1 file')
+        ->assertFailed();
+});
+
+it('finds a card conversion that was never written', function () {
+    Storage::fake('public');
+
+    $note = Note::factory()->create(['occurred_at' => '2025-05-01 10:00:00']);
+    $note->addMedia(UploadedFile::fake()->image('photo.jpg', 20, 20))
+        ->toMediaCollection('photos');
+
+    $attachment = Attachment::firstOrFail();
+
+    // What the real failure looked like: the database recorded the conversion
+    // as generated, so --only-missing skipped it forever, but no file existed.
+    $attachment->generated_conversions = ['card' => true];
+    $attachment->save();
+    Storage::disk('public')->delete($attachment->getPathRelativeToRoot('card'));
+
+    $this->artisan('db:check')
+        ->expectsOutputToContain('Note: 1 conversion')
         ->assertFailed();
 });
