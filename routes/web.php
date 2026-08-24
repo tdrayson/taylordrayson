@@ -155,6 +155,11 @@ Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
 Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show');
 
+// Old site URLs, exact-match only so a live sub-route is never shadowed.
+foreach (config('redirects') as $from => $to) {
+    Route::redirect("/{$from}", "/{$to}", 301);
+}
+
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.
 Route::get('/{slug}', [PageController::class, 'show'])
