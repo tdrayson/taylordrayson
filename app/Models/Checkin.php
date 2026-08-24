@@ -27,7 +27,6 @@ use Spatie\MediaLibrary\HasMedia;
     'longitude',
     'description',
     'event_name',
-    'is_mayor',
     'source',
     'source_id',
 ])]
@@ -42,7 +41,6 @@ class Checkin extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'is_mayor' => 'boolean',
         ];
     }
 
