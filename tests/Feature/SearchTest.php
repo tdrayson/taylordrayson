@@ -5,6 +5,7 @@ use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Note;
+use App\Models\Page;
 use App\Models\User;
 use App\Search\SearchSchema;
 use Illuminate\Support\Facades\Schema;
@@ -65,6 +66,31 @@ it('labels tag destinations as tags, not the owning type', function () {
 
     expect(collect($destinations)->firstWhere('url', '/tags/fluent-forms'))
         ->toMatchArray(['label' => 'Fluent Forms', 'section' => 'Tag', 'tag' => true]);
+});
+
+it('suggests standalone pages as destinations', function () {
+    Page::factory()->create(['published' => true, 'title' => 'Sleep score', 'slug' => 'sleep-score']);
+
+    $destinations = getJson('/search/suggest?q=Sleep score')->assertOk()->json('destinations');
+
+    expect(collect($destinations)->firstWhere('url', '/sleep-score'))
+        ->toMatchArray(['label' => 'Sleep score', 'section' => 'Page', 'type' => 'page', 'tag' => false]);
+});
+
+it('hides an unpublished page from guests, and shows it to the authenticated user', function () {
+    Page::factory()->create(['published' => false, 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
+
+    $urls = fn (array $json): array => collect($json)->pluck('url')->all();
+
+    expect($urls(getJson('/search/suggest?q=Draft colophon')->assertOk()->json('destinations')))
+        ->not->toContain('/draft-colophon');
+
+    $seen = $this->actingAs(User::factory()->create())
+        ->getJson('/search/suggest?q=Draft colophon')
+        ->assertOk()
+        ->json('destinations');
+
+    expect($urls($seen))->toContain('/draft-colophon');
 });
 
 it('hides unpublished articles from guest search suggestions', function () {
