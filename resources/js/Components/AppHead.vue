@@ -68,6 +68,11 @@ const imageUrl = computed(() => {
 
     if (meta.value.variant) {
         params.set('variant', meta.value.variant);
+
+        // The home card has room for a standfirst, and the page's own
+        // description is what belongs there: a second hardcoded line on the
+        // renderer could drift from the one the page publishes.
+        params.set('description', meta.value.description);
     }
 
     return `${origin.value}/og.png?${params.toString()}`;

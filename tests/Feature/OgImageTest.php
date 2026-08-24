@@ -1,16 +1,20 @@
 <?php
 
+use App\Http\Controllers\OgImageController;
+use App\Support\OgRenderer;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * The hash mirrors OgImageController: md5 of "version|layout|title|eyebrow|date|accent".
- * Seeding the cached file lets us exercise routing, input handling, and serving
- * without invoking Browsershot (which needs Chromium).
+ * The hash mirrors OgImageController: md5 of
+ * "signature|layout|title|eyebrow|date|accent|subtitle". Seeding the cached file
+ * lets us exercise routing, input handling, and serving without invoking
+ * Browsershot (which needs Chromium), so it has to stay in step with the
+ * controller: a stale key here does not fail, it quietly renders for real.
  */
-function seedCard(string $title, string $eyebrow = '', string $accent = '3858e9', string $layout = 'text', string $date = ''): void
+function seedCard(string $title, string $eyebrow = '', string $accent = '3858e9', string $layout = 'text', string $date = '', string $subtitle = ''): void
 {
     Storage::fake('local');
-    $hash = md5(implode('|', [config('og.version'), $layout, $title, $eyebrow, $date, $accent]));
+    $hash = md5(implode('|', [OgRenderer::signature(), $layout, $title, $eyebrow, $date, $accent, $subtitle]));
     Storage::disk('local')->put("og/{$hash}.png", 'fake-png-bytes');
 }
 
@@ -32,7 +36,10 @@ it('serves a cached og card as a png for each url variant', function (string $ur
         '/og.png?title=A walk&eyebrow=Activity&accent=2e9e6a&date=Mon 9 Jun 2025',
         ['title' => 'A walk', 'eyebrow' => 'Activity', 'accent' => '2e9e6a', 'date' => 'Mon 9 Jun 2025'],
     ],
-    'branded home variant' => ['/og.png?variant=home', ['title' => 'Taylor Drayson', 'layout' => 'home']],
+    'branded home variant falls back to the tagline' => [
+        '/og.png?variant=home',
+        ['title' => 'Taylor Drayson', 'layout' => 'home', 'subtitle' => OgImageController::TAGLINE],
+    ],
 ]);
 
 it('404s the per-entry card for an unknown entry', function () {
@@ -92,4 +99,12 @@ it('clears cached og cards with og:clear', function () {
 
     expect(Storage::disk('local')->exists('og/card.png'))->toBeFalse()
         ->and(Storage::disk('local')->exists('og/entry/entry.png'))->toBeFalse();
+});
+
+it('keys the home card on the description it was given', function () {
+    seedCard('Taylor Drayson', layout: 'home', subtitle: 'Everything I log, newest first.');
+
+    $this->get('/og.png?variant=home&title=Taylor+Drayson&description=Everything+I+log%2C+newest+first.')
+        ->assertOk()
+        ->assertHeader('content-type', 'image/png');
 });
