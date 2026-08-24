@@ -176,7 +176,9 @@ it('gives back nothing for a path no resolver owns', function () {
     expect($resolve('/stories/nonexistent'))->toBeNull()
         ->and($resolve('/tags/not-a-tag'))->toBeNull()
         ->and($resolve('/1999/01'))->toBeNull()
-        ->and($resolve('/design-system'))->toBeNull();
+        // Behind auth, so a preview would describe a page most readers cannot open.
+        ->and($resolve('/drafts'))->toBeNull()
+        ->and($resolve('/nothing-here'))->toBeNull();
 });
 
 it('lets a literal route win over the page catch-all', function () {

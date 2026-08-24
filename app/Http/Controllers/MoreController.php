@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TimelineEntry;
+use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,6 +33,7 @@ class MoreController extends Controller
 
         return Inertia::render('More', [
             'tracked' => $tracked,
+            'og' => OgMeta::more(),
         ]);
     }
 }

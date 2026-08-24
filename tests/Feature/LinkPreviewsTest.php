@@ -19,7 +19,8 @@ it('exposes previews only for internal, previewable content links', function () 
     $targetHref = '/2026/05/01/target-post';
 
     // Source article whose content links to the target, plus an external link
-    // and an internal link to a non-previewable path.
+    // and an internal link nothing can preview. /drafts is behind auth, so a
+    // card describing it would be one most readers could never open.
     $source = Article::factory()->create([
         'occurred_at' => '2026-05-02 10:00:00',
         'slug' => 'source-post',
@@ -29,12 +30,12 @@ it('exposes previews only for internal, previewable content links', function () 
             'markDefs' => [
                 ['_key' => 'a', '_type' => 'link', 'href' => $targetHref],
                 ['_key' => 'b', '_type' => 'link', 'href' => 'https://example.com'],
-                ['_key' => 'c', '_type' => 'link', 'href' => '/photos'],
+                ['_key' => 'c', '_type' => 'link', 'href' => '/drafts'],
             ],
             'children' => [
                 ['_type' => 'span', 'marks' => ['a'], 'text' => 'target'],
                 ['_type' => 'span', 'marks' => ['b'], 'text' => 'external'],
-                ['_type' => 'span', 'marks' => ['c'], 'text' => 'photos'],
+                ['_type' => 'span', 'marks' => ['c'], 'text' => 'drafts'],
             ],
         ]],
     ]);

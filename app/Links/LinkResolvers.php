@@ -8,6 +8,7 @@ use App\Links\Resolvers\EntryResolver;
 use App\Links\Resolvers\LiveResolver;
 use App\Links\Resolvers\PageResolver;
 use App\Links\Resolvers\PeriodResolver;
+use App\Links\Resolvers\SiteResolver;
 use App\Links\Resolvers\StoryResolver;
 use App\Links\Resolvers\TagResolver;
 
@@ -26,6 +27,10 @@ class LinkResolvers
         TagResolver::class,
         LiveResolver::class,
         PeriodResolver::class,
+        // Above the archive: /flights/map and /media/tv are literal routes that
+        // sit at the same shape as a taxonomy value, exactly as they do in
+        // routes/web.php.
+        SiteResolver::class,
         ArchiveResolver::class,
         PageResolver::class,
     ];
