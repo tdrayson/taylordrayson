@@ -9,10 +9,10 @@ it('renders map-driven registry-name icons as svg', function () {
     $page = visit('/')->resize(1280, 900);
 
     $page->click('[aria-label="Open search"]')
-        ->type('[role="dialog"] input', 'Calendar')
+        ->type('[role="dialog"] input', 'Advanced')
         ->assertScript(
-            // Calendar03Icon from pageCommands — assert a real SVG, not an empty button.
-            "[...document.querySelectorAll('[role=\"dialog\"] button')].some((btn) => btn.textContent.includes('Calendar') && btn.querySelector('svg'))",
+            // Search01Icon from pageCommands — assert a real SVG, not an empty button.
+            "[...document.querySelectorAll('[role=\"dialog\"] button')].some((btn) => btn.textContent.includes('Advanced search') && btn.querySelector('svg'))",
             true,
         );
 });

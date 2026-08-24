@@ -3,7 +3,7 @@
 use App\Models\Activity;
 
 /**
- * A page with no stored preferences. The unit settings live in localStorage and
+ * A page with no stored preferences. The unit settings live in cookies and
  * survive between tests in this file, so a test that assumes the default has to
  * clear whatever an earlier one chose.
  */
@@ -12,7 +12,7 @@ function freshVisit(string $url)
     // Clear on a first load, then navigate again so the app boots with nothing
     // stored. A location.reload() is not waited on, so the assertions after it
     // can run against the page on its way out.
-    visit($url)->script('localStorage.clear()');
+    visit($url)->script(clearCookies());
 
     return visit($url)->resize(1280, 800);
 }
@@ -26,7 +26,7 @@ it('toggles distance and weight units from the settings modal', function () {
 
     // Distance: default mi, switch to km, assert persisted + the native radio checked.
     $page->click('[aria-label="Distance unit"] [aria-label="km"]')
-        ->assertScript("localStorage.getItem('pref:distanceUnit')", 'km')
+        ->assertScript(cookieValue('pref_distanceUnit'), 'km')
         ->assertScript(
             "document.querySelector('[aria-label=\"Distance unit\"] input[value=\"km\"]').checked",
             true,
@@ -34,7 +34,7 @@ it('toggles distance and weight units from the settings modal', function () {
 
     // Weight: default kg, switch to lbs.
     $page->click('[aria-label="Weight unit"] [aria-label="lbs"]')
-        ->assertScript("localStorage.getItem('pref:weightUnit')", 'lbs')
+        ->assertScript(cookieValue('pref_weightUnit'), 'lbs')
         ->assertScript(
             "document.querySelector('[aria-label=\"Weight unit\"] input[value=\"lbs\"]').checked",
             true,
@@ -57,7 +57,7 @@ it('keeps the unit toggles keyboard-reachable and operable inside the modal', fu
 
     // Native keyboard operation: ArrowRight on the checked (mi) radio selects km.
     $page->keys('[aria-label="Distance unit"] input[value="mi"]', 'ArrowRight')
-        ->assertScript("localStorage.getItem('pref:distanceUnit')", 'km')
+        ->assertScript(cookieValue('pref_distanceUnit'), 'km')
         ->assertScript(
             "document.querySelector('[aria-label=\"Distance unit\"] input[value=\"km\"]').checked",
             true,

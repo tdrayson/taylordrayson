@@ -50,6 +50,23 @@ function something()
     // ..
 }
 
+/**
+ * A JS expression evaluating to one cookie's value, or null when it is unset.
+ *
+ * Display preferences are cookies rather than local storage, so the server can
+ * render the right scheme and units on the first paint.
+ */
+function cookieValue(string $name): string
+{
+    return "document.cookie.match(/(?:^|;\\s*){$name}=([^;]*)/)?.[1] ?? null";
+}
+
+/** A JS statement clearing every cookie on the current path. */
+function clearCookies(): string
+{
+    return "document.cookie.split(';').forEach((c) => { document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;path=/;max-age=0'); })";
+}
+
 /** A real JPEG of the given size, so the media library can process it. */
 function fakeJpeg(int $width = 800, int $height = 600): string
 {

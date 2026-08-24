@@ -42,7 +42,26 @@ function toggle(mark) {
  * where the caret happens to be, so they get their own panel below.
  */
 function shouldShow({ editor: instance, from, to }) {
-    return from !== to || instance.isActive('link');
+    return from !== to || onLink(instance);
+}
+
+/**
+ * Whether the caret rests on a link, tolerating its left edge.
+ *
+ * The mark is not inclusive, so a caret sitting before the first character does
+ * not carry it and `isActive('link')` is false there. That edge is exactly
+ * where clicking a link lands, so asking what follows the caret too is what
+ * makes a clicked link register as one.
+ */
+function onLink(instance) {
+    if (instance.isActive('link')) {
+        return true;
+    }
+
+    const type = instance.schema.marks.link;
+    const after = instance.state.selection.$from.nodeAfter;
+
+    return !! type && !! after && type.isInSet(after.marks) !== undefined;
 }
 
 // Tracked rather than computed: the caret moving is an editor event, not a
@@ -123,7 +142,6 @@ onBeforeUnmount(() => {
     document.removeEventListener('pointerdown', onDocumentPointerDown, true);
 });
 
-/** Open the href field, prefilled when the selection is already a link. */
 /** A destination on another site, which is what defaults to a new tab. */
 function isExternal(value) {
     try {
@@ -133,7 +151,15 @@ function isExternal(value) {
     }
 }
 
+/** Open the href field, prefilled when the selection is already a link. */
 function startLink() {
+    // At the mark's left edge the caret carries nothing, so getAttributes() and
+    // the extendMarkRange() in applyLink() would both miss the link that is
+    // plainly under the pointer. Step one character in and they behave.
+    if (! props.editor.isActive('link') && onLink(props.editor)) {
+        props.editor.commands.setTextSelection(props.editor.state.selection.from + 1);
+    }
+
     const link = props.editor.getAttributes('link');
 
     href.value = link.href ?? '';
@@ -219,10 +245,10 @@ function cancelLink() {
             <button
                 type="button"
                 class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                :class="editor.isActive('link')
+                :class="onLink(editor)
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
-                :aria-label="editor.isActive('link') ? 'Edit link' : 'Add link'"
+                :aria-label="onLink(editor) ? 'Edit link' : 'Add link'"
                 @click="startLink"
             ><Icon name="Link02Icon" class="size-4" /></button>
         </template>
