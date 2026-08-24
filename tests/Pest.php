@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use MensBeam\Microformats;
 use Tests\TestCase;
 
 /*
@@ -48,6 +49,32 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Parse a page's rendered DOM as microformats2.
+ *
+ * Asserting the parsed result rather than the class names is the point: a
+ * consumer reads properties, and whether a class lands where it should is a
+ * question about nesting and scoping that a CSS selector cannot answer.
+ *
+ * @return array{items: array<int, array<string, mixed>>, rels: array<string, mixed>}
+ */
+function parseMicroformats(string $html, string $url): array
+{
+    return Microformats::fromString($html, 'text/html', $url);
+}
+
+/** The first parsed item of the given type, or null. */
+function microformatItem(array $parsed, string $type): ?array
+{
+    foreach ($parsed['items'] as $item) {
+        if (in_array($type, $item['type'] ?? [], true)) {
+            return $item;
+        }
+    }
+
+    return null;
 }
 
 /**
