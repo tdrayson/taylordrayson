@@ -1,6 +1,9 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { tooltipSuppressed } from '../../lib/tooltip.js';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 const props = defineProps({
     label: { type: String, required: true },
@@ -88,7 +91,7 @@ onBeforeUnmount(() => {
     >
         <slot />
 
-        <Teleport to="body">
+        <Teleport v-if="mounted" to="body">
             <Transition name="tooltip-fade">
                 <span
                     v-if="visible"

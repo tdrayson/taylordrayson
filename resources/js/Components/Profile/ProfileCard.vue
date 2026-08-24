@@ -3,6 +3,9 @@ import { ref, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
 import { identityProfiles } from '../../lib/identity.js';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 defineProps({
     name: { type: String, default: 'Taylor Drayson' },
@@ -196,7 +199,7 @@ onBeforeUnmount(() => {
              ignore CSS, so identity survives without the icons being on screen. -->
         <a v-for="profile in identityProfiles" :key="profile.href" :href="profile.href" rel="me" class="u-url" hidden>{{ profile.label }}</a>
 
-        <Teleport to="body">
+        <Teleport v-if="mounted" to="body">
             <Avatar
                 v-if="flying"
                 :src="avatar"

@@ -2,6 +2,9 @@
 import { useId } from 'vue';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 const props = defineProps({
     open: { type: Boolean, default: false },
@@ -31,7 +34,7 @@ const titleId = useId();
 </script>
 
 <template>
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="fade">
             <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->

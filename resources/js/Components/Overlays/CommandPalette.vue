@@ -10,6 +10,9 @@ import { useDialog } from '../../composables/useDialog';
 import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 import { pageCommands, archiveCommands } from '../../navigation.js';
 import { entryType } from '../../entryTypes.js';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 const { isOpen, close, toggle } = useCommandPalette();
 
@@ -305,7 +308,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
 </script>
 
 <template>
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="palette">
             <div
                 v-if="isOpen"
