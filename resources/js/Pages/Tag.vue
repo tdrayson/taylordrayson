@@ -3,6 +3,7 @@ import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -24,7 +25,8 @@ setLayoutProps({
         <h1 class="font-display text-display">Tagged {{ name }}</h1>
     </header>
 
-    <div v-if="groups.length" class="mt-10 flex flex-col gap-14">
+    <div v-if="groups.length" class="h-feed mt-10 flex flex-col gap-14">
+        <AuthorRef />
         <DateGroup
             v-for="group in groups"
             :key="group.label"

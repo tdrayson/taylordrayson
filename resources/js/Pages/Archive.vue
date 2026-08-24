@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import TaxonomyFilter from '../Components/Ui/TaxonomyFilter.vue';
 import FlightsMap from '../Components/Maps/FlightsMap.vue';
@@ -79,7 +80,8 @@ setLayoutProps({
 
     <TaxonomyFilter :chips="chips" />
 
-    <div v-if="groups.length" class="mt-10 flex flex-col gap-14">
+    <div v-if="groups.length" class="h-feed mt-10 flex flex-col gap-14">
+        <AuthorRef />
         <DateGroup
             v-for="group in groups"
             :key="group.label"

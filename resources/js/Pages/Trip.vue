@@ -4,6 +4,7 @@ import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -48,7 +49,8 @@ const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'day
     </header>
 
     <template v-if="groups.length">
-        <div class="mt-10 flex flex-col gap-14">
+        <div class="h-feed mt-10 flex flex-col gap-14">
+            <AuthorRef />
             <DateGroup
                 v-for="group in groups"
                 :key="group.label"

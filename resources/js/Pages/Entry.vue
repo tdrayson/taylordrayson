@@ -6,6 +6,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
 import EntryFooter from '../Components/Entry/EntryFooter.vue';
+import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import { entryType } from '../entryTypes.js';
 
 import ActivityDetail from '../Components/Entry/ActivityDetail.vue';
@@ -56,6 +57,9 @@ const props = defineProps({
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
+
+// This entry's own URL, for the u-url a parser needs on a permalink.
+const permalink = computed(() => usePage().url);
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
 
@@ -135,39 +139,48 @@ setLayoutProps({
         :action="`/entries/${editType}/${entry.id}`"
     />
 
-    <header v-else class="relative">
-        <div class="min-w-0">
-            <div class="relative">
-                <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
-                    <Icon :icon="meta.icon" class="size-6" />
-                </span>
-                <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
+    <article v-else class="h-entry">
+        <header class="relative">
+            <div class="min-w-0">
+                <div class="relative">
+                    <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
+                        <Icon :icon="meta.icon" class="size-6" />
+                    </span>
+                    <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
+                </div>
+                <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
+                <h1 v-if="title" v-twemoji class="p-name" :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-display'">{{ title }}</h1>
+                <!-- No p-name: a title-less type is a note, and mf2 readers tell
+                     a note from an article by the absence of a name separate
+                     from the content. This heading is for the outline only. -->
+                <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
+                <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
+                    <time :datetime="occurredAt" class="dt-published">{{ occurredLabel }} {{ occurredOffset }}</time>
+                </Link>
+                <p v-if="trip" class="mt-1 text-meta text-neutral-500">
+                    Part of
+                    <Link :href="trip.url" class="font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ trip.title }}</Link>
+                </p>
             </div>
-            <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-            <h1 v-if="title" v-twemoji :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-display'">{{ title }}</h1>
-            <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
-            <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
-                <time :datetime="occurredAt">{{ occurredLabel }} {{ occurredOffset }}</time>
-            </Link>
-            <p v-if="trip" class="mt-1 text-meta text-neutral-500">
-                Part of
-                <Link :href="trip.url" class="font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ trip.title }}</Link>
-            </p>
-        </div>
-    </header>
+            <!-- Hidden, not dropped: a parser needs this entry's own URL and its
+                 author, and neither has anywhere to sit in the visible design. -->
+            <a class="u-url u-uid" :href="permalink" hidden>{{ title ?? meta.label }}</a>
+            <AuthorRef />
+        </header>
 
-    <EntryMap v-if="! editing && polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
+        <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
-    <component
-        v-if="! editing && detailComponent"
-        :is="detailComponent"
-        :entry="entry"
-        class="mt-10"
-    />
+        <component
+            v-if="detailComponent"
+            :is="detailComponent"
+            :entry="entry"
+            class="mt-10"
+        />
 
-    <p v-if="! editing && signedIn && editType" class="mt-6">
-        <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
-    </p>
+        <p v-if="signedIn && editType" class="mt-6">
+            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
+        </p>
 
-    <EntryFooter v-if="! editing" :source="source" :tags="tags" class="mt-10" />
+        <EntryFooter :source="source" :tags="tags" class="mt-10" />
+    </article>
 </template>
