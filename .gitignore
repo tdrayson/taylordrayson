@@ -46,3 +46,7 @@ storage/backups/
 
 # Scratch screenshots dropped at the repo root, never part of the app.
 /*.png
+
+# Favicons downloaded at runtime by links:favicons, keyed by host. Fetched on
+# the server, so they are cache rather than source.
+/public/favicons/
