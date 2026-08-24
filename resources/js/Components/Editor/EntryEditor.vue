@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { withMediaIds } from '../../lib/editor/media.js';
 import { slugify } from '../../lib/editor/defaults.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
@@ -151,6 +152,11 @@ function submit(published = null) {
     if (published !== null && publishField.value) {
         form[publishField.value.name] = published;
     }
+
+    // A media field holds { id, name, url } so the picker can draw a thumbnail,
+    // but the server takes the ids alone. Reduced here rather than in the field
+    // component, which would then have nothing left to render.
+    form.transform((data) => withMediaIds(props.fields, data));
 
     form[props.method](props.action, { preserveScroll: true });
 }

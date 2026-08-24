@@ -40,4 +40,25 @@ class Page extends Model implements HasMedia
             'published' => 'boolean',
         ];
     }
+
+    /**
+     * The cover image in the card/lightbox payload shape shared with articles,
+     * or null when none is attached.
+     *
+     * @return array{src: string, srcset: ?string, full: string}|null
+     */
+    public function coverPhoto(): ?array
+    {
+        $media = $this->getFirstMedia('cover');
+
+        if ($media === null) {
+            return null;
+        }
+
+        return [
+            'src' => $media->getUrl('card'),
+            'srcset' => $media->getSrcset('card') ?: null,
+            'full' => $media->getUrl(),
+        ];
+    }
 }
