@@ -54,6 +54,7 @@ const stats = computed(() => [
                 v-if="airline?.logo_url"
                 :src="airline.logo_url"
                 :alt="airline.name || 'Airline logo'"
+                :title="airline.name"
                 class="h-8 w-auto object-contain"
             >
             <span v-else-if="airline" class="font-display text-section">{{ airline.name }}</span>
