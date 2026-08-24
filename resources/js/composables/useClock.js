@@ -1,30 +1,30 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, toValue, watch } from 'vue';
+import { DEFAULT_TIMEZONE, formatDate, formatTime } from '../lib/time';
 
 /**
- * Reactive wall-clock time, formatted HH:MM (en-GB), refreshed on an interval.
+ * Reactive wall-clock time and date in a named timezone, refreshed on an
+ * interval.
+ *
+ * @param timezone An IANA zone, or a ref/getter of one, since the ambient
+ *                 reading it comes from can change while the page is open.
+ * @param intervalMs How often to re-read the clock.
  */
-export function useClock(intervalMs = 15000) {
+export function useClock(timezone = DEFAULT_TIMEZONE, intervalMs = 15000) {
     const time = ref('');
     const date = ref('');
     let timer = null;
 
     function tick() {
-        const current = new Date();
+        const zone = toValue(timezone) || DEFAULT_TIMEZONE;
+        const now = new Date();
 
-        const formatted = current.toLocaleTimeString('en-GB', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-        });
-
-        time.value = formatted.replace(/\s+/g, '').toLowerCase();
-        date.value = current.toLocaleDateString('en-GB', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        });
+        time.value = formatTime(zone, now);
+        date.value = formatDate(zone, now);
     }
+
+    // Re-read straight away rather than waiting out the interval, so a zone
+    // arriving late does not leave the wrong time on screen.
+    watch(() => toValue(timezone), tick);
 
     onMounted(() => {
         tick();
