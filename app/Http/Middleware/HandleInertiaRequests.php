@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
+use App\Support\OgRenderer;
 use App\Support\Preferences;
 use App\Support\StateStore;
 use App\Support\TodaySteps;
@@ -43,6 +44,11 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            // The current card design, appended to every generated og:image URL
+            // so a template edit changes the URL and scrapers refetch. Cards are
+            // served immutable, so without it a redesign is invisible to anyone
+            // holding the old one.
+            'ogVersion' => OgRenderer::generation(),
             // Colour scheme and unit choices, read from cookies so the first
             // render already matches what the visitor picked.
             'preferences' => Preferences::for($request),

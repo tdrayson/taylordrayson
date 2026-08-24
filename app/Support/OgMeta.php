@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
 use App\Models\Article;
 use App\Models\Media;
@@ -448,8 +449,24 @@ class OgMeta
         return self::make([
             'title' => self::entryTitle($model, $card),
             'description' => EntryDescription::for($model, $card),
-            'image' => $entry !== null ? route('og.entry', $entry) : null,
+            'image' => $entry !== null ? self::entryCardUrl($entry) : null,
             'type' => $model instanceof Article ? 'article' : 'website',
+        ]);
+    }
+
+    /**
+     * The entry's card URL, stamped with the card design and the entry's own
+     * last-updated time.
+     *
+     * Both belong in the URL because the card is cached against both, and the
+     * URL is what anyone holding a share preview refetches by. Without them a
+     * redesigned or edited card keeps the address of the one it replaced.
+     */
+    public static function entryCardUrl(TimelineEntry $entry): string
+    {
+        return route('og.entry', $entry).'?'.http_build_query([
+            'v' => OgRenderer::generation(),
+            't' => BuildEntryOgData::entryTimestamp($entry),
         ]);
     }
 

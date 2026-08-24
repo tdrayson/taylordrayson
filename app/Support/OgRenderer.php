@@ -21,8 +21,10 @@ final class OgRenderer
     }
 
     /**
-     * The directory holding every card rendered from the current design: the
-     * configured version plus a digest of the card template.
+     * The token identifying the current card design: the configured version
+     * plus a digest of the card template. Names the directory the cards are
+     * rendered into, and rides on every card URL as `v` so a design change
+     * moves the address rather than only the file behind it.
      *
      * Cards are served `immutable`, so a design change is invisible until the
      * path moves. Leaving that to a hand-bumped OG_VERSION meant the home card

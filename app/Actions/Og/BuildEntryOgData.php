@@ -88,7 +88,7 @@ final class BuildEntryOgData
 
         // Seed the wording with the id and last-updated stamp, so editing an
         // entry rerolls its phrase (matching when the card itself regenerates).
-        $seed = $entry->id.'|'.$this->entryTimestamp($entry);
+        $seed = $entry->id.'|'.self::entryTimestamp($entry);
 
         return [
             'layout' => $layout,
@@ -105,9 +105,10 @@ final class BuildEntryOgData
 
     /**
      * The entry's last-updated timestamp (the timelineable model's, falling back
-     * to the entry's), used to key the cache and seed the wording.
+     * to the entry's), used to key the cache, seed the wording, and bust the
+     * card's URL when the entry it describes changes.
      */
-    public function entryTimestamp(TimelineEntry $entry): int
+    public static function entryTimestamp(TimelineEntry $entry): int
     {
         return $entry->timelineable?->updated_at?->timestamp ?? $entry->updated_at?->timestamp ?? 0;
     }
