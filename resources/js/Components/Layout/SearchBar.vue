@@ -30,12 +30,10 @@ onMounted(() => {
         @click="open"
     >
         <Icon name="Search01Icon" class="size-5 flex-none text-neutral-500" />
-        <span class="flex items-center gap-2">
-            Search
-            <kbd class="hidden items-center gap-0.5 text-meta font-normal text-neutral-500 md:inline-flex">
-                <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
-                <template v-else>Ctrl K</template>
-            </kbd>
-        </span>
+        Search
+        <kbd class="ml-auto hidden items-center gap-0.5 text-meta font-normal text-neutral-500 md:inline-flex">
+            <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
+            <template v-else>Ctrl K</template>
+        </kbd>
     </button>
 </template>
