@@ -103,12 +103,6 @@ class StravaSync extends Command
             $this->info('['.count($created).'] '.$activity->name);
         }
 
-        $appended = $this->appendActivitiesToCsv($created);
-
-        if ($appended > 0) {
-            $this->info("Appended {$appended} row(s) to data/activities.csv.");
-        }
-
         $refreshed = $this->refreshExisting($strava, $this->withinWindow($existing->all()), $stored);
 
         $this->info('Done. Synced '.count($created).' activities, refreshed '.$refreshed.'.');
@@ -418,73 +412,6 @@ class StravaSync extends Command
         if ($stored > 0) {
             $this->info("  → Downloaded {$stored} photo(s)");
         }
-    }
-
-    /**
-     * Append newly-synced activities to data/activities.csv (the seed used to
-     * populate production via import:all), matching its header order and the
-     * json_encode + fputcsv encoding the rest of the pipeline uses.
-     *
-     * @param  array<int, Activity>  $activities
-     * @param  string|null  $path  Target CSV path; defaults to data/activities.csv.
-     * @return int The number of rows appended.
-     */
-    public function appendActivitiesToCsv(array $activities, ?string $path = null): int
-    {
-        if ($activities === []) {
-            return 0;
-        }
-
-        $path ??= base_path('data/activities.csv');
-
-        if (! is_file($path)) {
-            return 0;
-        }
-
-        $readHandle = fopen($path, 'r');
-        $headers = fgetcsv($readHandle);
-        fclose($readHandle);
-
-        if (! is_array($headers)) {
-            return 0;
-        }
-
-        usort($activities, fn (Activity $first, Activity $second): int => $first->occurred_at <=> $second->occurred_at);
-
-        $writeHandle = fopen($path, 'a');
-
-        foreach ($activities as $activity) {
-            fputcsv($writeHandle, $this->csvRow($activity, $headers));
-        }
-
-        fclose($writeHandle);
-
-        return count($activities);
-    }
-
-    /**
-     * Map an activity to a CSV row in the given header order.
-     *
-     * @param  array<int, string>  $headers
-     * @return array<int, string>
-     */
-    public function csvRow(Activity $activity, array $headers): array
-    {
-        return array_map(function (string $column) use ($activity): string {
-            if ($column === 'occurred_at') {
-                return $activity->occurred_at?->format('Y-m-d H:i:s') ?? '';
-            }
-
-            $value = $activity->getAttribute($column);
-
-            // meta and the stream columns (heart_rate/altitude/speed/track) are
-            // array casts; encode any array column rather than stringifying it.
-            if (is_array($value)) {
-                return json_encode($value) ?: '';
-            }
-
-            return (string) ($value ?? '');
-        }, $headers);
     }
 
     /**

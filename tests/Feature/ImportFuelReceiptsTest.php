@@ -74,13 +74,10 @@ it('applies a reviewed csv onto fuel rows and regenerates the backup csv', funct
     $row = "IMG_1.jpeg,2026-05-07 20:56:00,{$fuel->id},2026-05-07 20:52:23,4,51.37,-0.13,ASDA WALLINGTON,ASDA,MARLOW WAY,CR0 4XS,CROYDON,51.3767,-0.1313,0.4,,,ok";
     File::put($this->review, $header."\n".$row."\n");
 
-    $export = storage_path('app/test-fuel.csv');
-
     $this->artisan('import:fuel-receipts', [
         'folder' => $this->folder,
         '--apply' => true,
         '--review' => $this->review,
-        '--export' => $export,
     ])->assertSuccessful();
 
     $fuel->refresh();
@@ -89,7 +86,6 @@ it('applies a reviewed csv onto fuel rows and regenerates the backup csv', funct
     expect($fuel->country)->toBe('United Kingdom');
     expect((float) $fuel->latitude)->toBe(51.3767);
     expect((float) $fuel->longitude)->toBe(-0.1313);
-    expect(File::get($export))->toContain('ASDA WALLINGTON');
 });
 
 it('fetches brand logos after applying the reviewed csv', function () {
@@ -105,7 +101,6 @@ it('fetches brand logos after applying the reviewed csv', function () {
         'folder' => $this->folder,
         '--apply' => true,
         '--review' => $this->review,
-        '--export' => storage_path('app/test-fuel.csv'),
     ])->assertSuccessful();
 
     expect(File::exists(public_path('logos/brands/texaco.png')))->toBeTrue();

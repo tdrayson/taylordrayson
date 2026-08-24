@@ -12,8 +12,8 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use RuntimeException;
 
-#[Signature('podcast:sync {--per-page=50 : Episodes to request per page} {--full : Re-fetch and re-map every episode} {--csv= : Target CSV path; defaults to data/podcasts.csv}')]
-#[Description('Sync This Week With episodes from the website API into data/podcasts.csv and the database')]
+#[Signature('podcast:sync {--per-page=50 : Episodes to request per page} {--full : Re-fetch and re-map every episode}')]
+#[Description('Sync This Week With episodes from the website API')]
 class PodcastSync extends Command
 {
     /**
@@ -22,21 +22,6 @@ class PodcastSync extends Command
      * is filled rather than stranded.
      */
     private const CONSECUTIVE_KNOWN_LIMIT = 5;
-
-    /** @var list<string> */
-    private const HEADERS = [
-        'occurred_at',
-        'season_number',
-        'episode_number',
-        'topic',
-        'show_notes',
-        'transcript',
-        'duration',
-        'audio_url',
-        'video_url',
-        'thumbnail',
-        'cover_image',
-    ];
 
     /**
      * Pull new episodes, stopping once the feed reaches ones already stored.
@@ -97,7 +82,6 @@ class PodcastSync extends Command
         // run, because an incremental run holds only a handful and writing
         // those would truncate the mirror to the newest few.
         if ($changed) {
-            $this->writeCsv();
         }
 
         $this->info("Synced {$created} new episode(s), {$seen} already stored.");
@@ -151,29 +135,6 @@ class PodcastSync extends Command
         $content = preg_replace("/\n{3,}/", "\n\n", $content);
 
         return trim($content) ?: null;
-    }
-
-    /**
-     * Mirror every stored episode to the CSV, newest first to match how the
-     * file was written when it was built straight from the API response.
-     */
-    private function writeCsv(): void
-    {
-        $handle = fopen($this->option('csv') ?: base_path('data/podcasts.csv'), 'w');
-        fputcsv($handle, self::HEADERS);
-
-        Podcast::query()
-            ->orderByDesc('occurred_at')
-            ->each(function (Podcast $podcast) use ($handle): void {
-                fputcsv($handle, array_map(
-                    fn (string $header): string => $header === 'occurred_at'
-                        ? $podcast->occurred_at->format('Y-m-d H:i:s')
-                        : (string) ($podcast->getAttribute($header) ?? ''),
-                    self::HEADERS,
-                ));
-            });
-
-        fclose($handle);
     }
 
     /**

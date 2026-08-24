@@ -24,7 +24,7 @@ class HeartRateProcessor implements HealthProcessor
     /**
      * @param  array<string, mixed>  $payload
      */
-    public function process(array $payload, ?string $csvPath = null, bool $overwrite = false, int $cap = self::MAX_POINTS): void
+    public function process(array $payload, bool $overwrite = false, int $cap = self::MAX_POINTS): void
     {
         $samples = $this->samplesFrom($payload);
 
@@ -45,7 +45,6 @@ class HeartRateProcessor implements HealthProcessor
         }
 
         if ($changed !== []) {
-            $this->mirrorToCsv($changed, $csvPath);
         }
     }
 
@@ -160,68 +159,5 @@ class HeartRateProcessor implements HealthProcessor
         }
 
         return array_values($samples);
-    }
-
-    /**
-     * Write the new heart-rate columns onto the matching activity rows, keyed by
-     * occurred_at, preserving every existing row and column. A no-op if the
-     * target CSV does not already exist.
-     *
-     * @param  array<string, array{average_heart_rate: int, max_heart_rate: int, heart_rate: list<array{time: string, bpm: int}>}>  $changed
-     */
-    private function mirrorToCsv(array $changed, ?string $csvPath = null): int
-    {
-        $path = $this->csvPath($csvPath);
-
-        if (! is_file($path)) {
-            return 0;
-        }
-
-        $handle = fopen($path, 'r');
-        $headers = fgetcsv($handle);
-        $rows = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) === count($headers)) {
-                $rows[] = array_combine($headers, $row);
-            }
-        }
-
-        fclose($handle);
-
-        $applied = 0;
-
-        foreach ($rows as $index => $row) {
-            $record = $changed[$row['occurred_at']] ?? null;
-
-            if ($record === null) {
-                continue;
-            }
-
-            $rows[$index]['average_heart_rate'] = (string) $record['average_heart_rate'];
-            $rows[$index]['max_heart_rate'] = (string) $record['max_heart_rate'];
-            $rows[$index]['heart_rate'] = (string) json_encode($record['heart_rate']);
-            $applied++;
-        }
-
-        $handle = fopen($path, 'w');
-        fputcsv($handle, $headers);
-
-        foreach ($rows as $row) {
-            fputcsv($handle, array_map(fn (string $column): string => (string) ($row[$column] ?? ''), $headers));
-        }
-
-        fclose($handle);
-
-        return $applied;
-    }
-
-    /**
-     * Resolve the activities CSV path, preferring an explicit override (e.g.
-     * from the command's `--csv` option) and falling back to the production file.
-     */
-    private function csvPath(?string $override = null): string
-    {
-        return $override ?: base_path('data/activities.csv');
     }
 }

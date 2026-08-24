@@ -11,7 +11,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-#[Signature('import:fuel-receipts {folder : Folder of GPS-tagged receipt photos} {--apply : Write the reviewed CSV to the database} {--window=1440 : Max match window in minutes} {--review= : Review CSV path (default storage/app/fuel/receipt-review.csv)} {--export=data/fuel.csv : Path to regenerate the fuel CSV backup on apply}')]
+#[Signature('import:fuel-receipts {folder : Folder of GPS-tagged receipt photos} {--apply : Write the reviewed CSV to the database} {--window=1440 : Max match window in minutes} {--review= : Review CSV path (default storage/app/fuel/receipt-review.csv)}')]
 #[Description('Backfill fuel logs with garage/location data from receipt photos')]
 class ImportFuelReceipts extends Command
 {
@@ -161,9 +161,8 @@ class ImportFuelReceipts extends Command
 
         fclose($handle);
 
-        $this->call('export:csv', ['file' => $this->option('export'), 'type' => 'fuel']);
         $this->call('fuel:brand-logos');
-        $this->info("Applied {$updated} rows and regenerated {$this->option('export')}.");
+        $this->info("Applied {$updated} rows.");
 
         return self::SUCCESS;
     }

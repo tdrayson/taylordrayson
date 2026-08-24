@@ -15,12 +15,7 @@ it('upserts a night of sleep from a decoded payload', function () {
         ]]],
     ];
 
-    // A non-existent CSV path: mirrorToCsv() is a no-op when the target file
-    // doesn't exist yet, so this keeps the test from touching the real
-    // data/sleep.csv while still exercising process() end to end.
-    $csvPath = sys_get_temp_dir().'/sleep_processor_test_'.uniqid().'.csv';
-
-    app(SleepProcessor::class)->process($payload, $csvPath);
+    app(SleepProcessor::class)->process($payload);
 
     expect(Sleep::query()->count())->toBe(1);
     $night = Sleep::query()->first();
@@ -41,8 +36,8 @@ it('is idempotent across repeated payloads', function () {
 
     $csvPath = sys_get_temp_dir().'/sleep_processor_test_'.uniqid().'.csv';
 
-    app(SleepProcessor::class)->process($payload, $csvPath);
-    app(SleepProcessor::class)->process($payload, $csvPath);
+    app(SleepProcessor::class)->process($payload);
+    app(SleepProcessor::class)->process($payload);
 
     expect(Sleep::query()->count())->toBe(1);
 });
