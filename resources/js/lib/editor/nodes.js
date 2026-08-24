@@ -29,10 +29,70 @@ export const PreserveKeys = Extension.create({
                 'image',
                 'video',
                 'callout',
-                'mention',
             ],
             attributes: {
                 _key: { default: null, rendered: false },
+            },
+        }];
+    },
+});
+
+/** Tab handling for code blocks. Their attributes live on the node itself. */
+export const CodeBlockMeta = Extension.create({
+    name: 'codeBlockMeta',
+
+    /**
+     * Tab indents inside a code block rather than leaving it. Everywhere else
+     * Tab belongs to the browser, moving focus to the next control, so this is
+     * deliberately scoped to the one place indentation is the point.
+     */
+    addKeyboardShortcuts() {
+        return {
+            Tab: () => {
+                if (! this.editor.isActive('codeBlock')) {
+                    return false;
+                }
+
+                return this.editor.commands.insertContent('    ');
+            },
+            'Shift-Tab': () => {
+                if (! this.editor.isActive('codeBlock')) {
+                    return false;
+                }
+
+                const { state } = this.editor;
+                const { from } = state.selection;
+                const line = state.doc.textBetween(Math.max(0, from - 4), from);
+
+                // Only unindent a full stop's worth of spaces, so Shift-Tab
+                // never eats code.
+                return line === '    '
+                    ? this.editor.commands.deleteRange({ from: from - 4, to: from })
+                    : true;
+            },
+        };
+    },
+
+});
+
+/**
+ * TipTap's image node speaks `src`, while the stored document speaks `url` and
+ * carries a caption and alt text alongside it. Declared here so none of them
+ * are dropped on load.
+ */
+export const ImageMeta = Extension.create({
+    name: 'imageMeta',
+
+    addGlobalAttributes() {
+        return [{
+            types: ['image'],
+            attributes: {
+                url: { default: null, rendered: false },
+                alt: { default: null, rendered: false },
+                ratio: { default: null, rendered: false },
+                caption: { default: null, rendered: false },
+                width: { default: null, rendered: false },
+                height: { default: null, rendered: false },
             },
         }];
     },
@@ -52,6 +112,9 @@ export const Video = Node.create({
         return {
             url: { default: null },
             caption: { default: null },
+            // Overrides the host's own still, for a video whose thumbnail is a
+            // poor opener or which has none to publish.
+            poster: { default: null },
             width: { default: null },
             height: { default: null },
         };
@@ -90,3 +153,4 @@ export const Callout = Node.create({
         return ['aside', { 'data-callout': '', ...HTMLAttributes }, 0];
     },
 });
+

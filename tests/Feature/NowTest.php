@@ -36,11 +36,15 @@ it('passes recent sleep nights and last-night stage hours', function () {
         'awake' => 1800,
     ]);
 
+    // Seven dated nights whether or not each has a record, and the split for
+    // whichever one the headline shows: here last night, today having none.
     get('/now')->assertInertia(fn ($page) => $page
-        ->has('sleep.nights', 1)
-        ->where('sleep.nights.0', fn ($hours) => (float) $hours === 8.0)
-        ->where('sleep.stageHours.deep', fn ($hours) => (float) $hours === 1.0)
-        ->where('sleep.stageHours.core', fn ($hours) => (float) $hours === 5.0)
+        ->has('sleep.nights', 7)
+        ->where('sleep.nights.5.hours', fn ($hours) => (float) $hours === 8.0)
+        ->where('sleep.nights.6.hours', null)
+        ->where('sleep.lastNight.date', now()->subDay()->toDateString())
+        ->where('sleep.lastNight.stageHours.deep', fn ($hours) => (float) $hours === 1.0)
+        ->where('sleep.lastNight.stageHours.core', fn ($hours) => (float) $hours === 5.0)
     );
 });
 

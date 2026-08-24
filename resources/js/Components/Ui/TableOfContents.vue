@@ -67,14 +67,36 @@ function buildToc() {
 }
 
 /**
- * Smooth-scroll to an item and close the mobile sheet.
+ * Smooth-scroll to an item, put its hash in the address bar and close the
+ * mobile sheet.
  *
  * @param {string} id The element id to scroll to.
  * @returns {void}
  */
 function goTo(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    // replaceState, not the default jump: the URL becomes copyable without
+    // stacking a history entry per heading, and without the instant scroll that
+    // following the link natively would do.
+    window.history.replaceState(null, '', `#${id}`);
     open.value = false;
+}
+
+/**
+ * Handle a click on a contents link. A modified or middle click is left to the
+ * browser, so opening a section in a new tab still works.
+ *
+ * @param {MouseEvent} event
+ * @param {string} id The element id the link points at.
+ * @returns {void}
+ */
+function onItemClick(event, id) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+    }
+
+    event.preventDefault();
+    goTo(id);
 }
 
 /**
@@ -123,15 +145,15 @@ onBeforeUnmount(() => {
     >
         <ul class="toc-rail sticky top-10 flex w-56 flex-col border-l border-neutral-100">
             <li v-for="item in items" :key="item.id">
-                <button
-                    type="button"
+                <a
+                    :href="`#${item.id}`"
                     class="-ml-px block w-full border-l-2 py-1.5 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
                     :class="[
                         activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
                         item.level >= 3 ? 'pl-8' : 'pl-4',
                     ]"
-                    @click="goTo(item.id)"
-                >{{ item.label }}</button>
+                    @click="onItemClick($event, item.id)"
+                >{{ item.label }}</a>
             </li>
         </ul>
     </nav>
@@ -177,18 +199,18 @@ onBeforeUnmount(() => {
                     </div>
                     <ul class="flex flex-col">
                         <li v-for="item in items" :key="item.id">
-                            <button
-                                type="button"
+                            <a
+                                :href="`#${item.id}`"
                                 class="flex w-full items-center gap-3 rounded-lg py-2.5 pr-3 text-left transition-colors"
                                 :class="[
                                     activeId === item.id ? 'bg-neutral-50' : 'hover:bg-neutral-25',
                                     item.level >= 3 ? 'pl-7' : 'pl-3',
                                 ]"
-                                @click="goTo(item.id)"
+                                @click="onItemClick($event, item.id)"
                             >
                                 <span v-if="item.number" class="text-label tnum text-neutral-400">{{ item.number }}</span>
                                 <span class="text-meta" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
-                            </button>
+                            </a>
                         </li>
                     </ul>
                 </div>

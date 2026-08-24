@@ -14,6 +14,7 @@ enum FieldType: string
     case Text = 'text';
     case Textarea = 'textarea';
     case RichText = 'rich-text';
+    case Prose = 'prose';
     case Slug = 'slug';
     case Url = 'url';
     case DateTime = 'datetime';
@@ -36,6 +37,7 @@ enum FieldType: string
             self::Text => 'Text',
             self::Textarea => 'Long text',
             self::RichText => 'Rich text',
+            self::Prose => 'Formatted text',
             self::Slug => 'Slug',
             self::Url => 'URL',
             self::DateTime => 'Date and time',
@@ -70,6 +72,16 @@ enum FieldType: string
     public function isBody(): bool
     {
         return $this === self::RichText;
+    }
+
+    /**
+     * Whether this field stores Portable Text, whatever it renders as. Prose is
+     * the same document shape with only marks allowed, so both save and
+     * validate identically.
+     */
+    public function isRichText(): bool
+    {
+        return $this === self::RichText || $this === self::Prose;
     }
 
     /**

@@ -4,18 +4,9 @@ import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
+import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
+import VideoEmbed from './VideoEmbed.vue';
 
-// Callout tint per variant (GitHub-alert set). Hues borrow the closest timeline
-// data-type tokens, the palette having no success/warning/danger scale of its
-// own. Chip text stays neutral-900/accent-700: the hue tokens are single values
-// with no dark shade to guarantee contrast.
-const CALLOUT_VARIANTS = {
-    note: { label: 'Note', panel: 'bg-neutral-25', chip: 'bg-neutral-900 text-neutral-0' },
-    tip: { label: 'Tip', panel: 'bg-activity/10', chip: 'bg-activity text-neutral-0' },
-    important: { label: 'Important', panel: 'bg-accent-50', chip: 'bg-accent-500 text-neutral-0' },
-    warning: { label: 'Warning', panel: 'bg-fuel/10', chip: 'bg-fuel text-neutral-900' },
-    caution: { label: 'Caution', panel: 'bg-media/10', chip: 'bg-media text-neutral-0' },
-};
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
 // collapsed to single hyphens, leading/trailing hyphens trimmed.
@@ -77,6 +68,13 @@ function isBareUrl(text, href) {
     return typeof text === 'string' && strip(text.trim()) === strip(href);
 }
 
+/** A destination on another site, as opposed to a path or a URL back to this one. */
+function isExternalHref(href) {
+    const host = hostOf(href);
+
+    return host !== null && host !== hostOf(window.location.href);
+}
+
 /**
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
@@ -103,15 +101,19 @@ function renderExternalLink(def, label, text, favicons) {
         // mark and some do not, which reads as broken rather than deliberate.
         : h(Icon, { icon: 'Globe02Icon', class: 'mb-0.5 mr-1 inline size-3.5 align-middle text-neutral-400' });
 
+    // The author's choice wins where they made one; otherwise an external
+    // destination opens away, which is the expected default.
+    const away = def.blank ?? true;
+
     return h('a', {
         href: def.href,
-        rel: 'noopener noreferrer',
-        target: '_blank',
+        rel: away ? 'noopener noreferrer' : null,
+        target: away ? '_blank' : null,
         'data-external': '',
     }, [
         mark,
         isBareUrl(text, def.href) && host ? host : label,
-        h('span', { class: 'sr-only' }, ', opens in a new tab'),
+        away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
     ]);
 }
 
@@ -121,10 +123,10 @@ function renderExternalLink(def, label, text, favicons) {
  * that leaves it. A link with no entry behind it (an archive page, an
  * unpublished target) stays an ordinary link.
  *
- * The glyph inherits the chip's own colour rather than taking the type accent:
- * the shape already says which type it is, and a second hue inside a chip that
- * is itself an accent object just muddies it (article's is a desaturated
- * grey-blue, which reads as a dead mark on the fill).
+ * The glyph takes the type's hue and nothing else does. Tinting the fill per
+ * type would put a dozen colours through a paragraph and move the text contrast
+ * with each one; an accent fill is worse still, since accent blue is itself a
+ * hue and fights whichever type colour lands on it.
  */
 function renderInternalLink(def, label, previews) {
     const preview = previews[def.href];
@@ -135,9 +137,13 @@ function renderInternalLink(def, label, previews) {
 
     return h('a', {
         href: def.href,
-        class: 'entry-chip box-decoration-clone rounded bg-accent-50 px-1 py-0.5 font-medium',
+        class: 'entry-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline',
     }, [
-        h(Icon, { icon: entryType(preview.type).icon, class: 'mb-0.5 mr-1 inline size-3.5 align-middle' }),
+        h(Icon, {
+            icon: entryType(preview.type).icon,
+            class: 'mb-0.5 mr-1 inline size-3.5 align-middle',
+            style: preview.accent ? { color: `var(--color-${preview.accent})` } : null,
+        }),
         label,
     ]);
 }
@@ -155,11 +161,18 @@ function renderSpan(span, markDefs, favicons, previews) {
             node = h('em', node);
         } else if (mark === 'code') {
             node = h('code', node);
+        } else if (mark === 'underline') {
+            node = h('u', node);
+        } else if (mark === 'strike-through') {
+            node = h('s', node);
         } else {
             const def = (markDefs ?? []).find((markDef) => markDef._key === mark);
 
             if (def?._type === 'link' && def.href) {
-                node = def.href.startsWith('http')
+                // By host, not by protocol: an absolute URL to this site is
+                // still an internal link, and treating it as external would
+                // open our own page in a new tab.
+                node = isExternalHref(def.href)
                     ? renderExternalLink(def, node, span.text, favicons)
                     : renderInternalLink(def, node, previews);
             }
@@ -323,7 +336,10 @@ function renderCallout(node, favicons, previews) {
     // The outer pt-3 reserves headroom for the label, which sits half above the
     // panel on an absolute -top.
     return h('div', { key: node._key, class: 'not-prose my-8 max-w-media pt-3' }, [
-        h('div', { class: `relative rounded-2xl px-6 pb-5 pt-7 ${variant.panel}` }, [
+        h('div', {
+            class: `callout-panel relative rounded-2xl px-6 pb-5 pt-7 ${variant.panel}`,
+            style: { '--callout-code': variant.code },
+        }, [
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),
@@ -337,22 +353,16 @@ function renderVideo(node) {
         return null;
     }
 
-    return h('figure', { key: node._key, class: 'max-w-media' }, [
-        h('video', {
-            src: node.url,
-            controls: true,
-            preload: 'metadata',
-            width: node.width || undefined,
-            height: node.height || undefined,
-            // block: replaced elements are inline by default, which leaves a
-            // stray gap below them in a grid/flex ancestor; block avoids that
-            // the same way the image's button wrapper does for <img>.
-            class: 'block max-h-media w-full rounded-lg border border-neutral-50',
-        }),
-        node.caption
-            ? h('figcaption', { class: 'mt-2 text-left text-meta text-neutral-500' }, node.caption)
-            : null,
-    ]);
+    // The component owns the placeholder-then-embed behaviour, so nothing
+    // off-site loads until the reader presses play.
+    return h(VideoEmbed, {
+        key: node._key,
+        url: node.url,
+        caption: node.caption || null,
+        poster: node.poster || null,
+        width: node.width || null,
+        height: node.height || null,
+    });
 }
 
 function renderNode(node, headingIds, onImageClick, favicons, previews) {

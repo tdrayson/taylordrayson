@@ -104,6 +104,16 @@ class ValidPortableText implements ValidationRule
             return 'video requires a valid url';
         }
 
+        if (array_key_exists('poster', $node) && $node['poster'] !== null) {
+            $poster = $node['poster'];
+            $validPoster = $this->nonEmptyString($poster)
+                && (filter_var($poster, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $poster) === 1);
+
+            if (! $validPoster) {
+                return 'video poster must be a valid url when present';
+            }
+        }
+
         foreach (['width', 'height'] as $dimension) {
             if (array_key_exists($dimension, $node) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
                 return "video {$dimension} must be a positive integer when present";

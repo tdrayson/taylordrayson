@@ -157,9 +157,13 @@
                 "_key": { "$ref": "#/$defs/key" },
                 "url": {
                     "type": "string",
-                    "description": "Absolute URL, or a root-relative path (e.g. /storage/...) for own-hosted media. Rendered as a native <video controls> element, not an embed/iframe."
+                    "description": "Absolute URL, or a root-relative path (e.g. /storage/...) for own-hosted media. A YouTube or Vimeo URL renders as that host's player, loaded only once the reader presses play; anything else renders as a native <video controls> element."
                 },
                 "caption": { "type": "string" },
+                "poster": {
+                    "type": "string",
+                    "description": "Absolute URL, or a root-relative path, for the still shown before playback. Omit for a YouTube video and its published thumbnail is used."
+                },
                 "width": {
                     "type": "integer",
                     "minimum": 1,

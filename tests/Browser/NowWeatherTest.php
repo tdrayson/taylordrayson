@@ -42,7 +42,9 @@ it('draws the same sky in the top bar as on the Now tile', function () {
 it('names the sky in words in the top bar tooltip, not as a slug', function () {
     $page = visit('/now')->resize(1280, 800);
 
+    // Both status bars render one, the sidebar's and the top bar's, and only
+    // one is on screen at a given width.
     // Read "mostly-sunny in Whyteleafe": the label was built from the raw slug.
-    $page->hover('.weather-status')
+    $page->hover('.weather-status:visible')
         ->assertScript("document.querySelector('[role=\"tooltip\"]').textContent.trim()", 'Mostly Sunny in Whyteleafe');
 });

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
+import { cn } from '../../lib/cn.js';
 import Input from '../Ui/Input.vue';
 import Switch from '../Ui/Switch.vue';
 import LocationMap from '../Maps/LocationMap.vue';
@@ -21,8 +22,6 @@ import ImageField from './ImageField.vue';
 const props = defineProps({
     field: { type: Object, required: true },
     modelValue: { type: [String, Number, Boolean, Array, Object], default: null },
-    // kind:id -> resolved mention, forwarded to the rich-text editor.
-    resolved: { type: Object, default: () => ({}) },
     // The body carries no label: the placeholder says what it is.
     hideLabel: { type: Boolean, default: false },
     // The value of the field this one is measured from, when it declares one.
@@ -87,10 +86,28 @@ function textToTags(value) {
             v-if="field.type === 'rich-text'"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             profile="document"
-            placeholder="Write something. Type @ to mention an entry."
-            :resolved="resolved"
+            placeholder="Write something. Type / for blocks, @ to mention an entry."
+            placeholder-short="Write something."
             @update:model-value="$emit('update:modelValue', $event)"
         />
+
+        <!-- Formatted text: the same bordered box a textarea gets, holding a
+             cut-down editor. A note wants bold, italic and a pasted link, not
+             headings and images, so it uses the prose profile. -->
+        <div
+            v-else-if="field.type === 'prose'"
+            :class="cn(CONTROL, borderClass, 'min-h-32 cursor-text px-4 py-3 text-neutral-900')"
+            @click="$refs.prose?.focus?.()"
+        >
+            <RichTextEditor
+                ref="prose"
+                profile="prose"
+                :model-value="Array.isArray(modelValue) ? modelValue : []"
+                :placeholder="`Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
+                placeholder-short="Write something."
+                @update:model-value="$emit('update:modelValue', $event)"
+            />
+        </div>
 
         <textarea
             v-else-if="field.type === 'textarea'"

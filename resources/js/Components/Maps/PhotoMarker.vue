@@ -35,11 +35,12 @@ defineEmits(['select']);
 <style scoped>
 /*
     Overlapping markers stack by DOM order, so the hovered or focused one is
-    raised clear of its neighbours. !important beats any inline z-index MapLibre
-    sets, and the value stays at 1 so it never covers the zoom control at 2.
+    raised clear of its neighbours. MapLibre gives every marker its own inline
+    z-index, so this has to clear those rather than sit at 1; the map's controls
+    are lifted above all of them in app.css.
 */
 button:hover,
 button:focus-within {
-    z-index: 1 !important;
+    z-index: 900 !important;
 }
 </style>

@@ -18,7 +18,6 @@ const props = defineProps({
     values: { type: Object, required: true },
     action: { type: String, required: true },
     method: { type: String, default: 'patch' },
-    resolved: { type: Object, default: () => ({}) },
     submitLabel: { type: String, default: 'Post' },
 });
 
@@ -162,6 +161,11 @@ function submit(published = null) {
          page on the site starts at the same left edge, and centring made the
          editor jump 112px right of the page you arrived from. -->
     <div class="w-full max-w-2xl">
+        <!-- The page still needs exactly one h1 for the outline, and the title
+             here is an input rather than a heading. Same fallback Entry.vue
+             uses for the types that show no headline. -->
+        <h1 class="sr-only">{{ (titleField ? form[titleField.name] : '') || 'Untitled' }}</h1>
+
         <!-- The heading: an input that reads as the title it will become, not a
              form field with a label above it. -->
         <input
@@ -179,7 +183,6 @@ function submit(published = null) {
             v-if="bodyField"
             :field="bodyField"
             :model-value="form[bodyField.name]"
-            :resolved="resolved"
             :error="form.errors[bodyField.name]"
             hide-label
             :class="titleField ? 'mt-4' : ''"
@@ -187,13 +190,18 @@ function submit(published = null) {
             @fill="applyFill"
         />
 
-        <div v-if="rows.length" class="mt-6 space-y-4">
+        <!-- Ruled off from the writing surface: what follows is metadata about
+             the entry rather than more of the entry. -->
+        <div
+            v-if="rows.length"
+            class="space-y-4"
+            :class="bodyField ? 'mt-12 border-t border-neutral-50 pt-8' : 'mt-6'"
+        >
             <template v-for="row in rows" :key="row.key">
                 <FieldInput
                     v-if="row.kind === 'field'"
                     :field="row.field"
                     :model-value="form[row.field.name]"
-                    :resolved="resolved"
                     :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
                     :latitude="form.latitude ?? null"
                     :longitude="form.longitude ?? null"

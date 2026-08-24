@@ -3,6 +3,7 @@
 use App\Models\Article;
 use App\Models\Fuel;
 use App\Support\PortableText;
+use Carbon\Carbon;
 
 // Exercises StoryToc.vue (via the fuel data story, which needs no media
 // fixtures to seed). ContentToc.vue and StoryToc.vue now share the same
@@ -10,8 +11,16 @@ use App\Support\PortableText;
 // inherit: focus trap, Escape-to-close, and scroll lock. The second case
 // below exercises ContentToc.vue itself, on an Article entry.
 it('opens the mobile contents sheet from the pill and closes it on escape', function () {
-    Fuel::factory()->create(['occurred_at' => '2024-01-01 09:00:00', 'odometer' => 10000, 'litres' => 40]);
-    Fuel::factory()->create(['occurred_at' => '2024-02-01 09:00:00', 'odometer' => 10300, 'litres' => 40]);
+    // Enough fills for the story to have something to say: below about eight it
+    // renders no chapters at all, and with no chapters there is no toc and no
+    // pill to open.
+    foreach (range(0, 11) as $month) {
+        Fuel::factory()->create([
+            'occurred_at' => Carbon::parse('2024-01-01 09:00:00')->addMonths($month),
+            'odometer' => 10000 + ($month * 400),
+            'litres' => 40,
+        ]);
+    }
 
     // Mobile width so the floating "Contents" pill renders (it's xl:hidden).
     $page = visit('/stories/fuel')->resize(390, 844);
@@ -21,7 +30,12 @@ it('opens the mobile contents sheet from the pill and closes it on escape', func
 
     // The pill only reveals once the reader scrolls past the hero. script()
     // returns the raw JS result (not the page), so it can't be chained.
-    $page->script('window.scrollTo(0, 2000)');
+    // Wait for the chapters to render before scrolling: script() does not retry,
+    // and scrolling a document still one viewport tall does nothing, so the pill
+    // never passes its reveal threshold. A story's toc is built from chapters,
+    // not headings, and they land well before the charts do.
+    $page->assertScript("document.querySelectorAll('[data-story-chapter]').length >= 2", true);
+    $page->script('window.scrollTo(0, document.body.scrollHeight)');
     $page->wait(0.3);
 
     // Open the sheet from the pill's "Contents" button.
@@ -59,7 +73,11 @@ it('opens the mobile contents sheet for an article from the pill and closes it o
     $page->assertScript("document.querySelector('[role=\"dialog\"]') === null", true);
 
     // The pill only reveals once the reader scrolls past 400px.
-    $page->script('window.scrollTo(0, 2000)');
+    // Wait for the headings to render before scrolling: script() does not retry,
+    // and scrolling a document still one viewport tall does nothing, so the pill
+    // never passes its reveal threshold.
+    $page->assertScript("document.querySelectorAll('h2, h3').length >= 2", true);
+    $page->script('window.scrollTo(0, document.body.scrollHeight)');
     $page->wait(0.3);
 
     // Open the sheet from the pill's "Contents" button.

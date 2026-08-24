@@ -140,7 +140,10 @@ it('raises a focused marker above its neighbours so an overlapped photo stays re
             markers[0].focus();
             const focused = parseInt(getComputedStyle(markers[0]).zIndex) || 0;
             const sibling = parseInt(getComputedStyle(markers[1]).zIndex) || 0;
-            return focused > sibling;
+            // The controls have to stay clear of the raised marker, which is the
+            // whole reason the raised value cannot simply be enormous.
+            const control = parseInt(getComputedStyle(document.querySelector('.maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-right')).zIndex) || 0;
+            return focused > sibling && control > focused;
         })()",
         true,
     );

@@ -18,7 +18,7 @@ final class NoteFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('content', 'Note', FieldType::Textarea, required: true),
+            FieldData::primary('content', 'Note', FieldType::Prose, required: true),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),

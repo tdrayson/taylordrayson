@@ -2,9 +2,24 @@
 
 use App\Models\Activity;
 
+/**
+ * A page with no stored preferences. The unit settings live in localStorage and
+ * survive between tests in this file, so a test that assumes the default has to
+ * clear whatever an earlier one chose.
+ */
+function freshVisit(string $url)
+{
+    // Clear on a first load, then navigate again so the app boots with nothing
+    // stored. A location.reload() is not waited on, so the assertions after it
+    // can run against the page on its way out.
+    visit($url)->script('localStorage.clear()');
+
+    return visit($url)->resize(1280, 800);
+}
+
 it('toggles distance and weight units from the settings modal', function () {
     // Desktop width so the sidebar gear is visible and its aria-labels resolve uniquely.
-    $page = visit('/')->resize(1280, 800);
+    $page = freshVisit('/');
 
     $page->click('[aria-label="Open settings"]')
         ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
@@ -27,7 +42,7 @@ it('toggles distance and weight units from the settings modal', function () {
 });
 
 it('keeps the unit toggles keyboard-reachable and operable inside the modal', function () {
-    $page = visit('/')->resize(1280, 800);
+    $page = freshVisit('/');
 
     $page->click('[aria-label="Open settings"]')
         ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
@@ -54,7 +69,7 @@ it('keeps Tab trapped after the last radio group, when its checked radio is not 
     // radio is "kg" (the FIRST radio in that group, not the DOM-last). The trap
     // must treat the checked radio as the group's tab stop, or Tab from it
     // escapes the modal. Repro: focus the checked weight radio, Tab, stay inside.
-    $page = visit('/')->resize(1280, 800);
+    $page = freshVisit('/');
 
     $page->click('[aria-label="Open settings"]')
         ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
@@ -79,7 +94,7 @@ it('updates rendered distance and weight live when units change', function () {
     ]);
 
     $url = '/'.$activity->occurred_at->format('Y/m/d').'/'.$activity->slug();
-    $page = visit($url)->resize(1280, 800);
+    $page = freshVisit($url);
 
     // Distance stat unit starts as mi (rendered in a StatGrid <abbr>).
     $page->assertScript(
@@ -106,9 +121,11 @@ it('updates rendered distance and weight live when units change', function () {
 });
 
 it('reformats timeline card subtitles live when distance unit changes', function () {
-    Activity::factory()->create([
+    // cardio(): the factory derives meta from its own random type, so a plain
+    // 'type' => 'run' override can still carry gym sets, and the card then
+    // summarises those instead of the distance this test is about.
+    Activity::factory()->cardio()->create([
         'name' => 'Card Run',
-        'type' => 'run',
         'distance' => 5000, // 3.1 mi / 5.0 km
         'duration' => 1800,
         'occurred_at' => '2026-03-15 07:30:00',
@@ -119,7 +136,7 @@ it('reformats timeline card subtitles live when distance unit changes', function
     // .timeline-feed) rather than the whole page: the day page's summary stat
     // block also renders a distance <abbr> (now reactive too), which would make
     // a body-wide 'mi'/'km' check ambiguous.
-    $page = visit('/2026/03/15')->resize(1280, 800);
+    $page = freshVisit('/2026/03/15');
 
     // Card subtitle starts in miles.
     $page->assertScript(
@@ -157,7 +174,7 @@ it('reformats year timeline aggregate stats live when distance unit changes', fu
         'occurred_at' => '2026-06-02 07:30:00',
     ]);
 
-    $page = visit('/2026')->resize(1280, 800);
+    $page = freshVisit('/2026');
 
     // Scope to the year page's own StatGrid (rendered with class "mt-8") so a
     // reactive <abbr> from the deferred timeline feed cards below it can't
@@ -193,7 +210,7 @@ it('hides a year aggregate distance stat that rounds to zero, in both units', fu
         'occurred_at' => '2026-06-01 07:30:00',
     ]);
 
-    $page = visit('/2026')->resize(1280, 800);
+    $page = freshVisit('/2026');
 
     // The stat is hidden entirely (StatGrid renders value+unit with no space,
     // so it never shows a "0 mi"); assert there is no distance <abbr> at all in
@@ -224,7 +241,7 @@ it('reformats stats-page metric cards live when distance unit changes', function
         'occurred_at' => '2026-03-15 07:30:00',
     ]);
 
-    $page = visit('/stats/activities')->resize(1280, 800);
+    $page = freshVisit('/stats/activities');
 
     $page->assertScript(
         "[...document.querySelectorAll('abbr')].some(a => a.textContent.trim() === 'mi')",

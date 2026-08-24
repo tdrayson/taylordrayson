@@ -5,10 +5,10 @@
  */
 
 /** ProseMirror mark -> Portable Text decorator. Link is handled separately. */
-const DECORATORS = { bold: 'strong', italic: 'em', code: 'code' };
+const DECORATORS = { bold: 'strong', italic: 'em', code: 'code', underline: 'underline', strike: 'strike-through' };
 
 /** Decorator order is normalised so the same document always serialises identically. */
-const DECORATOR_ORDER = ['strong', 'em', 'code'];
+const DECORATOR_ORDER = ['strong', 'em', 'underline', 'strike-through', 'code'];
 
 let keyCounter = 0;
 
@@ -66,7 +66,17 @@ function inlineToSpans(content) {
                 const key = mark.attrs?._key ?? newKey();
 
                 if (! markDefs.some((def) => def._key === key)) {
-                    markDefs.push({ _key: key, _type: 'link', href: mark.attrs?.href ?? '' });
+                    const def = { _key: key, _type: 'link', href: mark.attrs?.href ?? '' };
+
+                    // Written only once the author has actually chosen, so a
+                    // link left alone keeps deciding by its host.
+                    if (mark.attrs?.target === '_blank') {
+                        def.blank = true;
+                    } else if (mark.attrs?.target === '_self') {
+                        def.blank = false;
+                    }
+
+                    markDefs.push(def);
                 }
 
                 linkKeys.push(key);
@@ -84,12 +94,19 @@ function inlineToSpans(content) {
 }
 
 /**
- * A block carrying nothing at all is not worth storing: it is what an untouched
- * editor produces, and saving it would give every new entry a phantom empty
- * paragraph.
+ * A plain paragraph carrying nothing is not worth storing: it is what an
+ * untouched editor produces, and saving it would give every new entry a phantom
+ * empty paragraph.
+ *
+ * A styled or listed block is different. An empty quote or heading is one the
+ * author has just inserted and is about to type into, and dropping it here
+ * deletes it from under them on the very next round trip.
  */
-function isEmpty(block) {
-    return (block.children ?? []).length === 0;
+function isDiscardable(block) {
+    return block._type === 'block'
+        && (block.style ?? 'normal') === 'normal'
+        && block.listItem === undefined
+        && (block.children ?? []).length === 0;
 }
 
 /** Build a Portable Text block, omitting markDefs when the block has no links. */
@@ -135,6 +152,11 @@ function customToBlock(node) {
                 _type: node.type,
                 _key: key,
                 url: node.attrs?.url ?? null,
+                // Each type keeps only its own extras: an image has alt and a
+                // crop ratio, a video the still shown before it plays.
+                ...(node.type === 'image'
+                    ? { alt: node.attrs?.alt ?? null, ratio: node.attrs?.ratio ?? null }
+                    : { poster: node.attrs?.poster ?? null }),
                 caption: node.attrs?.caption ?? null,
                 width: node.attrs?.width ?? null,
                 height: node.attrs?.height ?? null,
@@ -198,5 +220,5 @@ export function fromProseMirror(doc) {
         }
     }
 
-    return out.filter((block) => block._type !== 'block' || ! isEmpty(block));
+    return out.filter((block) => ! isDiscardable(block));
 }

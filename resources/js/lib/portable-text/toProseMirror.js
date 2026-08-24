@@ -8,7 +8,7 @@
  */
 
 /** Decorator marks that map straight onto a ProseMirror mark of the same meaning. */
-const DECORATORS = { strong: 'bold', em: 'italic', code: 'code' };
+const DECORATORS = { strong: 'bold', em: 'italic', code: 'code', underline: 'underline', 'strike-through': 'strike' };
 
 /**
  * Convert one Portable Text span into a ProseMirror text node, turning its
@@ -27,7 +27,14 @@ function spanToText(span, markDefs) {
         const def = (markDefs ?? []).find((candidate) => candidate._key === mark);
 
         if (def?._type === 'link') {
-            marks.push({ type: 'link', attrs: { href: def.href, _key: def._key } });
+            marks.push({
+                type: 'link',
+                attrs: {
+                    href: def.href,
+                    _key: def._key,
+                    target: def.blank === undefined ? null : (def.blank ? '_blank' : '_self'),
+                },
+            });
         }
     }
 
@@ -41,15 +48,15 @@ function spanToText(span, markDefs) {
 }
 
 /**
- * The inline content of a block. A mention is a child alongside spans rather than
- * a mark, since it stores a reference rather than decorating text.
+ * The inline content of a block.
+ *
+ * Mentions are dropped rather than converted: picking an entry now inserts an
+ * ordinary link, and the schema no longer has a mention node to emit one as.
  */
 function inlineContent(block) {
     return (block.children ?? [])
-        .filter((child) => child._type === 'mention' || (child.text ?? '') !== '')
-        .map((child) => child._type === 'mention'
-            ? { type: 'mention', attrs: { _key: child._key, kind: child.kind ?? null, id: child.id ?? null } }
-            : spanToText(child, block.markDefs));
+        .filter((child) => child._type !== 'mention' && (child.text ?? '') !== '')
+        .map((child) => spanToText(child, block.markDefs));
 }
 
 /** A paragraph, heading or blockquote, i.e. any block that is not a list item. */
@@ -123,6 +130,8 @@ function customToNode(node) {
                 attrs: {
                     _key: node._key,
                     url: node.url ?? null,
+                    alt: node.alt ?? null,
+                    ratio: node.ratio ?? null,
                     caption: node.caption ?? null,
                     width: node.width ?? null,
                     height: node.height ?? null,
@@ -135,6 +144,7 @@ function customToNode(node) {
                     _key: node._key,
                     url: node.url ?? null,
                     caption: node.caption ?? null,
+                    poster: node.poster ?? null,
                     width: node.width ?? null,
                     height: node.height ?? null,
                 },
@@ -152,12 +162,17 @@ function customToNode(node) {
             };
         case 'divider':
             return { type: 'horizontalRule', attrs: { _key: node._key } };
-        case 'callout':
+        case 'callout': {
+            const content = toProseMirror(node.children ?? []).content;
+
             return {
                 type: 'callout',
                 attrs: { _key: node._key, variant: node.variant ?? 'note' },
-                content: toProseMirror(node.children ?? []).content,
+                // `block+`: an empty callout is rejected outright, and one is
+                // exactly what inserting a fresh callout produces.
+                content: content.length ? content : [{ type: 'paragraph' }],
             };
+        }
         default:
             return null;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\SyncBodyImages;
 use App\Actions\SyncEntryMedia;
 use App\Data\FieldData;
 use App\Fields\AuthorableTypes;
@@ -50,6 +51,7 @@ class AuthoringController extends Controller
         $model = app($definition['create'])($this->expand($attributes, $fields));
 
         app(SyncEntryMedia::class)($model, $fields, $attributes);
+        $this->attachBodyImages($model, $definition, $fields, $attributes);
 
         return $this->afterSave($model);
     }
@@ -65,8 +67,29 @@ class AuthoringController extends Controller
         app($definition['update'])($model, $this->expand($attributes, $fields));
 
         app(SyncEntryMedia::class)($model, $fields, $attributes);
+        $this->attachBodyImages($model, $definition, $fields, $attributes);
 
         return $this->afterSave($model->refresh());
+    }
+
+    /**
+     * Move any image dropped into the body out of its parked upload and onto the
+     * entry, then save the document again pointing at where it now lives.
+     *
+     * Only possible after the first save: an attachment needs something to hang
+     * off, and a new entry has nothing until it exists.
+     *
+     * @param  array<string, mixed>  $definition
+     * @param  list<FieldData>  $fields
+     * @param  array<string, mixed>  $attributes
+     */
+    private function attachBodyImages(Model $model, array $definition, array $fields, array $attributes): void
+    {
+        $rewritten = app(SyncBodyImages::class)($model, $fields, $attributes);
+
+        if ($rewritten !== $attributes) {
+            app($definition['update'])($model, $this->expand($rewritten, $fields));
+        }
     }
 
     /**

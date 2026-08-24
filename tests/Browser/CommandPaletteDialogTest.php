@@ -11,8 +11,9 @@ it('opens the command palette from the search trigger, searches, and closes on e
     // Palette closed initially: no rendered dialog element.
     $page->assertScript("document.querySelector('[role=\"dialog\"]') === null", true);
 
-    // Open it from the sidebar search trigger.
-    $page->click('Search')
+    // Open it from the sidebar search trigger. Its accessible name is the
+    // aria-label, not the visible "Search" text.
+    $page->click('[aria-label="Open search"]')
         ->assertScript("!!document.querySelector('[role=\"dialog\"]')", true);
 
     // useDialog focuses the first focusable element in the panel, which is the
