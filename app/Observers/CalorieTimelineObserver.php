@@ -4,11 +4,16 @@ namespace App\Observers;
 
 use App\Models\Calorie;
 use App\Models\TimelineEntry;
+use App\Queries\LoggingStreak;
 
 class CalorieTimelineObserver
 {
     public function saved(Calorie $calorie): void
     {
+        // The streak is cached until midnight, so the first log of a new day
+        // would otherwise not show up until tomorrow.
+        LoggingStreak::forget();
+
         $date = $calorie->occurred_at->toDateString();
 
         $firstCalorie = Calorie::whereDate('occurred_at', $date)
@@ -33,6 +38,8 @@ class CalorieTimelineObserver
 
     public function deleted(Calorie $calorie): void
     {
+        LoggingStreak::forget();
+
         $date = $calorie->occurred_at->toDateString();
 
         $remaining = Calorie::whereDate('occurred_at', $date)

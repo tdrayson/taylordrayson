@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Queries\LoggingStreak;
 use App\Queries\NowState;
 use App\Support\Preferences;
 use App\Support\StateStore;
@@ -59,6 +60,10 @@ class HandleInertiaRequests extends Middleware
             // on days no Shortcut fires. Shared for the same reason as above,
             // and null until the day's first sync.
             'todaySteps' => TodaySteps::get(),
+            // The food-logging streak, shown in the sidebar on every page.
+            // Lazy so the query is skipped on a partial reload that does not
+            // ask for it; cached until midnight either way.
+            'streakDays' => fn (): int => app(LoggingStreak::class)(),
         ];
     }
 }
