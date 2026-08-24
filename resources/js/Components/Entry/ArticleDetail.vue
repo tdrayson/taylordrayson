@@ -40,9 +40,14 @@ const headingCount = computed(() => contentNodes.value.filter(
             <Pill label="Draft" variant="accent" />
         </div>
 
+        <!-- Above the cover, matching a page: the standfirst introduces the
+             piece, so it belongs with the headline rather than under the image
+             it is introducing. -->
+        <p v-if="entry.excerpt" v-twemoji class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
+
         <!-- The wrapper, not the img, is the grid item: replaced elements don't
              stretch to their grid area, block boxes do. -->
-        <div v-if="entry.cover" class="mb-6 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
+        <div v-if="entry.cover" class="aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
             <!-- The stored original, not the card conversion: that one is capped
                  at 640px for a timeline thumbnail, and a hero renders it near
                  twice that. The original is already the optimised 1920px WebP. -->
@@ -56,8 +61,6 @@ const headingCount = computed(() => contentNodes.value.filter(
         <!-- Anchors the TableOfContents rail in the gutter. Wraps only the body so
              the rail's top-0 lines up with the first line of prose. -->
         <div class="relative max-w-media space-y-8">
-            <p v-if="entry.excerpt" v-twemoji class="max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
-
             <BlockContent :document="entry.content" />
 
             <!-- Mounted after BlockContent so its headings are already in the DOM
