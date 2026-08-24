@@ -37,7 +37,11 @@ final class OgRenderer
         $browsershot = Browsershot::html($view->render())
             ->windowSize(1200, 630)
             ->waitUntilNetworkIdle()
-            ->setScreenshotType('png');
+            ->setScreenshotType('png')
+            // Chrome's sandbox needs a new namespace, which php-fpm is not
+            // permitted to create, so it dies on launch. What we screenshot is
+            // our own Blade view rather than anything a visitor supplies.
+            ->noSandbox();
 
         if ($nodeBinary = config('browsershot.node_binary')) {
             $browsershot->setNodeBinary($nodeBinary);
