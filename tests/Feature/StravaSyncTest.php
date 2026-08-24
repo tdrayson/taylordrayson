@@ -121,3 +121,157 @@ it('appends synced activities to the csv in header order', function () {
 
     unlink($path);
 });
+
+/**
+ * A Strava summary for an activity we already hold, plus whatever the test
+ * wants to differ from the stored row.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function stravaSummary(array $overrides = []): array
+{
+    return [
+        'id' => 555,
+        'name' => 'Morning Run',
+        'sport_type' => 'Run',
+        'moving_time' => 1800,
+        'distance' => 5000.0,
+        'total_photo_count' => 0,
+        'start_date' => stravaRecent(),
+        'start_date_local' => stravaRecent(),
+        'timezone' => '(GMT+00:00) Europe/London',
+        ...$overrides,
+    ];
+}
+
+/** A start time inside the default refresh window. */
+function stravaRecent(): string
+{
+    return now()->subHours(3)->format('Y-m-d\TH:i:s\Z');
+}
+
+/** How many times the command asked for an activity's detail. */
+function stravaDetailRequests(): int
+{
+    $count = 0;
+
+    Http::assertSent(function ($request) use (&$count): bool {
+        if (preg_match('#/api/v3/activities/\d+$#', parse_url($request->url(), PHP_URL_PATH) ?? '')) {
+            $count++;
+        }
+
+        return true;
+    });
+
+    return $count;
+}
+
+it('picks up a title and description edited after the activity was published', function () {
+    Activity::factory()->create([
+        'source' => 'strava',
+        'source_id' => '555',
+        'name' => 'Morning Run',
+        'description' => null,
+        'type' => 'run',
+        'duration' => 1800,
+        'distance' => 5000,
+        'occurred_at' => now()->subHours(3),
+    ]);
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()
+            ->push([stravaSummary(['name' => 'Parkrun PB'])])
+            ->push([]),
+        '*/api/v3/activities/555' => Http::response(stravaSummary([
+            'name' => 'Parkrun PB',
+            'description' => 'Took two minutes off.',
+        ])),
+    ]);
+
+    $this->artisan('strava:sync --days=7')->assertSuccessful();
+
+    expect(Activity::where('source_id', '555')->first())
+        ->name->toBe('Parkrun PB')
+        ->description->toBe('Took two minutes off.');
+});
+
+it('spends no detail request on an activity whose summary still matches', function () {
+    Activity::factory()->create([
+        'source' => 'strava',
+        'source_id' => '555',
+        'name' => 'Morning Run',
+        'type' => 'run',
+        'duration' => 1800,
+        'distance' => 5000,
+        'occurred_at' => now()->subHours(3),
+    ]);
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()->push([stravaSummary()])->push([]),
+        '*/api/v3/activities/*' => Http::response([]),
+    ]);
+
+    $this->artisan('strava:sync --days=7')->assertSuccessful();
+
+    // The guarantee that keeps a five-minute cron inside Strava's rate limit.
+    expect(stravaDetailRequests())->toBe(0);
+});
+
+it('re-fetches an unchanged activity when --refresh is passed', function () {
+    Activity::factory()->create([
+        'source' => 'strava',
+        'source_id' => '555',
+        'name' => 'Morning Run',
+        'description' => null,
+        'type' => 'run',
+        'duration' => 1800,
+        'distance' => 5000,
+        'occurred_at' => now()->subHours(3),
+    ]);
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()->push([stravaSummary()])->push([]),
+        '*/api/v3/activities/555' => Http::response(stravaSummary([
+            'description' => 'Written the next morning.',
+        ])),
+    ]);
+
+    $this->artisan('strava:sync --days=7 --refresh')->assertSuccessful();
+
+    // A description edited on its own leaves the summary identical, so only
+    // --refresh can see it.
+    expect(Activity::where('source_id', '555')->first()->description)
+        ->toBe('Written the next morning.');
+});
+
+it('holds the refresh to --days even when the window stretched to heal a gap', function () {
+    // The newest activity is 30 days old, so resolveAfterTimestamp() stretches
+    // the fetch back that far. The refresh must not follow it, or a cron outage
+    // returns and re-fetches every detail in the gap at once.
+    Activity::factory()->create([
+        'source' => 'strava',
+        'source_id' => '555',
+        'name' => 'Morning Run',
+        'type' => 'run',
+        'duration' => 1800,
+        'distance' => 5000,
+        'occurred_at' => now()->subDays(30),
+    ]);
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()->push([stravaSummary([
+            'start_date' => now()->subDays(30)->format('Y-m-d\TH:i:s\Z'),
+            'start_date_local' => now()->subDays(30)->format('Y-m-d\TH:i:s\Z'),
+        ])])->push([]),
+        '*/api/v3/activities/*' => Http::response([]),
+    ]);
+
+    $this->artisan('strava:sync --days=2 --refresh')->assertSuccessful();
+
+    expect(stravaDetailRequests())->toBe(0);
+});
