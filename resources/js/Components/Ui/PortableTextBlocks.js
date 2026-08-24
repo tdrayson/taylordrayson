@@ -85,6 +85,35 @@ function isExternalHref(href) {
 }
 
 /**
+ * A link's children with its icon tied to the first word.
+ *
+ * An inline image is a line-break opportunity, so a link landing near the end
+ * of a line could leave its icon stranded alone on one row with every word of
+ * the link on the next. Only the icon and the first word are held together;
+ * everything after them still wraps, so a long link is never forced to overflow.
+ *
+ * @param {object} mark The icon vnode.
+ * @param {string|object} label The link text, or a vnode when a mark (bold,
+ *   code) already wrapped it, which cannot be split and so rides with the icon.
+ * @returns {Array} The anchor's children.
+ */
+function iconWithLabel(mark, label) {
+    const nowrap = (children) => h('span', { class: 'whitespace-nowrap' }, children);
+
+    if (typeof label !== 'string') {
+        return [nowrap([mark, label])];
+    }
+
+    const space = label.indexOf(' ');
+
+    if (space === -1) {
+        return [nowrap([mark, label])];
+    }
+
+    return [nowrap([mark, label.slice(0, space)]), label.slice(space)];
+}
+
+/**
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
  * into nonsense. A pasted URL is the one exception, collapsing to the domain
@@ -120,8 +149,7 @@ function renderExternalLink(def, label, text, favicons) {
         target: away ? '_blank' : null,
         'data-external': '',
     }, [
-        mark,
-        isBareUrl(text, def.href) && host ? host : label,
+        ...iconWithLabel(mark, isBareUrl(text, def.href) && host ? host : label),
         away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
     ]);
 }
@@ -152,14 +180,14 @@ function renderInternalLink(def, label, text, previews) {
     return h('a', {
         href: def.href,
         class: 'entry-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline',
-    }, [
+    }, iconWithLabel(
         h(Icon, {
             icon: entryType(preview.type).icon,
             class: 'mb-0.5 mr-1 inline size-3.5 align-middle',
             style: preview.accent ? { color: `var(--color-${preview.accent})` } : null,
         }),
         words,
-    ]);
+    ));
 }
 
 // Render one span, nesting its marks around the text node: decorators
