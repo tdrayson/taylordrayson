@@ -13,6 +13,8 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Integrity checks for the invariants nothing else enforces. The timeline spine
@@ -26,6 +28,9 @@ use Illuminate\Support\Facades\DB;
 #[Description('Check the timeline spine and attachments for broken links')]
 class CheckIntegrity extends Command
 {
+    /** Collections HasAttachments defines the `card` conversion for. */
+    private const CARD_COLLECTIONS = ['cover', 'photos', 'artwork'];
+
     public function handle(): int
     {
         $findings = [
@@ -34,6 +39,8 @@ class CheckIntegrity extends Command
             'Food days missing from the spine' => $this->missingFoodDays(),
             'Entry URLs claimed twice on a date' => $this->duplicateSlugs(),
             'Attachments whose owner is gone' => $this->danglingAttachments(),
+            'Attachment files missing from disk' => $this->missingOriginals(),
+            'Conversions that were never written' => $this->missingConversions(),
         ];
 
         foreach ($findings as $label => $rows) {
@@ -183,6 +190,100 @@ class CheckIntegrity extends Command
             ->havingRaw('COUNT(*) > 1')
             ->get()
             ->map(fn (object $row): string => "{$row->date}/{$row->url_slug} claimed {$row->total} times")
+            ->all();
+    }
+
+    /**
+     * Attachment rows whose stored file is gone.
+     *
+     * Every other check here reads the database against itself, which cannot
+     * see this: the row is intact and the page renders a URL that 404s. Only
+     * the disk knows.
+     *
+     * @return list<string>
+     */
+    private function missingOriginals(): array
+    {
+        $missing = $this->eachAttachment(
+            fn (Attachment $attachment): bool => ! $this->stored($attachment, $attachment->disk),
+        );
+
+        return $this->describe($missing, 'file');
+    }
+
+    /**
+     * Attachments whose `card` conversion was never written.
+     *
+     * `media-library:regenerate --only-missing` trusts the `generated_conversions`
+     * column, so a conversion the DB believes exists is never rebuilt and the
+     * thumbnail stays broken however many times the command is run. Checking
+     * the disk is the only way to catch it.
+     *
+     * @return list<string>
+     */
+    private function missingConversions(): array
+    {
+        $missing = $this->eachAttachment(function (Attachment $attachment): bool {
+            if (! in_array($attachment->collection_name, self::CARD_COLLECTIONS, true)) {
+                return false;
+            }
+
+            if (! str_starts_with((string) $attachment->mime_type, 'image/')) {
+                return false;
+            }
+
+            return ! $this->stored($attachment, $attachment->conversions_disk ?: $attachment->disk, 'card');
+        });
+
+        return $this->describe($missing, 'conversion');
+    }
+
+    /**
+     * Whether an attachment's file (or one of its conversions) is on its disk.
+     */
+    private function stored(Attachment $attachment, string $disk, string $conversion = ''): bool
+    {
+        return Storage::disk($disk)->exists($attachment->getPathRelativeToRoot($conversion));
+    }
+
+    /**
+     * Every attachment the filter keeps, read in chunks so the whole table is
+     * never held in memory at once.
+     *
+     * @param  callable(Attachment): bool  $isMissing
+     * @return Collection<int, Attachment>
+     */
+    private function eachAttachment(callable $isMissing): Collection
+    {
+        $found = collect();
+
+        Attachment::query()
+            ->orderBy('id')
+            ->chunk(500, function (Collection $chunk) use ($isMissing, $found): void {
+                $found->push(...$chunk->filter($isMissing));
+            });
+
+        return $found;
+    }
+
+    /**
+     * One line per owning type, with a few ids to start from.
+     *
+     * @param  Collection<int, Attachment>  $missing
+     * @return list<string>
+     */
+    private function describe(Collection $missing, string $noun): array
+    {
+        return $missing
+            ->groupBy('model_type')
+            ->map(fn (Collection $group, string $type): string => sprintf(
+                '%s: %d %s (attachment ids %s)',
+                class_basename($type),
+                $group->count(),
+                Str::plural($noun, $group->count()),
+                $group->take(10)->pluck('id')->implode(', '),
+            ))
+            ->values()
             ->all();
     }
 
