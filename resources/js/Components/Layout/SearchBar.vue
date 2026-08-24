@@ -1,11 +1,25 @@
 <script setup>
+import { ref, onMounted } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 
 const { open } = useCommandPalette();
 
 // Show the command glyph + K on Apple platforms, Ctrl K elsewhere.
-const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+//
+// Resolved after mount, not during setup: there is no `navigator` while the
+// page is server-rendered, so reading it here made the client's first render
+// disagree with the server's and fail hydration on every Mac. Starting false
+// matches what the server sent, and the glyph swaps in once hydration is done.
+const isApple = ref(false);
+
+onMounted(() => {
+    // userAgentData is the supported replacement for the deprecated
+    // navigator.platform, which is absent in Safari and Firefox.
+    const platform = navigator.userAgentData?.platform ?? navigator.platform ?? '';
+
+    isApple.value = /mac|iphone|ipad|ios/i.test(platform);
+});
 </script>
 
 <template>
