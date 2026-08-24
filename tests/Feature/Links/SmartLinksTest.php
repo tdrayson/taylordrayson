@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
+// Two tests here write into the real public/favicons directory. A file left
+// behind makes the observer skip the download a later test asserts on, so the
+// suite passed once and failed on every run after it.
+afterEach(fn () => File::delete(Links::faviconPath('example.com')));
+
 /** The spans of the first block, as [text, isLinked] pairs. */
 function spansOf(array $document): array
 {

@@ -128,12 +128,17 @@ function renderExternalLink(def, label, text, favicons) {
  * with each one; an accent fill is worse still, since accent blue is itself a
  * hue and fights whichever type colour lands on it.
  */
-function renderInternalLink(def, label, previews) {
+function renderInternalLink(def, label, text, previews) {
     const preview = previews[def.href];
 
     if (! preview) {
         return h('a', { href: def.href }, label);
     }
+
+    // A pasted address is not anchor text anyone chose, so the entry names
+    // itself rather than sitting in the sentence as a URL. Same exception the
+    // external branch makes, which collapses to the host instead.
+    const words = isBareUrl(text, def.href) && preview.title ? preview.title : label;
 
     return h('a', {
         href: def.href,
@@ -144,7 +149,7 @@ function renderInternalLink(def, label, previews) {
             class: 'mb-0.5 mr-1 inline size-3.5 align-middle',
             style: preview.accent ? { color: `var(--color-${preview.accent})` } : null,
         }),
-        label,
+        words,
     ]);
 }
 
@@ -174,7 +179,7 @@ function renderSpan(span, markDefs, favicons, previews) {
                 // open our own page in a new tab.
                 node = isExternalHref(def.href)
                     ? renderExternalLink(def, node, span.text, favicons)
-                    : renderInternalLink(def, node, previews);
+                    : renderInternalLink(def, node, span.text, previews);
             }
         }
     }
