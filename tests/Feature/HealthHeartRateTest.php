@@ -111,11 +111,10 @@ it('matches samples to a GMT activity where local time equals UTC', function () 
     expect($matched[$activity->id]['series'])->toHaveCount(3);
 });
 
-it('attaches heart-rate to the matching activity and mirrors only its CSV row', function () {
+it('attaches heart-rate only to the matching activity', function () {
     $dir = sys_get_temp_dir().'/health_hr_'.uniqid();
     mkdir($dir);
     $jsonPath = "{$dir}/payload.json";
-    $csvPath = "{$dir}/activities.csv";
 
     $matched = Activity::factory()->create([
         'occurred_at' => '2026-06-23 08:00:00', 'duration' => 600, 'meta' => [], 'heart_rate' => null,
@@ -130,31 +129,12 @@ it('attaches heart-rate to the matching activity and mirrors only its CSV row', 
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:02:00 +0000', 'avg' => 120, 'max' => 160],
     ])));
 
-    $header = 'occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta';
-    file_put_contents($csvPath, implode("\n", [
-        $header,
-        '"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,,,,strava,1,"[]"',
-        '"2026-06-20 08:00:00",run,"Other Run",600,90,2.5,,,,strava,2,"[]"',
-    ])."\n");
-
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath])->assertSuccessful();
 
     $matched->refresh();
     expect($matched->average_heart_rate)->toBe(110)
         ->and($matched->max_heart_rate)->toBe(160)
         ->and($matched->heart_rate)->toHaveCount(3);
-
-    $rows = collect(array_map('str_getcsv', file($csvPath, FILE_IGNORE_NEW_LINES)))
-        ->skip(1)
-        ->keyBy(fn (array $row): string => $row[0]);
-
-    // Matched row gets the columns; the unrelated row stays untouched.
-    expect($rows['2026-06-23 08:00:00'][6])->toBe('110')
-        ->and($rows['2026-06-23 08:00:00'][7])->toBe('160')
-        ->and($rows['2026-06-23 08:00:00'][8])->not->toBe('')      // series written
-        ->and($rows['2026-06-20 08:00:00'][6])->toBe('')           // unrelated row untouched
-        ->and($rows['2026-06-20 08:00:00'][8])->toBe('')
-        ->and($rows['2026-06-20 08:00:00'][11])->toBe('[]');
 
     array_map('unlink', glob("{$dir}/*"));
     rmdir($dir);
@@ -163,16 +143,12 @@ it('attaches heart-rate to the matching activity and mirrors only its CSV row', 
 it('merges batched payloads into one series and defends the prior peak', function () {
     $dir = sys_get_temp_dir().'/health_hr_batch_'.uniqid();
     mkdir($dir);
-    $csvPath = "{$dir}/activities.csv";
     $firstPath = "{$dir}/first.json";
     $secondPath = "{$dir}/second.json";
 
     $activity = Activity::factory()->create([
         'occurred_at' => '2026-06-23 08:00:00', 'duration' => 900, 'meta' => [], 'heart_rate' => null,
     ]);
-
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
-        .'"2026-06-23 08:00:00",run,"Morning Run",900,90,2.5,,,,strava,1,"[]"'."\n");
 
     file_put_contents($firstPath, json_encode(heartRatePayload([
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:00:00 +0000', 'avg' => 100, 'max' => 105],
@@ -185,8 +161,8 @@ it('merges batched payloads into one series and defends the prior peak', functio
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:07:00 +0000', 'avg' => 150, 'max' => 200],
     ])));
 
-    $this->artisan('health:heart_rate', ['--file' => $firstPath, '--csv' => $csvPath])->assertSuccessful();
-    $this->artisan('health:heart_rate', ['--file' => $secondPath, '--csv' => $csvPath])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $firstPath])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $secondPath])->assertSuccessful();
 
     // Both batches' samples merge into one series; the first batch already
     // filled the scalars, so they hold until an explicit recompute.
@@ -196,7 +172,7 @@ it('merges batched payloads into one series and defends the prior peak', functio
         ->and($activity->max_heart_rate)->toBe(130);      // peak of the first batch
 
     // --overwrite recomputes both from the full merged series.
-    $this->artisan('health:heart_rate', ['--file' => $secondPath, '--csv' => $csvPath, '--overwrite' => true])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $secondPath, '--overwrite' => true])->assertSuccessful();
     $activity->refresh();
     expect($activity->average_heart_rate)->toBe(125)      // mean of all six
         ->and($activity->max_heart_rate)->toBe(200);      // peak from the second batch
@@ -209,7 +185,6 @@ it('preserves a source-provided average but still attaches the series', function
     $dir = sys_get_temp_dir().'/health_hr_keep_'.uniqid();
     mkdir($dir);
     $jsonPath = "{$dir}/payload.json";
-    $csvPath = "{$dir}/activities.csv";
 
     // An activity that already carries Strava's average/max and no series.
     $activity = Activity::factory()->create([
@@ -217,15 +192,12 @@ it('preserves a source-provided average but still attaches the series', function
         'average_heart_rate' => 159, 'max_heart_rate' => 208, 'heart_rate' => null,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
-        .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,159,208,,strava,1,"[]"'."\n");
-
     file_put_contents($jsonPath, json_encode(heartRatePayload([
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:00:00 +0000', 'avg' => 100, 'max' => 105],
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:01:00 +0000', 'avg' => 110, 'max' => 250],
     ])));
 
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath])->assertSuccessful();
 
     $activity->refresh();
     // Strava's scalars are kept, even though the samples imply a different mean/peak.
@@ -234,7 +206,7 @@ it('preserves a source-provided average but still attaches the series', function
         ->and($activity->heart_rate)->toHaveCount(2);
 
     // --overwrite then recomputes both from the samples.
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath, '--overwrite' => true])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--overwrite' => true])->assertSuccessful();
     $activity->refresh();
     expect((int) $activity->average_heart_rate)->toBe(105) // (100 + 110) / 2
         ->and((int) $activity->max_heart_rate)->toBe(250);
@@ -247,7 +219,6 @@ it('fills a missing max from samples while preserving an existing average', func
     $dir = sys_get_temp_dir().'/health_hr_partial_'.uniqid();
     mkdir($dir);
     $jsonPath = "{$dir}/payload.json";
-    $csvPath = "{$dir}/activities.csv";
 
     // Strava supplied an average but never a max (a common gap on older rows).
     $activity = Activity::factory()->create([
@@ -255,15 +226,12 @@ it('fills a missing max from samples while preserving an existing average', func
         'average_heart_rate' => 130, 'max_heart_rate' => null, 'heart_rate' => null,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
-        .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,130,,,strava,1,"[]"'."\n");
-
     file_put_contents($jsonPath, json_encode(heartRatePayload([
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:00:00 +0000', 'avg' => 100, 'max' => 140],
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:01:00 +0000', 'avg' => 110, 'max' => 165],
     ])));
 
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath])->assertSuccessful();
 
     $activity->refresh();
     expect((int) $activity->average_heart_rate)->toBe(130) // Strava's average kept
@@ -278,7 +246,6 @@ it('keeps a Strava-streamed heart-rate series when altitude is present, unless -
     $dir = sys_get_temp_dir().'/health_hr_strava_'.uniqid();
     mkdir($dir);
     $jsonPath = "{$dir}/payload.json";
-    $csvPath = "{$dir}/activities.csv";
 
     // Already has a Strava-sourced altitude series, so it also has Strava heart_rate.
     $stravaHeartRate = [['time' => '2026-06-23 08:00:00', 'bpm' => 150]];
@@ -288,15 +255,12 @@ it('keeps a Strava-streamed heart-rate series when altitude is present, unless -
         'average_heart_rate' => 150, 'max_heart_rate' => 160, 'heart_rate' => $stravaHeartRate,
     ]);
 
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
-        .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,150,160,,strava,1,"[]"'."\n");
-
     file_put_contents($jsonPath, json_encode(heartRatePayload([
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:00:00 +0000', 'avg' => 100, 'max' => 105],
         ['source' => 'Apple Watch', 'at' => '2026-06-23 08:01:00 +0000', 'avg' => 110, 'max' => 115],
     ])));
 
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath])->assertSuccessful();
 
     $activity->refresh();
     // toEqual, not toBe: MySQL's binary JSON reorders object keys, so an
@@ -307,7 +271,7 @@ it('keeps a Strava-streamed heart-rate series when altitude is present, unless -
         ->and((int) $activity->max_heart_rate)->toBe(160);
 
     // --overwrite lets Apple Health take precedence after all.
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath, '--overwrite' => true])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--overwrite' => true])->assertSuccessful();
     $activity->refresh();
     expect($activity->heart_rate)->toHaveCount(2)
         ->and((int) $activity->average_heart_rate)->toBe(105)
@@ -322,14 +286,10 @@ it('caps the stored series with --max-points while keeping the average from ever
     $dir = sys_get_temp_dir().'/health_hr_cap_'.uniqid();
     mkdir($dir);
     $jsonPath = "{$dir}/payload.json";
-    $csvPath = "{$dir}/activities.csv";
 
     $activity = Activity::factory()->create([
         'occurred_at' => '2026-06-23 08:00:00', 'duration' => 600, 'meta' => [], 'heart_rate' => null,
     ]);
-
-    file_put_contents($csvPath, "occurred_at,type,name,duration,calories,distance,average_heart_rate,max_heart_rate,heart_rate,source,source_id,meta\n"
-        .'"2026-06-23 08:00:00",run,"Morning Run",600,90,2.5,,,,strava,1,"[]"'."\n");
 
     $samples = [];
     for ($second = 0; $second < 120; $second++) {
@@ -338,7 +298,7 @@ it('caps the stored series with --max-points while keeping the average from ever
 
     file_put_contents($jsonPath, json_encode(heartRatePayload($samples)));
 
-    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--csv' => $csvPath, '--max-points' => 10])->assertSuccessful();
+    $this->artisan('health:heart_rate', ['--file' => $jsonPath, '--max-points' => 10])->assertSuccessful();
 
     $activity->refresh();
     expect($activity->heart_rate)->toHaveCount(10)

@@ -2,6 +2,7 @@
 
 namespace App\Search;
 
+use App\Models\Series;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,9 @@ final class SuggestSearch
     private const LIMIT = 8;
 
     private const DESTINATION_LIMIT = 6;
+
+    /** A show's share of that limit, so shows never crowd out taxonomy jumps. */
+    private const SERIES_LIMIT = 3;
 
     private const PER_TYPE = 5;
 
@@ -79,8 +83,42 @@ final class SuggestSearch
 
         return [
             'results' => $results,
-            'destinations' => $this->matchDestinations($term),
+            'destinations' => array_slice(
+                [...$this->matchSeries($term), ...$this->matchDestinations($term)],
+                0,
+                self::DESTINATION_LIMIT,
+            ),
         ];
+    }
+
+    /**
+     * Watched shows whose title matches the term.
+     *
+     * A show is not a taxonomy value, so the registry sweep below cannot see
+     * it: episodes are rows whose own titles name the episode, leaving no way
+     * to reach a series page by typing the series name. Listed first, since a
+     * show is a more specific destination than a category.
+     *
+     * @param  string  $term  The free-text query.
+     * @return array<int, array{label: string, section: string, type: string, tag: bool, url: string}>
+     */
+    private function matchSeries(string $term): array
+    {
+        return Series::query()
+            ->whereHas('episodes')
+            ->where('title', 'like', '%'.$term.'%')
+            ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
+            ->orderByRaw('LENGTH(title)')
+            ->limit(self::SERIES_LIMIT)
+            ->get(['title', 'slug'])
+            ->map(fn (Series $series): array => [
+                'label' => $series->title,
+                'section' => 'TV',
+                'type' => 'media',
+                'tag' => false,
+                'url' => '/media/tv/'.$series->slug,
+            ])
+            ->all();
     }
 
     /**

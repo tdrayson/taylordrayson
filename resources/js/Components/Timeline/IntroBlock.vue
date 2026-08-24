@@ -1,14 +1,25 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import InlineBadge from '../Ui/InlineBadge.vue';
 import Avatar from '../Profile/Avatar.vue';
 
-defineProps({
-    streakDays: { type: [Number, String], default: '2,145' },
+const props = defineProps({
+    // Null means "use the shared count", which is the real one.
+    streakDays: { type: [Number, String], default: null },
     agencyUrl: { type: String, default: 'https://thecreativetinker.com' },
     pluginUrl: { type: String, default: 'https://wpextended.io' },
     podcastEpisodes: { type: Number, default: 0 },
+});
+
+const page = usePage();
+
+// The live food-logging streak, shared on every page by the middleware.
+const streak = computed(() => {
+    const days = props.streakDays ?? page.props.streakDays ?? 0;
+
+    return typeof days === 'number' ? days.toLocaleString() : days;
 });
 
 const badgeLinkClass =
@@ -33,7 +44,7 @@ const externalIconClass =
             </span>,
             a web developer in London. I log far more of my life than is strictly necessary. I've
             <Link href="/food" :class="textLinkClass">logged every calorie</Link>
-            for <span class="tnum">{{ streakDays }}</span> days straight, which is either
+            for <span class="tnum">{{ streak }}</span> days straight, which is either
             impressive or a cry for help depending on who's asking.
         </p>
         <p class="mt-6">

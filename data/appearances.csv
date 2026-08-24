@@ -1,8 +1,0 @@
-occurred_at,type,title,show_name,url,video_url,audio_url,description,duration
-"2020-10-26 11:39:15",interview,"Lead to Legacy","BNI London South East, Bromley & Croydon",,https://www.youtube.com/watch?v=vD9nJ_1M3xY,,,782
-"2023-03-04 04:25:54",podcast,"Client Editing Reimagined with Custom Blocks (Blockstudio)","Inside Link E03",https://jonathanjernigan.com/custom-blocks-blockstudio-inside-link-e03/,https://www.youtube.com/watch?v=HcgaWNolZPU,,,3924
-"2025-10-31 03:03:13",livestream,"Let's Talk With Dan & Taylor From WP Extended",WPTuts,,https://www.youtube.com/watch?v=4BOXB7cJx6w,,,3649
-"2026-01-22 13:45:00",podcast,"Does WordPress offer anything to a younger audience?","WP Builds WordPress Podcast",https://wpbuilds.com/2026/01/22/453-does-wordpress-offer-anything-to-a-younger-audience-with-taylor-drayson/,https://www.youtube.com/watch?v=Pg2Q7zpfG0Y,,,3180
-"2026-06-18 15:30:00",livestream,"WP Wireframe Explained: No Compile Step, No Problem","Talk Devy To Me by Ryan Welcher",,https://www.youtube.com/watch?v=W7rO_mZTuWM,,"Join me for this episode of Talk Devy To Me as we dive into WP Wireframe, a PHP framework for building JavaScript-powered WordPress admin interfaces with my guest Taylor Drayson.
-
-Here's the hook: there's no build process. You write all your configuration in PHP and WP Wireframe generates the JavaScript admin for you: no webpack, no compile step, no npm run build. We'll dig into how Taylor pulled that off, why skipping the build step matters for WordPress developers, and then put it through its paces building something live.",6329

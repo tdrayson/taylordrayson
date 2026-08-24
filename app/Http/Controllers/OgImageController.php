@@ -14,7 +14,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OgImageController extends Controller
 {
-    private const TAGLINE = 'A living archive of everything I make, watch, read, and get up to.';
+    /** The home card's standfirst when the request carries no description. */
+    public const TAGLINE = 'A living archive of everything I make, watch, read, and get up to.';
 
     public function __construct(
         private readonly BuildEntryOgData $entryOgData,
@@ -37,9 +38,16 @@ class OgImageController extends Controller
         $accent = $this->galleryUrls->accent($request->query('accent'));
         $layout = $request->query('variant') === 'home' ? 'home' : 'text';
 
+        // The page's own meta description, so the card and the tag beneath it in
+        // a share preview say the same thing. A card requested without one falls
+        // back to the tagline, since there is no page to read a description from.
+        $subtitle = $layout === 'home'
+            ? (Str::limit(trim((string) $request->query('description')), 200, '') ?: self::TAGLINE)
+            : null;
+
         $disk = Storage::disk('local');
         $directory = 'og/'.OgRenderer::generation();
-        $path = $directory.'/'.md5(implode('|', [$layout, $title, (string) $eyebrow, (string) $date, $accent])).'.png';
+        $path = $directory.'/'.md5(implode('|', [$layout, $title, (string) $eyebrow, (string) $date, $accent, (string) $subtitle])).'.png';
 
         if (! $disk->exists($path)) {
             $disk->makeDirectory($directory);
@@ -50,7 +58,7 @@ class OgImageController extends Controller
                 'eyebrow' => $eyebrow,
                 'title' => $title,
                 'date' => $date,
-                'subtitle' => $layout === 'home' ? self::TAGLINE : null,
+                'subtitle' => $subtitle,
                 'image' => null,
                 'cutout' => $this->galleryUrls->dataUri('taylor-cutout.png', 'image/png'),
             ];

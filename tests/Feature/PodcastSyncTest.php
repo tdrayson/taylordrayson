@@ -6,17 +6,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 /**
- * Each test points the CSV mirror at a scratch file, or the run truncates the real
- * data/podcasts.csv. The queue is faked because StorePodcastMedia would otherwise
- * run inline and consume the faked responses meant for the next page.
+ * The queue is faked because StorePodcastMedia would otherwise run inline and
+ * consume the faked responses meant for the next page.
  */
 beforeEach(function () {
-    $this->csv = sys_get_temp_dir().'/podcasts-test-'.getmypid().'.csv';
     Queue::fake();
-});
-
-afterEach(function () {
-    @unlink($this->csv);
 });
 
 /**
@@ -56,7 +50,7 @@ function fakePodcastPages(array $pages): void
 it('stores newly published episodes', function () {
     fakePodcastPages([[podcastEpisode(254), podcastEpisode(253)]]);
 
-    $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
+    $this->artisan('podcast:sync')->assertSuccessful();
 
     expect(Podcast::count())->toBe(2)
         ->and(Podcast::where('episode_number', 254)->first()->topic)->toBe('Topic 254');
@@ -73,7 +67,7 @@ it('stops paging once it reaches episodes it already has', function () {
         [podcastEpisode(249)],
     ]);
 
-    $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
+    $this->artisan('podcast:sync')->assertSuccessful();
 
     Http::assertSentCount(1);
     expect(Podcast::count())->toBe(5);
@@ -87,7 +81,7 @@ it('keeps going past a hole left by a half-finished run', function () {
 
     fakePodcastPages([[podcastEpisode(254), podcastEpisode(253), podcastEpisode(252)]]);
 
-    $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
+    $this->artisan('podcast:sync')->assertSuccessful();
 
     expect(Podcast::where('episode_number', 252)->exists())->toBeTrue();
 });
@@ -101,7 +95,7 @@ it('queues a mirror for new episodes only', function () {
 
     fakePodcastPages([[podcastEpisode(255), podcastEpisode(254)]]);
 
-    $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
+    $this->artisan('podcast:sync')->assertSuccessful();
 
     Queue::assertPushed(StorePodcastMedia::class, 1);
 });
@@ -111,7 +105,7 @@ it('re-maps the newest episodes so notes added after publication are picked up',
 
     fakePodcastPages([[podcastEpisode(254)]]);
 
-    $this->artisan("podcast:sync --csv={$this->csv}")->assertSuccessful();
+    $this->artisan('podcast:sync')->assertSuccessful();
 
     expect(Podcast::where('episode_number', 254)->first()->topic)->toBe('Topic 254');
 });
@@ -126,7 +120,7 @@ it('walks the whole feed with --full', function () {
         [podcastEpisode(249)],
     ]);
 
-    $this->artisan("podcast:sync --full --csv={$this->csv}")->assertSuccessful();
+    $this->artisan('podcast:sync --full')->assertSuccessful();
 
     Http::assertSentCount(2);
     expect(Podcast::where('episode_number', 249)->exists())->toBeTrue();
@@ -135,5 +129,5 @@ it('walks the whole feed with --full', function () {
 it('fails when the api returns nothing', function () {
     fakePodcastPages([[]]);
 
-    $this->artisan("podcast:sync --csv={$this->csv}")->assertFailed();
+    $this->artisan('podcast:sync')->assertFailed();
 });

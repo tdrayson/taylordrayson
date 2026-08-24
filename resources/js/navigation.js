@@ -9,11 +9,13 @@ import { entryTypes } from './entryTypes.js';
 export const pageCommands = [
     { label: 'Timeline', href: '/', icon: 'Home01Icon', keywords: 'home feed entries' },
     { label: 'Now', href: '/now', icon: 'Clock01Icon', keywords: 'current status live' },
-    { label: 'Calendar', href: '/calendar', icon: 'Calendar03Icon', keywords: 'month year days' },
-    { label: 'Stats', href: '/stats', icon: 'ChartColumnIcon', keywords: 'statistics charts numbers' },
-    { label: 'Map', href: '/map', icon: 'MapsLocation01Icon', keywords: 'places location flights' },
+    { label: 'Photos', href: '/photos', icon: 'Image01Icon', keywords: 'gallery pictures' },
+    { label: 'Data stories', href: '/stories', icon: 'BookOpen01Icon', keywords: 'long reads writing analysis' },
+    // The flight globe, which is the only map page that exists; the keywords
+    // carry the searches that used to land on a bare /map.
+    { label: 'Flight map', href: '/flights/map', icon: 'MapsLocation01Icon', keywords: 'map places location flights globe' },
+    { label: 'More', href: '/more', icon: 'Menu01Icon', keywords: 'directory everything types index' },
     { label: 'About', href: '/about', icon: 'UserIcon', keywords: 'bio profile me' },
-    { label: "What I'm working on", href: '/working-on', icon: 'RocketIcon', keywords: 'projects building next' },
     { label: 'Advanced search', href: '/search', icon: 'Search01Icon', keywords: 'query builder filter advanced' },
 ];
 
