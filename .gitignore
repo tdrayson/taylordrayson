@@ -43,3 +43,6 @@ storage/backups/
 /.playwright-mcp/
 
 /docs/superpowers/
+
+# Scratch screenshots dropped at the repo root, never part of the app.
+/*.png
