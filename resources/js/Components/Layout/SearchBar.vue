@@ -1,11 +1,25 @@
 <script setup>
+import { ref, onMounted } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 
 const { open } = useCommandPalette();
 
 // Show the command glyph + K on Apple platforms, Ctrl K elsewhere.
-const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+//
+// Resolved after mount, not during setup: there is no `navigator` while the
+// page is server-rendered, so reading it here made the client's first render
+// disagree with the server's and fail hydration on every Mac. Starting false
+// matches what the server sent, and the glyph swaps in once hydration is done.
+const isApple = ref(false);
+
+onMounted(() => {
+    // userAgentData is the supported replacement for the deprecated
+    // navigator.platform, which is absent in Safari and Firefox.
+    const platform = navigator.userAgentData?.platform ?? navigator.platform ?? '';
+
+    isApple.value = /mac|iphone|ipad|ios/i.test(platform);
+});
 </script>
 
 <template>
@@ -16,12 +30,10 @@ const isApple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navig
         @click="open"
     >
         <Icon name="Search01Icon" class="size-5 flex-none text-neutral-500" />
-        <span class="flex items-center gap-2">
-            Search
-            <kbd class="hidden items-center gap-0.5 text-meta font-normal text-neutral-500 md:inline-flex">
-                <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
-                <template v-else>Ctrl K</template>
-            </kbd>
-        </span>
+        Search
+        <kbd class="ml-auto hidden items-center gap-0.5 text-meta font-normal text-neutral-500 md:inline-flex">
+            <template v-if="isApple"><Icon name="CommandIcon" class="size-3.5" />K</template>
+            <template v-else>Ctrl K</template>
+        </kbd>
     </button>
 </template>
