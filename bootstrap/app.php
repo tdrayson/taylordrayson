@@ -31,6 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // unencrypted and would otherwise be discarded as tampered with.
         $middleware->encryptCookies(except: Preferences::cookieNames());
 
+        // Laravel trims every string in a request, walking nested arrays as it
+        // goes. A Portable Text body is nested arrays of authored prose, so it
+        // was having the space either side of every link, and the indentation
+        // of every code block, quietly removed on save.
+        $middleware->trimStrings(except: ['content.*']);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

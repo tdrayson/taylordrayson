@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+import { getSchema } from '@tiptap/core';
+import { extensionsFor } from '../../resources/js/lib/editor/profiles.js';
+
+/**
+ * `inclusive` is a mark-spec property, and Tiptap's Link derives it from
+ * options.autolink. Passing it to configure() therefore does nothing, which is
+ * a silent no-op rather than an error, so this asserts the resolved schema
+ * rather than the configuration that produced it.
+ */
+describe('the editor link mark', () => {
+    for (const profile of ['inline', 'document']) {
+        it(`is not inclusive in the ${profile} profile`, () => {
+            const schema = getSchema(extensionsFor(profile));
+
+            assert.equal(
+                schema.marks.link.spec.inclusive,
+                false,
+                'a caret after a link must sit outside it, or a space typed there is swallowed into the link',
+            );
+        });
+    }
+});
