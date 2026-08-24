@@ -14,7 +14,6 @@ it('imports checkins from the foursquare api', function () {
                 'id' => 'abc',
                 'createdAt' => 1700000000,
                 'shout' => 'Great coffee',
-                'isMayor' => true,
                 'venue' => [
                     'name' => 'Coffee Bar',
                     'categories' => [['name' => 'Café']],
@@ -31,7 +30,6 @@ it('imports checkins from the foursquare api', function () {
     expect($checkin->venue_name)->toBe('Coffee Bar');
     expect($checkin->category)->toBe('Café');
     expect($checkin->city)->toBe('London');
-    expect($checkin->is_mayor)->toBeTrue();
 });
 
 it('skips checkins that already exist', function () {

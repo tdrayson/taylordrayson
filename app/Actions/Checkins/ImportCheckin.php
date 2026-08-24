@@ -38,7 +38,6 @@ class ImportCheckin
                 'longitude' => $location['lng'] ?? null,
                 'description' => $item['shout'] ?? null,
                 'event_name' => $item['event']['name'] ?? null,
-                'is_mayor' => $item['isMayor'] ?? false,
             ],
         );
 

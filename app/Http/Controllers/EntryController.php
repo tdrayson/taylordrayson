@@ -29,10 +29,12 @@ use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
+use App\Timeline\TypeRegistry;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -226,6 +228,12 @@ class EntryController extends Controller
 
         if ($model instanceof Media) {
             $data = [...$data, ...(new MediaArtwork)($model)];
+        }
+
+        // The venue's category is already a taxonomy with its own archive, so
+        // the detail page links to it rather than printing it as dead text.
+        if ($model instanceof Checkin && $model->category !== null) {
+            $data['categoryHref'] = '/'.TypeRegistry::find('checkin')['taxonomy']['base'].'/'.Str::slug($model->category);
         }
 
         if ($model instanceof Event) {

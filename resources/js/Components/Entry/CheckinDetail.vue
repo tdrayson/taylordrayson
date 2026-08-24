@@ -34,8 +34,8 @@ const lightboxIndex = ref(null);
             {{ entry.description }}
         </p>
 
-        <div v-if="entry.is_mayor">
-            <Pill label="Mayor" variant="accent" />
+        <div v-if="entry.category">
+            <Pill :label="entry.category" :href="entry.categoryHref" variant="outline" />
         </div>
 
         <div v-if="location" class="space-y-3">

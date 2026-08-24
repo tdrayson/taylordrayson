@@ -4,6 +4,7 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Calorie;
+use App\Models\Checkin;
 use App\Models\Concerns\Timelineable;
 use App\Models\Media;
 use App\Models\Note;
@@ -136,5 +137,21 @@ it('renders a media entry via Inertia', function () {
             ->where('type', 'media')
             ->where('title', 'Episode 1')
             ->where('entry.meta.show_title', 'Jet Lag: The Game')
+        );
+});
+
+it('links a check-in category to its archive', function () {
+    $checkin = Checkin::factory()->create([
+        'venue_name' => 'Cineworld',
+        'category' => 'Movie Theater',
+        'occurred_at' => '2026-08-24 19:00:00',
+    ]);
+
+    get('/'.entryUrl($checkin))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('entry.category', 'Movie Theater')
+            ->where('entry.categoryHref', '/places/movie-theater')
+            ->missing('entry.is_mayor')
         );
 });
