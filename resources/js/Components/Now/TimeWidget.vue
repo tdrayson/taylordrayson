@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { clockParts, offsetMinutes } from '../../lib/time.js';
 
 const props = defineProps({
     location: { type: String, default: 'Europe/London' },
@@ -15,21 +16,16 @@ let timer = null;
 const pad = (n) => String(n).padStart(2, '0');
 
 function computeGmt() {
-    const now = new Date();
-    const local = new Date(now.toLocaleString('en-US', { timeZone: props.timezone }));
-    const utc = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const off = (local - utc) / 3600000;
-    const sign = off < 0 ? '-' : '+';
-    const a = Math.abs(off);
-    const whole = Math.floor(a);
-    const half = Math.round((a - whole) * 60);
-    gmtStr.value = `GMT${sign}${whole}${half ? `.${half}` : ''}`;
+    const minutes = offsetMinutes(props.timezone);
+    const sign = minutes < 0 ? '-' : '+';
+    const whole = Math.floor(Math.abs(minutes) / 60);
+    const rest = Math.abs(minutes) % 60;
+
+    gmtStr.value = `GMT${sign}${whole}${rest ? `.${rest}` : ''}`;
 }
 
 function tick() {
-    const local = new Date(new Date().toLocaleString('en-US', { timeZone: props.timezone }));
-    const h = local.getHours();
-    const m = local.getMinutes();
+    const { hour: h, minute: m } = clockParts(props.timezone);
     let h12 = h % 12;
     if (h12 === 0) {
         h12 = 12;

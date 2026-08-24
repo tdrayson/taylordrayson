@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useClock } from '../../composables/useClock';
+import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import { weatherFor } from '../../lib/weather.js';
 import Tooltip from '../Ui/Tooltip.vue';
 import ActivityRings from '../Stats/ActivityRings.vue';
@@ -25,7 +26,6 @@ const props = defineProps({
     compact: { type: Boolean, default: false },
 });
 
-const { time, date } = useClock();
 const page = usePage();
 
 // Ambient readings shared from the server; each falls back to the prop (and so
@@ -45,6 +45,10 @@ const temp = computed(() => (weather.value.temp === undefined ? props.temp : `${
 const condition = computed(() => weather.value.condition ?? props.condition);
 const place = computed(() => location.value.city ?? props.location);
 const zone = computed(() => location.value.tzAbbr ?? props.timezone);
+
+// My time, not the reader's: the bar labels itself with my zone, so it has to
+// be read in that zone or the label contradicts the clock beside it.
+const { time, date } = useClock(() => location.value.timezone ?? DEFAULT_TIMEZONE);
 const move = computed(() => ringPercent(rings.value.move, rings.value.moveGoal, props.move));
 const exercise = computed(() => ringPercent(rings.value.exercise, rings.value.exerciseGoal, props.exercise));
 const stand = computed(() => ringPercent(rings.value.stand, rings.value.standGoal, props.stand));
