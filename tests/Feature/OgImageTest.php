@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\OgImageController;
+use App\Models\Activity;
 use App\Support\OgRenderer;
 use Illuminate\Support\Facades\Storage;
 
@@ -107,4 +108,32 @@ it('keys the home card on the description it was given', function () {
     $this->get('/og.png?variant=home&title=Taylor+Drayson&description=Everything+I+log%2C+newest+first.')
         ->assertOk()
         ->assertHeader('content-type', 'image/png');
+});
+
+it('ignores the cache-busting param when keying a card', function () {
+    seedCard('Hello world');
+
+    // The param exists to move the URL, not the card: folding it into the key
+    // would re-render every card on every bust for identical bytes.
+    $this->get('/og.png?title=Hello world&v=whatever')
+        ->assertOk()
+        ->assertHeader('content-type', 'image/png');
+});
+
+it('stamps an entry card url with the design and the entry it describes', function () {
+    $activity = Activity::factory()->create(['name' => 'Walk', 'type' => 'walk', 'occurred_at' => '2026-03-15 07:30:00']);
+    $url = fn (): string => $this->get('/2026/03/15/'.$activity->slug())
+        ->assertOk()
+        ->viewData('page')['props']['og']['image'];
+
+    $before = $url();
+
+    expect($before)->toContain('v='.OgRenderer::generation());
+
+    $this->travel(1)->hour();
+    $activity->touch();
+
+    // The URL is what a share preview refetches by, so an edited entry has to
+    // stop pointing at the card built from what it used to say.
+    expect($url())->not->toBe($before);
 });

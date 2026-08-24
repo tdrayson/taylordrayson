@@ -5,6 +5,7 @@ namespace App\Actions\Og;
 use App\Data\SegmentData;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
+use App\Support\OgRenderer;
 use App\Support\StaticMap;
 use App\Support\TypeColors;
 use App\Timeline\TypeRegistry;
@@ -143,6 +144,10 @@ final class OgGalleryUrls
     /**
      * Build the /og.png URL that renders a given OgMeta payload's card.
      *
+     * Carries the same design token the real pages emit, so opening a gallery
+     * URL after a redesign is not answered from the browser's copy of the card
+     * it replaced.
+     *
      * @param  array<string, mixed>  $og
      */
     private function ogUrl(array $og): string
@@ -152,6 +157,7 @@ final class OgGalleryUrls
             'eyebrow' => $og['eyebrow'] ?? null,
             'title' => $og['heading'] ?? $og['title'] ?? null,
             'accent' => $og['accent'] ?? null,
+            'v' => OgRenderer::generation(),
         ]));
     }
 
@@ -190,13 +196,13 @@ final class OgGalleryUrls
                 continue;
             }
 
-            $id = TimelineEntry::query()
+            $entry = TimelineEntry::query()
                 ->where('timelineable_type', $model)
                 ->latest('occurred_at')
-                ->value('id');
+                ->first();
 
-            if ($id !== null) {
-                $cards[] = ['label' => "Entry: {$label}", 'url' => route('og.entry', $id)];
+            if ($entry !== null) {
+                $cards[] = ['label' => "Entry: {$label}", 'url' => OgMeta::entryCardUrl($entry)];
             }
         }
 

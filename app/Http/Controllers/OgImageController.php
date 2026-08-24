@@ -85,7 +85,7 @@ class OgImageController extends Controller
 
         $disk = Storage::disk('local');
         $directory = 'og/'.OgRenderer::generation().'/entry';
-        $path = $directory.'/'.md5($entry->id.'|'.$this->entryOgData->entryTimestamp($entry)).'.png';
+        $path = $directory.'/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png';
 
         if (! $disk->exists($path)) {
             $disk->makeDirectory($directory);

@@ -46,6 +46,11 @@ const origin = computed(() => {
     return typeof window === 'undefined' ? '' : window.location.origin;
 });
 
+// The card design token, appended to every generated card URL so a template
+// change moves the URL. Cards are served immutable, so the URL moving is the
+// only thing that makes a scraper fetch the new design.
+const ogVersion = computed(() => page.props.ogVersion);
+
 const canonical = computed(() => `${origin.value}${page.url}`);
 const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME}` : SITE_NAME));
 
@@ -73,6 +78,10 @@ const imageUrl = computed(() => {
         // description is what belongs there: a second hardcoded line on the
         // renderer could drift from the one the page publishes.
         params.set('description', meta.value.description);
+    }
+
+    if (ogVersion.value) {
+        params.set('v', ogVersion.value);
     }
 
     return `${origin.value}/og.png?${params.toString()}`;
