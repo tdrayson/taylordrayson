@@ -1,0 +1,76 @@
+<?php
+
+use App\Listeners\AlertOnFailedJob;
+use App\Support\FailureAlert;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Scheduling\Event as ScheduledEvent;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Queue\Job;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+
+beforeEach(function () {
+    config(['services.pushover.token' => 'app-token', 'services.pushover.user' => 'user-key']);
+    Cache::flush();
+    Http::fake();
+});
+
+/** Built through the real scheduler, so the command string is the one it writes. */
+function scheduledTask(string $command): ScheduledEvent
+{
+    return app(Schedule::class)->command($command);
+}
+
+it('pushes an alert when a scheduled command fails', function () {
+    event(new ScheduledTaskFailed(scheduledTask('podcast:sync'), new RuntimeException('exit code 1')));
+
+    Http::assertSent(function ($request) {
+        return $request->url() === 'https://api.pushover.net/1/messages.json'
+            && $request['title'] === 'Scheduled command failed'
+            && str_contains($request['message'], 'podcast:sync')
+            && str_contains($request['message'], 'exit code 1');
+    });
+});
+
+it('pushes an alert when a queued job fails', function () {
+    $job = Mockery::mock(Job::class);
+    $job->shouldReceive('resolveName')->andReturn('App\\Jobs\\ResolveLinkFavicons');
+
+    (new AlertOnFailedJob(app(FailureAlert::class)))
+        ->handle(new JobFailed('database', $job, new RuntimeException('timed out')));
+
+    Http::assertSent(fn ($request) => $request['title'] === 'Queued job failed'
+        && str_contains($request['message'], 'ResolveLinkFavicons'));
+});
+
+// The whole point of the throttle: trakt:sync runs every minute, so an
+// unthrottled alert would be 1,440 notifications a day and muted within one.
+it('sends once per failing thing per hour, however often it fails', function () {
+    foreach (range(1, 20) as $ignored) {
+        event(new ScheduledTaskFailed(scheduledTask('trakt:sync'), new RuntimeException('down')));
+    }
+
+    Http::assertSentCount(1);
+});
+
+it('still alerts on a different command inside the same window', function () {
+    event(new ScheduledTaskFailed(scheduledTask('trakt:sync'), new RuntimeException('down')));
+    event(new ScheduledTaskFailed(scheduledTask('strava:sync'), new RuntimeException('down')));
+
+    Http::assertSentCount(2);
+});
+
+it('does nothing when no credentials are configured', function () {
+    config(['services.pushover.token' => null, 'services.pushover.user' => null]);
+
+    event(new ScheduledTaskFailed(scheduledTask('podcast:sync'), new RuntimeException('down')));
+
+    Http::assertNothingSent();
+});
+
+it('registers both listeners', function () {
+    expect(Event::hasListeners(ScheduledTaskFailed::class))->toBeTrue()
+        ->and(Event::hasListeners(JobFailed::class))->toBeTrue();
+});

@@ -48,6 +48,11 @@ return [
         'token' => env('LOGODEV_TOKEN'),
     ],
 
+    'pushover' => [
+        'token' => env('PUSHOVER_TOKEN'),
+        'user' => env('PUSHOVER_USER'),
+    ],
+
     'strava' => [
         'client_id' => env('STRAVA_CLIENT_ID'),
         'client_secret' => env('STRAVA_CLIENT_SECRET'),
