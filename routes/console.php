@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Schedule;
 // often. `withoutOverlapping()` throughout, so a slow run never stacks.
 // Push-based capture (Health Auto Export, Setgraph) is set on the phone instead.
 
-// Watch history is what should appear quickest, and a run with nothing new is
-// a single empty page per type. Ratings are excluded here because they page
-// the whole ratings library on every call; they get their own daily pass.
-Schedule::command('trakt:sync --days=1 --skip-ratings')->everyMinute()->withoutOverlapping();
+// Watch history is the most time-sensitive capture here, but it arrives in
+// evening bursts: every minute spent 2,880 requests a day to shave minutes off
+// an entry appearing. Ratings page the whole library, so they stay daily.
+Schedule::command('trakt:sync --days=1 --skip-ratings')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('trakt:sync --ratings-only')->dailyAt('04:10')->withoutOverlapping();
 
 // Strava fetches the polyline and photos inline, so an activity is complete
