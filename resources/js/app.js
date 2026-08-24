@@ -5,6 +5,7 @@ import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { applyTheme } from './useTheme';
+import { seedPreferences } from './useSettings';
 import { twemojiDirective } from './directives/twemoji';
 
 createInertiaApp({
@@ -17,7 +18,12 @@ createInertiaApp({
         import.meta.glob('./Pages/**/*.vue'),
     ),
     setup({ el, App, props, plugin }) {
-        applyTheme();
+        // Before anything renders: the stores must hold what the server used,
+        // or the first paint corrects itself in front of the reader.
+        const preferences = props.initialPage.props.preferences;
+
+        seedPreferences(preferences);
+        applyTheme(preferences);
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .directive('twemoji', twemojiDirective)
