@@ -14,8 +14,15 @@ Schedule::command('trakt:sync --days=1 --skip-ratings')->everyMinute()->withoutO
 Schedule::command('trakt:sync --ratings-only')->dailyAt('04:10')->withoutOverlapping();
 
 // Strava fetches the polyline and photos inline, so an activity is complete
-// on arrival apart from its charts (see the enrichment block below).
+// on arrival apart from its charts (see the enrichment block below). It also
+// compares each summary against the row it already has, so a title rewritten
+// or photos added after Strava auto-published arrive on the next run.
 Schedule::command('strava:sync --days=2')->everyFiveMinutes()->withoutOverlapping();
+
+// A description written on its own leaves the summary identical, so nothing
+// above can see it. This asks Strava outright, which costs one request per
+// activity in the last two days: a handful, and only once an hour.
+Schedule::command('strava:sync --days=2 --refresh')->hourly()->withoutOverlapping();
 
 // Keep the recent food diary fresh in near real time, re-checking the last few
 // days so food logged late for an earlier day is picked up.
