@@ -3,6 +3,9 @@ import { ref, computed, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import { useDialog } from '../../composables/useDialog';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 const props = defineProps({
     photos: { type: Array, required: true },
@@ -218,7 +221,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
 </script>
 
 <template>
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="lightbox">
             <div
                 v-if="isOpen"

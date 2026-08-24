@@ -2,6 +2,9 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 // One table of contents for any long document: a desktop rail plus a mobile
 // pill and sheet with scroll-spy. Collects `{ id, label, number, level }` from
@@ -177,7 +180,7 @@ onBeforeUnmount(() => {
         </Transition>
     </div>
 
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="sheet">
             <div
                 v-if="open"

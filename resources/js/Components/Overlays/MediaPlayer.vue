@@ -7,6 +7,9 @@ import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
 import { player, togglePlay, closePlayer } from '../../lib/player.js';
 import { videoSource } from '../../lib/video.js';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 const audioEl = ref(null);
 const plyrTarget = ref(null);
@@ -333,7 +336,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <Teleport to="body">
+        <Teleport v-if="mounted" to="body">
             <div
                 v-show="isVideo"
                 ref="videoWrap"

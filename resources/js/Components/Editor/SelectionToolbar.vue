@@ -4,6 +4,9 @@ import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 import BlockOptions from './BlockOptions.vue';
 import { blockOptionsFor } from '../../lib/editor/blockOptions';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 /**
  * The formatting bar over a selection, and the editor's only way to reach a
@@ -231,7 +234,7 @@ function cancelLink() {
 
     <!-- Rendered into the block itself, so it scrolls and moves with it and
          sits where the block puts it rather than at a computed offset. -->
-    <Teleport v-if="block" :to="block.anchor">
+    <Teleport v-if="mounted && block" :to="block.anchor">
         <div ref="panel">
             <BlockOptions :editor="editor" :definition="block.definition" />
         </div>

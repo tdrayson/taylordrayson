@@ -1,6 +1,9 @@
 <script setup>
 import { nextTick, ref, watch, onBeforeUnmount } from 'vue';
 import LinkPreviewCard from './LinkPreviewCard.vue';
+import { useMounted } from '../../composables/useMounted';
+
+const mounted = useMounted();
 
 const props = defineProps({
     // Map of href -> preview data (from server page props).
@@ -205,7 +208,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="fade">
             <div
                 v-if="active"
