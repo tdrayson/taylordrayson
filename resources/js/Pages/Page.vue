@@ -15,6 +15,8 @@ const props = defineProps({
     id: { type: Number, default: null },
     title: { type: String, required: true },
     excerpt: { type: String, default: null },
+    // { src, srcset, full } or null, the same shape an article's cover takes.
+    cover: { type: Object, default: null },
     content: { type: [Object, Array, String], default: null },
     published: { type: Boolean, default: true },
     editing: { type: Boolean, default: false },
@@ -59,6 +61,14 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
          BlockContent's renderer already applies max-w-prose/max-w-media per
          block, so a narrower ancestor would clip the wider (media) blocks. -->
     <article v-else>
+        <!-- The wrapper, not the img, is the grid item: replaced elements don't
+             stretch to their grid area, block boxes do. Mirrors ArticleDetail,
+             including using the stored original rather than the 640px card
+             conversion a hero would render at twice the width of. -->
+        <div v-if="cover" class="mb-6 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
+            <img :src="cover.full" alt="" class="size-full object-cover">
+        </div>
+
         <header>
             <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
             <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>

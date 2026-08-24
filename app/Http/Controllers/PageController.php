@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
@@ -38,9 +39,16 @@ class PageController extends Controller
             // Taken from the field list rather than named one by one: a field
             // the editor offers but has no value for saves back as empty, and
             // for the slug that means a page that will not save at all.
-            'values' => $page->only(array_column($fields, 'name')),
+            // Attributes plus what the media fields already hold: a cover is a
+            // Media Library collection rather than a column, so only() cannot
+            // see it and the picker opened empty over an attached image.
+            'values' => [
+                ...$page->only(array_column($fields, 'name')),
+                ...app(AttachedMediaValues::class)($page, $fields),
+            ],
             'title' => $page->title,
             'excerpt' => $page->excerpt,
+            'cover' => $page->coverPhoto(),
             'content' => $page->content,
             'published' => $page->published,
             'og' => OgMeta::page($page->title, $page->excerpt),
