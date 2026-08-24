@@ -63,7 +63,13 @@ provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: pro
 // address into meta, which is where a book keeps its author.
 // Media lives in collections, not columns, so it arrives beside the entry
 // rather than on it.
-const editorValues = computed(() => valuesFor(props.fields, { ...props.entry, ...props.media }));
+const editorValues = computed(() => valuesFor(props.fields, {
+    ...props.entry,
+    ...props.media,
+    // The payload carries {name, slug} so the footer can link each tag; the
+    // form posts names, which is what syncTagNames takes.
+    tags: (props.entry.tags ?? []).map((tag) => tag.name),
+}));
 
 const DETAIL_COMPONENTS = {
     activity: ActivityDetail,

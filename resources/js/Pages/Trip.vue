@@ -39,11 +39,11 @@ const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'day
             <time :datetime="start.iso">{{ start.label }}</time> to <time :datetime="end.iso">{{ end.label }}</time> <span class="text-neutral-400 tnum">({{ dayCount }})</span>
         </p>
 
-        <!-- Same "Tagged #slug" treatment EntryFooter gives entry tags, so a
-             trip's tags read identically to tags anywhere else on the site. -->
+        <!-- Same treatment EntryFooter gives entry tags, so a trip's tags read
+             identically to tags anywhere else on the site. -->
         <p v-if="tags.length" class="mt-2 text-caption text-neutral-500">
             Tagged
-            <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="`/tags/${tag.slug}`" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">#{{ tag.slug }}</Link><span v-if="index < tags.length - 1">, </span></template>
+            <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="`/tags/${tag.slug}`" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ tag.name }}</Link><span v-if="index < tags.length - 1">, </span></template>
         </p>
     </header>
 

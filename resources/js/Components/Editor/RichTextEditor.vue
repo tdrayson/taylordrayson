@@ -4,7 +4,7 @@ import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import TiptapImage from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from '../../lib/editor/lowlight';
-import { Callout } from '../../lib/editor/nodes';
+import { Callout, Video } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
@@ -14,6 +14,7 @@ import BlockHandles from './BlockHandles.vue';
 import CalloutBlock from './CalloutBlock.vue';
 import ImageBlock from './ImageBlock.vue';
 import CodeBlockView from './CodeBlockView.vue';
+import VideoBlock from './VideoBlock.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { suggestionExtension } from '../../lib/editor/slashCommands';
@@ -223,6 +224,13 @@ const image = TiptapImage.extend({
     },
 });
 
+// Plays in place, so the embed you are looking at is the one that publishes.
+const video = Video.extend({
+    addNodeView() {
+        return VueNodeViewRenderer(VideoBlock);
+    },
+});
+
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
     extensions: extensionsFor(props.profile, {
@@ -231,6 +239,7 @@ const editor = useEditor({
         slash,
         callout,
         image,
+        video,
         codeBlock,
     }),
     editorProps: {

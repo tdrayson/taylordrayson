@@ -45,6 +45,16 @@ export const BLOCK_OPTIONS = {
             },
         ],
     },
+    video: {
+        type: 'video',
+        label: 'Video',
+        icon: 'PlayIcon',
+        fields: [
+            { name: 'url', label: 'Video URL', type: 'text', wide: true },
+            { name: 'caption', label: 'Caption', type: 'text', wide: true },
+            { name: 'poster', label: 'Thumbnail URL', type: 'text', wide: true },
+        ],
+    },
 };
 
 /** The definition for whichever block the caret is in, or null. */

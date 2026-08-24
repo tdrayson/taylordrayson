@@ -32,6 +32,10 @@ final class FieldRules
                 $rules[$field->name.'.*'] = ['string', 'max:100'];
             }
 
+            if ($field->type === FieldType::Tags) {
+                $rules[$field->name.'.*'] = ['string', 'max:100'];
+            }
+
             $rules[$field->name] = [
                 // Only the genuinely mandatory fields are required, and only on
                 // create: an update may touch one field and leave the rest

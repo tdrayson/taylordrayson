@@ -112,6 +112,9 @@ export const Video = Node.create({
         return {
             url: { default: null },
             caption: { default: null },
+            // Overrides the host's own still, for a video whose thumbnail is a
+            // poor opener or which has none to publish.
+            poster: { default: null },
             width: { default: null },
             height: { default: null },
         };
