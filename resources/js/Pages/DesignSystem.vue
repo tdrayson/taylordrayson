@@ -2,7 +2,6 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
-import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
 import Icon from '../Components/Ui/Icon.vue';
 import Button from '../Components/Ui/Button.vue';
@@ -90,10 +89,16 @@ const detailRows = [
 const videoEl = ref(null);
 let videoPlayer = null;
 
-onMounted(() => {
-    if (videoEl.value) {
-        videoPlayer = new Plyr(videoEl.value);
+onMounted(async () => {
+    if (! videoEl.value) {
+        return;
     }
+
+    // Plyr reads `document` as it loads, so importing it at the top of the
+    // file would crash this page's server render.
+    const { default: Plyr } = await import('plyr');
+
+    videoPlayer = new Plyr(videoEl.value);
 });
 
 onBeforeUnmount(() => {

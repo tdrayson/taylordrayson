@@ -1,7 +1,6 @@
-import './bootstrap';
 import '../css/app.css';
 
-import { createApp, h } from 'vue';
+import { createSSRApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { applyTheme } from './useTheme';
@@ -24,7 +23,12 @@ createInertiaApp({
 
         seedPreferences(preferences);
         applyTheme(preferences);
-        createApp({ render: () => h(App, props) })
+
+        // createSSRApp, not createApp: it hydrates the markup ssr.js already
+        // rendered rather than throwing it away and mounting fresh. With no
+        // server-rendered markup present it falls back to a normal mount, so
+        // this is also correct when SSR is off.
+        createSSRApp({ render: () => h(App, props) })
             .use(plugin)
             .directive('twemoji', twemojiDirective)
             .mount(el);

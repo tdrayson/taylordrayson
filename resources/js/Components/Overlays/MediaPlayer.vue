@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
@@ -123,12 +122,17 @@ function onResize() {
 // Build the right embed for the source: a YouTube/Vimeo provider div, or a
 // native <video> element for a direct file (mp4/webm/...).
 function loadVideo(source) {
-    nextTick(() => {
+    nextTick(async () => {
         const target = plyrTarget.value;
 
         if (!target || !source) {
             return;
         }
+
+        // Imported here rather than at the top of the file: Plyr reads
+        // `document` as it loads, so a static import crashes the server render
+        // of every page this component is mounted on, which is all of them.
+        const { default: Plyr } = await import('plyr');
 
         if (plyr) {
             try {

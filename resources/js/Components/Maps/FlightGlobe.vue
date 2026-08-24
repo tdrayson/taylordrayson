@@ -48,7 +48,9 @@ function fitOptions() {
 
 // The sidebar list built in a later task is the accessible representation
 // of this data, so camera moves can jump for anyone who prefers less motion.
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Read on the server too, where there is no matchMedia and no map to move.
+const reduceMotion = typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const container = ref(null);
 
