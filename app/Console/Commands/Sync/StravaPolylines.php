@@ -49,9 +49,6 @@ class StravaPolylines extends Command
             return self::SUCCESS;
         }
 
-        $csvPath = database_path('../data/activities.csv');
-        $csvData = $this->loadCsv($csvPath);
-
         $fetched = 0;
         $requestsInWindow = 0;
         $windowStart = time();
@@ -61,8 +58,7 @@ class StravaPolylines extends Command
                 $elapsed = time() - $windowStart;
                 $wait = self::RATE_WINDOW - $elapsed;
                 if ($wait > 0) {
-                    $this->writeCsv($csvPath, $csvData);
-                    $this->info("Rate limit reached. CSV saved. Waiting {$wait}s...");
+                    $this->info("Rate limit reached. Waiting {$wait}s...");
                     sleep($wait);
                 }
                 $requestsInWindow = 0;
@@ -86,65 +82,14 @@ class StravaPolylines extends Command
                 $meta['polyline'] = $polyline;
                 $activity->update(['meta' => $meta]);
 
-                $this->updateCsvRow($csvData, $activity->source_id, $meta);
                 $fetched++;
             }
 
             $this->info("[{$fetched}/{$activities->count()}] {$activity->name} - ".($polyline ? 'polyline saved' : 'no polyline'));
         }
 
-        $this->writeCsv($csvPath, $csvData);
-        $this->info("Done. Fetched polylines for {$fetched} activities. CSV updated.");
+        $this->info("Done. Fetched polylines for {$fetched} activities.");
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @return array{headers: string[], rows: array<int, array<int, string>>}
-     */
-    private function loadCsv(string $path): array
-    {
-        $handle = fopen($path, 'r');
-        $headers = fgetcsv($handle);
-        $rows = [];
-        while (($row = fgetcsv($handle)) !== false) {
-            $rows[] = $row;
-        }
-        fclose($handle);
-
-        return ['headers' => $headers, 'rows' => $rows];
-    }
-
-    /**
-     * @param  array{headers: string[], rows: array<int, array<int, string>>}  $csvData
-     */
-    private function updateCsvRow(array &$csvData, string $sourceId, array $meta): void
-    {
-        $sourceIdIndex = array_search('source_id', $csvData['headers']);
-        $metaIndex = array_search('meta', $csvData['headers']);
-
-        if ($sourceIdIndex === false || $metaIndex === false) {
-            return;
-        }
-
-        foreach ($csvData['rows'] as &$row) {
-            if (($row[$sourceIdIndex] ?? null) === $sourceId) {
-                $row[$metaIndex] = json_encode($meta);
-                break;
-            }
-        }
-    }
-
-    /**
-     * @param  array{headers: string[], rows: array<int, array<int, string>>}  $csvData
-     */
-    private function writeCsv(string $path, array $csvData): void
-    {
-        $handle = fopen($path, 'w');
-        fputcsv($handle, $csvData['headers']);
-        foreach ($csvData['rows'] as $row) {
-            fputcsv($handle, $row);
-        }
-        fclose($handle);
     }
 }

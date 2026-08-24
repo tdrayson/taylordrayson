@@ -8,7 +8,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
-#[Signature('podcast:listens {file : Path to the Pocket Casts data.txt export} {--csv= : Output CSV path (defaults to data/listens.csv)}')]
+#[Signature('podcast:listens {file : Path to the Pocket Casts data.txt export} {--csv= : Output CSV path (defaults to storage/app/podcasts/listens.csv)}')]
 #[Description('Build a podcast listen-history CSV from a Pocket Casts data export, enriching played/in-progress episodes with titles, shows and dates via the Pocket Casts API')]
 class ImportPodcastListens extends Command
 {
@@ -214,6 +214,6 @@ class ImportPodcastListens extends Command
 
     private function csvPath(): string
     {
-        return $this->option('csv') ?: base_path('data/listens.csv');
+        return $this->option('csv') ?: storage_path('app/podcasts/listens.csv');
     }
 }

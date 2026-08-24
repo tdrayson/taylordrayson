@@ -10,15 +10,12 @@ use App\Support\Distance;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 
-#[Signature('flights:enrich {--force : Re-fetch route info for rows that already have it} {--file= : CSV path to enrich (defaults to data/flights.csv)}')]
-#[Description('Add flight duration and departure/arrival timezones to data/flights.csv and the database, sourced from the aviation API with a coordinate/timezone fallback')]
+#[Signature('flights:enrich {--force : Re-fetch route info for flights that already have it}')]
+#[Description('Add flight duration and departure/arrival timezones, sourced from the aviation API with a coordinate/timezone fallback')]
 class EnrichFlights extends Command
 {
     /** @var list<string> */
-    private const COLUMNS = ['duration', 'departure_timezone', 'arrival_timezone'];
-
     /** @var array<string, array{lat: float, lng: float}> */
     private array $airports = [];
 
@@ -34,14 +31,6 @@ class EnrichFlights extends Command
 
     public function handle(): int
     {
-        $path = $this->option('file') ?: base_path('data/flights.csv');
-
-        if (! file_exists($path)) {
-            $this->components->error("CSV not found: {$path}");
-
-            return self::FAILURE;
-        }
-
         if (! config('services.logostream.key')) {
             $this->components->error('LOGOSTREAM_KEY is not set.');
 
@@ -50,35 +39,43 @@ class EnrichFlights extends Command
 
         $this->loadAirports();
 
-        [$headers, $rows] = $this->readCsv($path);
-        $outHeaders = array_values(array_unique([...$headers, ...self::COLUMNS]));
-
-        $output = [];
+        $flights = Flight::query()->orderBy('occurred_at')->get();
         $updated = 0;
 
-        foreach ($rows as $row) {
-            $info = $this->infoForRow($row);
-            $row = [...$row, ...$info];
+        foreach ($flights as $flight) {
+            $info = $this->infoFor($flight);
 
-            $flight = Flight::query()
-                ->where('flight_number', $row['flight_number'])
-                ->where('occurred_at', Carbon::parse($row['occurred_at']))
-                ->first();
-
-            if ($flight) {
-                $flight->update($info);
-                $updated++;
-            }
-
-            $output[] = array_map(fn (string $header): string => $this->csvValue($row[$header] ?? null), $outHeaders);
+            $flight->update($info);
+            $updated++;
         }
 
-        $this->writeCsv($path, $outHeaders, $output);
-
         $this->newLine();
-        $this->components->info("Enriched data/flights.csv and updated {$updated} flights in the database.");
+        $this->components->info("Enriched {$updated} flights.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Duration and timezones for one flight, left as stored unless --force is
+     * given: the aviation API is rate-limited and most rows never change.
+     *
+     * @return array<string, mixed>
+     */
+    private function infoFor(Flight $flight): array
+    {
+        if (! $this->option('force') && $flight->departure_timezone) {
+            return [
+                'duration' => $flight->duration,
+                'departure_timezone' => $flight->departure_timezone,
+                'arrival_timezone' => $flight->arrival_timezone,
+            ];
+        }
+
+        return $this->routeInfo(
+            $flight->origin_iata,
+            $flight->destination_iata,
+            Distance::miles($flight->distance) ?? 0,
+        );
     }
 
     private function loadAirports(): void
@@ -89,63 +86,6 @@ class EnrichFlights extends Command
             ->keyBy('iata_code')
             ->map(fn (Airport $airport): array => ['lat' => (float) $airport->latitude, 'lng' => (float) $airport->longitude])
             ->all();
-    }
-
-    /**
-     * @return array{0: list<string>, 1: list<array<string, string>>}
-     */
-    private function readCsv(string $path): array
-    {
-        $handle = fopen($path, 'r');
-        $headers = fgetcsv($handle);
-        $rows = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) !== count($headers)) {
-                continue;
-            }
-
-            $rows[] = array_combine($headers, $row);
-        }
-
-        fclose($handle);
-
-        return [$headers, $rows];
-    }
-
-    /**
-     * @param  list<string>  $headers
-     * @param  list<list<string>>  $rows
-     */
-    private function writeCsv(string $path, array $headers, array $rows): void
-    {
-        $handle = fopen($path, 'w');
-        fputcsv($handle, $headers);
-
-        foreach ($rows as $row) {
-            fputcsv($handle, $row);
-        }
-
-        fclose($handle);
-    }
-
-    /**
-     * @param  array<string, string>  $row
-     * @return array<string, int|string|null>
-     */
-    private function infoForRow(array $row): array
-    {
-        if (! $this->option('force') && ($row['departure_timezone'] ?? '') !== '') {
-            return [
-                'duration' => ($row['duration'] ?? '') !== '' ? (int) $row['duration'] : null,
-                'departure_timezone' => $row['departure_timezone'],
-                'arrival_timezone' => ($row['arrival_timezone'] ?? '') ?: null,
-            ];
-        }
-
-        $miles = ($row['distance'] ?? '') !== '' ? Distance::miles((int) $row['distance']) : null;
-
-        return $this->routeInfo($row['origin_iata'], $row['destination_iata'], $miles ?? 0);
     }
 
     /**
@@ -228,10 +168,5 @@ class EnrichFlights extends Command
             + cos(deg2rad($from['lat'])) * cos(deg2rad($to['lat'])) * sin($deltaLng / 2) ** 2;
 
         return (int) round($earthRadiusMiles * 2 * asin(min(1.0, sqrt($haversine))));
-    }
-
-    private function csvValue(int|string|null $value): string
-    {
-        return $value === null ? '' : (string) $value;
     }
 }

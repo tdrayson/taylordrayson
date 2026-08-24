@@ -33,8 +33,7 @@ class BackfillStravaDescriptions extends Command
 
     /**
      * Walk existing Strava activities oldest-first and store each description.
-     * Resumes from a cached cursor on the activity id; --restart clears it. Run
-     * `export:csv activity data/activities.csv` afterwards to refresh the seed.
+     * Resumes from a cached cursor on the activity id; --restart clears it.
      */
     public function handle(Strava $strava): int
     {

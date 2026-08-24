@@ -14,12 +14,7 @@ it('processes a supplied payload file via health:sleep --file', function () {
         ],
     ]]]]));
 
-    // Explicit --csv points mirrorToCsv()/scoreAll() at a throwaway temp file
-    // instead of the tracked data/sleep.csv, which the command defaults to
-    // when --csv is omitted (see SleepProcessorTest for the same pattern).
-    $csv = sys_get_temp_dir().'/sleep-cmd-test-'.uniqid().'.csv';
-
-    $this->artisan('health:sleep', ['--file' => $path, '--csv' => $csv])->assertSuccessful();
+    $this->artisan('health:sleep', ['--file' => $path])->assertSuccessful();
 
     expect(Sleep::query()->count())->toBe(1);
 

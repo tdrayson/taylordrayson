@@ -7,8 +7,8 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('health:heart_rate {--file= : Process a specific raw JSON payload path} {--csv= : Target CSV to mirror into (defaults to data/activities.csv)} {--max-points=240 : Cap the stored per-activity series, downsampling evenly when exceeded} {--overwrite : Recompute the average and max even where a source already set them}')]
-#[Description('Attach heart-rate to activities from captured Health Auto Export heart_rate data, windowing samples into each activity and merging across batched payloads (database and data/activities.csv)')]
+#[Signature('health:heart_rate {--file= : Process a specific raw JSON payload path} {--max-points=240 : Cap the stored per-activity series, downsampling evenly when exceeded} {--overwrite : Recompute the average and max even where a source already set them}')]
+#[Description('Attach heart-rate to activities from captured Health Auto Export heart_rate data, windowing samples into each activity and merging across batched payloads')]
 class ImportHealthHeartRate extends Command
 {
     public function handle(HeartRateProcessor $processor): int
@@ -31,7 +31,6 @@ class ImportHealthHeartRate extends Command
 
         $processor->process(
             $payload,
-            $this->option('csv') ?: null,
             (bool) $this->option('overwrite'),
             max(0, (int) $this->option('max-points')),
         );
