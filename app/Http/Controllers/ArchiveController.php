@@ -76,7 +76,7 @@ class ArchiveController extends Controller
         return Inertia::render('Archive', [
             'type' => $type,
             'accent' => $accentToken,
-            'og' => OgMeta::archive($type, $definition['label'], $title, $accentToken, $value !== null, $subtitle),
+            'og' => OgMeta::archive($type, $definition['label'], $title, $accentToken, $value !== null, $noun, $page->total()),
             'title' => $title,
             'crumb' => $taxonomyLabel ?? $definition['label'],
             'subtitle' => $subtitle,

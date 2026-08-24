@@ -18,6 +18,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
@@ -60,6 +61,17 @@ Route::middleware('auth')->group(function (): void {
 // Feeds
 Route::feeds();
 Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
+
+// Crawler files. robots.txt is a route rather than a file in public/ because
+// the server rewrites the path to index.php, so a static file is never reached.
+Route::get('/robots.txt', fn () => response()
+    ->view('robots')
+    ->header('Content-Type', 'text/plain'))->name('robots');
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap/pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
+Route::get('/sitemap/{year}.xml', [SitemapController::class, 'year'])
+    ->where('year', '\d{4}')->name('sitemap.year');
 
 // Directory
 Route::get('/more', MoreController::class)->name('more');

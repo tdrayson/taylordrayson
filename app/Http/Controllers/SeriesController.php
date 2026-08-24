@@ -33,6 +33,16 @@ class SeriesController extends Controller
      */
     public function show(Series $series): Response
     {
-        return Inertia::render('Media/SeriesShow', ($this->seriesShowData)($series)->toArray());
+        $data = ($this->seriesShowData)($series);
+
+        return Inertia::render('Media/SeriesShow', [
+            ...$data->toArray(),
+            'og' => OgMeta::seriesShow(
+                $data->series->title,
+                $data->stats->episodesWatched,
+                $data->stats->seasons,
+                $data->stats->watchSpan,
+            ),
+        ]);
     }
 }
