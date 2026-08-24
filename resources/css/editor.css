@@ -152,7 +152,6 @@
     margin-right: 0.25em;
     vertical-align: -0.125em;
     background: #fff center/contain no-repeat var(--editor-link-favicon, none);
-    border-radius: 2px;
 }
 
 /* Internal links have no host to fetch an icon for. They carry a generic entry
