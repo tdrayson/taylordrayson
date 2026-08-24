@@ -61,4 +61,10 @@ class Page extends Model implements HasMedia
             'full' => $media->getUrl(),
         ];
     }
+
+    /** Pages are matched by the slug catch-all, so they sit at the site root. */
+    public function url(): string
+    {
+        return '/'.$this->slug;
+    }
 }

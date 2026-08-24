@@ -22,4 +22,16 @@ class Tag extends Model
     {
         return $this->hasMany(Taggable::class);
     }
+
+    /** The cross-type feed for everything carrying this tag. */
+    public function url(): string
+    {
+        return self::urlFor($this->slug);
+    }
+
+    /** The same path for a slug the taxonomy registry knows without loading a row. */
+    public static function urlFor(string $slug): string
+    {
+        return '/tags/'.$slug;
+    }
 }

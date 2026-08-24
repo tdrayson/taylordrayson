@@ -61,4 +61,10 @@ class Series extends Model implements HasMedia
 
         return $candidate;
     }
+
+    /** The show's own page, which gathers every watched episode. */
+    public function url(): string
+    {
+        return '/media/tv/'.$this->slug;
+    }
 }

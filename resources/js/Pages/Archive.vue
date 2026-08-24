@@ -58,7 +58,7 @@ setLayoutProps({
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
             <Link
                 v-if="tagLink"
-                :href="`/tags/${tagLink.slug}`"
+                :href="tagLink.url"
                 class="mt-3 inline-flex items-center gap-1 text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
             >
                 See everything tagged {{ tagLink.name }}

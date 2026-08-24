@@ -106,7 +106,7 @@ class ResolveMentions
 
         return [
             'title' => $this->title($model),
-            'url' => $model instanceof Page ? '/'.$model->slug : $model->url(),
+            'url' => $model->url(),
             'kind' => $kind,
             'exists' => true,
         ];

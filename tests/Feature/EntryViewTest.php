@@ -100,15 +100,15 @@ it('aggregates the whole day for a food entry', function () {
     );
 });
 
-it('exposes tags as linkable {name, slug} objects on an article entry', function () {
+it('exposes tags as linkable {name, slug, url} objects on an article entry', function () {
     $article = Article::factory()->create(['published' => true, 'occurred_at' => '2026-03-15 09:00:00']);
     $article->syncTagNames(['Laravel', 'PHP']);
 
     get('/'.entryUrl($article))->assertInertia(fn ($page) => $page
         ->component('Entry')
         ->where('entry.tags', fn ($tags) => collect($tags)->sortBy('name')->values()->all() === [
-            ['name' => 'Laravel', 'slug' => 'laravel'],
-            ['name' => 'PHP', 'slug' => 'php'],
+            ['name' => 'Laravel', 'slug' => 'laravel', 'url' => '/tags/laravel'],
+            ['name' => 'PHP', 'slug' => 'php', 'url' => '/tags/php'],
         ])
     );
 });

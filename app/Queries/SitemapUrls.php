@@ -196,19 +196,19 @@ final class SitemapUrls
      */
     private function records(): array
     {
-        $tags = Tag::query()->orderBy('slug')->pluck('slug')
-            ->map(fn (string $slug): array => ['loc' => "/tags/{$slug}", 'lastmod' => null]);
+        $tags = Tag::query()->orderBy('slug')->get(['slug'])
+            ->map(fn (Tag $tag): array => ['loc' => $tag->url(), 'lastmod' => null]);
 
-        $trips = Trip::query()->orderBy('slug')->pluck('slug')
-            ->map(fn (string $slug): array => ['loc' => "/trips/{$slug}", 'lastmod' => null]);
+        $trips = Trip::query()->orderBy('slug')->get(['slug'])
+            ->map(fn (Trip $trip): array => ['loc' => $trip->url(), 'lastmod' => null]);
 
-        $series = Series::query()->orderBy('slug')->pluck('slug')
-            ->map(fn (string $slug): array => ['loc' => "/media/tv/{$slug}", 'lastmod' => null]);
+        $series = Series::query()->orderBy('slug')->get(['slug'])
+            ->map(fn (Series $show): array => ['loc' => $show->url(), 'lastmod' => null]);
 
         $pages = Page::query()->where('published', true)->orderBy('slug')
             ->get(['slug', 'updated_at'])
             ->map(fn (Page $page): array => [
-                'loc' => '/'.$page->slug,
+                'loc' => $page->url(),
                 'lastmod' => $page->updated_at?->toAtomString(),
             ]);
 

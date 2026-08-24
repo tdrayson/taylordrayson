@@ -2,7 +2,9 @@
 
 namespace App\Search;
 
+use App\Models\Page;
 use App\Models\Series;
+use App\Models\Tag;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +23,9 @@ final class SuggestSearch
 
     /** A show's share of that limit, so shows never crowd out taxonomy jumps. */
     private const SERIES_LIMIT = 3;
+
+    /** And a page's share, on the same reasoning. */
+    private const PAGE_LIMIT = 3;
 
     private const PER_TYPE = 5;
 
@@ -84,7 +89,7 @@ final class SuggestSearch
         return [
             'results' => $results,
             'destinations' => array_slice(
-                [...$this->matchSeries($term), ...$this->matchDestinations($term)],
+                [...$this->matchSeries($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
                 0,
                 self::DESTINATION_LIMIT,
             ),
@@ -116,7 +121,40 @@ final class SuggestSearch
                 'section' => 'TV',
                 'type' => 'media',
                 'tag' => false,
-                'url' => '/media/tv/'.$series->slug,
+                'url' => $series->url(),
+            ])
+            ->all();
+    }
+
+    /**
+     * Standalone pages whose title matches the term.
+     *
+     * A page is routed by slug rather than by date, so it is not one of the
+     * timeline types the free-text sweep above covers, and its own title is the
+     * only thing naming it. Ranked like the others: prefix hits first, then
+     * shorter titles.
+     *
+     * @param  string  $term  The free-text query.
+     * @return array<int, array{label: string, section: string, type: string, tag: bool, url: string}>
+     */
+    private function matchPages(string $term): array
+    {
+        $query = Page::query();
+
+        $this->compiler->guardPublished($query, Page::class);
+
+        return $query
+            ->where('title', 'like', '%'.$term.'%')
+            ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
+            ->orderByRaw('LENGTH(title)')
+            ->limit(self::PAGE_LIMIT)
+            ->get(['title', 'slug'])
+            ->map(fn (Page $page): array => [
+                'label' => $page->title,
+                'section' => 'Page',
+                'type' => 'page',
+                'tag' => false,
+                'url' => $page->url(),
             ])
             ->all();
     }
@@ -153,7 +191,7 @@ final class SuggestSearch
                         // Tags go to the cross-type feed, so the same tag on several
                         // types collapses to one destination (deduped by url below).
                         'url' => $taxonomy['param'] === 'tag'
-                            ? '/tags/'.$value['value']
+                            ? Tag::urlFor($value['value'])
                             : '/'.$taxonomy['base'].'/'.$value['value'],
                         'rank' => str_starts_with(Str::lower($value['label']), $needle) ? 0 : 1,
                     ])

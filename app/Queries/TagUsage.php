@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Data\TagLink;
 use App\Models\Article;
 use App\Models\Tag;
 use App\Models\Taggable;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Auth;
 final class TagUsage
 {
     /**
-     * @return Collection<int, array{name: string, slug: string, count: int}>
+     * @return Collection<int, array{name: string, slug: string, url: string, count: int}>
      */
     public function __invoke(): Collection
     {
@@ -45,8 +46,7 @@ final class TagUsage
             ->orderBy('name')
             ->get(['id', 'name', 'slug'])
             ->map(fn (Tag $tag): array => [
-                'name' => $tag->name,
-                'slug' => $tag->slug,
+                ...TagLink::for($tag)->toArray(),
                 'count' => (int) $counts[$tag->id],
             ]);
     }
