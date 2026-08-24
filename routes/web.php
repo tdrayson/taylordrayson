@@ -132,8 +132,11 @@ foreach (TypeRegistry::all() as $type => $definition) {
     Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
 
     if ($taxonomy = $definition['taxonomy']) {
+        // Its own name prefix: a taxonomy base usually matches the type's own
+        // slug (activities, notes, flights), so naming it archive.* too would
+        // collide and route:cache refuses to build a table with duplicates.
         Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
-            ->defaults('type', $type)->name("archive.{$taxonomy['base']}");
+            ->defaults('type', $type)->name("taxonomy.{$taxonomy['base']}");
     }
 }
 
