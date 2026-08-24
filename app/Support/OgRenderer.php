@@ -21,23 +21,27 @@ final class OgRenderer
     }
 
     /**
-     * The prefix every card's cache key is built on: the configured version,
-     * plus a digest of the card template.
+     * The directory holding every card rendered from the current design: the
+     * configured version plus a digest of the card template.
      *
      * Cards are served `immutable`, so a design change is invisible until the
-     * key moves. Leaving that to a hand-bumped OG_VERSION meant the home card
-     * shipped a tagline that production never showed. Hashing the template
+     * path moves. Leaving that to a hand-bumped OG_VERSION meant the home card
+     * shipped a tagline that production never showed; hashing the template
      * makes editing it enough.
+     *
+     * It is a directory rather than part of each filename so that a superseded
+     * design is one identifiable thing. Cards are keyed by a hash of their
+     * inputs, which cannot be reversed, so with everything in one folder there
+     * was no way to tell a live card from a dead one and the only cleanup
+     * available was deleting the lot.
      */
-    public static function signature(): string
+    public static function generation(): string
     {
-        static $signature = null;
+        static $generation = null;
 
-        return $signature ??= config('og.version').'|'.substr(
-            (string) md5_file(resource_path('views/og/card.blade.php')),
-            0,
-            8,
-        );
+        return $generation ??= substr(md5(
+            config('og.version').'|'.md5_file(resource_path('views/og/card.blade.php')),
+        ), 0, 12);
     }
 
     public function serve(string $path, string $cacheControl): BinaryFileResponse

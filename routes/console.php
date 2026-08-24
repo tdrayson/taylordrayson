@@ -62,3 +62,7 @@ Schedule::command('media:prune-pending')->dailyAt('03:40');
 
 // Files left behind by deleted attachments, plus conversions no longer declared.
 Schedule::command('media-library:clean --force')->weeklyOn(1, '03:50')->withoutOverlapping();
+
+// OG cards rendered from a design that has since changed. Nothing points at
+// them, and the current generation is kept, so this never forces a re-render.
+Schedule::command('og:clear --stale')->weeklyOn(1, '04:00')->withoutOverlapping();
