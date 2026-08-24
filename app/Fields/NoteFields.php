@@ -4,11 +4,12 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Models\Note;
 
 /**
- * A note is a quick capture: the body is the whole point. The slug is asked for
- * rather than derived, since a note has no title to derive one from and a
- * generated one reads as noise in the URL.
+ * A note is a quick capture: the body is the whole point. The slug is offered
+ * rather than demanded, since a note has no title to derive one from; left
+ * blank it comes from the note's opening words (see Note::slugFrom).
  */
 final class NoteFields
 {
@@ -23,7 +24,7 @@ final class NoteFields
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::primary('slug', 'Slug', FieldType::Slug, required: true),
+            FieldData::primary('slug', 'Slug', FieldType::Slug, fallback: Note::FALLBACK_SLUG),
         ];
     }
 }

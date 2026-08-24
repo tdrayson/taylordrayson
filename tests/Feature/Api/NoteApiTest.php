@@ -188,11 +188,22 @@ it('reassigns the url when the slug is updated', function () {
     expect($note->fresh()->url())->toBe('/2026/07/04/renamed-note');
 });
 
-it('keeps the bare note url when no slug is given', function () {
+it('derives the note url from its opening words when no slug is given', function () {
     $this->withToken('test-token')->postJson('/api/v1/notes', [
         'content' => 'Plain note.',
         'occurred_at' => '2026-07-04 09:15:00',
     ])
         ->assertCreated()
-        ->assertJsonPath('data.url', '/2026/07/04/note');
+        ->assertJsonPath('data.url', '/2026/07/04/plain-note');
+});
+
+it('falls back to a bare note url when there are no words to use', function () {
+    // A note that is only an emoji, or only a photo caption's punctuation, has
+    // nothing to slug.
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => '👍',
+        'occurred_at' => '2026-07-05 09:15:00',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.url', '/2026/07/05/note');
 });
