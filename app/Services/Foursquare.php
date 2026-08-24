@@ -37,7 +37,7 @@ class Foursquare
         $offset = 0;
 
         while (true) {
-            $response = Http::get(self::BASE.'/users/self/checkins', array_filter([
+            $response = Http::api()->get(self::BASE.'/users/self/checkins', array_filter([
                 'oauth_token' => $token,
                 'v' => self::API_VERSION,
                 'limit' => self::PER_PAGE,

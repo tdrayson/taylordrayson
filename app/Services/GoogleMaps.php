@@ -49,7 +49,7 @@ class GoogleMaps
             $parameters['radius'] = 50000;
         }
 
-        $response = Http::get(self::PLACES, $parameters);
+        $response = Http::api()->get(self::PLACES, $parameters);
 
         if ($response->failed()) {
             return [];
@@ -69,7 +69,7 @@ class GoogleMaps
      */
     private function nearby(float $latitude, float $longitude): array
     {
-        $response = Http::get(self::NEARBY, [
+        $response = Http::api()->get(self::NEARBY, [
             'location' => "{$latitude},{$longitude}",
             'radius' => self::NEARBY_RADIUS_METRES,
             'key' => $this->key(),
@@ -92,7 +92,7 @@ class GoogleMaps
      */
     public function reverse(float $latitude, float $longitude): ?array
     {
-        $response = Http::get(self::GEOCODE, [
+        $response = Http::api()->get(self::GEOCODE, [
             'latlng' => "{$latitude},{$longitude}",
             'key' => $this->key(),
         ]);

@@ -28,7 +28,7 @@ class GoogleFavicons
      */
     public function icon(string $domain): array
     {
-        $response = Http::timeout(self::TIMEOUT_SECONDS)
+        $response = Http::api()->timeout(self::TIMEOUT_SECONDS)
             ->get(self::BASE, ['domain' => $domain, 'sz' => self::SIZE]);
 
         if ($response->status() === 404) {

@@ -188,7 +188,7 @@ class Rovi
             return null;
         }
 
-        $response = Http::withToken($key)
+        $response = Http::api()->withToken($key)
             ->acceptJson()
             ->get(rtrim((string) config('services.rovi.base_url'), '/').$path, $query);
 

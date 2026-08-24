@@ -61,7 +61,7 @@ class PetrolPrices
             $radiusMiles,
         ]);
 
-        $response = Http::get(self::BASE.$path, ['lat' => $latitude, 'lng' => $longitude]);
+        $response = Http::api()->get(self::BASE.$path, ['lat' => $latitude, 'lng' => $longitude]);
 
         if (! $response->successful()) {
             return [];

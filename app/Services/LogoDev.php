@@ -20,7 +20,7 @@ class LogoDev
      */
     public function logo(string $domain, int $size = 256): array
     {
-        $response = Http::get(self::BASE.'/'.$domain, [
+        $response = Http::api()->get(self::BASE.'/'.$domain, [
             'token' => config('services.logodev.token'),
             'size' => $size,
             'retina' => 'true',

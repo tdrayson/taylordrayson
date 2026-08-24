@@ -19,7 +19,7 @@ class TimeApi
      */
     public function timezoneForCoordinate(float $latitude, float $longitude): ?string
     {
-        $response = Http::get(self::BASE.'/api/timezone/coordinate', [
+        $response = Http::api()->get(self::BASE.'/api/timezone/coordinate', [
             'latitude' => $latitude,
             'longitude' => $longitude,
         ]);
