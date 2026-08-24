@@ -66,3 +66,26 @@ Schedule::command('media-library:clean --force')->weeklyOn(1, '03:50')->withoutO
 // OG cards rendered from a design that has since changed. Nothing points at
 // them, and the current generation is kept, so this never forces a re-render.
 Schedule::command('og:clear --stale')->weeklyOn(1, '04:00')->withoutOverlapping();
+
+// Backups: the database as versioned archives, the assets as a single mirror.
+// They have different shapes, so they are kept apart: every backup:run is a
+// full zip with no deduplication, and media files are written once and never
+// modified, so archiving them would keep several copies of the same images.
+
+// All four are held back until R2 is configured. Without credentials the
+// backup commands throw while building the destination, which would be a
+// stack trace and an alert twice a day rather than a useful signal.
+$mirrorReady = fn (): bool => filled(config('filesystems.disks.r2.bucket'));
+
+// ~8MB compressed. Twice daily is ample: most of the data re-derives from the
+// syncs, and what does not (notes, articles) changes rarely.
+Schedule::command('backup:run --only-db')->twiceDaily(3, 15)->when($mirrorReady)->withoutOverlapping();
+Schedule::command('backup:clean')->dailyAt('03:10')->when($mirrorReady)->withoutOverlapping();
+
+// Reports an unhealthy destination by exiting non-zero, which the scheduler's
+// failure listener turns into an alert. That covers the case the archives
+// cannot: a backup that never ran at all.
+Schedule::command('backup:monitor')->dailyAt('09:00')->when($mirrorReady);
+
+// Originals only; conversions and responsive images rebuild from them.
+Schedule::command('assets:mirror')->dailyAt('04:40')->when($mirrorReady)->withoutOverlapping();
