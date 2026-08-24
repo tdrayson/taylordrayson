@@ -79,8 +79,7 @@ const externalIconClass =
                 <span class="whitespace-nowrap">
                     <InlineBadge src="/logos/wp-extended.png" alt="WP Extended" class="ml-1 mr-2" />
                     WordPress
-                </span>
-                <span class="whitespace-nowrap">
+                </span>{{ ' ' }}<span class="whitespace-nowrap">
                     plugin
                     <span :class="externalIconWrapClass">
                         <Icon name="ArrowUpRight01Icon" :class="externalIconClass" />
