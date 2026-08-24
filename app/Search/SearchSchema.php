@@ -50,6 +50,9 @@ class SearchSchema
             'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Media'],
             'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Media'],
             'rating' => ['label' => 'Rating', 'dataType' => 'number', 'column' => 'rating', 'category' => 'Media'],
+            // An episode's own title names the episode, so the show it belongs
+            // to is the only way to search a series as a whole.
+            'show' => ['label' => 'Show', 'dataType' => 'text', 'relation' => 'series', 'column' => 'title', 'category' => 'Media'],
         ],
         'event' => [
             'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Event'],
