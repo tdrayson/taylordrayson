@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && vite build --ssr",
         "dev": "vite",
         "test": "node --test tests/js/*.test.js"
     },
@@ -33,6 +33,7 @@
         "@editorjs/simple-image": "^1.6.0",
         "@hugeicons-pro/core-stroke-rounded": "^4.2.1",
         "@hugeicons/vue": "^1.0.6",
+        "@inertiajs/vite": "^3.7.0",
         "@inertiajs/vue3": "^3.4.0",
         "@tiptap/extension-bubble-menu": "3.29.2",
         "@tiptap/extension-code-block-lowlight": "3.29.2",

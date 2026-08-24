@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import inertia from "@inertiajs/vite";
 import laravel from "laravel-vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
@@ -8,6 +9,14 @@ export default defineConfig({
         laravel({
             input: ["resources/css/app.css", "resources/js/app.js"],
             refresh: true,
+        }),
+        // Serves SSR from the dev server, so `npm run dev` needs no separate
+        // Node process. The entry is named because app.js has its own `setup`
+        // callback, which stops the plugin generating one.
+        inertia({
+            ssr: {
+                entry: "resources/js/ssr.js",
+            },
         }),
         vue({
             template: {

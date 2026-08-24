@@ -2,7 +2,6 @@
 import { ref, onMounted, onBeforeUnmount, markRaw } from 'vue';
 import { setLayoutProps, usePage } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
-import { GridStack } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
 import { DragDropVerticalIcon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
 import AppLayout from '../Layouts/AppLayout.vue';
@@ -167,8 +166,13 @@ function resetLayout() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     mobileQuery = window.matchMedia('(max-width: 1024px)');
+
+    // Loaded here, not at the top: gridstack's package entry does not resolve
+    // under Node's ESM loader, so a static import fails the server render of
+    // this page outright.
+    const { GridStack } = await import('gridstack');
 
     grid = GridStack.init(
         {

@@ -11,7 +11,15 @@ Chart.defaults.font.size = 11;
 // Read a design token's current computed value off :root. Values flip when
 // the `.dark` class toggles, so calling this live (rather than caching the
 // result) is what makes charts follow the active theme.
+//
+// Empty on the server, where there is no stylesheet to compute against. A
+// chart only draws onto a canvas once mounted, so the server never needs a
+// real colour: it needs the palette not to throw while the page renders.
 function token(name) {
+    if (typeof document === 'undefined') {
+        return '';
+    }
+
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 

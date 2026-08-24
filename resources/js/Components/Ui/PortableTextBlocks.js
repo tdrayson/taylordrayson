@@ -1,4 +1,5 @@
 import { h } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
@@ -68,11 +69,19 @@ function isBareUrl(text, href) {
     return typeof text === 'string' && strip(text.trim()) === strip(href);
 }
 
+/**
+ * This site's own host. The browser reads it off the address bar; the server
+ * has no address bar, so the component below stands the app URL in its place.
+ * Constant per deployment, which is why holding it at module scope is safe.
+ */
+let siteHost = null;
+
 /** A destination on another site, as opposed to a path or a URL back to this one. */
 function isExternalHref(href) {
     const host = hostOf(href);
+    const own = typeof window === 'undefined' ? siteHost : hostOf(window.location.href);
 
-    return host !== null && host !== hostOf(window.location.href);
+    return host !== null && host !== own;
 }
 
 /**
@@ -438,6 +447,8 @@ export default {
     },
     emits: ['image-click'],
     setup(props, { emit }) {
+        siteHost = hostOf(usePage().props.appUrl ?? '');
+
         return () => {
             const headingIds = assignHeadingIds(props.nodes);
 
