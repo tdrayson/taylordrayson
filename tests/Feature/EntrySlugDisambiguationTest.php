@@ -3,6 +3,7 @@
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Note;
+use App\Support\PortableText;
 
 use function Pest\Laravel\get;
 
@@ -53,12 +54,13 @@ it('recomputes the url slug when the name changes', function () {
     get('/2026/03/15/morning-walk')->assertNotFound();
 });
 
-it('uses bare note and note-2 for two notes on one day', function () {
-    $first = Note::factory()->create(['occurred_at' => '2026-03-15 09:00:00']);
-    $second = Note::factory()->create(['occurred_at' => '2026-03-15 11:00:00']);
+it('suffixes two notes that open with the same words on one day', function () {
+    $content = PortableText::fromPlainText('Same opening words entirely.');
+    $first = Note::factory()->create(['occurred_at' => '2026-03-15 09:00:00', 'content' => $content]);
+    $second = Note::factory()->create(['occurred_at' => '2026-03-15 11:00:00', 'content' => $content]);
 
-    expect($first->url())->toBe('/2026/03/15/note')
-        ->and($second->url())->toBe('/2026/03/15/note-2');
+    expect($first->url())->toBe('/2026/03/15/same-opening-words-entirely')
+        ->and($second->url())->toBe('/2026/03/15/same-opening-words-entirely-2');
 
     get($second->url())->assertSuccessful();
 });

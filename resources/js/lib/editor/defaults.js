@@ -59,12 +59,59 @@ export function valuesFor(fields, record = {}) {
     }));
 }
 
-/** The slug a title would produce, matching Str::slug on the server. */
+/**
+ * The slug a title would produce, matching Str::slug on the server.
+ *
+ * Punctuation is dropped rather than turned into a separator, which is what
+ * Str::slug does: "Taylor's day" is taylors-day, not taylor-s-day.
+ */
 export function slugify(value) {
     return String(value ?? '')
         .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
+        .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/[^a-z0-9\s-]+/g, '')
+        .trim()
+        .replace(/[\s-]+/g, '-')
         .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * The same, while it is still being typed: a trailing separator survives, so
+ * typing a space does not undo itself before the next word arrives.
+ */
+export function slugifyInput(value) {
+    return String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]+/g, '')
+        .replace(/[\s-]+/g, '-')
+        .replace(/^-+/, '');
+}
+
+/** How much of a note the derived slug uses. Mirrors Note::SLUG_WORDS. */
+const NOTE_SLUG_WORDS = 6;
+
+/**
+ * The slug a note would fall back to, from its opening words.
+ *
+ * Mirrors Note::slugFrom() so the editor can preview the URL a note will get
+ * before it is saved. The two have to agree.
+ */
+export function noteSlug(document, fallback = 'note') {
+    const words = plainTextOf(document).trim().split(/\s+/).filter(Boolean);
+
+    return slugify(words.slice(0, NOTE_SLUG_WORDS).join(' ')) || fallback;
+}
+
+/** The readable text of a Portable Text document, ignoring its structure. */
+function plainTextOf(document) {
+    if (typeof document === 'string') {
+        return document;
+    }
+
+    return (Array.isArray(document) ? document : [])
+        .flatMap((block) => (block?.children ?? []).map((child) => child?.text ?? ''))
+        .join(' ');
 }

@@ -34,6 +34,10 @@ const props = defineProps({
     error: { type: String, default: null },
     // Settled and no longer editable, like a slug after the entry's first save.
     readonly: { type: Boolean, default: false },
+    // Shown greyed in an empty control: what the value will be if left blank.
+    placeholder: { type: String, default: '' },
+    // A line under the control, e.g. the URL a slug is going to produce.
+    hint: { type: String, default: null },
 });
 
 const borderClass = computed(() => (props.error
@@ -215,6 +219,7 @@ function textToTags(value) {
             :step="field.type === 'number' ? 'any' : undefined"
             :prefix="field.prefix"
             :suffix="field.suffix"
+            :placeholder="placeholder"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -231,5 +236,7 @@ function textToTags(value) {
         <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
 
         <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
+
+        <p v-else-if="hint" class="mt-1 truncate text-caption text-neutral-500">{{ hint }}</p>
     </div>
 </template>

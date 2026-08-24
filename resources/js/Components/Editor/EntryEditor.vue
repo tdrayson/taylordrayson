@@ -1,8 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
-import { slugify } from '../../lib/editor/defaults.js';
+import { noteSlug, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
@@ -25,6 +26,8 @@ const props = defineProps({
 const form = useForm({ ...props.values });
 
 const titleField = computed(() => props.fields.find((field) => field.isTitle) ?? null);
+const page = usePage();
+
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
 // Publish state is the save action, not a field: it lives in the footer beside
@@ -109,10 +112,71 @@ watch(() => (titleField.value ? form[titleField.value.name] : null), (title) => 
 function onFieldInput(field, value) {
     if (slugField.value && field.name === slugField.value.name) {
         slugEdited.value = true;
+        form[field.name] = slugifyInput(value);
+
+        return;
     }
 
     form[field.name] = value;
 }
+
+/**
+ * What the slug will be if the field is left empty. Only types that declare a
+ * fallback derive one; elsewhere the slug follows the title and is never blank.
+ */
+const derivedSlug = computed(() => {
+    if (! slugField.value?.fallback) {
+        return '';
+    }
+
+    // A note's body is a Prose field, which isBody does not mark: that flag is
+    // for the RichText one an article uses. Either way it is the entry's words.
+    const words = props.fields.find((field) => field.isBody || field.type === 'prose');
+
+    return noteSlug(words ? form[words.name] : null, slugField.value.fallback);
+});
+
+/**
+ * The URL this entry will answer on, as the slug is typed. Dated types live
+ * under their day; anything else sits at the site root.
+ */
+const slugPreview = computed(() => {
+    const slug = form[slugField.value?.name] || derivedSlug.value;
+
+    if (! slug) {
+        return null;
+    }
+
+    const day = previewDay.value;
+
+    return day ? `/${day.replaceAll('-', '/')}/${slug}` : `/${slug}`;
+});
+
+/**
+ * The day the entry will sit under. A date field left empty is stamped at save
+ * rather than on load (see defaultValueFor), so preview today rather than
+ * dropping the date and showing a URL the entry will never have.
+ */
+const previewDay = computed(() => {
+    const chosen = String(form.occurred_at ?? '').slice(0, 10);
+
+    if (chosen) {
+        return chosen;
+    }
+
+    const field = props.fields.find((one) => one.name === 'occurred_at');
+
+    if (! field?.defaultsToNow) {
+        return '';
+    }
+
+    const timezone = page.props.ambient?.location?.timezone ?? DEFAULT_TIMEZONE;
+
+    // en-CA renders as YYYY-MM-DD, which is the shape the URL wants.
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+});
 
 /** Apply the sibling values a lookup resolved: a book's author, a place's coordinates. */
 function applyFill(values) {
@@ -213,6 +277,8 @@ function submit(published = null) {
                     :longitude="form.longitude ?? null"
                     :error="form.errors[row.field.name]"
                     :readonly="row.field.type === 'slug' && slugLocked"
+                    :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
+                    :hint="row.field.type === 'slug' ? slugPreview : null"
                     @update:model-value="onFieldInput(row.field, $event)"
                     @fill="applyFill"
                 />

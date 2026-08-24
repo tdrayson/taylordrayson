@@ -17,7 +17,6 @@ it('refuses a create without a newly required field', function (string $type, ar
     'project status' => ['project', ['title' => 'A project', 'description' => 'A summary'], 'status'],
     'flight airline' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'flight_number' => 'BA117'], 'airline_icao'],
     'flight number' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'airline_icao' => 'BAW'], 'flight_number'],
-    'note slug' => ['note', ['content' => 'A thought.'], 'slug'],
 ]);
 
 it('stamps a date that defaults to now rather than refusing the save', function () {

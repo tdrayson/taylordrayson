@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
@@ -25,6 +26,12 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Note extends Model implements HasMedia, Timelineable
 {
+    /** Where a note's own words run out, e.g. a note that is only a photo. */
+    public const FALLBACK_SLUG = 'note';
+
+    /** How much of the note the derived slug uses. */
+    private const SLUG_WORDS = 6;
+
     use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
 
     /**
@@ -63,6 +70,22 @@ class Note extends Model implements HasMedia, Timelineable
      */
     public function slug(): string
     {
-        return $this->attributes['slug'] ?? 'note';
+        return $this->attributes['slug'] ?? self::slugFrom($this->attributes['content'] ?? null);
+    }
+
+    /**
+     * The slug a note falls back to: the opening words of what it says.
+     *
+     * A note has no title to derive one from, and the alternative is every
+     * note in a day sharing a bare "note" and separating only by a counter.
+     *
+     * The editor previews this as you type, so noteSlug() in
+     * resources/js/lib/editor/defaults.js has to apply the same rule.
+     */
+    public static function slugFrom(array|string|null $content): string
+    {
+        $words = Str::words(PortableText::plainText($content), self::SLUG_WORDS, '');
+
+        return Str::slug($words) ?: self::FALLBACK_SLUG;
     }
 }

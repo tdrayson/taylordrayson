@@ -20,6 +20,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      * @param  string|null  $group  Fields sharing a group are offered as one item, e.g. "Address".
      * @param  string|null  $collection  Media Library collection an Image or Gallery field syncs to.
      * @param  bool  $hidden  Saved and filled by a lookup, but never offered in the UI.
+     * @param  string|null  $fallback  What a Slug field resolves to when left empty.
      */
     private function __construct(
         public string $name,
@@ -36,6 +37,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public ?string $group,
         public ?string $collection,
         public bool $hidden,
+        public ?string $fallback,
     ) {}
 
     /**
@@ -44,9 +46,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null): self
+    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null): self
     {
-        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false);
+        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback);
     }
 
     /**
@@ -54,9 +56,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null): self
+    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null): self
     {
-        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false);
+        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback);
     }
 
     /**
@@ -65,7 +67,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function hidden(string $name, string $label, FieldType $type): self
     {
-        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true);
+        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null);
     }
 
     /**
@@ -110,6 +112,10 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->group !== null) {
             $data['group'] = $this->group;
+        }
+
+        if ($this->fallback !== null) {
+            $data['fallback'] = $this->fallback;
         }
 
         if ($this->hidden) {
