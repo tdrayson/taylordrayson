@@ -60,15 +60,10 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
     <!-- No width cap here: the heading/excerpt carry their own measure below, and
          BlockContent's renderer already applies max-w-prose/max-w-media per
          block, so a narrower ancestor would clip the wider (media) blocks. -->
-    <article v-else>
-        <!-- The wrapper, not the img, is the grid item: replaced elements don't
-             stretch to their grid area, block boxes do. Mirrors ArticleDetail,
-             including using the stored original rather than the 640px card
-             conversion a hero would render at twice the width of. -->
-        <div v-if="cover" class="mb-6 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
-            <img :src="cover.full" alt="" class="size-full object-cover">
-        </div>
-
+    <!-- Re-establishes the content grid, as ArticleDetail does, so the cover can
+         break out wider than the text column. Its children are the grid items;
+         nested elements cannot reach the named columns. -->
+    <article v-else class="full-width content-grid">
         <header>
             <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
             <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
@@ -84,6 +79,14 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
                 </Link>
             </div>
         </header>
+
+        <!-- The wrapper, not the img, is the grid item: replaced elements don't
+             stretch to their grid area, block boxes do. The stored original
+             rather than the 640px card conversion, which a hero renders at
+             roughly twice the width of. -->
+        <div v-if="cover" class="mt-8 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
+            <img :src="cover.full" alt="" class="size-full object-cover">
+        </div>
 
         <BlockContent :document="content" class="mt-8" />
     </article>
