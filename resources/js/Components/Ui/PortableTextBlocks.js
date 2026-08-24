@@ -95,7 +95,7 @@ function renderExternalLink(def, label, text, favicons) {
             src: favicon,
             alt: '',
             loading: 'lazy',
-            class: 'not-prose mb-0.5 mr-1 inline size-3.5 rounded-sm bg-white object-contain align-middle',
+            class: 'not-prose mb-0.5 mr-1 inline size-3.5 bg-white object-contain align-middle',
         })
         // A globe rather than nothing: without it some external links carry a
         // mark and some do not, which reads as broken rather than deliberate.
