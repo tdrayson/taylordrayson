@@ -111,7 +111,7 @@ describe('portable text round trip', () => {
     ]);
 
     survives('a video', [
-        { _type: 'video', _key: 'v1', url: 'https://example.com/v.mp4', caption: null, width: 1920, height: 1080 },
+        { _type: 'video', _key: 'v1', url: 'https://example.com/v.mp4', caption: null, poster: null, width: 1920, height: 1080 },
     ]);
 
     survives('a code block', [

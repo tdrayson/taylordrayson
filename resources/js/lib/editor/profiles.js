@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes';
+import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes.js';
 
 /** The display host for a URL, or null for an internal path. */
 function hostOf(href) {
@@ -22,6 +22,19 @@ function hostOf(href) {
  * data attribute and the toolbar is the only way to reach it.
  */
 const Link = TiptapLink.extend({
+    /**
+     * The caret sitting after a link is outside it, so a space typed there
+     * follows the link rather than being swallowed into the linked text and
+     * then stripped when autolink re-marks the URL alone.
+     *
+     * Overridden on the extension rather than passed to configure(): Tiptap
+     * derives this from options.autolink, so configure() cannot reach it and
+     * the only other way to get it is turning autolink off.
+     */
+    inclusive() {
+        return false;
+    },
+
     /**
      * Anchors, plus this mark's own output.
      *
