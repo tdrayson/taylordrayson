@@ -162,6 +162,47 @@ class OgMeta
     /**
      * @return OgPayload
      */
+    public static function more(): array
+    {
+        return self::make([
+            'title' => 'More',
+            'eyebrow' => 'Directory',
+            'heading' => 'Everything else on this site',
+            'description' => 'The full directory: every type I track, and every page that does not earn a spot in the sidebar.',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
+    public static function series(): array
+    {
+        return self::make([
+            'title' => 'TV',
+            'eyebrow' => 'TV',
+            'heading' => 'Every series I have watched',
+            'description' => 'Television by show rather than by episode, with what I have finished and what I am partway through.',
+            'accent' => 'media',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
+    public static function flightMap(): array
+    {
+        return self::make([
+            'title' => 'Flight map',
+            'eyebrow' => 'Flights',
+            'heading' => 'Every flight on one globe',
+            'description' => 'Every flight I have taken drawn as a great-circle arc, filterable by year.',
+            'accent' => 'flight',
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
     public static function designSystem(): array
     {
         return self::make([

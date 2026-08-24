@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Series;
 use App\Queries\SeriesShowData;
 use App\Queries\WatchedSeriesIndex;
+use App\Support\OgMeta;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,6 +23,7 @@ class SeriesController extends Controller
     {
         return Inertia::render('Media/SeriesIndex', [
             'series' => ($this->watchedSeriesIndex)(),
+            'og' => OgMeta::series(),
         ]);
     }
 

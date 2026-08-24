@@ -49,6 +49,16 @@ final readonly class LinkPreviewData implements Arrayable, JsonSerializable
         return new self($url, $title, $excerpt, 'page', 'page');
     }
 
+    /**
+     * One of the site's own fixed pages, described by the metadata it puts in
+     * its own head. Carries an accent so a page that is really about one type
+     * (/media/tv, /flights/map) reads in that type's hue.
+     */
+    public static function site(string $url, string $title, ?string $excerpt, string $accent = 'page'): self
+    {
+        return new self($url, $title, $excerpt, 'page', $accent);
+    }
+
     public static function story(string $url, string $title, ?string $excerpt, string $accent): self
     {
         return new self($url, $title, $excerpt, 'story', $accent);
