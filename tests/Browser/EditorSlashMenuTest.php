@@ -103,7 +103,7 @@ it('opens the link editor when the caret rests in a link, rather than following 
     $page = visit('/new/article');
 
     // linkOnPaste turns a typed URL into a link as soon as it is complete.
-    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'https://github.com ');
+    $page->click('.prose-editor')->type('.prose-editor', 'https://github.com ');
 
     // A span, not an anchor: a link in a draft is not a destination.
     $page->assertScript("document.querySelectorAll('.prose-editor .editor-link').length", 1)
@@ -139,7 +139,7 @@ it('offers underline alongside the other marks', function () {
 it('toggles whether a link opens in a new tab', function () {
     $page = visit('/new/article');
 
-    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'https://github.com ');
+    $page->click('.prose-editor')->type('.prose-editor', 'https://github.com ');
     $page->click('.prose-editor .editor-link');
     $page->click('[aria-label="Edit link"]');
 

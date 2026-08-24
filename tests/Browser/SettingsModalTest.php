@@ -16,7 +16,7 @@ it('opens the settings modal from the gear and toggles theme', function () {
     // Select Dark and assert the theme applied.
     $page->click('[aria-label="Dark"]')
         ->assertScript("document.documentElement.classList.contains('dark')", true)
-        ->assertScript("localStorage.getItem('theme')", 'dark');
+        ->assertScript(cookieValue('theme'), 'dark');
 
     // The Dark card reflects the selection via aria-checked.
     $page->assertScript(
@@ -27,5 +27,5 @@ it('opens the settings modal from the gear and toggles theme', function () {
     // Select Light and assert it reverts.
     $page->click('[aria-label="Light"]')
         ->assertScript("document.documentElement.classList.contains('dark')", false)
-        ->assertScript("localStorage.getItem('theme')", 'light');
+        ->assertScript(cookieValue('theme'), 'light');
 });
