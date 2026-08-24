@@ -48,12 +48,12 @@ it('404s for a guest when the tag only exists on an unpublished article, but ren
         );
 });
 
-it('carries tags as linkable {name, slug} objects on an article entry payload', function () {
+it('carries tags as linkable {name, slug, url} objects on an article entry payload', function () {
     $article = Article::factory()->create(['published' => true]);
     $article->syncTagNames(['Laravel']);
 
     get('/'.$article->occurred_at->format('Y/m/d').'/'.$article->slug())
         ->assertInertia(fn ($page) => $page
-            ->where('entry.tags', [['name' => 'Laravel', 'slug' => 'laravel']])
+            ->where('entry.tags', [['name' => 'Laravel', 'slug' => 'laravel', 'url' => '/tags/laravel']])
         );
 });

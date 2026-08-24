@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Data\TagLink;
+use App\Models\Tag;
 use App\Models\Trip;
 use App\Queries\TripEntries;
 use App\Support\LocalTime;
@@ -85,7 +87,7 @@ class TripController extends Controller
             'days' => $trip->days(),
             'start' => $this->datePartsFor($trip->starts_at, $trip->timezone),
             'end' => $this->datePartsFor($trip->ends_at, $trip->timezone),
-            'tags' => $trip->tags->map(fn ($tag): array => ['name' => $tag->name, 'slug' => $tag->slug])->all(),
+            'tags' => $trip->tags->map(fn (Tag $tag): array => TagLink::for($tag)->toArray())->all(),
             'groups' => $this->feed->groupByDay(($this->entries)($trip)),
         ]);
     }

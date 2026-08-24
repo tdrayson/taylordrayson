@@ -15,7 +15,7 @@ const props = defineProps({
     // the trip's own timezone.
     start: { type: Object, required: true },
     end: { type: Object, required: true },
-    // [{ name, slug }]
+    // [{ name, slug, url }]
     tags: { type: Array, default: () => [] },
     groups: { type: Array, default: () => [] },
 });
@@ -43,7 +43,7 @@ const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'day
              identically to tags anywhere else on the site. -->
         <p v-if="tags.length" class="mt-2 text-caption text-neutral-500">
             Tagged
-            <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="`/tags/${tag.slug}`" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ tag.name }}</Link><span v-if="index < tags.length - 1">, </span></template>
+            <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="tag.url" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ tag.name }}</Link><span v-if="index < tags.length - 1">, </span></template>
         </p>
     </header>
 

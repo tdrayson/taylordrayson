@@ -8,7 +8,7 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
-    // [{ name, slug, count }], already name-ordered by the server.
+    // [{ name, slug, url, count }], already name-ordered by the server.
     tags: { type: Array, default: () => [] },
 });
 
@@ -34,7 +34,7 @@ const featured = computed(() =>
             <Link
                 v-for="tag in featured"
                 :key="tag.slug"
-                :href="`/tags/${tag.slug}`"
+                :href="tag.url"
                 class="font-display text-name font-semibold text-neutral-800 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
             >{{ tag.name }}<sup class="ml-0.5 align-super text-label font-semibold tabular-nums text-neutral-400">{{ tag.count }}</sup></Link>
         </div>
@@ -44,7 +44,7 @@ const featured = computed(() =>
             <Link
                 v-for="tag in tags"
                 :key="tag.slug"
-                :href="`/tags/${tag.slug}`"
+                :href="tag.url"
                 class="text-meta text-neutral-600 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
             >{{ tag.name }} <span class="tabular-nums text-neutral-400">{{ tag.count }}</span></Link>
         </div>

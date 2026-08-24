@@ -6,6 +6,7 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
+use App\Data\TagLink;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
@@ -199,7 +200,7 @@ class EntryController extends Controller
 
         if (method_exists($model, 'tagNames')) {
             $data['tags'] = $model->tags
-                ->map(fn (Tag $tag): array => ['name' => $tag->name, 'slug' => $tag->slug])
+                ->map(fn (Tag $tag): array => TagLink::for($tag)->toArray())
                 ->all();
         }
 

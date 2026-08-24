@@ -66,7 +66,7 @@ provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: pro
 const editorValues = computed(() => valuesFor(props.fields, {
     ...props.entry,
     ...props.media,
-    // The payload carries {name, slug} so the footer can link each tag; the
+    // The payload carries {name, slug, url} so the footer can link each tag; the
     // form posts names, which is what syncTagNames takes.
     tags: (props.entry.tags ?? []).map((tag) => tag.name),
 }));

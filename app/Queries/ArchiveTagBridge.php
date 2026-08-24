@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Data\TagLink;
 use App\Models\Article;
 use App\Models\Tag;
 use App\Models\Taggable;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 final class ArchiveTagBridge
 {
     /**
-     * @return array{name: string, slug: string}|null
+     * @return array{name: string, slug: string, url: string}|null
      */
     public function __invoke(?string $value): ?array
     {
@@ -41,7 +42,7 @@ final class ArchiveTagBridge
             return null;
         }
 
-        return ['name' => $tag->name, 'slug' => $tag->slug];
+        return TagLink::for($tag)->toArray();
     }
 
     /**
