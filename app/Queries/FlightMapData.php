@@ -7,6 +7,7 @@ use App\Data\FlightMapEntry;
 use App\Data\FlightMapStats;
 use App\Data\RoutePoint;
 use App\Models\Flight;
+use Illuminate\Support\Collection;
 
 /**
  * Computes the full flight globe map payload: one entry per geocoded flight,
@@ -98,11 +99,13 @@ final class FlightMapData
 
         $longest = $flights->sortByDesc('distance')->first();
 
-        $routeCounts = $flights->countBy(fn (Flight $flight): string => collect([$flight->origin_iata, $flight->destination_iata])->sort()->implode('-'));
-        $topRouteKey = $routeCounts->sortDesc()->keys()->first();
+        // Directional: LGW to KRK and KRK to LGW are two different routes, so
+        // one return trip is not a route flown twice.
+        $routeCounts = $flights->countBy(fn (Flight $flight): string => "{$flight->origin_iata} to {$flight->destination_iata}");
+        $topRoute = $this->clearWinner($routeCounts);
 
         $aircraftCounts = $flights->pluck('meta.aircraft')->filter()->countBy();
-        $topAircraft = $aircraftCounts->sortDesc()->keys()->first();
+        $topAircraft = $this->clearWinner($aircraftCounts);
 
         return new FlightMapStats(
             flights: $flights->count(),
@@ -112,10 +115,34 @@ final class FlightMapData
             airlines: $airlines->count(),
             longestRoute: $longest ? "{$longest->origin_iata} to {$longest->destination_iata}" : null,
             longestDistance: $longest ? (int) $longest->distance : 0,
-            topRoute: $topRouteKey ? str_replace('-', ' to ', $topRouteKey) : null,
-            topRouteCount: $topRouteKey ? $routeCounts[$topRouteKey] : 0,
+            topRoute: $topRoute,
+            topRouteCount: $topRoute ? $routeCounts[$topRoute] : 0,
             topAircraft: $topAircraft,
             topAircraftCount: $topAircraft ? $aircraftCounts[$topAircraft] : 0,
         );
+    }
+
+    /**
+     * The single most common key, or null when nothing stands out.
+     *
+     * A highlight is only worth showing when it beats everything else: with 32
+     * routes tied on two flights, naming one of them says nothing true, and
+     * whichever sorted first would be picked arbitrarily. One occurrence is not
+     * a highlight either.
+     *
+     * @param  Collection<string, int>  $counts
+     */
+    private function clearWinner(Collection $counts): ?string
+    {
+        $ranked = $counts->sortDesc();
+        $top = $ranked->first();
+
+        if ($top === null || $top < 2) {
+            return null;
+        }
+
+        return $ranked->filter(fn (int $count): bool => $count === $top)->count() === 1
+            ? (string) $ranked->keys()->first()
+            : null;
     }
 }

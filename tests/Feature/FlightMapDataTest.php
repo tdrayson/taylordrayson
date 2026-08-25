@@ -66,3 +66,50 @@ it('carries raw metres and seconds through to the entry', function () {
     expect($entry->origin->lat)->toBe(51.47);
     expect($entry->airline->name)->toBe('British Airways');
 });
+
+/*
+ * "Most flown" is a highlight, so it only earns its place when something
+ * actually stands out. With 32 routes tied on two flights it was naming one of
+ * them arbitrarily, and a sorted airport pair meant one return trip read as
+ * having flown the same route twice.
+ */
+describe('most flown', function () {
+    $flight = function (string $from, string $to, string $on): void {
+        Flight::factory()->create([
+            'occurred_at' => $on,
+            'origin_iata' => $from, 'destination_iata' => $to,
+            'airline_icao' => 'BAW', 'distance' => 1_000_000, 'duration' => 3_600,
+            'meta' => ['aircraft' => 'Airbus A320'],
+        ]);
+    };
+
+    it('does not count a return trip as flying the same route twice', function () use ($flight) {
+        $flight('LHR', 'JFK', '2024-03-01 10:00:00');
+        $flight('JFK', 'LHR', '2024-03-08 10:00:00');
+
+        $stats = app(FlightMapData::class)()['stats']['all']->toArray();
+
+        expect($stats['topRoute'])->toBeNull()
+            ->and($stats['topRouteCount'])->toBe(0);
+    });
+
+    it('names a route only once it beats every other', function () use ($flight) {
+        $flight('LHR', 'JFK', '2024-03-01 10:00:00');
+        $flight('LHR', 'JFK', '2024-04-01 10:00:00');
+        $flight('LHR', 'CDG', '2024-05-01 10:00:00');
+
+        $stats = app(FlightMapData::class)()['stats']['all']->toArray();
+
+        expect($stats['topRoute'])->toBe('LHR to JFK')
+            ->and($stats['topRouteCount'])->toBe(2);
+    });
+
+    it('says nothing when two routes tie at the top', function () use ($flight) {
+        $flight('LHR', 'JFK', '2024-03-01 10:00:00');
+        $flight('LHR', 'JFK', '2024-04-01 10:00:00');
+        $flight('LHR', 'CDG', '2024-05-01 10:00:00');
+        $flight('LHR', 'CDG', '2024-06-01 10:00:00');
+
+        expect(app(FlightMapData::class)()['stats']['all']->toArray()['topRoute'])->toBeNull();
+    });
+});
