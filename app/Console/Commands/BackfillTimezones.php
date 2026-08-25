@@ -25,6 +25,15 @@ class BackfillTimezones extends Command
     private const HOME_COUNTRY = 'United Kingdom';
 
     /**
+     * Longest span still treated as one trip.
+     *
+     * The flight history has gaps: an August 2012 outbound to Lanzarote has no
+     * return recorded, so the next arrival home is 20 months later. Without a
+     * cap that span would stamp two years of London evenings as foreign.
+     */
+    private const MAX_TRIP_DAYS = 30;
+
+    /**
      * Fill in the timezones history never recorded, then derive the instants.
      *
      * Three passes, weakest signal last:
@@ -118,31 +127,35 @@ class BackfillTimezones extends Command
      */
     private function tripsFromFlights(): array
     {
-        $trips = [];
+        $legs = [];
         $open = null;
 
         foreach (Flight::query()->orderBy('occurred_at')->get() as $flight) {
             $arrival = $flight->arrival_timezone;
+            $at = Carbon::parse($flight->occurred_at);
 
             if (blank($arrival)) {
                 continue;
             }
 
-            if ($arrival === self::HOME) {
-                if ($open !== null) {
-                    $trips[] = [...$open, 'to' => Carbon::parse($flight->occurred_at)];
-                    $open = null;
-                }
-
-                continue;
+            // Each leg is closed by the next flight, wherever it lands: a leg
+            // to Cairo does not make the fortnight before it Egyptian.
+            if ($open !== null) {
+                $legs[] = [...$open, 'to' => $at];
+                $open = null;
             }
 
-            // A second outbound leg while already away extends the trip rather
-            // than starting a new one, but the zone follows the newest arrival.
-            $open = ['from' => Carbon::parse($open['from'] ?? $flight->occurred_at), 'timezone' => $arrival];
+            if ($arrival !== self::HOME) {
+                $open = ['from' => $at, 'timezone' => $arrival];
+            }
         }
 
-        return $trips;
+        // A leg still open at the end has no return flight recorded, so its
+        // span is unknown and it is dropped rather than guessed at.
+        return array_values(array_filter(
+            $legs,
+            fn (array $leg): bool => $leg['from']->diffInDays($leg['to']) <= self::MAX_TRIP_DAYS,
+        ));
     }
 
     /**
@@ -168,7 +181,12 @@ class BackfillTimezones extends Command
 
             foreach ($trips as $trip) {
                 $query = $model::query()
-                    ->whereNull('timezone')
+                    // Home is overwritten as well as empty. Inside a trip you
+                    // were demonstrably not at home, so a home zone there is
+                    // wrong however it was set: TraktSync stamps every watch
+                    // with `DISPLAY_TIMEZONE` on the assumption of watching
+                    // from the UK, which a trip disproves.
+                    ->where(fn ($where) => $where->whereNull('timezone')->orWhere('timezone', self::HOME))
                     ->whereBetween('occurred_at', [$trip['from']->toDateString().' 00:00:00', $trip['to']->toDateString().' 23:59:59']);
 
                 $changed += $dry

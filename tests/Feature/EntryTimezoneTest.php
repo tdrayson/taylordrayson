@@ -3,6 +3,7 @@
 use App\Models\Activity;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\Media;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
@@ -129,6 +130,50 @@ describe('timezones:backfill', function () {
         $this->artisan('timezones:backfill')->assertSuccessful();
 
         expect($gatwick->fresh()->timezone)->toBeNull();
+    });
+
+    // The flight history has gaps. An August 2012 outbound to Lanzarote has no
+    // return recorded, so the next arrival home is 20 months later; without a
+    // cap that span stamped two years of London evenings as foreign.
+    it('ignores a trip with no return flight rather than running it for months', function () {
+        Flight::factory()->create(['occurred_at' => '2012-08-27 09:00:00', 'arrival_timezone' => 'Atlantic/Canary']);
+        Flight::factory()->create(['occurred_at' => '2014-04-11 18:00:00', 'arrival_timezone' => 'Europe/London']);
+
+        $home = Sleep::factory()->create(['occurred_at' => '2013-06-15 23:00:00', 'timezone' => null]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($home->fresh()->timezone)->toBeNull();
+    });
+
+    // A later leg must not rewrite the zone of the days before it.
+    it('gives each leg of a trip its own zone', function () {
+        Flight::factory()->create(['occurred_at' => '2022-10-13 08:00:00', 'arrival_timezone' => 'America/New_York']);
+        Flight::factory()->create(['occurred_at' => '2022-10-19 12:00:00', 'arrival_timezone' => 'America/Chicago']);
+        Flight::factory()->create(['occurred_at' => '2022-10-25 18:00:00', 'arrival_timezone' => 'Europe/London']);
+
+        $first = Sleep::factory()->create(['occurred_at' => '2022-10-15 23:00:00', 'timezone' => null]);
+        $second = Sleep::factory()->create(['occurred_at' => '2022-10-21 23:00:00', 'timezone' => null]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($first->fresh()->timezone)->toBe('America/New_York')
+            ->and($second->fresh()->timezone)->toBe('America/Chicago');
+    });
+
+    // TraktSync stamps every watch Europe/London on the assumption of watching
+    // from the UK, which a trip disproves.
+    it('overrules a home zone that was only ever an assumption', function () {
+        Flight::factory()->create(['occurred_at' => '2022-10-13 08:00:00', 'arrival_timezone' => 'America/New_York']);
+        Flight::factory()->create(['occurred_at' => '2022-10-25 18:00:00', 'arrival_timezone' => 'Europe/London']);
+
+        $abroad = Media::factory()->create(['occurred_at' => '2022-10-18 20:00:00', 'timezone' => 'Europe/London']);
+        $atHome = Media::factory()->create(['occurred_at' => '2022-12-18 20:00:00', 'timezone' => 'Europe/London']);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($abroad->fresh()->timezone)->toBe('America/New_York')
+            ->and($atHome->fresh()->timezone)->toBe('Europe/London');
     });
 
     it('changes nothing on a second run', function () {
