@@ -6,6 +6,7 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\TimelineType;
 use App\Models\Calorie;
+use App\Queries\DayFoodTotals;
 
 /**
  * Builds the timeline card for a Calorie entry: the day's total kcal as the
@@ -15,15 +16,15 @@ final class CalorieCard
 {
     public function present(Calorie $model): CardData
     {
-        $dailyTotal = Calorie::whereDate('occurred_at', $model->occurred_at->toDateString())
-            ->sum('calories');
+        $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
+        $dailyTotal = $totals['calories'];
 
         return new CardData(
             type: TimelineType::Calorie,
             icon: 'utensils',
             title: number_format($dailyTotal).' kcal',
             titleLabel: 'Food log, '.number_format($dailyTotal).' kcal for the day',
-            subtitle: $this->cardSubtitle($model),
+            subtitle: $this->cardSubtitle($totals),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'food',
@@ -32,24 +33,23 @@ final class CalorieCard
         );
     }
 
-    private function cardSubtitle(Calorie $model): ?string
+    /**
+     * @param  array{calories: int, protein: float, carbs: float, fat: float}  $totals
+     */
+    private function cardSubtitle(array $totals): ?string
     {
-        $totals = Calorie::whereDate('occurred_at', $model->occurred_at->toDateString())
-            ->selectRaw('SUM(protein) as protein, SUM(carbs) as carbs, SUM(fat) as fat')
-            ->first();
-
         $parts = [];
 
-        if ($totals->protein) {
-            $parts[] = round($totals->protein).'g protein';
+        if ($totals['protein']) {
+            $parts[] = round($totals['protein']).'g protein';
         }
 
-        if ($totals->carbs) {
-            $parts[] = round($totals->carbs).'g carbs';
+        if ($totals['carbs']) {
+            $parts[] = round($totals['carbs']).'g carbs';
         }
 
-        if ($totals->fat) {
-            $parts[] = round($totals->fat).'g fat';
+        if ($totals['fat']) {
+            $parts[] = round($totals['fat']).'g fat';
         }
 
         return $parts ? implode(', ', $parts) : null;

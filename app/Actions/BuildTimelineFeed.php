@@ -2,8 +2,10 @@
 
 namespace App\Actions;
 
+use App\Models\Calorie;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
+use App\Queries\DayFoodTotals;
 use App\Support\LocalTime;
 use App\Support\Text;
 use Illuminate\Support\Collection;
@@ -19,6 +21,8 @@ class BuildTimelineFeed
      */
     public function groupByDay(Collection $entries): array
     {
+        $this->warmFoodTotals($entries);
+
         return $entries
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->groupBy(fn (TimelineEntry $entry): string => $entry->occurred_at->format('Y-m-d'))
@@ -30,6 +34,26 @@ class BuildTimelineFeed
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Read every food day on the page in one query. Each food card shows the
+     * whole day's totals, so without this they are fetched a card at a time.
+     *
+     * @param  Collection<int, TimelineEntry>  $entries
+     */
+    private function warmFoodTotals(Collection $entries): void
+    {
+        $dates = $entries
+            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable instanceof Calorie)
+            ->map(fn (TimelineEntry $entry): string => $entry->timelineable->occurred_at->toDateString())
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($dates !== []) {
+            app(DayFoodTotals::class)->warm($dates);
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
+use App\Queries\DayFoodTotals;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
 use App\Support\FeedDiscovery;
@@ -30,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
         // Scoped so a sync writing hundreds of entries reads the phone's last
         // reading once rather than once per row.
         $this->app->scoped(AmbientZone::class);
+
+        // Held for the request so every food card on a page shares one read of
+        // the day totals.
+        $this->app->scoped(DayFoodTotals::class);
     }
 
     /**
