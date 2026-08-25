@@ -42,7 +42,7 @@ class UpdateCityTimezones extends Command
         }
 
         if (count($rows) < self::MIN_ROWS) {
-            $this->components->error('Only ' . count($rows) . ' cities parsed; refusing to overwrite.');
+            $this->components->error('Only '.count($rows).' cities parsed; refusing to overwrite.');
 
             return self::FAILURE;
         }
@@ -50,7 +50,7 @@ class UpdateCityTimezones extends Command
         sort($rows);
         $existing = is_file($cities->path()) ? substr_count((string) file_get_contents($cities->path()), "\n") : 0;
 
-        $this->components->info(count($rows) . ' cities parsed, ' . $existing . ' currently bundled.');
+        $this->components->info(count($rows).' cities parsed, '.$existing.' currently bundled.');
 
         if ($this->option('dry-run')) {
             $this->components->warn('Dry run: nothing was written.');
@@ -58,8 +58,8 @@ class UpdateCityTimezones extends Command
             return self::SUCCESS;
         }
 
-        file_put_contents($cities->path(), implode("\n", $rows) . "\n");
-        $this->components->info('Wrote ' . $cities->path() . '. Commit it.');
+        file_put_contents($cities->path(), implode("\n", $rows)."\n");
+        $this->components->info('Wrote '.$cities->path().'. Commit it.');
 
         return self::SUCCESS;
     }
@@ -69,13 +69,13 @@ class UpdateCityTimezones extends Command
      */
     private function download(): ?array
     {
-        $archive = tempnam(sys_get_temp_dir(), 'geonames') . '.zip';
+        $archive = tempnam(sys_get_temp_dir(), 'geonames').'.zip';
 
         try {
             $response = Http::api()->timeout(120)->get(self::SOURCE);
 
             if (! $response->successful()) {
-                $this->components->error('GeoNames returned ' . $response->status() . '.');
+                $this->components->error('GeoNames returned '.$response->status().'.');
 
                 return null;
             }
@@ -84,7 +84,7 @@ class UpdateCityTimezones extends Command
 
             return $this->rowsFrom($archive);
         } catch (Throwable $exception) {
-            $this->components->error('Download failed: ' . $exception->getMessage());
+            $this->components->error('Download failed: '.$exception->getMessage());
 
             return null;
         } finally {
@@ -97,7 +97,7 @@ class UpdateCityTimezones extends Command
      */
     private function rowsFrom(string $archive): ?array
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         if ($zip->open($archive) !== true) {
             $this->components->error('Could not open the GeoNames archive.');
