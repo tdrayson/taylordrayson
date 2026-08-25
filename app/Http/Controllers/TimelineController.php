@@ -66,7 +66,7 @@ class TimelineController extends Controller
             ->withCardRelations()
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
-            ->orderBy('occurred_at', $ascending ? 'asc' : 'desc')
+            ->orderByInstant($ascending ? 'asc' : 'desc')
             ->get();
 
         return $this->feed->groupByDay($entries);
@@ -112,7 +112,7 @@ class TimelineController extends Controller
         $entries = TimelineEntry::query()
             ->withCardRelations()
             ->coveringAnniversary($today->format('m-d'))
-            ->orderByDesc('occurred_at')
+            ->orderByInstant()
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
@@ -163,7 +163,7 @@ class TimelineController extends Controller
         $entries = TimelineEntry::query()
             ->withCardRelations()
             ->whereBetween('occurred_at', [$start, $end])
-            ->orderBy('occurred_at')
+            ->orderByInstant('asc')
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
@@ -224,7 +224,7 @@ class TimelineController extends Controller
         $entries = TimelineEntry::query()
             ->withCardRelations()
             ->coveringDate($date->toDateString())
-            ->orderBy('occurred_at', 'asc')
+            ->orderByInstant('asc')
             ->get()
             ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
             ->values();
