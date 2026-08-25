@@ -70,6 +70,11 @@ class BuildTimelineFeed
         $card = CardPresenter::for($entry->timelineable);
         $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
 
+        // MOCKUP ONLY, hardcoded to see how it reads. A day-granular entry has
+        // no clock time: food is a whole day's total, and the timestamp it
+        // carries today is a placeholder rather than a moment.
+        $allDay = $entry->timelineable instanceof Calorie;
+
         return [
             'iconKey' => $card->type->value,
             'accent' => $card->accent,
@@ -89,7 +94,7 @@ class BuildTimelineFeed
             'brand' => $card->meta->brand,
             'address' => $card->meta->address,
             'range' => $card->range,
-            'time' => $local['time'],
+            'time' => $allDay ? 'All day' : $local['time'],
             'datetime' => $local['iso'],
             'label' => $local['label'],
             'offset' => $local['offset'],
