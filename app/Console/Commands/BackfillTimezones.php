@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Activity;
 use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
@@ -53,6 +54,9 @@ class BackfillTimezones extends Command
     {
         $dry = (bool) $this->option('dry-run');
 
+        $guessed = $this->clearGuessedActivityZones($dry);
+        $this->components->info("Activities whose zone was an offset guess: {$guessed}");
+
         $checkins = $this->backfillCheckins($venues, $dry);
         $this->components->info("Check-ins given a venue timezone: {$checkins}");
 
@@ -72,6 +76,29 @@ class BackfillTimezones extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Empty the zone on activities where Strava was guessing it.
+     *
+     * Without GPS, Strava names the first IANA zone matching the device's UTC
+     * offset, so indoor sessions come back as Africa/Algiers for BST or
+     * Africa/Abidjan for GMT. The instant stays correct either way, since the
+     * offset matches; what changes is that the row stops claiming a continent
+     * it was never on, and becomes correctable, because the trip pass below
+     * only overrides a zone that is empty or home.
+     *
+     * Runs first for that reason: a flight can then place these properly, as
+     * with the Basel trip that owns the lone Africa/Blantyre workout.
+     */
+    private function clearGuessedActivityZones(bool $dry): int
+    {
+        $guessed = Activity::query()
+            ->whereNotNull('timezone')
+            ->where('timezone', '!=', self::HOME)
+            ->whereNull('track');
+
+        return $dry ? $guessed->count() : $guessed->update(['timezone' => null]);
     }
 
     /**

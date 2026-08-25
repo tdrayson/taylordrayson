@@ -9,6 +9,7 @@ use App\Enums\Source;
 use App\Jobs\GenerateEntryMap;
 use App\Models\Activity;
 use App\Services\Strava;
+use App\Support\EntryInstant;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -316,7 +317,7 @@ class StravaSync extends Command
             'max_heart_rate' => $data['max_heartrate'] ?? null,
             'source' => Source::Strava->value,
             'source_id' => (string) $data['id'],
-            'timezone' => $this->ianaTimezone($data['timezone'] ?? null),
+            'timezone' => $this->timezoneFor($data),
         ];
     }
 
@@ -412,6 +413,29 @@ class StravaSync extends Command
         if ($stored > 0) {
             $this->info("  → Downloaded {$stored} photo(s)");
         }
+    }
+
+    /**
+     * The zone the activity happened in, or null where Strava is guessing.
+     *
+     * Without GPS, Strava names the first IANA zone matching the device's UTC
+     * offset, so an indoor workout comes back as Africa/Algiers for BST or
+     * Africa/Abidjan for GMT. The offset is right and the place is fiction, and
+     * a zone that names the wrong continent cannot be reasoned about or
+     * corrected: #284's backfill only overrides a zone that is empty or home.
+     * Null instead, which already means home, and let a flight prove otherwise.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function timezoneFor(array $data): ?string
+    {
+        $timezone = $this->ianaTimezone($data['timezone'] ?? null);
+
+        if ($timezone === null || $timezone === EntryInstant::HOME) {
+            return $timezone;
+        }
+
+        return blank($data['map']['polyline'] ?? null) ? null : $timezone;
     }
 
     /**

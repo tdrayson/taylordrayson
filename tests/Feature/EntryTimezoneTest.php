@@ -193,3 +193,52 @@ describe('timezones:backfill', function () {
             ->assertSuccessful();
     });
 });
+
+/*
+ * Without GPS, Strava names the first IANA zone matching the device's offset,
+ * so an indoor workout in London comes back as Africa/Algiers in summer and
+ * Africa/Abidjan in winter. The instant is right and the place is fiction.
+ */
+describe('Strava offset aliases', function () {
+    it('empties a zone Strava guessed from the offset', function () {
+        $guessed = Activity::factory()->create([
+            'occurred_at' => '2024-07-02 18:00:00',
+            'timezone' => 'Africa/Algiers',
+            'track' => null,
+        ]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($guessed->fresh()->timezone)->toBeNull();
+    });
+
+    it('keeps a zone backed by a GPS track, however foreign', function () {
+        $abroad = Activity::factory()->create([
+            'occurred_at' => '2022-10-16 07:46:35',
+            'timezone' => 'America/New_York',
+            'track' => [[40.75, -73.99]],
+        ]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($abroad->fresh()->timezone)->toBe('America/New_York');
+    });
+
+    // The whole point of clearing them: a guessed zone is neither empty nor
+    // home, so the trip pass would otherwise skip it forever.
+    it('lets a flight place a workout whose zone was only ever a guess', function () {
+        Flight::factory()->create(['occurred_at' => '2025-06-03 08:16:00', 'arrival_timezone' => 'Europe/Paris']);
+        Flight::factory()->create(['occurred_at' => '2025-06-08 22:21:00', 'arrival_timezone' => 'Europe/London']);
+
+        $workout = Activity::factory()->create([
+            'occurred_at' => '2025-06-04 12:28:36',
+            // UTC+2 is CEST, which is where he actually was.
+            'timezone' => 'Africa/Blantyre',
+            'track' => null,
+        ]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($workout->fresh()->timezone)->toBe('Europe/Paris');
+    });
+});

@@ -209,3 +209,44 @@ it('holds the refresh to --days even when the window stretched to heal a gap', f
 
     expect(stravaDetailRequests())->toBe(0);
 });
+
+/*
+ * Strava names the first IANA zone matching the device's UTC offset when an
+ * activity has no GPS, so an indoor session in London arrives as Africa/Algiers
+ * in summer and Africa/Abidjan in winter (#285).
+ */
+it('does not store a zone Strava guessed from the offset', function () {
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()
+            ->push([stravaSummary(['id' => 777, 'sport_type' => 'WeightTraining', 'timezone' => '(GMT+01:00) Africa/Algiers'])])
+            ->push([]),
+        '*/api/v3/activities/777' => Http::response(stravaSummary([
+            'id' => 777,
+            'sport_type' => 'WeightTraining',
+            'timezone' => '(GMT+01:00) Africa/Algiers',
+        ])),
+    ]);
+
+    $this->artisan('strava:sync --days=7')->assertSuccessful();
+
+    expect(Activity::where('source_id', '777')->first()->timezone)->toBeNull();
+});
+
+it('stores a foreign zone when the activity has a route to back it up', function () {
+    $abroad = [
+        'id' => 778,
+        'timezone' => '(GMT-05:00) America/New_York',
+        'map' => ['polyline' => 'ki{eFvqfiVsAvJ'],
+    ];
+
+    Http::fake([
+        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
+        '*/athlete/activities*' => Http::sequence()->push([stravaSummary($abroad)])->push([]),
+        '*/api/v3/activities/778' => Http::response(stravaSummary($abroad)),
+    ]);
+
+    $this->artisan('strava:sync --days=7')->assertSuccessful();
+
+    expect(Activity::where('source_id', '778')->first()->timezone)->toBe('America/New_York');
+});
