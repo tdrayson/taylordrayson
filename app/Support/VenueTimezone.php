@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Services\TimeApi;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
@@ -25,7 +24,7 @@ class VenueTimezone
 
     private const TTL = 60 * 60 * 24 * 365;
 
-    public function __construct(private readonly TimeApi $timeApi) {}
+    public function __construct(private readonly CityTimezones $cities) {}
 
     /** Null when there is no coordinate to ask about, or the lookup fails. */
     public function forCoordinate(float|string|null $latitude, float|string|null $longitude): ?string
@@ -39,10 +38,10 @@ class VenueTimezone
 
         return Cache::remember("venue-timezone:{$lat},{$lng}", self::TTL, function () use ($lat, $lng): ?string {
             try {
-                return $this->timeApi->timezoneForCoordinate($lat, $lng);
+                return $this->cities->forCoordinate($lat, $lng);
             } catch (Throwable) {
-                // A lookup that cannot be made leaves the entry as it was, so a
-                // flaky network slows a backfill rather than failing it.
+                // A lookup that cannot be made leaves the entry as it was,
+                // rather than failing the run around it.
                 return null;
             }
         });
