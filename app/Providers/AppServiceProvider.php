@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Listeners\AlertOnFailedJob;
+use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Support\AmbientZone;
 use App\Support\FeedDiscovery;
 use App\Support\OptimisingFileAdder;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\FileAdder;
@@ -33,5 +38,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('app', function (\Illuminate\View\View $view): void {
             $view->with('contextualFeeds', FeedDiscovery::forRoute(request()->route()));
         });
+
+        // Failures that otherwise only ever reached the log.
+        Event::listen(ScheduledTaskFailed::class, AlertOnScheduledTaskFailure::class);
+        Event::listen(JobFailed::class, AlertOnFailedJob::class);
     }
 }
