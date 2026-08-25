@@ -80,8 +80,10 @@ function goTo(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     // replaceState, not the default jump: the URL becomes copyable without
     // stacking a history entry per heading, and without the instant scroll that
-    // following the link natively would do.
-    window.history.replaceState(null, '', `#${id}`);
+    // following the link natively would do. The existing state is carried
+    // through because Inertia keeps the page there, and a null state makes
+    // popstate rewrite the entry instead of navigating to it (see #287).
+    window.history.replaceState(window.history.state, '', `#${id}`);
     open.value = false;
 }
 
