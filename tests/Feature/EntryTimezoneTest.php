@@ -176,6 +176,46 @@ describe('timezones:backfill', function () {
             ->and($atHome->fresh()->timezone)->toBe('Europe/London');
     });
 
+    // The trip pass assigns zones to activities with no GPS, which is exactly
+    // what the guess pass looks for. Without an exception the two would fight,
+    // one clearing what the other wrote, on every run forever.
+    it('leaves a zone the trip pass assigned alone on a later run', function () {
+        Flight::factory()->create(['occurred_at' => '2025-06-03 08:00:00', 'arrival_timezone' => 'Europe/Paris']);
+        Flight::factory()->create(['occurred_at' => '2025-06-08 18:00:00', 'arrival_timezone' => 'Europe/London']);
+
+        $workout = Activity::factory()->create([
+            'occurred_at' => '2025-06-04 12:00:00',
+            'timezone' => 'Africa/Blantyre',
+            'track' => null,
+        ]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+        expect($workout->fresh()->timezone)->toBe('Europe/Paris');
+
+        $this->artisan('timezones:backfill')
+            ->expectsOutputToContain('Activities whose zone was an offset guess: 0')
+            ->assertSuccessful();
+
+        expect($workout->fresh()->timezone)->toBe('Europe/Paris');
+    });
+
+    // Being inside a trip is not a free pass: a zone that disagrees with where
+    // the trip was is still a guess, and clearing it is what lets it be fixed.
+    it('still clears a guess that disagrees with the trip around it', function () {
+        Flight::factory()->create(['occurred_at' => '2025-06-03 08:00:00', 'arrival_timezone' => 'Europe/Paris']);
+        Flight::factory()->create(['occurred_at' => '2025-06-08 18:00:00', 'arrival_timezone' => 'Europe/London']);
+
+        $workout = Activity::factory()->create([
+            'occurred_at' => '2025-06-04 12:00:00',
+            'timezone' => 'Africa/Algiers',
+            'track' => null,
+        ]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($workout->fresh()->timezone)->toBe('Europe/Paris');
+    });
+
     it('changes nothing on a second run', function () {
         Checkin::factory()->create([
             'occurred_at' => '2022-10-14 01:26:55',
