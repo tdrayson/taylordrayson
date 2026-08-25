@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Calorie;
 use App\Models\TimelineEntry;
 use App\Queries\LoggingStreak;
+use App\Support\EntryInstant;
 
 class CalorieTimelineObserver
 {
@@ -24,13 +25,18 @@ class CalorieTimelineObserver
             return;
         }
 
+        // Food is day-granular, so the spine row sits at midday rather than at
+        // whichever log happened to be saved last.
+        $occurredAt = $calorie->occurred_at->copy()->setTime(12, 0);
+
         TimelineEntry::updateOrCreate(
             [
                 'timelineable_type' => Calorie::class,
                 'timelineable_id' => $firstCalorie->id,
             ],
             [
-                'occurred_at' => $calorie->occurred_at->copy()->setTime(12, 0),
+                'occurred_at' => $occurredAt,
+                'occurred_utc' => EntryInstant::utc($occurredAt, $firstCalorie->timezone()),
                 'url_slug' => $firstCalorie->slug(),
             ],
         );
