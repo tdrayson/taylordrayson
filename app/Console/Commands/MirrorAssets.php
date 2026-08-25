@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Storage;
 #[Description('Copy attachment originals to the R2 mirror, never deleting')]
 class MirrorAssets extends Command
 {
+    /** Keeps originals clear of the database backups sharing this bucket. */
+    private const PREFIX = 'assets/';
+
     /**
      * Copy originals to R2, add-only.
      *
@@ -41,7 +44,13 @@ class MirrorAssets extends Command
         foreach ($this->candidates() as $attachment) {
             $path = $this->pathFor($attachment);
 
-            if ($path === null || $mirror->exists($path)) {
+            if ($path === null) {
+                continue;
+            }
+
+            $destination = self::PREFIX.$path;
+
+            if ($mirror->exists($destination)) {
                 continue;
             }
 
@@ -54,7 +63,7 @@ class MirrorAssets extends Command
                 continue;
             }
 
-            $mirror->writeStream($path, $stream);
+            $mirror->writeStream($destination, $stream);
             $copied++;
         }
 

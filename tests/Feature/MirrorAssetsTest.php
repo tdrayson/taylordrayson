@@ -29,7 +29,7 @@ it('copies an original to the mirror', function () {
 
     $this->artisan('assets:mirror')->assertSuccessful();
 
-    Storage::disk('r2')->assertExists($media->getPathRelativeToRoot());
+    Storage::disk('r2')->assertExists('assets/'.$media->getPathRelativeToRoot());
 });
 
 it('never copies conversions or responsive images', function () {
@@ -50,7 +50,7 @@ it('leaves a mirrored file alone when the original is deleted', function () {
     $media = noteWithPhoto();
     $this->artisan('assets:mirror')->assertSuccessful();
 
-    $path = $media->getFirstMedia('photos')->getPathRelativeToRoot();
+    $path = 'assets/'.$media->getFirstMedia('photos')->getPathRelativeToRoot();
     $media->clearMediaCollection('photos');
 
     $this->artisan('assets:mirror')->assertSuccessful();
@@ -82,4 +82,15 @@ it('refuses to run when no bucket is configured', function () {
     config(['filesystems.disks.r2.bucket' => null]);
 
     $this->artisan('assets:mirror')->assertFailed();
+});
+
+// The bucket holds backups from elsewhere too, so originals must not land at
+// its root next to the database folder.
+it('keeps originals under their own prefix', function () {
+    noteWithPhoto();
+
+    $this->artisan('assets:mirror')->assertSuccessful();
+
+    expect(Storage::disk('r2')->allFiles())
+        ->each(fn ($path) => $path->toStartWith('assets/'));
 });

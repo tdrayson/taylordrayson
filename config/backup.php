@@ -15,10 +15,12 @@ return [
 
     'backup' => [
         /*
-         * The name of this application. You can use this name to monitor
-         * the backups.
+         * The folder backups are written to, and the one `backup:clean` prunes
+         * within. Pinned rather than taken from APP_NAME so it cannot differ
+         * between here and production, and so it reads as a folder rather than
+         * as a display name.
          */
-        'name' => env('APP_NAME', 'laravel-backup'),
+        'name' => 'database',
 
         'source' => [
             'files' => [
@@ -299,7 +301,7 @@ return [
      */
     'monitor_backups' => [
         [
-            'name' => env('APP_NAME', 'laravel-backup'),
+            'name' => 'database',
             'disks' => ['r2'],
             'health_checks' => [
                 MaximumAgeInDays::class => 1,
