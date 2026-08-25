@@ -33,7 +33,7 @@ class ThisWeekWith
         $page = 1;
 
         do {
-            $response = Http::acceptJson()->get(self::ENDPOINT, [
+            $response = Http::api()->acceptJson()->get(self::ENDPOINT, [
                 'page' => $page,
                 'per_page' => $perPage,
             ]);

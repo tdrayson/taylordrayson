@@ -338,7 +338,7 @@ class Trakt
 
     private function pendingRequest(?string $accessToken = null, bool $retryOnRateLimit = true): PendingRequest
     {
-        return Http::withHeaders(array_filter([
+        return Http::api()->withHeaders(array_filter([
             'trakt-api-version' => '2',
             'trakt-api-key' => config('services.trakt.client_id'),
             'Content-Type' => 'application/json',

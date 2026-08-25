@@ -66,7 +66,7 @@ class Tmdb
      */
     private function request(string $path, array $params): Response
     {
-        return Http::connectTimeout(10)
+        return Http::api()->connectTimeout(10)
             ->timeout(20)
             ->retry(3, 500, when: fn (\Throwable $e): bool => $e instanceof ConnectionException
                 || ($e instanceof RequestException && $e->response?->status() === 429), throw: false)

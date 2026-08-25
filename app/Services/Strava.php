@@ -33,7 +33,7 @@ class Strava
             }
         }
 
-        $response = Http::post(self::BASE.'/oauth/token', [
+        $response = Http::api()->post(self::BASE.'/oauth/token', [
             'client_id' => config('services.strava.client_id'),
             'client_secret' => config('services.strava.client_secret'),
             'grant_type' => 'refresh_token',
@@ -118,7 +118,7 @@ class Strava
             return null;
         }
 
-        $response = Http::withToken($token)->get($url, $params);
+        $response = Http::api()->withToken($token)->get($url, $params);
 
         if ($response->status() === 401) {
             $token = $this->token(true);
@@ -127,7 +127,7 @@ class Strava
                 return null;
             }
 
-            $response = Http::withToken($token)->get($url, $params);
+            $response = Http::api()->withToken($token)->get($url, $params);
         }
 
         return $response->failed() ? null : $response->json();

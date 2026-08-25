@@ -29,7 +29,7 @@ class LogoStream
      */
     public function airlineLogo(string $iata, string $variant, int $size = 400): array
     {
-        $response = Http::get(self::BASE.'/airlines/iata/'.$iata, [
+        $response = Http::api()->get(self::BASE.'/airlines/iata/'.$iata, [
             'key' => config('services.logostream.key'),
             'variant' => $variant,
             'format' => 'png',
@@ -58,7 +58,7 @@ class LogoStream
      */
     public function route(string $departureIata, string $arrivalIata): ?array
     {
-        $response = Http::withHeaders(['x-api-key' => config('services.logostream.key')])
+        $response = Http::api()->withHeaders(['x-api-key' => config('services.logostream.key')])
             ->get(self::AVIATION_BASE.'/v1/routes', [
                 'departureIata' => $departureIata,
                 'arrivalIata' => $arrivalIata,

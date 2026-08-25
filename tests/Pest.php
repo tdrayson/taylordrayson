@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
 use Tests\TestCase;
 
@@ -19,6 +20,11 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Browser');
+
+// The HTTP client retries a rate limit or a 5xx with a backoff (see ApiHttp).
+// Tests that fake those responses would otherwise sit through the real wait,
+// which cost the suite about 26 seconds.
+uses()->beforeEach(fn () => Sleep::fake())->in('Feature', 'Unit', 'Browser');
 
 /*
 |--------------------------------------------------------------------------

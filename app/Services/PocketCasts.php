@@ -201,7 +201,7 @@ class PocketCasts
             throw new RuntimeException('Pocket Casts credentials are not configured (POCKETCASTS_EMAIL / POCKETCASTS_PASSWORD).');
         }
 
-        $response = Http::asJson()
+        $response = Http::api()->asJson()
             ->acceptJson()
             ->withHeaders(['User-Agent' => self::USER_AGENT])
             ->post(self::API_BASE.'/user/login', [
@@ -261,7 +261,7 @@ class PocketCasts
      */
     private function getPublic(string $url): array
     {
-        $response = Http::acceptJson()
+        $response = Http::api()->acceptJson()
             ->withHeaders(['User-Agent' => self::USER_AGENT])
             ->get($url);
 
@@ -301,7 +301,7 @@ class PocketCasts
      */
     private function client(string $token): PendingRequest
     {
-        return Http::acceptJson()
+        return Http::api()->acceptJson()
             ->withToken($token)
             ->withHeaders(['User-Agent' => self::USER_AGENT]);
     }

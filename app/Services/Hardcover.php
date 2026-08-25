@@ -112,7 +112,7 @@ class Hardcover
         // withToken() does not double up the scheme.
         $token = str_starts_with($key, 'Bearer ') ? substr($key, 7) : $key;
 
-        return Http::withToken($token)
+        return Http::api()->withToken($token)
             ->acceptJson()
             ->asJson()
             ->connectTimeout(10)

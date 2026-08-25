@@ -57,7 +57,7 @@ class Mapbox
             throw new RuntimeException('Mapbox token is not configured (MAPBOX_TOKEN).');
         }
 
-        $response = Http::get(self::BASE.'/'.rawurlencode($query).'.json', [
+        $response = Http::api()->get(self::BASE.'/'.rawurlencode($query).'.json', [
             ...$parameters,
             'access_token' => $token,
         ]);
