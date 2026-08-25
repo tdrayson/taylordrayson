@@ -59,16 +59,15 @@ it('falls back to the timezone api when the route is unknown', function () {
         'departure_timezone' => null,
     ]);
 
-    Http::fake([
-        '*aviation-api*' => Http::response(['data' => []]),
-        '*timeapi.io*' => Http::response(['timeZone' => 'Asia/Tokyo']),
-    ]);
+    Http::fake(['*aviation-api*' => Http::response(['data' => []])]);
 
     $this->artisan('flights:enrich')->assertExitCode(0);
 
     $flight->refresh();
-    expect($flight->departure_timezone)->toBe('Asia/Tokyo');
-    expect($flight->arrival_timezone)->toBe('Asia/Tokyo');
+    // Resolved from the airports' own coordinates against the bundled city
+    // table, so the fallback no longer depends on a third party being up.
+    expect($flight->departure_timezone)->toBe('Africa/Lagos');
+    expect($flight->arrival_timezone)->toBe('Africa/Ndjamena');
     expect($flight->duration)->not->toBeNull(); // distance estimate (seconds)
     expect(Distance::miles($flight->distance))->toBeGreaterThan(900)->toBeLessThan(1020); // great-circle from airport coords
 

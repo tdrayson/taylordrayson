@@ -5,8 +5,8 @@ namespace App\Console\Commands\Fetch;
 use App\Models\Airport;
 use App\Models\Flight;
 use App\Services\LogoStream;
-use App\Services\TimeApi;
 use App\Support\Distance;
+use App\Support\VenueTimezone;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -24,7 +24,7 @@ class EnrichFlights extends Command
 
     public function __construct(
         private readonly LogoStream $logoStream,
-        private readonly TimeApi $timeApi,
+        private readonly VenueTimezone $timezones,
     ) {
         parent::__construct();
     }
@@ -134,7 +134,7 @@ class EnrichFlights extends Command
             return null;
         }
 
-        return $this->timeApi->timezoneForCoordinate($airport['lat'], $airport['lng']);
+        return $this->timezones->forCoordinate($airport['lat'], $airport['lng']);
     }
 
     private function estimateDuration(int $miles): ?int
