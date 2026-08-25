@@ -225,13 +225,21 @@ return [
      * the `Spatie\Backup\Notifications\Notifications` classes.
      */
     'notifications' => [
+        /*
+         * Silenced deliberately, not left unconfigured. Every failure these
+         * cover already exits non-zero (BackupCommand:125, CleanupCommand:68,
+         * MonitorCommand:57), which the scheduler turns into a
+         * ScheduledTaskFailed and AlertOnScheduledTaskFailure pushes. Routing
+         * them here as well would alert twice for one failure, and the success
+         * ones say nothing worth interrupting a day for.
+         */
         'notifications' => [
-            BackupHasFailedNotification::class => ['mail'],
-            UnhealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupHasFailedNotification::class => ['mail'],
-            BackupWasSuccessfulNotification::class => ['mail'],
-            HealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupWasSuccessfulNotification::class => ['mail'],
+            BackupHasFailedNotification::class => [],
+            UnhealthyBackupWasFoundNotification::class => [],
+            CleanupHasFailedNotification::class => [],
+            BackupWasSuccessfulNotification::class => [],
+            HealthyBackupWasFoundNotification::class => [],
+            CleanupWasSuccessfulNotification::class => [],
         ],
 
         /*
