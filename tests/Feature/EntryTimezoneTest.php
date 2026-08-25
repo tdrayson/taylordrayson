@@ -216,6 +216,37 @@ describe('timezones:backfill', function () {
         expect($workout->fresh()->timezone)->toBe('Europe/Paris');
     });
 
+    // A departure at 08:16 does not make the morning before it foreign. The
+    // pass used to bound trips by whole days, so everything from midnight on
+    // the outbound day was stamped with the destination.
+    it('leaves the morning before a flight in the zone it was lived in', function () {
+        Flight::factory()->create(['occurred_at' => '2025-06-03 08:16:00', 'arrival_timezone' => 'Europe/Paris']);
+        Flight::factory()->create(['occurred_at' => '2025-06-08 22:21:00', 'arrival_timezone' => 'Europe/London']);
+
+        $beforeTakeoff = Media::factory()->create(['occurred_at' => '2025-06-03 06:41:00', 'timezone' => null]);
+        $afterLanding = Media::factory()->create(['occurred_at' => '2025-06-08 23:50:00', 'timezone' => null]);
+        $abroad = Media::factory()->create(['occurred_at' => '2025-06-05 20:00:00', 'timezone' => null]);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($beforeTakeoff->fresh()->timezone)->toBeNull()
+            ->and($afterLanding->fresh()->timezone)->toBeNull()
+            ->and($abroad->fresh()->timezone)->toBe('Europe/Paris');
+    });
+
+    // The old whole-day boundaries stamped 215 entries that a re-run could not
+    // fix, because the pass only ever overwrote an empty or home zone.
+    it('takes back a zone it assigned when no trip covers the entry', function () {
+        Flight::factory()->create(['occurred_at' => '2025-06-03 08:16:00', 'arrival_timezone' => 'Europe/Paris']);
+        Flight::factory()->create(['occurred_at' => '2025-06-08 22:21:00', 'arrival_timezone' => 'Europe/London']);
+
+        $mistake = Media::factory()->create(['occurred_at' => '2025-06-03 06:41:00', 'timezone' => 'Europe/Paris']);
+
+        $this->artisan('timezones:backfill')->assertSuccessful();
+
+        expect($mistake->fresh()->timezone)->toBeNull();
+    });
+
     it('changes nothing on a second run', function () {
         Checkin::factory()->create([
             'occurred_at' => '2022-10-14 01:26:55',
