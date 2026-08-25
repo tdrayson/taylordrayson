@@ -189,7 +189,7 @@ it('never touches non-Rovi (historical CSV) rows on dates Rovi did not log', fun
 
 it('self-heals a gap by extending the window back to the last synced day', function () {
     // A previously-synced Rovi day, 10 days before "today" (06-30) and well
-    // outside the default 3-day window (06-27..06-30).
+    // outside the default 7-day window (06-23..06-30).
     Calorie::create([
         'occurred_at' => '2026-06-20 00:00:00',
         'source' => 'rovi',
@@ -211,7 +211,7 @@ it('self-heals a gap by extending the window back to the last synced day', funct
 
     $this->artisan('rovi:sync-food')->assertSuccessful();
 
-    // The window reached back to the last synced day, not just --days=3.
+    // The window reached back to the last synced day, not just --days=7.
     Http::assertSent(fn ($request) => str_contains($request->url(), 'from=2026-06-20'));
 
     // The stranded gap day is now backfilled.
