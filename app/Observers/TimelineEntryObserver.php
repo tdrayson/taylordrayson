@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
 use App\Models\TimelineEntry;
+use App\Support\EntryInstant;
 use Illuminate\Database\Eloquent\Model;
 
 class TimelineEntryObserver
@@ -27,7 +28,13 @@ class TimelineEntryObserver
 
         $entry = $model->timelineEntry()->updateOrCreate(
             ['timelineable_type' => $model->getMorphClass(), 'timelineable_id' => $model->getKey()],
-            ['occurred_at' => $model->occurred_at, 'ends_at' => $model->getAttribute('ends_at')],
+            [
+                'occurred_at' => $model->occurred_at,
+                // Recomputed on every save, so it cannot drift from the pair it
+                // is derived from.
+                'occurred_utc' => EntryInstant::utc($model->occurred_at, $this->timezoneOf($model)),
+                'ends_at' => $model->getAttribute('ends_at'),
+            ],
         );
 
         $this->ensureUrlSlug($model, $entry);
@@ -39,6 +46,16 @@ class TimelineEntryObserver
      * never reshuffle when earlier entries are backfilled or deleted; only
      * a changed base slug or a date move triggers reassignment.
      */
+    /**
+     * The entry's own zone. Read through the accessor rather than as an
+     * attribute: Timelineable models expose `timezone()` as a method, which
+     * getAttribute() would try to resolve as a relationship.
+     */
+    private function timezoneOf(Model $model): ?string
+    {
+        return method_exists($model, 'timezone') ? $model->timezone() : null;
+    }
+
     private function ensureUrlSlug(Model $model, TimelineEntry $entry): void
     {
         $base = $model->slug();

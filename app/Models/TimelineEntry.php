@@ -20,6 +20,7 @@ use Spatie\Feed\FeedItem;
     'timelineable_id',
     'occurred_at',
     'ends_at',
+    'occurred_utc',
     'url_slug',
 ])]
 class TimelineEntry extends Model implements Feedable
@@ -33,6 +34,7 @@ class TimelineEntry extends Model implements Feedable
     {
         return [
             'occurred_at' => 'datetime',
+            'occurred_utc' => 'datetime',
             'ends_at' => 'datetime',
         ];
     }
@@ -78,6 +80,18 @@ class TimelineEntry extends Model implements Feedable
      * (ends_at null) collapse to their occurred_at day; multi-day events
      * match every day from occurred_at through ends_at inclusive.
      */
+    /**
+     * Ordered by when entries actually happened, rather than by what the local
+     * clock said: 09:00 in London and 09:00 in New York are five hours apart.
+     *
+     * Selecting and grouping stay on `occurred_at`, so a day is still the local
+     * day. The coalesce covers a row whose instant has not been derived yet.
+     */
+    public function scopeOrderByInstant(Builder $query, string $direction = 'desc'): Builder
+    {
+        return $query->orderByRaw('COALESCE(occurred_utc, occurred_at) '.($direction === 'asc' ? 'asc' : 'desc'));
+    }
+
     public function scopeCoveringDate(Builder $query, string $date): Builder
     {
         return $query

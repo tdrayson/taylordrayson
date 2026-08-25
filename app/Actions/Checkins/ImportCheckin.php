@@ -5,6 +5,7 @@ namespace App\Actions\Checkins;
 use App\Data\CheckinImport;
 use App\Enums\Source;
 use App\Models\Checkin;
+use App\Support\VenueTimezone;
 use Throwable;
 
 /**
@@ -16,6 +17,8 @@ use Throwable;
  */
 class ImportCheckin
 {
+    public function __construct(private readonly VenueTimezone $timezones) {}
+
     /**
      * @param  array<string, mixed>  $item  A `checkins.items` entry from the Foursquare v2 API.
      */
@@ -24,10 +27,16 @@ class ImportCheckin
         $venue = $item['venue'] ?? [];
         $location = $venue['location'] ?? [];
 
+        // Where the venue is, not where the server is. `createdAt` is a UTC
+        // timestamp, so rendering it with date() would give the server's clock
+        // rather than the one on the wall at the time.
+        $timezone = $this->timezones->forCoordinate($location['lat'] ?? null, $location['lng'] ?? null);
+
         $checkin = Checkin::updateOrCreate(
             ['source' => Source::Swarm->value, 'source_id' => $item['id']],
             [
-                'occurred_at' => date('Y-m-d H:i:s', $item['createdAt']),
+                'occurred_at' => $this->timezones->localWallClock($item['createdAt'], $timezone),
+                'timezone' => $timezone,
                 'venue_name' => $venue['name'] ?? 'Unknown',
                 'category' => $venue['categories'][0]['name'] ?? null,
                 'address' => $location['address'] ?? null,
