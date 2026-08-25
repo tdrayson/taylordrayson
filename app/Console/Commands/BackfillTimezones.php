@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Activity;
 use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
@@ -53,10 +54,16 @@ class BackfillTimezones extends Command
     {
         $dry = (bool) $this->option('dry-run');
 
+        // Read before the guess pass, which needs them to tell a zone this
+        // command assigned from one Strava invented.
+        $trips = $this->tripsFromFlights();
+
+        $guessed = $this->clearGuessedActivityZones($trips, $dry);
+        $this->components->info("Activities whose zone was an offset guess: {$guessed}");
+
         $checkins = $this->backfillCheckins($venues, $dry);
         $this->components->info("Check-ins given a venue timezone: {$checkins}");
 
-        $trips = $this->tripsFromFlights();
         $this->components->info('Trips found from flights: '.count($trips));
 
         $travelled = $this->backfillTrips($trips, $dry);
@@ -72,6 +79,68 @@ class BackfillTimezones extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Empty the zone on activities where Strava was guessing it.
+     *
+     * Without GPS, Strava names the first IANA zone matching the device's UTC
+     * offset, so indoor sessions come back as Africa/Algiers for BST or
+     * Africa/Abidjan for GMT. The instant stays correct either way, since the
+     * offset matches; what changes is that the row stops claiming a continent
+     * it was never on, and becomes correctable, because the trip pass below
+     * only overrides a zone that is empty or home.
+     *
+     * Runs first for that reason: a flight can then place these properly, as
+     * with the Basel trip that owns the lone Africa/Blantyre workout.
+     *
+     * A zone the trip pass already assigned is left alone, or each run would
+     * wipe it and the next would write it back forever. Being inside a trip is
+     * not enough on its own: an activity in Paris still claiming Africa/Algiers
+     * is a guess, and clearing it is what lets the trip pass correct it.
+     *
+     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     */
+    private function clearGuessedActivityZones(array $trips, bool $dry): int
+    {
+        $changed = 0;
+
+        $candidates = Activity::query()
+            ->whereNotNull('timezone')
+            ->where('timezone', '!=', self::HOME)
+            ->whereNull('track');
+
+        foreach ($candidates->lazy() as $activity) {
+            if ($this->explainedByTrip($activity, $trips)) {
+                continue;
+            }
+
+            if (! $dry) {
+                $activity->forceFill(['timezone' => null])->save();
+            }
+
+            $changed++;
+        }
+
+        return $changed;
+    }
+
+    /**
+     * Whether a trip covering this activity already accounts for its zone.
+     *
+     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     */
+    private function explainedByTrip(Activity $activity, array $trips): bool
+    {
+        foreach ($trips as $trip) {
+            $covers = $activity->occurred_at->between($trip['from']->copy()->startOfDay(), $trip['to']->copy()->endOfDay());
+
+            if ($covers && $activity->timezone === $trip['timezone']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
