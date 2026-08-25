@@ -9,6 +9,7 @@ use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
 use App\Support\VenueTimezone;
 use App\Timeline\TypeRegistry;
+use Carbon\CarbonInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -228,14 +229,24 @@ class BackfillTimezones extends Command
     }
 
     /**
-     * Stamp entries falling inside a trip with where that trip was, leaving
-     * anything that already knows its own zone alone.
+     * Give each entry the zone of the trip that covers it, and take it away
+     * again when no trip does.
+     *
+     * Bounded by the flights themselves rather than by whole days. A departure
+     * at 08:16 does not make the sleep that ended at 04:57 that morning
+     * foreign, nor the television watched at 06:41 before leaving for the
+     * airport.
+     *
+     * Only ever writes over an empty zone, a home one, or one belonging to some
+     * trip: those are the values this command assigns, so re-running corrects
+     * its own earlier answers. A zone from anywhere else is left alone.
      *
      * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
      */
     private function backfillTrips(array $trips, bool $dry): int
     {
         $changed = 0;
+        $tripZones = array_values(array_unique(array_column($trips, 'timezone')));
 
         foreach (TypeRegistry::all() as $definition) {
             $model = $definition['model'];
@@ -248,23 +259,46 @@ class BackfillTimezones extends Command
                 continue;
             }
 
-            foreach ($trips as $trip) {
-                $query = $model::query()
-                    // Home is overwritten as well as empty. Inside a trip you
-                    // were demonstrably not at home, so a home zone there is
-                    // wrong however it was set: TraktSync stamps every watch
-                    // with `DISPLAY_TIMEZONE` on the assumption of watching
-                    // from the UK, which a trip disproves.
-                    ->where(fn ($where) => $where->whereNull('timezone')->orWhere('timezone', self::HOME))
-                    ->whereBetween('occurred_at', [$trip['from']->toDateString().' 00:00:00', $trip['to']->toDateString().' 23:59:59']);
+            $candidates = $model::query()->where(
+                fn ($where) => $where->whereNull('timezone')
+                    ->orWhere('timezone', self::HOME)
+                    ->orWhereIn('timezone', $tripZones),
+            );
 
-                $changed += $dry
-                    ? $query->count()
-                    : $query->update(['timezone' => $trip['timezone']]);
+            foreach ($candidates->lazy() as $entry) {
+                $current = $entry->getAttributes()['timezone'] ?? null;
+                $zone = $this->tripZoneFor($entry->occurred_at, $trips);
+
+                // Empty already means home, so writing it back says nothing.
+                if ($zone === $current || ($zone === null && $current === self::HOME)) {
+                    continue;
+                }
+
+                if (! $dry) {
+                    $entry->forceFill(['timezone' => $zone])->save();
+                }
+
+                $changed++;
             }
         }
 
         return $changed;
+    }
+
+    /**
+     * The zone of the trip an entry falls inside, or null when none does.
+     *
+     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     */
+    private function tripZoneFor(CarbonInterface $occurredAt, array $trips): ?string
+    {
+        foreach ($trips as $trip) {
+            if ($occurredAt->between($trip['from'], $trip['to'])) {
+                return $trip['timezone'];
+            }
+        }
+
+        return null;
     }
 
     /** Whether a model's table carries a timezone of its own to fill. */
