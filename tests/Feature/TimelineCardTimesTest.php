@@ -34,12 +34,15 @@ it('shows the wake time on sleep cards and entry pages', function () {
             ->where('occurredLabel', now()->startOfDay()->format('D j M Y').', 7:24am'));
 });
 
-it('shows a standardised midnight time on food cards', function () {
+// Rovi gives a date and a meal label and no clock, so a food card has no
+// clock reading to show. The instant behind it is still real.
+it('labels a food card All day rather than inventing a clock time', function () {
     Calorie::factory()->create(['occurred_at' => now()->startOfDay()]);
 
     get('/')->assertInertia(fn ($page) => $page
         ->where('groups.0.items.0.iconKey', 'calorie')
-        ->where('groups.0.items.0.time', '12:00am'));
+        ->where('groups.0.items.0.time', 'All day')
+        ->where('groups.0.items.0.datetime', fn (string $iso): bool => str_contains($iso, 'T23:59:59')));
 });
 
 it('exposes note photos on the timeline card and entry payload', function () {

@@ -80,7 +80,9 @@ it('the timeline entry occurred_at is set to noon on that date', function () {
 
     $entry = TimelineEntry::first();
 
-    expect($entry->occurred_at->format('H:i:s'))->toBe('12:00:00')
+    // End of the day the food belongs to: a daily total is only true once the
+    // day is done, and the card and its timezone both read that moment.
+    expect($entry->occurred_at->format('H:i:s'))->toBe('23:59:59')
         ->and($entry->occurred_at->toDateString())->toBe($date->toDateString());
 });
 

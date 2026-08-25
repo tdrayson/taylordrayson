@@ -97,6 +97,6 @@ it('gives a food day an instant, which its observer never used to write', functi
 
     $entry = $calorie->fresh()->timelineEntry;
 
-    // Midday in New York, not midday in London.
-    expect($entry->occurred_utc->toDateTimeString())->toBe('2026-07-01 16:00:00');
+    // End of 1 July in New York, which is four hours into 2 July in UTC.
+    expect($entry->occurred_utc->toDateTimeString())->toBe('2026-07-02 03:59:59');
 });

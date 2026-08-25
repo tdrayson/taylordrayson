@@ -46,6 +46,32 @@ class Calorie extends Model implements HasMedia, Timelineable
         ];
     }
 
+    /**
+     * Snap every row to the end of the day it belongs to.
+     *
+     * Rovi supplies a date and a meal label and no clock, so any time on the
+     * way in is invented. Normalising here keeps the row and its spine entry on
+     * the same moment, which is what stopped food displaying one time while
+     * sorting by another.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (self $calorie): void {
+            if ($calorie->occurred_at !== null) {
+                $calorie->occurred_at = $calorie->occurred_at->copy()->endOfDay();
+            }
+        });
+    }
+
+    /**
+     * A day's food is a total, not a moment: Rovi gives a date and a meal
+     * label and no clock, so every row is stored at the end of its day.
+     */
+    public function hasClockTime(): bool
+    {
+        return false;
+    }
+
     public function slug(): string
     {
         return 'calories';

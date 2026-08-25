@@ -89,7 +89,9 @@ class BuildTimelineFeed
             'brand' => $card->meta->brand,
             'address' => $card->meta->address,
             'range' => $card->range,
-            'time' => $local['time'],
+            // A day total has no clock reading to show, but keeps a real
+            // instant in `datetime` for ordering, microformats and the tooltip.
+            'time' => $entry->timelineable->hasClockTime() ? $local['time'] : 'All day',
             'datetime' => $local['iso'],
             'label' => $local['label'],
             'offset' => $local['offset'],

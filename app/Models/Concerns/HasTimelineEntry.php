@@ -82,6 +82,12 @@ trait HasTimelineEntry
         return true;
     }
 
+    /** Most entries happened at a moment; a day-granular type overrides this. */
+    public function hasClockTime(): bool
+    {
+        return true;
+    }
+
     /**
      * The moment shown as the entry's timestamp. Defaults to occurred_at;
      * day-granular types with a more meaningful clock time (e.g. Sleep's
