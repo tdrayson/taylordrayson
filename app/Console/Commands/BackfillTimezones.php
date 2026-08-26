@@ -4,11 +4,12 @@ namespace App\Console\Commands;
 
 use App\Models\Activity;
 use App\Models\Checkin;
-use App\Models\Flight;
 use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
 use App\Support\VenueTimezone;
+use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -27,15 +28,6 @@ class BackfillTimezones extends Command
     private const HOME_COUNTRY = 'United Kingdom';
 
     /**
-     * Longest span still treated as one trip.
-     *
-     * The flight history has gaps: an August 2012 outbound to Lanzarote has no
-     * return recorded, so the next arrival home is 20 months later. Without a
-     * cap that span would stamp two years of London evenings as foreign.
-     */
-    private const MAX_TRIP_DAYS = 30;
-
-    /**
      * Fill in the timezones history never recorded, then derive the instants.
      *
      * Three passes, weakest signal last:
@@ -51,13 +43,14 @@ class BackfillTimezones extends Command
      * Re-runnable: each pass only writes where the answer would change, so a
      * second run reports nothing and a partial run resumes cleanly.
      */
-    public function handle(VenueTimezone $venues): int
+    public function handle(VenueTimezone $venues, ZoneHistory $history): int
     {
         $dry = (bool) $this->option('dry-run');
 
         // Read before the guess pass, which needs them to tell a zone this
-        // command assigned from one Strava invented.
-        $trips = $this->tripsFromFlights();
+        // command assigned from one Strava invented. Shared with the live path
+        // that stamps an entry as it is saved, so the two cannot disagree.
+        $trips = $history->spans();
 
         $guessed = $this->clearGuessedActivityZones($trips, $dry);
         $this->components->info("Activities whose zone was an offset guess: {$guessed}");
@@ -100,7 +93,7 @@ class BackfillTimezones extends Command
      * not enough on its own: an activity in Paris still claiming Africa/Algiers
      * is a guess, and clearing it is what lets the trip pass correct it.
      *
-     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     * @param  list<array{from: CarbonImmutable, to: CarbonImmutable, timezone: string}>  $trips
      */
     private function clearGuessedActivityZones(array $trips, bool $dry): int
     {
@@ -129,7 +122,7 @@ class BackfillTimezones extends Command
     /**
      * Whether a trip covering this activity already accounts for its zone.
      *
-     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     * @param  list<array{from: CarbonImmutable, to: CarbonImmutable, timezone: string}>  $trips
      */
     private function explainedByTrip(Activity $activity, array $trips): bool
     {
@@ -187,48 +180,6 @@ class BackfillTimezones extends Command
     }
 
     /**
-     * Trips, as spans between leaving home and coming back.
-     *
-     * A flight whose arrival zone is not home starts one; the next flight
-     * arriving home ends it. Flights already carry both zones, so no lookup is
-     * needed.
-     *
-     * @return list<array{from: Carbon, to: Carbon, timezone: string}>
-     */
-    private function tripsFromFlights(): array
-    {
-        $legs = [];
-        $open = null;
-
-        foreach (Flight::query()->orderBy('occurred_at')->get() as $flight) {
-            $arrival = $flight->arrival_timezone;
-            $at = Carbon::parse($flight->occurred_at);
-
-            if (blank($arrival)) {
-                continue;
-            }
-
-            // Each leg is closed by the next flight, wherever it lands: a leg
-            // to Cairo does not make the fortnight before it Egyptian.
-            if ($open !== null) {
-                $legs[] = [...$open, 'to' => $at];
-                $open = null;
-            }
-
-            if ($arrival !== self::HOME) {
-                $open = ['from' => $at, 'timezone' => $arrival];
-            }
-        }
-
-        // A leg still open at the end has no return flight recorded, so its
-        // span is unknown and it is dropped rather than guessed at.
-        return array_values(array_filter(
-            $legs,
-            fn (array $leg): bool => $leg['from']->diffInDays($leg['to']) <= self::MAX_TRIP_DAYS,
-        ));
-    }
-
-    /**
      * Give each entry the zone of the trip that covers it, and take it away
      * again when no trip does.
      *
@@ -241,7 +192,7 @@ class BackfillTimezones extends Command
      * trip: those are the values this command assigns, so re-running corrects
      * its own earlier answers. A zone from anywhere else is left alone.
      *
-     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     * @param  list<array{from: CarbonImmutable, to: CarbonImmutable, timezone: string}>  $trips
      */
     private function backfillTrips(array $trips, bool $dry): int
     {
@@ -288,7 +239,7 @@ class BackfillTimezones extends Command
     /**
      * The zone of the trip an entry falls inside, or null when none does.
      *
-     * @param  list<array{from: Carbon, to: Carbon, timezone: string}>  $trips
+     * @param  list<array{from: CarbonImmutable, to: CarbonImmutable, timezone: string}>  $trips
      */
     private function tripZoneFor(CarbonInterface $occurredAt, array $trips): ?string
     {

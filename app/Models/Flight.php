@@ -8,6 +8,8 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\ZoneHistory;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -55,6 +57,13 @@ class Flight extends Model implements HasMedia, Timelineable
         ];
     }
 
+    /** A saved flight changes where the history says you were. */
+    protected static function booted(): void
+    {
+        static::saved(fn () => app(ZoneHistory::class)->forget());
+        static::deleted(fn () => app(ZoneHistory::class)->forget());
+    }
+
     /**
      * Departure as a wall-clock string in the origin's local time: an explicit
      * actual/scheduled time from meta, otherwise occurred_at (stored origin-local).
@@ -91,6 +100,20 @@ class Flight extends Model implements HasMedia, Timelineable
                 ->setTimezone($this->arrival_timezone)
                 ->format('Y-m-d\TH:i');
         });
+    }
+
+    /**
+     * The instant the flight landed, derived from the destination-local
+     * arrival time so an explicit actual time is preferred over the computed
+     * one.
+     */
+    public function arrivedAt(): ?CarbonImmutable
+    {
+        if (blank($this->arrived_local) || blank($this->arrival_timezone)) {
+            return null;
+        }
+
+        return CarbonImmutable::parse($this->arrived_local, $this->arrival_timezone)->utc();
     }
 
     public function airline(): BelongsTo

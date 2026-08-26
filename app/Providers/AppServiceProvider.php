@@ -9,6 +9,7 @@ use App\Support\AmbientZone;
 use App\Support\ApiHttp;
 use App\Support\FeedDiscovery;
 use App\Support\OptimisingFileAdder;
+use App\Support\ZoneHistory;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
@@ -29,8 +30,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FileAdder::class, OptimisingFileAdder::class);
 
         // Scoped so a sync writing hundreds of entries reads the phone's last
-        // reading once rather than once per row.
+        // reading, and the flight history behind it, once rather than per row.
         $this->app->scoped(AmbientZone::class);
+        $this->app->scoped(ZoneHistory::class);
 
         // Held for the request so every food card on a page shares one read of
         // the day totals.
