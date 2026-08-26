@@ -5,6 +5,7 @@ import Input from '../Ui/Input.vue';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
+import { stampWallClock, toWallClockDate, wallClockParts } from '../../lib/editor/wallClock.js';
 
 /**
  * A date and time. The value is wall-clock text, never an instant: parsing
@@ -26,17 +27,8 @@ const emit = defineEmits(['update:modelValue']);
 const { isOpen: open, root, close, toggle } = useDismissable();
 const typed = ref('');
 
-const pad = (n) => String(n).padStart(2, '0');
-const stamp = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
-
 /** Read the stored wall clock literally rather than through Date. */
-const parts = computed(() => {
-    const match = String(props.modelValue ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
-
-    return match
-        ? { date: `${match[1]}-${match[2]}-${match[3]}`, time: `${match[4]}:${match[5]}` }
-        : { date: '', time: '' };
-});
+const parts = computed(() => wallClockParts(props.modelValue));
 
 // Ticks so an unset field reads as the time it would actually be stamped with.
 const tick = ref(new Date());
@@ -52,17 +44,17 @@ onBeforeUnmount(() => clearInterval(ticker));
 
 /** Now as wall-clock parts, ticking, so an unset field reads as what it would be stamped with. */
 const nowParts = computed(() => ({
-    date: stamp(tick.value).slice(0, 10),
-    time: stamp(tick.value).slice(11, 16),
+    date: stampWallClock(tick.value).slice(0, 10),
+    time: stampWallClock(tick.value).slice(11, 16),
 }));
 
 // Frozen when the popover opens rather than read from the ticking clock, which
 // would rewrite the time input from under a half-typed value.
-const openedAt = ref(stamp(new Date()));
+const openedAt = ref(stampWallClock(new Date()));
 
 watch(open, (isOpen) => {
     if (isOpen) {
-        openedAt.value = stamp(new Date());
+        openedAt.value = stampWallClock(new Date());
     }
 });
 
@@ -114,7 +106,7 @@ const shortcuts = computed(() => {
 });
 
 function choose(date) {
-    emit('update:modelValue', stamp(date));
+    emit('update:modelValue', stampWallClock(date));
     close();
     typed.value = '';
 }
@@ -125,14 +117,11 @@ function choose(date) {
  * value is stored in.
  */
 const relativeOptions = computed(() => {
-    const match = String(props.relativeToValue ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+    const from = toWallClockDate(props.relativeToValue);
 
-    if (! match) {
+    if (from === null) {
         return [];
     }
-
-    const [, y, mo, d, h, mi] = match.map(Number);
-    const from = new Date(y, mo - 1, d, h, mi);
 
     return [
         { label: `1 hour after ${props.relativeToLabel}`, minutes: 60 },

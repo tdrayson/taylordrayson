@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
 import { noteSlug, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { shiftWallClock } from '../../lib/editor/wallClock.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
@@ -109,7 +110,32 @@ watch(() => (titleField.value ? form[titleField.value.name] : null), (title) => 
     form[slugField.value.name] = slugify(title);
 });
 
+/** How far a relative field sits after the one it is measured from, by default. */
+const RELATIVE_DEFAULT_MINUTES = 60;
+
+/** Fields measured from another, e.g. an event's end from its start. */
+const relativeFields = computed(() => props.fields.filter((field) => field.relativeTo));
+
+// A relative field follows its source until it is set by hand: choosing an end
+// yourself is the way to say you want that one. A value already present on load
+// was chosen on a previous save, so it counts as set.
+const relativeEdited = new Set(
+    relativeFields.value.filter((field) => props.values[field.name]).map((field) => field.name),
+);
+
+watch(() => relativeFields.value.map((field) => form[field.relativeTo] ?? null), (sources) => {
+    relativeFields.value.forEach((field, index) => {
+        if (! relativeEdited.has(field.name)) {
+            form[field.name] = shiftWallClock(sources[index], RELATIVE_DEFAULT_MINUTES);
+        }
+    });
+});
+
 function onFieldInput(field, value) {
+    if (field.relativeTo) {
+        relativeEdited.add(field.name);
+    }
+
     if (slugField.value && field.name === slugField.value.name) {
         slugEdited.value = true;
         form[field.name] = slugifyInput(value);
