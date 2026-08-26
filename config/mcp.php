@@ -21,4 +21,45 @@ return [
         'http://localhost',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Readable Tables
+    |--------------------------------------------------------------------------
+    |
+    | The only tables the MCP server may read. An allowlist rather than a list
+    | of exclusions, so a table added later is private until it is named here
+    | rather than exposed until somebody notices.
+    |
+    | Deliberately absent: users, sessions and password_reset_tokens, which
+    | hold credentials; the oauth_* tables; and the queue tables, whose
+    | payloads carry whatever a job was given. Failed jobs are readable
+    | through their own tool, which returns the error without the payload.
+    |
+    */
+
+    'tables' => [
+        'activities',
+        'appearances',
+        'articles',
+        'attachments',
+        'calories',
+        'checkins',
+        'events',
+        'flights',
+        'fuel',
+        'leaderboard_entries',
+        'media',
+        'notes',
+        'pages',
+        'podcasts',
+        'projects',
+        'series',
+        'sleep',
+        'states',
+        'taggables',
+        'tags',
+        'timeline_entries',
+        'trips',
+    ],
+
 ];

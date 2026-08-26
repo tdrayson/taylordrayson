@@ -23,8 +23,16 @@ function pointReadOnlyAtTempFile(): string
     config(['database.connections.sqlite_readonly.database' => $path]);
     DB::purge('sqlite_readonly');
 
-    DB::connection('sqlite_readonly')->getPdo()->exec('create table notes (id integer primary key, body text)');
-    DB::connection('sqlite_readonly')->getPdo()->exec("insert into notes (body) values ('one'), ('two'), ('three')");
+    $pdo = DB::connection('sqlite_readonly')->getPdo();
+    $pdo->exec('create table notes (id integer primary key, body text)');
+    $pdo->exec("insert into notes (body) values ('one'), ('two'), ('three')");
+
+    // Present in the file but absent from the allowlist, which is what the
+    // scoping tests below turn on.
+    $pdo->exec('create table users (id integer primary key, email text, password text)');
+    $pdo->exec("insert into users (email, password) values ('taylor@example.com', 'hash')");
+    $pdo->exec('create table failed_jobs (id integer primary key, uuid text, connection text, queue text, payload text, exception text, failed_at text)');
+    $pdo->exec("insert into failed_jobs (uuid, connection, queue, payload, exception, failed_at) values ('abc', 'redis', 'default', '{\"displayName\":\"App\\\\Jobs\\\\ProcessHealthExport\",\"secret\":\"heart rate readings\"}', 'RuntimeException: it broke', '2026-08-26 10:00:00')");
 
     return $path;
 }
@@ -78,4 +86,40 @@ it('lists tables and columns', function () {
 it('refuses an unauthenticated caller', function () {
     $this->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'])
         ->assertUnauthorized();
+});
+
+describe('scoping', function () {
+    it('refuses a table that is not on the allowlist', function (string $sql) {
+        expect(fn () => readOnly()->select($sql))->toThrow(RuntimeException::class);
+    })->with([
+        'users' => 'select * from users',
+        'sessions' => 'select ip_address from sessions',
+        'queue payloads' => 'select payload from failed_jobs',
+        'a join onto users' => 'select * from notes join users on users.id = notes.id',
+        'a subquery' => 'select (select email from users) as leak',
+    ]);
+
+    it('still allows the tables it does expose', function () {
+        pointReadOnlyAtTempFile();
+
+        expect(readOnly()->select('select body from notes'))->toHaveCount(3)
+            ->and(readOnly()->select('with mine as (select * from notes) select count(*) as n from mine')[0]['n'])->toBe(3);
+    });
+
+    it('hides an unreadable table from the schema entirely', function () {
+        pointReadOnlyAtTempFile();
+
+        expect(collect(readOnly()->tables())->pluck('table'))->toContain('notes')->not->toContain('users')
+            ->and(readOnly()->columns('users'))->toBe([]);
+    });
+
+    it('returns a failed job without its payload', function () {
+        pointReadOnlyAtTempFile();
+
+        $job = readOnly()->failedJobs()[0];
+
+        expect($job['job'])->toBe('App\\Jobs\\ProcessHealthExport')
+            ->and($job['exception'])->toContain('it broke')
+            ->and(json_encode($job))->not->toContain('heart rate readings');
+    });
 });
