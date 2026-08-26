@@ -89,7 +89,13 @@ class TimelineEntry extends Model implements Feedable
      */
     public function scopeOrderByInstant(Builder $query, string $direction = 'desc'): Builder
     {
-        return $query->orderByRaw('COALESCE(occurred_utc, occurred_at) '.($direction === 'asc' ? 'asc' : 'desc'));
+        $order = $direction === 'asc' ? 'asc' : 'desc';
+
+        // Broken by id, or day-granular types would order arbitrarily against
+        // each other: food and vitals share an end-of-day instant exactly.
+        return $query
+            ->orderByRaw("COALESCE(occurred_utc, occurred_at) {$order}")
+            ->orderBy('id', $order);
     }
 
     public function scopeCoveringDate(Builder $query, string $date): Builder

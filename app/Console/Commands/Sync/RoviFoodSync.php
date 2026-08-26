@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
-#[Signature('rovi:sync-food {--days=3 : How many days back to re-check, catching food logged late for an earlier day}')]
+#[Signature('rovi:sync-food {--days=7 : How many days back to re-check, catching food logged late for an earlier day}')]
 #[Description('Sync the Rovi food diary into calories rows for a rolling window of recent days, keyed by Rovi id so re-runs stay idempotent')]
 class RoviFoodSync extends Command
 {

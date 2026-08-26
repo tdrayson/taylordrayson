@@ -25,9 +25,10 @@ class CalorieTimelineObserver
             return;
         }
 
-        // Food is day-granular, so the spine row sits at midday rather than at
-        // whichever log happened to be saved last.
-        $occurredAt = $calorie->occurred_at->copy()->setTime(12, 0);
+        // The end of the day the food belongs to: a daily total is only true
+        // once the day is done, and it is the moment the card and its timezone
+        // both read from.
+        $occurredAt = $calorie->occurred_at->copy()->endOfDay();
 
         TimelineEntry::updateOrCreate(
             [
