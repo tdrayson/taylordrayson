@@ -28,6 +28,23 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        rollupOptions: {
+            // Hugeicons puts its pure annotations in a position Rollup will
+            // not accept, and warns once per icon file: ~11,000 lines burying
+            // anything real in a deploy log, over a comment Rollup then drops
+            // harmlessly. Nothing to fix our side.
+            onwarn(warning, warn) {
+                const from = warning.id ?? warning.loc?.file ?? '';
+
+                if (warning.code === 'INVALID_ANNOTATION' && from.includes('@hugeicons-pro')) {
+                    return;
+                }
+
+                warn(warning);
+            },
+        },
+    },
     server: {
         // Allow Herd's *.test domain to reach the dev server (Vite 6 blocks
         // unknown hosts by default).
