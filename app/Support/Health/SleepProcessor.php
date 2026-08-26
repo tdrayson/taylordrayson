@@ -37,13 +37,38 @@ class SleepProcessor implements HealthProcessor
         $records = $this->aggregator->aggregate($segments);
 
         foreach ($records as $record) {
-            Sleep::query()->updateOrCreate(
-                ['occurred_at' => Carbon::parse($record['occurred_at'])->startOfDay()],
-                $record,
-            );
+            $this->store($record);
         }
 
         $this->scoreAll();
+    }
+
+    /**
+     * Save one aggregated sleep, replacing whichever stored sleep covers the
+     * same period.
+     *
+     * Matched on overlap rather than on the day it belongs to. A day key let a
+     * nap and a night on the same date overwrite each other, which four days
+     * here do; matching on the period keeps them apart while still letting a
+     * better source replace a night it genuinely re-reports.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    private function store(array $record): void
+    {
+        $bedtime = $record['bedtime'];
+        $wakeTime = $record['wake_time'] ?? $record['occurred_at'];
+
+        $existing = Sleep::query()
+            ->where('bedtime', '<', $wakeTime)
+            ->where('wake_time', '>', $bedtime)
+            ->first();
+
+        // Stored at the moment it ended, so ordering and the card read from the
+        // row rather than from an accessor over it.
+        $attributes = [...$record, 'occurred_at' => $wakeTime];
+
+        $existing ? $existing->forceFill($attributes)->save() : Sleep::query()->create($attributes);
     }
 
     /**

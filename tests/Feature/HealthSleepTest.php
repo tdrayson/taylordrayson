@@ -138,8 +138,10 @@ it('imports nights into the database, replacing an overlapping night', function 
     file_put_contents($jsonPath, json_encode(sleepPayload()));
 
     // An existing night the payload also covers, and one it does not touch.
-    Sleep::factory()->create(['occurred_at' => '2026-06-20', 'source' => 'clock', 'duration' => 25200]);
-    Sleep::factory()->create(['occurred_at' => '2026-06-23', 'source' => 'clock', 'duration' => 10000]);
+    // Sleeps are matched on the period they cover, so the overlapping one needs
+    // a bedtime and wake time that actually overlap the payload's night.
+    Sleep::factory()->create(['occurred_at' => '2026-06-20 07:00:00', 'bedtime' => '2026-06-19 23:00:00', 'wake_time' => '2026-06-20 07:00:00', 'source' => 'clock', 'duration' => 25200]);
+    Sleep::factory()->create(['occurred_at' => '2026-06-23 04:10:00', 'bedtime' => '2026-06-23 01:20:00', 'wake_time' => '2026-06-23 04:10:00', 'source' => 'clock', 'duration' => 10000]);
 
     $this->artisan('health:sleep', ['--file' => $jsonPath])->assertSuccessful();
 
@@ -153,4 +155,55 @@ it('imports nights into the database, replacing an overlapping night', function 
 
     array_map('unlink', glob("{$dir}/*"));
     rmdir($dir);
+});
+
+/*
+ * A nap and a night can end on the same date, which a day-granular key let
+ * overwrite each other. Four days in the real data hold both.
+ */
+it('keeps a nap and a night that fall on the same day', function () {
+    $night = Sleep::factory()->create([
+        'occurred_at' => '2026-06-10 07:30:00',
+        'bedtime' => '2026-06-09 23:30:00',
+        'wake_time' => '2026-06-10 07:30:00',
+        'duration' => 28800,
+    ]);
+
+    $nap = Sleep::factory()->create([
+        'occurred_at' => '2026-06-10 15:10:00',
+        'bedtime' => '2026-06-10 14:00:00',
+        'wake_time' => '2026-06-10 15:10:00',
+        'duration' => 4200,
+    ]);
+
+    expect(Sleep::query()->whereDate('occurred_at', '2026-06-10')->count())->toBe(2)
+        ->and($nap->isNap())->toBeTrue()
+        ->and($night->isNap())->toBeFalse();
+});
+
+// The rule needs all three conditions: an early night starts in the same hours
+// as a nap, and a short night is as brief as one.
+it('tells a nap apart from an early night and a short night', function (string $bedtime, string $wake, int $duration, bool $expected) {
+    $sleep = Sleep::factory()->make(['bedtime' => $bedtime, 'wake_time' => $wake, 'duration' => $duration]);
+
+    expect($sleep->isNap())->toBe($expected);
+})->with([
+    'afternoon nap' => ['2026-03-07 15:28:50', '2026-03-07 16:56:57', 5287, true],
+    'evening doze' => ['2025-12-07 18:09:27', '2025-12-07 20:23:37', 8050, true],
+    'early night, same hours' => ['2026-07-09 18:00:29', '2026-07-10 08:11:59', 44490, false],
+    'short night, crosses midnight' => ['2026-01-19 19:54:01', '2026-01-20 04:53:31', 19170, false],
+    'ordinary night' => ['2025-06-02 23:14:45', '2025-06-03 04:57:45', 20430, false],
+]);
+
+// A nap is kept but not shown: the day's sleep card should be the night.
+it('leaves a nap off the timeline while keeping the row', function () {
+    $nap = Sleep::factory()->create([
+        'occurred_at' => '2026-06-10 15:10:00',
+        'bedtime' => '2026-06-10 14:00:00',
+        'wake_time' => '2026-06-10 15:10:00',
+        'duration' => 4200,
+    ]);
+
+    expect($nap->fresh())->not->toBeNull()
+        ->and($nap->timelineEntry()->exists())->toBeFalse();
 });

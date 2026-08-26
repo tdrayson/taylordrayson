@@ -19,7 +19,7 @@ function notePhotoJpegBytes(): string
 
 it('shows the wake time on sleep cards and entry pages', function () {
     $sleep = Sleep::factory()->create([
-        'occurred_at' => now()->startOfDay(),
+        'occurred_at' => now()->startOfDay()->setTime(7, 24),
         'bedtime' => now()->startOfDay()->subHours(2),
         'wake_time' => now()->startOfDay()->setTime(7, 24),
     ]);
