@@ -9,6 +9,7 @@
     "nightwatch_mcp": false,
     "sail": false,
     "skills": [
+        "passport-development",
         "pest-testing",
         "inertia-vue-development",
         "tailwindcss-development"
