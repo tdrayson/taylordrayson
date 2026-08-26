@@ -20,8 +20,9 @@ final class EventFields
         return [
             FieldData::primary('name', 'Name', FieldType::Title, required: true),
             FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('ends_at', 'Ends', FieldType::DateTime, relativeTo: 'occurred_at'),
+            FieldData::optional('all_day', 'All day', FieldType::Boolean),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, source: 'place'),
             FieldData::optional('city', 'City', FieldType::Text, group: 'Address'),
             FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
@@ -29,7 +30,6 @@ final class EventFields
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
             FieldData::primary('tags', 'Category', FieldType::Tags, required: true),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
-            FieldData::optional('all_day', 'All day', FieldType::Boolean),
             FieldData::optional('organiser', 'Organiser', FieldType::Text),
             FieldData::optional('url', 'Link', FieldType::Url),
             FieldData::optional('description', 'About', FieldType::Textarea),

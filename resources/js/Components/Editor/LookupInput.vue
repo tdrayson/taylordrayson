@@ -23,6 +23,9 @@ const { isOpen: open, root, open: show, close } = useDismissable();
 const query = ref(String(props.modelValue ?? ''));
 const results = ref([]);
 const searching = ref(false);
+// A refused request looks exactly like no matches once the list is empty, and
+// the panel then closes as though nothing was asked. Say so instead.
+const failed = ref(false);
 let timer = null;
 
 const { active, onKeydown } = useListNavigation(results, {
@@ -51,15 +54,19 @@ async function search(coords = null) {
         params.set('lng', coords.longitude);
     }
 
+    failed.value = false;
+
     try {
         const response = await fetch(`/lookup/${props.source}?${params}`, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
 
+        // A failed lookup leaves what was typed alone rather than clearing it.
+        failed.value = ! response.ok;
         results.value = response.ok ? (await response.json()).data ?? [] : [];
     } catch {
-        // A failed lookup leaves what was typed alone rather than clearing it.
+        failed.value = true;
         results.value = [];
     } finally {
         searching.value = false;
@@ -105,12 +112,16 @@ function pick(result) {
         />
 
         <ul
-            v-if="open && (results.length || searching)"
+            v-if="open && (results.length || searching || failed)"
             class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             role="listbox"
         >
             <li v-if="searching && ! results.length" role="presentation" class="px-3 py-2 text-meta text-neutral-500">
                 Searching...
+            </li>
+
+            <li v-else-if="failed" role="presentation" class="px-3 py-2 text-meta text-red-600">
+                Search is unavailable, so type it in by hand.
             </li>
 
             <li v-for="(result, index) in results" :key="result.value + result.label">

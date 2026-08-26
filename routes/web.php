@@ -46,8 +46,9 @@ Route::middleware('auth')->group(function (): void {
         ->where('id', '[0-9]+')->name('entries.update');
 
     // Autocomplete for the fields that cannot be a plain text box.
+    // Hyphens included: `fuel-brand` is a source name and 404s without them.
     Route::get('/lookup/{source}', LookupController::class)
-        ->where('source', '[a-z]+')->name('lookup');
+        ->where('source', '[a-z-]+')->name('lookup');
     Route::get('/lookup-reverse', [LookupController::class, 'reverse'])->name('lookup.reverse');
 
     // Drafts have no timeline entry, so they appear in no listing without this.
