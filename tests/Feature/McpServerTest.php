@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\User;
 use App\Support\ReadOnlyDatabase;
 use Illuminate\Support\Facades\DB;
+use Laravel\Passport\ClientRepository;
 
 /*
  * The MCP server exposes the live database to a remote client, so the only
@@ -121,5 +123,57 @@ describe('scoping', function () {
         expect($job['job'])->toBe('App\\Jobs\\ProcessHealthExport')
             ->and($job['exception'])->toContain('it broke')
             ->and(json_encode($job))->not->toContain('heart rate readings');
+    });
+});
+
+describe('the oauth flow', function () {
+    function claudeClient(): object
+    {
+        return app(ClientRepository::class)->createAuthorizationCodeGrantClient(
+            name: 'Claude',
+            redirectUris: ['https://claude.ai/api/mcp/auth_callback'],
+            confidential: false,
+        );
+    }
+
+    // Passport ships no consent screen, so without one registered this step of
+    // the flow 500s and the connector never completes.
+    it('renders a consent screen', function () {
+        $client = claudeClient();
+
+        $this->actingAs(User::factory()->create())
+            ->get('/oauth/authorize?'.http_build_query([
+                'client_id' => $client->id,
+                'redirect_uri' => 'https://claude.ai/api/mcp/auth_callback',
+                'response_type' => 'code',
+                'scope' => 'mcp:use',
+                'code_challenge' => rtrim(strtr(base64_encode(hash('sha256', 'verifier', true)), '+/', '-_'), '='),
+                'code_challenge_method' => 'S256',
+            ]))
+            ->assertOk();
+    });
+
+    it('publishes the discovery documents a connector looks for', function () {
+        $this->getJson('/.well-known/oauth-protected-resource')->assertOk()
+            ->assertJsonPath('scopes_supported.0', 'mcp:use');
+
+        $this->getJson('/.well-known/oauth-authorization-server')->assertOk()
+            ->assertJsonPath('code_challenge_methods_supported.0', 'S256');
+    });
+
+    // The control that stops a stranger registering a client which sends the
+    // authorization code to a host they own.
+    it('refuses to register a client redirecting somewhere unexpected', function () {
+        $this->postJson('/oauth/register', [
+            'client_name' => 'Not Claude',
+            'redirect_uris' => ['https://evil.example.com/callback'],
+        ])->assertStatus(422);
+    });
+
+    it('registers a client redirecting to claude', function () {
+        $this->postJson('/oauth/register', [
+            'client_name' => 'Claude',
+            'redirect_uris' => ['https://claude.ai/api/mcp/auth_callback'],
+        ])->assertOk()->assertJsonPath('scope', 'mcp:use');
     });
 });
