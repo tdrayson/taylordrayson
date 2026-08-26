@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
-import { Calendar03Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { Calendar03Icon, Login01Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 import { useDialog } from '../../composables/useDialog';
@@ -127,6 +127,24 @@ function rankItems(text) {
         .map((entry) => entry.item);
 }
 
+/**
+ * Signing in has no link anywhere on the site, because the only person who
+ * needs one is me. The iOS home-screen app has no address bar either, so this
+ * is the way back to /login from inside it.
+ *
+ * Matched on the whole query rather than ranked with everything else, so it
+ * cannot surface while searching for something that merely contains the word.
+ */
+const SIGN_IN_TERMS = ['login', 'log in', 'signin', 'sign in'];
+
+const signedOut = computed(() => usePage().props.signedIn !== true);
+
+function signInItem(text) {
+    return signedOut.value && SIGN_IN_TERMS.includes(text.toLowerCase())
+        ? { label: 'Sign in', href: '/login', icon: Login01Icon }
+        : null;
+}
+
 const sections = computed(() => {
     const trimmed = query.value.trim();
 
@@ -148,18 +166,20 @@ const sections = computed(() => {
         raw.push({ heading: 'Results', items: ranked });
     }
 
-    if (destinationResults.value.length) {
-        raw.push({
-            heading: 'Jump to',
-            items: destinationResults.value.map((destination) => ({
-                label: destination.label,
-                meta: destination.section,
-                href: destination.url,
-                // Tags are cross-type, so they get a tag icon; other taxonomy jumps
-                // keep their owning type's icon (a flight for an airline, etc.).
-                icon: destination.tag ? Tag01Icon : entryType(destination.type).icon,
-            })),
-        });
+    const jumpTo = [
+        signInItem(trimmed),
+        ...destinationResults.value.map((destination) => ({
+            label: destination.label,
+            meta: destination.section,
+            href: destination.url,
+            // Tags are cross-type, so they get a tag icon; other taxonomy jumps
+            // keep their owning type's icon (a flight for an airline, etc.).
+            icon: destination.tag ? Tag01Icon : entryType(destination.type).icon,
+        })),
+    ].filter(Boolean);
+
+    if (jumpTo.length) {
+        raw.push({ heading: 'Jump to', items: jumpTo });
     }
 
     if (entryResults.value.length) {
