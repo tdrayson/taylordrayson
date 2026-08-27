@@ -109,10 +109,6 @@ const fullOccurredLabel = computed(() => `${props.occurredLabel} ${props.occurre
 // Aggregate / one-per-day types have a generic slug and a stat-style title, so the
 // type label reads better in the breadcrumb. Everything else uses its title.
 const SINGULAR_TYPES = ['sleep', 'calorie', 'fuel', 'note'];
-// A media hero shows the studio's own title logo, so the heading stays for the
-// outline but steps out of the way rather than printing the title twice.
-const titleInHero = computed(() => Boolean(props.entry?.logo && props.entry?.logoIsTitle));
-
 const crumbLabel = computed(() => (SINGULAR_TYPES.includes(props.type) ? meta.value.label : props.title));
 
 setLayoutProps({
@@ -149,7 +145,7 @@ setLayoutProps({
                     <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji class="p-name" :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-display'">{{ title }}</h1>
+                <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl p-name font-display text-display">{{ title }}</h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->
