@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 use RuntimeException;
 
-#[Description('Run one read-only SELECT against the site database and return the rows.')]
+#[Description('Fallback: run one read-only SELECT when no other tool can answer it. Prefer search_entries, timeline, entry or stats, which need no knowledge of the schema.')]
 class DatabaseQuery extends Tool
 {
     public function __construct(private readonly ReadOnlyDatabase $database) {}
