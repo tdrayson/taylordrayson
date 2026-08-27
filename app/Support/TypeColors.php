@@ -4,8 +4,12 @@ namespace App\Support;
 
 /**
  * The timeline data-type accent colours, parsed from the `--color-{type}` custom
- * properties in resources/css/app.css and converted to hex for Mapbox overlays
+ * properties in resources/css/theme.css and converted to hex for Mapbox overlays
  * and the OG cards, so there is no second hand-maintained list.
+ *
+ * theme.css rather than dark.css, which redefines the same tokens: an OG card
+ * and a map overlay are both drawn on a light ground whatever the reader's
+ * theme is.
  */
 class TypeColors
 {
@@ -13,6 +17,9 @@ class TypeColors
     private static ?array $colors = null;
 
     private const FALLBACK = '3858e9';
+
+    /** Where the light palette is declared. */
+    private const SOURCE = 'resources/css/theme.css';
 
     /**
      * @return array<string, string>
@@ -23,7 +30,7 @@ class TypeColors
             return self::$colors;
         }
 
-        $css = @file_get_contents(base_path('resources/css/app.css')) ?: '';
+        $css = @file_get_contents(base_path(self::SOURCE)) ?: '';
 
         // Single-word `--color-{token}: hsl(h s% l%)` declarations only, which is
         // exactly the data-type accents (neutrals, scales, and stages are dashed).
