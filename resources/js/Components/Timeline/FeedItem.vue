@@ -38,6 +38,9 @@ const props = defineProps({
     media: { type: Object, default: null },
     photos: { type: Array, default: null },
     polyline: { type: String, default: null },
+    // Wide artwork for a film or episode (an episode borrows its show's). Shown
+    // as context, so unlike `photos` it has no lightbox.
+    backdrop: { type: String, default: null },
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
@@ -272,6 +275,20 @@ function openLightbox(index) {
             class="lg:hidden"
             @open="openLightbox"
         />
+
+        <!-- Context, not a photograph: no zoom button and no lightbox, and the
+             whole thing is aria-hidden because the text permalink above says
+             the same. Lazy, since media is the bulk of the feed. -->
+        <component
+            :is="url ? Link : 'div'"
+            v-if="backdrop"
+            :href="url || undefined"
+            :tabindex="url ? -1 : undefined"
+            :aria-hidden="url ? 'true' : undefined"
+            class="mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
+        >
+            <img :src="backdrop" alt="" loading="lazy" decoding="async" class="size-full object-cover">
+        </component>
 
         <!-- Image link and zoom button are siblings, not nested; the image link
              duplicates the text permalink, so it is aria-hidden. -->

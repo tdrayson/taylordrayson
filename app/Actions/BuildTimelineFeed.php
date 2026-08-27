@@ -88,6 +88,7 @@ class BuildTimelineFeed
             'brandLogo' => $card->meta->brandLogo,
             'brand' => $card->meta->brand,
             'address' => $card->meta->address,
+            'backdrop' => $card->meta->backdrop,
             'range' => $card->range,
             // A day total has no clock reading to show, but keeps a real
             // instant in `datetime` for ordering, microformats and the tooltip.

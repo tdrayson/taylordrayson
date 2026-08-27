@@ -109,7 +109,7 @@ it('reproduces the pre-refactor media card shape', function () {
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
         'occurred_at' => $media->occurred_at,
         'accent' => 'media',
-        'meta' => [],
+        'meta' => ['backdrop' => null],
     ]);
 });
 

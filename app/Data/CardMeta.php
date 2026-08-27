@@ -30,14 +30,25 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?string $brandLogo,
         private array $present,
         public ?string $address = null,
+        public ?string $backdrop = null,
     ) {}
 
     /**
-     * No meta at all (Calorie, Media, Project).
+     * No meta at all (Calorie, Project).
      */
     public static function empty(): self
     {
         return new self(null, null, null, null, null, null, null, null, null, null, []);
+    }
+
+    /**
+     * Media: the wide artwork behind a film or episode. Its own key rather than
+     * a photo, so the card renders it as context and not as something to open
+     * in the lightbox.
+     */
+    public static function backdrop(?string $backdrop): self
+    {
+        return new self(null, null, null, null, null, null, null, null, null, null, ['backdrop'], null, $backdrop);
     }
 
     /**
@@ -142,6 +153,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'brand' => $this->brand,
             'brandLogo' => $this->brandLogo,
             'address' => $this->address,
+            'backdrop' => $this->backdrop,
         ];
 
         $result = [];

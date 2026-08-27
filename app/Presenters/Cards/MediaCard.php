@@ -35,8 +35,22 @@ final class MediaCard
             occurredAt: $model->occurred_at,
             accent: 'media',
             range: null,
-            meta: CardMeta::empty(),
+            meta: CardMeta::backdrop($this->backdrop($model)),
         );
+    }
+
+    /**
+     * The wide artwork behind the card. An episode has none of its own, so it
+     * reads its show's, which is what MediaArtwork already does for the entry
+     * page; only the backdrop is wanted here.
+     */
+    private function backdrop(Media $model): ?string
+    {
+        $source = $model->optimisedUrl('backdrop') === null
+            ? $model->series ?? $model
+            : $model;
+
+        return $source->optimisedUrl('backdrop');
     }
 
     /**
