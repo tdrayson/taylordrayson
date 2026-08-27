@@ -6,6 +6,7 @@ import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
+import { urlLabel } from '../../lib/urlLabel';
 import VideoEmbed from './VideoEmbed.vue';
 
 
@@ -116,8 +117,8 @@ function iconWithLabel(mark, label) {
 /**
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
- * into nonsense. A pasted URL is the one exception, collapsing to the domain
- * rather than sitting in the sentence as a raw address.
+ * into nonsense. A pasted URL is the one exception, reading as whatever its own
+ * path already says, and as the bare domain when nothing recognises it.
  */
 function renderExternalLink(def, label, text, favicons) {
     const host = hostOf(def.href);
@@ -149,7 +150,10 @@ function renderExternalLink(def, label, text, favicons) {
         target: away ? '_blank' : null,
         'data-external': '',
     }, [
-        ...iconWithLabel(mark, isBareUrl(text, def.href) && host ? host : label),
+        // Some paths say more than their domain does: a GitHub pull request
+        // knows its own number. Only for a pasted address, never for words the
+        // author chose.
+        ...iconWithLabel(mark, isBareUrl(text, def.href) ? (urlLabel(def.href) ?? host ?? label) : label),
         away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
     ]);
 }
