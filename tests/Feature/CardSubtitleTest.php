@@ -8,7 +8,7 @@ use App\Models\Flight;
 use App\Models\Fuel;
 use App\Presenters\CardPresenter;
 
-it('joins activity distance and duration with "in" and keeps calories comma-joined', function () {
+it('writes an activity subtitle as a sentence, with distance still a token', function () {
     $activity = Activity::factory()->create([
         'type' => 'run',
         'distance' => 2574, // ~1.6 mi
@@ -19,14 +19,16 @@ it('joins activity distance and duration with "in" and keeps calories comma-join
 
     $card = CardPresenter::for($activity)->toArray();
 
-    expect($card['subtitle'])->toContain(' in ')
-        ->and($card['subtitle'])->toMatch('/mi in .*, 210 kcal/');
+    expect($card['subtitle'])->toBe('I ran 1.6 mi in 22m, burning 210 kcal.');
 
-    $durationToken = collect($card['subtitleTokens'])->first(fn (array $token): bool => $token['t'] === 'text' && str_contains($token['v'], 'm'));
-    expect($durationToken['sep'])->toBe(' in ');
+    // Distance stays a raw-metres token so the mi/km toggle can rewrite it in
+    // place; the sentence around it is plain text.
+    $distanceToken = collect($card['subtitleTokens'])->firstWhere('t', 'dist');
+    expect($distanceToken['m'])->toBe(2574)
+        ->and($distanceToken['sep'])->toBe(' ');
 });
 
-it('does not lead activity subtitle with "in" when there is no distance', function () {
+it('names the activity instead of its distance when it has none', function () {
     $activity = Activity::factory()->create([
         'type' => 'gym',
         'distance' => null,
@@ -37,15 +39,14 @@ it('does not lead activity subtitle with "in" when there is no distance', functi
 
     $card = CardPresenter::for($activity)->toArray();
 
-    expect($card['subtitle'])->not->toContain(' in ')
-        ->and($card['subtitle'])->toBe('22m, 210 kcal');
+    expect($card['subtitle'])->toBe('I did 22m of gym, burning 210 kcal.');
 
-    $durationToken = $card['subtitleTokens'][0];
-    expect($durationToken['t'])->toBe('text')
-        ->and($durationToken)->not->toHaveKey('sep');
+    $opening = $card['subtitleTokens'][0];
+    expect($opening['t'])->toBe('text')
+        ->and($opening)->not->toHaveKey('sep');
 });
 
-it('activity subtitle shows just distance when duration and calories are absent', function () {
+it('drops the trailing clauses when duration and calories are absent', function () {
     $activity = Activity::factory()->create([
         'type' => 'run',
         'distance' => 2574,
@@ -54,7 +55,7 @@ it('activity subtitle shows just distance when duration and calories are absent'
         'meta' => [],
     ]);
 
-    expect(CardPresenter::for($activity)->toArray()['subtitle'])->toBe('1.6 mi');
+    expect(CardPresenter::for($activity)->toArray()['subtitle'])->toBe('I ran 1.6 mi.');
 });
 
 it('joins flight distance and cabin class with "in"', function () {
@@ -124,7 +125,7 @@ it('uses the checkin note as its subtitle when present', function () {
     expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Great coffee here');
 });
 
-it('gives a checkin no subtitle without a note, carrying the address in meta instead', function () {
+it('captions a checkin with its category and city when it has no note', function () {
     $checkin = Checkin::factory()->create([
         'description' => null,
         'category' => 'Coffee Shop',
@@ -134,17 +135,17 @@ it('gives a checkin no subtitle without a note, carrying the address in meta ins
 
     $card = CardPresenter::for($checkin)->toArray();
 
-    expect($card['subtitle'])->toBeNull()
+    expect($card['subtitle'])->toBe('A Coffee Shop in London.')
         ->and($card['meta']['address'])->toContain('London');
 });
 
-it('joins event venue and city with "in"', function () {
+it('writes an event subtitle as a sentence naming venue and city', function () {
     $event = Event::factory()->create([
         'venue_name' => 'The Roundhouse',
         'city' => 'London',
     ]);
 
-    expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('The Roundhouse in London');
+    expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('I went to The Roundhouse in London.');
 });
 
 it('keeps the calorie subtitle comma-joined with no connectives', function () {

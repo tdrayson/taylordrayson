@@ -9,8 +9,8 @@ use App\Enums\TimelineType;
 use App\Models\Checkin;
 
 /**
- * Builds the timeline card for a Checkin: category/city subtitle plus the
- * generated location map.
+ * Builds the timeline card for a Checkin: the note when there is one, else the
+ * venue's category and city, plus the generated location map.
  */
 final class CheckinCard
 {
@@ -20,7 +20,7 @@ final class CheckinCard
             ->filter()
             ->implode(', ');
 
-        $subtitle = $model->description ?: null;
+        $subtitle = $model->description ?: $this->placeCaption($model);
 
         // Display-only: the URL slug still comes from the venue (Checkin::slug()).
         $title = $model->event_name
@@ -47,5 +47,27 @@ final class CheckinCard
                 address: $address !== '' ? $address : null,
             ),
         );
+    }
+
+    /**
+     * What the place is, for the 1,801 check-ins carrying no note of their own,
+     * which showed nothing at all before.
+     *
+     * A noun phrase rather than a sentence: Foursquare's category vocabulary
+     * includes Road, Platform and Town, and any verb general enough to cover
+     * "a coffee shop" reads wrong against those.
+     */
+    private function placeCaption(Checkin $model): ?string
+    {
+        if (! $model->category) {
+            return $model->city ? "In {$model->city}." : null;
+        }
+
+        // Category kept exactly as stored: lowercasing it would mangle the
+        // proper nouns in the vocabulary ("Irish Pub", "Italian Restaurant").
+        $article = str_contains('aeiou', strtolower($model->category[0])) ? 'An' : 'A';
+        $caption = "{$article} {$model->category}";
+
+        return $model->city ? "{$caption} in {$model->city}." : "{$caption}.";
     }
 }

@@ -21,7 +21,7 @@ final class AppearanceCard
             icon: 'mic',
             title: $model->title,
             titleLabel: null,
-            subtitle: $model->show_name,
+            subtitle: $model->show_name ? "I spoke at {$model->show_name}." : null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'appearance',
