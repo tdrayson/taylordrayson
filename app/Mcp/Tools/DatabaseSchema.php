@@ -9,7 +9,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('List the database tables with their row counts, or the columns of one table.')]
+#[Description('Fallback: the tables and columns behind database_query. Only useful when writing SQL by hand; search_fields describes what the other tools can filter on.')]
 class DatabaseSchema extends Tool
 {
     public function __construct(private readonly ReadOnlyDatabase $database) {}
