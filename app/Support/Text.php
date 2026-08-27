@@ -9,6 +9,23 @@ class Text
      * trailing whitespace, dashes or punctuation before appending the ellipsis
      * so it never reads like "… some topic -…".
      */
+    /**
+     * Join with commas and a final "and", so a run of values ends as prose
+     * rather than as the last item of a list.
+     *
+     * @param  list<string>  $parts
+     */
+    public static function sentenceList(array $parts): string
+    {
+        if (count($parts) < 2) {
+            return $parts[0] ?? '';
+        }
+
+        $last = array_pop($parts);
+
+        return implode(', ', $parts).' and '.$last;
+    }
+
     public static function excerpt(?string $value, int $limit = 160, string $end = '…'): ?string
     {
         if ($value === null) {

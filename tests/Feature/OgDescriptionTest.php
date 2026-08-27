@@ -29,8 +29,8 @@ it('describes a sleep entry with its duration, date and window', function () {
     get('/'.$sleep->occurred_at->format('Y/m/d').'/'.$sleep->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.title', '9h 21m sleep, 24 August 2026')
-            ->where('og.description', 'I slept 9h 21m on Monday 24 August 2026, 11:30pm to 8:51am, scoring 80.')
+            ->where('og.title', '9h 21m asleep, 24 August 2026')
+            ->where('og.description', 'I slept 9h 21m on Monday 24 August 2026, 11:30pm to 8:51am, with a sleep score of 80.')
         );
 });
 

@@ -7,32 +7,49 @@ use App\Data\CardMeta;
 use App\Data\SegmentData;
 use App\Enums\TimelineType;
 use App\Models\Sleep;
+use App\Support\Units;
 
 /**
- * Builds the timeline card for a Sleep log: total time asleep plus a
- * per-stage breakdown (awake/REM/light/deep) for the timeline bar.
+ * Builds the timeline card for a Sleep log: total time asleep as the title,
+ * the window and sleep score as a sentence, plus a per-stage breakdown
+ * (awake/REM/light/deep) for the timeline bar.
  */
 final class SleepCard
 {
     public function present(Sleep $model): CardData
     {
-        $totalMinutes = intdiv($model->duration, 60);
-        $hours = intdiv($totalMinutes, 60);
-        $minutes = $totalMinutes % 60;
-        $formatted = $minutes > 0 ? "{$hours}h {$minutes}m" : "{$hours}h";
+        $formatted = Units::humanDuration($model->duration);
 
         return new CardData(
             type: TimelineType::Sleep,
             icon: 'bed',
-            title: "{$formatted} sleep",
-            titleLabel: "Sleep log, {$formatted}",
-            subtitle: $model->bedtime->format('g:ia').' → '.$model->wake_time->format('g:ia'),
+            title: "{$formatted} asleep",
+            titleLabel: "Sleep log, {$formatted} asleep",
+            subtitle: $this->sentence($model),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'sleep',
             range: null,
             meta: CardMeta::sleep($this->stageSegments($model)),
         );
+    }
+
+    /**
+     * The night as a sentence. "sleep score" in full rather than a bare number,
+     * which on its own says nothing about what was scored; it is also the term
+     * SleepDetail.vue already uses for the panel on the entry page.
+     */
+    private function sentence(Sleep $model): string
+    {
+        $window = sprintf(
+            'I slept from %s to %s',
+            $model->bedtime->format('g:ia'),
+            $model->wake_time->format('g:ia'),
+        );
+
+        return $model->score
+            ? "{$window}, with a sleep score of {$model->score}."
+            : "{$window}.";
     }
 
     /**

@@ -17,11 +17,14 @@ use App\Models\Note;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
+use App\Queries\DayFoodTotals;
 use App\Support\Distance;
 use App\Support\PortableText;
 use App\Support\ShowTitle;
 use App\Support\Text;
+use App\Support\Units;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
  * The meta description for a single entry page, written as a sentence.
@@ -57,7 +60,7 @@ final class EntryDescription
             $model instanceof Checkin => self::checkin($model, $date),
             $model instanceof Flight => self::flight($model, $card, $date),
             $model instanceof Media => self::media($model, $date),
-            $model instanceof Calorie => self::calorie($card, $date),
+            $model instanceof Calorie => self::calorie($model, $date),
             $model instanceof Fuel => self::fuel($model, $date),
             $model instanceof Event => self::event($model, $date),
             $model instanceof Appearance => self::appearance($model, $date),
@@ -74,9 +77,9 @@ final class EntryDescription
     private static function sleep(Sleep $model, string $date): string
     {
         $window = $model->bedtime->format('g:ia').' to '.$model->wake_time->format('g:ia');
-        $score = $model->score ? ", scoring {$model->score}" : '';
+        $score = $model->score ? ", with a sleep score of {$model->score}" : '';
 
-        return sprintf('I slept %s on %s, %s%s.', self::duration($model->duration), $date, $window, $score);
+        return sprintf('I slept %s on %s, %s%s.', Units::humanDuration($model->duration), $date, $window, $score);
     }
 
     private static function activity(Activity $model, CardData $card, string $date): string
@@ -138,11 +141,27 @@ final class EntryDescription
         return sprintf('S%02dE%02d', $model->meta->season, $model->meta->episode);
     }
 
-    private static function calorie(CardData $card, string $date): string
+    private static function calorie(Calorie $model, string $date): string
     {
-        $macros = $card->subtitle ? " {$card->subtitle}." : '';
+        $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 
-        return sprintf('What I ate on %s: %s for the day.%s', $date, $card->title, $macros);
+        $macros = Text::sentenceList(array_values(array_filter([
+            $totals['protein'] ? round($totals['protein']).'g protein' : null,
+            $totals['carbs'] ? round($totals['carbs']).'g carbs' : null,
+            $totals['fat'] ? round($totals['fat']).'g fat' : null,
+        ])));
+
+        $meals = $totals['meals']
+            ? sprintf(', across %d %s', $totals['meals'], Str::plural('meal', $totals['meals']))
+            : '';
+
+        return sprintf(
+            'I ate %s kcal on %s%s.%s',
+            number_format($totals['calories']),
+            $date,
+            $meals,
+            $macros === '' ? '' : " That was {$macros}.",
+        );
     }
 
     private static function fuel(Fuel $model, string $date): string
@@ -216,19 +235,5 @@ final class EntryDescription
             $card->subtitle ? ": {$card->subtitle}" : '',
             $date,
         ));
-    }
-
-    /** Seconds as "9h 21m", dropping a zero minute count. */
-    private static function duration(int $seconds): string
-    {
-        $minutes = intdiv($seconds, 60);
-        $hours = intdiv($minutes, 60);
-        $remainder = $minutes % 60;
-
-        if ($hours === 0) {
-            return "{$remainder}m";
-        }
-
-        return $remainder > 0 ? "{$hours}h {$remainder}m" : "{$hours}h";
     }
 }

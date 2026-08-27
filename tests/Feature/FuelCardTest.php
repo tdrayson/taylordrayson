@@ -14,15 +14,17 @@ it('uses the flat station_name as the card title', function () {
 
     $card = CardPresenter::for($fuel);
 
-    expect($card->title)->toBe('ASDA Wallington');
+    expect($card->title)->toBe('£41.13 at ASDA Wallington');
     expect($card->titleLabel)->toContain('ASDA Wallington');
-    expect($card->subtitle)->toContain('£41.13');
+    expect($card->subtitle)->toContain('32.13 litres');
 });
 
-it('falls back to Fuel when no station is set', function () {
-    $fuel = Fuel::factory()->create(['station_name' => null]);
+// The imported rows carry no station, city, brand or coordinates, so the title
+// names no place rather than inventing one.
+it('names no place when no station is set', function () {
+    $fuel = Fuel::factory()->create(['station_name' => null, 'cost' => 41.13]);
 
-    expect(CardPresenter::for($fuel)->title)->toBe('Fuel');
+    expect(CardPresenter::for($fuel)->title)->toBe('£41.13 at the pump');
 });
 
 afterEach(function () {

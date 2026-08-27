@@ -87,17 +87,20 @@ it('does not dangle "in" when a flight has no cabin class', function () {
     expect($card['subtitleTokens'][0])->not->toHaveKey('sep');
 });
 
-it('builds the fuel subtitle with "for" and "at" clauses', function () {
+it('writes the fuel subtitle as a sentence with a price clause', function () {
     $fuel = Fuel::factory()->create([
         'litres' => 33,
         'cost' => 45.06,
         'price_per_litre' => 1.359,
     ]);
 
-    expect(CardPresenter::for($fuel)->toArray()['subtitle'])->toBe('33 L for £45.06 at £1.359/L');
+    expect(CardPresenter::for($fuel)->toArray()['subtitle'])
+        ->toBe('I filled up with 33.00 litres at £1.359 a litre, in '.$fuel->city.'.');
 });
 
-it('omits the "at" clause when fuel has no price per litre', function () {
+// Without a price clause between them, a comma would separate the verb from
+// its own place: "33 litres, in Grimsby".
+it('drops the price clause and its comma when there is no price per litre', function () {
     $fuel = Fuel::factory()->create([
         'litres' => 33,
         'cost' => 45.06,
@@ -106,8 +109,9 @@ it('omits the "at" clause when fuel has no price per litre', function () {
 
     $subtitle = CardPresenter::for($fuel)->toArray()['subtitle'];
 
-    expect($subtitle)->toBe('33 L for £45.06')
-        ->and($subtitle)->not->toContain(' at ');
+    expect($subtitle)->toBe('I filled up with 33.00 litres in '.$fuel->city.'.')
+        ->and($subtitle)->not->toContain(' a litre')
+        ->and($subtitle)->not->toContain(', in ');
 });
 
 it('uses the checkin note as its subtitle when present', function () {

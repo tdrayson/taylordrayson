@@ -9,6 +9,26 @@ class Units
      * (already seconds), numeric strings, "2h 56m" style component strings,
      * and "H:MM:SS" / "MM:SS" clock strings. Returns null when unparseable.
      */
+    /**
+     * Format a duration in seconds as "9h 21m", dropping a zero minute ("9h")
+     * and the hour when there is none ("45m").
+     *
+     * ActivityCard keeps its own zero-padded variant ("1h 05m"), which reads as
+     * a race time rather than a rough length; this is the prose form.
+     */
+    public static function humanDuration(int $seconds): string
+    {
+        $minutes = intdiv($seconds, 60);
+        $hours = intdiv($minutes, 60);
+        $remainder = $minutes % 60;
+
+        if ($hours === 0) {
+            return "{$remainder}m";
+        }
+
+        return $remainder > 0 ? "{$hours}h {$remainder}m" : "{$hours}h";
+    }
+
     public static function seconds(mixed $value): ?int
     {
         if ($value === null) {

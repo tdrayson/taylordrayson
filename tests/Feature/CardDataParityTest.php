@@ -13,11 +13,14 @@ use App\Support\Distance;
 use App\Support\YouTube;
 
 /**
- * Proves CardData::toArray() reproduces, byte-for-byte, the array literal each
- * model's card() used to return before the DTO refactor. Values are computed
- * the same way the original inline arrays computed them (Distance::miles(),
- * number_format(), the model's own helper methods), not re-hardcoded, so
- * these tests fail if the DTO wiring silently drops or renames a key.
+ * Pins the exact array CardData::toArray() emits per type: every key, the order
+ * they appear in, and which of them are omitted rather than null.
+ *
+ * Originally a parity guard proving the DTO reproduced the pre-refactor card()
+ * arrays byte-for-byte. That premise ended when the card copy was rewritten;
+ * what still earns its keep is the shape, so values that are computed rather
+ * than authored (Distance::miles(), the model's own helpers) stay computed
+ * here rather than hardcoded.
  */
 it('reproduces the pre-refactor activity card shape', function () {
     $activity = Activity::factory()->create([
@@ -160,9 +163,9 @@ it('reproduces the pre-refactor sleep card shape', function () {
     expect(CardPresenter::for($sleep)->toArray())->toEqual([
         'type' => 'sleep',
         'icon' => 'bed',
-        'title' => '8h sleep',
-        'titleLabel' => 'Sleep log, 8h',
-        'subtitle' => '11:00pm → 7:00am',
+        'title' => '8h asleep',
+        'titleLabel' => 'Sleep log, 8h asleep',
+        'subtitle' => 'I slept from 11:00pm to 7:00am.',
         'occurred_at' => $sleep->occurred_at,
         'accent' => 'sleep',
         'meta' => [

@@ -16,9 +16,9 @@ use Illuminate\Support\Collection;
  */
 final class DayFoodTotals
 {
-    private const EMPTY = ['calories' => 0, 'protein' => 0.0, 'carbs' => 0.0, 'fat' => 0.0];
+    private const EMPTY = ['calories' => 0, 'protein' => 0.0, 'carbs' => 0.0, 'fat' => 0.0, 'meals' => 0];
 
-    /** @var array<string, array{calories: int, protein: float, carbs: float, fat: float}> */
+    /** @var array<string, array{calories: int, protein: float, carbs: float, fat: float, meals: int}> */
     private array $totals = [];
 
     /**
@@ -41,6 +41,7 @@ final class DayFoodTotals
                     'protein' => (float) $row->protein,
                     'carbs' => (float) $row->carbs,
                     'fat' => (float) $row->fat,
+                    'meals' => (int) $row->meals,
                 ];
             });
 
@@ -52,7 +53,7 @@ final class DayFoodTotals
     }
 
     /**
-     * @return array{calories: int, protein: float, carbs: float, fat: float}
+     * @return array{calories: int, protein: float, carbs: float, fat: float, meals: int}
      */
     public function for(string $date): array
     {
@@ -74,7 +75,7 @@ final class DayFoodTotals
         $day = SqlDate::date('occurred_at');
 
         return Calorie::query()
-            ->selectRaw("{$day} as day, SUM(calories) as calories, SUM(protein) as protein, SUM(carbs) as carbs, SUM(fat) as fat")
+            ->selectRaw("{$day} as day, SUM(calories) as calories, SUM(protein) as protein, SUM(carbs) as carbs, SUM(fat) as fat, COUNT(DISTINCT meal) as meals")
             ->where('occurred_at', '>=', $from.' 00:00:00')
             ->where('occurred_at', '<', date('Y-m-d', strtotime($to.' +1 day')).' 00:00:00')
             ->groupByRaw($day)
