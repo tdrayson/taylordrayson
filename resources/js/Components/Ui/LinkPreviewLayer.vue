@@ -241,13 +241,29 @@ onBeforeUnmount(() => {
     overflow-wrap: anywhere;
 }
 
+/* `scale` and `translate` as their own properties, not `transform`: the wrapper
+   sets transform inline to flip itself above the link, and animating that would
+   fight the placement. These compose with it instead. */
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.12s ease;
+    transition: opacity 0.12s ease, scale 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+        translate 0.14s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+    scale: 0.96;
+    translate: 0 4px;
+}
+
+/* The wrapper's motion-reduce:transition-none stops the tween, but the card
+   would still start scaled and snap. Nothing to grow from at all here. */
+@media (prefers-reduced-motion: reduce) {
+    .fade-enter-from,
+    .fade-leave-to {
+        scale: 1;
+        translate: none;
+    }
 }
 </style>
