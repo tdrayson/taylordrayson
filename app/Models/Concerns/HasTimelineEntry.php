@@ -3,7 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\TimelineEntry;
-use App\Support\AmbientZone;
+use App\Support\EntryZone;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 trait HasTimelineEntry
 {
     /**
-     * Stamp an entry arriving without a zone with wherever the phone last
-     * reported from, so anything logged abroad is not silently shown in home
-     * time. On `saving` so it lands in the same write.
+     * Stamp an entry arriving without a zone with where it can be placed: the
+     * phone's last reading, or failing that where flights say you were. On
+     * `saving` so it lands in the same write.
      */
     public static function bootHasTimelineEntry(): void
     {
@@ -28,7 +28,7 @@ trait HasTimelineEntry
                 return;
             }
 
-            $zone = app(AmbientZone::class)->forEntryAt($model->occurred_at);
+            $zone = app(EntryZone::class)->forEntryAt($model->occurred_at);
 
             if ($zone !== null) {
                 $model->setAttribute('timezone', $zone);
