@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Queries\DayFoodTotals;
@@ -10,10 +11,12 @@ use App\Support\ApiHttp;
 use App\Support\FeedDiscovery;
 use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
+use App\Timeline\TypeRegistry;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
@@ -40,6 +43,41 @@ class AppServiceProvider extends ServiceProvider
         // Held for the request so every food card on a page shares one read of
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
+
+        $this->registerArchiveRoutes();
+    }
+
+    /**
+     * `Route::archives()`, registering each type's archive page, its /stats
+     * redirect and its taxonomy sub-route.
+     *
+     * A macro so routes/web.php stays a flat list of controllers rather than
+     * reaching into the type registry to build routes. In register() rather
+     * than boot(), because the route files are loaded during the framework's
+     * own boot and the macro has to exist before web.php is evaluated.
+     *
+     * Order inside is load-bearing and matches what the loop did: the /stats
+     * redirect is registered before the taxonomy route, so "stats" is not
+     * matched as a taxonomy value.
+     */
+    private function registerArchiveRoutes(): void
+    {
+        Route::macro('archives', function (): void {
+            foreach (TypeRegistry::all() as $type => $definition) {
+                Route::get($definition['slug'], [ArchiveController::class, 'index'])
+                    ->defaults('type', $type)->name("archive.{$definition['slug']}");
+
+                Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
+
+                if ($taxonomy = $definition['taxonomy']) {
+                    // Its own name prefix: a taxonomy base usually matches the
+                    // type's own slug, so naming it archive.* too would collide
+                    // and route:cache refuses a table with duplicates.
+                    Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
+                        ->defaults('type', $type)->name("taxonomy.{$taxonomy['base']}");
+                }
+            }
+        });
     }
 
     /**

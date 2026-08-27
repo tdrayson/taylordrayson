@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
@@ -25,7 +24,6 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
-use App\Timeline\TypeRegistry;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -121,25 +119,10 @@ Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('
 // Literal segment must beat the archive taxonomy route (/flights/{value}).
 Route::get('/flights/map', FlightMapController::class)->name('flights.map');
 
-// Per-type archive pages and their taxonomy sub-routes. Slugs are literal segments,
-// so they never collide with the digit-constrained /{year}/... routes below.
-foreach (TypeRegistry::all() as $type => $definition) {
-    Route::get($definition['slug'], [ArchiveController::class, 'index'])
-        ->defaults('type', $type)->name("archive.{$definition['slug']}");
-
-    // Two-way support: /{slug}/stats resolves to the canonical /stats/{slug}.
-    // Registered before the taxonomy route below so "stats" is not matched as a
-    // taxonomy value (e.g. /activities/{value}).
-    Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
-
-    if ($taxonomy = $definition['taxonomy']) {
-        // Its own name prefix: a taxonomy base usually matches the type's own
-        // slug (activities, notes, flights), so naming it archive.* too would
-        // collide and route:cache refuses to build a table with duplicates.
-        Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
-            ->defaults('type', $type)->name("taxonomy.{$taxonomy['base']}");
-    }
-}
+// Per-type archive pages and their taxonomy sub-routes, registered by the
+// Route::archives() macro. Slugs are literal segments, so they never collide
+// with the digit-constrained /{year}/... routes below.
+Route::archives();
 
 // Stats
 Route::get('/stats/{type}', [StatsController::class, 'show'])
