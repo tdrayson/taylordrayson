@@ -12,26 +12,32 @@ namespace App\Support\Health;
  */
 class SleepScore
 {
-    /** Asleep target (minutes) above which duration is not penalised: 7h50m. */
+    /** Asleep target (minutes) where duration scores full marks: 7h50m. */
     private const DURATION_TARGET = 470;
+
+    /** Points lost per hour slept beyond the target: a long night is not a better one. */
+    private const SURPLUS_RATE = 3;
 
     /** Bedtime later than this many minutes past the grace window starts costing points. */
     private const BEDTIME_GRACE = 15;
 
-    /** Awake minutes tolerated before the interruption penalty begins. */
-    private const AWAKE_GRACE = 11;
+    /** Awake share of a night not held against it. */
+    private const AWAKE_GRACE = 0.05;
+
+    /** Awake share at which the interruption component reaches nothing. */
+    private const AWAKE_FLOOR = 0.35;
 
     /**
      * Score one night.
      *
-     * @param  array{duration:int, awake:int, rem:int, core:int, deep:int, wake_events:int, bedtime_minutes:int, baseline_minutes:?int}  $night
+     * @param  array{duration:int, awake:int, rem:int, core:int, deep:int, bedtime_minutes:int, baseline_minutes:?int}  $night
      * @return array{score:int, duration_score:int, bedtime_score:int, interruption_score:int}
      */
     public function score(array $night): array
     {
         $duration = $this->durationScore($night);
         $bedtime = $this->bedtimeScore($night['bedtime_minutes'], $night['baseline_minutes']);
-        $interruption = $this->interruptionScore($night['awake'], $night['wake_events']);
+        $interruption = $this->interruptionScore($night['awake'], $night['duration']);
 
         return [
             'score' => $duration + $bedtime + $interruption,
@@ -43,7 +49,13 @@ class SleepScore
 
     /**
      * Duration component (max 50): a non-linear penalty for sleeping under the
-     * target, plus 5 off each for low deep and low REM when the night is staged.
+     * target, a mild flat one for sleeping well over it, and 5 off each for low
+     * deep and low REM when the night is staged.
+     *
+     * Both stage minimums are read against the target rather than the night's
+     * own length. Measured as a share of what was actually slept, a long night
+     * has to produce proportionally more deep sleep to escape the penalty,
+     * which made every lie-in score worse than an ordinary night.
      *
      * @param  array{duration:int, rem:int, deep:int}  $night
      */
@@ -51,16 +63,18 @@ class SleepScore
     {
         $asleep = $night['duration'] / 60;
         $deficitHours = max(0, self::DURATION_TARGET - $asleep) / 60;
+        $surplusHours = max(0, $asleep - self::DURATION_TARGET) / 60;
 
-        $deduction = 5 * $deficitHours ** 1.38;
+        $deduction = 5 * $deficitHours ** 1.38 + self::SURPLUS_RATE * $surplusHours;
 
+        $reference = min($asleep, self::DURATION_TARGET);
         $staged = $night['rem'] > 0 || $night['deep'] > 0;
 
-        if ($staged && 0.10 * $asleep > $night['deep'] / 60) {
+        if ($staged && 0.10 * $reference > $night['deep'] / 60) {
             $deduction += 5;
         }
 
-        if ($staged && 0.15 * $asleep > $night['rem'] / 60) {
+        if ($staged && 0.15 * $reference > $night['rem'] / 60) {
             $deduction += 5;
         }
 
@@ -91,15 +105,25 @@ class SleepScore
     }
 
     /**
-     * Interruption component (max 20): awake time over the grace window at
-     * ~1 point per 4 minutes, plus ~1 point per 2 wake-ups beyond the first two.
+     * Interruption component (max 20): awake time as a share of the night
+     * rather than as a count of minutes.
+     *
+     * An hour awake inside eleven hours in bed is not the same night as an hour
+     * awake inside six, and scoring them alike drove this component to nothing
+     * on half of every long night. Wake-ups are no longer counted separately:
+     * their minutes are already here, and charging for both penalised the same
+     * interruptions twice.
      */
-    private function interruptionScore(int $awakeSeconds, int $wakeEvents): int
+    private function interruptionScore(int $awakeSeconds, int $asleepSeconds): int
     {
-        $awakeMinutes = $awakeSeconds / 60;
+        $inBed = $awakeSeconds + $asleepSeconds;
 
-        $deduction = max(0, ($awakeMinutes - self::AWAKE_GRACE) / 4)
-            + max(0, ($wakeEvents - 2) / 2);
+        if ($inBed <= 0) {
+            return 20;
+        }
+
+        $over = max(0, ($awakeSeconds / $inBed) - self::AWAKE_GRACE);
+        $deduction = 20 * $over / (self::AWAKE_FLOOR - self::AWAKE_GRACE);
 
         return (int) round($this->clamp(20 - $deduction, 0, 20));
     }
