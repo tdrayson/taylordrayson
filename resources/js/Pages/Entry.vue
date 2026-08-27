@@ -135,7 +135,10 @@ setLayoutProps({
         :action="`/entries/${editType}/${entry.id}`"
     />
 
-    <article v-else class="h-entry">
+    <!-- Spans the page and re-establishes the grid, as Page.vue does, so a
+         child can opt into breakout or full width. Children with no column
+         of their own still default to `content`. -->
+    <article v-else class="h-entry full-width content-grid">
         <header class="relative">
             <div class="min-w-0">
                 <div class="relative">
