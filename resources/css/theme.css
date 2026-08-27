@@ -126,6 +126,12 @@
        don't stretch awkwardly on very wide screens (`max-w-dashboard`). */
     --container-dashboard: 90rem;
 
+    /* The contents rail is absolutely positioned off the 44rem body column and
+       needs 264px beside it, which `xl` does not yet afford: at 1280px it runs
+       ~12px past the viewport and scrolls the page sideways. Below this the
+       rail is replaced by the floating pill, not lost. */
+    --breakpoint-toc: 85rem;
+
     /* Elevation — the single shadow tier */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
 

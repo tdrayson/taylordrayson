@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
          relative-positioned wrapper and stuck via CSS (no JS measuring). -->
     <nav
         v-if="items.length"
-        class="hidden xl:absolute xl:left-full xl:top-0 xl:block xl:h-full xl:pl-10"
+        class="hidden toc:absolute toc:left-full toc:top-0 toc:block toc:h-full toc:pl-10"
         aria-label="Table of contents"
     >
         <ul class="toc-rail sticky top-10 flex w-56 flex-col border-l border-neutral-100">
@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
 
     <!-- Smaller screens: a floating glass pill (top + contents) that slides up
          once the reader has scrolled a way down, and back down at the top. -->
-    <div class="fixed bottom-5 left-1/2 z-30 -translate-x-1/2 xl:hidden">
+    <div class="fixed bottom-5 left-1/2 z-30 -translate-x-1/2 toc:hidden">
         <Transition name="pill">
             <div
                 v-if="items.length && scrolled"
