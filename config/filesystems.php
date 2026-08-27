@@ -41,7 +41,11 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('ASSET_URL', ''), '/').'/storage',
+            // Media only, and deliberately not ASSET_URL: Vite reads that one too,
+            // so pointing media at production would send the built JS and CSS there
+            // as well. Empty stays root-relative, which is what lets a Herd share
+            // serve media off whatever host answers the request.
+            'url' => rtrim(env('MEDIA_URL', ''), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
