@@ -59,7 +59,7 @@ const scale = computed(() => SIZES[props.size] ?? SIZES.md);
              puts the value on top while the DOM order stays term-first. `sub`
              rides inside the dt for the same reason: a second dd would be
              reversed to the top of the stack. -->
-        <div v-for="(stat, index) in resolved" :key="index" class="flex flex-col-reverse">
+        <div v-for="(stat, index) in resolved" :key="index" class="flex flex-col-reverse justify-end">
             <dt class="mt-1.5 text-label uppercase text-neutral-500">
                 {{ stat.label }}
                 <span v-if="stat.sub" class="mt-1 block normal-case tracking-normal text-neutral-400">{{ stat.sub }}</span>
