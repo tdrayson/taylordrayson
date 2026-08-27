@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Support\ReadOnlyDatabase;
 use Illuminate\Support\Facades\DB;
+use Laravel\Passport\Client;
 use Laravel\Passport\ClientRepository;
 
 /*
@@ -167,7 +168,11 @@ describe('the oauth flow', function () {
         $this->postJson('/oauth/register', [
             'client_name' => 'Not Claude',
             'redirect_uris' => ['https://evil.example.com/callback'],
-        ])->assertStatus(422);
+        ])->assertStatus(400);
+
+        // Asserted on the outcome as well as the status, which the package has
+        // already changed once: nothing may be left behind to authorise later.
+        expect(Client::query()->count())->toBe(0);
     });
 
     it('registers a client redirecting to claude', function () {
@@ -176,4 +181,15 @@ describe('the oauth flow', function () {
             'redirect_uris' => ['https://claude.ai/api/mcp/auth_callback'],
         ])->assertOk()->assertJsonPath('scope', 'mcp:use');
     });
+});
+
+// laravel/mcp first arrived as a transitive dependency of laravel/boost, which
+// is require-dev. The deploy installs --no-dev, so the package was absent in
+// production, the service provider never ran, routes/ai.php was never loaded,
+// and every MCP route 404'd while the code sat there looking correct.
+it('depends on laravel/mcp in production, not only in development', function () {
+    $composer = json_decode((string) file_get_contents(base_path('composer.json')), true);
+
+    expect($composer['require'])->toHaveKey('laravel/mcp')
+        ->and($composer['require'])->toHaveKey('laravel/passport');
 });

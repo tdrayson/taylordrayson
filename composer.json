@@ -11,6 +11,7 @@
         "calebporzio/sushi": "^2.5",
         "inertiajs/inertia-laravel": "^3.1",
         "laravel/framework": "^13.0",
+        "laravel/mcp": "^0.6.7",
         "laravel/passport": "^13.0",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.0",
