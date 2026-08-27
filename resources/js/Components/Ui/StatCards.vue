@@ -35,8 +35,11 @@ const columns = computed(() => COLUMNS[props.stats.length] ?? 'grid-cols-2 sm:gr
 <template>
     <dl class="my-7 grid gap-px overflow-hidden rounded-lg border border-neutral-50 bg-neutral-50" :class="columns">
         <!-- dt must precede its dd per the dl content model, so flex-col-reverse
-             puts the value on top while the DOM order stays term-first. -->
-        <div v-for="(stat, index) in stats" :key="index" class="flex flex-col-reverse px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
+             puts the value on top while the DOM order stays term-first.
+             justify-end is the top of a reversed column: without it the cell
+             packs from the bottom, and a label wrapping to three lines lifts
+             its figure clear of the ones beside it. -->
+        <div v-for="(stat, index) in stats" :key="index" class="flex flex-col-reverse justify-end px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
             <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
             <dd class="font-display text-stat leading-none tnum">{{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ stat.unit }}</abbr></dd>
         </div>
