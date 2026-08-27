@@ -8,7 +8,6 @@ use App\Enums\TimelineType;
 use App\Models\Calorie;
 use App\Queries\DayFoodTotals;
 use App\Support\Text;
-use Illuminate\Support\Str;
 
 /**
  * Builds the timeline card for a Calorie entry: the day's total kcal as the
@@ -40,7 +39,10 @@ final class CalorieCard
      * date is named here: its card shows "All day" where the others show a
      * clock, and the sentence is what has to stand alone in a feed reader.
      *
-     * @param  array{calories: int, protein: float, carbs: float, fat: float, meals: int}  $totals
+     * No meal count: the rows carry a meal slot (breakfast/lunch/dinner/snacks),
+     * so counting them counts groupings rather than meals eaten.
+     *
+     * @param  array{calories: int, protein: float, carbs: float, fat: float}  $totals
      */
     private function sentence(array $totals, Calorie $model): ?string
     {
@@ -51,14 +53,11 @@ final class CalorieCard
         ]));
 
         $date = $model->occurred_at->format('D j M');
-        $where = $totals['meals']
-            ? sprintf('across %d %s on %s', $totals['meals'], Str::plural('meal', $totals['meals']), $date)
-            : "on {$date}";
 
         if ($macros === []) {
-            return "I ate this {$where}.";
+            return "I ate this on {$date}.";
         }
 
-        return sprintf('I ate this %s, made up of %s.', $where, Text::sentenceList($macros));
+        return sprintf('I ate this on %s, made up of %s.', $date, Text::sentenceList($macros));
     }
 }

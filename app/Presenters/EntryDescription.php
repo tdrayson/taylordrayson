@@ -24,7 +24,6 @@ use App\Support\ShowTitle;
 use App\Support\Text;
 use App\Support\Units;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 /**
  * The meta description for a single entry page, written as a sentence.
@@ -151,15 +150,10 @@ final class EntryDescription
             $totals['fat'] ? round($totals['fat']).'g fat' : null,
         ])));
 
-        $meals = $totals['meals']
-            ? sprintf(', across %d %s', $totals['meals'], Str::plural('meal', $totals['meals']))
-            : '';
-
         return sprintf(
-            'I ate %s kcal on %s%s.%s',
+            'I ate %s kcal on %s.%s',
             number_format($totals['calories']),
             $date,
-            $meals,
             $macros === '' ? '' : " That was {$macros}.",
         );
     }

@@ -12,7 +12,7 @@ it('renders an episode card from canonical meta', function () {
         'meta' => ['season' => 1, 'episode' => 3, 'show_title' => 'Severance'],
     ]);
 
-    expect(CardPresenter::for($media)->subtitle)->toContain('S01E03');
+    expect(CardPresenter::for($media)->subtitle)->toContain('season 1 episode 3');
 });
 
 it('leads an episode card with the episode, and names the show in the subtitle', function () {
@@ -27,7 +27,7 @@ it('leads an episode card with the episode, and names the show in the subtitle',
 
     // A day of one show would otherwise repeat the same title down the feed.
     expect($card->title)->toBe('Pilot')
-        ->and($card->subtitle)->toBe('Severance, S01E03');
+        ->and($card->subtitle)->toBe('I watched Severance, season 1 episode 3.');
 });
 
 it('keeps the episode title in the heading when no show can be resolved', function () {
@@ -43,7 +43,7 @@ it('keeps the episode title in the heading when no show can be resolved', functi
 
     // The fallback must not print "Pilot" as both the heading and the subtitle.
     expect($card->title)->toBe('Pilot')
-        ->and($card->subtitle)->toBe('S01E03');
+        ->and($card->subtitle)->toBe('I watched this one, season 1 episode 3.');
 });
 
 it('leaves a film card titled by the film', function () {
@@ -57,7 +57,7 @@ it('leaves a film card titled by the film', function () {
     $card = CardPresenter::for($media);
 
     expect($card->title)->toBe('Dune')
-        ->and($card->subtitle)->toBe('★ 8 / 10, 2021');
+        ->and($card->subtitle)->toBe('I watched this 2021 film and rated it 8/10.');
 });
 
 it('builds a trakt content url for a film from meta ids, not the history id', function () {

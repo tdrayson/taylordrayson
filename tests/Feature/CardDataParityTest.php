@@ -106,7 +106,7 @@ it('reproduces the pre-refactor media card shape', function () {
         'type' => 'media',
         'icon' => 'film',
         'title' => 'Interstellar',
-        'subtitle' => '★ 9 / 10, 2014',
+        'subtitle' => 'I watched this 2014 film and rated it 9/10.',
         'occurred_at' => $media->occurred_at,
         'accent' => 'media',
         'meta' => [],

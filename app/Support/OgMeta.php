@@ -6,6 +6,7 @@ use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
 use App\Models\Article;
 use App\Models\Media;
+use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\TimelineEntry;
 use App\Presenters\EntryDescription;
@@ -486,7 +487,14 @@ class OgMeta
 
         // An episode's card title is the episode's alone, which off the show's
         // page names nothing: "Netherlands (Race)" needs "Formula 1" in front.
-        $show = $model instanceof Media ? ShowTitle::for($model) : null;
+        // A podcast has the same problem for the same reason: on the timeline
+        // its show is the type eyebrow, which does not travel with the title.
+        $show = match (true) {
+            $model instanceof Media => ShowTitle::for($model),
+            $model instanceof Podcast => 'This Week With',
+            default => null,
+        };
+
         $title = $show !== null ? "{$show}: {$card->title}" : $card->title;
 
         return Text::excerpt($title, 60).', '.$card->occurredAt->format('j F Y');
