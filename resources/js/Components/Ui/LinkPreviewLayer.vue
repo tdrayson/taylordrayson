@@ -14,10 +14,13 @@ const props = defineProps({
 
 const active = ref(null);
 const popEl = ref(null);
-const pos = ref({ top: 0, left: 0, placement: 'top' });
+const pos = ref({ top: 0, left: 0, placement: 'top', arrow: 0 });
 const CARD_W = 320;
 const URL_W = 360;
 const GAP = 8;
+// Keeps the arrow off the card's rounded corners when the card is clamped to
+// the viewport edge and the link sits near one end of it.
+const ARROW_INSET = 16;
 const OPEN_DELAY = 350;
 const CLOSE_DELAY = 150;
 
@@ -46,13 +49,18 @@ function anchorRect(el, point) {
 // card does not actually fit above.
 function placeFor(el, size, point) {
     const rect = anchorRect(el, point);
+    const centre = rect.left + rect.width / 2;
     const left = Math.max(GAP, Math.min(
-        rect.left + rect.width / 2 - size.width / 2,
+        centre - size.width / 2,
         window.innerWidth - size.width - GAP,
     ));
     const placement = rect.top > size.height + GAP * 2 ? 'top' : 'bottom';
 
-    return { top: placement === 'top' ? rect.top - GAP : rect.bottom + GAP, left, placement };
+    // Where the link sits along the card's own width, so the arrow keeps
+    // pointing at it after the card has been clamped to the viewport edge.
+    const arrow = Math.max(ARROW_INSET, Math.min(centre - left, size.width - ARROW_INSET));
+
+    return { top: placement === 'top' ? rect.top - GAP : rect.bottom + GAP, left, placement, arrow };
 }
 
 function open(el, preview, point, immediate = false) {
@@ -229,6 +237,18 @@ onBeforeUnmount(() => {
                     v-else
                     class="url-preview rounded-lg border border-neutral-100 bg-neutral-0 px-2.5 py-1.5 font-mono text-caption text-neutral-500 shadow-card"
                 >{{ active.url }}</p>
+
+                <!-- Last in the DOM so it paints over the card's own border,
+                     leaving the arrow open at its base rather than sitting on
+                     top of a drawn line. Only the two outward edges are drawn,
+                     which is what continues that border round the point. -->
+                <span
+                    class="pointer-events-none absolute size-2.5 rotate-45 border-neutral-100 bg-neutral-0"
+                    :class="pos.placement === 'top'
+                        ? 'bottom-0 -translate-x-1/2 translate-y-1/2 border-b border-r'
+                        : 'top-0 -translate-x-1/2 -translate-y-1/2 border-l border-t'"
+                    :style="{ left: `${pos.arrow}px` }"
+                />
             </div>
         </Transition>
     </Teleport>
@@ -241,13 +261,32 @@ onBeforeUnmount(() => {
     overflow-wrap: anywhere;
 }
 
+/* `scale` and `translate` as their own properties, not `transform`: the wrapper
+   sets transform inline to flip itself above the link, and animating that would
+   fight the placement. These compose with it instead. */
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.12s ease;
+    transition: opacity 0.14s ease, scale 0.19s cubic-bezier(0.16, 1, 0.3, 1),
+        translate 0.19s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Deliberately past the point of subtlety: at 4px and 0.96 over 140ms the pop
+   measured correctly but could not be seen, arriving after a 350ms hover
+   delay when the eye has already settled on the card. */
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+    scale: 0.92;
+    translate: 0 8px;
+}
+
+/* The wrapper's motion-reduce:transition-none stops the tween, but the card
+   would still start scaled and snap. Nothing to grow from at all here. */
+@media (prefers-reduced-motion: reduce) {
+    .fade-enter-from,
+    .fade-leave-to {
+        scale: 1;
+        translate: none;
+    }
 }
 </style>
