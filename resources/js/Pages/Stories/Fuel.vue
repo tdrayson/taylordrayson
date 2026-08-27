@@ -263,8 +263,9 @@ const savingsOptions = baseOptions({
     </StoryHero>
 
     <!-- The article stays left-aligned with the header, capped at the media
-         width. On xl+ the contents list is placed in the right gutter off this
-         column's edge and sticks via CSS (see TableOfContents); below xl it's a pill. -->
+         width. Once the viewport can afford the rail the contents list is placed
+         in the right gutter off this column's edge and sticks via CSS (see
+         TableOfContents); below that it's a pill. -->
     <div class="relative mt-14 max-w-media">
         <StoryChapter number="01" kicker="The car">
         <template #title>The same {{ story.car.name }}, all the way through.</template>
