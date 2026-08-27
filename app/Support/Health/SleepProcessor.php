@@ -126,7 +126,6 @@ class SleepProcessor implements HealthProcessor
                 'rem' => (int) $night->rem,
                 'core' => (int) $night->core,
                 'deep' => (int) $night->deep,
-                'wake_events' => $this->wakeEvents($this->stagesJson($night)),
                 'bedtime_minutes' => $bedtimeMinutes,
                 'baseline_minutes' => $baseline,
             ]);
@@ -142,36 +141,12 @@ class SleepProcessor implements HealthProcessor
         return $nights->count();
     }
 
-    /** The stored stage breakdown as JSON, whatever the cast hands back. */
-    private function stagesJson(Sleep $night): string
-    {
-        $stages = $night->stages;
-
-        return match (true) {
-            $stages === null => '',
-            is_string($stages) => $stages,
-            default => (string) json_encode($stages),
-        };
-    }
-
     /** Minutes from 6pm to the bedtime, so evening and pre-dawn times stay ordered. */
     private function bedtimeMinutes(string $bedtime): int
     {
         $time = Carbon::parse($bedtime);
 
         return (($time->hour * 60 + $time->minute) - 1080 + 1440) % 1440;
-    }
-
-    /** Number of distinct awake periods recorded in the night's stages. */
-    private function wakeEvents(string $stagesJson): int
-    {
-        $stages = json_decode($stagesJson, true);
-
-        if (! is_array($stages)) {
-            return 0;
-        }
-
-        return count(array_filter($stages, fn ($stage): bool => ($stage['stage'] ?? null) === 'awake'));
     }
 
     /**

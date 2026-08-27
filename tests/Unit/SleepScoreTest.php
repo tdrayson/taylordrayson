@@ -10,7 +10,6 @@ function night(array $overrides = []): array
         'rem' => 5400,              // 1h30m
         'core' => 10800,
         'deep' => 5400,             // 1h30m
-        'wake_events' => 1,
         'bedtime_minutes' => 300,   // 23:00 (minutes after 6pm)
         'baseline_minutes' => 300,
     ], ...$overrides];
@@ -42,11 +41,41 @@ it('penalises a late bedtime against the baseline', function () {
         ->and($result['score'])->toBe(77);
 });
 
-it('penalises interruptions for awake time and wake-ups', function () {
-    $result = (new SleepScore)->score(night(['awake' => 3000, 'wake_events' => 8]));
+it('penalises interruptions by the share of the night spent awake', function () {
+    // 50m awake inside 8h30m in bed, so a tenth of it.
+    $result = (new SleepScore)->score(night(['awake' => 3000]));
 
-    expect($result['interruption_score'])->toBe(7)
-        ->and($result['score'])->toBe(87);
+    expect($result['interruption_score'])->toBe(17);
+});
+
+// The same fifty minutes is a fifth of a short night and a fifteenth of a long
+// one, and scoring them alike drove this component to nothing on every lie-in.
+it('reads the same awake time differently against a short night and a long one', function () {
+    $short = (new SleepScore)->score(night(['duration' => 12600, 'awake' => 3000]));
+    $long = (new SleepScore)->score(night(['duration' => 39600, 'awake' => 3000]));
+
+    expect($short['interruption_score'])->toBeLessThan($long['interruption_score'])
+        ->and($long['interruption_score'])->toBe(19);
+});
+
+it('does not treat a very long night as a better one', function () {
+    $onTarget = (new SleepScore)->score(night(['duration' => 28200, 'rem' => 4500, 'deep' => 3000]));
+    // 11h asleep: over three hours past the target, at three points an hour.
+    $long = (new SleepScore)->score(night(['duration' => 39600, 'rem' => 4500, 'deep' => 3000]));
+
+    expect($onTarget['duration_score'])->toBe(50)
+        ->and($long['duration_score'])->toBe(41);
+});
+
+// Measured against what was slept, a lie-in had to produce proportionally more
+// deep sleep to escape the penalty, so sleeping longer scored worse.
+it('judges deep and REM against the target, not against a long night', function () {
+    // Deep and REM sufficient for the target, but under a tenth and a seventh
+    // of eleven hours, which is what the old rule measured them against.
+    $modest = (new SleepScore)->score(night(['duration' => 39600, 'rem' => 4500, 'deep' => 3000]));
+    $ample = (new SleepScore)->score(night(['duration' => 39600, 'rem' => 9900, 'deep' => 6600]));
+
+    expect($modest['duration_score'])->toBe($ample['duration_score']);
 });
 
 it('docks deep and REM when a staged night is light on both', function () {
