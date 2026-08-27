@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
+use Laravel\Passport\Passport;
+use Laravel\Passport\Scope;
 use Spatie\MediaLibrary\MediaCollections\FileAdder;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,6 +47,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Passport ships no consent screen, so the OAuth flow 500s without one.
+        // Rendered through Inertia to match the rest of the site; the approve
+        // and deny controls inside it are plain forms, because completing the
+        // request redirects to the client and an XHR visit cannot follow that.
+        Passport::authorizationView(fn (array $parameters) => Inertia::render('Auth/Authorize', [
+            'client' => $parameters['client']->name,
+            'scopes' => array_map(fn (Scope $scope): array => [
+                'id' => $scope->id,
+                'description' => $scope->description,
+            ], $parameters['scopes']),
+            'authToken' => $parameters['authToken'],
+            'csrf' => csrf_token(),
+        ]));
+
         View::composer('app', function (\Illuminate\View\View $view): void {
             $view->with('contextualFeeds', FeedDiscovery::forRoute(request()->route()));
         });

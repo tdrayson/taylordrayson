@@ -48,6 +48,21 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        // The same file, opened separately so the MCP query tool can set
+        // `PRAGMA query_only` without that leaking into the connection the
+        // application writes through.
+        'sqlite_readonly' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => 5000,
+            'journal_mode' => 'WAL',
+            'synchronous' => 'NORMAL',
+            'transaction_mode' => 'DEFERRED',
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
