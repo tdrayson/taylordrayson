@@ -51,6 +51,7 @@ final class Conversation
         return new ConversationData(
             type: (string) InteractionTarget::keyFor($target),
             id: (int) $target->getKey(),
+            url: rtrim((string) config('app.url'), '/').$target->url(),
             reactions: [
                 ...app(ReactionsFor::class)($target, $identity),
                 ...self::unofferedEmoji($mentions),

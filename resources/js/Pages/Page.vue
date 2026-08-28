@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { setLayoutProps, usePage, Link } from '@inertiajs/vue3';
+import Conversation from '../Components/Conversation/Conversation.vue';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
@@ -13,6 +14,8 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     id: { type: Number, default: null },
+    // One ConversationData, server-rendered so the responses read without JS.
+    conversation: { type: Object, default: null },
     title: { type: String, required: true },
     excerpt: { type: String, default: null },
     // { src, srcset, full } or null, the same shape an article's cover takes.
@@ -89,5 +92,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
         </div>
 
         <BlockContent :document="content" class="mt-8" />
+
+        <Conversation v-if="conversation" :conversation="conversation" class="mt-10" />
     </article>
 </template>

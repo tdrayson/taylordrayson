@@ -19,6 +19,8 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
     public function __construct(
         public string $type,
         public int $id,
+        /** Absolute, because it is what the webmention box sends as `target`. */
+        public string $url,
         public array $reactions,
         public array $replies,
         public array $mentions,
@@ -32,6 +34,7 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
         return [
             'type' => $this->type,
             'id' => $this->id,
+            'url' => $this->url,
             'reactions' => array_map(fn (ReactionBucket $b): array => $b->toArray(), $this->reactions),
             'replies' => array_map(fn (ConversationItem $i): array => $i->toArray(), $this->replies),
             'mentions' => array_map(fn (ConversationItem $i): array => $i->toArray(), $this->mentions),
