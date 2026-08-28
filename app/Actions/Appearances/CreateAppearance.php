@@ -3,6 +3,7 @@
 namespace App\Actions\Appearances;
 
 use App\Models\Appearance;
+use App\Support\EntryInstant;
 
 class CreateAppearance
 {
@@ -14,7 +15,7 @@ class CreateAppearance
         return Appearance::create([
             ...$attributes,
             'type' => $attributes['type'] ?? 'podcast',
-            'occurred_at' => $attributes['occurred_at'] ?? now(),
+            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
         ]);
     }
 }

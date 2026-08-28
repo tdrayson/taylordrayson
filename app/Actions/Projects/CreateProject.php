@@ -3,6 +3,7 @@
 namespace App\Actions\Projects;
 
 use App\Models\Project;
+use App\Support\EntryInstant;
 use Illuminate\Support\Str;
 
 class CreateProject
@@ -27,7 +28,7 @@ class CreateProject
             'github_url' => $attributes['github_url'] ?? null,
             'status' => $attributes['status'] ?? 'active',
             'featured' => $attributes['featured'] ?? false,
-            'occurred_at' => $attributes['occurred_at'] ?? now(),
+            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
         ]);
 
         if (array_key_exists('tags', $attributes)) {

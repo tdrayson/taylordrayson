@@ -41,6 +41,21 @@ class EntryInstant
         }
     }
 
+    /**
+     * Now, as the wall clock would read where the entry is happening.
+     *
+     * `occurred_at` stores a local reading, but `now()` follows app.timezone,
+     * which is UTC. The two agree only in winter, so stamping now() directly
+     * dates every entry authored under BST an hour early, and occurred_utc
+     * then subtracts the offset a second time.
+     *
+     * @param  string|null  $timezone  Its IANA zone; null falls back to home.
+     */
+    public static function nowLocal(?string $timezone = null): Carbon
+    {
+        return Carbon::now(self::zone($timezone));
+    }
+
     /** A usable IANA zone, falling back to home for anything unrecognised. */
     public static function zone(?string $timezone): string
     {
