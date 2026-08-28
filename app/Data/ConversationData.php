@@ -6,16 +6,14 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * Everything said in response to one entry: the reaction bar, the thread, and
- * the links that are only links.
+ * Everything said in response to one entry: the reaction bar a reader can
+ * click, and the thread of what everybody else did.
  */
 final readonly class ConversationData implements Arrayable, JsonSerializable
 {
     /**
      * @param  list<ReactionBucket>  $reactions  On-site emoji, one bucket per offered reaction.
-     * @param  list<FaceData>  $faces  Likes and reacji from elsewhere, shown as a facepile.
-     * @param  list<ConversationItem>  $replies  Comments and reply-shaped mentions, oldest first.
-     * @param  list<ConversationItem>  $mentions  Bare links, which have no thread position.
+     * @param  list<ConversationItem>  $responses  Comments, replies, likes and links, oldest first.
      */
     public function __construct(
         public string $type,
@@ -23,9 +21,7 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
         /** Absolute, because it is what the webmention box sends as `target`. */
         public string $url,
         public array $reactions,
-        public array $faces,
-        public array $replies,
-        public array $mentions,
+        public array $responses,
     ) {}
 
     /**
@@ -38,9 +34,7 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
             'id' => $this->id,
             'url' => $this->url,
             'reactions' => array_map(fn (ReactionBucket $b): array => $b->toArray(), $this->reactions),
-            'faces' => array_map(fn (FaceData $f): array => $f->toArray(), $this->faces),
-            'replies' => array_map(fn (ConversationItem $i): array => $i->toArray(), $this->replies),
-            'mentions' => array_map(fn (ConversationItem $i): array => $i->toArray(), $this->mentions),
+            'responses' => array_map(fn (ConversationItem $i): array => $i->toArray(), $this->responses),
         ];
     }
 

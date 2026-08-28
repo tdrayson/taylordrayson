@@ -73,36 +73,36 @@ it('drops a mention whose source has gone', function () {
     expect(verify($note, 'gone', 410))->toBeNull();
 });
 
-it('shows a like as a face rather than an empty reply', function () {
+it('shows a like as a one-line gesture rather than an empty reply', function () {
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
     verify($note, mentionSource($target, 'like-of', ''))->update(['status' => CommentStatus::Approved]);
 
-    $conversation = Conversation::for($note);
+    $like = Conversation::for($note)->responses[0];
 
-    expect($conversation->faces)->toHaveCount(1)
-        ->and($conversation->faces[0]->name)->toBe('Jo Bloggs')
-        ->and($conversation->faces[0]->emoji)->toBe('❤️')
-        // Not in the thread, and not an anonymous +1 on the emoji bar either.
-        ->and($conversation->replies)->toHaveCount(0)
+    expect($like->kind)->toBe(WebmentionKind::Like->value)
+        ->and($like->authorName)->toBe('Jo Bloggs')
+        // No prose, so it renders as one line rather than a block. And it is
+        // not an anonymous +1 on the emoji bar either.
+        ->and($like->body)->toBeNull()
         ->and(Reaction::count())->toBe(0);
 });
 
-it('reads a single emoji reply as a face carrying that emoji', function (string $emoji) {
+it('reads a single emoji reply as a gesture carrying that emoji', function (string $emoji) {
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
     verify($note, mentionSource($target, 'in-reply-to', $emoji))
         ->update(['status' => CommentStatus::Approved]);
 
-    $conversation = Conversation::for($note);
+    $reacji = Conversation::for($note)->responses[0];
 
-    // A face carrying the emoji actually sent, never rounded to the nearest
-    // offered reaction, and never listed as a one-line reply.
-    expect($conversation->faces)->toHaveCount(1)
-        ->and($conversation->faces[0]->emoji)->toBe($emoji)
-        ->and($conversation->replies)->toHaveCount(0);
+    // Carries the emoji actually sent, never rounded to the nearest offered
+    // reaction, and never rendered as a one-line reply of its own text.
+    expect($reacji->kind)->toBe(WebmentionKind::Reacji->value)
+        ->and($reacji->emoji)->toBe($emoji)
+        ->and($reacji->body)->toBeNull();
 })->with([
     'one we offer' => "\u{1F602}",
     // Five codepoints joined by zero-width joiners, and a thumb carrying a skin

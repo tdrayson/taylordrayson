@@ -1,17 +1,20 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import Source from '../Profile/Source.vue';
+import WebmentionPrompt from '../Conversation/WebmentionPrompt.vue';
 
 const props = defineProps({
     // The data source, e.g. { platform: 'swarm', url }, or null for first-party entries.
     source: { type: Object, default: null },
     // Linkable tags [{ name, slug, url }]; only taggable types (notes, articles, projects, events) carry any.
     tags: { type: Array, default: () => [] },
+    // Absolute URL of this entry, when it accepts webmentions.
+    webmentionTarget: { type: String, default: null },
 });
 
-// The whole block collapses when an entry has neither tags nor a source, so
-// untaggable, first-party entries render no empty rule.
-const hasContent = () => props.tags.length > 0 || Boolean(props.source);
+// The whole block collapses when an entry has nothing to put in it, so an
+// untaggable first-party entry renders no empty rule.
+const hasContent = () => props.tags.length > 0 || Boolean(props.source) || Boolean(props.webmentionTarget);
 </script>
 
 <template>
@@ -23,5 +26,7 @@ const hasContent = () => props.tags.length > 0 || Boolean(props.source);
         </p>
 
         <Source v-if="source" :platform="source.platform" :url="source.url" />
+
+        <WebmentionPrompt v-if="webmentionTarget" :target="webmentionTarget" />
     </div>
 </template>
