@@ -4,8 +4,7 @@ namespace App\Presenters;
 
 use App\Data\ConversationData;
 use App\Data\ConversationItem;
-use App\Data\ReactionBucket;
-use App\Enums\ReactionType;
+use App\Data\FaceData;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Webmention;
@@ -19,11 +18,18 @@ use Illuminate\Support\Collection;
  * frontend should not have to know about.
  *
  * Mirrors CardPresenter: one static entry point returning one DTO.
+ *
+ * Responses are split by weight rather than listed together, which is what a
+ * facepile is for: a like shown at the same size as a paragraph makes the list
+ * long to browse and buries the paragraph.
  */
 final class Conversation
 {
     /** Mentions that read as a response, and so belong in the thread. */
     private const THREADED = [WebmentionKind::Reply->value, WebmentionKind::Rsvp->value];
+
+    /** Mentions that are a gesture, and so belong in the facepile. */
+    private const FACES = [WebmentionKind::Like->value, WebmentionKind::Reacji->value];
 
     public static function for(Model $target, ?string $identity = null): ConversationData
     {
@@ -33,8 +39,39 @@ final class Conversation
             ->orderBy('published_at')
             ->get();
 
-        $replies = $mentions->filter(fn (Webmention $m): bool => in_array($m->kind, self::THREADED, true));
+        return new ConversationData(
+            type: (string) InteractionTarget::keyFor($target),
+            id: (int) $target->getKey(),
+            url: rtrim((string) config('app.url'), '/').$target->url(),
 
+            // On-site clicks only. An incoming like is a face below rather than
+            // an anonymous +1 here, so nobody is counted in two places.
+            reactions: app(ReactionsFor::class)($target, $identity),
+
+            faces: self::of($mentions, self::FACES)
+                ->map(FaceData::fromWebmention(...))
+                ->values()
+                ->all(),
+
+            replies: self::thread($target, $mentions),
+
+            mentions: $mentions
+                ->reject(fn (Webmention $m): bool => in_array($m->kind, [...self::THREADED, ...self::FACES], true))
+                ->map(ConversationItem::fromWebmention(...))
+                ->values()
+                ->all(),
+        );
+    }
+
+    /**
+     * Comments and reply-shaped mentions in one list, oldest first, so a reply
+     * written on somebody's own site sits in the conversation, not beside it.
+     *
+     * @param  Collection<int, Webmention>  $mentions
+     * @return list<ConversationItem>
+     */
+    private static function thread(Model $target, Collection $mentions): array
+    {
         $items = [
             ...Comment::query()
                 ->approved()
@@ -43,55 +80,21 @@ final class Conversation
                 ->get()
                 ->map(ConversationItem::fromComment(...))
                 ->all(),
-            ...$replies->map(ConversationItem::fromWebmention(...))->all(),
+            ...self::of($mentions, self::THREADED)->map(ConversationItem::fromWebmention(...))->all(),
         ];
 
         usort($items, fn (ConversationItem $a, ConversationItem $b): int => $a->occurredAt <=> $b->occurredAt);
 
-        return new ConversationData(
-            type: (string) InteractionTarget::keyFor($target),
-            id: (int) $target->getKey(),
-            url: rtrim((string) config('app.url'), '/').$target->url(),
-            reactions: [
-                ...app(ReactionsFor::class)($target, $identity),
-                ...self::unofferedEmoji($mentions),
-            ],
-            replies: $items,
-            mentions: $mentions
-                ->reject(fn (Webmention $m): bool => in_array($m->kind, self::THREADED, true))
-                // A reacji is already counted in the bar above, so showing it
-                // here as well would report the same person twice.
-                ->reject(fn (Webmention $m): bool => $m->kind === WebmentionKind::Reacji->value)
-                ->map(ConversationItem::fromWebmention(...))
-                ->values()
-                ->all(),
-        );
+        return $items;
     }
 
     /**
-     * Reacji whose emoji is not one of the five we offer.
-     *
-     * Kept as buckets of their own rather than dropped or bent into the
-     * nearest match: someone sending 🚀 meant 🚀, and the count is still true.
-     *
      * @param  Collection<int, Webmention>  $mentions
-     * @return list<ReactionBucket>
+     * @param  list<string>  $kinds
+     * @return Collection<int, Webmention>
      */
-    private static function unofferedEmoji(Collection $mentions): array
+    private static function of(Collection $mentions, array $kinds): Collection
     {
-        return $mentions
-            ->where('kind', WebmentionKind::Reacji->value)
-            ->filter(fn (Webmention $m): bool => ReactionType::fromEmoji((string) $m->content) === null)
-            ->groupBy('content')
-            ->map(fn ($group, string $emoji): ReactionBucket => new ReactionBucket(
-                key: $emoji,
-                emoji: $emoji,
-                label: 'Reacted '.$emoji,
-                count: $group->count(),
-                // Nothing to toggle: it belongs to whoever sent it.
-                mine: false,
-            ))
-            ->values()
-            ->all();
+        return $mentions->filter(fn (Webmention $m): bool => in_array($m->kind, $kinds, true));
     }
 }

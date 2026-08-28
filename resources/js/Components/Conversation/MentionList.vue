@@ -15,7 +15,7 @@ const VERBS = {
     <section v-if="mentions.length" aria-labelledby="mentions-heading">
         <h3 id="mentions-heading" class="text-label uppercase text-neutral-500">Elsewhere</h3>
 
-        <ul class="mt-2 space-y-1">
+        <ul class="mt-3 space-y-1">
             <li v-for="mention in mentions" :key="mention.id" class="h-cite text-meta text-neutral-700">
                 <a
                     v-if="mention.authorUrl"
