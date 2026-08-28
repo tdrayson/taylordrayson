@@ -50,3 +50,4 @@ storage/backups/
 # Favicons downloaded at runtime by links:favicons, keyed by host. Fetched on
 # the server, so they are cache rather than source.
 /public/favicons/
+/public/avatars/

@@ -95,12 +95,14 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
 </script>
 
 <template>
-    <div v-if="done" class="rounded-lg border border-neutral-100 bg-neutral-25 p-4 text-meta text-neutral-700">
+    <div v-if="done" class="max-w-md rounded-lg bg-neutral-25 p-4 text-meta text-neutral-700">
         <p v-if="done === 'approved'">Posted. Thanks for joining in.</p>
         <p v-else>Thanks. I read every first comment before it appears, so this one will show up shortly.</p>
     </div>
 
-    <form v-else class="space-y-3" novalidate @submit.prevent="submit">
+    <!-- Capped rather than full width: a field's width should suggest what
+         goes in it, and a name is not 44rem long. -->
+    <form v-else class="max-w-md space-y-3" novalidate @submit.prevent="submit">
         <p v-if="replyingTo" class="text-caption text-neutral-500">
             Replying to {{ replyingTo }}.
             <button type="button" class="underline underline-offset-2 hover:text-accent-500" @click="emit('cancel')">
@@ -108,23 +110,21 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             </button>
         </p>
 
-        <div class="grid gap-3 sm:grid-cols-2">
-            <label class="block text-label uppercase text-neutral-500">
-                Name
-                <Input v-model="name" class="mt-1" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
-                <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-caption text-red-600">
-                    {{ errorFor('author_name') }}
-                </span>
-            </label>
+        <label class="block text-label uppercase text-neutral-500">
+            Name
+            <Input v-model="name" class="mt-1" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
+            <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-caption text-red-600">
+                {{ errorFor('author_name') }}
+            </span>
+        </label>
 
-            <label class="block text-label uppercase text-neutral-500">
-                Email <span class="normal-case text-neutral-500">(optional)</span>
-                <Input v-model="email" type="email" class="mt-1" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
-                <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-caption text-red-600">
-                    {{ errorFor('author_email') }}
-                </span>
-            </label>
-        </div>
+        <label class="block text-label uppercase text-neutral-500">
+            Email <span class="normal-case text-neutral-500">(optional)</span>
+            <Input v-model="email" type="email" class="mt-1" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
+            <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-caption text-red-600">
+                {{ errorFor('author_email') }}
+            </span>
+        </label>
 
         <!-- Only offered once there is an address to send to, so the tick box
              never asks for something it cannot do. -->
@@ -151,7 +151,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             </label>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="space-y-2 pt-1">
             <Button type="submit" variant="primary" :disabled="sending">
                 {{ sending ? 'Posting...' : 'Post comment' }}
             </Button>

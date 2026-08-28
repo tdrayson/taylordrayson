@@ -2,12 +2,12 @@
 
 use App\Actions\Webmentions\ParseMentionSource;
 use App\Enums\CommentStatus;
-use App\Enums\ReactionType;
 use App\Enums\WebmentionKind;
 use App\Jobs\VerifyWebmention;
 use App\Models\Note;
 use App\Models\Reaction;
 use App\Models\Webmention;
+use App\Presenters\Conversation;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -73,30 +73,42 @@ it('drops a mention whose source has gone', function () {
     expect(verify($note, 'gone', 410))->toBeNull();
 });
 
-it('counts a like as a heart rather than an empty reply', function () {
+it('shows a like as a face rather than an empty reply', function () {
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
-    verify($note, mentionSource($target, 'like-of', ''));
+    verify($note, mentionSource($target, 'like-of', ''))->update(['status' => CommentStatus::Approved]);
 
-    expect(Reaction::query()->where('reactable_id', $note->id)->value('type'))
-        ->toBe(ReactionType::Love);
+    $conversation = Conversation::for($note);
+
+    expect($conversation->faces)->toHaveCount(1)
+        ->and($conversation->faces[0]->name)->toBe('Jo Bloggs')
+        ->and($conversation->faces[0]->emoji)->toBe('❤️')
+        // Not in the thread, and not an anonymous +1 on the emoji bar either.
+        ->and($conversation->replies)->toHaveCount(0)
+        ->and(Reaction::count())->toBe(0);
 });
 
-it('reads a single emoji reply as a reaction rather than a one-line reply', function (string $emoji, ?ReactionType $expected) {
+it('reads a single emoji reply as a face carrying that emoji', function (string $emoji) {
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
-    $mention = verify($note, mentionSource($target, 'in-reply-to', $emoji));
+    verify($note, mentionSource($target, 'in-reply-to', $emoji))
+        ->update(['status' => CommentStatus::Approved]);
 
-    expect($mention->kind)->toBe(WebmentionKind::Reacji->value)
-        ->and(Reaction::query()->where('reactable_id', $note->id)->value('type'))->toBe($expected);
+    $conversation = Conversation::for($note);
+
+    // A face carrying the emoji actually sent, never rounded to the nearest
+    // offered reaction, and never listed as a one-line reply.
+    expect($conversation->faces)->toHaveCount(1)
+        ->and($conversation->faces[0]->emoji)->toBe($emoji)
+        ->and($conversation->replies)->toHaveCount(0);
 })->with([
-    'one we offer' => ["\u{1F602}", ReactionType::Haha],
+    'one we offer' => "\u{1F602}",
     // Five codepoints joined by zero-width joiners, and a thumb carrying a skin
     // tone: one grapheme each, several codepoints each. The mb_strlen trap.
-    'ZWJ sequence' => ["\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}", null],
-    'skin tone' => ["\u{1F44D}\u{1F3FD}", null],
+    'ZWJ sequence' => "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}",
+    'skin tone' => "\u{1F44D}\u{1F3FD}",
 ]);
 
 it('treats a real sentence as a reply, not a reaction', function () {
