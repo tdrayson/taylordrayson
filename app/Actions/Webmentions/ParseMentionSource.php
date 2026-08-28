@@ -152,7 +152,11 @@ final class ParseMentionSource
      */
     private function contains(mixed $values, string $targetUrl): bool
     {
-        return str_contains(json_encode(Arr::wrap($values)) ?: '', $this->normalise($targetUrl));
+        // Slashes unescaped, or the needle's `//` would never match the
+        // encoded `\/\/` and every response would read as a bare mention.
+        $encoded = json_encode(Arr::wrap($values), JSON_UNESCAPED_SLASHES) ?: '';
+
+        return str_contains($encoded, $this->normalise($targetUrl));
     }
 
     /** Compared without the scheme, so http and https forms of a URL match. */

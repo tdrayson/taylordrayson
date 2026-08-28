@@ -26,6 +26,7 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\WebmentionController;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -104,6 +105,11 @@ Route::get('/now', [NowController::class, 'index'])->name('now');
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
+
+// The public webmention endpoint. Discovery points here from every page, so
+// the URL is part of the site's contract and must not move.
+Route::post('/webmention', WebmentionController::class)
+    ->middleware('throttle:60,1')->name('webmention');
 
 // Comments: a token when the form is first touched, then the comment itself.
 Route::post('/comments/token', [CommentController::class, 'token'])

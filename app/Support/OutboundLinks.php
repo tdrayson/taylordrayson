@@ -19,8 +19,11 @@ final class OutboundLinks
     /**
      * Fields worth reading, in the order they are checked. `content` is already
      * Portable Text; the rest are strings a URL may have been pasted into.
+     *
+     * Public because it doubles as the list of columns a save has to have
+     * touched before an outgoing webmention could possibly be needed.
      */
-    private const SOURCES = ['content', 'description'];
+    public const SOURCES = ['title', 'content', 'description'];
 
     /**
      * Every external URL the entry links to.
@@ -43,12 +46,12 @@ final class OutboundLinks
     /**
      * A fingerprint of what a receiver would re-fetch.
      *
-     * The title is included: a receiver parses our `p-name` as well as the
-     * body, so renaming a post leaves its copy stale and must re-notify.
+     * The title counts: a receiver parses our `p-name` as well as the body, so
+     * renaming a post leaves their copy stale and must re-notify.
      */
     public static function fingerprint(Model $model): string
     {
-        $parts = [(string) $model->getAttribute('title')];
+        $parts = [];
 
         foreach (self::SOURCES as $field) {
             $value = $model->getAttribute($field);

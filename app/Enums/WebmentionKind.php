@@ -19,9 +19,17 @@ enum WebmentionKind: string
     case Rsvp = 'rsvp';
     case Mention = 'mention';
 
+    /**
+     * Ours, not theirs: a reacji arrives as an ordinary in-reply-to and is
+     * only distinguishable by its body being a single emoji, so the narrowing
+     * is done here and recorded under a name of our own.
+     */
+    case Reacji = 'reacji';
+
     public function label(): string
     {
         return match ($this) {
+            self::Reacji => 'Reaction',
             self::Reply => 'Reply',
             self::Like => 'Like',
             self::Repost => 'Repost',
