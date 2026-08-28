@@ -21,6 +21,41 @@ final class Links
     }
 
     /**
+     * Every external URL a Portable Text document links to, deduplicated and in
+     * document order.
+     *
+     * Sibling of hostsIn(): favicons only need the host, but a webmention has
+     * to be sent to the exact URL that was linked.
+     *
+     * @param  ?array<int, mixed>  $blocks
+     * @return list<string>
+     */
+    public static function urlsIn(?array $blocks): array
+    {
+        $urls = [];
+
+        foreach ($blocks ?? [] as $block) {
+            foreach ($block['markDefs'] ?? [] as $def) {
+                $href = $def['href'] ?? null;
+
+                if (($def['_type'] ?? null) !== 'link' || ! is_string($href) || ! str_starts_with($href, 'http')) {
+                    continue;
+                }
+
+                // Our own URLs are skipped: an internal link already renders as
+                // a link preview, so mentioning ourselves would duplicate it.
+                if (self::internalPath($href) !== null) {
+                    continue;
+                }
+
+                $urls[$href] = true;
+            }
+        }
+
+        return array_keys($urls);
+    }
+
+    /**
      * The display host for a URL: lowercase, without a leading www.
      */
     public static function host(string $url): ?string
