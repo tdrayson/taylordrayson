@@ -8,8 +8,10 @@ use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
+use App\Presenters\Conversation;
 use App\Support\OgMeta;
 use App\Support\PortableText;
+use App\Support\VisitorIdentity;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,6 +35,11 @@ class PageController extends Controller
 
         return Inertia::render('Page', [
             'id' => $page->id,
+
+            // Same as an entry: server-rendered so it is readable and
+            // parseable without JS. This is also what makes a guestbook page
+            // work, being a page like any other.
+            'conversation' => Conversation::for($page, VisitorIdentity::onTarget(request(), $page)),
             // ?edit opens the editor in place. Only ever honoured for a
             // signed-in visitor; the save route enforces it again server-side.
             'editing' => Auth::check() && request()->has('edit'),

@@ -24,12 +24,14 @@ use App\Models\Podcast;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
+use App\Presenters\Conversation;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\MediaArtwork;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
+use App\Support\VisitorIdentity;
 use App\Timeline\TypeRegistry;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -92,6 +94,12 @@ class EntryController extends Controller
             'title' => $card->type === TimelineType::Note ? null : $card->title,
             ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
             'og' => OgMeta::entry($entry, $model, $card),
+
+            // Server-rendered, not fetched: the replies and mentions carry
+            // h-cite markup that other IndieWeb sites parse, and a reader with
+            // no JS should still see what people said. Only the reply *form*
+            // is loaded on demand.
+            'conversation' => Conversation::for($model, VisitorIdentity::onTarget(request(), $model)),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'trip' => $this->trip($model),
             'entry' => $model instanceof Calorie
