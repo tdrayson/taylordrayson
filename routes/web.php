@@ -15,6 +15,7 @@ use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
+use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SitemapController;
@@ -102,6 +103,12 @@ Route::get('/now', [NowController::class, 'index'])->name('now');
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
+
+// Reactions. The type/id pair is resolved against an allowlist, so this is not
+// a handle on every model in the app.
+Route::post('/reactions/{type}/{id}', [ReactionController::class, 'store'])
+    ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
+    ->middleware('throttle:30,1')->name('reactions.store');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
