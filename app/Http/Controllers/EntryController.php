@@ -29,13 +29,14 @@ use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
+use App\Presenters\Conversation;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\EntryArtwork;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
-use App\Support\ShowTitle;
+use App\Support\VisitorIdentity;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -112,7 +113,13 @@ class EntryController extends Controller
             'title' => $card->type === TimelineType::Note ? null : $card->title,
             ...$this->occurredFields($model),
             'og' => OgMeta::entry($entry, $model, $card),
-            'dayUrl' => $dayUrl,
+
+            // Server-rendered, not fetched: the replies and mentions carry
+            // h-cite markup that other IndieWeb sites parse, and a reader with
+            // no JS should still see what people said. Only the reply *form*
+            // is loaded on demand.
+            'conversation' => Conversation::for($model, VisitorIdentity::onTarget(request(), $model)),
+            'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'trip' => $this->trip($model),
             // The header stays for context while locked; the source link does not.
             'source' => $locked ? null : $this->source($model),
