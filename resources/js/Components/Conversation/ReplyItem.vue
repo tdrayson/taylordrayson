@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import Avatar from './Avatar.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 
 const props = defineProps({
@@ -12,13 +13,6 @@ const props = defineProps({
 
 defineEmits(['reply']);
 
-/** Two letters is enough to tell people apart without storing an avatar. */
-const initials = computed(() => props.item.authorName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join(''));
-
 // An RSVP carries no prose worth threading, so its kind is what it said.
 const label = computed(() => (props.item.kind === 'rsvp' ? 'RSVP’d' : null));
 </script>
@@ -29,10 +23,7 @@ const label = computed(() => (props.item.kind === 'rsvp' ? 'RSVP’d' : null));
         class="h-cite flex gap-3"
         :class="nested && 'ml-6 border-l border-neutral-50 pl-4 sm:ml-11'"
     >
-        <span
-            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-caption font-semibold text-neutral-700"
-            aria-hidden="true"
-        >{{ initials }}</span>
+        <Avatar class="mt-0.5" :name="item.authorName" :photo="item.authorPhoto" />
 
         <div class="min-w-0 flex-1">
             <p class="flex flex-wrap items-baseline gap-x-2 text-meta">

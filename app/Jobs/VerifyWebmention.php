@@ -3,16 +3,14 @@
 namespace App\Jobs;
 
 use App\Actions\Webmentions\ParseMentionSource;
+use App\Actions\Webmentions\StoreAuthorPhoto;
 use App\Data\MentionData;
 use App\Enums\CommentStatus;
-use App\Enums\ReactionType;
 use App\Enums\WebmentionKind;
-use App\Models\Reaction;
 use App\Models\Webmention;
 use App\Support\SafeUrl;
 use App\Support\WebmentionTarget;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 
@@ -69,43 +67,16 @@ class VerifyWebmention implements ShouldQueue
 
         $mention->target()->associate($target);
         $mention->fill([
-            'kind' => $parsed->isReacji() ? 'reacji' : $parsed->kind->value,
+            'kind' => ($parsed->isReacji() ? WebmentionKind::Reacji : $parsed->kind)->value,
             'author_name' => $parsed->authorName,
             'author_url' => $parsed->authorUrl,
-            'author_photo_path' => $parsed->authorPhoto,
+            'author_photo_path' => app(StoreAuthorPhoto::class)($parsed->authorPhoto),
             'content' => $parsed->content,
             'published_at' => $parsed->publishedAt,
             'status' => $this->statusFor($parsed),
             'verified_at' => now(),
             'last_checked_at' => now(),
         ])->save();
-
-        $this->recordAsReaction($target, $parsed, $mention->source_url);
-    }
-
-    /**
-     * A like, or a reacji whose emoji is one we offer, is counted in the
-     * reaction bar rather than shown as a one-line reply. Keyed on the source
-     * URL, so a given post can only ever count once.
-     */
-    private function recordAsReaction(Model $target, MentionData $parsed, string $sourceUrl): void
-    {
-        $type = match (true) {
-            $parsed->kind === WebmentionKind::Like => ReactionType::Love,
-            $parsed->isReacji() => ReactionType::fromEmoji((string) $parsed->emoji),
-            default => null,
-        };
-
-        if ($type === null) {
-            return;
-        }
-
-        // Through the relation, so the morph columns are set by Eloquent
-        // rather than mass-assigned past the model's fillable list.
-        $target->morphMany(Reaction::class, 'reactable')->firstOrCreate([
-            'type' => $type,
-            'identity_key' => hash('sha256', $sourceUrl),
-        ]);
     }
 
     /**
