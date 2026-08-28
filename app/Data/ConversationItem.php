@@ -5,6 +5,7 @@ namespace App\Data;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Webmention;
+use App\Support\LocalTime;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
@@ -26,6 +27,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $body,
         public CarbonInterface $occurredAt,
         public ?int $parentId,
+        /** The row id, when replying to this is possible; null for a mention. */
+        public ?int $commentId,
         /** Where the response lives, for a webmention; null for a comment. */
         public ?string $sourceUrl,
     ) {}
@@ -41,6 +44,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             body: $comment->body,
             occurredAt: $comment->created_at,
             parentId: $comment->parent_id,
+            commentId: $comment->id,
             sourceUrl: null,
         );
     }
@@ -58,6 +62,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             body: $mention->content,
             occurredAt: $mention->published_at ?? $mention->created_at,
             parentId: null,
+            commentId: null,
             sourceUrl: $mention->source_url,
         );
     }
@@ -79,8 +84,11 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'authorUrl' => $this->authorUrl,
             'authorPhoto' => $this->authorPhoto,
             'body' => $this->body,
-            'occurredAt' => $this->occurredAt->toIso8601String(),
+            // The site's timestamp shape, formatted server-side like every
+            // other one: a comment is a real instant, shown in home time.
+            'occurredAt' => LocalTime::for($this->occurredAt, null),
             'parentId' => $this->parentId,
+            'commentId' => $this->commentId,
             'sourceUrl' => $this->sourceUrl,
         ];
     }
