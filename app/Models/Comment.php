@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'author_name',
     'author_email',
     'notify_replies',
+    'unsubscribed_at',
     'body',
     'status',
     'parent_id',

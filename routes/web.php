@@ -11,6 +11,7 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
+use App\Http\Controllers\ModerationController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WebmentionController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +56,13 @@ Route::middleware('auth')->group(function (): void {
 
     // Drafts have no timeline entry, so they appear in no listing without this.
     Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+
+    // The queue for held comments and mentions. A lowercase word, so it has to
+    // sit above the /{slug} catch-all or a content page could shadow it.
+    Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');
+    Route::post('/moderation/{kind}/{id}/{action}', [ModerationController::class, 'update'])
+        ->where(['kind' => 'comment|mention', 'id' => '[0-9]+', 'action' => 'approve|spam|delete'])
+        ->name('moderation.update');
 
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
@@ -105,6 +114,11 @@ Route::get('/now', [NowController::class, 'index'])->name('now');
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
+
+// Reached only from a link in a reply notification, so it is signed rather
+// than guarded: the signature is the proof, and there is no account to log in to.
+Route::get('/unsubscribe/{comment}', UnsubscribeController::class)
+    ->where('comment', '[0-9]+')->middleware('signed')->name('unsubscribe');
 
 // The public webmention endpoint. Discovery points here from every page, so
 // the URL is part of the site's contract and must not move.
