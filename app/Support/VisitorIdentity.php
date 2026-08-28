@@ -6,29 +6,42 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
- * A stable, anonymous key for "the same visitor, on this one thing".
+ * Stable, anonymous keys for "the same visitor", in the two shapes the
+ * interaction tables need.
  *
- * Derived from the request IP alone, deliberately: anything the client sends
- * (a generated token, the user agent) can be varied at will, so folding it in
- * would let one machine mint unlimited identities and the unique index on
- * `reactions` would stop counting anything. An IP is the cheapest thing a
- * visitor cannot trivially rotate, and it makes the count mean something.
- *
- * The trade is that a shared connection reads as one voter. On a personal site
- * that is the right way round.
+ * Both are derived from the request IP alone, deliberately: anything the
+ * client sends (a generated token, the user agent) can be varied at will, so
+ * folding it in would let one machine mint unlimited identities. An IP is the
+ * cheapest thing a visitor cannot trivially rotate. The trade is that a shared
+ * connection reads as one person, which on a personal site is the right way
+ * round. This only holds because no proxy is trusted (see bootstrap/app.php).
  */
 final class VisitorIdentity
 {
     /**
-     * Scoped to the target as well as the visitor, so the stored hashes cannot
-     * be lined up across entries to reconstruct one person's browsing.
+     * For counting one vote per visitor per thing. Scoped to the target as
+     * well, so the stored hashes cannot be lined up across entries to
+     * reconstruct one person's browsing.
      */
-    public static function for(Request $request, Model $target): string
+    public static function onTarget(Request $request, Model $target): string
     {
-        return hash_hmac(
-            'sha256',
-            implode('|', [$request->ip(), $target::class, $target->getKey()]),
-            (string) config('app.key'),
-        );
+        return self::hash([$request->ip(), $target::class, $target->getKey()]);
+    }
+
+    /**
+     * For recognising a commenter who has been approved before, which has to
+     * work across entries and so is not scoped to one.
+     */
+    public static function reputation(Request $request): string
+    {
+        return self::hash([$request->ip()]);
+    }
+
+    /**
+     * @param  list<mixed>  $parts
+     */
+    private static function hash(array $parts): string
+    {
+        return hash_hmac('sha256', implode('|', $parts), (string) config('app.key'));
     }
 }

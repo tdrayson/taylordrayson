@@ -21,7 +21,7 @@ class ReactionController extends Controller
 
         abort_if($target === null, 404);
 
-        $identity = VisitorIdentity::for($request, $target);
+        $identity = VisitorIdentity::onTarget($request, $target);
 
         $on = app(ToggleReaction::class)($target, $request->reactionType(), $identity);
 
