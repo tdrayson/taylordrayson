@@ -35,6 +35,12 @@ final class InteractionTarget
         return $model !== null && self::isVisible($model) ? $model : null;
     }
 
+    /** Whether this model takes comments, reactions and mentions right now. */
+    public static function accepts(Model $model): bool
+    {
+        return self::keyFor($model) !== null && self::isVisible($model);
+    }
+
     /** The public type key for a model, or null when it accepts no interactions. */
     public static function keyFor(Model $model): ?string
     {
