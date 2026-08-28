@@ -31,7 +31,9 @@ class CommentController extends Controller
 
         $comment = app(StoreComment::class)($target, $request->submission());
 
-        if ($comment !== null) {
+        // Spam is filed, not announced: pinging a phone for it would undo the
+        // point of catching it.
+        if ($comment !== null && $comment->status !== CommentStatus::Spam) {
             $this->notify($comment);
         }
 

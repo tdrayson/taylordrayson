@@ -1,0 +1,215 @@
+<?php
+
+namespace App\Actions\Webmentions;
+
+use App\Data\MentionData;
+use App\Enums\WebmentionKind;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
+
+/**
+ * Reads a source page's microformats2 to work out what it is saying about one
+ * of our URLs, and who is saying it.
+ *
+ * This is the difference between "somebody linked to this" and "Jo replied,
+ * and here is what they said".
+ */
+final class ParseMentionSource
+{
+    /**
+     * The mf2 properties that make a mention something more than a mention,
+     * in the order they take precedence.
+     *
+     * @var array<string, WebmentionKind>
+     */
+    private const RESPONSE_PROPERTIES = [
+        'in-reply-to' => WebmentionKind::Reply,
+        'like-of' => WebmentionKind::Like,
+        'repost-of' => WebmentionKind::Repost,
+        'bookmark-of' => WebmentionKind::Bookmark,
+    ];
+
+    public function __invoke(string $html, string $sourceUrl, string $targetUrl): MentionData
+    {
+        $parsed = rescue(fn (): array => \Mf2\parse($html, $sourceUrl), [], report: false);
+
+        $entry = $this->entryAbout($parsed['items'] ?? [], $targetUrl);
+
+        if ($entry === null) {
+            return MentionData::bare();
+        }
+
+        $properties = $entry['properties'] ?? [];
+        $content = $this->content($properties);
+        $kind = $this->kindOf($properties, $targetUrl);
+
+        return new MentionData(
+            kind: $kind,
+            authorName: $this->authorField($properties, 'name'),
+            authorUrl: $this->authorField($properties, 'url'),
+            authorPhoto: $this->authorField($properties, 'photo'),
+            content: $content,
+            publishedAt: $this->published($properties),
+            emoji: $kind === WebmentionKind::Reply ? $this->emojiIn($content) : null,
+        );
+    }
+
+    /**
+     * A reacji is an ordinary reply whose entire content is one emoji, so the
+     * only way to spot one is to look at the body.
+     *
+     * Counted in graphemes, not codepoints: 👨‍👩‍👧 is five codepoints joined
+     * by ZWJs and a skin tone is two, so mb_strlen reads both as long replies.
+     */
+    private function emojiIn(?string $content): ?string
+    {
+        $trimmed = trim((string) $content);
+
+        return grapheme_strlen($trimmed) === 1 && preg_match('/^\p{Extended_Pictographic}/u', $trimmed) === 1
+            ? $trimmed
+            : null;
+    }
+
+    /**
+     * The h-entry that references our URL, or the first one on the page. A
+     * source is free to hold several; the one that names us is the one that is
+     * about us.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return array<string, mixed>|null
+     */
+    private function entryAbout(array $items, string $targetUrl): ?array
+    {
+        $entries = $this->flatten($items);
+
+        foreach ($entries as $entry) {
+            if ($this->references($entry['properties'] ?? [], $targetUrl)) {
+                return $entry;
+            }
+        }
+
+        return $entries[0] ?? null;
+    }
+
+    /**
+     * Every h-entry on the page, including ones nested inside another item's
+     * children, which is how a feed of them is marked up.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function flatten(array $items): array
+    {
+        $found = [];
+
+        foreach ($items as $item) {
+            if (in_array('h-entry', $item['type'] ?? [], true)) {
+                $found[] = $item;
+            }
+
+            $found = array_merge($found, $this->flatten($item['children'] ?? []));
+        }
+
+        return $found;
+    }
+
+    /**
+     * Which response property names our URL. An entry replying to someone else
+     * that merely links to us in passing is a mention, not a reply, so the
+     * property has to contain the target rather than merely exist.
+     *
+     * @param  array<string, mixed>  $properties
+     */
+    private function kindOf(array $properties, string $targetUrl): WebmentionKind
+    {
+        foreach (self::RESPONSE_PROPERTIES as $property => $kind) {
+            if ($this->contains($properties[$property] ?? [], $targetUrl)) {
+                return $kind;
+            }
+        }
+
+        return isset($properties['rsvp']) ? WebmentionKind::Rsvp : WebmentionKind::Mention;
+    }
+
+    /**
+     * @param  array<string, mixed>  $properties
+     */
+    private function references(array $properties, string $targetUrl): bool
+    {
+        foreach ([...array_keys(self::RESPONSE_PROPERTIES), 'content'] as $property) {
+            if ($this->contains($properties[$property] ?? [], $targetUrl)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether a property's values point at the target. Values arrive as plain
+     * URLs, as {url: ...} objects, or as embedded h-cites, so all three are
+     * flattened and searched.
+     */
+    private function contains(mixed $values, string $targetUrl): bool
+    {
+        return str_contains(json_encode(Arr::wrap($values)) ?: '', $this->normalise($targetUrl));
+    }
+
+    /** Compared without the scheme, so http and https forms of a URL match. */
+    private function normalise(string $url): string
+    {
+        return preg_replace('#^https?://#', '', rtrim($url, '/')) ?? $url;
+    }
+
+    /**
+     * @param  array<string, mixed>  $properties
+     */
+    private function content(array $properties): ?string
+    {
+        $content = $properties['content'][0] ?? null;
+
+        $text = match (true) {
+            is_array($content) => $content['value'] ?? null,
+            is_string($content) => $content,
+            default => null,
+        } ?? $properties['summary'][0] ?? $properties['name'][0] ?? null;
+
+        return is_string($text) && trim($text) !== '' ? trim($text) : null;
+    }
+
+    /**
+     * A field off the entry's h-card author, falling back to a bare string
+     * author, which is what a source with only `p-author` gives.
+     *
+     * @param  array<string, mixed>  $properties
+     */
+    private function authorField(array $properties, string $field): ?string
+    {
+        $author = $properties['author'][0] ?? null;
+
+        if (is_string($author)) {
+            return $field === 'name' ? $author : null;
+        }
+
+        $value = is_array($author) ? ($author['properties'][$field][0] ?? null) : null;
+
+        // A photo can itself be an object carrying alt text.
+        if (is_array($value)) {
+            $value = $value['value'] ?? null;
+        }
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $properties
+     */
+    private function published(array $properties): ?Carbon
+    {
+        $published = $properties['published'][0] ?? null;
+
+        return is_string($published)
+            ? rescue(fn (): Carbon => Carbon::parse($published), null, report: false)
+            : null;
+    }
+}

@@ -155,12 +155,33 @@ it('accepts a comment on a published page but not a draft one', function () {
     ])->assertNotFound();
 });
 
-it('rejects a name the leaderboard would also reject, letter swaps included', function () {
+it('rejects a name the leaderboard would also reject, evasions included', function () {
     $note = Note::factory()->create();
 
     comment($note->id, ['author_name' => 'r3tard'])->assertStatus(422);
+    comment($note->id, ['author_name' => 'f u c k'])->assertStatus(422);
 
     expect(Comment::count())->toBe(0);
+});
+
+it('lets real names through that a blunter filter would refuse', function () {
+    $note = Note::factory()->create();
+
+    foreach (['Dick', 'Randy', 'Cockburn', 'Scunthorpe Steve'] as $name) {
+        comment($note->id, ['author_name' => $name])->assertCreated();
+    }
+
+    expect(Comment::count())->toBe(4);
+});
+
+it('sends a slur straight to spam but leaves ordinary swearing alone', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['body' => 'you are a retard and a n1gger'])->assertJsonPath('status', 'spam');
+
+    // Swearing is not abuse, and a filter that refuses this is worse than none.
+    comment($note->id, ['body' => 'This is fucking brilliant, well done.'])
+        ->assertJsonPath('status', 'pending');
 });
 
 it('spends the nonce it was given', function () {
