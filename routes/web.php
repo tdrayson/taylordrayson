@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthoringController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
@@ -103,6 +104,13 @@ Route::get('/now', [NowController::class, 'index'])->name('now');
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
+
+// Comments: a token when the form is first touched, then the comment itself.
+Route::post('/comments/token', [CommentController::class, 'token'])
+    ->middleware('throttle:20,1')->name('comments.token');
+Route::post('/comments/{type}/{id}', [CommentController::class, 'store'])
+    ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
+    ->middleware('throttle:5,10')->name('comments.store');
 
 // Reactions. The type/id pair is resolved against an allowlist, so this is not
 // a handle on every model in the app.
