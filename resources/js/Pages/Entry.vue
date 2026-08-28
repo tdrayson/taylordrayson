@@ -174,7 +174,12 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
 
         <Link v-if="signedIn && editAction" :href="`?edit`" class="mt-6 inline-block text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
 
-        <EntryFooter :source="source" :tags="tags" class="mt-10" />
+        <EntryFooter
+            :source="source"
+            :tags="tags"
+            :webmention-target="conversation?.url ?? null"
+            class="mt-10"
+        />
 
         <Conversation v-if="conversation" :conversation="conversation" class="mt-10" />
     </article>
