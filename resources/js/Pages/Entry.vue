@@ -183,7 +183,12 @@ setLayoutProps({
             <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
         </p>
 
-        <EntryFooter :source="source" :tags="tags" class="mt-10" />
+        <EntryFooter
+            :source="source"
+            :tags="tags"
+            :webmention-target="conversation?.url ?? null"
+            class="mt-10"
+        />
 
         <Conversation v-if="conversation" :conversation="conversation" class="mt-10" />
     </article>
