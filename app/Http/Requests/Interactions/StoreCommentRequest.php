@@ -42,7 +42,7 @@ class StoreCommentRequest extends FormRequest
                 'min:2',
                 'max:60',
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    if (ProfanityFilter::contains((string) $value)) {
+                    if (ProfanityFilter::blocksName((string) $value)) {
                         $fail('Please use a different name.');
                     }
                 },

@@ -6,6 +6,7 @@ use App\Data\CommentSubmission;
 use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Support\FormNonce;
+use App\Support\ProfanityFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
@@ -66,9 +67,18 @@ final class StoreComment
     /**
      * Hold the first comment from a name, then let that name through. Matched
      * on the IP too, so approving "Jo" does not hand the name to anyone else.
+     *
+     * Slurs skip the queue and go straight to spam: they are still kept, so a
+     * false positive can be released, but they are not something to have to
+     * read every morning. Ordinary swearing is not caught by this and should
+     * not be.
      */
     private function statusFor(CommentSubmission $submission): CommentStatus
     {
+        if (ProfanityFilter::isAbusive($submission->body)) {
+            return CommentStatus::Spam;
+        }
+
         $knownGood = Comment::query()
             ->approved()
             ->where('author_name', $submission->authorName)
