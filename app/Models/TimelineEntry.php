@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Presenters\CardPresenter;
+use App\Presenters\EntryDescription;
 use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
@@ -130,7 +131,10 @@ class TimelineEntry extends Model implements Feedable
         return FeedItem::create([
             'id' => $link,
             'title' => $card->title,
-            'summary' => $card->subtitle ?? $card->title,
+            // The standalone sentence, not the card subtitle: a subtitle is
+            // written to sit under its title, and a check-in without a note has
+            // none at all.
+            'summary' => EntryDescription::for($this->timelineable, $card),
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
