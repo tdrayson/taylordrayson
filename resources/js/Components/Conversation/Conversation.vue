@@ -39,8 +39,8 @@ async function reply(item) {
 </script>
 
 <template>
-    <!-- No rule of its own: EntryFooter already draws one above, and a second
-         one a few lines below it reads as a mistake. -->
+    <!-- No rules anywhere in here. Separation is space and the weight of the
+         headings, which is what stops a short entry looking like a form. -->
     <section aria-labelledby="conversation-heading">
         <h2 id="conversation-heading" class="sr-only">Responses</h2>
 

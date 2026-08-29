@@ -27,7 +27,7 @@ const label = computed(() => PLATFORMS[props.platform] ?? titleCase(props.platfo
 </script>
 
 <template>
-    <!-- Rendered inside EntryFooter, which supplies the top border and spacing;
+    <!-- Rendered inside EntryFooter, which supplies the spacing;
          this is a bare inline caption with no framing of its own. -->
     <p class="text-caption text-neutral-500">
         Source:
