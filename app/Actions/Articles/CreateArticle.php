@@ -3,6 +3,7 @@
 namespace App\Actions\Articles;
 
 use App\Models\Article;
+use App\Support\EntryInstant;
 use Illuminate\Support\Str;
 
 class CreateArticle
@@ -24,7 +25,7 @@ class CreateArticle
             'excerpt' => $attributes['excerpt'] ?? null,
             'content' => $attributes['content'] ?? [],
             'published' => $attributes['published'] ?? false,
-            'occurred_at' => $attributes['occurred_at'] ?? now(),
+            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
         ]);
 
