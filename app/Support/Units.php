@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 class Units
 {
     /**
@@ -27,6 +29,24 @@ class Units
         }
 
         return $remainder > 0 ? "{$hours}h {$remainder}m" : "{$hours}h";
+    }
+
+    /**
+     * The same duration in words: "9 hours 21 minutes". For an accessible name,
+     * where "9h 21m" is read out a letter at a time.
+     */
+    public static function spokenDuration(int $seconds): string
+    {
+        $minutes = intdiv($seconds, 60);
+        $hours = intdiv($minutes, 60);
+        $remainder = $minutes % 60;
+
+        $parts = array_filter([
+            $hours > 0 ? $hours.' '.Str::plural('hour', $hours) : null,
+            $remainder > 0 || $hours === 0 ? $remainder.' '.Str::plural('minute', $remainder) : null,
+        ]);
+
+        return implode(' ', $parts);
     }
 
     public static function seconds(mixed $value): ?int

@@ -50,28 +50,25 @@ final class FuelCard
             : "{$cost} at the pump";
     }
 
-    /** The fill-up as a sentence: how much went in, at what price, and where. */
+    /**
+     * The fill-up as sentences: how much went in and where, then what it cost a
+     * litre. Two sentences rather than one with a trailing clause, which is how
+     * it would be said out loud.
+     */
     private function sentence(Fuel $model): string
     {
         // "filled up with", not "put ... in": the trailing "in" collides with
         // the city clause ("I put 33 litres in, in Grimsby") whenever there is
         // no price between them.
         $sentence = sprintf('I filled up with %s litres', number_format((float) $model->litres, 2));
+        $sentence .= $model->city ? " in {$model->city}." : '.';
 
-        if ($model->price_per_litre) {
-            // Three decimals: pump prices are quoted to a tenth of a penny, the
-            // one documented exception to formatting money at two.
-            $sentence .= sprintf(' at £%s a litre', number_format((float) $model->price_per_litre, 3));
+        if (! $model->price_per_litre) {
+            return $sentence;
         }
 
-        if (! $model->city) {
-            return "{$sentence}.";
-        }
-
-        // The comma only earns its place after a price clause; without one it
-        // separates the verb from its own place ("33 litres, in Grimsby").
-        return $model->price_per_litre
-            ? "{$sentence}, in {$model->city}."
-            : "{$sentence} in {$model->city}.";
+        // Three decimals: pump prices are quoted to a tenth of a penny, the one
+        // documented exception to formatting money at two.
+        return $sentence.sprintf(' That was £%s a litre.', number_format((float) $model->price_per_litre, 3));
     }
 }

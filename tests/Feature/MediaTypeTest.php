@@ -27,7 +27,7 @@ it('leads an episode card with the episode, and names the show in the subtitle',
 
     // A day of one show would otherwise repeat the same title down the feed.
     expect($card->title)->toBe('Pilot')
-        ->and($card->subtitle)->toBe('I watched Severance, season 1 episode 3.');
+        ->and($card->subtitle)->toBe('I watched season 1 episode 3 of Severance.');
 });
 
 it('keeps the episode title in the heading when no show can be resolved', function () {
@@ -43,7 +43,7 @@ it('keeps the episode title in the heading when no show can be resolved', functi
 
     // The fallback must not print "Pilot" as both the heading and the subtitle.
     expect($card->title)->toBe('Pilot')
-        ->and($card->subtitle)->toBe('I watched this one, season 1 episode 3.');
+        ->and($card->subtitle)->toBe('I watched season 1 episode 3.');
 });
 
 it('leaves a film card titled by the film', function () {

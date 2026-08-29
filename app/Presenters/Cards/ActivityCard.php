@@ -132,7 +132,7 @@ final class ActivityCard
         }
 
         if ($model->calories) {
-            $tokens[] = SubtitleToken::text('burning '.number_format($model->calories).' kcal');
+            $tokens[] = SubtitleToken::text('and burned '.number_format($model->calories).' kcal', ' ');
         }
 
         // The stop rides on its own token because the clause it follows varies,
@@ -190,7 +190,7 @@ final class ActivityCard
         ];
 
         if ($volume > 0) {
-            $tokens[] = SubtitleToken::text('lifting', ', ');
+            $tokens[] = SubtitleToken::text('and lifted', ' ');
             $tokens[] = SubtitleToken::wt($volume, 0, ' ');
         }
 

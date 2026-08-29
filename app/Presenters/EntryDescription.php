@@ -76,9 +76,9 @@ final class EntryDescription
     private static function sleep(Sleep $model, string $date): string
     {
         $window = $model->bedtime->format('g:ia').' to '.$model->wake_time->format('g:ia');
-        $score = $model->score ? ", with a sleep score of {$model->score}" : '';
+        $score = $model->score ? " My sleep score was {$model->score}." : '';
 
-        return sprintf('I slept %s on %s, %s%s.', Units::humanDuration($model->duration), $date, $window, $score);
+        return sprintf('I slept %s on %s, from %s.%s', Units::humanDuration($model->duration), $date, $window, $score);
     }
 
     private static function activity(Activity $model, CardData $card, string $date): string
@@ -86,7 +86,7 @@ final class EntryDescription
         $name = $model->name ?? ucfirst(str_replace('-', ' ', $model->type));
 
         return $card->subtitle
-            ? sprintf('%s on %s: %s.', $name, $date, $card->subtitle)
+            ? sprintf('%s on %s. %s', $name, $date, $card->subtitle)
             : sprintf('%s, logged on %s.', $name, $date);
     }
 
@@ -105,13 +105,17 @@ final class EntryDescription
     private static function flight(Flight $model, CardData $card, string $date): string
     {
         $airline = $model->relationLoaded('airline') && $model->airline ? " with {$model->airline->name}" : '';
-        $leg = "{$model->origin_iata} to {$model->destination_iata}";
-        $distance = $model->distance
-            ? sprintf(', %s miles', number_format(Distance::miles($model->distance)))
-            : '';
+        $leg = sprintf(
+            '%s to %s',
+            ($model->relationLoaded('origin') ? $model->origin?->city : null) ?? $model->origin_iata,
+            ($model->relationLoaded('destination') ? $model->destination?->city : null) ?? $model->destination_iata,
+        );
         $cabin = $model->cabin_class ? " in {$model->cabin_class->value}" : '';
+        $distance = $model->distance
+            ? sprintf(' It was %s miles%s.', number_format(Distance::miles($model->distance)), $cabin)
+            : '';
 
-        return sprintf('I flew %s on %s%s%s%s.', $leg, $date, $airline, $distance, $cabin);
+        return sprintf('I flew from %s%s on %s.%s', $leg, $airline, $date, $distance);
     }
 
     private static function media(Media $model, string $date): string
@@ -120,8 +124,7 @@ final class EntryDescription
 
         $subject = match ($model->type) {
             MediaType::Film => $model->meta->year ? "{$model->title} ({$model->meta->year})" : $model->title,
-            MediaType::TvEpisode => trim(collect([ShowTitle::for($model), self::episodeCode($model), $model->title])
-                ->filter()->implode(', ')),
+            MediaType::TvEpisode => self::episodeSubject($model),
             MediaType::Book => $model->meta->author ? "{$model->title} by {$model->meta->author}" : $model->title,
         };
 
@@ -130,14 +133,28 @@ final class EntryDescription
         return sprintf('I %s %s on %s.%s', $verb, $subject, $date, $rating);
     }
 
-    /** The SxxExx code for an episode, or null when either number is missing. */
-    private static function episodeCode(Media $model): ?string
+    /**
+     * The episode named the way it would be said: "season 4 episode 4 of Ted
+     * Lasso, Greyhounds' Day Off". "S04E04" is shorthand for a filename, and
+     * this sentence is read in a feed and a search result.
+     */
+    private static function episodeSubject(Media $model): string
     {
-        if ($model->meta->season === null || $model->meta->episode === null) {
-            return null;
-        }
+        $show = ShowTitle::for($model);
+        $where = $model->meta->season !== null && $model->meta->episode !== null
+            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
+            : null;
 
-        return sprintf('S%02dE%02d', $model->meta->season, $model->meta->episode);
+        $lead = match (true) {
+            $where !== null && $show !== null => "{$where} of {$show}",
+            $show !== null => $show,
+            $where !== null => $where,
+            default => $model->title,
+        };
+
+        return $model->title !== '' && $model->title !== $lead && $model->title !== $show
+            ? "{$lead}, {$model->title}"
+            : $lead;
     }
 
     private static function calorie(Calorie $model, string $date): string
@@ -145,13 +162,13 @@ final class EntryDescription
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 
         $macros = Text::sentenceList(array_values(array_filter([
-            $totals['protein'] ? round($totals['protein']).'g protein' : null,
-            $totals['carbs'] ? round($totals['carbs']).'g carbs' : null,
-            $totals['fat'] ? round($totals['fat']).'g fat' : null,
+            $totals['protein'] ? round($totals['protein']).'g of protein' : null,
+            $totals['carbs'] ? round($totals['carbs']).'g of carbs' : null,
+            $totals['fat'] ? round($totals['fat']).'g of fat' : null,
         ])));
 
         return sprintf(
-            'I ate %s kcal on %s.%s',
+            'I ate %s calories on %s.%s',
             number_format($totals['calories']),
             $date,
             $macros === '' ? '' : " That was {$macros}.",
@@ -163,11 +180,11 @@ final class EntryDescription
         $where = collect([$model->station_name, $model->city])->filter()->implode(', ');
 
         return sprintf(
-            'I put %s litres of fuel in for £%s on %s%s.',
+            'I filled up with %s litres%s on %s. It cost £%s.',
             number_format((float) $model->litres, 2),
-            number_format((float) $model->cost, 2),
+            $where !== '' ? " at {$where}" : '',
             $date,
-            $where !== '' ? ", at {$where}" : '',
+            number_format((float) $model->cost, 2),
         );
     }
 

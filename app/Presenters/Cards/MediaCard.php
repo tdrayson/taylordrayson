@@ -74,20 +74,33 @@ final class MediaCard
         }
 
         $verb = $model->type === MediaType::Book ? 'read' : 'watched';
+        $runtime = $model->type === MediaType::Film ? $this->runtimeSentence($model) : '';
 
-        return "I {$verb} {$what}{$rated}.";
-    }
-
-    /** "this 2024 film", or just "this film" when the year is unknown. */
-    private function filmClause(Media $model): string
-    {
-        return $model->meta->year === null ? 'this film' : "this {$model->meta->year} film";
+        return "I {$verb} {$what}{$rated}.{$runtime}";
     }
 
     /**
-     * The show and where in it, spelled out rather than as "S04E04": the
-     * sentence is also the meta description and the feed summary.
+     * "this 2024 drama": the year and TMDB's leading genre, which is ordered by
+     * relevance. One genre only, since stringing two together reads as neither
+     * ("this science fiction and mystery film").
      */
+    private function filmClause(Media $model): string
+    {
+        $genre = $model->meta->tmdb->genres[0] ?? null;
+        $what = $genre === null ? 'film' : mb_strtolower($genre).' film';
+
+        return $model->meta->year === null ? "this {$what}" : "this {$model->meta->year} {$what}";
+    }
+
+    /** How long a film ran, as its own sentence. Films only: it would print on every episode of a binge. */
+    private function runtimeSentence(Media $model): string
+    {
+        $minutes = $model->meta->runtime;
+
+        return $minutes ? " It was {$minutes} minutes long." : '';
+    }
+
+    /** The show and where in it, spelled out rather than as "S04E04". */
     private function episodeClause(Media $model, ?string $show, string $title): ?string
     {
         // The show is already the heading when the episode had no name of its
@@ -99,9 +112,9 @@ final class MediaCard
             : null;
 
         return match (true) {
-            $named !== null && $where !== null => "{$named}, {$where}",
+            $named !== null && $where !== null => "{$where} of {$named}",
             $named !== null => $named,
-            $where !== null => "this one, {$where}",
+            $where !== null => $where,
             default => null,
         };
     }

@@ -11,7 +11,7 @@ use App\Support\Units;
 
 /**
  * Builds the timeline card for a Sleep log: total time asleep as the title,
- * the window and sleep score as a sentence, plus a per-stage breakdown
+ * the window and sleep score as sentences, plus a per-stage breakdown
  * (awake/REM/light/deep) for the timeline bar.
  */
 final class SleepCard
@@ -23,8 +23,8 @@ final class SleepCard
         return new CardData(
             type: TimelineType::Sleep,
             icon: 'bed',
-            title: "{$formatted} asleep",
-            titleLabel: "Sleep log, {$formatted} asleep",
+            title: "I slept for {$formatted}",
+            titleLabel: 'Sleep log, I slept for '.Units::spokenDuration($model->duration),
             subtitle: $this->sentence($model),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
@@ -35,21 +35,21 @@ final class SleepCard
     }
 
     /**
-     * The night as a sentence. "sleep score" in full rather than a bare number,
-     * which on its own says nothing about what was scored; it is also the term
-     * SleepDetail.vue already uses for the panel on the entry page.
+     * The night as sentences. Bed and waking rather than "I slept", which the
+     * title already says, and the score in a sentence of its own: "sleep score"
+     * in full, the term SleepDetail.vue uses for the panel on the entry page.
      */
     private function sentence(Sleep $model): string
     {
         $window = sprintf(
-            'I slept from %s to %s',
+            'I went to bed at %s and woke at %s.',
             $model->bedtime->format('g:ia'),
             $model->wake_time->format('g:ia'),
         );
 
         return $model->score
-            ? "{$window}, with a sleep score of {$model->score}."
-            : "{$window}.";
+            ? "{$window} My sleep score was {$model->score}."
+            : $window;
     }
 
     /**
