@@ -90,6 +90,19 @@ export function slugifyInput(value) {
         .replace(/^-+/, '');
 }
 
+/**
+ * A tag's name as it will be stored. Mirrors HasTags::titleCaseTag on the
+ * server, so the chip shows what saving produces: an all-lowercase word is
+ * capitalised, and a word already carrying a capital ("TV", "iOS") is left
+ * exactly as it was typed.
+ */
+export function tagName(value) {
+    return String(value ?? '').replace(
+        /[\p{L}\p{N}']+/gu,
+        (word) => (word === word.toLowerCase() ? word[0].toUpperCase() + word.slice(1) : word),
+    );
+}
+
 /** How much of a note the derived slug uses. Mirrors Note::SLUG_WORDS. */
 const NOTE_SLUG_WORDS = 6;
 

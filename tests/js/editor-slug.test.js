@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { noteSlug, slugify, slugifyInput } from '../../resources/js/lib/editor/defaults.js';
+import { noteSlug, slugify, slugifyInput, tagName } from '../../resources/js/lib/editor/defaults.js';
 
 /** A Portable Text document holding one paragraph. */
 const doc = (text) => [{ _type: 'block', children: [{ _type: 'span', text }] }];
@@ -54,5 +54,14 @@ describe('noteSlug', () => {
 
     it('reads across blocks', () => {
         assert.equal(noteSlug([...doc('One two'), ...doc('three four')]), 'one-two-three-four');
+    });
+});
+
+describe('tagName', () => {
+    it('capitalises a lowercase tag but leaves deliberate casing alone', () => {
+        assert.equal(tagName('living alone'), 'Living Alone');
+        assert.equal(tagName('sci-fi'), 'Sci-Fi');
+        assert.equal(tagName('TV show'), 'TV Show');
+        assert.equal(tagName('iOS'), 'iOS');
     });
 });
