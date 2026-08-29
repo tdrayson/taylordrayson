@@ -126,14 +126,11 @@ function renderExternalLink(def, label, text, favicons) {
     const mark = favicon
         // not-prose: the typography plugin styles every img as a block figure
         // with a 2em margin, which drops an inline favicon onto its own line.
-        // bg-white, not a token: a monochrome favicon (GitHub's is pure black)
-        // vanishes on the dark theme without a light ground, same reason the
-        // fuel brand logos carry one.
         ? h('img', {
             src: favicon,
             alt: '',
             loading: 'lazy',
-            class: 'not-prose mb-0.5 mr-1 inline size-3.5 bg-white object-contain align-middle',
+            class: 'not-prose mb-0.5 mr-1 inline size-3.5 object-contain align-middle',
         })
         // A globe rather than nothing: without it some external links carry a
         // mark and some do not, which reads as broken rather than deliberate.

@@ -15,6 +15,24 @@ it('syncs tags by name, creating them on first use', function () {
         ->and(Tag::count())->toBe(2);
 });
 
+it('capitalises a new tag, leaving words that already carry a capital alone', function () {
+    $article = Article::factory()->create();
+
+    $article->syncTagNames(['living alone', 'TV show', 'iOS', 'sci-fi']);
+
+    expect($article->fresh()->tagNames())
+        ->toEqualCanonicalizing(['Living Alone', 'TV Show', 'iOS', 'Sci-Fi']);
+});
+
+it('keeps the name an existing tag already has', function () {
+    $article = Article::factory()->create();
+    Tag::query()->create(['name' => 'eBay', 'slug' => 'ebay']);
+
+    $article->syncTagNames(['ebay']);
+
+    expect($article->fresh()->tagNames())->toEqualCanonicalizing(['eBay']);
+});
+
 it('dedupes tag names that share the same slug', function () {
     $article = Article::factory()->create();
 
