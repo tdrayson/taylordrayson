@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Presenters\CardPresenter;
+use App\Presenters\EntryDescription;
 use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
@@ -60,9 +61,11 @@ class TimelineEntry extends Model implements Feedable
             Event::class => ['media'],
             Fuel::class => ['media'],
             Checkin::class => ['media'],
-            // `series` names the show on an episode card. Without it every
-            // episode in the feed resolves its show one query at a time.
-            Media::class => ['series'],
+            // `series` names the show on an episode card, and carries the
+            // backdrop an episode has none of its own. Without these every
+            // episode in the feed resolves its show, and both their
+            // attachments, one query at a time.
+            Media::class => ['series', 'media', 'series.media'],
         ];
     }
 
@@ -128,7 +131,10 @@ class TimelineEntry extends Model implements Feedable
         return FeedItem::create([
             'id' => $link,
             'title' => $card->title,
-            'summary' => $card->subtitle ?? $card->title,
+            // The standalone sentence, not the card subtitle: a subtitle is
+            // written to sit under its title, and a check-in without a note has
+            // none at all.
+            'summary' => EntryDescription::for($this->timelineable, $card),
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),

@@ -33,5 +33,5 @@ it('builds the tv episode detail from meta using the enum arm, not the phantom "
         'meta' => ['season' => 2, 'episode' => 5],
     ]);
 
-    expect(CardPresenter::for($episode)->subtitle)->toContain('S02E05');
+    expect(CardPresenter::for($episode)->subtitle)->toContain('season 2 episode 5');
 });

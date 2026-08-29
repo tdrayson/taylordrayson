@@ -29,8 +29,8 @@ it('describes a sleep entry with its duration, date and window', function () {
     get('/'.$sleep->occurred_at->format('Y/m/d').'/'.$sleep->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.title', '9h 21m sleep, 24 August 2026')
-            ->where('og.description', 'I slept 9h 21m on Monday 24 August 2026, 11:30pm to 8:51am, scoring 80.')
+            ->where('og.title', 'I slept for 9h 21m, 24 August 2026')
+            ->where('og.description', 'I slept 9h 21m on Monday 24 August 2026, from 11:30pm to 8:51am. My sleep score was 80.')
         );
 });
 
@@ -60,7 +60,7 @@ it('names the show in front of an episode title', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.title', 'Formula 1: Netherlands (Race), 23 August 2026')
-            ->where('og.description', fn (string $value): bool => str_contains($value, 'S2026E69'))
+            ->where('og.description', fn (string $value): bool => str_contains($value, 'season 2026 episode 69 of Formula 1'))
         );
 });
 

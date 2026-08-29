@@ -20,44 +20,102 @@ final class MediaCard
     public function present(Media $model): CardData
     {
         $show = ShowTitle::for($model);
-        $rating = $model->rating ? "★ {$model->rating} / 10" : null;
 
         // Falls back to the show when the episode itself is unnamed, so the card
         // is never headed by nothing.
         $title = $model->title !== '' ? $model->title : ($show ?? '');
-
-        $parts = match ($model->type) {
-            MediaType::Film => [$rating, $model->meta->year === null ? null : (string) $model->meta->year],
-            MediaType::TvEpisode => [$show, $this->episodeCode($model), $rating],
-            MediaType::Book => [$rating, $model->meta->author],
-            default => [$rating],
-        };
-
-        // Drops a part that merely repeats the title, so the card never prints
-        // the same text twice.
-        $parts = array_filter($parts, fn (?string $part): bool => $part !== null && $part !== $title);
 
         return new CardData(
             type: TimelineType::Media,
             icon: 'film',
             title: $title,
             titleLabel: null,
-            subtitle: $parts ? implode(', ', $parts) : null,
+            subtitle: $this->sentence($model, $show, $title),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'media',
             range: null,
-            meta: CardMeta::empty(),
+            meta: CardMeta::backdrop($this->backdrop($model)),
         );
     }
 
-    /** The "S01E03" marker, or null when either number is missing. */
-    private function episodeCode(Media $model): ?string
+    /**
+     * The wide artwork behind the card. An episode has none of its own, so it
+     * reads its show's, which is what MediaArtwork already does for the entry
+     * page; only the backdrop is wanted here.
+     */
+    private function backdrop(Media $model): ?string
     {
-        if ($model->meta->season === null || $model->meta->episode === null) {
-            return null;
+        $source = $model->optimisedUrl('backdrop') === null
+            ? $model->series ?? $model
+            : $model;
+
+        return $source->optimisedUrl('backdrop');
+    }
+
+    /**
+     * What was watched or read, as a sentence. An episode names its show here
+     * because the card title is the episode alone and the eyebrow only says
+     * "Media", so nothing else on the card identifies the programme.
+     */
+    private function sentence(Media $model, ?string $show, string $title): ?string
+    {
+        $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
+
+        $what = match ($model->type) {
+            MediaType::Film => $this->filmClause($model),
+            MediaType::TvEpisode => $this->episodeClause($model, $show, $title),
+            MediaType::Book => 'this book'.($model->meta->author ? " by {$model->meta->author}" : ''),
+            default => null,
+        };
+
+        if ($what === null) {
+            return $model->rating ? "I rated this {$model->rating}/10." : null;
         }
 
-        return sprintf('S%02dE%02d', $model->meta->season, $model->meta->episode);
+        $verb = $model->type === MediaType::Book ? 'read' : 'watched';
+        $runtime = $model->type === MediaType::Film ? $this->runtimeSentence($model) : '';
+
+        return "I {$verb} {$what}{$rated}.{$runtime}";
+    }
+
+    /**
+     * "this 2024 drama": the year and TMDB's leading genre, which is ordered by
+     * relevance. One genre only, since stringing two together reads as neither
+     * ("this science fiction and mystery film").
+     */
+    private function filmClause(Media $model): string
+    {
+        $genre = $model->meta->tmdb->genres[0] ?? null;
+        $what = $genre === null ? 'film' : mb_strtolower($genre).' film';
+
+        return $model->meta->year === null ? "this {$what}" : "this {$model->meta->year} {$what}";
+    }
+
+    /** How long a film ran, as its own sentence. Films only: it would print on every episode of a binge. */
+    private function runtimeSentence(Media $model): string
+    {
+        $minutes = $model->meta->runtime;
+
+        return $minutes ? " It was {$minutes} minutes long." : '';
+    }
+
+    /** The show and where in it, spelled out rather than as "S04E04". */
+    private function episodeClause(Media $model, ?string $show, string $title): ?string
+    {
+        // The show is already the heading when the episode had no name of its
+        // own, so repeating it would print the same words twice.
+        $named = $show !== null && $show !== $title ? $show : null;
+
+        $where = $model->meta->season !== null && $model->meta->episode !== null
+            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
+            : null;
+
+        return match (true) {
+            $named !== null && $where !== null => "{$where} of {$named}",
+            $named !== null => $named,
+            $where !== null => $where,
+            default => null,
+        };
     }
 }

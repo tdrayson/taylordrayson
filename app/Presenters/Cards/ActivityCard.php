@@ -9,6 +9,7 @@ use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Support\Distance;
+use App\Support\Units;
 use Illuminate\Support\Str;
 
 /**
@@ -18,6 +19,21 @@ use Illuminate\Support\Str;
  */
 final class ActivityCard
 {
+    /**
+     * Past-tense verb per activity type, for types where one reads naturally.
+     * Anything absent names itself instead ("I did 45m of padel"), so a new
+     * Strava type needs no change here.
+     */
+    private const VERBS = [
+        'walk' => 'walked',
+        'run' => 'ran',
+        'ride' => 'cycled',
+        'e-bike-ride' => 'cycled',
+        'swim' => 'swam',
+        'hike' => 'hiked',
+        'workout' => 'worked out',
+    ];
+
     public function present(Activity $model): CardData
     {
         return new CardData(
@@ -50,80 +66,108 @@ final class ActivityCard
         );
     }
 
+    /**
+     * The session as a sentence, rendered from the same tokens the client uses
+     * so the two can never drift. Distance is a token, so the visitor's mi/km
+     * toggle still rewrites it in place.
+     */
     private function cardSubtitle(Activity $model): ?string
     {
-        // Keyed on sets rather than an activity-type allow-list, so new distance
-        // types need no change here.
-        if (is_array($model->meta['sets'] ?? null)) {
-            return $this->strengthSubtitle($model->meta['sets']);
-        }
+        $tokens = $this->subtitleTokens($model);
 
-        $distancePart = $model->distance ? Distance::miles($model->distance, 1).' mi' : null;
-        $durationPart = $model->duration ? $this->durationForHumans($model->duration) : null;
-
-        $lead = match (true) {
-            $distancePart && $durationPart => "{$distancePart} in {$durationPart}",
-            default => $distancePart ?? $durationPart,
-        };
-
-        $parts = array_filter([
-            $lead,
-            $model->calories ? number_format($model->calories).' kcal' : null,
-        ]);
-
-        return $parts ? implode(', ', $parts) : null;
+        return $tokens === null ? null : $this->render($tokens);
     }
 
     /**
-     * @param  array<int, array{exercise: string, reps: int, weight: float}>  $sets
+     * Join tokens the way FeedItem.vue's metaText does: the first takes no
+     * separator, the rest take their own, and empty ones drop out.
+     *
+     * @param  list<SubtitleToken>  $tokens
      */
-    private function strengthSubtitle(array $sets): string
+    private function render(array $tokens): string
     {
-        $exercises = count(array_unique(array_column($sets, 'exercise')));
-        $volume = array_sum(array_map(fn (array $set): float => ($set['reps'] ?? 0) * ($set['weight_kg'] ?? $set['weight'] ?? 0), $sets));
+        $parts = [];
 
-        $parts = [
-            $exercises.' '.Str::plural('exercise', $exercises),
-            count($sets).' '.Str::plural('set', count($sets)),
-        ];
+        foreach ($tokens as $token) {
+            $data = $token->toArray();
 
-        if ($volume > 0) {
-            $parts[] = number_format($volume).' kg';
+            $text = match ($data['t']) {
+                'dist' => Distance::miles($data['m'], $data['p']).' mi',
+                'wt' => number_format($data['kg'], $data['p']).' kg',
+                default => $data['v'],
+            };
+
+            if ((string) $text !== '') {
+                $parts[] = ['text' => $text, 'sep' => $data['sep'] ?? ', '];
+            }
         }
 
-        return implode(', ', $parts);
+        return implode('', array_map(
+            fn (array $part, int $index): string => ($index === 0 ? '' : $part['sep']).$part['text'],
+            $parts,
+            array_keys($parts),
+        ));
     }
 
     /**
-     * Structured counterpart to cardSubtitle(): distance/weight are emitted as raw
-     * tokens (metres/kg) instead of pre-formatted strings, so FeedItem.vue can
-     * compose them through useFormat() and react to the visitor's unit toggle.
+     * Distance and weight are emitted as raw tokens (metres/kg) rather than
+     * pre-formatted strings, so FeedItem.vue composes them through useFormat()
+     * and they react to the visitor's unit toggle.
      *
      * @return list<SubtitleToken>|null
      */
     private function subtitleTokens(Activity $model): ?array
     {
+        // Keyed on sets rather than an activity-type allow-list, so new distance
+        // types need no change here.
         if (is_array($model->meta['sets'] ?? null)) {
             return $this->strengthTokens($model->meta['sets']);
         }
 
-        $tokens = [];
+        $duration = $model->duration ? Units::humanDuration($model->duration) : null;
+        $tokens = $this->openingTokens($model, $duration);
 
-        if ($model->distance) {
-            $tokens[] = SubtitleToken::dist((int) $model->distance, 1);
-        }
-
-        if ($model->duration) {
-            // ' in ' only reads correctly when duration follows a distance token;
-            // with no distance, duration leads and keeps the default ', ' separator.
-            $tokens[] = SubtitleToken::text($this->durationForHumans($model->duration), $model->distance ? ' in ' : null);
+        if ($tokens === []) {
+            return null;
         }
 
         if ($model->calories) {
-            $tokens[] = SubtitleToken::text(number_format($model->calories).' kcal');
+            $tokens[] = SubtitleToken::text('and burned '.number_format($model->calories).' kcal', ' ');
         }
 
-        return $tokens ?: null;
+        // The stop rides on its own token because the clause it follows varies,
+        // and a distance token's text is composed on the client.
+        $tokens[] = SubtitleToken::text('.', '');
+
+        return $tokens;
+    }
+
+    /**
+     * The verb and what it acts on. A distance activity reads "I ran 3.2 mi in
+     * 30m"; one measured only in time reads "I walked for 45m"; anything with
+     * no verb of its own falls back to naming itself ("I did 45m of padel").
+     *
+     * @return list<SubtitleToken>
+     */
+    private function openingTokens(Activity $model, ?string $duration): array
+    {
+        $verb = self::VERBS[$model->type] ?? null;
+
+        if ($model->distance) {
+            return array_values(array_filter([
+                SubtitleToken::text($verb ? "I {$verb}" : 'I covered'),
+                SubtitleToken::dist((int) $model->distance, 1, ' '),
+                $duration ? SubtitleToken::text("in {$duration}", ' ') : null,
+            ]));
+        }
+
+        if ($duration === null) {
+            return [];
+        }
+
+        return $verb !== null
+            ? [SubtitleToken::text("I {$verb} for {$duration}")]
+            : [SubtitleToken::text(sprintf('I did %s of %s', $duration, str_replace('-', ' ', $model->type)))];
     }
 
     /**
@@ -136,26 +180,22 @@ final class ActivityCard
         $volume = array_sum(array_map(fn (array $set): float => ($set['reps'] ?? 0) * ($set['weight_kg'] ?? $set['weight'] ?? 0), $sets));
 
         $tokens = [
-            SubtitleToken::text($exercises.' '.Str::plural('exercise', $exercises)),
-            SubtitleToken::text(count($sets).' '.Str::plural('set', count($sets))),
+            SubtitleToken::text(sprintf(
+                'I did %d %s across %d %s',
+                $exercises,
+                Str::plural('exercise', $exercises),
+                count($sets),
+                Str::plural('set', count($sets)),
+            )),
         ];
 
         if ($volume > 0) {
-            $tokens[] = SubtitleToken::wt($volume, 0);
+            $tokens[] = SubtitleToken::text('and lifted', ' ');
+            $tokens[] = SubtitleToken::wt($volume, 0, ' ');
         }
+
+        $tokens[] = SubtitleToken::text('.', '');
 
         return $tokens;
-    }
-
-    private function durationForHumans(int $seconds): string
-    {
-        $minutes = intdiv($seconds, 60);
-        $hours = intdiv($minutes, 60);
-
-        if ($hours > 0) {
-            return sprintf('%dh %02dm', $hours, $minutes % 60);
-        }
-
-        return "{$minutes}m";
     }
 }

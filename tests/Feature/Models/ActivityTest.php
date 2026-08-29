@@ -103,7 +103,7 @@ it('shows distance for any activity type that records one, without a cardio allo
 
     expect($card->subtitle)->toContain('mi')
         ->and(array_map(fn ($token) => $token->toArray(), $card->subtitleTokens))
-        ->toContain(['t' => 'dist', 'm' => 5000, 'p' => 1]);
+        ->toContain(['t' => 'dist', 'm' => 5000, 'p' => 1, 'sep' => ' ']);
 });
 
 it('shows a strength subtitle whenever sets exist, regardless of type', function () {
@@ -119,7 +119,7 @@ it('shows a strength subtitle whenever sets exist, regardless of type', function
 
     expect($card->subtitle)->toContain('exercise')
         ->and(array_map(fn ($token) => $token->toArray(), $card->subtitleTokens))
-        ->toContain(['t' => 'text', 'v' => '1 exercise']);
+        ->toContain(['t' => 'text', 'v' => 'I did 1 exercise across 1 set']);
 });
 
 it('builds a Strava platform URL for a run sourced from Strava', function () {

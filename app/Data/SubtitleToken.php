@@ -23,19 +23,22 @@ final readonly class SubtitleToken implements Arrayable, JsonSerializable
     ) {}
 
     /**
-     * A distance token: whole metres at the given display precision.
+     * A distance token: whole metres at the given display precision. `sep`
+     * overrides the default ', ' joiner, for a token sitting inside a sentence
+     * rather than in a list.
      */
-    public static function dist(int $m, int $p): self
+    public static function dist(int $m, int $p, ?string $sep = null): self
     {
-        return new self('dist', $m, null, $p, null, null);
+        return new self('dist', $m, null, $p, null, $sep);
     }
 
     /**
-     * A weight token: kilograms at the given display precision.
+     * A weight token: kilograms at the given display precision. `sep` overrides
+     * the default ', ' joiner, as on dist().
      */
-    public static function wt(float $kg, int $p): self
+    public static function wt(float $kg, int $p, ?string $sep = null): self
     {
-        return new self('wt', null, $kg, $p, null, null);
+        return new self('wt', null, $kg, $p, null, $sep);
     }
 
     /**

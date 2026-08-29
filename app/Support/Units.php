@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 class Units
 {
     /**
@@ -9,6 +11,44 @@ class Units
      * (already seconds), numeric strings, "2h 56m" style component strings,
      * and "H:MM:SS" / "MM:SS" clock strings. Returns null when unparseable.
      */
+    /**
+     * Format a duration in seconds as "9h 21m", dropping a zero minute ("9h")
+     * and the hour when there is none ("45m").
+     *
+     * ActivityCard keeps its own zero-padded variant ("1h 05m"), which reads as
+     * a race time rather than a rough length; this is the prose form.
+     */
+    public static function humanDuration(int $seconds): string
+    {
+        $minutes = intdiv($seconds, 60);
+        $hours = intdiv($minutes, 60);
+        $remainder = $minutes % 60;
+
+        if ($hours === 0) {
+            return "{$remainder}m";
+        }
+
+        return $remainder > 0 ? "{$hours}h {$remainder}m" : "{$hours}h";
+    }
+
+    /**
+     * The same duration in words: "9 hours 21 minutes". For an accessible name,
+     * where "9h 21m" is read out a letter at a time.
+     */
+    public static function spokenDuration(int $seconds): string
+    {
+        $minutes = intdiv($seconds, 60);
+        $hours = intdiv($minutes, 60);
+        $remainder = $minutes % 60;
+
+        $parts = array_filter([
+            $hours > 0 ? $hours.' '.Str::plural('hour', $hours) : null,
+            $remainder > 0 || $hours === 0 ? $remainder.' '.Str::plural('minute', $remainder) : null,
+        ]);
+
+        return implode(' ', $parts);
+    }
+
     public static function seconds(mixed $value): ?int
     {
         if ($value === null) {

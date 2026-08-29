@@ -18,8 +18,10 @@ final class EventCard
     public function present(Event $model): CardData
     {
         $subtitle = match (true) {
-            $model->venue_name && $model->city => "{$model->venue_name} in {$model->city}",
-            default => $model->venue_name ?? $model->city,
+            (bool) $model->venue_name && (bool) $model->city => "I went to {$model->venue_name} in {$model->city}.",
+            (bool) $model->venue_name => "I went to {$model->venue_name}.",
+            (bool) $model->city => "I was in {$model->city}.",
+            default => null,
         };
         $photos = $model->galleryPhotos();
 

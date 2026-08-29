@@ -38,7 +38,7 @@ it('matches entries by instant rather than wall-clock time', function () {
         ->where('groups', function ($groups) {
             $titles = collect($groups)->flatMap(fn ($group) => collect($group['items'])->pluck('title'))->all();
 
-            return in_array('Just Landed', $titles, true) && ! in_array('Too Early', $titles, true);
+            return in_array('at Just Landed', $titles, true) && ! in_array('at Too Early', $titles, true);
         })
     );
 });
@@ -76,7 +76,7 @@ it('gathers every type inside the window and excludes entries outside it', funct
         ->where('groups', function ($groups) {
             $titles = collect($groups)->flatMap(fn ($group) => collect($group['items'])->pluck('title'))->all();
 
-            return $titles === ['Inside The Window'];
+            return $titles === ['at Inside The Window'];
         })
     );
 });
@@ -97,7 +97,7 @@ it('orders trip entries chronologically', function () {
         ->where('groups', function ($groups) {
             $titles = collect($groups)->flatMap(fn ($group) => collect($group['items'])->pluck('title'))->all();
 
-            return $titles === ['First', 'Second', 'Third'];
+            return $titles === ['at First', 'at Second', 'at Third'];
         })
     );
 });

@@ -23,11 +23,16 @@ final class FlightCard
     {
         $cabinClass = $model->cabin_class?->value;
 
-        $subtitle = match (true) {
-            ! $model->distance => null,
-            (bool) $cabinClass => sprintf('%s mi in %s', number_format(Distance::miles($model->distance)), $cabinClass),
-            default => sprintf('%s mi', number_format(Distance::miles($model->distance))),
-        };
+        $lead = $this->lead($model);
+
+        $subtitle = $model->distance === null
+            ? $lead
+            : sprintf(
+                '%s It was %s mi%s.',
+                $lead,
+                number_format(Distance::miles($model->distance)),
+                $cabinClass ? " in {$cabinClass}" : '',
+            );
 
         return new CardData(
             type: TimelineType::Flight,
@@ -39,8 +44,10 @@ final class FlightCard
             // useFormat and react to the visitor's unit toggle.
             subtitleTokens: $model->distance
                 ? array_values(array_filter([
-                    SubtitleToken::dist((int) $model->distance, 0),
-                    $cabinClass ? SubtitleToken::text($cabinClass, ' in ') : null,
+                    SubtitleToken::text("{$lead} It was"),
+                    SubtitleToken::dist((int) $model->distance, 0, ' '),
+                    $cabinClass ? SubtitleToken::text("in {$cabinClass}", ' ') : null,
+                    SubtitleToken::text('.', ''),
                 ]))
                 : null,
             occurredAt: $model->occurred_at,
@@ -78,6 +85,21 @@ final class FlightCard
                 mapDark: $model->optimisedUrl('map_dark'),
             ),
         );
+    }
+
+    /**
+     * Where the flight went and who flew it. The route is named again rather
+     * than left to the title, because the surfaces this string reaches (feeds,
+     * search, link previews) show the IATA codes when the relations are not
+     * loaded, and "TFS to LGW" names nothing to a reader.
+     */
+    private function lead(Flight $model): string
+    {
+        $origin = ($model->relationLoaded('origin') ? $model->origin?->city : null) ?? $model->origin_iata;
+        $destination = ($model->relationLoaded('destination') ? $model->destination?->city : null) ?? $model->destination_iata;
+        $airline = $model->relationLoaded('airline') && $model->airline ? " with {$model->airline->name}" : '';
+
+        return "I flew from {$origin} to {$destination}{$airline}.";
     }
 
     /**
