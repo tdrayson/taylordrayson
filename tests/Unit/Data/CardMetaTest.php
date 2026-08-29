@@ -60,10 +60,16 @@ it('serialises route meta with only route, map, mapDark', function () {
     expect($meta->toArray())->toBe(['route' => $route->toArray(), 'map' => 'map.png', 'mapDark' => null]);
 });
 
-it('serialises checkin meta with photos, map, mapDark, address', function () {
-    $meta = CardMeta::checkin([], 'map.png', 'mapdark.png', 'High Street, London');
+it('serialises checkin meta with photos, map, mapDark, address, category', function () {
+    $meta = CardMeta::checkin([], 'map.png', 'mapdark.png', 'High Street, London', 'Coffee Shop');
 
-    expect($meta->toArray())->toBe(['photos' => [], 'map' => 'map.png', 'mapDark' => 'mapdark.png', 'address' => 'High Street, London']);
+    expect($meta->toArray())->toBe([
+        'photos' => [],
+        'map' => 'map.png',
+        'mapDark' => 'mapdark.png',
+        'address' => 'High Street, London',
+        'category' => 'Coffee Shop',
+    ]);
 });
 
 it('serialises article photos meta with only photos', function () {

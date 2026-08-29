@@ -31,6 +31,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         private array $present,
         public ?string $address = null,
         public ?string $backdrop = null,
+        public ?string $category = null,
     ) {}
 
     /**
@@ -99,13 +100,14 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
 
     /**
      * Checkin: the check-in's own photos alongside the generated location map,
-     * both rather than one-or-other, with the address beneath.
+     * both rather than one-or-other, with the address beneath and Foursquare's
+     * category as a label.
      *
      * @param  list<PhotoData>  $photos
      */
-    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address): self
+    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address, ?string $category): self
     {
-        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address'], $address);
+        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address', 'category'], $address, null, $category);
     }
 
     /**
@@ -154,6 +156,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'brandLogo' => $this->brandLogo,
             'address' => $this->address,
             'backdrop' => $this->backdrop,
+            'category' => $this->category,
         ];
 
         $result = [];

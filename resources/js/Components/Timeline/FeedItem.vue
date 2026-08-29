@@ -56,6 +56,9 @@ const props = defineProps({
     // A check-in's full address, shown beneath the map regardless of whether the
     // card has a note.
     address: { type: String, default: null },
+    // Foursquare's own word for what the place is, shown as a label rather than
+    // written into a sentence: the vocabulary includes Road, Platform and Town.
+    category: { type: String, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -235,6 +238,7 @@ function openLightbox(index) {
                 :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
             >{{ title }}</component>
         </h3>
+        <p v-if="category" class="mt-1.5 text-caption text-neutral-500">{{ category }}</p>
         <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
                 <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
