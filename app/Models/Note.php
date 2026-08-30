@@ -29,6 +29,15 @@ class Note extends Model implements HasMedia, Timelineable
     /** Where a note's own words run out, e.g. a note that is only a photo. */
     public const FALLBACK_SLUG = 'note';
 
+    /**
+     * How long a note may be, in characters of its readable text.
+     *
+     * Past this it is an article: the editor offers to convert rather than
+     * refusing the words, so the limit shapes what a note is rather than
+     * costing you what you wrote.
+     */
+    public const MAX_LENGTH = 750;
+
     /** How much of the note the derived slug uses. */
     private const SLUG_WORDS = 6;
 
