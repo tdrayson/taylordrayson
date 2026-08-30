@@ -173,7 +173,11 @@ final class OgGalleryUrls
         foreach ($this->sampleCards() as $type => $card) {
             $cards[] = [
                 'label' => $card['eyebrow'] ?? $type,
-                'url' => url("/og/preview/{$type}.png"),
+                // Versioned like every other card URL here. Without it the
+                // sample is a stable address served for a day, so editing the
+                // template re-renders it server-side and the browser keeps
+                // showing yesterday's.
+                'url' => url("/og/preview/{$type}.png?v=".OgRenderer::generation()),
             ];
         }
 
