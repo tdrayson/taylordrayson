@@ -31,9 +31,6 @@ const props = defineProps({
     // this instead of the display-font title, with the timestamp acting as the
     // permalink. Rendered rather than flattened so its links survive the feed.
     body: { type: [Array, String], default: null },
-    // Link data for the note body: host -> favicon, and internal href -> preview.
-    favicons: { type: Object, default: () => ({}) },
-    previews: { type: Object, default: () => ({}) },
     meta: { type: String, default: '' },
     // Structured subtitle tokens (raw metres/kg + literal text) composed reactively
     // via useFormat; null falls back to the plain `meta` string (e.g. notes).
@@ -236,7 +233,7 @@ function openLightbox(index) {
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
             </div>
         </div>
-        <NoteBody v-if="hasBody" :document="body" :favicons="favicons" :previews="previews" />
+        <NoteBody v-if="hasBody" :document="body" />
         <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
         <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component

@@ -2,18 +2,16 @@
 import { computed, ref } from 'vue';
 import PortableTextBlocks from './PortableTextBlocks.js';
 import LinkPreviewLayer from './LinkPreviewLayer.vue';
+import { useLinkContext } from '../../lib/linkContext.js';
 
-// A note's own words in the feed, links and all. Unlike BlockContent this takes
-// its link data as props rather than from page context: the card is built by
-// NoteCard, so every feed surface gets previews without each page providing
-// them.
+// A note's own words in the feed, links and all.
 const props = defineProps({
     document: { type: [Array, String], default: null },
-    // host -> stored favicon URL, for external link chips.
-    favicons: { type: Object, default: () => ({}) },
-    // internal href -> preview card, for the hover layer below.
-    previews: { type: Object, default: () => ({}) },
 });
+
+// href -> preview for internal links, host -> favicon for external ones,
+// provided by TimelineFeed from the cards it is drawing.
+const links = useLinkContext();
 
 // Text blocks and lists only. The notes API accepts any Portable Text document,
 // and a feed card is no place for a video embed or a code block.
@@ -43,8 +41,8 @@ const contentEl = ref(null);
         v-twemoji
         class="e-content mt-1.5 space-y-3 text-base leading-relaxed text-neutral-900"
     >
-        <PortableTextBlocks :nodes="nodes" :favicons="favicons" :previews="previews" />
+        <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" />
 
-        <LinkPreviewLayer :previews="previews" :container="contentEl" />
+        <LinkPreviewLayer :previews="links.previews" :container="contentEl" />
     </div>
 </template>
