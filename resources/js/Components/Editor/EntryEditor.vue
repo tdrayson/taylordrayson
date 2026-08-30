@@ -1,10 +1,12 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
-import { noteSlug, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
+import Alert from '../Ui/Alert.vue';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
@@ -22,6 +24,10 @@ const props = defineProps({
     action: { type: String, required: true },
     method: { type: String, default: 'patch' },
     submitLabel: { type: String, default: 'Post' },
+    // The type this one graduates into when its capped field overflows, e.g. a
+    // note into an article. Null on every surface where that is not on offer,
+    // which includes editing something already posted.
+    convertTo: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -213,6 +219,30 @@ function applyFill(values) {
     });
 }
 
+/** The field carrying a character limit, if this type declares one. */
+const cappedField = computed(() => props.fields.find((field) => field.max) ?? null);
+
+const overBy = computed(() => (cappedField.value === null
+    ? 0
+    : plainTextOf(form[cappedField.value.name]).length - cappedField.value.max));
+
+const overLimit = computed(() => props.convertTo !== null && overBy.value > 0);
+
+/**
+ * Open the bigger type's editor holding what has been written so far.
+ *
+ * Both types name their body `content`, so the document crosses as it is: a
+ * note's blocks are a subset of what an article allows.
+ */
+function convert() {
+    stash(props.convertTo, {
+        content: form[cappedField.value.name],
+        tags: form.tags ?? [],
+    });
+
+    router.visit(`/new/${props.convertTo}`);
+}
+
 const errorCount = computed(() => Object.keys(form.errors).length);
 
 const status = computed(() => {
@@ -327,6 +357,16 @@ function submit(published = null) {
                 </FieldGroup>
             </template>
         </div>
+
+        <!-- Past the limit the save is refused, so the offer stands in for the
+             error: the words move up a type rather than being cut to fit. -->
+        <Alert v-if="overLimit" variant="warning" class="mt-8 items-center">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p>Too long for a note, by {{ overBy.toLocaleString() }} characters.</p>
+
+                <Button type="button" size="sm" @click="convert">Turn it into an {{ convertTo }}</Button>
+            </div>
+        </Alert>
 
         <!-- Sticky rather than fixed, so it needs no bottom padding on the form
              and settles at the end of the page on desktop. -->

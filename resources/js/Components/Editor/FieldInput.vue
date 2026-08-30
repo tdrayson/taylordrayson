@@ -13,6 +13,8 @@ import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
+import LengthRing from './LengthRing.vue';
+import { plainTextOf } from '../../lib/editor/defaults.js';
 
 /**
  * One field, drawn from its definition. The `type` on the definition is the
@@ -39,6 +41,10 @@ const props = defineProps({
     // A line under the control, e.g. the URL a slug is going to produce.
     hint: { type: String, default: null },
 });
+
+// How much of a capped field's budget the current value spends. Measured on
+// readable text, the same way the server measures it.
+const usedCharacters = computed(() => plainTextOf(props.modelValue).length);
 
 const borderClass = computed(() => (props.error
     ? 'border-red-500 focus:border-red-500 focus:outline-none'
@@ -84,7 +90,11 @@ function textToTags(value) {
 
 <template>
     <div>
-        <label v-if="! hideLabel && field.type !== 'boolean'" :for="field.name" class="mb-1 block text-label uppercase text-neutral-500">{{ field.label }}</label>
+        <div v-if="! hideLabel && field.type !== 'boolean'" class="mb-1 flex items-center justify-between gap-3">
+            <label :for="field.name" class="block text-label uppercase text-neutral-500">{{ field.label }}</label>
+
+            <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
+        </div>
 
         <RichTextEditor
             v-if="field.type === 'rich-text'"
