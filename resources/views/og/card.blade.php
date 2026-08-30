@@ -24,8 +24,6 @@
 
         .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
-        .bg--blur { filter: blur(34px) brightness(0.97); transform: scale(1.25); }
-
         .bg--gradient {
             background: radial-gradient(135% 130% at 100% 0%, color-mix(in srgb, #{{ $accent }} 28%, #fff) 0%, #ffffff 62%);
         }
@@ -77,18 +75,17 @@
 
         .content--home .title { font-size: 96px; margin-top: 0; }
 
-        /* "When", muted and quiet, sitting directly under the title. */
+        /* "When", pinned above the wordmark rather than trailing the title, so
+           every card carries it in the same place however long the title ran and
+           whatever sits beneath it. */
         .date {
-            margin-top: 24px;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
+            position: absolute;
+            left: 84px;
+            bottom: 84px;
             font-size: 27px;
             font-weight: 500;
             color: #9298a2;
         }
-
-        .date svg { display: block; }
 
         /* Sleep stage breakdown: a stacked bar of the night's stages. */
         .stages { margin-top: 46px; }
@@ -158,10 +155,7 @@
     @php($subtitle = $subtitle ?? null)
     @php($stages = $stages ?? null)
     <div class="inner">
-        @if ($layout === 'cover')
-            <img class="bg bg--blur" src="{{ $image }}" alt="">
-            <div class="scrim"></div>
-        @elseif ($layout === 'media')
+        @if ($layout === 'media')
             <img class="bg" src="{{ $image }}" alt="">
             <div class="scrim"></div>
         @else
@@ -181,12 +175,6 @@
                     <div class="eyebrow"><span class="dot"></span>{{ $eyebrow }}</div>
                 @endif
                 <div class="title">{{ $title }}</div>
-                @if ($date)
-                    <div class="date">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9298a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                        {{ $date }}
-                    </div>
-                @endif
                 @if ($stages)
                     <div class="stages">
                         <div class="stage-bar">
@@ -205,6 +193,10 @@
         @endif
 
         <img class="cutout" src="{{ $cutout }}" alt="">
+
+        @if ($date)
+            <div class="date">{{ $date }}</div>
+        @endif
 
         <div class="brand">taylordrayson.com</div>
     </div>
