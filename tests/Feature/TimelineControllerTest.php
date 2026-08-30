@@ -6,6 +6,7 @@ use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Podcast;
+use App\Support\PortableText;
 
 use function Pest\Laravel\get;
 
@@ -99,14 +100,15 @@ it('shows day grouping headers', function () {
     );
 });
 
-it('ships full note content as the card body', function () {
+it('ships the whole note document as the card body, paragraphs intact', function () {
     Note::factory()->create([
         'content' => "Long thought about grinders.\n\nSecond paragraph of the same note.",
         'occurred_at' => now()->subHour(),
     ]);
 
     get('/')->assertInertia(fn ($page) => $page
-        ->where('groups.0.items.0.body', "Long thought about grinders.\n\nSecond paragraph of the same note.")
+        ->where('groups.0.items.0.body', fn ($body) => count($body) === 2
+            && PortableText::plainText($body) === 'Long thought about grinders. Second paragraph of the same note.')
         ->where('groups.0.items.0.iconKey', 'note'));
 });
 

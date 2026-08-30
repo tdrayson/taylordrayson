@@ -25,13 +25,15 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?array $segments,
         public ?MediaData $media,
         public ?RouteData $route,
-        public ?string $body,
+        public ?array $body,
         public ?string $brand,
         public ?string $brandLogo,
         private array $present,
         public ?string $address = null,
         public ?string $backdrop = null,
         public ?string $category = null,
+        public ?array $previews = null,
+        public ?array $favicons = null,
     ) {}
 
     /**
@@ -129,13 +131,21 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Note: body, photos.
+     * Note: body, photos, previews, favicons.
      *
+     * A note is the entry itself rather than a summary of one, so the feed
+     * renders its whole document. The resolved link data rides along on the
+     * card because every feed surface needs it, unlike the entry page, which
+     * provides it once for the page.
+     *
+     * @param  array<int, array<string, mixed>>  $body
      * @param  list<PhotoData>  $photos
+     * @param  array<string, array<string, mixed>>  $previews
+     * @param  array<string, string>  $favicons
      */
-    public static function note(string $body, array $photos): self
+    public static function note(array $body, array $photos, array $previews = [], array $favicons = []): self
     {
-        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos']);
+        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos', 'previews', 'favicons'], null, null, null, $previews, $favicons);
     }
 
     /**
@@ -157,6 +167,8 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'address' => $this->address,
             'backdrop' => $this->backdrop,
             'category' => $this->category,
+            'previews' => $this->previews,
+            'favicons' => $this->favicons,
         ];
 
         $result = [];
