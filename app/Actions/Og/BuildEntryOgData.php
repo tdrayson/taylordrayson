@@ -159,8 +159,13 @@ final class BuildEntryOgData
 
     /**
      * Choose the card layout and background image for an entry: a route map for
-     * activities/flights, a marker for check-ins, a cover for media when one
-     * exists, otherwise a plain gradient (text layout).
+     * activities/flights, a marker for check-ins, otherwise the type's own
+     * gradient (text layout).
+     *
+     * Only generated imagery goes behind the text. A cover used to, blurred, but
+     * a poster or an article header reduced to a smear reads as a rendering
+     * fault rather than a backdrop; the type colour says more and says it
+     * cleanly.
      *
      * @return array{0: string, 1: ?string} The [layout, image URL] pair.
      */
@@ -195,14 +200,6 @@ final class BuildEntryOgData
 
             if ($latitude !== null && $longitude !== null) {
                 return ['media', StaticMap::marker($longitude, $latitude, $accent)];
-            }
-        }
-
-        if (in_array($type, [TimelineType::Media, TimelineType::Article], true) && method_exists($model, 'getFirstMediaUrl')) {
-            $cover = $model->getFirstMediaUrl('cover');
-
-            if ($cover !== '') {
-                return ['cover', $cover];
             }
         }
 

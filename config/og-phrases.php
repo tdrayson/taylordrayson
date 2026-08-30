@@ -18,27 +18,26 @@ return [
 
     // Stat entries, first person. :duration, :kcal, :cost filled per entry.
     'sleep' => [
-        'I slept :duration',
-        'I got :duration of sleep',
-        'Out cold for :duration',
+        'I slept :duration last night',
+        'I got :duration of sleep in',
+        'I was out cold for :duration',
         ':duration of glorious sleep',
         'I managed :duration of shut-eye',
         'Dead to the world for :duration',
     ],
 
     'food' => [
-        'I ate :kcal kcal',
-        'I demolished :kcal kcal',
-        ':kcal kcal, no regrets',
-        'A casual :kcal kcal today',
-        'I put away :kcal kcal',
+        'I ate :kcal kcal across the day',
+        'I demolished :kcal kcal today',
+        ':kcal kcal, and no regrets',
+        'A casual :kcal kcal over the day',
+        'I put away :kcal kcal today',
         ':kcal kcal, purely for science',
     ],
 
     'fuel' => [
-        'I put £:cost of fuel in',
-        '£:cost of dinosaur juice',
-        'I fed the car £:cost',
+        'I put £:cost of fuel in the car',
+        'I fed the car another £:cost',
         'Another £:cost up in smoke',
         '£:cost lighter at the pump',
     ],
@@ -74,18 +73,16 @@ return [
         ':date, apparently',
     ],
     'month' => [
-        ':date, in full',
-        'All of :date',
-        ':date, the highlights',
-        ':date, for the record',
-        ':date, apparently',
+        'What I got up to in :date',
+        'How :date actually went',
+        ':date, from start to finish',
+        'All of :date, for the record',
     ],
     'day' => [
-        ':date, in full',
-        ':date, the highlights',
-        ':date, such as it was',
-        'Just :date',
-        ':date, apparently',
+        'What I got up to on :date',
+        'How :date actually went',
+        ':date, from start to finish',
+        'Everything :date threw at me',
     ],
 
 ];
