@@ -7,6 +7,7 @@ use App\Data\PhotoData;
 use App\Data\RouteData;
 use App\Data\RoutePoint;
 use App\Data\SegmentData;
+use App\Support\PortableText;
 
 it('serialises empty meta as an empty array', function () {
     expect(CardMeta::empty()->toArray())->toBe([]);
@@ -79,8 +80,15 @@ it('serialises article photos meta with only photos', function () {
     expect($meta->toArray())->toBe(['photos' => [$photo->toArray()]]);
 });
 
-it('serialises note meta with only body, photos', function () {
-    $meta = CardMeta::note('Some note text', []);
+it('serialises note meta with only body, photos, previews, favicons', function () {
+    $document = PortableText::fromPlainText('Some note text');
 
-    expect($meta->toArray())->toBe(['body' => 'Some note text', 'photos' => []]);
+    $meta = CardMeta::note($document, []);
+
+    expect($meta->toArray())->toBe([
+        'body' => $document,
+        'photos' => [],
+        'previews' => [],
+        'favicons' => [],
+    ]);
 });

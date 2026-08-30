@@ -78,6 +78,8 @@ class BuildTimelineFeed
             'meta' => Text::excerpt($card->subtitle, 240),
             'metaTokens' => $card->subtitleTokens,
             'body' => $card->meta->body,
+            'previews' => $card->meta->previews,
+            'favicons' => $card->meta->favicons,
             'segments' => $card->meta->segments,
             'route' => $card->meta->route,
             'media' => $card->meta->media,

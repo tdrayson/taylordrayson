@@ -10,6 +10,7 @@ import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import CardMediaCarousel from './CardMediaCarousel.vue';
+import NoteBody from '../Ui/NoteBody.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
@@ -26,9 +27,13 @@ const props = defineProps({
     title: { type: String, required: true },
     // Accessible name for the title when the visible text lacks context (e.g. "3,145 kcal").
     titleLabel: { type: String, default: null },
-    // Full note content: title-less types render this as body text instead of
-    // the display-font title, with the timestamp acting as the permalink.
-    body: { type: String, default: null },
+    // Full note content as a Portable Text document: title-less types render
+    // this instead of the display-font title, with the timestamp acting as the
+    // permalink. Rendered rather than flattened so its links survive the feed.
+    body: { type: [Array, String], default: null },
+    // Link data for the note body: host -> favicon, and internal href -> preview.
+    favicons: { type: Object, default: () => ({}) },
+    previews: { type: Object, default: () => ({}) },
     meta: { type: String, default: '' },
     // Structured subtitle tokens (raw metres/kg + literal text) composed reactively
     // via useFormat; null falls back to the plain `meta` string (e.g. notes).
@@ -69,6 +74,11 @@ const props = defineProps({
 
 // Unit-aware distance formatter; route.distance is already in miles.
 const { distance, weight, distanceFromMiles } = useFormat();
+
+// A note renders its document in place of the display-font title, so the
+// heading below is a v-else on this rather than on `body` being truthy: an
+// empty array is truthy and would silently swallow the title.
+const hasBody = computed(() => (Array.isArray(props.body) ? props.body.length > 0 : Boolean(props.body)));
 
 const videoSlot = ref(null);
 
@@ -226,7 +236,7 @@ function openLightbox(index) {
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
             </div>
         </div>
-        <p v-if="body" v-twemoji class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
+        <NoteBody v-if="hasBody" :document="body" :favicons="favicons" :previews="previews" />
         <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
         <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component

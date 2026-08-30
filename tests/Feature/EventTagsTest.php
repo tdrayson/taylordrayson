@@ -2,6 +2,7 @@
 
 use App\Models\Event;
 use App\Models\Note;
+use App\Support\PortableText;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Laravel\get;
@@ -23,7 +24,7 @@ it('makes events taggable and surfaces them on the cross-type tag page', functio
 
             // Both the event and the note resolve onto the one cross-type feed.
             return $items->pluck('title')->contains('Hamilton')
-                && $items->pluck('body')->contains('Loved the show');
+                && $items->pluck('body')->map(fn ($body) => PortableText::plainText($body))->contains('Loved the show');
         })
     );
 });
