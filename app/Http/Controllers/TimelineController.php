@@ -234,7 +234,7 @@ class TimelineController extends Controller
             'month' => $month,
             'day' => $day,
             'og' => OgMeta::day($date),
-            'items' => $entries->map(fn (TimelineEntry $entry): array => $this->feed->cardItem($entry))->all(),
+            'items' => $this->feed->items($entries),
             'stats' => ($this->dayStats)($entries, $date),
             // No `rings` or `steps` until the daily figures are real (#67); they
             // were fixed placeholders. Day.vue hides the markup when they are absent.
