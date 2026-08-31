@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Fields\AuthorableTypes;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
 use App\Support\OgRenderer;
@@ -57,6 +58,9 @@ class HandleInertiaRequests extends Middleware
             // every actual gate is enforced server-side, and sharing the model
             // would put the account's email in the props of every page.
             'signedIn' => $request->user() !== null,
+            // The types the command palette can offer a "New …" command for.
+            // Empty when signed out, because every /new route is auth-gated.
+            'authorTypes' => $request->user() !== null ? AuthorableTypes::forPicker() : [],
             // Ambient readings from the phone. Shared rather than per-page
             // because the status bar carries battery, weather and rings on
             // every page, not just /now. One query for all four groups.

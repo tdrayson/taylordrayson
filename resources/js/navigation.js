@@ -46,3 +46,33 @@ const archiveKeywords = {
 export const archiveCommands = Object.entries(entryTypes)
     .filter(([, type]) => type.href)
     .map(([key, type]) => ({ label: type.label, href: type.href, icon: type.icon, keywords: archiveKeywords[key] }));
+
+/**
+ * The types offered before anything is typed. The rest of the authorable types
+ * are still reachable, but only once the query names them.
+ */
+const QUICK_CREATE_TYPES = ['note', 'article', 'fuel', 'event'];
+
+/**
+ * Authoring destinations for the command palette, built from the types the
+ * server says can be written by hand.
+ *
+ * Signed-in only: every route here sits behind the auth middleware, so a public
+ * palette is handed an empty list and shows no Create section at all.
+ *
+ * @param {Array<{type: string, label: string, icon: string}>} types authorable types
+ * @returns {Array<object>} palette items, `quick` marking the ones worth showing unprompted
+ */
+export function createCommands(types) {
+    return [
+        ...types.map((type) => ({
+            label: `New ${type.label.toLowerCase()}`,
+            href: `/new/${type.type}`,
+            icon: type.icon,
+            keywords: `write add create compose ${type.label}`,
+            quick: QUICK_CREATE_TYPES.includes(type.type),
+        })),
+        { label: 'New entry', href: '/new', icon: 'PlusSignIcon', keywords: 'write add create compose quick capture anything', quick: true },
+        { label: 'Drafts', href: '/drafts', icon: 'File02Icon', keywords: 'unpublished unfinished work in progress', quick: true },
+    ];
+}
