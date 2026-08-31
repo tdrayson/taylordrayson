@@ -3,12 +3,12 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
-import { Calendar03Icon, Login01Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { Calendar03Icon, Login01Icon, Logout01Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 import { useDialog } from '../../composables/useDialog';
 import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
-import { pageCommands, archiveCommands } from '../../navigation.js';
+import { pageCommands, archiveCommands, createCommands } from '../../navigation.js';
 import { entryType } from '../../entryTypes.js';
 import { useMounted } from '../../composables/useMounted';
 
@@ -45,19 +45,34 @@ const jumpCommands = [
     { label: "I'm feeling lucky", href: '/lucky', icon: SparklesIcon, keywords: 'random surprise' },
 ];
 
-const baseSections = [
+const page = usePage();
+const signedIn = computed(() => page.props.signedIn === true);
+
+// Writing and logging, for a signed-in browser only. The server sends nothing
+// when signed out, so a public palette has no Create section to hide.
+const authoringCommands = computed(() => createCommands(page.props.authorTypes ?? []));
+
+// Opening straight onto the ways to start writing is the point of the palette
+// when signed in, so Create leads. Only the quick picks show unprompted; the
+// rarer types stay searchable below.
+const baseSections = computed(() => [
+    ...(signedIn.value ? [{ heading: 'Create', items: authoringCommands.value.filter((item) => item.quick) }] : []),
     { heading: 'Pages', items: pageCommands },
     { heading: 'Archives', items: archiveCommands },
     { heading: 'Jump to', items: jumpCommands },
-];
+]);
 
-// Category weight breaks ties so primary pages outrank archives, which outrank
-// jump shortcuts, when match quality is otherwise equal.
-const sectionWeight = { Pages: 3, Archives: 2, 'Jump to': 1 };
+// Category weight breaks ties so create commands outrank primary pages, which
+// outrank archives, then jump shortcuts, when match quality is otherwise equal.
+const sectionWeight = { Create: 4, Pages: 3, Archives: 2, 'Jump to': 1 };
 
-const allItems = baseSections.flatMap((section) =>
-    section.items.map((item) => ({ ...item, weight: sectionWeight[section.heading] ?? 0 })),
-);
+// Every authorable type is rankable, not just the quick picks on show.
+const allItems = computed(() => [
+    ...(signedIn.value ? authoringCommands.value.map((item) => ({ ...item, weight: sectionWeight.Create })) : []),
+    ...pageCommands.map((item) => ({ ...item, weight: sectionWeight.Pages })),
+    ...archiveCommands.map((item) => ({ ...item, weight: sectionWeight.Archives })),
+    ...jumpCommands.map((item) => ({ ...item, weight: sectionWeight['Jump to'] })),
+]);
 
 const dayLabel = (date) => date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
 const monthLabel = (date) => date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
@@ -110,7 +125,7 @@ function parseDates(text) {
 // primary page edges out an archive of comparable score.
 function rankItems(text) {
     return fuzzysort
-        .go(text, allItems, {
+        .go(text, allItems.value, {
             keys: ['label', 'keywords'],
             scoreFn: (keysResult) => Math.max(
                 keysResult[0] ? keysResult[0].score : 0,
@@ -136,12 +151,17 @@ function rankItems(text) {
  * cannot surface while searching for something that merely contains the word.
  */
 const SIGN_IN_TERMS = ['login', 'log in', 'signin', 'sign in'];
+const SIGN_OUT_TERMS = ['logout', 'log out', 'signout', 'sign out'];
 
-const signedOut = computed(() => usePage().props.signedIn !== true);
+function sessionItem(text) {
+    const term = text.toLowerCase();
 
-function signInItem(text) {
-    return signedOut.value && SIGN_IN_TERMS.includes(text.toLowerCase())
-        ? { label: 'Sign in', href: '/login', icon: Login01Icon }
+    if (! signedIn.value) {
+        return SIGN_IN_TERMS.includes(term) ? { label: 'Sign in', href: '/login', icon: Login01Icon } : null;
+    }
+
+    return SIGN_OUT_TERMS.includes(term)
+        ? { label: 'Sign out', icon: Logout01Icon, action: () => router.post('/logout') }
         : null;
 }
 
@@ -149,7 +169,7 @@ const sections = computed(() => {
     const trimmed = query.value.trim();
 
     if (!trimmed) {
-        return withIndices(baseSections);
+        return withIndices(baseSections.value);
     }
 
     const raw = [];
@@ -167,7 +187,7 @@ const sections = computed(() => {
     }
 
     const jumpTo = [
-        signInItem(trimmed),
+        sessionItem(trimmed),
         ...destinationResults.value.map((destination) => ({
             label: destination.label,
             meta: destination.section,
@@ -290,6 +310,13 @@ function select(item) {
     }
 
     close();
+
+    if (item.action) {
+        item.action();
+
+        return;
+    }
+
     router.visit(item.href);
 }
 
@@ -365,7 +392,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                             <div class="px-4 pb-1 pt-2 text-label uppercase text-neutral-500">{{ section.heading }}</div>
                             <button
                                 v-for="item in section.items"
-                                :key="item.href"
+                                :key="item.href ?? item.label"
                                 type="button"
                                 :data-active="item.index === activeIndex"
                                 class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-nav transition-colors"

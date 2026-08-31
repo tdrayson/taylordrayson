@@ -37,3 +37,39 @@ it('opens the command palette from the search trigger, searches, and closes on e
     $page->keys('[role="dialog"]', 'Escape')
         ->assertScript("document.querySelector('[role=\"dialog\"]') === null", true);
 });
+
+it('offers authoring commands only once signed in', function () {
+    // Signed out: the /new routes are auth-gated, so the palette must not
+    // advertise them. Scoped to the rendered dialog, not the props JSON.
+    $page = visit('/')->resize(1280, 800);
+
+    $page->click('[aria-label="Open search"]')
+        ->assertScript("document.querySelector('[role=\"dialog\"]').textContent.includes('Create')", false);
+
+    $this->actingAs(App\Models\User::factory()->create());
+
+    $page = visit('/')->resize(1280, 800);
+
+    $page->click('[aria-label="Open search"]')
+        ->assertScript("document.querySelector('[role=\"dialog\"]').textContent.includes('New note')", true)
+        ->assertScript("document.querySelector('[role=\"dialog\"]').textContent.includes('Drafts')", true);
+
+    // A type held back from the quick picks is still reachable by name.
+    $page->type('[role="dialog"] input', 'flight')
+        ->assertScript("document.querySelector('[role=\"dialog\"]').textContent.includes('New flight')", true)
+        ->assertNoJavascriptErrors();
+});
+
+it('signs out from the palette', function () {
+    // The iOS home-screen app has no address bar, so the palette is the only
+    // way back out of a session. Only a whole-query match offers it.
+    $this->actingAs(App\Models\User::factory()->create());
+
+    visit('/')->resize(1280, 900)
+        ->click('[aria-label="Open search"]')
+        ->type('[role="dialog"] input', 'sign out')
+        ->keys('[role="dialog"] input', 'Enter')
+        // The signed-in quick-add button is gone, so the session really ended.
+        ->assertScript("document.querySelector('[aria-label=\"Add an entry\"]') === null", true)
+        ->assertNoJavascriptErrors();
+});
