@@ -34,6 +34,8 @@ const locatedPhotos = computed(() =>
 // maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
 // activities (e.g. padel) keep surrounding map context instead of filling the
 // frame with an unreadable scribble.
+const hasLocatedPhotos = computed(() => locatedPhotos.value.length > 0);
+
 const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
@@ -48,6 +50,65 @@ const playing = ref(false);
 // through these, assigned once the map is up.
 let startDraw = null;
 let pauseDraw = null;
+
+// Photo markers can be dismissed to get the route back on an activity carrying
+// enough of them to bury it.
+const photosVisible = ref(true);
+
+function togglePhotos() {
+    photosVisible.value = ! photosVisible.value;
+    applyPhotoVisibility();
+}
+
+/** Matches the pop transition in vendor.css, so display waits for the shrink. */
+const PHOTO_POP_MS = 260;
+
+let photoPopTimer = null;
+
+/**
+ * Hide or show the photo markers, popping them out and back in. They still end
+ * up at `display: none`, so a hidden marker leaves the tab order rather than
+ * keeping a focus stop on the map for something nobody can see; the class does
+ * the animating and display only follows once it has finished.
+ */
+function applyPhotoVisibility() {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const elements = markerRefs.value.filter(Boolean);
+
+    if (photoPopTimer !== null) {
+        clearTimeout(photoPopTimer);
+        photoPopTimer = null;
+    }
+
+    if (photosVisible.value) {
+        elements.forEach((element) => {
+            element.style.display = '';
+            // Read back the layout so the browser has a shrunken frame to
+            // animate away from; without it the class removal is coalesced
+            // with the display change and nothing transitions.
+            void element.offsetWidth;
+            element.classList.remove('entry-map-photo-pop--out');
+        });
+
+        return;
+    }
+
+    elements.forEach((element) => element.classList.add('entry-map-photo-pop--out'));
+
+    photoPopTimer = setTimeout(() => {
+        photoPopTimer = null;
+
+        // Re-checked rather than assumed: a second press during the shrink
+        // leaves the markers visible, and they must not then be hidden.
+        if (photosVisible.value) {
+            return;
+        }
+
+        elements.forEach((element) => {
+            element.style.display = 'none';
+        });
+    }, reducedMotion ? 0 : PHOTO_POP_MS);
+}
 
 /** Resume or replay the route draw, or pause it if it is already running. */
 function toggleReplay() {
@@ -457,6 +518,7 @@ onMounted(async () => {
 
             // Sit above the scrub dot (z-index 1) regardless of insertion order.
             element.style.zIndex = '2';
+            element.classList.add('entry-map-photo-pop');
 
             markers.push(
                 new maplibregl.Marker({ element })
@@ -608,6 +670,11 @@ onBeforeUnmount(() => {
     stopCursorWatch?.();
     routeDot?.remove();
     routeDot = null;
+    if (photoPopTimer !== null) {
+        clearTimeout(photoPopTimer);
+        photoPopTimer = null;
+    }
+
     startDraw = null;
     pauseDraw = null;
     playing.value = false;
@@ -638,6 +705,19 @@ onBeforeUnmount(() => {
                 @click="toggleReplay"
             >
                 <Icon :name="playing ? 'PauseIcon' : 'PlayIcon'" class="size-4" />
+            </button>
+
+            <button
+                v-if="hasLocatedPhotos"
+                type="button"
+                data-testid="toggle-photos"
+                class="flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                :class="photosVisible ? 'text-neutral-700' : 'text-neutral-400'"
+                :aria-pressed="photosVisible"
+                :aria-label="photosVisible ? 'Hide photos on the map' : 'Show photos on the map'"
+                @click="togglePhotos"
+            >
+                <Icon name="Image01Icon" class="size-4" />
             </button>
         </div>
 
