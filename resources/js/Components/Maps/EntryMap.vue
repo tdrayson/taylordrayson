@@ -684,7 +684,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="relative">
+    <!-- isolate: a hovered or focused photo marker lifts itself to z-index 900 to
+         clear its neighbours, which without a stacking context here is measured
+         against the whole page and paints the marker over the lightbox it just
+         opened. Contained, the markers can only outrank each other. -->
+    <div class="relative isolate">
         <div ref="container" class="w-full overflow-hidden rounded-lg border border-neutral-50" :class="heightClass" />
         <div v-if="ready" class="absolute left-2.5 top-2.5 z-10 flex gap-1.5">
             <button
