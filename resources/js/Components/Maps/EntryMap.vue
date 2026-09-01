@@ -60,17 +60,54 @@ function togglePhotos() {
     applyPhotoVisibility();
 }
 
+/** Matches the pop transition in vendor.css, so display waits for the shrink. */
+const PHOTO_POP_MS = 260;
+
+let photoPopTimer = null;
+
 /**
- * Hide or show the photo markers. `display` rather than opacity, so a hidden
- * marker also leaves the tab order instead of keeping a focus stop on the map
- * for something nobody can see.
+ * Hide or show the photo markers, popping them out and back in. They still end
+ * up at `display: none`, so a hidden marker leaves the tab order rather than
+ * keeping a focus stop on the map for something nobody can see; the class does
+ * the animating and display only follows once it has finished.
  */
 function applyPhotoVisibility() {
-    markerRefs.value.forEach((element) => {
-        if (element) {
-            element.style.display = photosVisible.value ? '' : 'none';
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const elements = markerRefs.value.filter(Boolean);
+
+    if (photoPopTimer !== null) {
+        clearTimeout(photoPopTimer);
+        photoPopTimer = null;
+    }
+
+    if (photosVisible.value) {
+        elements.forEach((element) => {
+            element.style.display = '';
+            // Read back the layout so the browser has a shrunken frame to
+            // animate away from; without it the class removal is coalesced
+            // with the display change and nothing transitions.
+            void element.offsetWidth;
+            element.classList.remove('entry-map-photo-pop--out');
+        });
+
+        return;
+    }
+
+    elements.forEach((element) => element.classList.add('entry-map-photo-pop--out'));
+
+    photoPopTimer = setTimeout(() => {
+        photoPopTimer = null;
+
+        // Re-checked rather than assumed: a second press during the shrink
+        // leaves the markers visible, and they must not then be hidden.
+        if (photosVisible.value) {
+            return;
         }
-    });
+
+        elements.forEach((element) => {
+            element.style.display = 'none';
+        });
+    }, reducedMotion ? 0 : PHOTO_POP_MS);
 }
 
 /** Resume or replay the route draw, or pause it if it is already running. */
@@ -481,6 +518,7 @@ onMounted(async () => {
 
             // Sit above the scrub dot (z-index 1) regardless of insertion order.
             element.style.zIndex = '2';
+            element.classList.add('entry-map-photo-pop');
 
             markers.push(
                 new maplibregl.Marker({ element })
@@ -632,6 +670,11 @@ onBeforeUnmount(() => {
     stopCursorWatch?.();
     routeDot?.remove();
     routeDot = null;
+    if (photoPopTimer !== null) {
+        clearTimeout(photoPopTimer);
+        photoPopTimer = null;
+    }
+
     startDraw = null;
     pauseDraw = null;
     playing.value = false;

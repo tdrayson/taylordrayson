@@ -39,6 +39,33 @@ it('hides and restores the map photo markers from the control', function () {
         ->assertNoJavascriptErrors();
 });
 
+it('leaves the markers visible when the control is pressed twice quickly', function () {
+    config(['queue.default' => 'sync']);
+    Storage::fake('public');
+
+    $activity = Activity::factory()->create([
+        'type' => 'walk',
+        'occurred_at' => '2026-07-12 12:00:00',
+        'meta' => ['polyline' => 'ohreIzatO}@}A_@k@'],
+    ]);
+
+    $activity->addMediaFromString(fakeJpeg())
+        ->usingFileName('located.jpg')
+        ->withCustomProperties(['latitude' => 53.51095, 'longitude' => -2.72895])
+        ->toMediaCollection('photos');
+
+    // Hiding waits for the shrink before setting display, so a second press
+    // inside that window must not leave the marker hidden afterwards.
+    visit($activity->url())
+        ->click('[data-testid="toggle-photos"]')
+        ->click('[data-testid="toggle-photos"]')
+        ->assertScript(
+            "document.querySelector('[data-testid=\"photo-marker\"]').offsetParent !== null",
+            true,
+        )
+        ->assertNoJavascriptErrors();
+});
+
 it('offers no photo control on a route with no located photos', function () {
     $activity = Activity::factory()->create([
         'type' => 'walk',
