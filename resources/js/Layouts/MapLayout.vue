@@ -14,7 +14,7 @@ import SettingsModal from '../Components/Layout/SettingsModal.vue';
 </script>
 
 <template>
-    <div class="relative h-dvh w-full overflow-hidden">
+    <div data-canvas class="relative h-dvh w-full overflow-hidden">
         <a
             href="#main-content"
             class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-meta focus:font-medium focus:text-neutral-0 focus:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
