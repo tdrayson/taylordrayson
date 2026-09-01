@@ -36,4 +36,17 @@ it('draws the lightbox above the map photo markers', function () {
         })()",
         true,
     );
+
+    // Same test for maplibre's own zoom control, which editor.css lifts to
+    // z-index 901 and which sits in the same contained stacking context.
+    $page->assertScript(
+        "(() => {
+            const zoom = document.querySelector('.maplibregl-ctrl-top-right');
+            const box = zoom.getBoundingClientRect();
+            const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+
+            return top?.closest('.maplibregl-ctrl-top-right') === null;
+        })()",
+        true,
+    );
 });
