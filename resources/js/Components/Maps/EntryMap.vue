@@ -34,6 +34,8 @@ const locatedPhotos = computed(() =>
 // maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
 // activities (e.g. padel) keep surrounding map context instead of filling the
 // frame with an unreadable scribble.
+const hasLocatedPhotos = computed(() => locatedPhotos.value.length > 0);
+
 const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
@@ -48,6 +50,28 @@ const playing = ref(false);
 // through these, assigned once the map is up.
 let startDraw = null;
 let pauseDraw = null;
+
+// Photo markers can be dismissed to get the route back on an activity carrying
+// enough of them to bury it.
+const photosVisible = ref(true);
+
+function togglePhotos() {
+    photosVisible.value = ! photosVisible.value;
+    applyPhotoVisibility();
+}
+
+/**
+ * Hide or show the photo markers. `display` rather than opacity, so a hidden
+ * marker also leaves the tab order instead of keeping a focus stop on the map
+ * for something nobody can see.
+ */
+function applyPhotoVisibility() {
+    markerRefs.value.forEach((element) => {
+        if (element) {
+            element.style.display = photosVisible.value ? '' : 'none';
+        }
+    });
+}
 
 /** Resume or replay the route draw, or pause it if it is already running. */
 function toggleReplay() {
@@ -638,6 +662,19 @@ onBeforeUnmount(() => {
                 @click="toggleReplay"
             >
                 <Icon :name="playing ? 'PauseIcon' : 'PlayIcon'" class="size-4" />
+            </button>
+
+            <button
+                v-if="hasLocatedPhotos"
+                type="button"
+                data-testid="toggle-photos"
+                class="flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                :class="photosVisible ? 'text-neutral-700' : 'text-neutral-400'"
+                :aria-pressed="photosVisible"
+                :aria-label="photosVisible ? 'Hide photos on the map' : 'Show photos on the map'"
+                @click="togglePhotos"
+            >
+                <Icon name="Image01Icon" class="size-4" />
             </button>
         </div>
 
