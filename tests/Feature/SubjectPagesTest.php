@@ -3,7 +3,9 @@
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Subject;
+use App\Models\User;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 
 it('lists a subject\'s entries, including ones reached through a photograph', function () {
@@ -25,6 +27,18 @@ it('hides an unpublished article from a guest', function () {
     Article::factory()->create(['published' => false])->subjects()->attach($subject);
 
     get('/life/people/clare')->assertInertia(fn ($page) => $page->has('groups', 0));
+});
+
+it('previews an unpublished, subject-tagged article for a signed-in request', function () {
+    $subject = Subject::factory()->person()->create(['slug' => 'clare']);
+    Article::factory()->create(['published' => false])->subjects()->attach($subject);
+
+    get('/life/people/clare')->assertInertia(fn ($page) => $page->has('groups', 0));
+
+    actingAs(User::factory()->create())
+        ->get('/life/people/clare')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('groups', 1));
 });
 
 it('404s on an unknown kind and an unknown slug', function () {

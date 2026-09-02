@@ -67,7 +67,10 @@ class LifeController extends Controller
                 ->map(fn (SubjectCategory $option): array => ['value' => $option->value, 'label' => $option->label()])
                 ->all(),
             'category' => $category?->value,
-            'hasCategories' => $subjects->contains(fn (Subject $subject): bool => $subject->category !== null),
+            // Off the kind's whole population, not the filtered $subjects: a
+            // category with zero current rows must not take the facet bar
+            // (including "All") down with it.
+            'hasCategories' => Subject::query()->where('kind', $subjectKind)->whereNotNull('category')->exists(),
             'subjects' => $subjects->map(fn (Subject $subject): array => [
                 'name' => $subject->name,
                 'slug' => $subject->slug,

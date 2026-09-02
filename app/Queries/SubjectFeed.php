@@ -57,11 +57,13 @@ final class SubjectFeed
 
     /**
      * The union of the subject's own subjectable rows and the owning models of
-     * every attachment it is tagged on.
+     * every attachment it is tagged on. Public so other queries (e.g.
+     * {@see SubjectCompanions}) can build on the same definition of "which
+     * entries is this subject on" rather than a second, divergent one.
      *
      * @return Collection<int, array{type: string, id: int}>
      */
-    private function targets(Subject $subject): Collection
+    public function targets(Subject $subject): Collection
     {
         $direct = Subjectable::query()
             ->where('subject_id', $subject->id)
