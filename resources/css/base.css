@@ -1,6 +1,17 @@
 @layer base {
     html {
         scroll-behavior: smooth;
+
+        /* Hold the scrollbar's column whether or not the page scrolls, so a
+           short day view and a long one place their content identically. No
+           effect where the OS draws overlay scrollbars. */
+        scrollbar-gutter: stable;
+    }
+
+    /* A chrome-less full-viewport canvas (MapLayout) never scrolls, so the
+       reserved gutter would only be a blank strip down its edge. */
+    html:has([data-canvas]) {
+        scrollbar-gutter: auto;
     }
 
     body {
