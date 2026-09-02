@@ -65,14 +65,22 @@ final class SubjectFeed
      */
     public function targets(Subject $subject): Collection
     {
+        // toBase(): Eloquent\Collection::map() only downgrades to a plain
+        // Collection when it can see a non-Model item in the *result*, and an
+        // empty result has none to see, so a subject with zero direct tags
+        // (photo-only, the common case) leaves $direct Eloquent-typed. merge()
+        // then picks Eloquent's Model-keyed implementation and throws on the
+        // plain arrays here.
         $direct = Subjectable::query()
             ->where('subject_id', $subject->id)
             ->get(['subjectable_type', 'subjectable_id'])
-            ->map(fn (Subjectable $row): array => ['type' => $row->subjectable_type, 'id' => $row->subjectable_id]);
+            ->map(fn (Subjectable $row): array => ['type' => $row->subjectable_type, 'id' => $row->subjectable_id])
+            ->toBase();
 
         $viaPhotos = $subject->attachments()
             ->get(['attachments.model_type', 'attachments.model_id'])
-            ->map(fn (Attachment $attachment): array => ['type' => $attachment->model_type, 'id' => $attachment->model_id]);
+            ->map(fn (Attachment $attachment): array => ['type' => $attachment->model_type, 'id' => $attachment->model_id])
+            ->toBase();
 
         return $direct->merge($viaPhotos)
             ->unique(fn (array $target): string => "{$target['type']}:{$target['id']}")
