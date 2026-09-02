@@ -356,11 +356,8 @@ class EntryController extends Controller
     }
 
     /**
-     * Subjects for the entry footer: display lines grouped by phrase, built
-     * from the derived union of the entry's own tags and anyone tagged in its
-     * photographs, plus the entry's own direct tags for the picker to edit.
-     * A model with no HasSubjects trait (a day of food, an aggregate) carries
-     * neither.
+     * Subjects for the entry footer: display lines grouped by phrase, plus
+     * the entry's own direct tags for the picker to edit.
      *
      * @return array{lines: list<array{phrase: string, subjects: list<array<string, mixed>>}>, direct: list<array{id: int, name: string}>}
      */

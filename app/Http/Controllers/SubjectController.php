@@ -80,10 +80,8 @@ class SubjectController extends Controller
 
         app(SyncEntryMedia::class)($subject, FieldRegistry::for($subject), $attributes);
 
-        // The entry subject picker creates one-click, off its own fetch rather
-        // than an Inertia visit, and needs the new row back to attach it
-        // without navigating away from the entry it was creating the subject
-        // for.
+        // The entry picker's one-click create posts here off its own fetch, not
+        // an Inertia visit, and needs the new row back to attach without navigating away.
         if ($request->wantsJson()) {
             return response()->json(['data' => [
                 'id' => $subject->id,

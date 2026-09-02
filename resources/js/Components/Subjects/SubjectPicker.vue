@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import Button from '../Ui/Button.vue';
 import Icon from '../Ui/Icon.vue';
 import { CONTROL } from '../../lib/editor/control.js';
 import { readCookie } from '../../lib/cookies.js';
@@ -151,12 +152,16 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700"
             >
                 {{ subject.name }}
-                <button
-                    type="button"
-                    class="rounded px-1 leading-none text-accent-700/70 transition-colors hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    pill
+                    class="p-0.5 text-accent-700/70 hover:text-accent-700"
                     :aria-label="`Remove ${subject.name}`"
                     @click="remove(subject.id)"
-                >×</button>
+                >
+                    <Icon name="Cancel01Icon" class="size-3" />
+                </Button>
             </span>
 
             <input
@@ -173,14 +178,16 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 @keydown="onListKeydown"
             >
 
-            <button
-                type="button"
-                class="shrink-0 rounded px-1 text-neutral-400 transition-colors hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            <Button
+                variant="ghost"
+                size="icon"
+                pill
+                class="shrink-0 p-1"
                 aria-label="Done tagging"
                 @click="$emit('close')"
             >
                 <Icon name="Cancel01Icon" class="size-4" />
-            </button>
+            </Button>
         </div>
 
         <ul

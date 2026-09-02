@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import Button from '../Ui/Button.vue';
 import Icon from '../Ui/Icon.vue';
 import SubjectPicker from './SubjectPicker.vue';
 
@@ -41,15 +42,16 @@ const editing = ref(false);
             </template>
         </p>
 
-        <button
+        <Button
             v-if="signedIn && ! editing"
-            type="button"
-            class="flex items-center rounded-full p-1 text-neutral-400 transition-colors hover:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            variant="ghost"
+            size="icon"
+            pill
             aria-label="Tag a subject"
             @click="editing = true"
         >
             <Icon name="PlusSignIcon" class="size-4" />
-        </button>
+        </Button>
 
         <SubjectPicker
             v-if="editing"

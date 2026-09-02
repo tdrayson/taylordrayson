@@ -10,11 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Tags subjects onto any entry, synced ones included. Deliberately bypasses
- * {@see FieldRegistry}, which throws for a type with no authored
- * fields, exactly the Strava activities and Swarm check-ins that most need
- * tagging. The model comes from {@see TypeRegistry} rather than a hand-written
- * match, so a new timeline type needs no change here.
+ * Tags subjects onto any entry, synced ones included, bypassing
+ * {@see FieldRegistry} on purpose. See the commit message for why.
  */
 class EntrySubjectController extends Controller
 {

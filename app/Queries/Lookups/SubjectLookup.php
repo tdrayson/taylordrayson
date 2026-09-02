@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\DB;
 final class SubjectLookup
 {
     /**
-     * `Self` is excluded by default, since no entry is ever tagged with the
-     * subject that is me. Task 9's photograph picker passes `includeSelf:
-     * true`, because I do appear in my own photographs.
+     * `Self` is excluded by default; a caller taggable with Self passes `includeSelf: true`.
      *
      * @return list<array{value: int, label: string, detail: string}>
      */
