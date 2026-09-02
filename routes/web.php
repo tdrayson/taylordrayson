@@ -7,6 +7,7 @@ use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LifeController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
@@ -153,6 +155,14 @@ Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 // Registered above the page catch-all for the same reason as /tags.
 Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
 Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show');
+
+// Life: the people, pets, spots and things that show up across the site.
+// Registered above the page catch-all for the same reason as /tags.
+Route::get('/life', [LifeController::class, 'index'])->name('life');
+Route::get('/life/{kind}', [LifeController::class, 'kind'])
+    ->where('kind', 'people|pets|spots|things')->name('life.kind');
+Route::get('/life/{kind}/{slug}', [SubjectController::class, 'show'])
+    ->where('kind', 'people|pets|spots|things')->name('life.subject');
 
 // Old site URLs, exact-match only so a live sub-route is never shadowed.
 foreach (config('redirects') as $from => $to) {

@@ -12,8 +12,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Spatie\MediaLibrary\HasMedia;
 
-class Subject extends Model
+class Subject extends Model implements HasMedia
 {
     use HasAttachments, HasFactory;
 
@@ -41,6 +42,22 @@ class Subject extends Model
     public function url(): string
     {
         return "/life/{$this->kind->segment()}/{$this->slug}";
+    }
+
+    /** @return array{src: string, srcset: ?string, full: string}|null */
+    public function coverPhoto(): ?array
+    {
+        $media = $this->getFirstMedia('cover');
+
+        if ($media === null) {
+            return null;
+        }
+
+        return [
+            'src' => $media->getUrl('card'),
+            'srcset' => $media->getSrcset('card') ?: null,
+            'full' => $media->getUrl(),
+        ];
     }
 
     /** Every attachment this subject is tagged on, with its position. */
