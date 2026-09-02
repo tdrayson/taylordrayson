@@ -275,11 +275,11 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                             class="flex h-full w-1/3 shrink-0 items-center justify-center px-2 sm:px-3"
                             @click.self="closeUnlessDrag"
                         >
-                            <img :src="slide.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                            <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
                         </div>
                     </div>
 
-                    <img v-else-if="current" :src="current.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                    <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
 
                     <button
                         v-if="hasMultiple"

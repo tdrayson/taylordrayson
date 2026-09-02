@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
@@ -62,6 +63,8 @@ Route::middleware('auth')->group(function (): void {
 
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
+
+    Route::patch('/attachments/{attachment}', AttachmentController::class)->name('attachments.update');
 
     // Subjects have no admin surface: every write is posted to from the
     // /life/{kind}/{slug} page the reader is already on.

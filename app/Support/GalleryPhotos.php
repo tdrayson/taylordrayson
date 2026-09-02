@@ -49,6 +49,13 @@ class GalleryPhotos
             'src' => $item->getUrl('card'),
             'srcset' => $item->getSrcset('card') ?: null,
             'full' => $item->getUrl(),
+            'alt' => $item->getCustomProperty('alt'),
+            // `caption` here is deliberately the entry's title, not the photo's
+            // own: across a wall of photos from everywhere, the useful label is
+            // which entry each came from. This is the opposite of
+            // HasAttachments::galleryPhotos(), where the reader is already on
+            // the entry and the useful label is what the picture itself shows.
+            // Do not "fix" this into the photo's own caption.
             'caption' => $card->title,
             'date' => $card->occurredAt->format('j M Y'),
             'accent' => $card->accent,

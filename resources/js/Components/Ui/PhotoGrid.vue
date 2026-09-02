@@ -128,7 +128,7 @@ function rowSpan(photo) {
                     :src="photo.src"
                     :srcset="photo.srcset || undefined"
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                    alt=""
+                    :alt="photo.alt || ''"
                     loading="lazy"
                     class="size-full object-cover"
                 >

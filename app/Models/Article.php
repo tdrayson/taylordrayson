@@ -59,7 +59,7 @@ class Article extends Model implements HasMedia, Timelineable
      * The featured image in the card/lightbox payload shape shared with
      * activity photos, or null when no cover is attached.
      *
-     * @return array{src: string, srcset: ?string, full: string}|null
+     * @return array{id: int, src: string, srcset: ?string, full: string, alt: ?string, caption: ?string}|null
      */
     public function coverPhoto(): ?array
     {
@@ -70,9 +70,12 @@ class Article extends Model implements HasMedia, Timelineable
         }
 
         return [
+            'id' => $media->id,
             'src' => $media->getUrl('card'),
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
+            'alt' => $media->getCustomProperty('alt'),
+            'caption' => $media->getCustomProperty('caption'),
         ];
     }
 }

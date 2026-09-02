@@ -48,19 +48,23 @@ trait HasAttachments
     }
 
     /**
-     * The entry's photos in display order, cover first, each with its card
-     * source, srcset, lightbox render and route coordinate where known.
+     * The entry's photos in display order, cover first, each with its id, card
+     * source, srcset, lightbox render, authored alt/caption and route
+     * coordinate where known.
      *
-     * @return array<int, array{src: string, srcset: ?string, full: string, latitude: ?float, longitude: ?float}>
+     * @return array<int, array{id: int, src: string, srcset: ?string, full: string, alt: ?string, caption: ?string, latitude: ?float, longitude: ?float}>
      */
     public function galleryPhotos(): array
     {
         return $this->getMedia('cover')
             ->merge($this->getMedia('photos'))
             ->map(fn (Media $media): array => [
+                'id' => $media->id,
                 'src' => $media->getUrl('card'),
                 'srcset' => $media->getSrcset('card') ?: null,
                 'full' => $media->getUrl(),
+                'alt' => $media->getCustomProperty('alt'),
+                'caption' => $media->getCustomProperty('caption'),
                 'latitude' => $media->getCustomProperty('latitude'),
                 'longitude' => $media->getCustomProperty('longitude'),
             ])

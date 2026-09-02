@@ -32,7 +32,7 @@ final class ArticleCard
             accent: 'article',
             range: null,
             meta: CardMeta::photos(
-                $cover !== null ? [PhotoData::cover($cover['src'], $cover['srcset'], $cover['full'])] : [],
+                $cover !== null ? [PhotoData::cover($cover['id'], $cover['src'], $cover['srcset'], $cover['full'], $cover['alt'], $cover['caption'])] : [],
             ),
         );
     }
