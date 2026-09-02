@@ -136,9 +136,9 @@ const lightboxIndex = ref(null);
         <!-- Both only mean anything to the owner, so they sit together below
              the subject rather than interrupting the header. -->
         <div v-if="signedIn" class="mt-3 flex items-center gap-3">
-            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">
+            <Button href="?edit" variant="link" size="sm">
                 Edit {{ subject.name }}
-            </Link>
+            </Button>
 
             <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700" @click="destroy">
                 Delete

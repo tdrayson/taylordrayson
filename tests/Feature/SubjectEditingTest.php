@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\SubjectCategory;
 use App\Models\Activity;
 use App\Models\Subject;
 use App\Models\User;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
+use function Pest\Laravel\patch;
 use function Pest\Laravel\post;
 
 it('creates a subject with just a name and a kind', function () {
@@ -34,12 +36,55 @@ it('removes a subject\'s links without touching the entries or photographs', fun
         ->and($activity->fresh()->allSubjects())->toHaveCount(0);
 });
 
+it('updates a subject\'s name, bio, category and facts', function () {
+    $subject = Subject::factory()->thing()->create();
+
+    actingAs(User::factory()->create())->patch("/subjects/{$subject->id}", [
+        'name' => 'Old Nikon',
+        'bio' => [['type' => 'paragraph', 'children' => [['text' => 'Bought secondhand.']]]],
+        'category' => 'camera',
+        'meta' => [['label' => 'Bought', 'value' => '2020']],
+    ])->assertRedirect();
+
+    $subject->refresh();
+
+    expect($subject->name)->toBe('Old Nikon')
+        ->and($subject->bio)->toBe([['type' => 'paragraph', 'children' => [['text' => 'Bought secondhand.']]]])
+        ->and($subject->category)->toBe(SubjectCategory::Camera)
+        ->and($subject->meta->toArray())->toBe([['label' => 'Bought', 'value' => '2020']]);
+});
+
+it('drops a fact row missing either half on save', function () {
+    $subject = Subject::factory()->thing()->create();
+
+    actingAs(User::factory()->create())->patch("/subjects/{$subject->id}", [
+        'name' => $subject->name,
+        'meta' => [
+            ['label' => 'Bought', 'value' => '2020'],
+            ['label' => 'Incomplete', 'value' => ''],
+        ],
+    ])->assertRedirect();
+
+    expect($subject->fresh()->meta->toArray())->toBe([['label' => 'Bought', 'value' => '2020']]);
+});
+
 it('lists every subject page in the sitemap', function () {
     Subject::factory()->person()->create(['slug' => 'clare']);
 
-    get('/sitemap/pages.xml')->assertOk()->assertSee('/life/people/clare');
+    get('/sitemap/pages.xml')->assertOk()
+        ->assertSee('/life/people/clare')
+        ->assertSee('/life')
+        ->assertSee('/life/people');
 });
 
 it('refuses a write from a guest', function () {
     post('/subjects', ['kind' => 'person', 'name' => 'Clare'])->assertRedirect('/login');
+});
+
+it('refuses an update from a guest', function () {
+    $subject = Subject::factory()->person()->create(['name' => 'Clare']);
+
+    patch("/subjects/{$subject->id}", ['name' => 'Someone else'])->assertRedirect('/login');
+
+    expect($subject->fresh()->name)->toBe('Clare');
 });
