@@ -16,6 +16,7 @@ use App\Queries\SubjectFeed;
 use App\Queries\SubjectPhotos;
 use App\Queries\SubjectStats;
 use App\Support\OgMeta;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -71,13 +72,25 @@ class SubjectController extends Controller
         ]);
     }
 
-    public function store(SubjectRequest $request, UpsertSubject $upsert): RedirectResponse
+    public function store(SubjectRequest $request, UpsertSubject $upsert): RedirectResponse|JsonResponse
     {
         $attributes = $request->validated();
 
         $subject = $upsert(null, Arr::except($attributes, ['cover']));
 
         app(SyncEntryMedia::class)($subject, FieldRegistry::for($subject), $attributes);
+
+        // The entry subject picker creates one-click, off its own fetch rather
+        // than an Inertia visit, and needs the new row back to attach it
+        // without navigating away from the entry it was creating the subject
+        // for.
+        if ($request->wantsJson()) {
+            return response()->json(['data' => [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'kind' => $subject->kind->label(),
+            ]]);
+        }
 
         return redirect($subject->url());
     }

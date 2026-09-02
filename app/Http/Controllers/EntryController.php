@@ -21,6 +21,7 @@ use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Podcast;
+use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
@@ -99,6 +100,7 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
+            'subjects' => $this->subjects($model),
             // Editing in place, offered only for hand-authored types: a synced
             // activity has no form, and inventing one would let an edit be
             // silently overwritten by the next sync.
@@ -350,6 +352,49 @@ class EntryController extends Controller
         return [
             'platform' => $platform,
             'url' => $model->platform_url,
+        ];
+    }
+
+    /**
+     * Subjects for the entry footer: display lines grouped by phrase, built
+     * from the derived union of the entry's own tags and anyone tagged in its
+     * photographs, plus the entry's own direct tags for the picker to edit.
+     * A model with no HasSubjects trait (a day of food, an aggregate) carries
+     * neither.
+     *
+     * @return array{lines: list<array{phrase: string, subjects: list<array<string, mixed>>}>, direct: list<array{id: int, name: string}>}
+     */
+    private function subjects(Model $model): array
+    {
+        if (! method_exists($model, 'allSubjects')) {
+            return ['lines' => [], 'direct' => []];
+        }
+
+        $byPhrase = [];
+
+        foreach ($model->allSubjects() as $subject) {
+            $phrase = $subject->category?->phrase() ?? $subject->kind->phrase();
+
+            if ($phrase === null) {
+                continue;
+            }
+
+            $byPhrase[$phrase][] = [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'url' => $subject->url(),
+                'image' => $subject->coverPhoto()['src'] ?? null,
+            ];
+        }
+
+        return [
+            'lines' => collect($byPhrase)
+                ->map(fn (array $subjects, string $phrase): array => ['phrase' => $phrase, 'subjects' => $subjects])
+                ->values()
+                ->all(),
+            'direct' => $model->subjects
+                ->map(fn (Subject $subject): array => ['id' => $subject->id, 'name' => $subject->name])
+                ->all(),
         ];
     }
 }

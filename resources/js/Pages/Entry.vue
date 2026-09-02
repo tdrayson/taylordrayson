@@ -40,6 +40,9 @@ const props = defineProps({
     entry: { type: Object, required: true },
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
+    // Grouped display lines plus the entry's own direct tags; empty for a
+    // model with no subjects support (a day of food, an aggregate).
+    subjects: { type: Object, default: () => ({ lines: [], direct: [] }) },
     og: { type: Object, default: () => ({}) },
     occurredLabel: { type: String, default: '' },
     occurredOffset: { type: String, default: '' },
@@ -180,6 +183,14 @@ setLayoutProps({
             <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
         </p>
 
-        <EntryFooter :source="source" :tags="tags" class="mt-10" />
+        <EntryFooter
+            :source="source"
+            :tags="tags"
+            :subjects="subjects"
+            :type="type"
+            :entry-id="entry.id"
+            :signed-in="signedIn"
+            class="mt-10"
+        />
     </article>
 </template>

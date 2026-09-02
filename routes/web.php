@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntrySubjectController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
@@ -44,6 +45,11 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
+
+    // Tags any entry with subjects, synced ones included, bypassing the
+    // authoring fields those have none of.
+    Route::post('/entries/{type}/{id}/subjects', EntrySubjectController::class)
+        ->where('id', '[0-9]+')->name('entries.subjects');
 
     // Autocomplete for the fields that cannot be a plain text box.
     // Hyphens included: `fuel-brand` is a source name and 404s without them.
