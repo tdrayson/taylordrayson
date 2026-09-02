@@ -155,7 +155,7 @@ const lightboxIndex = ref(null);
                     class="group flex items-center gap-2 rounded-full py-1 pr-3 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 >
                     <span class="size-8 overflow-hidden rounded-full bg-neutral-25">
-                        <img v-if="companion.cover" :src="companion.cover.src" alt="" class="size-full object-cover">
+                        <img v-if="companion.cover" :src="companion.cover.src" :alt="companion.cover.alt || companion.name" class="size-full object-cover">
                     </span>
                     <span class="text-meta font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ companion.name }}</span>
                 </Link>

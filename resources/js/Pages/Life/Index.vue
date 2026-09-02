@@ -59,7 +59,7 @@ const ICONS = {
                     :key="recent.url"
                     class="size-9 overflow-hidden rounded-full border-2 border-neutral-0 bg-neutral-25"
                 >
-                    <img v-if="recent.cover" :src="recent.cover.src" alt="" class="size-full object-cover">
+                    <img v-if="recent.cover" :src="recent.cover.src" :alt="recent.cover.alt || recent.name" class="size-full object-cover">
                 </span>
             </div>
         </Link>

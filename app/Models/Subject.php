@@ -44,7 +44,7 @@ class Subject extends Model implements HasMedia
         return "/life/{$this->kind->segment()}/{$this->slug}";
     }
 
-    /** @return array{src: string, srcset: ?string, full: string}|null */
+    /** @return array{src: string, srcset: ?string, full: string, alt: ?string}|null */
     public function coverPhoto(): ?array
     {
         $media = $this->getFirstMedia('cover');
@@ -57,6 +57,7 @@ class Subject extends Model implements HasMedia
             'src' => $media->getUrl('card'),
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
+            'alt' => $media->getCustomProperty('alt'),
         ];
     }
 
