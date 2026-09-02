@@ -2,6 +2,7 @@
 
 namespace App\Search;
 
+use App\Enums\SubjectKind;
 use App\Models\Article;
 use App\Models\Page;
 use App\Timeline\TypeRegistry;
@@ -142,7 +143,7 @@ class SearchCompiler
             }
 
             if ($field['dataType'] === 'subject') {
-                $this->anySubject($query, $condition['operator'], $condition['value']);
+                $this->anySubject($query, $field['kind'], $condition['operator'], $condition['value']);
 
                 continue;
             }
@@ -228,22 +229,26 @@ class SearchCompiler
 
     /**
      * Constrain a query by the derived union of its subjects: its own direct
-     * tags, plus everyone tagged in its cover and photos attachments.
+     * tags, plus everyone tagged in its cover and photos attachments. Always
+     * scoped to the field's own kind: `subjects` is unique on (kind, slug),
+     * not slug alone, so a slug can be shared across kinds (a pet and a person
+     * both called Bella) and dropping the kind would blur "People" into "Pets".
      *
      * @param  Builder  $query  The (possibly morphed) model query to constrain.
+     * @param  SubjectKind  $kind  The field's own kind (person/pet/spot/thing).
      * @param  string  $operator  One of includes/includes_all/excludes/has_any/has_none.
      * @param  mixed  $value  A subject slug, a list of slugs, or null for has_any/has_none.
      */
-    private function subjectClause(Builder $query, string $operator, mixed $value): void
+    private function subjectClause(Builder $query, SubjectKind $kind, string $operator, mixed $value): void
     {
         if ($operator === 'has_any') {
-            $this->subjectUnionExists($query, null);
+            $this->subjectUnionExists($query, $kind, null);
 
             return;
         }
 
         if ($operator === 'has_none') {
-            $this->subjectUnionMissing($query, null);
+            $this->subjectUnionMissing($query, $kind, null);
 
             return;
         }
@@ -259,7 +264,7 @@ class SearchCompiler
 
         if ($operator === 'excludes') {
             foreach ($slugs as $slug) {
-                $this->subjectUnionMissing($query, $slug);
+                $this->subjectUnionMissing($query, $kind, $slug);
             }
 
             return;
@@ -267,59 +272,64 @@ class SearchCompiler
 
         if ($operator === 'includes_all') {
             foreach ($slugs as $slug) {
-                $this->subjectUnionExists($query, $slug);
+                $this->subjectUnionExists($query, $kind, $slug);
             }
 
             return;
         }
 
         // includes: matches any of the given slugs.
-        $query->where(function (Builder $inner) use ($slugs): void {
+        $query->where(function (Builder $inner) use ($kind, $slugs): void {
             foreach ($slugs as $slug) {
-                $inner->orWhere(fn (Builder $branch) => $this->subjectUnionExists($branch, $slug));
+                $inner->orWhere(fn (Builder $branch) => $this->subjectUnionExists($branch, $kind, $slug));
             }
         });
     }
 
     /**
-     * Add an OR-ed existence check for a subject (or, with a null slug, any
-     * subject at all) reachable through the direct relation or a photograph.
+     * Add an OR-ed existence check for a subject of this kind (or, with a null
+     * slug, any subject of this kind) reachable through the direct relation
+     * or a photograph.
      *
      * @param  Builder  $query  The model query to constrain.
+     * @param  SubjectKind  $kind  The kind to scope to.
      * @param  string|null  $slug  A specific subject's slug, or null for "any".
      */
-    private function subjectUnionExists(Builder $query, ?string $slug): void
+    private function subjectUnionExists(Builder $query, SubjectKind $kind, ?string $slug): void
     {
-        $query->where(function (Builder $q) use ($slug): void {
-            $q->whereHas('subjects', fn (Builder $s) => $this->slugFilter($s, $slug))
-                ->orWhereHas('media', function (Builder $m) use ($slug): void {
+        $query->where(function (Builder $q) use ($kind, $slug): void {
+            $q->whereHas('subjects', fn (Builder $s) => $this->subjectFilter($s, $kind, $slug))
+                ->orWhereHas('media', function (Builder $m) use ($kind, $slug): void {
                     $m->whereIn('collection_name', ['cover', 'photos'])
-                        ->whereHas('subjects', fn (Builder $s) => $this->slugFilter($s, $slug));
+                        ->whereHas('subjects', fn (Builder $s) => $this->subjectFilter($s, $kind, $slug));
                 });
         });
     }
 
     /**
-     * AND-ed absence check: neither a direct tag nor a photograph carries the
-     * subject (or, with a null slug, no subject at all).
+     * AND-ed absence check: neither a direct tag nor a photograph carries a
+     * subject of this kind (or, with a null slug, no subject of this kind at all).
      *
      * @param  Builder  $query  The model query to constrain.
+     * @param  SubjectKind  $kind  The kind to scope to.
      * @param  string|null  $slug  A specific subject's slug, or null for "any".
      */
-    private function subjectUnionMissing(Builder $query, ?string $slug): void
+    private function subjectUnionMissing(Builder $query, SubjectKind $kind, ?string $slug): void
     {
-        $query->whereDoesntHave('subjects', fn (Builder $s) => $this->slugFilter($s, $slug))
-            ->whereDoesntHave('media', function (Builder $m) use ($slug): void {
+        $query->whereDoesntHave('subjects', fn (Builder $s) => $this->subjectFilter($s, $kind, $slug))
+            ->whereDoesntHave('media', function (Builder $m) use ($kind, $slug): void {
                 $m->whereIn('collection_name', ['cover', 'photos'])
-                    ->whereHas('subjects', fn (Builder $s) => $this->slugFilter($s, $slug));
+                    ->whereHas('subjects', fn (Builder $s) => $this->subjectFilter($s, $kind, $slug));
             });
     }
 
     /**
-     * Narrow a subjects query to one slug, or leave it unconstrained for null.
+     * Narrow a subjects query to one kind, and optionally to one slug within it.
      */
-    private function slugFilter(Builder $query, ?string $slug): void
+    private function subjectFilter(Builder $query, SubjectKind $kind, ?string $slug): void
     {
+        $query->where('kind', $kind);
+
         if ($slug !== null) {
             $query->where('slug', $slug);
         }
@@ -346,16 +356,17 @@ class SearchCompiler
      * Apply a subject filter across every timeline type for the Anything group.
      *
      * @param  Builder  $query  The TimelineEntry query to constrain.
+     * @param  SubjectKind  $kind  The field's own kind (person/pet/spot/thing).
      * @param  string  $operator  One of includes/includes_all/excludes/has_any/has_none.
      * @param  mixed  $value  A subject slug, a list of slugs, or null.
      */
-    private function anySubject(Builder $query, string $operator, mixed $value): void
+    private function anySubject(Builder $query, SubjectKind $kind, string $operator, mixed $value): void
     {
         $models = collect(TypeRegistry::all())->pluck('model')->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
+        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($kind, $operator, $value): void {
             $this->guardPublished($morph, $modelClass);
-            $this->subjectClause($morph, $operator, $value);
+            $this->subjectClause($morph, $kind, $operator, $value);
         });
     }
 
@@ -379,11 +390,8 @@ class SearchCompiler
             return;
         }
 
-        if ($field['dataType'] === 'subject') {
-            $this->subjectClause($query, $operator, $value);
-
-            return;
-        }
+        // No per-type dispatch for 'subject': the four subject fields exist
+        // only on the `any` type (see SearchSchema), so this is unreachable.
 
         if (isset($field['relation'])) {
             $this->relationClause($query, $field, $operator, $value);

@@ -44,3 +44,40 @@ it('does not quietly drop entries with no subjects at all', function () {
         'conditions' => [['field' => 'person', 'operator' => 'has_none', 'value' => null]],
     ]]))->assertInertia(fn ($page) => $page->has('groups', 1));
 });
+
+it('excludes entries carrying the given subject', function () {
+    $bear = Subject::factory()->pet()->create(['slug' => 'bear']);
+    Activity::factory()->create(['occurred_at' => now()])->subjects()->attach($bear);
+    Activity::factory()->create(['occurred_at' => now()->subDay()]);
+
+    get(subjectSearchUrl([[
+        'type' => 'any',
+        'conditions' => [['field' => 'pet', 'operator' => 'excludes', 'value' => 'bear']],
+    ]]))->assertInertia(fn ($page) => $page->has('groups', 1));
+});
+
+it('has_any matches an entry carrying any subject of that kind', function () {
+    $bear = Subject::factory()->pet()->create();
+    Activity::factory()->create(['occurred_at' => now()])->subjects()->attach($bear);
+    Activity::factory()->create(['occurred_at' => now()->subDay()]);
+
+    get(subjectSearchUrl([[
+        'type' => 'any',
+        'conditions' => [['field' => 'pet', 'operator' => 'has_any', 'value' => null]],
+    ]]))->assertInertia(fn ($page) => $page->has('groups', 1));
+});
+
+it('scopes a subject field to its own kind, not just the shared slug', function () {
+    // Subjects are unique on (kind, slug), not slug alone, so a person and a
+    // pet can share one: "People includes bella" must not also match the pet.
+    $person = Subject::factory()->person()->create(['slug' => 'bella']);
+    $pet = Subject::factory()->pet()->create(['slug' => 'bella']);
+
+    Activity::factory()->create(['occurred_at' => now()])->subjects()->attach($person);
+    Activity::factory()->create(['occurred_at' => now()->subDay()])->subjects()->attach($pet);
+
+    get(subjectSearchUrl([[
+        'type' => 'any',
+        'conditions' => [['field' => 'person', 'operator' => 'includes', 'value' => 'bella']],
+    ]]))->assertInertia(fn ($page) => $page->has('groups', 1));
+});

@@ -180,6 +180,9 @@ class SearchSchema
                 'fields' => self::normalise([
                     'text' => ['label' => 'Text', 'dataType' => 'text', 'column' => null, 'category' => 'Where', 'operators' => ['contains']],
                     'photos' => ['label' => 'Media', 'dataType' => 'media', 'column' => null, 'category' => 'Where', 'suffix' => 'photos'],
+                    // any-only by design, so they work across every entry type at
+                    // once rather than being repeated per type; SearchCompiler has
+                    // no per-type 'subject' dispatch to match.
                     'person' => ['label' => 'People', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Person],
                     'pet' => ['label' => 'Pets', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Pet],
                     'spot' => ['label' => 'Spots', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Spot],
