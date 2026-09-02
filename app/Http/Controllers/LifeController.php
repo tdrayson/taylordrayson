@@ -6,6 +6,7 @@ use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
 use App\Models\Subject;
 use App\Queries\SubjectCounts;
+use App\Support\OgMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -33,6 +34,7 @@ class LifeController extends Controller
                 'count' => $totals[$kind->segment()] ?? 0,
                 'recent' => $this->recent($recentByKind->get($kind->segment(), collect())),
             ])->all(),
+            'og' => OgMeta::life(),
         ]);
     }
 
@@ -59,6 +61,8 @@ class LifeController extends Controller
             ->orderBy('name')
             ->get();
 
+        $total = Subject::query()->where('kind', $subjectKind)->count();
+
         return Inertia::render('Life/Kind', [
             'kind' => $subjectKind->plural(),
             'kindLabel' => $subjectKind->label(),
@@ -78,6 +82,7 @@ class LifeController extends Controller
                 'cover' => $subject->coverPhoto(),
                 'category' => $subject->category?->label(),
             ])->all(),
+            'og' => OgMeta::lifeKind($subjectKind, $total),
         ]);
     }
 

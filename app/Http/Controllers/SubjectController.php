@@ -2,13 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\AttachedMediaValues;
+use App\Actions\Subjects\DeleteSubject;
+use App\Actions\Subjects\UpsertSubject;
+use App\Actions\SyncEntryMedia;
 use App\Data\SubjectData;
 use App\Enums\SubjectKind;
+use App\Fields\FieldRegistry;
+use App\Http\Requests\SubjectRequest;
 use App\Models\Subject;
 use App\Queries\SubjectCompanions;
 use App\Queries\SubjectFeed;
 use App\Queries\SubjectPhotos;
 use App\Queries\SubjectStats;
+use App\Support\OgMeta;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,6 +46,8 @@ class SubjectController extends Controller
 
         abort_if($subject === null, 404);
 
+        $fields = Auth::check() ? FieldRegistry::for($subject) : [];
+
         return Inertia::render('Life/Subject', [
             'subject' => SubjectData::from($subject)->toArray(),
             'groups' => ($this->feed)($subject),
@@ -46,6 +58,45 @@ class SubjectController extends Controller
                 'url' => $companion->url(),
                 'cover' => $companion->coverPhoto(),
             ])->all(),
+            // ?edit opens the editor in place, the same pattern as a page.
+            // Only ever honoured for a signed-in visitor; the write routes
+            // enforce it again server-side via the `auth` middleware group.
+            'editing' => Auth::check() && request()->has('edit'),
+            'fields' => $fields,
+            'values' => [
+                ...$subject->only(array_column($fields, 'name')),
+                ...app(AttachedMediaValues::class)($subject, $fields),
+            ],
+            'og' => OgMeta::subject($subject),
         ]);
+    }
+
+    public function store(SubjectRequest $request, UpsertSubject $upsert): RedirectResponse
+    {
+        $attributes = $request->validated();
+
+        $subject = $upsert(null, Arr::except($attributes, ['cover']));
+
+        app(SyncEntryMedia::class)($subject, FieldRegistry::for($subject), $attributes);
+
+        return redirect($subject->url());
+    }
+
+    public function update(SubjectRequest $request, Subject $subject, UpsertSubject $upsert): RedirectResponse
+    {
+        $attributes = $request->validated();
+
+        $subject = $upsert($subject, Arr::except($attributes, ['cover']));
+
+        app(SyncEntryMedia::class)($subject, FieldRegistry::for($subject), $attributes);
+
+        return redirect($subject->url().'?edit');
+    }
+
+    public function destroy(Subject $subject, DeleteSubject $delete): RedirectResponse
+    {
+        $delete($subject);
+
+        return redirect('/life');
     }
 }

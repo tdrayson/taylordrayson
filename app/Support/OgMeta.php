@@ -4,10 +4,12 @@ namespace App\Support;
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
+use App\Enums\SubjectKind;
 use App\Models\Article;
 use App\Models\Media;
 use App\Models\Podcast;
 use App\Models\Project;
+use App\Models\Subject;
 use App\Models\TimelineEntry;
 use App\Presenters\EntryDescription;
 use Illuminate\Database\Eloquent\Model;
@@ -414,6 +416,53 @@ class OgMeta
                 number_format($total),
                 Str::plural('entry', $total),
             ),
+        ]);
+    }
+
+    /**
+     * @return OgPayload
+     */
+    public static function life(): array
+    {
+        return self::make([
+            'title' => 'Life',
+            'eyebrow' => 'Index',
+            'heading' => 'The people, pets, spots and things in my life',
+            'description' => 'Everyone and everything that shows up across the site, with what I have logged about each.',
+        ]);
+    }
+
+    /**
+     * @param  SubjectKind  $kind  Which of the four kinds this index lists.
+     * @param  int  $total  How many subjects of this kind exist.
+     * @return OgPayload
+     */
+    public static function lifeKind(SubjectKind $kind, int $total): array
+    {
+        return self::make([
+            'title' => $kind->plural(),
+            'eyebrow' => 'Life',
+            'heading' => $kind->plural(),
+            'description' => sprintf(
+                '%s %s in my life, logged and linked across the site.',
+                number_format($total),
+                Str::plural(Str::lower($kind->label()), $total),
+            ),
+        ]);
+    }
+
+    /**
+     * @param  Subject  $subject  The person, pet, spot or thing this page is about.
+     * @return OgPayload
+     */
+    public static function subject(Subject $subject): array
+    {
+        return self::make([
+            'title' => $subject->name,
+            'eyebrow' => $subject->category?->label() ?? $subject->kind->label(),
+            'heading' => $subject->name,
+            'image' => $subject->coverPhoto()['full'] ?? null,
+            'description' => sprintf('Everything I have logged that involves %s, across every type I track.', $subject->name),
         ]);
     }
 

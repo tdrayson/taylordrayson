@@ -57,6 +57,11 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
 
+    // Subjects have no admin surface: every write is posted to from the
+    // /life/{kind}/{slug} page the reader is already on.
+    Route::post('/subjects', [SubjectController::class, 'store'])->name('subjects.store');
+    Route::patch('/subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+    Route::delete('/subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
 });
 
 // Feeds

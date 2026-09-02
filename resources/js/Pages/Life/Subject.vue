@@ -1,17 +1,20 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { setLayoutProps, Link } from '@inertiajs/vue3';
+import { setLayoutProps, usePage, Link, router } from '@inertiajs/vue3';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import SubjectImage from '../../Components/Subjects/SubjectImage.vue';
 import SubjectFacts from '../../Components/Subjects/SubjectFacts.vue';
 import BlockContent from '../../Components/Ui/BlockContent.vue';
+import Button from '../../Components/Ui/Button.vue';
 import PhotoGrid from '../../Components/Ui/PhotoGrid.vue';
 import SectionHead from '../../Components/Ui/SectionHead.vue';
 import Lightbox from '../../Components/Overlays/Lightbox.vue';
 import LocationMap from '../../Components/Maps/LocationMap.vue';
 import DateGroup from '../../Components/Timeline/DateGroup.vue';
 import StatGrid from '../../Components/Stats/StatGrid.vue';
+import EntryEditor from '../../Components/Editor/EntryEditor.vue';
+import { valuesFor } from '../../lib/editor/defaults.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -22,6 +25,11 @@ const props = defineProps({
     photos: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({ entries: {}, photos: 0, first: null, last: null }) },
     companions: { type: Array, default: () => [] },
+    editing: { type: Boolean, default: false },
+    // Field definitions from FieldRegistry, driving the properties panel.
+    fields: { type: Array, default: () => [] },
+    // The record's own value per offered field, for the editor to start from.
+    values: { type: Object, default: () => ({}) },
     og: { type: Object, default: () => ({}) },
 });
 
@@ -39,6 +47,7 @@ const statItems = computed(() => [
 ]);
 
 setLayoutProps({
+    minimal: props.editing,
     breadcrumb: [
         { label: 'Life', href: '/life' },
         { label: `${eyebrow.value}s`, href: `/life/${segment.value}` },
@@ -46,13 +55,52 @@ setLayoutProps({
     ],
 });
 
+const signedIn = computed(() => usePage().props.signedIn === true);
+
+// Straight off the record, not rebuilt from the display props: listing the
+// keys by hand meant any field not on that list opened empty and was saved
+// back empty.
+const editorValues = computed(() => valuesFor(props.fields, props.values));
+
+/** Names what goes with the subject, so a confirm cannot be clicked blind. */
+const deleteMessage = computed(() => {
+    const parts = [];
+
+    if (totalEntries.value) {
+        parts.push(`${totalEntries.value} ${totalEntries.value === 1 ? 'entry' : 'entries'}`);
+    }
+
+    if (props.stats.photos) {
+        parts.push(`${props.stats.photos} tagged ${props.stats.photos === 1 ? 'photo' : 'photos'}`);
+    }
+
+    const links = parts.length ? ` It will be unlinked from ${parts.join(' and ')}, which are kept.` : '';
+
+    return `Delete ${props.subject.name}?${links}`;
+});
+
+function destroy() {
+    if (window.confirm(deleteMessage.value)) {
+        router.delete(`/subjects/${subject.id}`);
+    }
+}
+
 const lightboxIndex = ref(null);
 </script>
 
 <template>
     <AppHead :og="og" />
 
-    <article>
+    <div v-if="editing" class="w-full max-w-2xl">
+        <EntryEditor
+            :fields="fields"
+            :values="editorValues"
+            :action="`/subjects/${subject.id}`"
+            submit-label="Save"
+        />
+    </div>
+
+    <article v-else>
         <SubjectImage
             :cover="subject.cover"
             :name="subject.name"
@@ -84,6 +132,18 @@ const lightboxIndex = ref(null);
             :label="subject.name"
             class="mt-8"
         />
+
+        <!-- Both only mean anything to the owner, so they sit together below
+             the subject rather than interrupting the header. -->
+        <div v-if="signedIn" class="mt-3 flex items-center gap-3">
+            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">
+                Edit {{ subject.name }}
+            </Link>
+
+            <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700" @click="destroy">
+                Delete
+            </Button>
+        </div>
 
         <section v-if="companions.length">
             <SectionHead title="Appears with" />
