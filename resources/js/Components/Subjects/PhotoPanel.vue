@@ -43,10 +43,14 @@ const subjectTags = computed(() => props.photo.tags.filter((tag) => tag.role ===
 const cameraTags = computed(() => props.photo.tags.filter((tag) => tag.role === 'camera'));
 const reviewed = computed(() => props.photo.reviewed?.subjects === true);
 
+// post() and delete() take options in different positions, so one shared
+// call cannot serve both verbs.
 function toggleReviewed(value) {
-    const method = value ? 'post' : 'delete';
-
-    router[method](`/attachments/${props.photo.id}/review`, { data: { kind: 'subjects' }, preserveScroll: true });
+    if (value) {
+        router.post(`/attachments/${props.photo.id}/review`, { kind: 'subjects' }, { preserveScroll: true });
+    } else {
+        router.delete(`/attachments/${props.photo.id}/review`, { data: { kind: 'subjects' }, preserveScroll: true });
+    }
 }
 
 function removeTag(tag) {

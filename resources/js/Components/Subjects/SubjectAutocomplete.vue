@@ -25,6 +25,7 @@ const { isOpen: open, root, open: show } = useDismissable();
 const query = ref('');
 const suggestions = ref([]);
 const creating = ref(false);
+const createError = ref(null);
 let searchTimer = null;
 
 async function search() {
@@ -43,6 +44,7 @@ async function search() {
 
 function onInput(value) {
     query.value = value;
+    createError.value = null;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(search, 200);
 }
@@ -67,6 +69,7 @@ async function createSubject() {
     }
 
     creating.value = true;
+    createError.value = null;
 
     try {
         const response = await fetch('/subjects', {
@@ -81,6 +84,9 @@ async function createSubject() {
         });
 
         if (! response.ok) {
+            const body = await response.json().catch(() => null);
+            createError.value = body?.errors?.name?.[0] ?? body?.errors?.slug?.[0] ?? 'Could not create that subject.';
+
             return;
         }
 
@@ -141,6 +147,7 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
             </li>
         </ul>
         <p v-if="hint" class="mt-1 text-caption text-neutral-500">{{ hint }}</p>
+        <p v-if="createError" class="mt-1 text-caption text-red-600">{{ createError }}</p>
         <Button variant="ghost" size="sm" class="mt-1" @click="emit('cancel')">Cancel</Button>
     </div>
 </template>

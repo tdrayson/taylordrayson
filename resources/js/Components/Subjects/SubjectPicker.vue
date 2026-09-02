@@ -32,6 +32,7 @@ const { isOpen: open, root, open: show, close } = useDismissable();
 const query = ref('');
 const suggestions = ref([]);
 const creating = ref(false);
+const createError = ref(null);
 let timer = null;
 
 const subjects = computed(() => props.modelValue);
@@ -77,6 +78,7 @@ async function search() {
 
 function onInput(value) {
     query.value = value;
+    createError.value = null;
     clearTimeout(timer);
     timer = setTimeout(search, 200);
 }
@@ -113,6 +115,7 @@ async function create() {
     }
 
     creating.value = true;
+    createError.value = null;
 
     try {
         const response = await fetch('/subjects', {
@@ -127,6 +130,9 @@ async function create() {
         });
 
         if (! response.ok) {
+            const body = await response.json().catch(() => null);
+            createError.value = body?.errors?.name?.[0] ?? body?.errors?.slug?.[0] ?? 'Could not create that subject.';
+
             return;
         }
 
@@ -199,6 +205,8 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 <Icon name="Cancel01Icon" class="size-4" />
             </Button>
         </div>
+
+        <p v-if="createError" class="mt-1.5 text-caption text-red-600">{{ createError }}</p>
 
         <!-- One-tap suggestions from the prose, never auto-attached: naming
         someone in a sentence isn't the same claim as tagging them here. -->

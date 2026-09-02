@@ -43,6 +43,20 @@ it('previews an unpublished, subject-tagged article for a signed-in request', fu
         ->assertInertia(fn ($page) => $page->has('groups', 1));
 });
 
+it('hides an unpublished article\'s tagged photograph from a guest', function () {
+    $subject = Subject::factory()->person()->create(['slug' => 'clare']);
+    $article = Article::factory()->create(['published' => false]);
+    $attachment = $article->addMediaFromString(fakeJpeg())->usingFileName('p.jpg')->toMediaCollection('photos');
+    $attachment->subjects()->attach($subject, ['role' => 'subject', 'x' => 10, 'y' => 10]);
+
+    get('/life/people/clare')->assertInertia(fn ($page) => $page->has('photos', 0));
+
+    actingAs(User::factory()->create())
+        ->get('/life/people/clare')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('photos', 1));
+});
+
 it('404s on an unknown kind and an unknown slug', function () {
     get('/life/aliens')->assertNotFound();
     get('/life/people/nobody')->assertNotFound();

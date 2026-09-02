@@ -81,7 +81,7 @@ const deleteMessage = computed(() => {
 
 function destroy() {
     if (window.confirm(deleteMessage.value)) {
-        router.delete(`/subjects/${subject.id}`);
+        router.delete(`/subjects/${props.subject.id}`);
     }
 }
 

@@ -22,6 +22,24 @@ it('rejects a category belonging to another kind', function () {
         ->assertSessionHasErrors('category');
 });
 
+it('rejects a second subject whose name slugs to an existing one in the same kind', function () {
+    Subject::factory()->person()->create(['slug' => 'clare']);
+    $user = actingAs(User::factory()->create());
+
+    $user->post('/subjects', ['kind' => 'person', 'name' => 'Clare'])->assertSessionHasErrors('slug');
+
+    expect(Subject::query()->where('kind', 'person')->where('slug', 'clare')->count())->toBe(1);
+});
+
+it('allows the same name across two different kinds', function () {
+    Subject::factory()->person()->create(['slug' => 'bella']);
+
+    actingAs(User::factory()->create())->post('/subjects', ['kind' => 'pet', 'name' => 'Bella'])
+        ->assertRedirect();
+
+    expect(Subject::query()->where('kind', 'pet')->where('slug', 'bella')->exists())->toBeTrue();
+});
+
 it('removes a subject\'s links without touching the entries or photographs', function () {
     $subject = Subject::factory()->person()->create();
     $activity = Activity::factory()->create();

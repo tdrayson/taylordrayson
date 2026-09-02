@@ -2,10 +2,12 @@
 
 namespace App\Queries;
 
+use App\Models\Article;
 use App\Models\Attachment;
 use App\Models\Subject;
 use App\Support\GalleryPhotos;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Every photograph this subject is tagged on, as subject or camera credit,
@@ -25,6 +27,12 @@ final class SubjectPhotos
                 $owner = $media->first()->model;
 
                 if (! GalleryPhotos::contributesPhotos($owner)) {
+                    return [];
+                }
+
+                // Mirrors SubjectFeed: an unpublished article has no spine row
+                // for a guest to reach, so its photograph stays hidden too.
+                if ($owner instanceof Article && ! $owner->shouldAppearOnTimeline() && ! Auth::check()) {
                     return [];
                 }
 
