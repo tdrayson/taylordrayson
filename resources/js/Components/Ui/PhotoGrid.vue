@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
+import Button from './Button.vue';
 
 // Masonry via CSS grid row spans: photos stay in document order so keyboard
 // focus moves across rows in that order, while each tile spans the rows
@@ -27,9 +28,26 @@ const props = defineProps({
     // Desktop column count; smaller screens collapse to fewer columns via the
     // matching preset. Supported: 2-6 (default 4). Unknown values fall back to 4.
     columns: { type: Number, default: 4, validator: (value) => Number.isInteger(value) && value >= 2 && value <= 6 },
+    // Opt-in "Nothing to tag" shortcut on each unreviewed tile, for pages that
+    // shape their photos with review state (currently only /photos).
+    review: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['open']);
+
+const signedIn = computed(() => usePage().props.signedIn === true);
+
+// A photo carries review state only when its shaping opted in (GalleryPhotos
+// includes it; other shapers may not), so the button also guards on that.
+function needsReviewShortcut(photo) {
+    return props.review && signedIn.value && photo.reviewed && photo.reviewed.subjects !== true;
+}
+
+// Dismisses the "needs tagging" facet directly from the grid, without opening
+// the lightbox, for photos that plainly have nobody in them.
+function markNothingToTag(photo) {
+    router.post(`/attachments/${photo.id}/review`, { kind: 'subjects' }, { preserveScroll: true });
+}
 
 const preset = computed(() => PRESETS[props.columns] ?? PRESETS[4]);
 const columnsByBreakpoint = computed(() => preset.value.counts);
@@ -145,6 +163,16 @@ function rowSpan(photo) {
             >
                 <Icon name="ArrowUpRight01Icon" class="size-4" />
             </Link>
+            <Button
+                v-if="needsReviewShortcut(photo)"
+                variant="ghost"
+                size="icon"
+                class="absolute left-2 top-2 size-8 bg-black/55 text-white opacity-0 transition-opacity hover:bg-black/75 hover:text-white focus-visible:opacity-100 group-hover/photo:opacity-100 group-focus-within/photo:opacity-100"
+                :aria-label="`Mark photo from ${photo.caption} as nothing to tag`"
+                @click="markNothingToTag(photo)"
+            >
+                <Icon name="Tick02Icon" class="size-4" />
+            </Button>
         </li>
     </ul>
 </template>

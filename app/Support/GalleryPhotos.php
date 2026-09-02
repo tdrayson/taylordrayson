@@ -2,13 +2,15 @@
 
 namespace App\Support;
 
+use App\Data\PhotoTagData;
+use App\Enums\ReviewKind;
 use App\Models\Appearance;
+use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Models\Media as MediaEntry;
 use App\Presenters\CardPresenter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Shapes a Timelineable model's photos, cover first, into the payload shared by
@@ -37,14 +39,16 @@ class GalleryPhotos
     }
 
     /**
-     * @param  Collection<int, Media>  $media  Cover + photos media, in display order.
+     * @param  Collection<int, Attachment>  $media  Cover + photos media, in display order.
      * @return array<int, array<string, mixed>>
      */
     public static function shape(Model&Timelineable $model, Collection $media): array
     {
         $card = CardPresenter::for($model);
+        $media->loadMissing('subjects');
 
-        return $media->map(fn (Media $item): array => [
+        return $media->map(fn (Attachment $item): array => [
+            'id' => $item->id,
             ...self::dimensions($item),
             'src' => $item->getUrl('card'),
             'srcset' => $item->getSrcset('card') ?: null,
@@ -60,6 +64,10 @@ class GalleryPhotos
             'date' => $card->occurredAt->format('j M Y'),
             'accent' => $card->accent,
             'url' => $model->url(),
+            'tags' => $item->subjects->map(PhotoTagData::fromSubject(...))->all(),
+            'reviewed' => collect(ReviewKind::cases())
+                ->mapWithKeys(fn (ReviewKind $kind): array => [$kind->value => $item->getCustomProperty($kind->property()) !== null])
+                ->all(),
         ])->values()->all();
     }
 
@@ -69,7 +77,7 @@ class GalleryPhotos
      *
      * @return array{width: int|null, height: int|null}
      */
-    private static function dimensions(Media $media): array
+    private static function dimensions(Attachment $media): array
     {
         $srcset = $media->getSrcset('card');
 
@@ -78,5 +86,24 @@ class GalleryPhotos
         }
 
         return ['width' => null, 'height' => null];
+    }
+
+    /**
+     * Model types currently holding cover/photos media that contributesPhotos()
+     * would keep, found via is_subclass_of() rather than loading rows, so a raw
+     * count (the /photos filter bar) can match PhotoStream's population without
+     * hydrating a single model.
+     *
+     * @return list<class-string>
+     */
+    public static function contributingModelTypes(): array
+    {
+        return Attachment::query()
+            ->whereIn('collection_name', ['cover', 'photos'])
+            ->distinct()
+            ->pluck('model_type')
+            ->filter(fn (string $type): bool => is_subclass_of($type, Timelineable::class) && ! in_array($type, self::ENRICHMENT_MODELS, true))
+            ->values()
+            ->all();
     }
 }
