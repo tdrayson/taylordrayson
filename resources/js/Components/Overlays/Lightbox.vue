@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
+import PhotoTagLayer from '../Subjects/PhotoTagLayer.vue';
+import PhotoPanel from '../Subjects/PhotoPanel.vue';
 import { useDialog } from '../../composables/useDialog';
 import { useMounted } from '../../composables/useMounted';
 
@@ -15,6 +17,7 @@ const props = defineProps({
     caption: { type: Boolean, default: true }, // photo.caption + photo.date
     counter: { type: Boolean, default: true }, // n / total
     link: { type: Boolean, default: true }, // photo.url → entry link
+    tags: { type: Boolean, default: false }, // photo.tags + photo.reviewed
 });
 
 const emit = defineEmits(['update:index']);
@@ -22,6 +25,30 @@ const emit = defineEmits(['update:index']);
 const isOpen = computed(() => props.index !== null && props.index >= 0 && props.index < props.photos.length);
 const current = computed(() => (isOpen.value ? props.photos[props.index] : null));
 const hasMultiple = computed(() => props.photos.length > 1);
+
+const signedIn = computed(() => usePage().props.signedIn === true);
+const showTags = computed(() => props.tags && current.value?.tags !== undefined);
+const showPanel = computed(() => showTags.value && signedIn.value);
+
+// Tag placement, shared between PhotoTagLayer (the crosshair on the photo)
+// and PhotoPanel (the picker beside it): "Tag someone" arms both at once, a
+// click on the photo supplies the point, either finishes the pick.
+const placing = ref(false);
+const pendingPosition = ref(null);
+const hoveredTagId = ref(null);
+
+function startPlacing() {
+    placing.value = true;
+}
+
+function stopPlacing() {
+    placing.value = false;
+    pendingPosition.value = null;
+}
+
+// Reset placement state whenever the open photo changes, so a half-finished
+// tag on one photo doesn't linger onto the next.
+watch(current, stopPlacing);
 
 function close() {
     emit('update:index', null);
@@ -261,53 +288,118 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     </button>
                 </div>
 
-                <!-- Image region: fills the space between the bars; clicking the
-                     empty area around the image closes. -->
-                <div
-                    class="relative flex min-h-0 flex-1 touch-none overflow-hidden"
-                    :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'items-center justify-center'"
-                    @click.self="closeUnlessDrag"
-                >
-                    <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">
-                        <div
-                            v-for="(slide, slideIndex) in slides"
-                            :key="slideIndex"
-                            class="flex h-full w-1/3 shrink-0 items-center justify-center px-2 sm:px-3"
-                            @click.self="closeUnlessDrag"
-                        >
-                            <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                <!-- Image region: fills the space between the bars, the panel
+                     (signed in) riding alongside it. -->
+                <div class="relative flex min-h-0 flex-1 gap-3" :class="showPanel ? 'flex-col overflow-y-auto sm:flex-row sm:overflow-visible' : ''">
+                    <!-- Photo area: clicking its empty edge closes. -->
+                    <div
+                        class="relative flex min-h-0 flex-1 touch-none overflow-hidden"
+                        :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'items-center justify-center'"
+                        @click.self="closeUnlessDrag"
+                    >
+                        <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">
+                            <div
+                                v-for="(slide, slideIndex) in slides"
+                                :key="slideIndex"
+                                class="flex h-full w-1/3 shrink-0 items-center justify-center px-2 sm:px-3"
+                                @click.self="closeUnlessDrag"
+                            >
+                                <!-- Only the current (middle) slide is tagged; the
+                                     neighbours ride along purely for the swipe. -->
+                                <PhotoTagLayer
+                                    v-if="slideIndex === 1 && showTags"
+                                    :photo="slide"
+                                    :placing="placing"
+                                    :pending-position="pendingPosition"
+                                    :hovered-id="hoveredTagId"
+                                    @place="pendingPosition = $event"
+                                    @hover="hoveredTagId = $event"
+                                    @unhover="hoveredTagId = null"
+                                >
+                                    <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                                </PhotoTagLayer>
+                                <img v-else :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                            </div>
                         </div>
+
+                        <PhotoTagLayer
+                            v-else-if="current && showTags"
+                            :photo="current"
+                            :placing="placing"
+                            :pending-position="pendingPosition"
+                            :hovered-id="hoveredTagId"
+                            @place="pendingPosition = $event"
+                            @hover="hoveredTagId = $event"
+                            @unhover="hoveredTagId = null"
+                        >
+                            <img :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                        </PhotoTagLayer>
+                        <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+
+                        <button
+                            v-if="hasMultiple"
+                            type="button"
+                            class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            aria-label="Previous photo"
+                            @click="slideTo(-1)"
+                        >
+                            <Icon name="ArrowLeft01Icon" class="size-5" />
+                        </button>
+                        <button
+                            v-if="hasMultiple"
+                            type="button"
+                            class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            aria-label="Next photo"
+                            @click="slideTo(1)"
+                        >
+                            <Icon name="ArrowRight01Icon" class="size-5" />
+                        </button>
                     </div>
 
-                    <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
-
-                    <button
-                        v-if="hasMultiple"
-                        type="button"
-                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                        aria-label="Previous photo"
-                        @click="slideTo(-1)"
-                    >
-                        <Icon name="ArrowLeft01Icon" class="size-5" />
-                    </button>
-                    <button
-                        v-if="hasMultiple"
-                        type="button"
-                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                        aria-label="Next photo"
-                        @click="slideTo(1)"
-                    >
-                        <Icon name="ArrowRight01Icon" class="size-5" />
-                    </button>
+                    <PhotoPanel
+                        v-if="showPanel"
+                        :photo="current"
+                        :placing="placing"
+                        :pending-position="pendingPosition"
+                        @start-placing="startPlacing"
+                        @cancel-placing="stopPlacing"
+                        @placed="stopPlacing"
+                    />
                 </div>
 
                 <div
-                    v-if="(caption && current?.caption) || (counter && hasMultiple)"
-                    class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"
+                    v-if="(caption && current?.caption) || (counter && hasMultiple) || (showTags && (current.tags.some((tag) => tag.role === 'subject') || current.tags.some((tag) => tag.role === 'camera')))"
+                    class="relative flex shrink-0 flex-col items-center gap-1 text-center"
                 >
                     <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
                     <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
                     <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
+
+                    <!-- The accessible counterpart to the on-image labels: every
+                         name as a real link, hover/focus mirroring the marker. -->
+                    <ul v-if="showTags && current.tags.some((tag) => tag.role === 'subject')" class="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1">
+                        <li v-for="tag in current.tags.filter((tag) => tag.role === 'subject')" :key="tag.subjectId">
+                            <Link
+                                :href="tag.url"
+                                class="rounded text-caption text-white/70 underline decoration-white/30 underline-offset-2 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                :class="{ 'text-white': hoveredTagId === tag.subjectId }"
+                                @mouseenter="hoveredTagId = tag.subjectId"
+                                @mouseleave="hoveredTagId = null"
+                                @focus="hoveredTagId = tag.subjectId"
+                                @blur="hoveredTagId = null"
+                            >{{ tag.name }}</Link>
+                        </li>
+                    </ul>
+
+                    <p v-if="showTags && current.tags.some((tag) => tag.role === 'camera')" class="text-caption text-white/60">
+                        Taken with
+                        <template v-for="(tag, tagIndex) in current.tags.filter((tag) => tag.role === 'camera')" :key="tag.subjectId">
+                            <span v-if="tagIndex > 0">, </span><Link
+                                :href="tag.url"
+                                class="text-white/70 underline decoration-white/30 underline-offset-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            >{{ tag.name }}</Link>
+                        </template>
+                    </p>
                 </div>
             </div>
         </Transition>

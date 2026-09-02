@@ -98,7 +98,7 @@ function weightLabel(value) {
             @open="lightboxIndex = $event"
         />
 
-        <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+        <Lightbox v-model:index="lightboxIndex" :photos="photos" tags />
 
         <div v-if="exercises.length">
             <SectionHead title="Exercises" :meta="totalVolume ? `${weight(totalVolume, 0)} volume` : ''" />

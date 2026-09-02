@@ -17,6 +17,8 @@ use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PhotoReviewController;
+use App\Http\Controllers\PhotoSubjectController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
@@ -65,6 +67,14 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
 
     Route::patch('/attachments/{attachment}', AttachmentController::class)->name('attachments.update');
+
+    // Places or removes a subject tag (a point) or camera credit (none) on a photograph.
+    Route::post('/attachments/{attachment}/subjects', [PhotoSubjectController::class, 'store'])->name('attachments.subjects.store');
+    Route::delete('/attachments/{attachment}/subjects', [PhotoSubjectController::class, 'destroy'])->name('attachments.subjects.destroy');
+
+    // Marks a photograph reviewed for a dimension, or puts it back.
+    Route::post('/attachments/{attachment}/review', [PhotoReviewController::class, 'store'])->name('attachments.review.store');
+    Route::delete('/attachments/{attachment}/review', [PhotoReviewController::class, 'destroy'])->name('attachments.review.destroy');
 
     // Subjects have no admin surface: every write is posted to from the
     // /life/{kind}/{slug} page the reader is already on.

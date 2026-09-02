@@ -37,6 +37,6 @@ const lightboxIndex = ref(null);
             </li>
         </ul>
 
-        <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+        <Lightbox v-model:index="lightboxIndex" :photos="photos" tags />
     </div>
 </template>
