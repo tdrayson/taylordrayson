@@ -8,9 +8,8 @@ use App\Models\PhotoTag;
 use App\Models\Subject;
 
 /**
- * Places a subject or camera credit on a photograph. Idempotent per
- * attachment/subject/role: placing the same one again moves its point rather
- * than erroring on the pivot's unique constraint.
+ * Places a subject or camera credit on a photograph. Re-tagging the same
+ * attachment/subject/role moves the point rather than erroring; see commit.
  */
 final class TagPhoto
 {

@@ -23,12 +23,15 @@ class PhotoTagRequest extends FormRequest
      */
     public function rules(): array
     {
+        $subject = PhotoTagRole::Subject->value;
+        $camera = PhotoTagRole::Camera->value;
+
         return [
             'subject_id' => ['required', 'integer', 'exists:subjects,id'],
             'role' => ['required', Rule::enum(PhotoTagRole::class)],
             // A subject needs a point in the frame; a camera credit carries none.
-            'x' => ['required_if:role,subject', 'prohibited_if:role,camera', 'numeric', 'between:0,100'],
-            'y' => ['required_if:role,subject', 'prohibited_if:role,camera', 'numeric', 'between:0,100'],
+            'x' => ["required_if:role,{$subject}", "prohibited_if:role,{$camera}", 'numeric', 'between:0,100'],
+            'y' => ["required_if:role,{$subject}", "prohibited_if:role,{$camera}", 'numeric', 'between:0,100'],
         ];
     }
 }

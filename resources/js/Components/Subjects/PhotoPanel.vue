@@ -5,9 +5,7 @@ import Button from '../Ui/Button.vue';
 import Input from '../Ui/Input.vue';
 import Switch from '../Ui/Switch.vue';
 import Icon from '../Ui/Icon.vue';
-import { readCookie } from '../../lib/cookies.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
-import { useListNavigation } from '../../lib/editor/listNavigation.js';
+import SubjectAutocomplete from './SubjectAutocomplete.vue';
 
 /**
  * The signed-in editing panel beside the lightbox image: alt text, caption,
@@ -62,13 +60,6 @@ function removeTag(tag) {
 // "Tag someone" (a point, with the crosshair armed on the photo) and "Taken
 // with" (no position, the image is left alone).
 const pickerRole = ref(null);
-const pickerOpen = computed(() => pickerRole.value !== null);
-
-const { isOpen: suggestionsOpen, root: pickerRoot, open: showSuggestions, close: closeSuggestions } = useDismissable();
-const query = ref('');
-const suggestions = ref([]);
-const creating = ref(false);
-let searchTimer = null;
 
 function openSubjectPicker() {
     pickerRole.value = 'subject';
@@ -81,41 +72,8 @@ function openCameraPicker() {
 
 function closePicker() {
     pickerRole.value = null;
-    query.value = '';
-    suggestions.value = [];
-    closeSuggestions();
     emit('cancel-placing');
 }
-
-async function search() {
-    try {
-        const response = await fetch(`/lookup/subject?q=${encodeURIComponent(query.value)}&include_self=1`, {
-            headers: { Accept: 'application/json' },
-            credentials: 'same-origin',
-        });
-
-        suggestions.value = response.ok ? (await response.json()).data ?? [] : [];
-        showSuggestions();
-    } catch {
-        suggestions.value = [];
-    }
-}
-
-function onInput(value) {
-    query.value = value;
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(search, 200);
-}
-
-const listItems = computed(() => {
-    if (suggestions.value.length) {
-        return suggestions.value;
-    }
-
-    const name = query.value.trim();
-
-    return name === '' ? [] : [{ value: '__create__', label: `Create ${name} as a person`, create: true }];
-});
 
 function place(subjectId, name) {
     const role = pickerRole.value;
@@ -134,52 +92,9 @@ function place(subjectId, name) {
     });
 }
 
-async function createSubject() {
-    const name = query.value.trim();
-
-    if (name === '' || creating.value) {
-        return;
-    }
-
-    creating.value = true;
-
-    try {
-        const response = await fetch('/subjects', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': readCookie('XSRF-TOKEN') ?? '',
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({ name, kind: 'person' }),
-        });
-
-        if (! response.ok) {
-            return;
-        }
-
-        const { data } = await response.json();
-        place(data.id, data.name);
-    } finally {
-        creating.value = false;
-    }
-}
-
-function select(item) {
-    if (item.create) {
-        createSubject();
-
-        return;
-    }
-
-    place(item.value, item.label);
-}
-
-const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
-    onSelect: select,
-    onDismiss: closePicker,
-});
+const subjectPickerHint = computed(() => (
+    props.pendingPosition ? 'Point set. Pick who it is.' : 'Click the photo to place a point, or pick someone for the centre.'
+));
 </script>
 
 <template>
@@ -215,43 +130,13 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 </li>
             </ul>
 
-            <div v-if="pickerRole === 'subject'" ref="pickerRoot" class="relative">
-                <input
-                    :value="query"
-                    type="text"
-                    placeholder="Tag a person, pet, spot or thing"
-                    class="w-full min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 text-meta text-neutral-900 placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none"
-                    autocomplete="off"
-                    role="combobox"
-                    :aria-expanded="suggestionsOpen"
-                    aria-autocomplete="list"
-                    @input="onInput($event.target.value)"
-                    @focus="search"
-                    @keydown="onListKeydown"
-                >
-                <ul
-                    v-if="suggestionsOpen && listItems.length"
-                    class="absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
-                    role="listbox"
-                >
-                    <li v-for="(item, index) in listItems" :key="item.value">
-                        <button
-                            type="button"
-                            role="option"
-                            :aria-selected="index === active"
-                            class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
-                            :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
-                            @mousedown.prevent="select(item)"
-                        >
-                            <span class="min-w-0 truncate">{{ item.label }}</span>
-                        </button>
-                    </li>
-                </ul>
-                <p class="mt-1 text-caption text-neutral-500">
-                    {{ pendingPosition ? 'Point set. Pick who it is.' : 'Click the photo to place a point, or pick someone for the centre.' }}
-                </p>
-                <Button variant="ghost" size="sm" class="mt-1" @click="closePicker">Cancel</Button>
-            </div>
+            <SubjectAutocomplete
+                v-if="pickerRole === 'subject'"
+                placeholder="Tag a person, pet, spot or thing"
+                :hint="subjectPickerHint"
+                @pick="place"
+                @cancel="closePicker"
+            />
             <Button v-else variant="secondary" size="sm" class="self-start" @click="openSubjectPicker">
                 <Icon name="CrosshairIcon" class="size-4" />
                 Tag someone
@@ -279,40 +164,12 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 </li>
             </ul>
 
-            <div v-if="pickerRole === 'camera'" ref="pickerRoot" class="relative">
-                <input
-                    :value="query"
-                    type="text"
-                    placeholder="Who took it"
-                    class="w-full min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2 text-meta text-neutral-900 placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none"
-                    autocomplete="off"
-                    role="combobox"
-                    :aria-expanded="suggestionsOpen"
-                    aria-autocomplete="list"
-                    @input="onInput($event.target.value)"
-                    @focus="search"
-                    @keydown="onListKeydown"
-                >
-                <ul
-                    v-if="suggestionsOpen && listItems.length"
-                    class="absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
-                    role="listbox"
-                >
-                    <li v-for="(item, index) in listItems" :key="item.value">
-                        <button
-                            type="button"
-                            role="option"
-                            :aria-selected="index === active"
-                            class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
-                            :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
-                            @mousedown.prevent="select(item)"
-                        >
-                            <span class="min-w-0 truncate">{{ item.label }}</span>
-                        </button>
-                    </li>
-                </ul>
-                <Button variant="ghost" size="sm" class="mt-1" @click="closePicker">Cancel</Button>
-            </div>
+            <SubjectAutocomplete
+                v-if="pickerRole === 'camera'"
+                placeholder="Who took it"
+                @pick="place"
+                @cancel="closePicker"
+            />
             <Button v-else variant="secondary" size="sm" class="self-start" @click="openCameraPicker">
                 <Icon name="Camera01Icon" class="size-4" />
                 Add camera credit

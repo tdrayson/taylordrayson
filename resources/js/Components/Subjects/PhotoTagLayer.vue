@@ -129,7 +129,7 @@ watch(() => props.placing, (placing) => {
             v-for="tag in positionTags"
             :key="tag.subjectId"
             :href="tag.url"
-            class="absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none"
+            class="absolute -translate-x-1/2 -translate-y-1/2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/60"
             :style="{ left: `${tag.x}%`, top: `${tag.y}%` }"
             @mouseenter="emit('hover', tag.subjectId)"
             @mouseleave="emit('unhover')"
