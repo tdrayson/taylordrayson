@@ -33,3 +33,13 @@ it('names the property path a review writes to', function () {
 it('has two photo tag roles', function () {
     expect(PhotoTagRole::cases())->toHaveCount(2);
 });
+
+it('resolves a kind from its url word', function () {
+    expect(SubjectKind::fromSegment('people'))->toBe(SubjectKind::Person)
+        ->and(SubjectKind::fromSegment('aliens'))->toBeNull();
+});
+
+it('requires a position only for a subject tag', function () {
+    expect(PhotoTagRole::Subject->needsPosition())->toBeTrue()
+        ->and(PhotoTagRole::Camera->needsPosition())->toBeFalse();
+});

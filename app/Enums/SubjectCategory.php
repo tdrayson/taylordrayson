@@ -53,11 +53,7 @@ enum SubjectCategory: string
         };
     }
 
-    /**
-     * The wording an entry line uses. Null means the entry says nothing, which
-     * is every thing: the entry cannot tell a car that was driven from one that
-     * was parked in the background of a photograph.
-     */
+    /** Entry line wording, delegated from the kind. */
     public function phrase(): ?string
     {
         return match ($this->kind()) {

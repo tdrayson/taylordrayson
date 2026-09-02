@@ -39,9 +39,8 @@ enum SubjectKind: string
     }
 
     /**
-     * The wording an entry line uses when the subject's category has none.
-     * A thing returns null: an entry cannot tell whether a car in a photograph
-     * was driven or merely parked there, so it claims neither.
+     * Entry line wording when the category has none. Thing returns null since
+     * an entry cannot tell a car driven from one parked in the background.
      */
     public function phrase(): ?string
     {
