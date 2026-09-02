@@ -40,8 +40,7 @@ class LifeController extends Controller
 
     /**
      * A kind index: every subject of this kind, optionally narrowed to a
-     * category. An unknown kind 404s; an unknown or mismatched category is
-     * ignored rather than erroring, since the facet is a filter, not identity.
+     * category. An unknown kind 404s; an unknown category is ignored, not erroring.
      */
     public function kind(string $kind, Request $request): Response
     {

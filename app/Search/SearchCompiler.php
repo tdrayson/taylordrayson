@@ -141,6 +141,12 @@ class SearchCompiler
                 continue;
             }
 
+            if ($field['dataType'] === 'subject') {
+                $this->anySubject($query, $condition['operator'], $condition['value']);
+
+                continue;
+            }
+
             // The remaining "any" fields are date presets that constrain the entry directly.
             $this->clause($query, $field['column'], $field['dataType'], $condition['operator'], $condition['value']);
         }
@@ -221,6 +227,105 @@ class SearchCompiler
     }
 
     /**
+     * Constrain a query by the derived union of its subjects: its own direct
+     * tags, plus everyone tagged in its cover and photos attachments.
+     *
+     * @param  Builder  $query  The (possibly morphed) model query to constrain.
+     * @param  string  $operator  One of includes/includes_all/excludes/has_any/has_none.
+     * @param  mixed  $value  A subject slug, a list of slugs, or null for has_any/has_none.
+     */
+    private function subjectClause(Builder $query, string $operator, mixed $value): void
+    {
+        if ($operator === 'has_any') {
+            $this->subjectUnionExists($query, null);
+
+            return;
+        }
+
+        if ($operator === 'has_none') {
+            $this->subjectUnionMissing($query, null);
+
+            return;
+        }
+
+        $slugs = array_values(array_filter(
+            is_array($value) ? $value : [$value],
+            fn (mixed $slug): bool => is_string($slug) && $slug !== '',
+        ));
+
+        if ($slugs === []) {
+            return;
+        }
+
+        if ($operator === 'excludes') {
+            foreach ($slugs as $slug) {
+                $this->subjectUnionMissing($query, $slug);
+            }
+
+            return;
+        }
+
+        if ($operator === 'includes_all') {
+            foreach ($slugs as $slug) {
+                $this->subjectUnionExists($query, $slug);
+            }
+
+            return;
+        }
+
+        // includes: matches any of the given slugs.
+        $query->where(function (Builder $inner) use ($slugs): void {
+            foreach ($slugs as $slug) {
+                $inner->orWhere(fn (Builder $branch) => $this->subjectUnionExists($branch, $slug));
+            }
+        });
+    }
+
+    /**
+     * Add an OR-ed existence check for a subject (or, with a null slug, any
+     * subject at all) reachable through the direct relation or a photograph.
+     *
+     * @param  Builder  $query  The model query to constrain.
+     * @param  string|null  $slug  A specific subject's slug, or null for "any".
+     */
+    private function subjectUnionExists(Builder $query, ?string $slug): void
+    {
+        $query->where(function (Builder $q) use ($slug): void {
+            $q->whereHas('subjects', fn (Builder $s) => $this->slugFilter($s, $slug))
+                ->orWhereHas('media', function (Builder $m) use ($slug): void {
+                    $m->whereIn('collection_name', ['cover', 'photos'])
+                        ->whereHas('subjects', fn (Builder $s) => $this->slugFilter($s, $slug));
+                });
+        });
+    }
+
+    /**
+     * AND-ed absence check: neither a direct tag nor a photograph carries the
+     * subject (or, with a null slug, no subject at all).
+     *
+     * @param  Builder  $query  The model query to constrain.
+     * @param  string|null  $slug  A specific subject's slug, or null for "any".
+     */
+    private function subjectUnionMissing(Builder $query, ?string $slug): void
+    {
+        $query->whereDoesntHave('subjects', fn (Builder $s) => $this->slugFilter($s, $slug))
+            ->whereDoesntHave('media', function (Builder $m) use ($slug): void {
+                $m->whereIn('collection_name', ['cover', 'photos'])
+                    ->whereHas('subjects', fn (Builder $s) => $this->slugFilter($s, $slug));
+            });
+    }
+
+    /**
+     * Narrow a subjects query to one slug, or leave it unconstrained for null.
+     */
+    private function slugFilter(Builder $query, ?string $slug): void
+    {
+        if ($slug !== null) {
+            $query->where('slug', $slug);
+        }
+    }
+
+    /**
      * Apply a photo-count filter across every timeline type for the Anything group.
      *
      * @param  Builder  $query  The TimelineEntry query to constrain.
@@ -234,6 +339,23 @@ class SearchCompiler
         $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
             $this->guardPublished($morph, $modelClass);
             $this->mediaClause($morph, $operator, $value);
+        });
+    }
+
+    /**
+     * Apply a subject filter across every timeline type for the Anything group.
+     *
+     * @param  Builder  $query  The TimelineEntry query to constrain.
+     * @param  string  $operator  One of includes/includes_all/excludes/has_any/has_none.
+     * @param  mixed  $value  A subject slug, a list of slugs, or null.
+     */
+    private function anySubject(Builder $query, string $operator, mixed $value): void
+    {
+        $models = collect(TypeRegistry::all())->pluck('model')->all();
+
+        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
+            $this->guardPublished($morph, $modelClass);
+            $this->subjectClause($morph, $operator, $value);
         });
     }
 
@@ -253,6 +375,12 @@ class SearchCompiler
 
         if ($field['dataType'] === 'media') {
             $this->mediaClause($query, $operator, $value);
+
+            return;
+        }
+
+        if ($field['dataType'] === 'subject') {
+            $this->subjectClause($query, $operator, $value);
 
             return;
         }

@@ -45,10 +45,8 @@ class SubjectRequest extends FormRequest
     }
 
     /**
-     * A category belongs to one kind, which the enum cannot enforce alone. The
-     * kind being validated is either freshly submitted (create) or, on an
-     * update where it is settled and no longer resubmitted, the route-bound
-     * subject's own.
+     * A category belongs to one kind, which the enum cannot enforce alone: the
+     * kind being validated is the submitted one, or on update, the route-bound subject's.
      */
     private function belongsToKind(): Closure
     {

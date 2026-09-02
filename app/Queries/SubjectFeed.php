@@ -6,7 +6,6 @@ use App\Actions\BuildTimelineFeed;
 use App\Http\Controllers\TagController;
 use App\Models\Article;
 use App\Models\Attachment;
-use App\Models\Concerns\HasSubjects;
 use App\Models\Subject;
 use App\Models\Subjectable;
 use App\Models\TimelineEntry;
@@ -15,11 +14,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Cross-type feed of every timeline entry a subject is on, resolved through
- * the spine the same way {@see TagController} does.
- * A subject's own direct tags and the owners of its tagged photographs are
- * unioned before resolving, so an entry reached only through a photograph
- * still appears, matching {@see HasSubjects::allSubjects()}.
+ * Cross-type feed of every timeline entry a subject is on (its own direct
+ * tags union its tagged photographs' owners), resolved the way {@see TagController} does.
  */
 final class SubjectFeed
 {
@@ -56,10 +52,8 @@ final class SubjectFeed
     }
 
     /**
-     * The union of the subject's own subjectable rows and the owning models of
-     * every attachment it is tagged on. Public so other queries (e.g.
-     * {@see SubjectCompanions}) can build on the same definition of "which
-     * entries is this subject on" rather than a second, divergent one.
+     * The union of the subject's own subjectable rows and the owners of every
+     * attachment it is tagged on. Public so other queries share this definition.
      *
      * @return Collection<int, array{type: string, id: int}>
      */

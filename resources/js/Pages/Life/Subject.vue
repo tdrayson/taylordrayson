@@ -100,7 +100,7 @@ const lightboxIndex = ref(null);
         />
     </div>
 
-    <article v-else>
+    <article v-else class="h-card">
         <SubjectImage
             :cover="subject.cover"
             :name="subject.name"
@@ -112,8 +112,22 @@ const lightboxIndex = ref(null);
 
         <header>
             <p class="text-eyebrow uppercase text-neutral-500">{{ eyebrow }}</p>
-            <h1 v-twemoji class="mt-1 max-w-2xl font-display text-display">{{ subject.name }}</h1>
+            <h1 v-twemoji class="p-name mt-1 max-w-2xl font-display text-display">{{ subject.name }}</h1>
         </header>
+
+        <!-- Hidden, not dropped: microformats parsers read the DOM and ignore
+             CSS, on the same reasoning as ProfileCard's rel-me links. The
+             page's own u-url is a self-link, and each identity that carries a
+             real URL adds another. -->
+        <a :href="subject.url" class="u-url" hidden>{{ subject.name }}</a>
+        <a
+            v-for="identity in subject.identityLinks"
+            :key="identity.platform"
+            :href="identity.url"
+            rel="me"
+            class="u-url"
+            hidden
+        >{{ identity.platform }}</a>
 
         <BlockContent v-if="subject.bio" :document="subject.bio" class="mt-8" />
 

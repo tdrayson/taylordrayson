@@ -34,8 +34,7 @@ class SubjectController extends Controller
 
     /**
      * A subject's page: everything it appears in and every photograph it is
-     * tagged in. The subject itself existing is enough to render; an empty
-     * feed is a valid state; a subject or kind mismatch is not.
+     * tagged in. An empty feed is valid; a subject or kind mismatch 404s.
      */
     public function show(string $kind, string $slug): Response
     {

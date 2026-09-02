@@ -9,9 +9,7 @@ use App\Enums\SubjectKind;
 
 /**
  * A person, pet, spot or thing: slug-routed and dateless, like a page, but
- * offering a different shape per kind. Takes the kind, unlike every other
- * fields class, because that shape genuinely differs: only a spot gets a
- * location search, since it is the one kind with coordinates worth picking.
+ * offering a different shape per kind (only a spot gets a location search).
  */
 final class SubjectFields
 {

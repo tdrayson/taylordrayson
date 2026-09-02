@@ -35,12 +35,12 @@ const editing = ref(false);
             <template v-for="(subject, index) in line.subjects" :key="subject.id">
                 <Link
                     :href="subject.url"
-                    class="inline-flex items-center gap-1 align-middle font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                    class="p-category h-card u-url inline-flex items-center gap-1 align-middle font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                 >
                     <span class="size-4 shrink-0 overflow-hidden rounded-full bg-neutral-25">
                         <img v-if="subject.image" :src="subject.image" alt="" class="size-full object-cover">
                     </span>
-                    {{ subject.name }}
+                    <span class="p-name">{{ subject.name }}</span>
                 </Link><span v-if="index < line.subjects.length - 1">, </span>
             </template>
         </p>

@@ -4,6 +4,7 @@ namespace App\Search;
 
 use App\Models\Page;
 use App\Models\Series;
+use App\Models\Subject;
 use App\Models\Tag;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
@@ -26,6 +27,9 @@ final class SuggestSearch
 
     /** And a page's share, on the same reasoning. */
     private const PAGE_LIMIT = 3;
+
+    /** And a subject's, on the same reasoning. */
+    private const SUBJECT_LIMIT = 3;
 
     private const PER_TYPE = 5;
 
@@ -89,7 +93,7 @@ final class SuggestSearch
         return [
             'results' => $results,
             'destinations' => array_slice(
-                [...$this->matchSeries($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
+                [...$this->matchSeries($term), ...$this->matchSubjects($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
                 0,
                 self::DESTINATION_LIMIT,
             ),
@@ -155,6 +159,32 @@ final class SuggestSearch
                 'type' => 'page',
                 'tag' => false,
                 'url' => $page->url(),
+            ])
+            ->all();
+    }
+
+    /**
+     * People, pets, spots and things whose name matches the term, excluding
+     * Self: a jump to your own page from your own palette does nothing.
+     *
+     * @param  string  $term  The free-text query.
+     * @return array<int, array{label: string, section: string, type: string, tag: bool, url: string}>
+     */
+    private function matchSubjects(string $term): array
+    {
+        return Subject::query()
+            ->where('name', 'like', '%'.$term.'%')
+            ->where('slug', '!=', config('life.self_slug'))
+            ->orderByRaw('CASE WHEN name LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
+            ->orderByRaw('LENGTH(name)')
+            ->limit(self::SUBJECT_LIMIT)
+            ->get()
+            ->map(fn (Subject $subject): array => [
+                'label' => $subject->name,
+                'section' => $subject->kind->plural(),
+                'type' => 'subject',
+                'tag' => false,
+                'url' => $subject->url(),
             ])
             ->all();
     }

@@ -10,13 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * The subjects most often appearing on the same entries as this one,
- * most-shared first, excluding the subject itself. Issue #82's "people I ride
- * with". "Appearing" means the same union {@see SubjectFeed::targets()} uses
- * everywhere else: a companion tagged directly on a shared entry counts, and
- * so does one tagged only on a photograph of it, since most tagging happens
- * through the photo queue and direct-only would render this empty for almost
- * everyone.
+ * The subjects most often appearing (per {@see SubjectFeed::targets()})
+ * on the same entries as this one, most-shared first. Issue #82.
  */
 final class SubjectCompanions
 {

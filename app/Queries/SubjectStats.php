@@ -5,10 +5,8 @@ namespace App\Queries;
 use App\Models\Subject;
 
 /**
- * A subject's numbers for its page: entries per type, how many photographs,
- * and the span from first appearance to last. Built over {@see SubjectFeed}
- * and {@see SubjectPhotos} rather than re-resolving the same entries, so the
- * counts can never drift from what the page itself lists.
+ * A subject's numbers for its page: entries per type, photo count, and its
+ * first-to-last span, built over {@see SubjectFeed} and {@see SubjectPhotos}.
  */
 final class SubjectStats
 {

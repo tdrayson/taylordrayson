@@ -25,6 +25,7 @@ export const entryTypes = {
     period: { icon: 'Calendar03Icon', label: 'Archive', href: '/', accent: 'article' },
     tag: { icon: 'Tag01Icon', label: 'Tag', href: '/tags', accent: 'article' },
     live: { icon: 'Clock01Icon', label: 'Now', href: '/now', accent: 'activity' },
+    subject: { icon: 'UserIcon', label: 'Subject', href: '/life', accent: 'article' },
 };
 
 export function entryType(type) {
