@@ -27,6 +27,7 @@ use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\MediaArtwork;
+use App\Queries\MentionedSubjects;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
@@ -364,7 +365,7 @@ class EntryController extends Controller
     private function subjects(Model $model): array
     {
         if (! method_exists($model, 'allSubjects')) {
-            return ['lines' => [], 'direct' => []];
+            return ['lines' => [], 'direct' => [], 'mentioned' => []];
         }
 
         $byPhrase = [];
@@ -392,6 +393,14 @@ class EntryController extends Controller
             'direct' => $model->subjects
                 ->map(fn (Subject $subject): array => ['id' => $subject->id, 'name' => $subject->name])
                 ->all(),
+            // Suggestions only, for the signed-in author who sees the picker;
+            // a mention is never attached on its own. Only prose types carry
+            // mentions at all.
+            'mentioned' => Auth::check() && ($model instanceof Article || $model instanceof Note)
+                ? app(MentionedSubjects::class)($model)
+                    ->map(fn (Subject $subject): array => ['id' => $subject->id, 'name' => $subject->name])
+                    ->all()
+                : [],
         ];
     }
 }

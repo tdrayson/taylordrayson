@@ -18,6 +18,10 @@ import { useListNavigation } from '../../lib/editor/listNavigation.js';
  */
 const props = defineProps({
     modelValue: { type: Array, default: () => [] }, // list<{id, name}>
+    // list<{id, name}>, subjects the prose already names but hasn't tagged,
+    // offered as one-tap adds. A mention is a suggestion, never a tag: picking
+    // one here is the author's own decision, not something done for them.
+    mentioned: { type: Array, default: () => [] },
     type: { type: String, required: true },
     entryId: { type: [Number, String], required: true },
 });
@@ -36,6 +40,12 @@ const subjects = computed(() => props.modelValue);
 // the entry is a row that does nothing.
 const offered = computed(() => suggestions.value.filter(
     (suggestion) => ! subjects.value.some((subject) => subject.id === suggestion.value),
+));
+
+// Re-filtered client-side too: a suggestion tapped a moment ago is still on
+// the entry until the sync round-trips, and shouldn't flash back into view.
+const mentionedOffered = computed(() => props.mentioned.filter(
+    (subject) => ! subjects.value.some((tagged) => tagged.id === subject.id),
 ));
 
 // The create shortcut only replaces an empty result, not a partial one: a
@@ -187,6 +197,22 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 @click="$emit('close')"
             >
                 <Icon name="Cancel01Icon" class="size-4" />
+            </Button>
+        </div>
+
+        <!-- One-tap suggestions from the prose, never auto-attached: naming
+        someone in a sentence isn't the same claim as tagging them here. -->
+        <div v-if="mentionedOffered.length" class="mt-1.5 flex flex-wrap gap-1.5">
+            <Button
+                v-for="subject in mentionedOffered"
+                :key="subject.id"
+                variant="chip"
+                size="sm"
+                pill
+                @click="pick({ value: subject.id, label: subject.name })"
+            >
+                <Icon name="PlusSignIcon" class="size-3" />
+                {{ subject.name }}
             </Button>
         </div>
 

@@ -8,8 +8,9 @@ const props = defineProps({
     source: { type: Object, default: null },
     // Linkable tags [{ name, slug, url }]; only taggable types (notes, articles, projects, events) carry any.
     tags: { type: Array, default: () => [] },
-    // Grouped subject lines plus the entry's own direct tags; see SubjectChips.
-    subjects: { type: Object, default: () => ({ lines: [], direct: [] }) },
+    // Grouped subject lines, the entry's own direct tags, and mentioned-but-
+    // untagged subjects; see SubjectChips.
+    subjects: { type: Object, default: () => ({ lines: [], direct: [], mentioned: [] }) },
     type: { type: String, default: null },
     entryId: { type: [Number, String], default: null },
     signedIn: { type: Boolean, default: false },
@@ -27,6 +28,7 @@ const hasContent = () => props.tags.length > 0 || Boolean(props.source) || props
             v-if="type && entryId"
             :lines="subjects.lines"
             :direct="subjects.direct"
+            :mentioned="subjects.mentioned"
             :type="type"
             :entry-id="entryId"
             :signed-in="signedIn"

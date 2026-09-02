@@ -17,6 +17,9 @@ const props = defineProps({
     lines: { type: Array, default: () => [] },
     // list<{id, name}>, this entry's own direct tags, for the picker to edit.
     direct: { type: Array, default: () => [] },
+    // list<{id, name}>, subjects the prose names but hasn't tagged, for the
+    // picker to offer as one-tap suggestions.
+    mentioned: { type: Array, default: () => [] },
     type: { type: String, required: true },
     entryId: { type: [Number, String], required: true },
     signedIn: { type: Boolean, default: false },
@@ -56,6 +59,7 @@ const editing = ref(false);
         <SubjectPicker
             v-if="editing"
             :model-value="direct"
+            :mentioned="mentioned"
             :type="type"
             :entry-id="entryId"
             @close="editing = false"
