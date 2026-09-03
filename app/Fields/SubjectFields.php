@@ -4,6 +4,7 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Enums\IdentityPlatform;
 use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
 
@@ -26,7 +27,7 @@ final class SubjectFields
             ...self::locationFields($kind),
             FieldData::optional('meta', 'Facts', FieldType::Facts),
             FieldData::optional('identities', 'Identities', FieldType::Facts, options: [
-                ['value' => 'platform', 'label' => 'Platform'],
+                ['value' => 'platform', 'label' => 'Platform', 'options' => IdentityPlatform::options()],
                 ['value' => 'value', 'label' => 'Value'],
             ]),
             FieldData::primary('slug', 'Slug', FieldType::Slug),

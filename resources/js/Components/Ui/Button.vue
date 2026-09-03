@@ -35,6 +35,9 @@ const classes = computed(() =>
         props.pill ? 'rounded-full' : 'rounded-md',
         VARIANTS[props.variant] ?? VARIANTS.secondary,
         SIZES[props.size] ?? SIZES.md,
+        // A link reads as text in the flow around it, so the size's box padding
+        // would push it out of line with the paragraph beside it.
+        props.variant === 'link' ? 'px-0' : '',
         props.class,
     ),
 );

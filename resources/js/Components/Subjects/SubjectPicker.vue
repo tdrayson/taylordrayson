@@ -165,7 +165,7 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
             <span
                 v-for="subject in subjects"
                 :key="subject.id"
-                class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700"
+                class="inline-flex items-center gap-1 rounded-md bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700"
             >
                 {{ subject.name }}
                 <Button

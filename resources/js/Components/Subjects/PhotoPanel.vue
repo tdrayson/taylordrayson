@@ -118,7 +118,7 @@ const subjectPickerHint = computed(() => (
 
             <ul v-if="subjectTags.length" class="flex flex-wrap gap-1.5">
                 <li v-for="tag in subjectTags" :key="tag.subjectId">
-                    <span class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700">
+                    <span class="inline-flex items-center gap-1 rounded-md bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700">
                         {{ tag.name }}
                         <Button
                             variant="ghost"
@@ -152,7 +152,7 @@ const subjectPickerHint = computed(() => (
 
             <ul v-if="cameraTags.length" class="flex flex-wrap gap-1.5">
                 <li v-for="tag in cameraTags" :key="tag.subjectId">
-                    <span class="inline-flex items-center gap-1 rounded bg-neutral-25 py-0.5 pl-2 pr-1 text-meta text-neutral-700">
+                    <span class="inline-flex items-center gap-1 rounded-md bg-neutral-25 py-0.5 pl-2 pr-1 text-meta text-neutral-700">
                         {{ tag.name }}
                         <Button
                             variant="ghost"

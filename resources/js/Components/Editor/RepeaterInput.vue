@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import Input from '../Ui/Input.vue';
+import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 
 /**
  * A list of rows sharing the same two columns, e.g. a subject's facts
@@ -10,7 +11,9 @@ import Input from '../Ui/Input.vue';
  */
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
-    // list<{value, label}>, the row keys to read/write and their headers.
+    // list<{value, label, options?}>, the row keys to read/write and their
+    // headers. A column carrying its own `options` list (also {value, label})
+    // renders as a select rather than a free-text box.
     // Defaults to a plain label/value pair when a field offers no override.
     columns: {
         type: Array,
@@ -43,14 +46,28 @@ function remove(index) {
 <template>
     <div :id="id" class="flex flex-col gap-2">
         <div v-for="(row, index) in rows" :key="index" class="flex items-start gap-2">
-            <Input
-                v-for="column in columns"
-                :key="column.value"
-                :model-value="row[column.value] ?? ''"
-                :placeholder="column.label"
-                class="flex-1"
-                @update:model-value="update(index, column.value, $event)"
-            />
+            <template v-for="column in columns" :key="column.value">
+                <select
+                    v-if="column.options"
+                    :value="row[column.value] ?? ''"
+                    :class="[CONTROL, CONTROL_BORDER, 'flex-1', row[column.value] ? 'text-neutral-900' : 'text-neutral-500']"
+                    :aria-label="`${column.label}, row ${index + 1}`"
+                    @change="update(index, column.value, $event.target.value)"
+                >
+                    <option value="" disabled>{{ column.label }}</option>
+                    <option v-for="option in column.options" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </option>
+                </select>
+
+                <Input
+                    v-else
+                    :model-value="row[column.value] ?? ''"
+                    :placeholder="column.label"
+                    class="flex-1"
+                    @update:model-value="update(index, column.value, $event)"
+                />
+            </template>
 
             <button
                 type="button"

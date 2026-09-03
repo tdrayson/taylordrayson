@@ -36,7 +36,6 @@ const props = defineProps({
 // The URL is /life/{segment}/{slug}; the segment isn't otherwise on the
 // payload, and the breadcrumb needs it to link back to the kind index.
 const segment = computed(() => props.subject.url.split('/')[2]);
-const isThing = computed(() => props.subject.kind === 'Thing');
 const hasLocation = computed(() => props.subject.latitude !== null && props.subject.longitude !== null);
 // The URL word is already the lowercased plural of the kind, so the crumb
 // takes it from there rather than re-pluralising the singular display label.
@@ -46,7 +45,11 @@ const totalEntries = computed(() => Object.values(props.stats.entries).reduce((s
 const statItems = computed(() => [
     { label: 'Entries', value: totalEntries.value },
     { label: 'Photos', value: props.stats.photos },
-]);
+].filter((stat) => stat.value > 0));
+
+// The reference panel earns its border only when it has something in it; a
+// subject with no facts and nothing tagged yet skips it entirely.
+const hasDetail = computed(() => props.subject.facts.length > 0 || statItems.value.length > 0);
 
 setLayoutProps({
     minimal: props.editing,
@@ -103,17 +106,28 @@ const lightboxIndex = ref(null);
     </div>
 
     <article v-else class="h-card">
-        <SubjectImage
-            :cover="subject.cover"
-            :name="subject.name"
-            :kind="subject.kind"
-            :wide="isThing"
-            class="mb-6"
-            :class="isThing ? '' : 'max-w-md'"
-        />
+        <!-- Portrait beside the name, not a full-width plate above it: the page
+             is about the subject, and one measure keeps the header, the prose
+             and the grids below on the same left-to-right rhythm. -->
+        <header class="flex items-start gap-5 sm:gap-6">
+            <SubjectImage
+                :cover="subject.cover"
+                :name="subject.name"
+                :kind="subject.kind"
+                class="w-28 shrink-0 sm:w-36"
+            />
 
-        <header>
-            <h1 v-twemoji class="p-name max-w-2xl font-display text-display">{{ subject.name }}</h1>
+            <div class="min-w-0 flex-1 pt-1">
+                <h1 v-twemoji class="p-name font-display text-display">{{ subject.name }}</h1>
+                <p v-if="subject.category" class="mt-1 text-meta text-neutral-500">{{ subject.category }}</p>
+
+                <!-- Both only mean anything to the owner, so they sit with the
+                     name rather than interrupting the sections below. -->
+                <div v-if="signedIn" class="mt-3 flex items-center gap-4">
+                    <Button href="?edit" variant="link" size="sm">Edit</Button>
+                    <Button variant="link" size="sm" class="text-red-600 hover:text-red-700" @click="destroy">Delete</Button>
+                </div>
+            </div>
         </header>
 
         <!-- Hidden, not dropped: microformats parsers read the DOM and ignore
@@ -130,15 +144,19 @@ const lightboxIndex = ref(null);
             hidden
         >{{ identity.platform }}</a>
 
-        <BlockContent v-if="subject.bio" :document="subject.bio" class="mt-8" />
+        <BlockContent v-if="subject.bio" :document="subject.bio" class="mt-8 max-w-2xl" />
 
-        <SubjectFacts :facts="subject.facts" class="mt-8" />
+        <!-- The typed-in facts, the counts and the span are one block of
+             reference detail, so they share a panel instead of stacking as
+             three unrelated islands. -->
+        <div v-if="hasDetail" class="mt-8 flex max-w-2xl flex-col gap-6 rounded-lg border border-neutral-50 bg-neutral-25 p-5 sm:p-6">
+            <SubjectFacts :facts="subject.facts" />
 
-        <StatGrid :stats="statItems" size="sm" class="mt-8" />
-        <p v-if="stats.first && stats.last" class="mt-2 text-meta text-neutral-500">
-            <template v-if="stats.first === stats.last">Logged on {{ stats.first }}</template>
-            <template v-else>From {{ stats.first }} to {{ stats.last }}</template>
-        </p>
+            <div v-if="statItems.length">
+                <StatGrid :stats="statItems" size="sm" />
+                <p v-if="stats.span" class="mt-3 text-meta text-neutral-500">{{ stats.span }}</p>
+            </div>
+        </div>
 
         <LocationMap
             v-if="hasLocation"
@@ -147,18 +165,6 @@ const lightboxIndex = ref(null);
             :label="subject.name"
             class="mt-8"
         />
-
-        <!-- Both only mean anything to the owner, so they sit together below
-             the subject rather than interrupting the header. -->
-        <div v-if="signedIn" class="mt-3 flex items-center gap-3">
-            <Button href="?edit" variant="link" size="sm">
-                Edit {{ subject.name }}
-            </Button>
-
-            <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700" @click="destroy">
-                Delete
-            </Button>
-        </div>
 
         <section v-if="companions.length">
             <SectionHead title="Appears with" />

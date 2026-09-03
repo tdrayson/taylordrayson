@@ -142,7 +142,7 @@ watch(() => props.placing, (placing) => {
                 :class="{ 'opacity-100': hoveredId === tag.subjectId }"
             >
                 <span class="size-0 border-x-4 border-b-4 border-x-transparent border-b-black/80" />
-                <span class="-mt-px whitespace-nowrap rounded bg-black/80 px-2 py-0.5 text-caption text-white">{{ tag.name }}</span>
+                <span class="-mt-px whitespace-nowrap rounded-md bg-black/80 px-2 py-0.5 text-caption text-white">{{ tag.name }}</span>
             </span>
         </a>
     </div>
