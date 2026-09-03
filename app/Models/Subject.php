@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Data\SubjectIdentities;
 use App\Data\SubjectMeta;
 use App\Data\SubjectRules;
-use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
 use App\Models\Concerns\HasAttachments;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,7 +28,6 @@ class Subject extends Model implements HasMedia
     {
         return [
             'kind' => SubjectKind::class,
-            'category' => SubjectCategory::class,
             'bio' => 'array',
             'meta' => SubjectMeta::class,
             'identities' => SubjectIdentities::class,

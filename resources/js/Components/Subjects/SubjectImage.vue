@@ -12,6 +12,10 @@ const props = defineProps({
     kind: { type: String, default: 'Person' },
     // A thing's illustration reads as a wide picture rather than a portrait.
     wide: { type: Boolean, default: false },
+    // A subject page's establishing band. A fixed height rather than a ratio:
+    // with an aspect ratio set, capping the height shrinks the width to match
+    // and the image stops filling its column.
+    hero: { type: Boolean, default: false },
 });
 
 const FALLBACK_ICONS = {
@@ -27,7 +31,7 @@ const fallbackIcon = computed(() => FALLBACK_ICONS[props.kind] ?? UserIcon);
 <template>
     <div
         class="overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
-        :class="wide ? 'aspect-video' : 'aspect-square'"
+        :class="hero ? 'h-64 w-full sm:h-80' : wide ? 'aspect-video' : 'aspect-square'"
     >
         <img
             v-if="cover"

@@ -9,6 +9,7 @@ use App\Queries\Lookups\BookLookup;
 use App\Queries\Lookups\FuelBrandLookup;
 use App\Queries\Lookups\PlaceLookup;
 use App\Queries\Lookups\StationLookup;
+use App\Queries\Lookups\SubjectCategoryLookup;
 use App\Queries\Lookups\SubjectLookup;
 use App\Queries\Lookups\TagLookup;
 use App\Queries\Lookups\TimezoneLookup;
@@ -33,6 +34,10 @@ class LookupController extends Controller
             'airline' => app(AirlineLookup::class)($query),
             'book' => app(BookLookup::class)($query),
             'tag' => app(TagLookup::class)($query),
+            'subject-category' => app(SubjectCategoryLookup::class)(
+                $query,
+                SubjectKind::tryFrom((string) $request->query('kind')),
+            ),
             'subject' => app(SubjectLookup::class)(
                 $query,
                 $request->boolean('include_self'),

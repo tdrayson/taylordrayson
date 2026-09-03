@@ -24,10 +24,42 @@ final class SubjectFeed
     /** @return array<int, array<string, mixed>> */
     public function __invoke(Subject $subject): array
     {
+        return $this->feed->groupByDay($this->entries($subject));
+    }
+
+    /**
+     * One page of the feed, newest first, plus how many pages there are.
+     *
+     * Sliced in memory rather than in the query: the set is assembled from two
+     * unions and an auth-only preview branch, and the counts beside it need the
+     * whole thing anyway.
+     *
+     * @return array{groups: array<int, array<string, mixed>>, currentPage: int, lastPage: int}
+     */
+    public function paginate(Subject $subject, int $perPage, int $page): array
+    {
+        $entries = $this->entries($subject);
+        $lastPage = max(1, (int) ceil($entries->count() / $perPage));
+        $current = max(1, min($page, $lastPage));
+
+        return [
+            'groups' => $this->feed->groupByDay($entries->forPage($current, $perPage)->values()),
+            'currentPage' => $current,
+            'lastPage' => $lastPage,
+        ];
+    }
+
+    /**
+     * Every entry the subject is on, newest first.
+     *
+     * @return Collection<int, TimelineEntry>
+     */
+    private function entries(Subject $subject): Collection
+    {
         $targets = $this->targets($subject);
 
         if ($targets->isEmpty()) {
-            return [];
+            return collect();
         }
 
         $entries = TimelineEntry::query()
@@ -46,9 +78,9 @@ final class SubjectFeed
             $entries = $entries->concat($this->unpublishedArticlePreviews($targets));
         }
 
-        return $this->feed->groupByDay(
-            $entries->sortByDesc(fn (TimelineEntry $entry): int => $entry->occurred_at->getTimestamp())->values()
-        );
+        return $entries
+            ->sortByDesc(fn (TimelineEntry $entry): int => $entry->occurred_at->getTimestamp())
+            ->values();
     }
 
     /**

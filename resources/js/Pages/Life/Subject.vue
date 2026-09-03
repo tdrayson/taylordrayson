@@ -8,6 +8,7 @@ import SubjectFacts from '../../Components/Subjects/SubjectFacts.vue';
 import BlockContent from '../../Components/Ui/BlockContent.vue';
 import Button from '../../Components/Ui/Button.vue';
 import PhotoGrid from '../../Components/Ui/PhotoGrid.vue';
+import Pagination from '../../Components/Ui/Pagination.vue';
 import SectionHead from '../../Components/Ui/SectionHead.vue';
 import Lightbox from '../../Components/Overlays/Lightbox.vue';
 import LocationMap from '../../Components/Maps/LocationMap.vue';
@@ -21,6 +22,8 @@ const props = defineProps({
     // SubjectData::toArray() shape.
     subject: { type: Object, required: true },
     groups: { type: Array, default: () => [] },
+    currentPage: { type: Number, default: 1 },
+    lastPage: { type: Number, default: 1 },
     photos: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({ entries: {}, photos: 0, first: null, last: null }) },
     companions: { type: Array, default: () => [] },
@@ -56,14 +59,14 @@ const tally = computed(() => {
     }
 
     if (props.stats.photos > 0) {
-        parts.push(counted(props.stats.photos, 'photograph', 'photographs'));
+        parts.push(counted(props.stats.photos, 'photo', 'photos'));
     }
 
     if (!parts.length) {
         return null;
     }
 
-    const summary = `Turns up in ${parts.join(' and ')} on this site`;
+    const summary = `Appears in ${parts.join(' and ')} on this site`;
     const { firstLabel, lastLabel } = props.stats;
 
     if (!firstLabel) {
@@ -85,6 +88,12 @@ setLayoutProps({
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
+
+// The feed can run to hundreds of days; the photos above it cannot, so only
+// this half pages.
+const pageUrl = (page) => (page <= 1 ? props.subject.url : `${props.subject.url}?page=${page}`);
+const prevUrl = computed(() => (props.currentPage > 1 ? pageUrl(props.currentPage - 1) : null));
+const nextUrl = computed(() => (props.currentPage < props.lastPage ? pageUrl(props.currentPage + 1) : null));
 
 // Straight off the record, not rebuilt from the display props: listing the
 // keys by hand meant any field not on that list opened empty and was saved
@@ -149,8 +158,8 @@ const lightboxIndex = ref(null);
             :cover="subject.cover"
             :name="subject.name"
             :kind="subject.kind"
-            wide
-            class="breakout mt-8 max-h-96"
+            hero
+            class="breakout mt-8"
         />
 
         <!-- Hidden, not dropped: microformats parsers read the DOM and ignore
@@ -172,7 +181,7 @@ const lightboxIndex = ref(null);
         <!-- A sentence, not a scoreboard: the counts only describe what this
              site happens to hold, which a bare number and a date range read as
              a claim about the subject itself. -->
-        <p v-if="tally" class="mt-6 max-w-2xl text-body text-neutral-500">{{ tally }}</p>
+        <p v-if="tally" class="mt-4 max-w-2xl text-body text-neutral-900">{{ tally }}</p>
 
         <SubjectFacts :facts="subject.facts" class="mt-8 max-w-2xl" />
 
@@ -220,6 +229,15 @@ const lightboxIndex = ref(null);
                     :heading-level="3"
                 />
             </div>
+
+            <Pagination
+                v-if="lastPage > 1"
+                class="mt-12"
+                :current-page="currentPage"
+                :last-page="lastPage"
+                :prev-url="prevUrl"
+                :next-url="nextUrl"
+            />
         </section>
 
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />

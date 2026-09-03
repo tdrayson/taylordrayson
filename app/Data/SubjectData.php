@@ -2,6 +2,7 @@
 
 namespace App\Data;
 
+use App\Enums\SubjectCategory;
 use App\Models\Subject;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
@@ -41,7 +42,7 @@ final readonly class SubjectData implements Arrayable, JsonSerializable
         return new self(
             id: $subject->id,
             kind: $subject->kind->label(),
-            category: $subject->category?->label(),
+            category: SubjectCategory::labelFor($subject->category),
             name: $subject->name,
             slug: $subject->slug,
             url: $subject->url(),

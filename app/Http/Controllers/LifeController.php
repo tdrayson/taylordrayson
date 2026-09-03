@@ -48,9 +48,18 @@ class LifeController extends Controller
 
         abort_if($subjectKind === null, 404);
 
-        $category = SubjectCategory::tryFrom((string) $request->query('category'));
+        // Facets come from what is actually filed under this kind, not from
+        // the enum: the category list is open, so a typed-in one has to appear.
+        $used = Subject::query()
+            ->where('kind', $subjectKind)
+            ->whereNotNull('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
 
-        if ($category !== null && $category->kind() !== $subjectKind) {
+        $category = SubjectCategory::normalise($request->query('category'));
+
+        if ($category !== null && ! $used->contains($category)) {
             $category = null;
         }
 
@@ -66,20 +75,17 @@ class LifeController extends Controller
             'kind' => $subjectKind->plural(),
             'kindLabel' => $subjectKind->label(),
             'segment' => $subjectKind->segment(),
-            'categories' => collect(SubjectCategory::forKind($subjectKind))
-                ->map(fn (SubjectCategory $option): array => ['value' => $option->value, 'label' => $option->label()])
+            'categories' => $used
+                ->map(fn (string $value): array => ['value' => $value, 'label' => SubjectCategory::labelFor($value)])
                 ->all(),
-            'category' => $category?->value,
-            // Off the kind's whole population, not the filtered $subjects: a
-            // category with zero current rows must not take the facet bar
-            // (including "All") down with it.
-            'hasCategories' => Subject::query()->where('kind', $subjectKind)->whereNotNull('category')->exists(),
+            'category' => $category,
+            'hasCategories' => $used->isNotEmpty(),
             'subjects' => $subjects->map(fn (Subject $subject): array => [
                 'name' => $subject->name,
                 'slug' => $subject->slug,
                 'url' => $subject->url(),
                 'cover' => $subject->coverPhoto(),
-                'category' => $subject->category?->label(),
+                'category' => SubjectCategory::labelFor($subject->category),
             ])->all(),
             'og' => OgMeta::lifeKind($subjectKind, $total),
         ]);

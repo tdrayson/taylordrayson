@@ -24,6 +24,21 @@ const ICONS = {
     spots: Location01Icon,
     things: CubeIcon,
 };
+
+// The tile's backdrop is the kind's own recent covers. One fills the frame;
+// several tile into a mosaic, so the page opens with faces rather than counts.
+function coversOf(kind) {
+    return kind.recent.filter((subject) => subject.cover).slice(0, 4);
+}
+
+function mosaicClass(count) {
+    return count > 1 ? 'grid-cols-2' : 'grid-cols-1';
+}
+
+// Three covers would leave a hole in a 2x2, so the first one spans the row.
+function tileClass(index, count) {
+    return count === 3 && index === 0 ? 'col-span-2' : '';
+}
 </script>
 
 <template>
@@ -36,32 +51,52 @@ const ICONS = {
         </p>
     </header>
 
-    <div class="mt-10 grid gap-6 sm:grid-cols-2">
+    <div class="mt-10 grid gap-4 sm:grid-cols-2">
         <Link
             v-for="kind in kinds"
             :key="kind.segment"
             :href="`/life/${kind.segment}`"
-            class="group rounded-lg border border-neutral-50 p-5 transition-colors hover:border-accent-200 focus-visible:border-accent-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="group relative block h-64 overflow-hidden rounded-lg bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:h-72"
         >
-            <div class="flex items-center gap-3">
-                <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-neutral-500">
-                    <Icon :icon="ICONS[kind.segment]" class="size-5" />
-                </span>
-                <span class="min-w-0">
-                    <span class="block font-display text-item-title text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ kind.label }}</span>
-                    <span class="block text-meta text-neutral-500 tnum">{{ number(kind.count) }}</span>
+            <div
+                v-if="coversOf(kind).length"
+                class="grid size-full gap-0.5"
+                :class="mosaicClass(coversOf(kind).length)"
+            >
+                <span
+                    v-for="(subject, index) in coversOf(kind)"
+                    :key="subject.url"
+                    class="overflow-hidden bg-neutral-25"
+                    :class="tileClass(index, coversOf(kind).length)"
+                >
+                    <img
+                        :src="subject.cover.src"
+                        :srcset="subject.cover.srcset || undefined"
+                        alt=""
+                        loading="lazy"
+                        class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    >
                 </span>
             </div>
 
-            <div v-if="kind.recent.length" class="mt-4 flex -space-x-2">
-                <span
-                    v-for="recent in kind.recent"
-                    :key="recent.url"
-                    class="size-9 overflow-hidden rounded-full border-2 border-neutral-0 bg-neutral-25"
-                >
-                    <img v-if="recent.cover" :src="recent.cover.src" :alt="recent.cover.alt || recent.name" class="size-full object-cover">
+            <span v-else class="flex size-full items-center justify-center text-neutral-300">
+                <Icon :icon="ICONS[kind.segment]" class="size-12" />
+            </span>
+
+            <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
+            <span class="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-5 pt-24">
+                <span class="min-w-0">
+                    <span class="flex items-center gap-2 text-white">
+                        <Icon :icon="ICONS[kind.segment]" class="size-5" />
+                        <span class="font-display text-item-title">{{ kind.label }}</span>
+                    </span>
+                    <span class="mt-1 block text-meta text-white/75 tnum">{{ number(kind.count) }}</span>
                 </span>
-            </div>
+
+                <span class="shrink-0 text-white/75 transition-transform duration-300 group-hover:translate-x-1">
+                    <Icon name="ArrowRight01Icon" class="size-5" />
+                </span>
+            </span>
         </Link>
     </div>
 </template>

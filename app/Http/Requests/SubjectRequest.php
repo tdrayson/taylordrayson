@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
-use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -31,6 +30,12 @@ class SubjectRequest extends FormRequest
         if (! $this->filled('slug') && $this->filled('name')) {
             $this->merge(['slug' => Str::slug($this->input('name'))]);
         }
+
+        // The category is open, so it is normalised rather than validated
+        // against a list: "Coffee Shop" and "coffee shop" are one category.
+        if ($this->has('category')) {
+            $this->merge(['category' => SubjectCategory::normalise($this->input('category'))]);
+        }
     }
 
     /**
@@ -45,7 +50,7 @@ class SubjectRequest extends FormRequest
                 'nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
                 Rule::unique('subjects')->where(fn ($query) => $query->where('kind', $this->kind()))->ignore($this->route('subject')),
             ],
-            'category' => ['nullable', Rule::enum(SubjectCategory::class), $this->belongsToKind()],
+            'category' => ['nullable', 'string', 'max:50'],
             'bio' => ['nullable', 'array'],
             'meta' => ['nullable', 'array'],
             'meta.*.label' => ['nullable', 'string', 'max:255'],
@@ -58,23 +63,6 @@ class SubjectRequest extends FormRequest
             'cover' => ['nullable', 'array', 'max:1'],
             'cover.*' => ['string', 'max:100'],
         ];
-    }
-
-    /**
-     * A category belongs to one kind, which the enum cannot enforce alone: the
-     * kind being validated is the submitted one, or on update, the route-bound subject's.
-     */
-    private function belongsToKind(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            if ($value === null) {
-                return;
-            }
-
-            if ($this->kind() === null || SubjectCategory::from($value)->kind() !== $this->kind()) {
-                $fail('That category belongs to a different kind.');
-            }
-        };
     }
 
     /**

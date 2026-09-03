@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
+use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
 use App\Models\Article;
 use App\Models\Media;
@@ -459,7 +460,7 @@ class OgMeta
     {
         return self::make([
             'title' => $subject->name,
-            'eyebrow' => $subject->category?->label() ?? $subject->kind->label(),
+            'eyebrow' => SubjectCategory::labelFor($subject->category) ?? $subject->kind->label(),
             'heading' => $subject->name,
             'image' => $subject->coverPhoto()['full'] ?? null,
             'description' => sprintf('Everything I have logged that involves %s, across every type I track.', $subject->name),

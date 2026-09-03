@@ -18,6 +18,7 @@ use App\Queries\SubjectStats;
 use App\Support\OgMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -25,6 +26,9 @@ use Inertia\Response;
 
 class SubjectController extends Controller
 {
+    /** Days of entries per page, matching the archive pages. */
+    private const PER_PAGE = 25;
+
     public function __construct(
         private readonly SubjectFeed $feed,
         private readonly SubjectPhotos $photos,
@@ -36,7 +40,7 @@ class SubjectController extends Controller
      * A subject's page: everything it appears in and every photograph it is
      * tagged in. An empty feed is valid; a subject or kind mismatch 404s.
      */
-    public function show(string $kind, string $slug): Response
+    public function show(string $kind, string $slug, Request $request): Response
     {
         $subjectKind = SubjectKind::fromSegment($kind);
 
@@ -47,10 +51,13 @@ class SubjectController extends Controller
         abort_if($subject === null, 404);
 
         $fields = Auth::check() ? FieldRegistry::for($subject) : [];
+        $feed = $this->feed->paginate($subject, self::PER_PAGE, (int) $request->query('page', '1'));
 
         return Inertia::render('Life/Subject', [
             'subject' => SubjectData::from($subject)->toArray(),
-            'groups' => ($this->feed)($subject),
+            'groups' => $feed['groups'],
+            'currentPage' => $feed['currentPage'],
+            'lastPage' => $feed['lastPage'],
             'photos' => ($this->photos)($subject),
             'stats' => ($this->stats)($subject),
             'companions' => ($this->companions)($subject)->map(fn (Subject $companion): array => [

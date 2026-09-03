@@ -101,3 +101,24 @@ it('reports the photo count and the first-to-last span', function () {
         ->and($stats['first'])->toBe('2026-01-01')
         ->and($stats['last'])->toBe('2026-01-15');
 });
+
+it('pages a subject\'s timeline, keeping the photos whole on every page', function () {
+    $subject = Subject::factory()->person()->create(['slug' => 'clare']);
+
+    // 26 separate days, one over the 25-per-page cut.
+    foreach (range(1, 26) as $day) {
+        Activity::factory()
+            ->create(['occurred_at' => sprintf('2026-03-%02d 09:00:00', $day)])
+            ->subjects()->attach($subject);
+    }
+
+    get('/life/people/clare')->assertOk()
+        ->assertInertia(fn ($page) => $page->has('groups', 25)->where('lastPage', 2)->where('currentPage', 1));
+
+    get('/life/people/clare?page=2')->assertOk()
+        ->assertInertia(fn ($page) => $page->has('groups', 1)->where('currentPage', 2));
+
+    // Out of range clamps rather than 404s or renders an empty page.
+    get('/life/people/clare?page=99')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('currentPage', 2));
+});

@@ -7,6 +7,7 @@ use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
 use App\Data\TagLink;
+use App\Enums\SubjectCategory;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
@@ -371,7 +372,9 @@ class EntryController extends Controller
         $byPhrase = [];
 
         foreach ($model->allSubjects() as $subject) {
-            $phrase = $subject->category?->phrase() ?? $subject->kind->phrase();
+            // A category the enum doesn't know has no phrase of its own, so
+            // the kind's supplies it.
+            $phrase = SubjectCategory::tryFrom((string) $subject->category)?->phrase() ?? $subject->kind->phrase();
 
             if ($phrase === null) {
                 continue;

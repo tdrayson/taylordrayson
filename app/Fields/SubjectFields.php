@@ -5,7 +5,6 @@ namespace App\Fields;
 use App\Data\FieldData;
 use App\Enums\FieldType;
 use App\Enums\IdentityPlatform;
-use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
 
 /**
@@ -23,7 +22,9 @@ final class SubjectFields
             FieldData::primary('name', 'Name', FieldType::Title, required: true),
             FieldData::primary('bio', 'Bio', FieldType::RichText),
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
-            FieldData::optional('category', 'Category', FieldType::Select, self::categoryOptions($kind)),
+            // A lookup, not a select: the set is open, so a new sort of spot
+            // is typed in here rather than added to the enum first.
+            FieldData::optional('category', 'Category', FieldType::Lookup, source: 'subject-category'),
             ...self::locationFields($kind),
             FieldData::optional('meta', 'Facts', FieldType::Facts),
             FieldData::optional('identities', 'Identities', FieldType::Facts, options: [
@@ -52,15 +53,5 @@ final class SubjectFields
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
         ];
-    }
-
-    /**
-     * @return list<array{value: string, label: string}>
-     */
-    private static function categoryOptions(SubjectKind $kind): array
-    {
-        return collect(SubjectCategory::forKind($kind))
-            ->map(fn (SubjectCategory $category): array => ['value' => $category->value, 'label' => $category->label()])
-            ->all();
     }
 }

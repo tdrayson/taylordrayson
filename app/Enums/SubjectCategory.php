@@ -2,9 +2,15 @@
 
 namespace App\Enums;
 
+use Illuminate\Support\Str;
+
 /**
  * The second level under a kind. Nullable on the model: people, pets and spots
  * often do not bother, while things almost always carry one.
+ *
+ * A reference enum, NOT a cast: the column is a plain string so a category
+ * typed in on the page (a new sort of spot, say) is stored as it stands rather
+ * than throwing on read. These cases are the suggestions, not the whole set.
  */
 enum SubjectCategory: string
 {
@@ -70,5 +76,23 @@ enum SubjectCategory: string
             self::cases(),
             fn (self $category): bool => $category->kind() === $kind,
         ));
+    }
+
+    /** Display text for a stored value, which may be one nothing enumerates. */
+    public static function labelFor(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return self::tryFrom($value)?->label() ?? Str::ucfirst(str_replace('-', ' ', $value));
+    }
+
+    /** The stored form: lowercase and hyphenated, so casing never splits one category in two. */
+    public static function normalise(?string $value): ?string
+    {
+        $slug = Str::slug((string) $value);
+
+        return $slug === '' ? null : $slug;
     }
 }

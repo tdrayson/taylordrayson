@@ -17,9 +17,12 @@ it('creates a subject with just a name and a kind', function () {
     expect(Subject::query()->where('slug', 'clare')->exists())->toBeTrue();
 });
 
-it('rejects a category belonging to another kind', function () {
-    actingAs(User::factory()->create())->post('/subjects', ['kind' => 'person', 'name' => 'Clare', 'category' => 'car'])
-        ->assertSessionHasErrors('category');
+it('stores a category nothing enumerates, normalised', function () {
+    actingAs(User::factory()->create())
+        ->post('/subjects', ['kind' => 'spot', 'name' => 'The Harrow', 'category' => 'Village Pub'])
+        ->assertRedirect();
+
+    expect(Subject::query()->where('slug', 'the-harrow')->value('category'))->toBe('village-pub');
 });
 
 it('rejects a second subject whose name slugs to an existing one in the same kind', function () {
@@ -68,7 +71,7 @@ it('updates a subject\'s name, bio, category and facts', function () {
 
     expect($subject->name)->toBe('Old Nikon')
         ->and($subject->bio)->toBe([['type' => 'paragraph', 'children' => [['text' => 'Bought secondhand.']]]])
-        ->and($subject->category)->toBe(SubjectCategory::Camera)
+        ->and($subject->category)->toBe(SubjectCategory::Camera->value)
         ->and($subject->meta->toArray())->toBe([['label' => 'Bought', 'value' => '2020']]);
 });
 
