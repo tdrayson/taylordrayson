@@ -179,8 +179,8 @@ const lightboxIndex = ref(null);
         <!-- Facts alongside the prose rather than under it: they read as a
              sidebar of reference detail, and a subject with a dozen of them no
              longer pushes everything below it down the page. -->
-        <div class="wide mt-8 flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-12">
-            <div class="min-w-0 flex-1">
+        <div class="mt-8 grid gap-8 sm:grid-cols-3 sm:items-start sm:gap-16">
+            <div class="min-w-0 sm:col-span-2">
                 <BlockContent v-if="subject.bio" :document="subject.bio" />
 
                 <!-- A sentence, not a scoreboard: the counts only describe what
@@ -189,7 +189,7 @@ const lightboxIndex = ref(null);
                 <p v-if="tally" class="mt-4 text-body text-neutral-900">{{ tally }}</p>
             </div>
 
-            <SubjectFacts :facts="subject.facts" class="sm:w-64 sm:shrink-0" />
+            <SubjectFacts :facts="subject.facts" />
         </div>
 
         <LocationMap
