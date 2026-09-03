@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use App\Models\Article;
+use App\Models\Checkin;
 use App\Models\Subject;
 use App\Models\User;
 use App\Queries\SubjectCompanions;
@@ -138,4 +139,32 @@ it('sends the whole kind for the browser to filter, with the facet preselected',
     // A category nothing uses is ignored rather than erroring.
     get('/life/spots?category=nowhere')->assertOk()
         ->assertInertia(fn ($page) => $page->where('category', null)->has('subjects', 2));
+});
+
+it('folds the counts into the facts rows, with distance in metres', function () {
+    $subject = Subject::factory()->thing()->create(['slug' => 'allez']);
+
+    Activity::factory()->create(['type' => 'ride', 'distance' => 20000, 'occurred_at' => '2026-01-05 09:00:00'])
+        ->subjects()->attach($subject);
+    Activity::factory()->create(['type' => 'ride', 'distance' => 10000, 'occurred_at' => '2026-03-05 09:00:00'])
+        ->subjects()->attach($subject);
+
+    $rows = collect(app(SubjectStats::class)($subject)['rows'])->keyBy('label');
+
+    // Raw metres, not a formatted string: the row resolves through the
+    // visitor's own mi/km setting in the browser.
+    expect($rows['Distance']['distanceM'])->toBe(30000)
+        ->and($rows['Activities']['value'])->toBe('2')
+        ->and($rows['First']['value'])->toBe('January 2026')
+        ->and($rows['Latest']['value'])->toBe('March 2026');
+});
+
+it('leaves out a distance row for a subject with no activities', function () {
+    $subject = Subject::factory()->person()->create();
+    Checkin::factory()->create(['occurred_at' => '2026-02-02 09:00:00'])->subjects()->attach($subject);
+
+    $labels = collect(app(SubjectStats::class)($subject)['rows'])->pluck('label');
+
+    expect($labels)->not->toContain('Distance')
+        ->and($labels)->toContain('Places');
 });

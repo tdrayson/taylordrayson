@@ -44,39 +44,6 @@ const hasLocation = computed(() => props.subject.latitude !== null && props.subj
 const kindPlural = computed(() => segment.value.charAt(0).toUpperCase() + segment.value.slice(1));
 
 const totalEntries = computed(() => Object.values(props.stats.entries).reduce((sum, count) => sum + count, 0));
-function counted(count, one, many) {
-    return `${count.toLocaleString()} ${count === 1 ? one : many}`;
-}
-
-// Says what the numbers are counting. "June 2022 to August 2026" on its own
-// reads as a claim about the subject; this says it is the span of what is
-// filed here, which is all the site can honestly know.
-const tally = computed(() => {
-    const parts = [];
-
-    if (totalEntries.value > 0) {
-        parts.push(counted(totalEntries.value, 'entry', 'entries'));
-    }
-
-    if (props.stats.photos > 0) {
-        parts.push(counted(props.stats.photos, 'photo', 'photos'));
-    }
-
-    if (!parts.length) {
-        return null;
-    }
-
-    const summary = `Appears in ${parts.join(' and ')} on this site`;
-    const { firstLabel, lastLabel } = props.stats;
-
-    if (!firstLabel) {
-        return `${summary}.`;
-    }
-
-    return firstLabel === lastLabel
-        ? `${summary}, all from ${firstLabel}.`
-        : `${summary}, the earliest from ${firstLabel} and the most recent from ${lastLabel}.`;
-});
 
 setLayoutProps({
     minimal: props.editing,
@@ -182,14 +149,9 @@ const lightboxIndex = ref(null);
         <div class="mt-8 grid gap-8 sm:grid-cols-3 sm:items-start sm:gap-16">
             <div class="min-w-0 sm:col-span-2">
                 <BlockContent v-if="subject.bio" :document="subject.bio" />
-
-                <!-- A sentence, not a scoreboard: the counts only describe what
-                     this site happens to hold, which a bare number and a date
-                     range read as a claim about the subject itself. -->
-                <p v-if="tally" class="mt-4 text-body text-neutral-900">{{ tally }}</p>
             </div>
 
-            <SubjectFacts :facts="subject.facts" />
+            <SubjectFacts :facts="subject.facts" :rows="stats.rows" />
         </div>
 
         <LocationMap
