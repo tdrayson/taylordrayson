@@ -30,10 +30,11 @@ setLayoutProps({
 // The jitter is seeded from the slug, so a subject keeps its size between
 // visits: a grid that reshuffles on every load reads as broken, not playful.
 //
-// Spans start at 3 against a fine 12-column track, not at 1 against a coarse
-// one: the smallest tile clears 180px and the steps between bands are a third
-// larger each time rather than double and treble.
-const SPANS = ['col-span-3 row-span-3', 'col-span-4 row-span-4', 'col-span-5 row-span-5'];
+// Two sizes, both dividing the 12-column track, so dense packing leaves no
+// holes: spans of 3, 4 and 5 tile a row but not a column, and the gaps that
+// left were worse than the extra variety was worth. The small tile clears
+// 180px; the large is the occasional feature rather than a second tier.
+const SPANS = ['col-span-3 row-span-3', 'col-span-6 row-span-6'];
 
 function seed(slug) {
     let hash = 0;
@@ -52,12 +53,11 @@ const sized = computed(() => {
 
     return props.subjects.map((subject) => {
         const share = (subject.weight ?? 0) / busiest;
-        // Nudge by up to a third of a band either way, so the grid reads as a
-        // collage rather than a ranking.
+        // Nudge by up to a third either way, so the grid reads as a collage
+        // rather than a ranking.
         const nudged = share + (seed(subject.slug) - 0.5) * 0.3;
-        const band = nudged > 0.62 ? 2 : nudged > 0.28 ? 1 : 0;
 
-        return { ...subject, span: SPANS[band] };
+        return { ...subject, span: SPANS[nudged > 0.55 ? 1 : 0] };
     });
 });
 
