@@ -29,7 +29,11 @@ setLayoutProps({
 //
 // The jitter is seeded from the slug, so a subject keeps its size between
 // visits: a grid that reshuffles on every load reads as broken, not playful.
-const SPANS = ['col-span-1 row-span-1', 'col-span-2 row-span-2', 'col-span-3 row-span-3'];
+//
+// Spans start at 3 against a fine 12-column track, not at 1 against a coarse
+// one: the smallest tile clears 180px and the steps between bands are a third
+// larger each time rather than double and treble.
+const SPANS = ['col-span-3 row-span-3', 'col-span-4 row-span-4', 'col-span-5 row-span-5'];
 
 function seed(slug) {
     let hash = 0;
@@ -89,7 +93,7 @@ function facetClasses(active) {
     <!-- Squares at three sizes, packed dense so the bigger tiles leave no
          holes. Uniform squares turned the page into a contact sheet; sizing
          them by how much of the site a subject occupies gives it a shape. -->
-    <div v-if="sized.length" class="mt-10 grid auto-rows-fr grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8" style="grid-auto-flow: dense">
+    <div v-if="sized.length" class="mt-10 grid auto-rows-fr grid-cols-6 gap-3 sm:grid-cols-9 lg:grid-cols-12" style="grid-auto-flow: dense">
         <Link
             v-for="subject in sized"
             :key="subject.slug"
