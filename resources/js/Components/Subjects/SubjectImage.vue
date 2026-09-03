@@ -12,9 +12,8 @@ const props = defineProps({
     kind: { type: String, default: 'Person' },
     // A thing's illustration reads as a wide picture rather than a portrait.
     wide: { type: Boolean, default: false },
-    // A subject page's establishing image: shown whole, at its own aspect
-    // ratio. Only the small square uses (shelves, companions, chips) crop, so
-    // a cover is composed to survive a centre crop, not to fit a band.
+    // A subject page's establishing band, at a fixed 5:3 whatever the cover's
+    // own shape, so every subject page opens the same way.
     hero: { type: Boolean, default: false },
 });
 
@@ -27,10 +26,9 @@ const FALLBACK_ICONS = {
 
 const fallbackIcon = computed(() => FALLBACK_ICONS[props.kind] ?? UserIcon);
 
-// A hero sets no aspect-ratio on the box at all: the picture supplies it.
 const shape = computed(() => {
     if (props.hero) {
-        return '';
+        return 'aspect-5/3';
     }
 
     return props.wide ? 'aspect-video' : 'aspect-square';
@@ -47,9 +45,9 @@ const shape = computed(() => {
             :src="cover.full"
             :srcset="cover.srcset || undefined"
             :alt="name"
-            :class="hero ? 'block h-auto w-full' : 'size-full object-cover'"
+            class="size-full object-cover"
         >
-        <div v-else class="flex size-full items-center justify-center text-neutral-400" :class="hero ? 'aspect-video' : ''">
+        <div v-else class="flex size-full items-center justify-center text-neutral-400">
             <Icon :icon="fallbackIcon" class="size-10" />
         </div>
     </div>

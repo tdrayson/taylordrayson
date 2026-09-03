@@ -176,14 +176,21 @@ const lightboxIndex = ref(null);
             hidden
         >{{ identity.platform }}</a>
 
-        <BlockContent v-if="subject.bio" :document="subject.bio" class="mt-8 max-w-2xl" />
+        <!-- Facts alongside the prose rather than under it: they read as a
+             sidebar of reference detail, and a subject with a dozen of them no
+             longer pushes everything below it down the page. -->
+        <div class="wide mt-8 flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-12">
+            <div class="min-w-0 flex-1">
+                <BlockContent v-if="subject.bio" :document="subject.bio" />
 
-        <!-- A sentence, not a scoreboard: the counts only describe what this
-             site happens to hold, which a bare number and a date range read as
-             a claim about the subject itself. -->
-        <p v-if="tally" class="mt-4 max-w-2xl text-body text-neutral-900">{{ tally }}</p>
+                <!-- A sentence, not a scoreboard: the counts only describe what
+                     this site happens to hold, which a bare number and a date
+                     range read as a claim about the subject itself. -->
+                <p v-if="tally" class="mt-4 text-body text-neutral-900">{{ tally }}</p>
+            </div>
 
-        <SubjectFacts :facts="subject.facts" class="mt-8 max-w-2xl" />
+            <SubjectFacts :facts="subject.facts" class="sm:w-64 sm:shrink-0" />
+        </div>
 
         <LocationMap
             v-if="hasLocation"
