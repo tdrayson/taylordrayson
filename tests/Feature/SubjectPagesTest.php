@@ -122,3 +122,20 @@ it('pages a subject\'s timeline, keeping the photos whole on every page', functi
     get('/life/people/clare?page=99')->assertOk()
         ->assertInertia(fn ($page) => $page->where('currentPage', 2));
 });
+
+it('sends the whole kind for the browser to filter, with the facet preselected', function () {
+    Subject::factory()->spot()->create(['name' => 'Coco', 'category' => 'cafe']);
+    Subject::factory()->spot()->create(['name' => 'Beeches', 'category' => 'trail']);
+
+    // Every subject travels regardless of the facet: the filtering is client
+    // side, so a narrowed payload would leave nothing to animate back in.
+    get('/life/spots?category=cafe')->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('subjects', 2)
+            ->where('category', 'cafe')
+            ->where('subjects.1.categoryValue', 'cafe'));
+
+    // A category nothing uses is ignored rather than erroring.
+    get('/life/spots?category=nowhere')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('category', null)->has('subjects', 2));
+});

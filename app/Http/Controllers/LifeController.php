@@ -65,9 +65,10 @@ class LifeController extends Controller
             $category = null;
         }
 
+        // Every subject of this kind, filtered by category in the browser: the
+        // facets animate between states, which a server round trip cannot do.
         $subjects = Subject::query()
             ->where('kind', $subjectKind)
-            ->when($category, fn ($query) => $query->where('category', $category))
             ->orderBy('name')
             ->get();
 
@@ -94,6 +95,9 @@ class LifeController extends Controller
                 // size its tile by. A tag count, not a distinct-entry count:
                 // the grid only needs the ordering, not the exact figure.
                 'weight' => $weights[$subject->id] ?? 0,
+                // The stored value, for the client-side facet to match on;
+                // `category` above is the display label.
+                'categoryValue' => $subject->category,
             ])->all(),
             'og' => OgMeta::lifeKind($subjectKind, $total),
         ]);
