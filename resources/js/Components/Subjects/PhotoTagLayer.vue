@@ -7,10 +7,14 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
  * why), so a tag's stored x/y percentage lines up with the picture directly,
  * no measurement needed.
  *
- * A tag is a point, not a box, and the name itself marks it: the label sits
- * centred on the point and is revealed on hovering or focusing anywhere on
- * the photograph (or focusing any one tag). It scales with the rendered
- * picture, so a thumbnail and a full-screen view read the same.
+ * A tag is a point, not a box. The name sits clear of it in a caret-tipped
+ * bubble, revealed on hovering or focusing anywhere on the photograph (or
+ * focusing any one tag), and scales with the rendered picture so a thumbnail
+ * and a full-screen view read the same.
+ *
+ * The bubble flips to whichever side has room: below a point in the top half,
+ * above one in the bottom half, and pulled in at the left and right edges, so
+ * it never covers the face it is naming or gets clipped by the frame.
  */
 const props = defineProps({
     photo: { type: Object, required: true }, // { id, tags: [{subjectId, name, url, role, x, y}] }
@@ -33,6 +37,16 @@ const wrapperEl = ref(null);
 
 // Camera credits carry no point, so only subject tags render on the image.
 const positionTags = computed(() => props.photo.tags.filter((tag) => tag.role === 'subject'));
+
+// Which way the bubble opens, from where the point sits in the frame. A point
+// in the top half is labelled below it, and vice versa; a point near either
+// edge has the bubble anchored to that edge rather than centred on it.
+function calloutClass(tag) {
+    const vertical = (tag.y ?? 50) < 50 ? 'is-below' : 'is-above';
+    const horizontal = (tag.x ?? 50) < 15 ? 'is-start' : (tag.x ?? 50) > 85 ? 'is-end' : 'is-centre';
+
+    return `${vertical} ${horizontal}`;
+}
 
 // The intrinsic image ratio, read once when it loads. Without it a wrapper
 // sized purely by `max-height`/`max-width` percentages can't tell whether the
@@ -135,7 +149,7 @@ watch(() => props.placing, (placing) => {
             v-for="tag in positionTags"
             :key="tag.subjectId"
             :href="static ? undefined : tag.url"
-            class="absolute -translate-x-1/2 -translate-y-1/2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            class="tag-anchor absolute focus:outline-none"
             :class="static ? 'pointer-events-none' : ''"
             :style="{ left: `${tag.x}%`, top: `${tag.y}%` }"
             @mouseenter="static || emit('hover', tag.subjectId)"
@@ -144,9 +158,12 @@ watch(() => props.placing, (placing) => {
             @blur="static || emit('unhover')"
         >
             <span
-                class="tag-label whitespace-nowrap rounded-md bg-black/80 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
-                :class="{ 'opacity-100': hoveredId === tag.subjectId }"
-            >{{ tag.name }}</span>
+                class="tag-callout opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+                :class="[calloutClass(tag), { 'opacity-100': hoveredId === tag.subjectId }]"
+            >
+                <span class="tag-caret" />
+                <span class="tag-label rounded-md bg-black/80 text-white">{{ tag.name }}</span>
+            </span>
         </component>
     </div>
 </template>
@@ -161,10 +178,75 @@ watch(() => props.placing, (placing) => {
     border-radius: inherit;
 }
 
+/* Zero-size, so the anchor IS the point: the bubble hangs off it and the
+   caret tip is what marks the spot. */
+.tag-anchor {
+    width: 0;
+    height: 0;
+}
+
+.tag-callout {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    font-size: clamp(0.65rem, 2.4cqw, 1rem);
+}
+
+.tag-callout.is-below {
+    top: 0.35em;
+    flex-direction: column;
+}
+
+.tag-callout.is-above {
+    bottom: 0.35em;
+    flex-direction: column-reverse;
+}
+
+/* Anchored to the edge it is near, so a tag on the far left or right keeps
+   its whole name inside the frame. */
+.tag-callout.is-centre {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tag-callout.is-start {
+    left: 0;
+    align-items: flex-start;
+}
+
+.tag-callout.is-end {
+    right: 0;
+    align-items: flex-end;
+}
+
+.tag-caret {
+    width: 0;
+    height: 0;
+    border-left: 0.35em solid transparent;
+    border-right: 0.35em solid transparent;
+}
+
+/* The caret points back at the point, so it sits on whichever face is nearer. */
+.is-below .tag-caret {
+    border-bottom: 0.35em solid rgb(0 0 0 / 0.8);
+}
+
+.is-above .tag-caret {
+    border-top: 0.35em solid rgb(0 0 0 / 0.8);
+}
+
+.is-start .tag-caret {
+    margin-left: 0.5em;
+}
+
+.is-end .tag-caret {
+    margin-right: 0.5em;
+}
+
 .tag-label {
     display: block;
-    font-size: clamp(0.65rem, 2.4cqw, 1rem);
     padding: 0.25em 0.6em;
     line-height: 1.35;
+    white-space: nowrap;
 }
 </style>
