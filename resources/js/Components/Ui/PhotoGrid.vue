@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
 import Button from './Button.vue';
+import PhotoTagLayer from '../Subjects/PhotoTagLayer.vue';
 
 // Masonry via CSS grid row spans: photos stay in document order so keyboard
 // focus moves across rows in that order, while each tile spans the rows
@@ -32,6 +33,12 @@ const props = defineProps({
     // shape their photos with review state (currently only /photos).
     review: { type: Boolean, default: false },
 });
+
+// A tile shows who is in it on hover, the same labels the lightbox draws, so
+// the grid answers "is this one tagged?" without opening anything.
+function hasTags(photo) {
+    return (photo.tags ?? []).some((tag) => tag.role === 'subject');
+}
 
 const emit = defineEmits(['open']);
 
@@ -142,7 +149,18 @@ function rowSpan(photo) {
             >
                 <!-- object-cover so a slightly-off row span crops a hair rather than
                      leaving dead space below a landscape shot. -->
+                <PhotoTagLayer v-if="hasTags(photo)" :photo="photo" static class="size-full">
+                    <img
+                        :src="photo.src"
+                        :srcset="photo.srcset || undefined"
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                        :alt="photo.alt || ''"
+                        loading="lazy"
+                        class="size-full object-cover"
+                    >
+                </PhotoTagLayer>
                 <img
+                    v-else
                     :src="photo.src"
                     :srcset="photo.srcset || undefined"
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"

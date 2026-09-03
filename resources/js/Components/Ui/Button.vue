@@ -23,6 +23,10 @@ const VARIANTS = {
 };
 
 const SIZES = {
+    // For a link that sits in running text or on its own: no box, so it lines
+    // up with the paragraph beside it. A link in a row of padded buttons wants
+    // a real size instead, or it floats out of the row.
+    inline: 'gap-1.5 text-label',
     sm: 'gap-1.5 px-3 py-1.5 text-label',
     md: 'gap-1.5 px-4 py-2 text-meta',
     lg: 'gap-2 px-5 py-2.5 text-meta',
@@ -35,9 +39,6 @@ const classes = computed(() =>
         props.pill ? 'rounded-full' : 'rounded-md',
         VARIANTS[props.variant] ?? VARIANTS.secondary,
         SIZES[props.size] ?? SIZES.md,
-        // A link reads as text in the flow around it, so the size's box padding
-        // would push it out of line with the paragraph beside it.
-        props.variant === 'link' ? 'px-0' : '',
         props.class,
     ),
 );

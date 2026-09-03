@@ -12,7 +12,6 @@ import SectionHead from '../../Components/Ui/SectionHead.vue';
 import Lightbox from '../../Components/Overlays/Lightbox.vue';
 import LocationMap from '../../Components/Maps/LocationMap.vue';
 import DateGroup from '../../Components/Timeline/DateGroup.vue';
-import StatGrid from '../../Components/Stats/StatGrid.vue';
 import EntryEditor from '../../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../../lib/editor/defaults.js';
 
@@ -42,14 +41,39 @@ const hasLocation = computed(() => props.subject.latitude !== null && props.subj
 const kindPlural = computed(() => segment.value.charAt(0).toUpperCase() + segment.value.slice(1));
 
 const totalEntries = computed(() => Object.values(props.stats.entries).reduce((sum, count) => sum + count, 0));
-const statItems = computed(() => [
-    { label: 'Entries', value: totalEntries.value },
-    { label: 'Photos', value: props.stats.photos },
-].filter((stat) => stat.value > 0));
+function counted(count, one, many) {
+    return `${count.toLocaleString()} ${count === 1 ? one : many}`;
+}
 
-// The reference panel earns its border only when it has something in it; a
-// subject with no facts and nothing tagged yet skips it entirely.
-const hasDetail = computed(() => props.subject.facts.length > 0 || statItems.value.length > 0);
+// Says what the numbers are counting. "June 2022 to August 2026" on its own
+// reads as a claim about the subject; this says it is the span of what is
+// filed here, which is all the site can honestly know.
+const tally = computed(() => {
+    const parts = [];
+
+    if (totalEntries.value > 0) {
+        parts.push(counted(totalEntries.value, 'entry', 'entries'));
+    }
+
+    if (props.stats.photos > 0) {
+        parts.push(counted(props.stats.photos, 'photograph', 'photographs'));
+    }
+
+    if (!parts.length) {
+        return null;
+    }
+
+    const summary = `Turns up in ${parts.join(' and ')} on this site`;
+    const { firstLabel, lastLabel } = props.stats;
+
+    if (!firstLabel) {
+        return `${summary}.`;
+    }
+
+    return firstLabel === lastLabel
+        ? `${summary}, all from ${firstLabel}.`
+        : `${summary}, the earliest from ${firstLabel} and the most recent from ${lastLabel}.`;
+});
 
 setLayoutProps({
     minimal: props.editing,
@@ -105,30 +129,29 @@ const lightboxIndex = ref(null);
         />
     </div>
 
-    <article v-else class="h-card">
-        <!-- Portrait beside the name, not a full-width plate above it: the page
-             is about the subject, and one measure keeps the header, the prose
-             and the grids below on the same left-to-right rhythm. -->
-        <header class="flex items-start gap-5 sm:gap-6">
-            <SubjectImage
-                :cover="subject.cover"
-                :name="subject.name"
-                :kind="subject.kind"
-                class="w-28 shrink-0 sm:w-36"
-            />
+    <!-- Re-establishes the grid, as Entry does, so the establishing image can
+         break out past the reading column while the prose stays in it. -->
+    <article v-else class="h-card full-width content-grid">
+        <header>
+            <h1 v-twemoji class="p-name max-w-2xl font-display text-display">{{ subject.name }}</h1>
+            <p v-if="subject.category" class="mt-2 text-meta text-neutral-500">{{ subject.category }}</p>
 
-            <div class="min-w-0 flex-1 pt-1">
-                <h1 v-twemoji class="p-name font-display text-display">{{ subject.name }}</h1>
-                <p v-if="subject.category" class="mt-1 text-meta text-neutral-500">{{ subject.category }}</p>
-
-                <!-- Both only mean anything to the owner, so they sit with the
-                     name rather than interrupting the sections below. -->
-                <div v-if="signedIn" class="mt-3 flex items-center gap-4">
-                    <Button href="?edit" variant="link" size="sm">Edit</Button>
-                    <Button variant="link" size="sm" class="text-red-600 hover:text-red-700" @click="destroy">Delete</Button>
-                </div>
+            <!-- Both only mean anything to the owner, so they sit with the
+                 name rather than interrupting the sections below. -->
+            <div v-if="signedIn" class="mt-3 flex items-center gap-4">
+                <Button href="?edit" variant="link" size="inline">Edit</Button>
+                <Button variant="link" size="inline" class="text-red-600 hover:text-red-700" @click="destroy">Delete</Button>
             </div>
         </header>
+
+        <SubjectImage
+            v-if="subject.cover"
+            :cover="subject.cover"
+            :name="subject.name"
+            :kind="subject.kind"
+            wide
+            class="breakout mt-8 max-h-96"
+        />
 
         <!-- Hidden, not dropped: microformats parsers read the DOM and ignore
              CSS, on the same reasoning as ProfileCard's rel-me links. The
@@ -146,17 +169,12 @@ const lightboxIndex = ref(null);
 
         <BlockContent v-if="subject.bio" :document="subject.bio" class="mt-8 max-w-2xl" />
 
-        <!-- The typed-in facts, the counts and the span are one block of
-             reference detail, so they share a panel instead of stacking as
-             three unrelated islands. -->
-        <div v-if="hasDetail" class="mt-8 flex max-w-2xl flex-col gap-6 rounded-lg border border-neutral-50 bg-neutral-25 p-5 sm:p-6">
-            <SubjectFacts :facts="subject.facts" />
+        <!-- A sentence, not a scoreboard: the counts only describe what this
+             site happens to hold, which a bare number and a date range read as
+             a claim about the subject itself. -->
+        <p v-if="tally" class="mt-6 max-w-2xl text-body text-neutral-500">{{ tally }}</p>
 
-            <div v-if="statItems.length">
-                <StatGrid :stats="statItems" size="sm" />
-                <p v-if="stats.span" class="mt-3 text-meta text-neutral-500">{{ stats.span }}</p>
-            </div>
-        </div>
+        <SubjectFacts :facts="subject.facts" class="mt-8 max-w-2xl" />
 
         <LocationMap
             v-if="hasLocation"
@@ -183,8 +201,14 @@ const lightboxIndex = ref(null);
             </div>
         </section>
 
-        <section v-if="groups.length">
-            <SectionHead title="Timeline" />
+        <section v-if="photos.length">
+            <SectionHead title="Photos" />
+            <PhotoGrid :photos="photos" @open="lightboxIndex = $event" />
+        </section>
+
+        <section v-if="groups.length" class="mt-12">
+            <!-- A run of dated entries needs no label to say so. -->
+            <h2 class="sr-only">Timeline</h2>
             <div class="flex flex-col gap-14">
                 <DateGroup
                     v-for="group in groups"
@@ -196,11 +220,6 @@ const lightboxIndex = ref(null);
                     :heading-level="3"
                 />
             </div>
-        </section>
-
-        <section v-if="photos.length">
-            <SectionHead title="Photos" />
-            <PhotoGrid :photos="photos" @open="lightboxIndex = $event" />
         </section>
 
         <Lightbox v-model:index="lightboxIndex" :photos="photos" />

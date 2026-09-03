@@ -316,9 +316,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                                     @hover="hoveredTagId = $event"
                                     @unhover="hoveredTagId = null"
                                 >
-                                    <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                                    <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
                                 </PhotoTagLayer>
-                                <img v-else :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                                <img v-else :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
                             </div>
                         </div>
 
@@ -332,9 +332,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                             @hover="hoveredTagId = $event"
                             @unhover="hoveredTagId = null"
                         >
-                            <img :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                            <img :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
                         </PhotoTagLayer>
-                        <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                        <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
 
                         <button
                             v-if="hasMultiple"

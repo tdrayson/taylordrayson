@@ -12,6 +12,9 @@ import SubjectAutocomplete from './SubjectAutocomplete.vue';
  * tagged subjects with their positions, the camera credit, and the reviewed
  * toggle. Opens on any photograph at any time; review is a filter over
  * unreviewed photos, never a lock on editing.
+ *
+ * "Taken with" names the camera, so it holds at most one thing. Who pressed
+ * the shutter is not recorded: it is always me.
  */
 const props = defineProps({
     photo: { type: Object, required: true }, // { id, alt, caption, tags, reviewed }
@@ -102,7 +105,7 @@ const subjectPickerHint = computed(() => (
 </script>
 
 <template>
-    <div class="flex w-full shrink-0 flex-col gap-4 overflow-y-auto rounded-lg bg-neutral-0 p-4 sm:w-72">
+    <div class="flex w-full shrink-0 flex-col gap-4 overflow-y-auto rounded-2xl bg-neutral-0 p-4 sm:w-72">
         <div class="flex flex-col gap-2">
             <label class="text-caption font-medium text-neutral-700" :for="`photo-alt-${photo.id}`">Alt text</label>
             <Input :id="`photo-alt-${photo.id}`" v-model="form.alt" placeholder="Describe the photo" />
@@ -110,7 +113,6 @@ const subjectPickerHint = computed(() => (
             <label class="text-caption font-medium text-neutral-700" :for="`photo-caption-${photo.id}`">Caption</label>
             <Input :id="`photo-caption-${photo.id}`" v-model="form.caption" placeholder="Caption" />
 
-            <Button variant="primary" size="sm" class="self-start" :disabled="saving" @click="saveDetails">Save</Button>
         </div>
 
         <div class="flex flex-col gap-2">
@@ -170,13 +172,14 @@ const subjectPickerHint = computed(() => (
 
             <SubjectAutocomplete
                 v-if="pickerRole === 'camera'"
-                placeholder="Who took it"
+                placeholder="Which camera"
+                kind="thing"
                 @pick="place"
                 @cancel="closePicker"
             />
-            <Button v-else variant="secondary" size="sm" class="self-start" @click="openCameraPicker">
+            <Button v-else-if="! cameraTags.length" variant="secondary" size="sm" class="self-start" @click="openCameraPicker">
                 <Icon name="Camera01Icon" class="size-4" />
-                Add camera credit
+                Add camera
             </Button>
         </div>
 
@@ -184,5 +187,11 @@ const subjectPickerHint = computed(() => (
             <span class="text-caption font-medium text-neutral-700">Reviewed</span>
             <Switch :model-value="reviewed" @update:model-value="toggleReviewed" />
         </label>
+
+        <!-- Saves the two text fields, so it closes the panel rather than
+             sitting between them and the tagging below, which saves itself. -->
+        <div class="sticky bottom-0 -mx-4 -mb-4 mt-auto border-t border-neutral-50 bg-neutral-0 px-4 py-3">
+            <Button variant="primary" size="sm" class="w-full" :disabled="saving" @click="saveDetails">Save</Button>
+        </div>
     </div>
 </template>

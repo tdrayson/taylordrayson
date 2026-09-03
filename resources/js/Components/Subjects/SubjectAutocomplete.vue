@@ -17,6 +17,8 @@ const props = defineProps({
     placeholder: { type: String, required: true },
     hint: { type: String, default: null },
     includeSelf: { type: Boolean, default: true },
+    // Narrows the search to one kind, for a picker that can only accept one.
+    kind: { type: String, default: null },
 });
 
 const emit = defineEmits(['pick', 'cancel']);
@@ -30,7 +32,7 @@ let searchTimer = null;
 
 async function search() {
     try {
-        const response = await fetch(`/lookup/subject?q=${encodeURIComponent(query.value)}&include_self=${props.includeSelf ? 1 : 0}`, {
+        const response = await fetch(`/lookup/subject?q=${encodeURIComponent(query.value)}&include_self=${props.includeSelf ? 1 : 0}${props.kind ? `&kind=${props.kind}` : ''}`, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
@@ -80,7 +82,9 @@ async function createSubject() {
                 'X-XSRF-TOKEN': readCookie('XSRF-TOKEN') ?? '',
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ name, kind: 'person' }),
+            // A kind-restricted picker creates in that kind: a camera credit
+            // that minted a person would not survive its own filter.
+            body: JSON.stringify({ name, kind: props.kind ?? 'person' }),
         });
 
         if (! response.ok) {

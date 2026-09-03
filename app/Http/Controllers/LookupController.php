@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SubjectKind;
 use App\Queries\Lookups\AirlineLookup;
 use App\Queries\Lookups\AirportLookup;
 use App\Queries\Lookups\BookLookup;
@@ -32,7 +33,11 @@ class LookupController extends Controller
             'airline' => app(AirlineLookup::class)($query),
             'book' => app(BookLookup::class)($query),
             'tag' => app(TagLookup::class)($query),
-            'subject' => app(SubjectLookup::class)($query, $request->boolean('include_self')),
+            'subject' => app(SubjectLookup::class)(
+                $query,
+                $request->boolean('include_self'),
+                SubjectKind::tryFrom((string) $request->query('kind')),
+            ),
             'timezone' => app(TimezoneLookup::class)($query),
             'station' => app(StationLookup::class)($query, $request->float('lat') ?: null, $request->float('lng') ?: null),
             'fuel-brand' => app(FuelBrandLookup::class)($query),

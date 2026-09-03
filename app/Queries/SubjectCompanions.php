@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Enums\PhotoTagRole;
 use App\Models\Attachment;
 use App\Models\PhotoTag;
 use App\Models\Subject;
@@ -12,6 +13,10 @@ use Illuminate\Support\Collection;
 /**
  * The subjects most often appearing (per {@see SubjectFeed::targets()})
  * on the same entries as this one, most-shared first. Issue #82.
+ *
+ * Camera credits are company to nobody, on either side of the count: a phone
+ * is not in the frame it took, and every subject it ever photographed would
+ * otherwise read as its companion.
  */
 final class SubjectCompanions
 {
@@ -22,6 +27,10 @@ final class SubjectCompanions
     /** @return Collection<int, Subject> */
     public function __invoke(Subject $subject, int $limit = self::LIMIT): Collection
     {
+        if ($this->isCameraOnly($subject)) {
+            return collect();
+        }
+
         $targets = $this->feed->targets($subject);
 
         if ($targets->isEmpty()) {
@@ -90,7 +99,24 @@ final class SubjectCompanions
 
         return PhotoTag::query()
             ->where('subject_id', '!=', $subject->id)
+            ->where('role', PhotoTagRole::Subject->value)
             ->whereIn('attachment_id', $attachmentIds)
             ->pluck('subject_id');
+    }
+
+    /**
+     * A subject that only ever took photographs and was never in one, nor
+     * tagged on an entry: its "companions" would be its whole photo roll.
+     */
+    private function isCameraOnly(Subject $subject): bool
+    {
+        if (Subjectable::query()->where('subject_id', $subject->id)->exists()) {
+            return false;
+        }
+
+        return ! PhotoTag::query()
+            ->where('subject_id', $subject->id)
+            ->where('role', PhotoTagRole::Subject->value)
+            ->exists();
     }
 }

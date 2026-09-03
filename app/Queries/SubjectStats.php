@@ -16,7 +16,7 @@ final class SubjectStats
         private readonly SubjectPhotos $photos,
     ) {}
 
-    /** @return array{entries: array<string, int>, photos: int, first: ?string, last: ?string, span: ?string} */
+    /** @return array{entries: array<string, int>, photos: int, first: ?string, last: ?string, firstLabel: ?string, lastLabel: ?string} */
     public function __invoke(Subject $subject): array
     {
         $groups = ($this->feed)($subject);
@@ -30,23 +30,10 @@ final class SubjectStats
             'photos' => count(($this->photos)($subject)),
             'first' => $first,
             'last' => $last,
-            'span' => $this->span($first, $last),
+            // Month precision: the exact day of a years-long span is noise,
+            // and the page lists every entry anyway.
+            'firstLabel' => $first === null ? null : Carbon::parse($first)->format('F Y'),
+            'lastLabel' => $last === null ? null : Carbon::parse($last)->format('F Y'),
         ];
-    }
-
-    /**
-     * The first-to-last span as a sentence, at month precision: the exact day
-     * of a years-long span is noise, and the page already lists the entries.
-     */
-    private function span(?string $first, ?string $last): ?string
-    {
-        if ($first === null || $last === null) {
-            return null;
-        }
-
-        $from = Carbon::parse($first)->format('F Y');
-        $to = Carbon::parse($last)->format('F Y');
-
-        return $from === $to ? $from : "{$from} to {$to}";
     }
 }

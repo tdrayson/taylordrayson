@@ -49,11 +49,32 @@ function facetClasses(active) {
         </Link>
     </div>
 
-    <div v-if="subjects.length" class="mt-10 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-        <Link v-for="subject in subjects" :key="subject.slug" :href="subject.url" class="group block">
-            <SubjectImage :cover="subject.cover" :name="subject.name" :kind="kindLabel" />
-            <p class="mt-2 truncate text-meta font-medium text-neutral-900 transition-colors group-hover:text-accent-500">{{ subject.name }}</p>
-            <p v-if="subject.category" class="text-caption text-neutral-500">{{ subject.category }}</p>
+    <!-- A collage, not a table: each cover keeps its own shape and the name
+         only surfaces on hover, so the page reads as faces rather than rows.
+         CSS columns rather than PhotoGrid's row spans, since nothing here
+         needs the covers measured and the order carries no meaning. -->
+    <div v-if="subjects.length" class="mt-10 columns-2 gap-3 sm:columns-3 lg:columns-4">
+        <Link
+            v-for="subject in subjects"
+            :key="subject.slug"
+            :href="subject.url"
+            class="group relative mb-3 block break-inside-avoid overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        >
+            <img
+                v-if="subject.cover"
+                :src="subject.cover.src"
+                :srcset="subject.cover.srcset || undefined"
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                :alt="subject.name"
+                loading="lazy"
+                class="w-full"
+            >
+            <SubjectImage v-else :cover="null" :name="subject.name" :kind="kindLabel" class="border-0 bg-transparent" />
+
+            <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
+            <span class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <span class="block truncate text-meta font-medium text-white">{{ subject.name }}</span>
+            </span>
         </Link>
     </div>
 
