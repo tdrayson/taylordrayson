@@ -12,9 +12,8 @@ const props = defineProps({
     kind: { type: String, default: 'Person' },
     // A thing's illustration reads as a wide picture rather than a portrait.
     wide: { type: Boolean, default: false },
-    // A subject page's establishing band. A fixed height rather than a ratio:
-    // with an aspect ratio set, capping the height shrinks the width to match
-    // and the image stops filling its column.
+    // A subject page's establishing band: the picture keeps its own height,
+    // capped so a portrait cover cannot run away down the page.
     hero: { type: Boolean, default: false },
 });
 
@@ -26,22 +25,50 @@ const FALLBACK_ICONS = {
 };
 
 const fallbackIcon = computed(() => FALLBACK_ICONS[props.kind] ?? UserIcon);
+
+// A hero sets no aspect-ratio on the box: with one set, capping the height
+// shrinks the width to match and the image stops filling its column.
+const shape = computed(() => {
+    if (props.hero) {
+        return 'hero-frame';
+    }
+
+    return props.wide ? 'aspect-video' : 'aspect-square';
+});
 </script>
 
 <template>
     <div
         class="overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
-        :class="hero ? 'h-64 w-full sm:h-80' : wide ? 'aspect-video' : 'aspect-square'"
+        :class="shape"
     >
         <img
             v-if="cover"
             :src="cover.full"
             :srcset="cover.srcset || undefined"
             :alt="name"
-            class="size-full object-cover"
+            :class="hero ? 'hero-image' : 'size-full object-cover'"
         >
-        <div v-else class="flex size-full items-center justify-center text-neutral-400">
+        <div v-else class="flex size-full items-center justify-center text-neutral-400" :class="hero ? 'aspect-video' : ''">
             <Icon :icon="fallbackIcon" class="size-10" />
         </div>
     </div>
 </template>
+
+<style scoped>
+.hero-frame {
+    container-type: inline-size;
+}
+
+/* Definite width with auto height, so max-height crops through object-fit
+   rather than shrinking the picture. 56.25cqw is 16:9 against the frame, and
+   the 30rem stops a wide column turning the band into a whole screenful. */
+.hero-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: min(56.25cqw, 30rem);
+    object-fit: cover;
+    object-position: center;
+}
+</style>

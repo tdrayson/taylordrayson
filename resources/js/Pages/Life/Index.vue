@@ -1,10 +1,9 @@
 <script setup>
 import { setLayoutProps, Link } from '@inertiajs/vue3';
-import { UserIcon, FootprintsIcon, Location01Icon, CubeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
+import SubjectImage from '../../Components/Subjects/SubjectImage.vue';
 import Icon from '../../Components/Ui/Icon.vue';
-import { number } from '../../lib/format.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -18,27 +17,14 @@ setLayoutProps({
     breadcrumb: [{ label: 'Life' }],
 });
 
-const ICONS = {
-    people: UserIcon,
-    pets: FootprintsIcon,
-    spots: Location01Icon,
-    things: CubeIcon,
+// SubjectImage's fallback icon is keyed by the singular kind label, which the
+// hub only knows in the plural.
+const SINGULAR = {
+    people: 'Person',
+    pets: 'Pet',
+    spots: 'Spot',
+    things: 'Thing',
 };
-
-// The tile's backdrop is the kind's own recent covers. One fills the frame;
-// several tile into a mosaic, so the page opens with faces rather than counts.
-function coversOf(kind) {
-    return kind.recent.filter((subject) => subject.cover).slice(0, 4);
-}
-
-function mosaicClass(count) {
-    return count > 1 ? 'grid-cols-2' : 'grid-cols-1';
-}
-
-// Three covers would leave a hole in a 2x2, so the first one spans the row.
-function tileClass(index, count) {
-    return count === 3 && index === 0 ? 'col-span-2' : '';
-}
 </script>
 
 <template>
@@ -51,52 +37,39 @@ function tileClass(index, count) {
         </p>
     </header>
 
-    <div class="mt-10 grid gap-4 sm:grid-cols-2">
-        <Link
-            v-for="kind in kinds"
-            :key="kind.segment"
-            :href="`/life/${kind.segment}`"
-            class="group relative block h-64 overflow-hidden rounded-lg bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:h-72"
-        >
-            <div
-                v-if="coversOf(kind).length"
-                class="grid size-full gap-0.5"
-                :class="mosaicClass(coversOf(kind).length)"
+    <!-- A shelf per kind rather than four cover tiles: the hub names what is
+         actually in it, and every face arrives properly cropped in its own
+         frame instead of fighting its neighbours inside one mosaic. -->
+    <section v-for="kind in kinds" :key="kind.segment" class="mt-12">
+        <div class="mb-4 flex items-baseline justify-between gap-4">
+            <h2 class="font-display text-section">{{ kind.label }}</h2>
+
+            <Link
+                :href="`/life/${kind.segment}`"
+                class="group inline-flex shrink-0 items-center gap-1 text-meta text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none"
             >
-                <span
-                    v-for="(subject, index) in coversOf(kind)"
-                    :key="subject.url"
-                    class="overflow-hidden bg-neutral-25"
-                    :class="tileClass(index, coversOf(kind).length)"
+                All {{ kind.count }}
+                <Icon name="ArrowRight01Icon" class="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+        </div>
+
+        <ul v-if="kind.recent.length" class="grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-6">
+            <li v-for="subject in kind.recent" :key="subject.url">
+                <Link
+                    :href="subject.url"
+                    class="group block focus-visible:outline-none"
                 >
-                    <img
-                        :src="subject.cover.src"
-                        :srcset="subject.cover.srcset || undefined"
-                        alt=""
-                        loading="lazy"
-                        class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    >
-                </span>
-            </div>
+                    <SubjectImage
+                        :cover="subject.cover"
+                        :name="subject.name"
+                        :kind="SINGULAR[kind.segment]"
+                        class="transition-opacity group-hover:opacity-90 group-focus-visible:ring-2 group-focus-visible:ring-accent-500"
+                    />
+                    <p class="mt-2 truncate text-meta font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ subject.name }}</p>
+                </Link>
+            </li>
+        </ul>
 
-            <span v-else class="flex size-full items-center justify-center text-neutral-300">
-                <Icon :icon="ICONS[kind.segment]" class="size-12" />
-            </span>
-
-            <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
-            <span class="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-5 pt-24">
-                <span class="min-w-0">
-                    <span class="flex items-center gap-2 text-white">
-                        <Icon :icon="ICONS[kind.segment]" class="size-5" />
-                        <span class="font-display text-item-title">{{ kind.label }}</span>
-                    </span>
-                    <span class="mt-1 block text-meta text-white/75 tnum">{{ number(kind.count) }}</span>
-                </span>
-
-                <span class="shrink-0 text-white/75 transition-transform duration-300 group-hover:translate-x-1">
-                    <Icon name="ArrowRight01Icon" class="size-5" />
-                </span>
-            </span>
-        </Link>
-    </div>
+        <p v-else class="text-meta text-neutral-500">Nothing here yet.</p>
+    </section>
 </template>

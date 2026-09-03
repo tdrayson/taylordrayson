@@ -97,7 +97,7 @@ class LifeController extends Controller
      */
     private function recent(Collection $subjects): array
     {
-        return $subjects->take(4)->map(fn (Subject $subject): array => [
+        return $subjects->take(8)->map(fn (Subject $subject): array => [
             'name' => $subject->name,
             'url' => $subject->url(),
             'cover' => $subject->coverPhoto(),
