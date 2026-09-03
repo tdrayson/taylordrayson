@@ -159,7 +159,7 @@ const lightboxIndex = ref(null);
             :name="subject.name"
             :kind="subject.kind"
             hero
-            class="breakout mt-8"
+            class="wide mt-8"
         />
 
         <!-- Hidden, not dropped: microformats parsers read the DOM and ignore
