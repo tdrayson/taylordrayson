@@ -38,7 +38,9 @@ const props = defineProps({
 const segment = computed(() => props.subject.url.split('/')[2]);
 const isThing = computed(() => props.subject.kind === 'Thing');
 const hasLocation = computed(() => props.subject.latitude !== null && props.subject.longitude !== null);
-const eyebrow = computed(() => props.subject.category ?? props.subject.kind);
+// The URL word is already the lowercased plural of the kind, so the crumb
+// takes it from there rather than re-pluralising the singular display label.
+const kindPlural = computed(() => segment.value.charAt(0).toUpperCase() + segment.value.slice(1));
 
 const totalEntries = computed(() => Object.values(props.stats.entries).reduce((sum, count) => sum + count, 0));
 const statItems = computed(() => [
@@ -50,7 +52,7 @@ setLayoutProps({
     minimal: props.editing,
     breadcrumb: [
         { label: 'Life', href: '/life' },
-        { label: `${eyebrow.value}s`, href: `/life/${segment.value}` },
+        { label: kindPlural.value, href: `/life/${segment.value}` },
         { label: props.subject.name },
     ],
 });
@@ -111,8 +113,7 @@ const lightboxIndex = ref(null);
         />
 
         <header>
-            <p class="text-eyebrow uppercase text-neutral-500">{{ eyebrow }}</p>
-            <h1 v-twemoji class="p-name mt-1 max-w-2xl font-display text-display">{{ subject.name }}</h1>
+            <h1 v-twemoji class="p-name max-w-2xl font-display text-display">{{ subject.name }}</h1>
         </header>
 
         <!-- Hidden, not dropped: microformats parsers read the DOM and ignore

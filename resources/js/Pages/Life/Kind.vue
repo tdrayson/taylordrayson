@@ -34,8 +34,7 @@ function facetClasses(active) {
     <AppHead :og="og" />
 
     <header>
-        <Link href="/life" class="text-eyebrow uppercase text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500">Life</Link>
-        <h1 class="mt-1 font-display text-display">{{ kind }}</h1>
+        <h1 class="font-display text-display">{{ kind }}</h1>
     </header>
 
     <div v-if="hasCategories" class="mt-6 flex flex-wrap gap-2">
