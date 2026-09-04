@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Services\Rovi\ResourceRequest;
 use App\Services\Rovi\RoviConnector;
 use Carbon\CarbonImmutable;
+use Saloon\Http\Auth\TokenAuthenticator;
 
 /**
  * Read-only client for the Rovi personal API, authenticated with a static
@@ -191,7 +192,9 @@ class Rovi
             return null;
         }
 
-        $response = $this->connector->send(new ResourceRequest($path, $query));
+        $response = $this->connector->send(
+            (new ResourceRequest($path, $query))->authenticate(new TokenAuthenticator($key)),
+        );
 
         return $response->failed() ? null : $response->json();
     }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\HardcoverException;
 use App\Services\Hardcover\GraphqlRequest;
 use App\Services\Hardcover\HardcoverConnector;
+use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Response;
 
 /**
@@ -101,12 +102,26 @@ class Hardcover
      */
     private function request(string $query, array $variables): Response
     {
+        return $this->connector->send(
+            (new GraphqlRequest($query, $variables))->authenticate(new TokenAuthenticator($this->token())),
+        );
+    }
+
+    /**
+     * The configured API key, without the scheme some tokens arrive with.
+     *
+     * @throws HardcoverException When no key is configured.
+     */
+    private function token(): string
+    {
         $key = config('services.hardcover.key');
 
         if (! is_string($key) || $key === '') {
             throw new HardcoverException('HARDCOVER_API_KEY is not configured.');
         }
 
-        return $this->connector->send(new GraphqlRequest($query, $variables));
+        // Tokens sometimes arrive already prefixed with "Bearer "; strip so the
+        // authenticator does not double up the scheme.
+        return str_starts_with($key, 'Bearer ') ? substr($key, 7) : $key;
     }
 }
