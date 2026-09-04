@@ -2,7 +2,8 @@
 
 use App\Services\PetrolPrices;
 use App\Services\PetrolPrices\FuelStationResult;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 /**
  * Shape and values captured from a live petrolprices.com response.
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Http;
  */
 function fakePetrolPricesStations(array $stations): void
 {
-    Http::fake(['*petrolprices.com/app/geojson*' => Http::response([
+    Saloon::fake(['petrolprices.com/app/geojson*' => MockResponse::make([
         'error' => false,
         'limitExceed' => false,
         'data' => [
@@ -100,12 +101,15 @@ it('asks for distance ordering and a whole-mile radius rounded up', function () 
     app(PetrolPrices::class)->search(latitude: 51.3024, longitude: -0.0747, radiusKm: 5);
 
     // 5 km is 3.1 miles, which must round up to 4 so the search is never narrower than asked.
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/app/geojson/2/0/0/0/distance/4')
-        && str_contains($request->url(), 'lat=51.3024'));
+    // getUrl() is the path only; Saloon keeps the query string separate.
+    Saloon::assertSent(function ($request, $response) {
+        return str_contains($response->getPendingRequest()->getUrl(), '/app/geojson/2/0/0/0/distance/4')
+            && $request->query()->get('lat') === 51.3024;
+    });
 });
 
 it('returns an empty array when the api fails', function () {
-    Http::fake(['*petrolprices.com/app/geojson*' => Http::response('Not Found', 404)]);
+    Saloon::fake(['petrolprices.com/app/geojson*' => MockResponse::make('Not Found', 404)]);
 
     expect(app(PetrolPrices::class)->search(latitude: 1, longitude: 1))->toBe([]);
 });
