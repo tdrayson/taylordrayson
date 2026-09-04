@@ -1,6 +1,6 @@
 <script setup>
 import { setLayoutProps, Link } from '@inertiajs/vue3';
-import { UserIcon, FootprintsIcon, Location01Icon, CubeIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { UserIcon, PawPrintIcon, Location01Icon, CubeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
@@ -20,7 +20,7 @@ setLayoutProps({
 
 const ICONS = {
     people: UserIcon,
-    pets: FootprintsIcon,
+    pets: PawPrintIcon,
     spots: Location01Icon,
     things: CubeIcon,
 };

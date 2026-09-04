@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { UserIcon, FootprintsIcon, Location01Icon, CubeIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { UserIcon, PawPrintIcon, Location01Icon, CubeIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -19,7 +19,7 @@ const props = defineProps({
 
 const FALLBACK_ICONS = {
     Person: UserIcon,
-    Pet: FootprintsIcon,
+    Pet: PawPrintIcon,
     Spot: Location01Icon,
     Thing: CubeIcon,
 };
