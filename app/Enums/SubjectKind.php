@@ -51,6 +51,19 @@ enum SubjectKind: string
         };
     }
 
+    /**
+     * Heading a companion of this kind files under. Worded to hold regardless
+     * of which subject's page it renders on: a spot is somewhere entries also
+     * happened, not someone the page's own subject was "seen at".
+     */
+    public function companionHeading(): string
+    {
+        return match ($this) {
+            self::Person, self::Pet, self::Thing => 'Appears with',
+            self::Spot => 'Also at',
+        };
+    }
+
     public static function fromSegment(string $segment): ?self
     {
         foreach (self::cases() as $kind) {

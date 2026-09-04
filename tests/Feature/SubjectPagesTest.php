@@ -69,6 +69,44 @@ it('does not let a person\'s slug resolve under the wrong kind', function () {
     get('/life/pets/bella')->assertNotFound();
 });
 
+it('files a spot companion under its own heading, apart from the people', function () {
+    $subject = Subject::factory()->person()->create(['slug' => 'clare']);
+    $person = Subject::factory()->person()->create(['name' => 'Chloe']);
+    $spot = Subject::factory()->create(['kind' => 'spot', 'name' => 'Cocoa Nut']);
+
+    $shared = Activity::factory()->create(['occurred_at' => '2026-04-01 09:00:00']);
+    $shared->subjects()->attach([$subject->id, $person->id, $spot->id]);
+
+    $grouped = app(SubjectCompanions::class)->grouped($subject);
+
+    expect($grouped->keys()->all())->toBe(['Appears with', 'Also at'])
+        ->and($grouped['Appears with']->pluck('name')->all())->toBe(['Chloe'])
+        ->and($grouped['Also at']->pluck('name')->all())->toBe(['Cocoa Nut']);
+});
+
+it('ranks a companion by entries shared, not by how many photographs they are tagged in', function () {
+    $subject = Subject::factory()->person()->create();
+    $oneOuting = Subject::factory()->person()->create(['name' => 'Three photos, one day']);
+    $twoOutings = Subject::factory()->person()->create(['name' => 'Two separate days']);
+
+    // Three tags on a single entry: one shared entry, however many frames.
+    $busy = Activity::factory()->create(['occurred_at' => '2026-04-01 09:00:00']);
+    $busy->subjects()->attach($subject);
+
+    foreach (range(1, 3) as $frame) {
+        $attachment = $busy->addMediaFromString(fakeJpeg())->usingFileName("p{$frame}.jpg")->toMediaCollection('photos');
+        $attachment->subjects()->attach($oneOuting, ['role' => 'subject', 'x' => 10, 'y' => 10]);
+    }
+
+    foreach (['2026-04-02 09:00:00', '2026-04-03 09:00:00'] as $when) {
+        $entry = Activity::factory()->create(['occurred_at' => $when]);
+        $entry->subjects()->attach([$subject->id, $twoOutings->id]);
+    }
+
+    expect(app(SubjectCompanions::class)($subject)->pluck('name')->all())
+        ->toBe(['Two separate days', 'Three photos, one day']);
+});
+
 it('counts a companion tagged only through a shared photograph, but not a subject on an unrelated entry', function () {
     $subject = Subject::factory()->person()->create();
     $companion = Subject::factory()->person()->create();
@@ -155,8 +193,8 @@ it('folds the counts into the facts rows, with distance in metres', function () 
     // visitor's own mi/km setting in the browser.
     expect($rows['Distance']['distanceM'])->toBe(30000)
         ->and($rows['Activities']['value'])->toBe('2')
-        ->and($rows['First']['value'])->toBe('January 2026')
-        ->and($rows['Latest']['value'])->toBe('March 2026');
+        ->and($rows['First appearance']['value'])->toBe('January 2026')
+        ->and($rows['Latest appearance']['value'])->toBe('March 2026');
 });
 
 it('leaves out a distance row for a subject with no activities', function () {

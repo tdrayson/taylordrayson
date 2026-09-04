@@ -20,6 +20,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -60,11 +61,15 @@ class SubjectController extends Controller
             'lastPage' => $feed['lastPage'],
             'photos' => ($this->photos)($subject),
             'stats' => ($this->stats)($subject),
-            'companions' => ($this->companions)($subject)->map(fn (Subject $companion): array => [
-                'name' => $companion->name,
-                'url' => $companion->url(),
-                'cover' => $companion->coverPhoto(),
-            ])->all(),
+            'companions' => $this->companions->grouped($subject)
+                ->map(fn (Collection $group, string $heading): array => [
+                    'heading' => $heading,
+                    'subjects' => $group->map(fn (Subject $companion): array => [
+                        'name' => $companion->name,
+                        'url' => $companion->url(),
+                        'cover' => $companion->coverPhoto(),
+                    ])->all(),
+                ])->values()->all(),
             // ?edit opens the editor in place, the same pattern as a page.
             // Only ever honoured for a signed-in visitor; the write routes
             // enforce it again server-side via the `auth` middleware group.

@@ -78,10 +78,10 @@ final class SubjectStats
         }
 
         if ($firstLabel !== null) {
-            $rows[] = ['label' => 'First', 'value' => $firstLabel];
+            $rows[] = ['label' => 'First appearance', 'value' => $firstLabel];
 
             if ($lastLabel !== $firstLabel) {
-                $rows[] = ['label' => 'Latest', 'value' => $lastLabel];
+                $rows[] = ['label' => 'Latest appearance', 'value' => $lastLabel];
             }
         }
 

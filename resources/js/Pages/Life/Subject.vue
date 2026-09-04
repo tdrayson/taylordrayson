@@ -26,6 +26,7 @@ const props = defineProps({
     lastPage: { type: Number, default: 1 },
     photos: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({ entries: {}, photos: 0, first: null, last: null }) },
+    // [{ heading, subjects: [{ name, url, cover }] }], one per companion heading.
     companions: { type: Array, default: () => [] },
     editing: { type: Boolean, default: false },
     // Field definitions from FieldRegistry, driving the properties panel.
@@ -148,7 +149,7 @@ const lightboxIndex = ref(null);
              longer pushes everything below it down the page. -->
         <div class="mt-8 grid gap-8 sm:grid-cols-3 sm:items-start sm:gap-16">
             <div class="min-w-0 sm:col-span-2">
-                <BlockContent v-if="subject.bio" :document="subject.bio" />
+                <BlockContent v-if="subject.bio" :document="subject.bio" size="lead" />
             </div>
 
             <SubjectFacts :facts="subject.facts" :rows="stats.rows" />
@@ -162,11 +163,13 @@ const lightboxIndex = ref(null);
             class="mt-8"
         />
 
-        <section v-if="companions.length">
-            <SectionHead title="Appears with" />
+        <!-- Split by heading, because a spot is somewhere you were rather than
+             someone you were with. -->
+        <section v-for="group in companions" :key="group.heading">
+            <SectionHead :title="group.heading" />
             <div class="flex flex-wrap gap-4">
                 <Link
-                    v-for="companion in companions"
+                    v-for="companion in group.subjects"
                     :key="companion.url"
                     :href="companion.url"
                     class="group flex items-center gap-2 rounded-full py-1 pr-3 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
