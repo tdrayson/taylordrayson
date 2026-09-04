@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Services\LogoStream\AirlineLogoRequest;
+use App\Services\LogoStream\AirlineLogosConnector;
+use App\Services\LogoStream\AviationConnector;
+use App\Services\LogoStream\RouteRequest;
 use App\Support\Distance;
-use Illuminate\Support\Facades\Http;
 
 /**
  * Client for the LogoStream APIs.
@@ -14,9 +17,10 @@ use Illuminate\Support\Facades\Http;
  */
 class LogoStream
 {
-    private const BASE = 'https://airlines-api.logostream.dev';
-
-    private const AVIATION_BASE = 'https://aviation-api.logostream.dev';
+    public function __construct(
+        private readonly AirlineLogosConnector $logos,
+        private readonly AviationConnector $aviation,
+    ) {}
 
     /**
      * Fetch a single airline logo variant as raw image bytes, keyed by IATA code.
@@ -29,12 +33,7 @@ class LogoStream
      */
     public function airlineLogo(string $iata, string $variant, int $size = 400): array
     {
-        $response = Http::api()->get(self::BASE.'/airlines/iata/'.$iata, [
-            'key' => config('services.logostream.key'),
-            'variant' => $variant,
-            'format' => 'png',
-            'size' => $size,
-        ]);
+        $response = $this->logos->send(new AirlineLogoRequest($iata, $variant, $size));
 
         if (! $response->successful()) {
             return ['status' => 'error', 'body' => null];
@@ -58,12 +57,7 @@ class LogoStream
      */
     public function route(string $departureIata, string $arrivalIata): ?array
     {
-        $response = Http::api()->withHeaders(['x-api-key' => config('services.logostream.key')])
-            ->get(self::AVIATION_BASE.'/v1/routes', [
-                'departureIata' => $departureIata,
-                'arrivalIata' => $arrivalIata,
-                'limit' => 1,
-            ]);
+        $response = $this->aviation->send(new RouteRequest($departureIata, $arrivalIata));
 
         if (! $response->successful()) {
             return null;
