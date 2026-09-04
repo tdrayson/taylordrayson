@@ -1,8 +1,9 @@
 <?php
 
 use App\Models\Fuel;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -10,7 +11,7 @@ beforeEach(function () {
 });
 
 it('skips rows that already have a map unless forced', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
+    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
 
     $fuel = Fuel::factory()->create(['latitude' => 51.3, 'longitude' => -0.1]);
     $fuel->addMediaFromString(mapPng())->usingFileName('m.png')->toMediaCollection('map');
@@ -21,7 +22,7 @@ it('skips rows that already have a map unless forced', function () {
 });
 
 it('processes at most the --limit number of entries', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
+    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
 
     Fuel::factory()->count(3)->create(['latitude' => 51.3, 'longitude' => -0.1]);
 

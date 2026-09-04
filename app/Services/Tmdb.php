@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use App\Services\Tmdb\ResourceRequest;
+use App\Services\Tmdb\TmdbConnector;
 
 /**
  * Client for the TMDB API v3, used for enrichment only (season/episode structure,
@@ -14,7 +12,7 @@ use Illuminate\Support\Facades\Http;
  */
 class Tmdb
 {
-    private const BASE = 'https://api.themoviedb.org/3';
+    public function __construct(private readonly TmdbConnector $connector) {}
 
     /**
      * @return array<string, mixed>|null
@@ -51,28 +49,12 @@ class Tmdb
     }
 
     /**
-     * @param  array<string, mixed>  $params
      * @return array<mixed>|null
      */
-    private function get(string $path, array $params = []): ?array
+    private function get(string $path): ?array
     {
-        $response = $this->request($path, $params);
+        $response = $this->connector->send(new ResourceRequest($path));
 
         return $response->failed() ? null : $response->json();
-    }
-
-    /**
-     * @param  array<string, mixed>  $params
-     */
-    private function request(string $path, array $params): Response
-    {
-        return Http::api()->connectTimeout(10)
-            ->timeout(20)
-            ->retry(3, 500, when: fn (\Throwable $e): bool => $e instanceof ConnectionException
-                || ($e instanceof RequestException && $e->response?->status() === 429), throw: false)
-            ->get(self::BASE.$path, [
-                ...$params,
-                'api_key' => config('services.tmdb.key'),
-            ]);
     }
 }

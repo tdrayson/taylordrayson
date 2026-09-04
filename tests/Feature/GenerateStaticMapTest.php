@@ -3,8 +3,9 @@
 use App\Actions\GenerateStaticMap;
 use App\Exceptions\MapGenerationFailed;
 use App\Models\Activity;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.mapbox.token' => 'test-token']);
@@ -12,7 +13,7 @@ beforeEach(function () {
 });
 
 it('stores light and dark route maps from the activity polyline', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
+    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
 
@@ -21,8 +22,8 @@ it('stores light and dark route maps from the activity polyline', function () {
     expect($activity->getFirstMediaUrl('map'))->not->toBe('');
     expect($activity->getFirstMediaUrl('map_dark'))->not->toBe('');
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'light-v11'));
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'dark-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'light-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'dark-v11'));
 });
 
 it('returns null when the activity has no polyline', function () {
@@ -38,9 +39,9 @@ it('returns null when the activity has no polyline', function () {
  * database, and nothing retried it because the generator reported success.
  */
 it('stores nothing at all when one of the two styles fails', function () {
-    Http::fake([
-        '*light-v11*' => Http::response(mapPng(), 200),
-        '*dark-v11*' => Http::response('', 500),
+    Saloon::fake([
+        'light-v11*' => MockResponse::make(mapPng(), 200),
+        'dark-v11*' => MockResponse::make('', 500),
     ]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);

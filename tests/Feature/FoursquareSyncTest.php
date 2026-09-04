@@ -60,7 +60,7 @@ it('re-checks the --days window when check-ins are current', function () {
 
     // Deliberate overlap: the window is re-checked so a shout or photo added
     // after the fact lands on the existing row.
-    Saloon::assertSent(fn ($request) => (int) $request->query()->get('afterTimestamp') === now()->subDays(2)->timestamp);
+    Saloon::assertSent(fn ($request, $response) => (int) $request->query()->get('afterTimestamp') === now()->subDays(2)->timestamp);
 });
 
 it('extends the window back to the newest stored check-in when a gap has opened', function () {
@@ -76,7 +76,7 @@ it('extends the window back to the newest stored check-in when a gap has opened'
     $this->artisan('foursquare:sync --days=2')->assertSuccessful();
 
     // Without this a missed run strands the gap behind the fixed window forever.
-    Saloon::assertSent(fn ($request) => (int) $request->query()->get('afterTimestamp') === $newest->timestamp);
+    Saloon::assertSent(fn ($request, $response) => (int) $request->query()->get('afterTimestamp') === $newest->timestamp);
 });
 
 it('caps the catch-up so a long gap does not refetch all history', function () {
@@ -90,7 +90,7 @@ it('caps the catch-up so a long gap does not refetch all history', function () {
 
     $this->artisan('foursquare:sync')->assertSuccessful();
 
-    Saloon::assertSent(fn ($request) => (int) $request->query()->get('afterTimestamp') >= now()->subDays(91)->timestamp);
+    Saloon::assertSent(fn ($request, $response) => (int) $request->query()->get('afterTimestamp') >= now()->subDays(91)->timestamp);
 });
 
 it('stores a newly returned check-in', function () {

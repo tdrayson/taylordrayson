@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\Mapbox\GeocodeRequest;
+use App\Services\Mapbox\MapboxConnector;
 use RuntimeException;
 
 /**
@@ -15,7 +16,7 @@ use RuntimeException;
  */
 class Mapbox
 {
-    private const BASE = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+    public function __construct(private readonly MapboxConnector $connector) {}
 
     /**
      * Places matching a search, nearest-first when a position is supplied.
@@ -57,10 +58,7 @@ class Mapbox
             throw new RuntimeException('Mapbox token is not configured (MAPBOX_TOKEN).');
         }
 
-        $response = Http::api()->get(self::BASE.'/'.rawurlencode($query).'.json', [
-            ...$parameters,
-            'access_token' => $token,
-        ]);
+        $response = $this->connector->send(new GeocodeRequest($query, $parameters, $token));
 
         if ($response->failed()) {
             return [];

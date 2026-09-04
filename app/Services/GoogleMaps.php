@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\GoogleMaps\GeocodeRequest;
+use App\Services\GoogleMaps\GoogleMapsConnector;
+use App\Services\GoogleMaps\NearbyRequest;
+use App\Services\GoogleMaps\PlacesRequest;
 use RuntimeException;
 
 /**
@@ -16,14 +19,10 @@ class GoogleMaps
      * The legacy Text Search, not Places API (New): the new one is not enabled
      * on this project, and this returns what the field needs anyway.
      */
-    private const PLACES = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
-
-    private const NEARBY = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
-
     /** Wide enough to reach the venue you are standing outside, not the next town. */
     private const NEARBY_RADIUS_METRES = 500;
 
-    private const GEOCODE = 'https://maps.googleapis.com/maps/api/geocode/json';
+    public function __construct(private readonly GoogleMapsConnector $connector) {}
 
     /**
      * Places matching a search, biased to a position when one is known.
@@ -49,7 +48,7 @@ class GoogleMaps
             $parameters['radius'] = 50000;
         }
 
-        $response = Http::api()->get(self::PLACES, $parameters);
+        $response = $this->connector->send(new PlacesRequest($parameters));
 
         if ($response->failed()) {
             return [];
@@ -69,11 +68,7 @@ class GoogleMaps
      */
     private function nearby(float $latitude, float $longitude): array
     {
-        $response = Http::api()->get(self::NEARBY, [
-            'location' => "{$latitude},{$longitude}",
-            'radius' => self::NEARBY_RADIUS_METRES,
-            'key' => $this->key(),
-        ]);
+        $response = $this->connector->send(new NearbyRequest($latitude, $longitude, self::NEARBY_RADIUS_METRES, $this->key()));
 
         if ($response->failed()) {
             return [];
@@ -92,10 +87,7 @@ class GoogleMaps
      */
     public function reverse(float $latitude, float $longitude): ?array
     {
-        $response = Http::api()->get(self::GEOCODE, [
-            'latlng' => "{$latitude},{$longitude}",
-            'key' => $this->key(),
-        ]);
+        $response = $this->connector->send(new GeocodeRequest($latitude, $longitude, $this->key()));
 
         $result = $response->successful() ? ($response->json('results.0') ?? null) : null;
 

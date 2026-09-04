@@ -3,8 +3,9 @@
 use App\Actions\GenerateFlightMap;
 use App\Models\Airport;
 use App\Models\Flight;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.mapbox.token' => 'test-token']);
@@ -12,7 +13,7 @@ beforeEach(function () {
 });
 
 it('stores light and dark arc maps from the flight endpoints', function () {
-    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
+    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
 
     // The Airport table is empty in tests until seeded, so pin the flight to a
     // known LHR/JFK pair with explicit coordinates rather than relying on
@@ -28,6 +29,6 @@ it('stores light and dark arc maps from the flight endpoints', function () {
     expect($flight->getFirstMediaUrl('map'))->not->toBe('');
     expect($flight->getFirstMediaUrl('map_dark'))->not->toBe('');
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'light-v11'));
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'dark-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'light-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'dark-v11'));
 });

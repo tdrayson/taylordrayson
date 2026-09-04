@@ -44,7 +44,7 @@ it('pushes an alert when a queued job fails', function () {
     (new AlertOnFailedJob(app(FailureAlert::class)))
         ->handle(new JobFailed('database', $job, new RuntimeException('timed out')));
 
-    Saloon::assertSent(fn ($request) => $request->body()->all()['title'] === 'Queued job failed'
+    Saloon::assertSent(fn ($request, $response) => $request->body()->all()['title'] === 'Queued job failed'
         && str_contains($request->body()->all()['message'], 'ResolveLinkFavicons'));
 });
 

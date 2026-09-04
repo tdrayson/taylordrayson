@@ -4,8 +4,9 @@ use App\Actions\GenerateLocationMap;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Presenters\CardPresenter;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -13,7 +14,7 @@ beforeEach(function () {
 
 it('generates and attaches a static pin map for an event with coordinates', function () {
     config()->set('services.mapbox.token', 'test-token');
-    Http::fake(['api.mapbox.com/*' => Http::response(mapPng(), 200)]);
+    Saloon::fake(['api.mapbox.com/*' => MockResponse::make(mapPng(), 200)]);
 
     $event = Event::factory()->create(['latitude' => 51.5129, 'longitude' => -0.1201]);
 
@@ -22,15 +23,15 @@ it('generates and attaches a static pin map for an event with coordinates', func
     expect($media)->not->toBeNull()
         ->and($event->fresh()->getFirstMedia('map'))->not->toBeNull();
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'pin-')
-        && str_contains($request->url(), '-0.1201,51.5129'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'pin-')
+        && str_contains($response->getPendingRequest()->getUrl(), '-0.1201,51.5129'));
 });
 
 it('generates both light and dark static pin maps and exposes both URLs on the card', function () {
     config()->set('services.mapbox.token', 'test-token');
-    Http::fake([
-        'api.mapbox.com/styles/v1/mapbox/light-v11/*' => Http::response(mapPng(220), 200),
-        'api.mapbox.com/styles/v1/mapbox/dark-v11/*' => Http::response(mapPng(40), 200),
+    Saloon::fake([
+        'api.mapbox.com/styles/v1/mapbox/light-v11/*' => MockResponse::make(mapPng(220), 200),
+        'api.mapbox.com/styles/v1/mapbox/dark-v11/*' => MockResponse::make(mapPng(40), 200),
     ]);
 
     $event = Event::factory()->create(['latitude' => 51.5129, 'longitude' => -0.1201]);
@@ -48,8 +49,8 @@ it('generates both light and dark static pin maps and exposes both URLs on the c
         ->and($card->meta->mapDark)->not->toBeNull()
         ->and($card->meta->map)->not->toBe($card->meta->mapDark);
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'mapbox/light-v11'));
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'mapbox/dark-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'mapbox/light-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'mapbox/dark-v11'));
 });
 
 it('returns null when the model has no coordinates', function () {
@@ -61,7 +62,7 @@ it('returns null when the model has no coordinates', function () {
 
 it('stores light and dark pins using the given marker colour', function () {
     config(['services.mapbox.token' => 'test-token']);
-    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
+    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
 
     $checkin = Checkin::factory()->create(['latitude' => 51.5, 'longitude' => -0.1]);
 
@@ -70,9 +71,9 @@ it('stores light and dark pins using the given marker colour', function () {
     expect($checkin->getFirstMediaUrl('map'))->not->toBe('');
     expect($checkin->getFirstMediaUrl('map_dark'))->not->toBe('');
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'pin-l+ff8800')
-        && str_contains($request->url(), 'light-v11'));
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'dark-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'pin-l+ff8800')
+        && str_contains($response->getPendingRequest()->getUrl(), 'light-v11'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'dark-v11'));
 });
 
 it('returns null when the checkin has no coordinates', function () {

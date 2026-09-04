@@ -21,7 +21,7 @@ it('downloads real logos and skips airlines with no logo available', function ()
     // A callable mock receives the PendingRequest, so one wildcard entry can
     // answer differently per URL.
     Saloon::fake(['*' => function ($pendingRequest) {
-        if (str_contains($pendingRequest->getUrl(), '/iata/XX')) {
+        if (str_contains($response->getPendingRequest()->getUrl(), '/iata/XX')) {
             return MockResponse::make('FAKE-PNG-BYTES', 200, ['Content-Type' => 'image/png', 'x-asset' => 'XXX_logo']);
         }
 

@@ -3,8 +3,9 @@
 use App\Models\Appearance;
 use App\Presenters\CardPresenter;
 use App\Support\YouTube;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 use function Pest\Laravel\get;
 
@@ -91,7 +92,7 @@ it('renders the appearance detail page with a thumbnail and video url', function
 
 it('downloads and stores a youtube thumbnail as a cover media', function () {
     Storage::fake('public');
-    Http::fake(['*' => Http::response(jpegBytes(1280, 720), 200)]);
+    Saloon::fake(['' => MockResponse::make(jpegBytes(1280, 720), 200)]);
 
     $appearance = Appearance::factory()->create([
         'video_url' => 'https://www.youtube.com/watch?v=W7rO_mZTuWM',
@@ -108,7 +109,7 @@ it('downloads and stores a youtube thumbnail as a cover media', function () {
 
 it('skips appearances that already have a cover unless forced', function () {
     Storage::fake('public');
-    Http::fake(['*' => Http::response(jpegBytes(1280, 720), 200)]);
+    Saloon::fake(['' => MockResponse::make(jpegBytes(1280, 720), 200)]);
 
     $appearance = Appearance::factory()->create([
         'video_url' => 'https://www.youtube.com/watch?v=W7rO_mZTuWM',
@@ -119,13 +120,13 @@ it('skips appearances that already have a cover unless forced', function () {
     $this->artisan('appearances:thumbnails')->assertSuccessful();
 
     expect($appearance->refresh()->getFirstMedia('cover')->id)->toBe($originalId);
-    Http::assertNothingSent();
+    Saloon::assertNothingSent();
 });
 
 it('skips the grey placeholder and keeps the largest real image', function () {
     Storage::fake('public');
-    Http::fake([
-        'i.ytimg.com/vi/*/maxresdefault.jpg' => Http::response(jpegBytes(1280, 720), 200),
+    Saloon::fake([
+        'i.ytimg.com/vi/*/maxresdefault.jpg' => MockResponse::make(jpegBytes(1280, 720), 200),
     ]);
 
     $appearance = Appearance::factory()->create([
@@ -139,10 +140,10 @@ it('skips the grey placeholder and keeps the largest real image', function () {
 
 it('rejects a placeholder-sized response and drops to the next tier', function () {
     Storage::fake('public');
-    Http::fake([
+    Saloon::fake([
         // YouTube serves a 120x90 grey placeholder at 200 for a missing max size.
-        'i.ytimg.com/vi/*/maxresdefault.jpg' => Http::response(jpegBytes(120, 90), 200),
-        'i.ytimg.com/vi/*/sddefault.jpg' => Http::response(jpegBytes(640, 480), 200),
+        'i.ytimg.com/vi/*/maxresdefault.jpg' => MockResponse::make(jpegBytes(120, 90), 200),
+        'i.ytimg.com/vi/*/sddefault.jpg' => MockResponse::make(jpegBytes(640, 480), 200),
     ]);
 
     $appearance = Appearance::factory()->create([
@@ -156,10 +157,10 @@ it('rejects a placeholder-sized response and drops to the next tier', function (
 
 it('falls back to the high-quality thumbnail when larger sizes are missing', function () {
     Storage::fake('public');
-    Http::fake([
-        'i.ytimg.com/vi/*/maxresdefault.jpg' => Http::response('', 404),
-        'i.ytimg.com/vi/*/sddefault.jpg' => Http::response('', 404),
-        'i.ytimg.com/vi/*/hqdefault.jpg' => Http::response(jpegBytes(480, 360), 200),
+    Saloon::fake([
+        'i.ytimg.com/vi/*/maxresdefault.jpg' => MockResponse::make('', 404),
+        'i.ytimg.com/vi/*/sddefault.jpg' => MockResponse::make('', 404),
+        'i.ytimg.com/vi/*/hqdefault.jpg' => MockResponse::make(jpegBytes(480, 360), 200),
     ]);
 
     $appearance = Appearance::factory()->create([

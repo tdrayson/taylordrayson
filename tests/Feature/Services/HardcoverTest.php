@@ -2,15 +2,16 @@
 
 use App\Exceptions\HardcoverException;
 use App\Services\Hardcover;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config()->set('services.hardcover.key', 'test-hardcover-key');
 });
 
 it('posts a GraphQL search with the bearer token', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'data' => [
                 'search' => [
                     'error' => null,
@@ -42,10 +43,10 @@ it('posts a GraphQL search with the bearer token', function () {
         ->and($search['query_type'])->toBe('Book')
         ->and($search['results']['hits'][0]['document']['title'])->toBe('Atomic Habits');
 
-    Http::assertSent(function ($request) {
+    Saloon::assertSent(function ($request, $response) {
         $body = $request->data();
 
-        return $request->url() === 'https://api.hardcover.app/v1/graphql'
+        return $response->getPendingRequest()->getUrl() === 'https://api.hardcover.app/v1/graphql'
             && $request->hasHeader('Authorization', 'Bearer test-hardcover-key')
             && str_contains($body['query'], 'search(query: $query)')
             && $body['variables']['query'] === 'atomic habits';
@@ -53,8 +54,8 @@ it('posts a GraphQL search with the bearer token', function () {
 });
 
 it('flattens search hits into book documents', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'data' => [
                 'search' => [
                     'error' => null,
@@ -83,15 +84,15 @@ it('flattens search hits into book documents', function () {
 it('strips a leading Bearer prefix from the configured key', function () {
     config()->set('services.hardcover.key', 'Bearer already-prefixed');
 
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'data' => ['search' => ['error' => null, 'results' => ['hits' => []]]],
         ]),
     ]);
 
     app(Hardcover::class)->search('test');
 
-    Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer already-prefixed'));
+    Saloon::assertSent(fn ($request, $response) => $request->hasHeader('Authorization', 'Bearer already-prefixed'));
 });
 
 it('throws when the API key is missing', function () {
@@ -102,8 +103,8 @@ it('throws when the API key is missing', function () {
 });
 
 it('throws when the HTTP request fails', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response('nope', 500),
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make('nope', 500),
     ]);
 
     expect(fn () => app(Hardcover::class)->search('atomic habits'))
@@ -111,8 +112,8 @@ it('throws when the HTTP request fails', function () {
 });
 
 it('throws when GraphQL returns an errors payload', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'errors' => [
                 ['message' => 'Unable to verify token'],
             ],
@@ -124,10 +125,12 @@ it('throws when GraphQL returns an errors payload', function () {
 });
 
 it('retries a 429 response and resolves to the eventual body', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::sequence()
-            ->push('rate limited', 429)
-            ->push([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => mockSequence([
+
+            MockResponse::make('rate limited', 429),
+
+            MockResponse::make([
                 'data' => [
                     'search' => [
                         'error' => null,
@@ -136,6 +139,8 @@ it('retries a 429 response and resolves to the eventual body', function () {
                     ],
                 ],
             ], 200),
+
+        ]),
     ]);
 
     $documents = app(Hardcover::class)->searchDocuments('dune');
@@ -143,5 +148,5 @@ it('retries a 429 response and resolves to the eventual body', function () {
     expect($documents)->toHaveCount(1)
         ->and($documents[0]['title'])->toBe('Dune');
 
-    Http::assertSentCount(2);
+    Saloon::assertSentCount(2);
 });

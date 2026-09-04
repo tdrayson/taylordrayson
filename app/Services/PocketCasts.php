@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\Response;
+use App\Services\PocketCasts\DiscoverConnector;
+use App\Services\PocketCasts\GetRequest;
+use App\Services\PocketCasts\LoginRequest;
+use App\Services\PocketCasts\PocketCastsConnector;
+use App\Services\PocketCasts\PodcastApiConnector;
+use App\Services\PocketCasts\PostRequest;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Saloon\Http\Response;
 
 /**
  * Client for the unofficial Pocket Casts web API. Exchanges the configured
@@ -16,17 +20,22 @@ use RuntimeException;
  */
 class PocketCasts
 {
-    private const API_BASE = 'https://api.pocketcasts.com';
-
-    private const PODCAST_API_BASE = 'https://podcast-api.pocketcasts.com';
-
-    private const DISCOVER_BASE = 'https://static.pocketcasts.com/discover/json';
-
     private const TOKEN_CACHE_KEY = 'pocketcasts.token';
 
     private const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 29;
 
-    private const USER_AGENT = 'taylordrayson.com (+https://github.com/tdrayson)';
+    public function __construct(
+        private readonly PocketCastsConnector $api,
+        private readonly PodcastApiConnector $podcastApi,
+        private readonly DiscoverConnector $discover,
+    ) {
+        // The connectors ask for the token; this class owns logging in and
+        // caching it, so they get a resolver rather than a value.
+        $resolve = fn (bool $forceRefresh): string => $this->token($forceRefresh);
+
+        $this->api->resolvesTokenUsing($resolve);
+        $this->podcastApi->resolvesTokenUsing($resolve);
+    }
 
     /**
      * The account's subscribed podcasts.
@@ -120,7 +129,7 @@ class PocketCasts
      */
     public function popular(): array
     {
-        return $this->getPublic(self::DISCOVER_BASE.'/popular_world.json');
+        return $this->getPublic('/popular_world.json');
     }
 
     /**
@@ -130,7 +139,7 @@ class PocketCasts
      */
     public function featured(): array
     {
-        return $this->getPublic(self::DISCOVER_BASE.'/featured.json');
+        return $this->getPublic('/featured.json');
     }
 
     /**
@@ -140,7 +149,7 @@ class PocketCasts
      */
     public function trending(): array
     {
-        return $this->getPublic(self::DISCOVER_BASE.'/trending.json');
+        return $this->getPublic('/trending.json');
     }
 
     /**
@@ -151,7 +160,7 @@ class PocketCasts
      */
     public function podcast(string $uuid): array
     {
-        return $this->get(self::PODCAST_API_BASE, "/podcast/full/{$uuid}");
+        return $this->get("/podcast/full/{$uuid}");
     }
 
     /**
@@ -162,7 +171,7 @@ class PocketCasts
      */
     public function showNotes(string $episodeUuid): array
     {
-        return $this->get(self::PODCAST_API_BASE, "/episode/show_notes/{$episodeUuid}");
+        return $this->get("/episode/show_notes/{$episodeUuid}");
     }
 
     /**
@@ -201,14 +210,7 @@ class PocketCasts
             throw new RuntimeException('Pocket Casts credentials are not configured (POCKETCASTS_EMAIL / POCKETCASTS_PASSWORD).');
         }
 
-        $response = Http::api()->asJson()
-            ->acceptJson()
-            ->withHeaders(['User-Agent' => self::USER_AGENT])
-            ->post(self::API_BASE.'/user/login', [
-                'email' => $email,
-                'password' => $password,
-                'scope' => 'webplayer',
-            ]);
+        $response = $this->api->send(new LoginRequest($email, $password));
 
         if ($response->failed()) {
             throw new RuntimeException("Pocket Casts login failed ({$response->status()}).");
@@ -224,85 +226,47 @@ class PocketCasts
     }
 
     /**
-     * POST a JSON body to an authenticated api.pocketcasts.com endpoint.
+     * POST an authenticated endpoint.
      *
-     * @param  string  $path  The endpoint path, with a leading slash.
-     * @param  array<string, mixed>  $body  The JSON request body.
+     * @param  array<string, mixed>  $body
      * @return PocketCastsResponse
      */
     private function post(string $path, array $body = []): array
     {
-        // Encode an empty body as a JSON object ({}), not an array ([]); some
-        // endpoints (e.g. /user/stats/summary) reject the array form with a 500.
-        $json = json_encode($body === [] ? (object) [] : $body);
-
-        return $this->send(
-            fn (PendingRequest $request): Response => $request->withBody($json, 'application/json')->post(self::API_BASE.$path),
-        );
+        return $this->decode($this->api->send(new PostRequest($path, $body)));
     }
 
     /**
-     * GET an authenticated endpoint on the given host.
+     * GET an authenticated endpoint on the podcast-metadata host.
      *
-     * @param  string  $base  The host base URL.
-     * @param  string  $path  The endpoint path, with a leading slash.
      * @return PocketCastsResponse
      */
-    private function get(string $base, string $path): array
+    private function get(string $path): array
     {
-        return $this->send(fn (PendingRequest $request): Response => $request->get($base.$path));
+        return $this->decode($this->podcastApi->send(new GetRequest($path)));
     }
 
     /**
-     * GET a public (unauthenticated) Discover feed.
+     * GET a public Discover feed, which needs no token.
      *
-     * @param  string  $url  The fully-qualified feed URL.
      * @return PocketCastsResponse
      */
-    private function getPublic(string $url): array
+    private function getPublic(string $path): array
     {
-        $response = Http::api()->acceptJson()
-            ->withHeaders(['User-Agent' => self::USER_AGENT])
-            ->get($url);
+        return $this->decode($this->discover->send(new GetRequest($path)));
+    }
 
+    /**
+     * A failure reads the same whichever host it came from.
+     *
+     * @return PocketCastsResponse
+     */
+    private function decode(Response $response): array
+    {
         if ($response->failed()) {
             throw new RuntimeException("Pocket Casts request failed ({$response->status()}).");
         }
 
         return $response->json() ?? [];
-    }
-
-    /**
-     * Run a request with the bearer token attached, re-authenticating once and
-     * retrying if the token has expired (a 401 response).
-     *
-     * @param  callable(PendingRequest): Response  $send  Issues the request on the given client.
-     * @return PocketCastsResponse
-     */
-    private function send(callable $send): array
-    {
-        $response = $send($this->client($this->token()));
-
-        if ($response->status() === 401) {
-            $response = $send($this->client($this->token(true)));
-        }
-
-        if ($response->failed()) {
-            throw new RuntimeException("Pocket Casts request failed ({$response->status()}).");
-        }
-
-        return $response->json() ?? [];
-    }
-
-    /**
-     * A JSON HTTP client carrying the bearer token and a User-Agent.
-     *
-     * @param  string  $token  The JWT to send as a bearer token.
-     */
-    private function client(string $token): PendingRequest
-    {
-        return Http::api()->acceptJson()
-            ->withToken($token)
-            ->withHeaders(['User-Agent' => self::USER_AGENT]);
     }
 }

@@ -89,5 +89,5 @@ it('returns the photos payload for an activity', function () {
 
     expect(app(Strava::class)->activityPhotos(9))->toBe([['urls' => ['2048' => 'https://example/p.jpg']]]);
 
-    Saloon::assertSent(fn ($request) => $request->query()->get('size') === 2048);
+    Saloon::assertSent(fn ($request, $response) => $request->query()->get('size') === 2048);
 });

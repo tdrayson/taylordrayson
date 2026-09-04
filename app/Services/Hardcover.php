@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Exceptions\HardcoverException;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use App\Services\Hardcover\GraphqlRequest;
+use App\Services\Hardcover\HardcoverConnector;
+use Saloon\Http\Response;
 
 /**
  * Client for the Hardcover GraphQL API, used to look up books for the media
@@ -15,7 +14,7 @@ use Illuminate\Support\Facades\Http;
  */
 class Hardcover
 {
-    private const BASE = 'https://api.hardcover.app/v1/graphql';
+    public function __construct(private readonly HardcoverConnector $connector) {}
 
     /**
      * Run an arbitrary GraphQL query/mutation and return the `data` object.
@@ -108,20 +107,6 @@ class Hardcover
             throw new HardcoverException('HARDCOVER_API_KEY is not configured.');
         }
 
-        // Tokens sometimes arrive already prefixed with "Bearer "; strip so
-        // withToken() does not double up the scheme.
-        $token = str_starts_with($key, 'Bearer ') ? substr($key, 7) : $key;
-
-        return Http::api()->withToken($token)
-            ->acceptJson()
-            ->asJson()
-            ->connectTimeout(10)
-            ->timeout(30)
-            ->retry(3, 500, when: fn (\Throwable $e): bool => $e instanceof ConnectionException
-                || ($e instanceof RequestException && $e->response?->status() === 429), throw: false)
-            ->post(self::BASE, array_filter([
-                'query' => $query,
-                'variables' => $variables === [] ? new \stdClass : $variables,
-            ], fn (mixed $value): bool => $value !== null));
+        return $this->connector->send(new GraphqlRequest($query, $variables));
     }
 }

@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Exceptions\TraktException;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use App\Services\Trakt\GetRequest;
+use App\Services\Trakt\PostRequest;
+use App\Services\Trakt\TraktConnector;
+use Saloon\Http\Auth\TokenAuthenticator;
+use Saloon\Http\Response;
 
 /**
  * Client for the Trakt API. Reads need only the client_id; every `/sync/*`
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Http;
  */
 class Trakt
 {
-    private const BASE = 'https://api.trakt.tv';
+    public function __construct(private readonly TraktConnector $connector) {}
 
     /** Device-flow poll statuses meaning "keep waiting": 400 pending, 429 slow down. */
     private const DEVICE_PENDING_STATUSES = [400, 429];
@@ -199,8 +199,10 @@ class Trakt
         $values = [];
 
         for ($page = 1; $page <= 200; $page++) {
-            $response = $this->pendingRequest($accessToken)
-                ->get(self::BASE."/sync/history/{$type}", ['page' => $page, 'limit' => 100]);
+            $response = $this->connector->send(
+                (new GetRequest("/sync/history/{$type}", ['page' => $page, 'limit' => 100]))
+                    ->authenticate(new TokenAuthenticator($accessToken)),
+            );
 
             if ($response->failed()) {
                 throw new TraktException("Reading authenticated Trakt history failed (status {$response->status()}).");
@@ -230,7 +232,9 @@ class Trakt
      */
     public function authenticatedUsername(string $accessToken): ?string
     {
-        $response = $this->pendingRequest($accessToken)->get(self::BASE.'/users/settings');
+        $response = $this->connector->send(
+            (new GetRequest('/users/settings'))->authenticate(new TokenAuthenticator($accessToken)),
+        );
 
         return $response->failed() ? null : $response->json('user.username');
     }
@@ -321,7 +325,7 @@ class Trakt
      */
     private function request(string $path, array $params): Response
     {
-        return $this->pendingRequest()->get(self::BASE.$path, $params);
+        return $this->connector->send(new GetRequest($path, $params));
     }
 
     /**
@@ -332,21 +336,12 @@ class Trakt
      */
     private function post(string $path, array $body, ?string $accessToken = null): Response
     {
-        return $this->pendingRequest($accessToken, retryOnRateLimit: false)
-            ->post(self::BASE.$path, $body);
-    }
+        $request = new PostRequest($path, $body);
 
-    private function pendingRequest(?string $accessToken = null, bool $retryOnRateLimit = true): PendingRequest
-    {
-        return Http::api()->withHeaders(array_filter([
-            'trakt-api-version' => '2',
-            'trakt-api-key' => config('services.trakt.client_id'),
-            'Content-Type' => 'application/json',
-            'Authorization' => $accessToken !== null ? "Bearer {$accessToken}" : null,
-        ]))
-            ->connectTimeout(10)
-            ->timeout(20)
-            ->retry(3, 500, when: fn (\Throwable $e): bool => $e instanceof ConnectionException
-                || ($retryOnRateLimit && $e instanceof RequestException && $e->response?->status() === 429), throw: false);
+        if ($accessToken !== null) {
+            $request->authenticate(new TokenAuthenticator($accessToken));
+        }
+
+        return $this->connector->send($request);
     }
 }

@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\Rovi\ResourceRequest;
+use App\Services\Rovi\RoviConnector;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Http;
 
 /**
  * Read-only client for the Rovi personal API, authenticated with a static
@@ -19,6 +20,8 @@ class Rovi
     private const DEFAULT_PAGE_SIZE = 100;
 
     private const MAX_PAGES = 1000;
+
+    public function __construct(private readonly RoviConnector $connector) {}
 
     /**
      * Your profile, goals and counters (the `data` object from /v1/me).
@@ -188,9 +191,7 @@ class Rovi
             return null;
         }
 
-        $response = Http::api()->withToken($key)
-            ->acceptJson()
-            ->get(rtrim((string) config('services.rovi.base_url'), '/').$path, $query);
+        $response = $this->connector->send(new ResourceRequest($path, $query));
 
         return $response->failed() ? null : $response->json();
     }
