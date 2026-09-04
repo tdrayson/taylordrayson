@@ -28,10 +28,13 @@ it('requests the time and latlng streams keyed by type', function () {
     expect($streams['time']['data'])->toBe([0, 1, 2])
         ->and($streams['latlng']['data'][0])->toBe([51.1, -0.1]);
 
-    Saloon::assertSent(function ($request) {
-        return str_contains($pendingRequest->getUrl(), '/activities/123/streams')
-            && str_contains($pendingRequest->getUrl(), 'keys=time%2Clatlng')
-            && str_contains($pendingRequest->getUrl(), 'key_by_type=true');
+    // getUrl() is the path only; Saloon keeps the query string separate.
+    Saloon::assertSent(function ($request, $response) {
+        $query = $request->query()->all();
+
+        return str_contains($response->getPendingRequest()->getUrl(), '/activities/123/streams')
+            && $query['keys'] === 'time,latlng'
+            && $query['key_by_type'] === 'true';
     });
 });
 

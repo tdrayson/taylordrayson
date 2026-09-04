@@ -42,7 +42,7 @@ it('posts a GraphQL search with the bearer token', function () {
         ->and($search['query_type'])->toBe('Book')
         ->and($search['results']['hits'][0]['document']['title'])->toBe('Atomic Habits');
 
-    Http::assertSent(function ($request, $response) {
+    Http::assertSent(function ($request) {
         $body = $request->data();
 
         return $request->url() === 'https://api.hardcover.app/v1/graphql'
@@ -91,7 +91,7 @@ it('strips a leading Bearer prefix from the configured key', function () {
 
     app(Hardcover::class)->search('test');
 
-    Http::assertSent(fn ($request, $response) => $request->hasHeader('Authorization', 'Bearer already-prefixed'));
+    Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer already-prefixed'));
 });
 
 it('throws when the API key is missing', function () {
@@ -125,9 +125,17 @@ it('throws when GraphQL returns an errors payload', function () {
 
 it('retries a 429 response and resolves to the eventual body', function () {
     Http::fake([
-        'api.hardcover.app/v1/graphql' => mockSequence([
-            MockResponse::make('rate limited', 429),
-        ]),
+        'api.hardcover.app/v1/graphql' => Http::sequence()
+            ->push('rate limited', 429)
+            ->push([
+                'data' => [
+                    'search' => [
+                        'error' => null,
+                        'query' => 'dune',
+                        'results' => ['hits' => [['document' => ['title' => 'Dune']]]],
+                    ],
+                ],
+            ], 200),
     ]);
 
     $documents = app(Hardcover::class)->searchDocuments('dune');

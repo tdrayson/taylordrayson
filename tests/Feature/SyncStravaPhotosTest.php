@@ -5,14 +5,13 @@ use App\Actions\ResolvePhotoCoordinate;
 use App\Actions\SyncStravaPhotos;
 use App\Models\Activity;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Saloon\Http\Faking\MockResponse;
-use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['queue.default' => 'sync']);
     Storage::fake('public');
-    Saloon::fake(['dgtzuqphqg23d.cloudfront.net*' => MockResponse::make(fakeJpeg())]);
+    Http::fake(['*dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg())]);
 });
 
 function syncStreams(): array
