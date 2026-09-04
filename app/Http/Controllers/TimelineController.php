@@ -9,9 +9,12 @@ use App\Models\TimelineEntry;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
 use App\Queries\PeriodStats;
+use App\Queries\TimelineWindow;
+use App\Queries\TimelineYears;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -29,30 +32,43 @@ class TimelineController extends Controller
         private readonly PeriodStats $periodStats,
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
+        private readonly TimelineWindow $window,
+        private readonly TimelineYears $years,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $days = TimelineEntry::query()
-            ->toBase()
-            ->selectRaw('DATE(occurred_at) as date')
-            ->groupBy('date')
-            ->orderByDesc('date')
-            ->paginate(self::DAYS_PER_PAGE);
+        // Anchored to a date, not an offset: every entry logged today would
+        // otherwise shift what `?page=7` points at, so a shared link rots.
+        $window = ($this->window)(
+            $this->cursor($request->query('before')),
+            $this->cursor($request->query('after')),
+        );
 
-        $dates = collect($days->items())->pluck('date');
-
-        $groups = $dates->isEmpty()
+        $groups = $window['to'] === null
             ? []
-            : $this->groupsForDates($dates->first(), $dates->last());
+            : $this->groupsForDates($window['to'], $window['from']);
 
         return Inertia::render('Timeline', [
             'og' => OgMeta::timeline(),
             'groups' => $groups,
-            'currentPage' => $days->currentPage(),
-            'lastPage' => $days->lastPage(),
+            'range' => $window['to'] === null ? null : ['from' => $window['from'], 'to' => $window['to']],
+            'olderUrl' => $window['olderThan'] === null ? null : '/?before='.$window['olderThan'],
+            // The newest page is the bare URL, so the feed has one canonical front.
+            'newerUrl' => $window['newerThan'] === null ? null : '/?after='.$window['newerThan'],
+            'years' => ($this->years)(),
             'podcastEpisodes' => Podcast::query()->count(),
         ]);
+    }
+
+    /** A Y-m-d cursor from the query string, or null for anything else. */
+    private function cursor(mixed $value): ?string
+    {
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        return Carbon::hasFormat($value, 'Y-m-d') ? $value : null;
     }
 
     /**
