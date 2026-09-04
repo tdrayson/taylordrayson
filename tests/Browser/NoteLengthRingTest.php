@@ -40,12 +40,39 @@ it('counts what you can see, not the spans it is stored in', function () {
     ", true);
 });
 
+// The nudge and the count are the two things that only appear near the cap, so
+// the thing worth proving is that they stay away until then: a note that is
+// nowhere near 750 should say nothing at all about its length.
+it('stays quiet until the cap is in sight, then counts', function () {
+    $short = visit('/new/note');
+
+    $short->click('.prose-editor')->type('.prose-editor', str_repeat('word ', 40));
+
+    // "/ 750" rather than "750", which also sits in the field definition Inertia
+    // ships in the page props.
+    $short->assertDontSee('/ 750')->assertDontSee('This is getting long');
+
+    $near = visit('/new/note');
+
+    $near->click('.prose-editor')->type('.prose-editor', str_repeat('word ', 143).'wor');
+
+    $near->assertSee('718 / 750')->assertSee('This is getting long for a note');
+});
+
 it('offers to convert a note that outgrew the limit, carrying the words across', function () {
     $browser = visit('/new/note');
 
     $browser->click('.prose-editor')->type('.prose-editor', str_repeat('word ', Note::MAX_LENGTH / 4));
 
     $browser->assertSee('Too long for a note');
+
+    // The limit is soft on the way in and hard on the way out: nothing typed is
+    // thrown away, but the save the server would refuse never leaves.
+    $browser->assertScript(
+        "[...document.querySelectorAll('button')].find((one) => one.textContent.trim() === 'Post').disabled",
+        true,
+    );
+
     $browser->click('button:has-text("Turn it into an article")');
 
     $browser->assertScript("location.pathname === '/new/article'", true);
