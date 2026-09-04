@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import Button from '../Ui/Button.vue';
 
 /**
  * Snake played on a contribution-heatmap grid, where each pellet eaten stays lit
@@ -37,8 +38,8 @@ let direction = DIRECTIONS.right;
 let nextDirection = DIRECTIONS.right;
 let timer = null;
 
-// Brief lockout after a game ends so a stray key press or swipe doesn't fire
-// straight into a new game before the player has registered the loss.
+// Brief lockout after a game ends so a stray tap doesn't fire straight into a
+// new game before the player has registered the loss.
 const RESTART_COOLDOWN = 800;
 const startReady = ref(true);
 let cooldownTimer = null;
@@ -47,6 +48,31 @@ const cellKey = (x, y) => `${x},${y}`;
 
 const snakeBody = computed(() => new Set(snake.value.slice(1).map((cell) => cellKey(cell.x, cell.y))));
 const headKey = computed(() => (snake.value[0] ? cellKey(snake.value[0].x, snake.value[0].y) : null));
+
+/* What the overlay says, per resting state: heading, hint, button label. */
+const prompt = computed(() => {
+    if (state.value === 'idle') {
+        return {
+            heading: 'Fill in your day',
+            hint: 'Arrows or WASD to steer, or swipe on a touchscreen.',
+            action: 'Play',
+        };
+    }
+
+    if (state.value === 'over') {
+        return {
+            heading: 'Game over',
+            hint: `You logged ${score.value} ${score.value === 1 ? 'day' : 'days'}.`,
+            action: 'Play again',
+        };
+    }
+
+    return {
+        heading: 'Full house! 🎉',
+        hint: 'You filled the entire log.',
+        action: 'Play again',
+    };
+});
 
 const rows = Array.from({ length: ROWS }, (_, y) => y);
 const cols = Array.from({ length: COLUMNS }, (_, x) => x);
@@ -198,7 +224,7 @@ function handleKeydown(event) {
         return;
     }
 
-    // Steering only — starting a game requires clicking/tapping the overlay.
+    // Steering only — a game starts from the overlay's Play button.
     if (state.value !== 'running') {
         return;
     }
@@ -288,25 +314,21 @@ onBeforeUnmount(() => {
             </template>
         </div>
 
-        <button
-            v-if="state !== 'running'"
-            type="button"
-            class="snake-overlay"
-            @click="startGame"
-        >
-            <span v-if="state === 'idle'" class="snake-prompt">
-                <span class="font-display text-section text-neutral-900">Fill in your day</span>
-                <span class="text-meta text-neutral-500">Click or tap to play · arrows or WASD to steer</span>
-            </span>
-            <span v-else-if="state === 'over'" class="snake-prompt">
-                <span class="font-display text-section text-neutral-900">Game over</span>
-                <span class="text-meta text-neutral-500">You logged {{ score }} {{ score === 1 ? 'day' : 'days' }}, tap to retry</span>
-            </span>
-            <span v-else class="snake-prompt">
-                <span class="font-display text-section text-neutral-900">Full house! 🎉</span>
-                <span class="text-meta text-neutral-500">You filled the entire log, tap to play again</span>
-            </span>
-        </button>
+        <div v-if="state !== 'running'" class="snake-overlay">
+            <div class="snake-prompt">
+                <span class="font-display text-section text-neutral-900">{{ prompt.heading }}</span>
+                <span class="text-meta text-neutral-500">{{ prompt.hint }}</span>
+                <Button
+                    variant="primary"
+                    size="lg"
+                    class="mt-2 self-center"
+                    :disabled="!startReady"
+                    @click="startGame"
+                >
+                    {{ prompt.action }}
+                </Button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -377,7 +399,7 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 10px 24px;
+    padding: 16px 24px;
     border-radius: var(--radius-md);
     background: color-mix(in srgb, var(--color-neutral-0) 92%, transparent);
     color: var(--color-neutral-900);

@@ -232,7 +232,7 @@ const topFoodsOptions = baseOptions({
 <template>
     <AppHead :og="og" />
 
-    <StoryHero :meta="dateline" :kpis="heroKpis" icon="Dish02Icon" accent="var(--color-food)">
+    <StoryHero :meta="dateline" :kpis="heroKpis" icon="UtensilsIcon" accent="var(--color-food)">
         <template #title>The most-logged thing in my diet is coffee</template>
         <template #lead>
             Here's a weird one. I've written down pretty much every single thing I've eaten since {{ s.kpis.fromLabel }}.

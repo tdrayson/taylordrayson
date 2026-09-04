@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildMonthCalendar;
 use App\Actions\BuildTimelineFeed;
-use App\Models\Podcast;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
 use App\Queries\PeriodStats;
+use App\Queries\PodcastEpisodeCount;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -29,6 +29,7 @@ class TimelineController extends Controller
         private readonly PeriodStats $periodStats,
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
+        private readonly PodcastEpisodeCount $podcastEpisodes,
     ) {}
 
     public function index(): Response
@@ -51,7 +52,7 @@ class TimelineController extends Controller
             'groups' => $groups,
             'currentPage' => $days->currentPage(),
             'lastPage' => $days->lastPage(),
-            'podcastEpisodes' => Podcast::query()->count(),
+            'podcastEpisodes' => ($this->podcastEpisodes)(),
         ]);
     }
 

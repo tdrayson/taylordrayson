@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import {
-    Home01Icon,
+    Home03Icon,
     Image01Icon,
     BookOpen01Icon,
     UserIcon,
@@ -15,7 +15,7 @@ import SidebarNavItem from './SidebarNavItem.vue';
 // is reachable from timeline cards, search, and the /more directory; Now
 // stays reachable from the status bar's time link.
 const links = [
-    { label: 'Timeline', href: '/', icon: Home01Icon },
+    { label: 'Timeline', href: '/', icon: Home03Icon },
     { label: 'About', href: '/about', icon: UserIcon },
     { label: 'Articles', href: entryTypes.article.href, icon: entryTypes.article.icon },
     { label: 'Stories', href: '/stories', icon: BookOpen01Icon },

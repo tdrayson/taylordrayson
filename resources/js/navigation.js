@@ -7,7 +7,7 @@ import { entryTypes } from './entryTypes.js';
  * Primary page destinations for the command palette and navigation.
  */
 export const pageCommands = [
-    { label: 'Timeline', href: '/', icon: 'Home01Icon', keywords: 'home feed entries' },
+    { label: 'Timeline', href: '/', icon: 'Home03Icon', keywords: 'home feed entries' },
     { label: 'Now', href: '/now', icon: 'Clock01Icon', keywords: 'current status live' },
     { label: 'Photos', href: '/photos', icon: 'Image01Icon', keywords: 'gallery pictures' },
     { label: 'Data stories', href: '/stories', icon: 'BookOpen01Icon', keywords: 'long reads writing analysis' },
