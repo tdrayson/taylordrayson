@@ -9,7 +9,8 @@ import StyledSelect from '../Search/StyledSelect.vue';
  * to the archive that already exists at /{year}.
  *
  * A select rather than a row of links, because the site reaches back to 2003 and
- * twenty-odd inline years wrap into a second line of mostly-empty years.
+ * twenty-odd inline years wrap into a second line of mostly-empty years. Bare
+ * rather than boxed, so it reads as part of the sentence and not as a form.
  */
 const props = defineProps({
     // list<{ year: Number, href: String }>, newest first.
@@ -31,12 +32,12 @@ function go(year) {
 </script>
 
 <template>
-    <div v-if="years.length" class="mt-4 flex items-center justify-center gap-3">
+    <div v-if="years.length" class="mt-4 flex items-baseline justify-center gap-2">
         <label for="year-jump" class="text-meta text-neutral-500">Jump to</label>
 
         <StyledSelect
             id="year-jump"
-            class="w-32"
+            variant="bare"
             :model-value="current ?? ''"
             :options="options"
             placeholder="Year"

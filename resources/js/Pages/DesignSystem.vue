@@ -18,6 +18,7 @@ import BlockContent from '../Components/Ui/BlockContent.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
+import StyledSelect from '../Components/Search/StyledSelect.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -43,6 +44,8 @@ const page = ref(2);
 // controller; these are shaped like them so wiring it up is a prop swap.
 const jumpYears = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018]
     .map((year) => ({ year, href: `/${year}` }));
+const selectYear = ref(2025);
+const yearOptions = jumpYears.map(({ year }) => ({ value: year, label: String(year) }));
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 // A dense year, then one with gaps, to show both states of the strip.
@@ -254,6 +257,13 @@ function swatchInk(step) {
                     <label class="flex items-center gap-2 text-meta"><Checkbox v-model="checked" /> Checkbox</label>
                     <label class="flex items-center gap-2 text-meta"><Switch v-model="toggled" /> Switch</label>
                 </div>
+
+                <p class="ds-sub pt-3">Select, boxed and bare</p>
+                <StyledSelect v-model="selectYear" :options="yearOptions" />
+                <p class="text-meta text-neutral-500">
+                    Sits inline in a sentence, jump to
+                    <StyledSelect v-model="selectYear" variant="bare" :options="yearOptions" />
+                </p>
             </div>
         </section>
 
