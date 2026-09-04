@@ -20,12 +20,13 @@ it('logs in then calls an endpoint with the bearer token', function () {
     expect(app(PocketCasts::class)->subscriptions())->toBe(['podcasts' => [['uuid' => 'p1']]]);
 
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://api.pocketcasts.com/user/login'
-        && $request['email'] === 'me@example.com'
-        && $request['scope'] === 'webplayer');
+        && $request->body()->all()['email'] === 'me@example.com'
+        && $request->body()->all()['scope'] === 'webplayer');
 
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://api.pocketcasts.com/user/podcast/list'
-        && $request->hasHeader('Authorization', 'Bearer jwt-123')
-        && $request['v'] === 1);
+        && $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer jwt-123'
+        // PostRequest encodes its own JSON so an empty body stays `{}`.
+        && json_decode($request->body()->all(), true)['v'] === 1);
 });
 
 it('caches the token and logs in only once across calls', function () {
@@ -72,7 +73,7 @@ it('sends the search term', function () {
 
     app(PocketCasts::class)->search('syntax');
 
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/discover/search') && $request['term'] === 'syntax');
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/discover/search') && json_decode($request->body()->all(), true)['term'] === 'syntax');
 });
 
 it('reads episode show notes from the podcast-api host', function () {
@@ -84,7 +85,7 @@ it('reads episode show notes from the podcast-api host', function () {
     expect(app(PocketCasts::class)->showNotes('ep-1'))->toBe(['show_notes' => 'Notes']);
 
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://podcast-api.pocketcasts.com/episode/show_notes/ep-1'
-        && $request->hasHeader('Authorization', 'Bearer jwt'));
+        && $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer jwt');
 });
 
 it('reads a public discover feed without authenticating', function () {
@@ -96,7 +97,7 @@ it('reads a public discover feed without authenticating', function () {
 
     Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/user/login'));
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://static.pocketcasts.com/discover/json/popular_world.json'
-        && ! $request->hasHeader('Authorization'));
+        && $response->getPendingRequest()->headers()->get('Authorization') === null);
 });
 
 it('throws when credentials are not configured', function () {

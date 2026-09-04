@@ -44,10 +44,10 @@ it('posts a GraphQL search with the bearer token', function () {
         ->and($search['results']['hits'][0]['document']['title'])->toBe('Atomic Habits');
 
     Saloon::assertSent(function ($request, $response) {
-        $body = $request->data();
+        $body = $request->body()->all();
 
         return $response->getPendingRequest()->getUrl() === 'https://api.hardcover.app/v1/graphql'
-            && $request->hasHeader('Authorization', 'Bearer test-hardcover-key')
+            && $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer test-hardcover-key'
             && str_contains($body['query'], 'search(query: $query)')
             && $body['variables']['query'] === 'atomic habits';
     });
@@ -92,7 +92,7 @@ it('strips a leading Bearer prefix from the configured key', function () {
 
     app(Hardcover::class)->search('test');
 
-    Saloon::assertSent(fn ($request, $response) => $request->hasHeader('Authorization', 'Bearer already-prefixed'));
+    Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer already-prefixed');
 });
 
 it('throws when the API key is missing', function () {

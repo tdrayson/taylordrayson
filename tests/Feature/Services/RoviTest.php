@@ -28,7 +28,7 @@ it('attaches the bearer key and returns the decoded envelope', function () {
     $profile = app(Rovi::class)->profile();
 
     expect($profile)->toBe(['name' => 'Taylor']);
-    Saloon::assertSent(fn ($request, $response) => $request->hasHeader('Authorization', 'Bearer test-key')
+    Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer test-key'
         && str_contains($response->getPendingRequest()->getUrl(), '/v1/me'));
 });
 
@@ -49,12 +49,12 @@ it('follows the cursor through every page and merges the data lists', function (
         ->and(array_column($foods, 'id'))->toBe(['a', 'b', 'c']);
 
     // Second request carried the cursor from the first page's paging.
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'cursor=page2'));
+    Saloon::assertSent(fn ($request, $response) => (string) $request->query()->get('cursor') === 'page2');
 });
 
 it('reads the daily food diary from the singular endpoint with date filters', function () {
     Saloon::fake([
-        'rovi.test*/v1/me/food?*' => MockResponse::make(roviEnvelope([
+        'rovi.test*/v1/me/food' => MockResponse::make(roviEnvelope([
             ['id' => '1', 'name' => 'Pain Au Chocolate', 'mealType' => 'Breakfast', 'calories' => 269],
         ])),
     ]);
@@ -64,9 +64,9 @@ it('reads the daily food diary from the singular endpoint with date filters', fu
     expect($diary)->toHaveCount(1)
         ->and($diary[0]['name'])->toBe('Pain Au Chocolate');
 
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/v1/me/food?')
-        && str_contains($response->getPendingRequest()->getUrl(), 'from=2026-06-30')
-        && str_contains($response->getPendingRequest()->getUrl(), 'to=2026-06-30'));
+    Saloon::assertSent(fn ($request, $response) => str_ends_with($response->getPendingRequest()->getUrl(), '/v1/me/food')
+        && (string) $request->query()->get('from') === '2026-06-30'
+        && (string) $request->query()->get('to') === '2026-06-30');
 });
 
 it('reads the food library from the plural endpoint', function () {
@@ -82,8 +82,8 @@ it('passes through date filters on daily logs', function () {
 
     app(Rovi::class)->summaries(['from' => '2026-01-01', 'to' => '2026-06-30']);
 
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'from=2026-01-01')
-        && str_contains($response->getPendingRequest()->getUrl(), 'to=2026-06-30'));
+    Saloon::assertSent(fn ($request, $response) => (string) $request->query()->get('from') === '2026-01-01'
+        && (string) $request->query()->get('to') === '2026-06-30');
 });
 
 it('returns null from object endpoints and [] from list endpoints on failure', function () {
