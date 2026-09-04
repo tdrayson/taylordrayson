@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Services\PetrolPrices\FuelBrands;
 use App\Services\PetrolPrices\FuelStationResult;
+use App\Services\PetrolPrices\PetrolPricesConnector;
+use App\Services\PetrolPrices\SearchStationsRequest;
 use App\Services\PetrolPrices\StationNormaliser;
-use Illuminate\Support\Facades\Http;
 
 /**
  * Client for the PetrolPrices.com forecourt lookup, which returns GeoJSON
@@ -17,24 +18,9 @@ use Illuminate\Support\Facades\Http;
  */
 class PetrolPrices
 {
-    private const BASE = 'https://www.petrolprices.com';
-
     private const KM_PER_MILE = 1.609344;
 
-    /**
-     * Unleaded, the only grade stocked by effectively every forecourt. The feed
-     * filters by a single grade per request and has no "any" option, so this is
-     * the widest net available; a diesel-only site would be missed.
-     */
-    private const FUEL_UNLEADED = 2;
-
-    private const BRAND_ANY = 0;
-
-    private const NO_RESULT_LIMIT = 0;
-
-    private const NO_OFFSET = 0;
-
-    private const SORT_BY_DISTANCE = 'distance';
+    public function __construct(private readonly PetrolPricesConnector $connector) {}
 
     /**
      * Stations within `$radiusKm` of a coordinate, nearest first.
@@ -50,18 +36,7 @@ class PetrolPrices
         // radius never searches a smaller area than asked for.
         $radiusMiles = max(1, (int) ceil($radiusKm / self::KM_PER_MILE));
 
-        // The feed takes its filters as path segments, in this order.
-        $path = implode('/', [
-            '/app/geojson',
-            self::FUEL_UNLEADED,
-            self::BRAND_ANY,
-            self::NO_RESULT_LIMIT,
-            self::NO_OFFSET,
-            self::SORT_BY_DISTANCE,
-            $radiusMiles,
-        ]);
-
-        $response = Http::api()->get(self::BASE.$path, ['lat' => $latitude, 'lng' => $longitude]);
+        $response = $this->connector->send(new SearchStationsRequest($latitude, $longitude, $radiusMiles));
 
         if (! $response->successful()) {
             return [];

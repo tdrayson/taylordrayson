@@ -10,8 +10,9 @@ use App\Services\GoogleFavicons;
 use App\Support\Links;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 // Two tests here write into the real public/favicons directory. A file left
 // behind makes the observer skip the download a later test asserts on, so the
@@ -102,27 +103,27 @@ it('treats a refused favicon as no favicon', function () {
     // Google answers an unknown domain with a generic globe rather than a 404,
     // so a refusal is the only "no icon" this can tell apart. A globe is stored
     // as a real icon, which beats the blank the previous service returned.
-    Http::fake([
-        'www.google.com/s2/favicons*' => Http::response('', 404),
+    Saloon::fake([
+        'www.google.com/s2/favicons*' => MockResponse::make('', 404),
     ]);
 
-    expect((new GoogleFavicons)->icon('nowhere.test')['status'])->toBe('unavailable');
+    expect(app(GoogleFavicons::class)->icon('nowhere.test')['status'])->toBe('unavailable');
 });
 
 it('treats a non-image answer as an error rather than storing it', function () {
-    Http::fake([
-        'www.google.com/s2/favicons*' => Http::response('<html>nope</html>', 200, ['content-type' => 'text/html']),
+    Saloon::fake([
+        'www.google.com/s2/favicons*' => MockResponse::make('<html>nope</html>', 200, ['content-type' => 'text/html']),
     ]);
 
-    expect((new GoogleFavicons)->icon('example.com')['status'])->toBe('error');
+    expect(app(GoogleFavicons::class)->icon('example.com')['status'])->toBe('error');
 });
 
 it('returns the bytes for a real favicon', function () {
-    Http::fake([
-        'www.google.com/s2/favicons*' => Http::response(str_repeat('a', 400), 200, ['content-type' => 'image/png']),
+    Saloon::fake([
+        'www.google.com/s2/favicons*' => MockResponse::make(str_repeat('a', 400), 200, ['content-type' => 'image/png']),
     ]);
 
-    expect((new GoogleFavicons)->icon('example.com'))
+    expect(app(GoogleFavicons::class)->icon('example.com'))
         ->status->toBe('saved')
         ->body->toHaveLength(400);
 });

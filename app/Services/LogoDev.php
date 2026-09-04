@@ -2,16 +2,15 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\LogoDev\LogoDevConnector;
+use App\Services\LogoDev\LogoRequest;
 
 /**
  * Client for the logo.dev image API, fetching a brand logo by web domain.
- * `fallback=404` is set so a miss 404s instead of returning a generated
- * monogram placeholder, which would otherwise be saved as if it were real.
  */
 class LogoDev
 {
-    private const BASE = 'https://img.logo.dev';
+    public function __construct(private readonly LogoDevConnector $connector) {}
 
     /**
      * Fetch a brand logo PNG for a web domain as raw image bytes.
@@ -20,13 +19,7 @@ class LogoDev
      */
     public function logo(string $domain, int $size = 256): array
     {
-        $response = Http::api()->get(self::BASE.'/'.$domain, [
-            'token' => config('services.logodev.token'),
-            'size' => $size,
-            'retina' => 'true',
-            'format' => 'png',
-            'fallback' => '404',
-        ]);
+        $response = $this->connector->send(new LogoRequest($domain, $size));
 
         if ($response->status() === 404) {
             return ['status' => 'unavailable', 'body' => null];

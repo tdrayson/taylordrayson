@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\Pushover\PushoverConnector;
+use App\Services\Pushover\SendMessageRequest;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Client for the Pushover message API, used to put a failure on my phone.
@@ -13,10 +15,10 @@ use Illuminate\Support\Facades\Log;
  */
 class Pushover
 {
-    private const ENDPOINT = 'https://api.pushover.net/1/messages.json';
-
     /** Pushover truncates at 1024; leave room rather than have it cut mid-word. */
     private const LIMIT = 900;
+
+    public function __construct(private readonly PushoverConnector $connector) {}
 
     /**
      * Send a message, or do nothing when no credentials are configured.
@@ -34,13 +36,13 @@ class Pushover
         }
 
         try {
-            $response = Http::asForm()->post(self::ENDPOINT, [
-                'token' => $token,
-                'user' => $user,
-                'title' => $title,
-                'message' => str($message)->limit(self::LIMIT)->toString(),
-            ]);
-        } catch (\Throwable $e) {
+            $response = $this->connector->send(new SendMessageRequest(
+                $token,
+                $user,
+                $title,
+                str($message)->limit(self::LIMIT)->toString(),
+            ));
+        } catch (Throwable $e) {
             Log::warning('Pushover send failed: '.$e->getMessage());
 
             return false;

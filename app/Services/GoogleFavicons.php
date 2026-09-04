@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\GoogleFavicons\GoogleFaviconsConnector;
+use App\Services\GoogleFavicons\IconRequest;
 
 /**
  * Google's favicon service. Given a domain it returns that site's icon, having
@@ -14,12 +15,7 @@ use Illuminate\Support\Facades\Http;
  */
 class GoogleFavicons
 {
-    private const BASE = 'https://www.google.com/s2/favicons';
-
-    /** Retina-friendly and still small; the service only serves fixed sizes. */
-    private const SIZE = 64;
-
-    private const TIMEOUT_SECONDS = 8;
+    public function __construct(private readonly GoogleFaviconsConnector $connector) {}
 
     /**
      * Fetch a domain's favicon as raw image bytes.
@@ -28,8 +24,7 @@ class GoogleFavicons
      */
     public function icon(string $domain): array
     {
-        $response = Http::api()->timeout(self::TIMEOUT_SECONDS)
-            ->get(self::BASE, ['domain' => $domain, 'sz' => self::SIZE]);
+        $response = $this->connector->send(new IconRequest($domain));
 
         if ($response->status() === 404) {
             return ['status' => 'unavailable', 'body' => null];

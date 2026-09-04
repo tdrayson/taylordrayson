@@ -9,12 +9,13 @@ use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.pushover.token' => 'app-token', 'services.pushover.user' => 'user-key']);
     Cache::flush();
-    Http::fake();
+    Saloon::fake(['*' => MockResponse::make('', 200)]);
 });
 
 /** Built through the real scheduler, so the command string is the one it writes. */
@@ -26,11 +27,13 @@ function scheduledTask(string $command): ScheduledEvent
 it('pushes an alert when a scheduled command fails', function () {
     event(new ScheduledTaskFailed(scheduledTask('podcast:sync'), new RuntimeException('exit code 1')));
 
-    Http::assertSent(function ($request) {
-        return $request->url() === 'https://api.pushover.net/1/messages.json'
-            && $request['title'] === 'Scheduled command failed'
-            && str_contains($request['message'], 'podcast:sync')
-            && str_contains($request['message'], 'exit code 1');
+    Saloon::assertSent(function ($request, $response) {
+        $body = $request->body()->all();
+
+        return $response->getPendingRequest()->getUrl() === 'https://api.pushover.net/1/messages.json'
+            && $body['title'] === 'Scheduled command failed'
+            && str_contains($body['message'], 'podcast:sync')
+            && str_contains($body['message'], 'exit code 1');
     });
 });
 
@@ -41,8 +44,8 @@ it('pushes an alert when a queued job fails', function () {
     (new AlertOnFailedJob(app(FailureAlert::class)))
         ->handle(new JobFailed('database', $job, new RuntimeException('timed out')));
 
-    Http::assertSent(fn ($request) => $request['title'] === 'Queued job failed'
-        && str_contains($request['message'], 'ResolveLinkFavicons'));
+    Saloon::assertSent(fn ($request) => $request->body()->all()['title'] === 'Queued job failed'
+        && str_contains($request->body()->all()['message'], 'ResolveLinkFavicons'));
 });
 
 // The whole point of the throttle: trakt:sync runs every minute, so an
@@ -52,14 +55,14 @@ it('sends once per failing thing per hour, however often it fails', function () 
         event(new ScheduledTaskFailed(scheduledTask('trakt:sync'), new RuntimeException('down')));
     }
 
-    Http::assertSentCount(1);
+    Saloon::assertSentCount(1);
 });
 
 it('still alerts on a different command inside the same window', function () {
     event(new ScheduledTaskFailed(scheduledTask('trakt:sync'), new RuntimeException('down')));
     event(new ScheduledTaskFailed(scheduledTask('strava:sync'), new RuntimeException('down')));
 
-    Http::assertSentCount(2);
+    Saloon::assertSentCount(2);
 });
 
 it('does nothing when no credentials are configured', function () {
@@ -67,7 +70,7 @@ it('does nothing when no credentials are configured', function () {
 
     event(new ScheduledTaskFailed(scheduledTask('podcast:sync'), new RuntimeException('down')));
 
-    Http::assertNothingSent();
+    Saloon::assertNothingSent();
 });
 
 it('registers both listeners', function () {
