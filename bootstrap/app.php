@@ -73,11 +73,14 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->pluck('day')
                     ->count());
 
+                // Cast: the Redis cache store hands numeric values back as
+                // strings, and the page formats these with toLocaleString(),
+                // which is a no-op on a string.
                 return Inertia::render('Error', [
                     'og' => OgMeta::error(404),
                     'status' => 404,
-                    'entries' => $entries,
-                    'days' => $days,
+                    'entries' => (int) $entries,
+                    'days' => (int) $days,
                     'leaderboard' => LeaderboardEntry::topEntries(5),
                 ])
                     ->toResponse($request)
