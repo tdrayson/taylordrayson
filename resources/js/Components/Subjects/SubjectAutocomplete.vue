@@ -150,8 +150,8 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 </button>
             </li>
         </ul>
-        <p v-if="hint" class="mt-1 text-caption text-neutral-500">{{ hint }}</p>
-        <p v-if="createError" class="mt-1 text-caption text-red-600">{{ createError }}</p>
-        <Button variant="ghost" size="sm" class="mt-1" @click="emit('cancel')">Cancel</Button>
+        <p v-if="hint" class="mt-2 text-caption text-neutral-500">{{ hint }}</p>
+        <p v-if="createError" class="mt-2 text-caption text-red-600">{{ createError }}</p>
+        <Button variant="ghost" size="sm" class="mt-2 -ml-3" @click="emit('cancel')">Cancel</Button>
     </div>
 </template>

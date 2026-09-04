@@ -105,7 +105,7 @@ const subjectPickerHint = computed(() => (
 </script>
 
 <template>
-    <div class="flex w-full shrink-0 flex-col gap-4 overflow-y-auto rounded-2xl bg-neutral-0 p-4 sm:w-72">
+    <div class="flex w-full shrink-0 flex-col gap-4 overflow-y-auto rounded-2xl bg-neutral-0 p-4 sm:max-h-full sm:w-72 sm:self-start">
         <div class="flex flex-col gap-2">
             <label class="text-caption font-medium text-neutral-700" :for="`photo-alt-${photo.id}`">Alt text</label>
             <Input :id="`photo-alt-${photo.id}`" v-model="form.alt" placeholder="Describe the photo" />
@@ -190,7 +190,7 @@ const subjectPickerHint = computed(() => (
 
         <!-- Saves the two text fields, so it closes the panel rather than
              sitting between them and the tagging below, which saves itself. -->
-        <div class="sticky bottom-0 -mx-4 -mb-4 mt-auto border-t border-neutral-50 bg-neutral-0 px-4 py-3">
+        <div class="sticky bottom-0 -mx-4 -mb-4 bg-neutral-0 px-4 pb-4 pt-3">
             <Button variant="primary" size="lg" class="w-full" :disabled="saving" @click="saveDetails">Save</Button>
         </div>
     </div>
