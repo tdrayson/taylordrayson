@@ -7,7 +7,7 @@
 export const entryTypes = {
     activity: { icon: 'WorkoutRunIcon', label: 'Activity', href: '/activities', accent: 'activity' },
     sleep: { icon: 'Moon02Icon', label: 'Sleep', href: '/sleep', accent: 'sleep' },
-    calorie: { icon: 'Dish02Icon', label: 'Food', href: '/food', accent: 'food' },
+    calorie: { icon: 'UtensilsIcon', label: 'Food', href: '/food', accent: 'food' },
     media: { icon: 'Film01Icon', label: 'Media', href: '/media', accent: 'media' },
     event: { icon: 'Ticket01Icon', label: 'Event', href: '/events', accent: 'event' },
     appearance: { icon: 'Mic01Icon', label: 'Appearance', href: '/appearances', accent: 'appearance' },

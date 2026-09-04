@@ -23,11 +23,11 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
 <template>
     <nav aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-neutral-500">
         <span v-if="isHome" class="flex shrink-0 items-center gap-2 text-neutral-700" aria-current="page">
-            <Icon name="Home01Icon" class="size-4" />
+            <Icon name="Home03Icon" class="size-4" />
             Home
         </span>
         <Link v-else href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent-500 focus-visible:text-accent-500">
-            <Icon name="Home01Icon" class="size-4" />
+            <Icon name="Home03Icon" class="size-4" />
         </Link>
 
         <template v-for="(item, index) in ancestors" :key="index">
