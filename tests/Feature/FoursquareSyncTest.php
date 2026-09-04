@@ -2,8 +2,9 @@
 
 use App\Jobs\GenerateEntryMap;
 use App\Models\Checkin;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.foursquare.access_token' => 'test-token']);
@@ -13,22 +14,23 @@ beforeEach(function () {
  * Fake one page of check-ins per run, each followed by the empty page that
  * ends pagination. Pass one array per `foursquare:sync` invocation.
  *
- * Built as a single sequence rather than by calling `Http::fake()` per run:
- * a second `fake()` appends a stub instead of replacing the first, so the
- * exhausted sequence still matches and throws.
+ * Built as a single sequence rather than by calling `Saloon::fake()` per run:
+ * a second `fake()` replaces the mock client, which would lose the responses
+ * queued for the earlier runs.
  *
  * @param  list<list<array<string, mixed>>>  $runs
  */
 function fakeSwarmRuns(array $runs): void
 {
-    $sequence = Http::sequence();
+    $responses = [];
 
     foreach ($runs as $items) {
-        $sequence->push(['response' => ['checkins' => ['items' => $items]]]);
-        $sequence->push(['response' => ['checkins' => ['items' => []]]]);
+        $responses[] = MockResponse::make(['response' => ['checkins' => ['items' => $items]]]);
+        $responses[] = MockResponse::make(['response' => ['checkins' => ['items' => []]]]);
     }
 
-    Http::fake(['*users/self/checkins*' => $sequence]);
+    // Unkeyed, so the responses are handed out in order across every run.
+    Saloon::fake($responses);
 }
 
 function swarmItem(string $id, ?string $shout = null): array
@@ -58,7 +60,7 @@ it('re-checks the --days window when check-ins are current', function () {
 
     // Deliberate overlap: the window is re-checked so a shout or photo added
     // after the fact lands on the existing row.
-    Http::assertSent(fn ($request) => (int) $request['afterTimestamp'] === now()->subDays(2)->timestamp);
+    Saloon::assertSent(fn ($request) => (int) $request->query()->get('afterTimestamp') === now()->subDays(2)->timestamp);
 });
 
 it('extends the window back to the newest stored check-in when a gap has opened', function () {
@@ -74,7 +76,7 @@ it('extends the window back to the newest stored check-in when a gap has opened'
     $this->artisan('foursquare:sync --days=2')->assertSuccessful();
 
     // Without this a missed run strands the gap behind the fixed window forever.
-    Http::assertSent(fn ($request) => (int) $request['afterTimestamp'] === $newest->timestamp);
+    Saloon::assertSent(fn ($request) => (int) $request->query()->get('afterTimestamp') === $newest->timestamp);
 });
 
 it('caps the catch-up so a long gap does not refetch all history', function () {
@@ -88,7 +90,7 @@ it('caps the catch-up so a long gap does not refetch all history', function () {
 
     $this->artisan('foursquare:sync')->assertSuccessful();
 
-    Http::assertSent(fn ($request) => (int) $request['afterTimestamp'] >= now()->subDays(91)->timestamp);
+    Saloon::assertSent(fn ($request) => (int) $request->query()->get('afterTimestamp') >= now()->subDays(91)->timestamp);
 });
 
 it('stores a newly returned check-in', function () {

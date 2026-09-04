@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\Foursquare\CheckinsRequest;
+use App\Services\Foursquare\FoursquareConnector;
 use RuntimeException;
 
 /**
@@ -11,11 +12,9 @@ use RuntimeException;
  */
 class Foursquare
 {
-    private const BASE = 'https://api.foursquare.com/v2';
-
-    private const API_VERSION = '20240109';
-
     private const PER_PAGE = 250;
+
+    public function __construct(private readonly FoursquareConnector $connector) {}
 
     /**
      * Yield every check-in item across all pages, newest first.
@@ -34,31 +33,15 @@ class Foursquare
             throw new RuntimeException('Foursquare access token is not configured (FOURSQUARE_ACCESS_TOKEN).');
         }
 
-        $offset = 0;
+        $paginator = $this->connector->paginate(new CheckinsRequest($token, $afterTimestamp));
+        $paginator->setPerPageLimit(self::PER_PAGE);
 
-        while (true) {
-            $response = Http::api()->get(self::BASE.'/users/self/checkins', array_filter([
-                'oauth_token' => $token,
-                'v' => self::API_VERSION,
-                'limit' => self::PER_PAGE,
-                'offset' => $offset,
-                'sort' => 'newestfirst',
-                'afterTimestamp' => $afterTimestamp,
-            ], fn (mixed $value): bool => $value !== null));
-
+        foreach ($paginator as $response) {
             if ($response->failed()) {
                 throw new RuntimeException("Foursquare request failed ({$response->status()}): {$response->body()}");
             }
 
-            $items = $response->json('response.checkins.items');
-
-            if (empty($items)) {
-                break;
-            }
-
-            yield from $items;
-
-            $offset += self::PER_PAGE;
+            yield from $response->json('response.checkins.items') ?? [];
         }
     }
 }
