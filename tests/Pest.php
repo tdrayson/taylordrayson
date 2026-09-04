@@ -4,6 +4,8 @@ use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
+use Saloon\Config as SaloonConfig;
+use Saloon\Http\Faking\MockClient;
 use Tests\TestCase;
 
 /*
@@ -24,7 +26,14 @@ pest()->extend(TestCase::class)
 // The HTTP client retries a rate limit or a 5xx with a backoff (see ApiHttp).
 // Tests that fake those responses would otherwise sit through the real wait,
 // which cost the suite about 26 seconds.
-uses()->beforeEach(fn () => Sleep::fake())->in('Feature', 'Unit', 'Browser');
+// Sleep::fake() keeps retry backoff from actually waiting. preventStrayRequests
+// makes a missing Saloon mock fail loudly: without it an unmocked request goes
+// to the real internet and the test hangs on the retry policy rather than failing.
+uses()->beforeEach(function (): void {
+    Sleep::fake();
+    MockClient::destroyGlobal();
+    SaloonConfig::preventStrayRequests();
+})->in('Feature', 'Unit', 'Browser');
 
 /*
 |--------------------------------------------------------------------------

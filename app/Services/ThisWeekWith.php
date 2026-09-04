@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\ThisWeekWith\EpisodesRequest;
+use App\Services\ThisWeekWith\ThisWeekWithConnector;
 use RuntimeException;
 
 /**
@@ -14,7 +15,7 @@ use RuntimeException;
  */
 class ThisWeekWith
 {
-    private const ENDPOINT = 'https://www.thisweekwith.co.uk/wp-json/podcast/v1/episodes';
+    public function __construct(private readonly ThisWeekWithConnector $connector) {}
 
     /**
      * Yield every published episode, newest first, fetching each page only as
@@ -30,22 +31,17 @@ class ThisWeekWith
      */
     public function episodes(int $perPage = 50): iterable
     {
-        $page = 1;
+        $paginator = $this->connector->paginate(new EpisodesRequest);
+        $paginator->setPerPageLimit($perPage);
 
-        do {
-            $response = Http::api()->acceptJson()->get(self::ENDPOINT, [
-                'page' => $page,
-                'per_page' => $perPage,
-            ]);
-
+        // The paginator yields responses, not items, so a failed page can still
+        // be turned into the same exception the callers already expect.
+        foreach ($paginator as $response) {
             if ($response->failed()) {
-                throw new RuntimeException("This Week With request failed on page {$page} ({$response->status()}).");
+                throw new RuntimeException("This Week With request failed on page {$paginator->getCurrentPage()} ({$response->status()}).");
             }
 
             yield from $response->json('episodes', []);
-
-            $totalPages = (int) $response->json('total_pages', 1);
-            $page++;
-        } while ($page <= $totalPages);
+        }
     }
 }
