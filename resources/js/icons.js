@@ -24,7 +24,6 @@ import {
     CommandIcon,
     Copy01Icon,
     Delete02Icon,
-    Dish02Icon,
     DragDropVerticalIcon,
     File01Icon,
     File02Icon,
@@ -67,6 +66,7 @@ import {
     Tick02Icon,
     Ticket01Icon,
     UserIcon,
+    UtensilsIcon,
     WorkoutRunIcon,
     ZoomInAreaIcon,
 } from '@hugeicons-pro/core-stroke-rounded';
@@ -94,7 +94,6 @@ export const icons = {
     CommandIcon,
     Copy01Icon,
     Delete02Icon,
-    Dish02Icon,
     DragDropVerticalIcon,
     File01Icon,
     File02Icon,
@@ -137,6 +136,7 @@ export const icons = {
     Tick02Icon,
     Ticket01Icon,
     UserIcon,
+    UtensilsIcon,
     WorkoutRunIcon,
     ZoomInAreaIcon,
 };
