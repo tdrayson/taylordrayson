@@ -191,7 +191,7 @@ const subjectPickerHint = computed(() => (
         <!-- Saves the two text fields, so it closes the panel rather than
              sitting between them and the tagging below, which saves itself. -->
         <div class="sticky bottom-0 -mx-4 -mb-4 mt-auto border-t border-neutral-50 bg-neutral-0 px-4 py-3">
-            <Button variant="primary" size="sm" class="w-full" :disabled="saving" @click="saveDetails">Save</Button>
+            <Button variant="primary" size="lg" class="w-full" :disabled="saving" @click="saveDetails">Save</Button>
         </div>
     </div>
 </template>
