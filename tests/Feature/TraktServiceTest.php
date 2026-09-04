@@ -25,11 +25,11 @@ it('requests a history page with the required headers and params', function () {
 
     Saloon::assertSent(function ($request, $response) {
         return str_contains($response->getPendingRequest()->getUrl(), 'api.trakt.tv/users/taylor/history/movies')
-            && $request['extended'] === 'full'
-            && $request['page'] == 1
-            && $request['start_at'] === '2024-01-01T00:00:00Z'
-            && $request->header('trakt-api-version')[0] === '2'
-            && $request->header('trakt-api-key')[0] === 'test-client-id';
+            && $request->query()->get('extended') === 'full'
+            && $request->query()->get('page') == 1
+            && $request->query()->get('start_at') === '2024-01-01T00:00:00Z'
+            && $response->getPendingRequest()->headers()->get('trakt-api-version') === '2'
+            && $response->getPendingRequest()->headers()->get('trakt-api-key') === 'test-client-id';
     });
 });
 

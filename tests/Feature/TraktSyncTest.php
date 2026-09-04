@@ -29,13 +29,13 @@ function fakeTraktHistory(array $movies, array $episodes, array $ratings = []): 
     $episodeRatings = $ratings['episodes'] ?? [];
     $showRatings = $ratings['shows'] ?? [];
 
-    Saloon::fake(function ($request) use ($movies, $episodes, $movieRatings, $episodeRatings, $showRatings) {
+    Saloon::fake(['*' => function ($pendingRequest) use ($movies, $episodes, $movieRatings, $episodeRatings, $showRatings) {
         return match (true) {
-            str_contains($pendingRequest->getUrl(), '/history/movies') => MockResponse::make($request['page'] == 1 ? $movies : [], 200),
-            str_contains($pendingRequest->getUrl(), '/history/episodes') => MockResponse::make($request['page'] == 1 ? $episodes : [], 200),
-            str_contains($pendingRequest->getUrl(), '/ratings/movies') => MockResponse::make($request['page'] == 1 ? $movieRatings : [], 200),
-            str_contains($pendingRequest->getUrl(), '/ratings/episodes') => MockResponse::make($request['page'] == 1 ? $episodeRatings : [], 200),
-            str_contains($pendingRequest->getUrl(), '/ratings/shows') => MockResponse::make($request['page'] == 1 ? $showRatings : [], 200),
+            str_contains($pendingRequest->getUrl(), '/history/movies') => MockResponse::make($pendingRequest->query()->get('page') == 1 ? $movies : [], 200),
+            str_contains($pendingRequest->getUrl(), '/history/episodes') => MockResponse::make($pendingRequest->query()->get('page') == 1 ? $episodes : [], 200),
+            str_contains($pendingRequest->getUrl(), '/ratings/movies') => MockResponse::make($pendingRequest->query()->get('page') == 1 ? $movieRatings : [], 200),
+            str_contains($pendingRequest->getUrl(), '/ratings/episodes') => MockResponse::make($pendingRequest->query()->get('page') == 1 ? $episodeRatings : [], 200),
+            str_contains($pendingRequest->getUrl(), '/ratings/shows') => MockResponse::make($pendingRequest->query()->get('page') == 1 ? $showRatings : [], 200),
             str_contains($pendingRequest->getUrl(), '/shows/') => MockResponse::make([
                 'aired_episodes' => 20,
                 'ids' => ['slug' => 'severance'],
@@ -44,7 +44,7 @@ function fakeTraktHistory(array $movies, array $episodes, array $ratings = []): 
             ], 200),
             default => MockResponse::make([], 200),
         };
-    });
+    }]);
 }
 
 it('imports films and episodes, groups same-name shows by distinct trakt id, and dedupes on re-run', function () {
@@ -92,7 +92,7 @@ it('imports films and episodes, groups same-name shows by distinct trakt id, and
 it('fails closed and stops importing when a history page request fails mid-pagination', function () {
     Saloon::fake(['' => function ($pendingRequest) {
         return match (true) {
-            str_contains($pendingRequest->getUrl(), '/history/movies') => MockResponse::make($request['page'] == 1 ? [[
+            str_contains($pendingRequest->getUrl(), '/history/movies') => MockResponse::make($pendingRequest->query()->get('page') == 1 ? [[
                 'id' => 501, 'watched_at' => '2024-01-01T20:00:00.000Z', 'action' => 'watch', 'type' => 'movie',
                 'movie' => [
                     'title' => 'Dune', 'year' => 2021, 'runtime' => 155,
@@ -351,11 +351,11 @@ it('self-heals the sync window to the last synced watch when it is older than th
     $this->artisan('trakt:sync')->assertSuccessful();
 
     Saloon::assertSent(function ($request, $response) {
-        if (! str_contains($pendingRequest->getUrl(), '/history/movies')) {
+        if (! str_contains($response->getPendingRequest()->getUrl(), '/history/movies')) {
             return false;
         }
 
-        $daysAgo = Carbon::parse($request['start_at'])->diffInDays(now());
+        $daysAgo = Carbon::parse($request->query()->get('start_at'))->diffInDays(now());
 
         return $daysAgo >= 29 && $daysAgo <= 31;
     });
@@ -380,11 +380,11 @@ it('caps the self-healed sync window at MAX_CATCHUP_DAYS when the last synced wa
     $this->artisan('trakt:sync')->assertSuccessful();
 
     Saloon::assertSent(function ($request, $response) {
-        if (! str_contains($pendingRequest->getUrl(), '/history/movies')) {
+        if (! str_contains($response->getPendingRequest()->getUrl(), '/history/movies')) {
             return false;
         }
 
-        $daysAgo = Carbon::parse($request['start_at'])->diffInDays(now());
+        $daysAgo = Carbon::parse($request->query()->get('start_at'))->diffInDays(now());
 
         return $daysAgo >= 89 && $daysAgo <= 91;
     });
@@ -467,11 +467,11 @@ it('sends no start_at when --full is passed, even with prior synced history', fu
     $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
 
     Saloon::assertSent(function ($request, $response) {
-        if (! str_contains($pendingRequest->getUrl(), '/history/movies')) {
+        if (! str_contains($response->getPendingRequest()->getUrl(), '/history/movies')) {
             return false;
         }
 
-        return ! array_key_exists('start_at', $request->data());
+        return ! array_key_exists('start_at', $request->query()->all());
     });
 });
 
@@ -487,8 +487,8 @@ it('skips the ratings endpoints with --skip-ratings', function () {
 
     $this->artisan('trakt:sync --skip-ratings')->assertSuccessful();
 
-    Saloon::assertNotSent(fn ($request, $response) => str_contains($pendingRequest->getUrl(), '/ratings/'));
-    Saloon::assertSent(fn ($request, $response) => str_contains($pendingRequest->getUrl(), '/history/'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/ratings/'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/history/'));
 });
 
 it('skips the history endpoints with --ratings-only', function () {
@@ -496,6 +496,6 @@ it('skips the history endpoints with --ratings-only', function () {
 
     $this->artisan('trakt:sync --ratings-only')->assertSuccessful();
 
-    Saloon::assertNotSent(fn ($request, $response) => str_contains($pendingRequest->getUrl(), '/history/'));
-    Saloon::assertSent(fn ($request, $response) => str_contains($pendingRequest->getUrl(), '/ratings/'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/history/'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/ratings/'));
 });
