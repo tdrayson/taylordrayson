@@ -2,54 +2,30 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\Strava\ActivitiesRequest;
+use App\Services\Strava\ActivityPhotosRequest;
+use App\Services\Strava\ActivityRequest;
+use App\Services\Strava\ActivityStreamsRequest;
+use App\Services\Strava\StravaConnector;
+use Saloon\Http\Request;
 
 /**
- * Client for the Strava API. Owns the OAuth refresh-token flow, caching the
- * access token until just before expiry and re-authenticating once on a 401.
+ * Client for the Strava API. The OAuth refresh-token flow, token caching and
+ * the re-authenticate-on-401 retry all live on {@see StravaConnector}.
  * Methods return the decoded JSON, or null when the request fails.
  */
 class Strava
 {
-    private const BASE = 'https://www.strava.com';
-
-    private const TOKEN_CACHE_KEY = 'strava_access_token';
-
-    private const DEFAULT_EXPIRY_SECONDS = 3600;
+    public function __construct(private readonly StravaConnector $connector) {}
 
     /**
-     * The cached access token, refreshing via the OAuth refresh-token grant when
-     * missing or when forced (after a 401).
+     * The cached access token, refreshing when missing or when forced.
      *
      * @param  bool  $forceRefresh  Bypass the cache and re-authenticate.
      */
     public function token(bool $forceRefresh = false): ?string
     {
-        if (! $forceRefresh) {
-            $cached = cache(self::TOKEN_CACHE_KEY);
-
-            if (is_string($cached) && $cached !== '') {
-                return $cached;
-            }
-        }
-
-        $response = Http::api()->post(self::BASE.'/oauth/token', [
-            'client_id' => config('services.strava.client_id'),
-            'client_secret' => config('services.strava.client_secret'),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => config('services.strava.refresh_token'),
-        ]);
-
-        if ($response->failed()) {
-            return null;
-        }
-
-        $data = $response->json();
-        $expiresIn = $data['expires_in'] ?? self::DEFAULT_EXPIRY_SECONDS;
-
-        cache([self::TOKEN_CACHE_KEY => $data['access_token']], $expiresIn - 60);
-
-        return $data['access_token'];
+        return $this->connector->token($forceRefresh);
     }
 
     /**
@@ -60,13 +36,7 @@ class Strava
      */
     public function activitiesPage(int $page, int $perPage, ?int $after = null): ?array
     {
-        $params = array_filter([
-            'after' => $after,
-            'per_page' => $perPage,
-            'page' => $page,
-        ], fn ($value): bool => $value !== null);
-
-        return $this->getJson(self::BASE.'/api/v3/athlete/activities', $params);
+        return $this->json(new ActivitiesRequest($page, $perPage, $after));
     }
 
     /**
@@ -76,7 +46,7 @@ class Strava
      */
     public function activity(int|string $id): ?array
     {
-        return $this->getJson(self::BASE."/api/v3/activities/{$id}");
+        return $this->json(new ActivityRequest($id));
     }
 
     /**
@@ -86,7 +56,7 @@ class Strava
      */
     public function activityPhotos(int|string $id, int $size = 2048): ?array
     {
-        return $this->getJson(self::BASE."/api/v3/activities/{$id}/photos", ['size' => $size]);
+        return $this->json(new ActivityPhotosRequest($id, $size));
     }
 
     /**
@@ -97,38 +67,24 @@ class Strava
      */
     public function activityStreams(int|string $id, array $keys = ['time', 'latlng']): ?array
     {
-        return $this->getJson(self::BASE."/api/v3/activities/{$id}/streams", [
-            'keys' => implode(',', $keys),
-            'key_by_type' => 'true',
-        ]);
+        return $this->json(new ActivityStreamsRequest($id, $keys));
     }
 
     /**
-     * GET a Strava endpoint with the bearer token attached, re-authenticating
-     * once and retrying when the token has expired (a 401 response).
+     * Send a request and decode it, treating any failure as no data.
      *
-     * @param  array<string, mixed>  $params
      * @return array<array-key, mixed>|null
      */
-    private function getJson(string $url, array $params = []): ?array
+    private function json(Request $request): ?array
     {
-        $token = $this->token();
-
-        if (! $token) {
+        // Checked here rather than left to the connector: with no token there is
+        // nothing to authenticate with, and an unauthenticated call to Strava is
+        // just a slower way of getting null.
+        if ($this->connector->token() === null) {
             return null;
         }
 
-        $response = Http::api()->withToken($token)->get($url, $params);
-
-        if ($response->status() === 401) {
-            $token = $this->token(true);
-
-            if (! $token) {
-                return null;
-            }
-
-            $response = Http::api()->withToken($token)->get($url, $params);
-        }
+        $response = $this->connector->send($request);
 
         return $response->failed() ? null : $response->json();
     }

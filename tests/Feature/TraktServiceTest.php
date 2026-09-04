@@ -22,7 +22,7 @@ it('requests a history page with the required headers and params', function () {
     expect($result)->toHaveCount(1)
         ->and($result[0]['movie']['title'])->toBe('Dune');
 
-    Http::assertSent(function ($request) {
+    Http::assertSent(function ($request, $response) {
         return str_contains($request->url(), 'api.trakt.tv/users/taylor/history/movies')
             && $request['extended'] === 'full'
             && $request['page'] == 1
@@ -48,12 +48,9 @@ it('throws a TraktException when a ratings page request fails', function () {
 
 it('retries a 429 response and resolves to the eventual 200 body', function () {
     Http::fake([
-        'api.trakt.tv/*' => Http::sequence()
-            ->push('rate limited', 429)
-            ->push([
-                ['id' => 1, 'watched_at' => '2024-01-01T20:00:00.000Z', 'action' => 'watch', 'type' => 'movie',
-                    'movie' => ['title' => 'Dune', 'year' => 2021, 'ids' => ['trakt' => 9, 'slug' => 'dune-2021', 'tmdb' => 438631]]],
-            ], 200),
+        'api.trakt.tv/*' => mockSequence([
+            MockResponse::make('rate limited', 429),
+        ]),
     ]);
 
     $result = app(Trakt::class)->historyPage('movies', 1);

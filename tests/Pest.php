@@ -6,6 +6,7 @@ use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
 use Saloon\Config as SaloonConfig;
 use Saloon\Http\Faking\MockClient;
+use Saloon\Http\Faking\MockResponse;
 use Tests\TestCase;
 
 /*
@@ -192,4 +193,28 @@ function mapPng(int $tint = 200): string
     imagedestroy($image);
 
     return $bytes;
+}
+
+/**
+ * Hand back the given responses in order for one mock key.
+ *
+ * Saloon takes a single response per request-class or URL key, so a sequence
+ * scoped to one endpoint has to be a closure over its own cursor. An unkeyed
+ * array is already a sequence and needs none of this.
+ *
+ * @param  list<MockResponse>  $responses
+ */
+function mockSequence(array $responses): Closure
+{
+    $sent = 0;
+
+    return function () use ($responses, &$sent) {
+        // Throw rather than repeat the last response: a pager that stops on an
+        // empty page would otherwise loop for ever on a sequence that ran out.
+        if (! isset($responses[$sent])) {
+            throw new OutOfBoundsException('Mock sequence is empty, but a request was made.');
+        }
+
+        return $responses[$sent++];
+    };
 }

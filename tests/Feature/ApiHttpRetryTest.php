@@ -59,5 +59,5 @@ it('identifies itself on every request, not just those going through api()', fun
 
     Http::get('https://example.test/thing');
 
-    Http::assertSent(fn ($request) => str_contains($request->header('User-Agent')[0] ?? '', config('app.name')));
+    Http::assertSent(fn ($request, $response) => str_contains($request->header('User-Agent')[0] ?? '', config('app.name')));
 });
