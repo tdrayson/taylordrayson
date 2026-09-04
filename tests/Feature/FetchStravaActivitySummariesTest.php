@@ -20,6 +20,8 @@ it('pages until exhausted and keys summaries by string id', function () {
         '/athlete/activities*' => mockSequence([
             MockResponse::make([['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 2]]),
             MockResponse::make([['id' => 200, 'start_date' => '2023-11-01T08:00:00Z', 'total_photo_count' => 0]]),
+            // The empty page that ends pagination.
+            MockResponse::make([]),
         ]),
     ]);
 
@@ -45,6 +47,8 @@ it('leaves start_date null when the summary has none', function () {
         '/oauth/token*' => MockResponse::make(['access_token' => 'token']),
         '/athlete/activities*' => mockSequence([
             MockResponse::make([['id' => 777, 'total_photo_count' => 2]]),
+            // The empty page that ends pagination.
+            MockResponse::make([]),
         ]),
     ]);
 

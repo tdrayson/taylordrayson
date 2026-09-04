@@ -48,6 +48,7 @@ function fakeStravaLocations(array $summaries, array $streams, array $photos = [
             MockResponse::make($summaries),
             MockResponse::make([]),
             MockResponse::make($summaries),
+            MockResponse::make([]),
         ]),
         '/photos*' => MockResponse::make($photos),
         '/streams*' => MockResponse::make($streams),

@@ -26,6 +26,8 @@ beforeEach(function () {
         'oauth/token*' => MockResponse::make(['access_token' => 'tok', 'expires_in' => 3600]),
         'athlete/activities*' => mockSequence([
             MockResponse::make([$summary]),
+            // The empty page that ends pagination.
+            MockResponse::make([]),
         ]),
         'activities/19532725079/streams*' => MockResponse::make([]),
         'activities/19532725079*' => MockResponse::make($summary),
