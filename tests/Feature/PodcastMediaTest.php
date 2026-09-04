@@ -2,10 +2,9 @@
 
 use App\Jobs\StorePodcastMedia;
 use App\Models\Podcast;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
-use Saloon\Http\Faking\MockResponse;
-use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -39,9 +38,9 @@ function mirroredEpisode(): Podcast
 
 function fakePodcastFiles(): void
 {
-    Saloon::fake([
-        '.mp3' => MockResponse::make('audio-bytes'),
-        '' => MockResponse::make(podcastJpeg()),
+    Http::fake([
+        '*.mp3' => Http::response('audio-bytes'),
+        '*' => Http::response(podcastJpeg()),
     ]);
 }
 
@@ -105,7 +104,7 @@ it('leaves an already mirrored episode alone unless forced', function () {
 });
 
 it('retries rather than storing a partial file when the publisher fails', function () {
-    Saloon::fake(['' => MockResponse::make('nope', 500)]);
+    Http::fake(['*' => Http::response('nope', 500)]);
     $episode = mirroredEpisode();
 
     expect(fn () => (new StorePodcastMedia($episode))->handle())

@@ -4,9 +4,14 @@ use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
 use App\Services\Tmdb;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
+
+// Poster and still images are fetched with Http::get(), not through a
+// connector, so they need Laravel's own fake alongside Saloon's.
+beforeEach(fn () => Http::fake(['*' => Http::response(fakeJpeg())]));
 
 beforeEach(function () {
     config()->set('services.tmdb.key', 'test-tmdb-key');

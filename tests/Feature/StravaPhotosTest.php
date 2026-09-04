@@ -13,7 +13,12 @@ use function Pest\Laravel\get;
 
 // Photo bytes are fetched with Http::get(), not through a connector, so they
 // need Laravel's own fake alongside Saloon's.
-beforeEach(fn () => Saloon::fake(['' => MockResponse::make(fakeJpeg())]));
+beforeEach(fn () => Http::fake(['*' => Http::response(fakeJpeg())]));
+
+// Photo bytes are fetched with Http::get(), not through a connector, so they
+// need Laravel's own fake alongside Saloon's.
+// Photo bytes are fetched with Http::get(), not through a connector.
+beforeEach(fn () => Http::fake(['*' => Http::response(fakeJpeg())]));
 
 beforeEach(function () {
     config([
@@ -55,7 +60,7 @@ function fakeStravaPhotos(array $summaries, array $photosById, array $extra = []
 }
 
 it('stores the first photo as cover and the rest in the gallery', function () {
-    Saloon::fake(['https://cdn.example/*' => MockResponse::make(fakeJpeg(), 200)]);
+    Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
 
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '1']);
 
@@ -71,7 +76,7 @@ it('stores the first photo as cover and the rest in the gallery', function () {
 });
 
 it('clears existing photos so re-running is idempotent', function () {
-    Saloon::fake(['https://cdn.example/*' => MockResponse::make(fakeJpeg(), 200)]);
+    Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
 
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '1']);
 

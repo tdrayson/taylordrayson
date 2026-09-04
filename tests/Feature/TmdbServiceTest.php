@@ -28,7 +28,7 @@ it('requests tv details with the api key and returns the decoded body', function
 
     Saloon::assertSent(function ($request, $response) {
         return str_contains($response->getPendingRequest()->getUrl(), 'api.themoviedb.org/3/tv/71712')
-            && $request['api_key'] === 'test-api-key';
+            && $response->getPendingRequest()->query()->get('api_key') === 'test-api-key';
     });
 });
 
@@ -43,7 +43,7 @@ it('requests movie details with the api key and returns the decoded body', funct
 
     Saloon::assertSent(function ($request, $response) {
         return str_contains($response->getPendingRequest()->getUrl(), 'api.themoviedb.org/3/movie/438631')
-            && $request['api_key'] === 'test-api-key';
+            && $response->getPendingRequest()->query()->get('api_key') === 'test-api-key';
     });
 });
 
@@ -58,7 +58,7 @@ it('requests images for a given kind and id', function () {
 
     Saloon::assertSent(function ($request, $response) {
         return str_contains($response->getPendingRequest()->getUrl(), 'api.themoviedb.org/3/tv/71712/images')
-            && $request['api_key'] === 'test-api-key';
+            && $response->getPendingRequest()->query()->get('api_key') === 'test-api-key';
     });
 });
 

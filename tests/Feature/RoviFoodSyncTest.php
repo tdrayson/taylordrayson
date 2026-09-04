@@ -213,7 +213,7 @@ it('self-heals a gap by extending the window back to the last synced day', funct
     $this->artisan('rovi:sync-food')->assertSuccessful();
 
     // The window reached back to the last synced day, not just --days=7.
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'from=2026-06-20'));
+    Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->query()->get('from') === '2026-06-20');
 
     // The stranded gap day is now backfilled.
     expect(Calorie::where('source_id', 'gap')->first()?->occurred_at->toDateString())->toBe('2026-06-22');

@@ -8,9 +8,8 @@ use App\Jobs\GenerateEntryMap;
 use App\Models\Activity;
 use App\Models\Checkin;
 use App\Models\Note;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Saloon\Http\Faking\MockResponse;
-use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.mapbox.token' => 'test-token']);
@@ -18,7 +17,7 @@ beforeEach(function () {
 });
 
 it('draws the right kind of map for the entry it is given', function () {
-    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
     $checkin = Checkin::factory()->create(['latitude' => 51.31, 'longitude' => -0.06]);
@@ -34,8 +33,8 @@ it('draws the right kind of map for the entry it is given', function () {
         ->and($checkin->fresh()->getFirstMedia('map'))->not->toBeNull()
         ->and($checkin->fresh()->getFirstMedia('map_dark'))->not->toBeNull();
 
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'path-'));
-    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'pin-l'));
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'path-'));
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'pin-l'));
 });
 
 /**
@@ -44,15 +43,15 @@ it('draws the right kind of map for the entry it is given', function () {
  * that is already there.
  */
 it('does nothing when the entry already has a map', function () {
-    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
     (new GenerateEntryMap($activity))->handle(...mapActions());
 
-    Saloon::fake(['api.mapbox.com*' => MockResponse::make(mapPng(), 200)]);
+    Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
     (new GenerateEntryMap($activity->fresh()))->handle(...mapActions());
 
-    Saloon::assertNothingSent();
+    Http::assertNothingSent();
 });
 
 /**
@@ -61,7 +60,7 @@ it('does nothing when the entry already has a map', function () {
  * this ran inline.
  */
 it('lets a failure surface so the queue retries it', function () {
-    Saloon::fake(['api.mapbox.com*' => MockResponse::make('', 500)]);
+    Http::fake(['*api.mapbox.com*' => Http::response('', 500)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
 
