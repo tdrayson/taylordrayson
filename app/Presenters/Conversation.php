@@ -32,7 +32,7 @@ final class Conversation
     }
 
     /**
-     * Every response in one list, oldest first, whatever kind it is and
+     * Every response in one list, newest first, whatever kind it is and
      * whichever table it came from.
      *
      * @return list<ConversationItem>
@@ -44,7 +44,7 @@ final class Conversation
             ...$target->webmentions()->approved()->get()->map(ConversationItem::fromWebmention(...))->all(),
         ];
 
-        usort($items, fn (ConversationItem $a, ConversationItem $b): int => $a->occurredAt <=> $b->occurredAt);
+        usort($items, fn (ConversationItem $a, ConversationItem $b): int => $b->occurredAt <=> $a->occurredAt);
 
         return $items;
     }
