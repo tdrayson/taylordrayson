@@ -22,6 +22,7 @@ use App\Support\Distance;
 use App\Support\PortableText;
 use App\Support\ShowTitle;
 use App\Support\Text;
+use App\Support\Units;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -171,7 +172,7 @@ final class EntryDescription
         $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
 
         $sentence = match ($model->type) {
-            MediaType::Film => sprintf('I watched %s%s.', $model->title, self::filmShape($model)),
+            MediaType::Film => sprintf('I watched %s%s', $model->title, self::filmShape($model)),
             MediaType::TvEpisode => self::episodeSentence($model),
             MediaType::Book => sprintf(
                 'I read %s%s.',
@@ -183,18 +184,27 @@ final class EntryDescription
         return trim($sentence.$rating);
     }
 
-    /** ", a 102-minute comedy romance from 2026", from whichever parts we hold. */
+    /**
+     * ", a comedy romance from 2026. It runs 1 hour 42 minutes.", from
+     * whichever parts we hold.
+     *
+     * The runtime is a clause of its own rather than a modifier: spelled out is
+     * how the rest of the site writes a duration in prose, and "a 1 hour 42
+     * minutes comedy romance" is not a thing anyone says. Left exact, because
+     * every other number on the site is.
+     */
     private static function filmShape(Media $model): string
     {
         $genres = array_slice((array) data_get($model->meta->tmdb, 'genres', []), 0, 2);
-        $runtime = $model->meta->runtime ? "{$model->meta->runtime}-minute" : null;
         $noun = $genres === [] ? 'film' : mb_strtolower(implode(' ', $genres));
+        $article = in_array(mb_substr($noun, 0, 1), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a';
 
-        $shape = trim(($runtime ?? '').' '.$noun);
         $year = $model->meta->year ? " from {$model->meta->year}" : '';
-        $article = in_array(mb_substr($shape, 0, 1), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a';
+        $runtime = $model->meta->runtime
+            ? ' It runs '.Units::spokenDuration((int) $model->meta->runtime * 60).'.'
+            : '';
 
-        return ", {$article} {$shape}{$year}";
+        return ", {$article} {$noun}{$year}.{$runtime}";
     }
 
     /**
