@@ -30,6 +30,21 @@ function mentionSource(string $target, string $property, string $content): strin
     HTML;
 }
 
+/**
+ * An h-entry that RSVPs to $target. Unlike the other kinds an RSVP is not a
+ * URL property of its own: it is an in-reply-to carrying a p-rsvp value.
+ */
+function rsvpSource(string $target, string $answer = 'yes'): string
+{
+    return <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="https://example.com/jo">Jo Bloggs</a>
+        <a class="u-in-reply-to" href="{$target}">the event</a>
+        <data class="p-rsvp" value="{$answer}">{$answer}</data>
+    </div></body></html>
+    HTML;
+}
+
 /** Receive and verify a mention from a source serving $html. */
 function verify(Note $note, ?string $html, int $status = 200): ?Webmention
 {
@@ -144,4 +159,57 @@ it('trusts a site it has approved before', function () {
     ]);
 
     expect(verify($note, null)->status)->toBe(CommentStatus::Approved);
+});
+
+it('records what each kind of mention claims to be', function (string $property, WebmentionKind $kind) {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    expect(verify($note, mentionSource($target, $property, 'Worth a look.'))->kind)->toBe($kind->value);
+})->with([
+    'reply' => ['in-reply-to', WebmentionKind::Reply],
+    'like' => ['like-of', WebmentionKind::Like],
+    'repost' => ['repost-of', WebmentionKind::Repost],
+    'bookmark' => ['bookmark-of', WebmentionKind::Bookmark],
+]);
+
+/**
+ * The check is that the property points *here*, not merely that it exists:
+ * a post bookmarking somebody else while linking to me is a mention, not a
+ * claim that it bookmarked me.
+ */
+it('does not take a response property aimed at someone else as a response to me', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $html = <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="https://example.com/jo">Jo Bloggs</a>
+        <a class="u-bookmark-of" href="https://example.com/elsewhere">their post</a>
+        <div class="e-content">See also <a href="{$target}">this</a>.</div>
+    </div></body></html>
+    HTML;
+
+    expect(verify($note, $html)->kind)->toBe(WebmentionKind::Mention->value);
+});
+
+it('records an RSVP as an RSVP rather than as the reply it is marked up as', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    expect(verify($note, rsvpSource($target))->kind)->toBe(WebmentionKind::Rsvp->value);
+});
+
+it('falls back to a bare mention when the source only links here', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $html = <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="https://example.com/jo">Jo Bloggs</a>
+        <div class="e-content">I was reading <a href="{$target}">this</a> today.</div>
+    </div></body></html>
+    HTML;
+
+    expect(verify($note, $html)->kind)->toBe(WebmentionKind::Mention->value);
 });
