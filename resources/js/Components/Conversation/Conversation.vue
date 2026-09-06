@@ -29,16 +29,47 @@ const sendingLink = ref(false);
  */
 const thread = computed(() => {
     const all = props.conversation.responses;
+
+    const byCommentId = new Map(
+        all.filter((item) => item.commentId !== null).map((item) => [item.commentId, item]),
+    );
+
+    /**
+     * The response a reply ultimately hangs off, however deep it was left.
+     * Grouping by the immediate parent instead dropped a reply to a reply
+     * entirely, because only top-level responses were ever asked for children.
+     */
+    const rootOf = (item) => {
+        let current = item;
+
+        // Bounded: a parent chain that somehow looped would hang the page
+        // rather than merely render it wrong.
+        for (let hops = 0; hops < 100; hops += 1) {
+            if (current.parentId === null || ! byCommentId.has(current.parentId)) {
+                break;
+            }
+
+            current = byCommentId.get(current.parentId);
+        }
+
+        return current;
+    };
+
     const children = new Map();
 
     for (const item of all) {
-        if (item.parentId === null) {
+        const root = rootOf(item);
+
+        // Its own root: a top-level response, or a reply whose parent is not
+        // here because it is held or deleted. Either way it stands on its own
+        // rather than vanishing with the parent.
+        if (root.id === item.id) {
             continue;
         }
 
-        const siblings = children.get(item.parentId) ?? [];
+        const siblings = children.get(root.id) ?? [];
         siblings.push(item);
-        children.set(item.parentId, siblings);
+        children.set(root.id, siblings);
     }
 
     const at = (item) => new Date(item.occurredAt.iso).getTime();
@@ -48,28 +79,29 @@ const thread = computed(() => {
     // reply today to a comment from last month makes that conversation the
     // newest thing here, and sorting on the parent alone would bury it where
     // nobody looks. The dates on screen explain the order without a label.
-    const lastActivity = (parent) => Math.max(
-        at(parent),
-        ...(children.get(parent.commentId) ?? []).map(at),
+    const lastActivity = (root) => Math.max(
+        at(root),
+        ...(children.get(root.id) ?? []).map(at),
     );
 
     return all
-        .filter((item) => item.parentId === null)
+        .filter((item) => rootOf(item).id === item.id)
         .sort((a, b) => lastActivity(b) - lastActivity(a))
-        .flatMap((parent) => {
-            const replies = (children.get(parent.commentId) ?? []).sort(byOldest);
+        .flatMap((root) => {
+            const replies = (children.get(root.id) ?? []).sort(byOldest);
 
             return [
                 // groupId marks everything belonging to one conversation, which
                 // is what the reply form is placed against: it opens at the end
                 // of the thread, wherever in it you pressed Reply.
-                { ...parent, nested: false, groupId: parent.id },
-                // The last reply stops the branch line; the ones before it carry
-                // it down to the next, so a run of replies hangs off one line.
+                { ...root, nested: false, groupId: root.id },
+                // Every descendant sits at one indent, in time order. Depth is
+                // stored truthfully and flattened here: past the first step in,
+                // the indentation says less than the order does.
                 ...replies.map((child, index) => ({
                     ...child,
                     nested: true,
-                    groupId: parent.id,
+                    groupId: root.id,
                     lastNested: index === replies.length - 1,
                 })),
             ];
@@ -104,11 +136,11 @@ const likeCount = computed(() => thread.value.filter((item) => item.kind === 'li
 const replyCount = computed(() => thread.value.filter((item) => item.body).length);
 
 /**
- * What the reply is filed under. Nesting stops at one level, so replying to a
- * reply files under the same root and lands beside it rather than a step
- * further right.
+ * The comment being answered, recorded as it actually happened. Depth is kept
+ * whole in the database and flattened for display, so who answered whom is not
+ * lost just because the thread is only ever drawn one step in.
  */
-const replyParentId = computed(() => replyingTo.value?.parentId ?? replyingTo.value?.commentId ?? null);
+const replyParentId = computed(() => replyingTo.value?.commentId ?? null);
 
 /** Open the reply form inside the thread, and take the reader to it. */
 async function reply(item) {
