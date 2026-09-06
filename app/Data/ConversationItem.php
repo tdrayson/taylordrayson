@@ -6,6 +6,7 @@ use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Webmention;
 use App\Support\LocalTime;
+use App\Support\PortableText;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
@@ -28,7 +29,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public string $authorName,
         public ?string $authorUrl,
         public ?string $authorPhoto,
-        public ?string $body,
+        /** @var array<int, array<string, mixed>>|null Portable Text, or null for a gesture. */
+        public ?array $body,
         public CarbonInterface $occurredAt,
         public ?int $parentId,
         /** The row id, when replying to this is possible; null for a mention. */
@@ -72,7 +74,12 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
                 ? null
                 : '/'.ltrim($mention->author_photo_path, '/'),
             // A reacji's body is its emoji, which the marker already shows.
-            body: $isReacji ? null : $mention->content,
+            // Converted here rather than stored converted: a mention's
+            // content genuinely is text, since that is all mf2 gives us. The
+            // stream renders one shape, so the shaping happens at its edge.
+            body: $isReacji || blank($mention->content)
+                ? null
+                : PortableText::fromPlainText((string) $mention->content),
             occurredAt: $mention->published_at ?? $mention->created_at,
             parentId: null,
             commentId: null,

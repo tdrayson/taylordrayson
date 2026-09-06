@@ -32,6 +32,7 @@ class Comment extends Model
     protected function casts(): array
     {
         return [
+            'body' => 'array',
             'status' => CommentStatus::class,
             'notify_replies' => 'boolean',
             'unsubscribed_at' => 'datetime',

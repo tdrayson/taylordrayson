@@ -6,6 +6,7 @@ use App\Actions\Comments\NotifyOfReply;
 use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Webmention;
+use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -86,7 +87,7 @@ class ModerationController extends Controller
                 'author' => $comment->author_name,
                 // Shown so a name can be recognised, never rendered publicly.
                 'email' => $comment->author_email,
-                'body' => $comment->body,
+                'body' => PortableText::plainText($comment->body),
                 'on' => self::targetUrl($comment->commentable),
                 'received' => $comment->created_at->diffForHumans(),
             ])

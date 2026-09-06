@@ -75,7 +75,7 @@ final class StoreComment
      */
     private function statusFor(CommentSubmission $submission): CommentStatus
     {
-        if (ProfanityFilter::isAbusive($submission->body)) {
+        if (ProfanityFilter::isAbusive($submission->plainBody())) {
             return CommentStatus::Spam;
         }
 
