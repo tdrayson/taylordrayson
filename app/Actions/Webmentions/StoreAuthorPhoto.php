@@ -3,6 +3,7 @@
 namespace App\Actions\Webmentions;
 
 use App\Support\SafeUrl;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Spatie\Image\Enums\Fit;
@@ -32,6 +33,16 @@ class StoreAuthorPhoto
     private const QUALITY = 82;
 
     /**
+     * What the last call did, for a caller that wants to report it. Written on
+     * every invocation and read straight after, which is all the refresh
+     * command needs and is why this is a property rather than a return type the
+     * verify job would have to unpack.
+     *
+     * @var 'stored'|'unchanged'|'skipped'|'failed'
+     */
+    public string $outcome = 'skipped';
+
+    /**
      * The stored path relative to the public root, or null when there is
      * nothing worth storing.
      *
@@ -41,6 +52,8 @@ class StoreAuthorPhoto
      */
     public function __invoke(?string $photoUrl, bool $refresh = false): ?string
     {
+        $this->outcome = 'failed';
+
         if ($photoUrl === null || ! SafeUrl::fetchable($photoUrl)) {
             return null;
         }
@@ -52,33 +65,51 @@ class StoreAuthorPhoto
         $held = File::exists($path);
 
         if ($held && ! $refresh) {
+            $this->outcome = 'skipped';
+
             return $relative;
         }
 
-        $body = $this->download($photoUrl);
+        $body = $this->download($photoUrl, $held ? $this->storedValidator($photoUrl) : null);
 
+        // Unchanged since we last asked, or unreachable. Either way the file we
+        // hold is the answer, and nothing was transferred.
         if ($body === null) {
+            $this->outcome = $held ? 'unchanged' : 'failed';
+
             return $held ? $relative : null;
         }
 
         File::ensureDirectoryExists(dirname($path));
 
         if ($this->square($body, $path)) {
+            $this->outcome = 'stored';
+
             return $relative;
         }
+
+        $this->outcome = $held ? 'unchanged' : 'failed';
 
         return $held ? $relative : null;
     }
 
-    private function download(string $url): ?string
+    /**
+     * The image bytes, or null when there is nothing new to store.
+     *
+     * $validator is the ETag or Last-Modified we were given last time. Sending
+     * it back turns an unchanged image into a 304 with no body, which costs the
+     * other server a header rather than a file. A refresh that finds nothing
+     * changed should be close to free for both ends.
+     */
+    private function download(string $url, ?array $validator): ?string
     {
         $response = rescue(
-            fn () => Http::timeout(self::TIMEOUT_SECONDS)->get($url),
+            fn () => Http::timeout(self::TIMEOUT_SECONDS)->withHeaders($validator ?? [])->get($url),
             null,
             report: false,
         );
 
-        if ($response === null || ! $response->successful()) {
+        if ($response === null || $response->status() === 304 || ! $response->successful()) {
             return null;
         }
 
@@ -88,7 +119,54 @@ class StoreAuthorPhoto
 
         $body = $response->body();
 
-        return strlen($body) > self::MAX_BYTES ? null : $body;
+        if (strlen($body) > self::MAX_BYTES) {
+            return null;
+        }
+
+        $this->rememberValidator($url, $response);
+
+        return $body;
+    }
+
+    /**
+     * Where the ETag for a photo is kept. Beside the image would be simpler,
+     * but public/avatars is served to the web and holds images only.
+     */
+    private function validatorPath(string $url): string
+    {
+        return storage_path('app/avatar-validators/'.hash('sha256', $url).'.json');
+    }
+
+    /** The conditional headers for a photo we already hold, if we kept any. */
+    private function storedValidator(string $url): array
+    {
+        $stored = rescue(fn () => File::get($this->validatorPath($url)), null, report: false);
+        $decoded = $stored === null ? null : json_decode($stored, true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        return array_filter([
+            'If-None-Match' => $decoded['etag'] ?? null,
+            'If-Modified-Since' => $decoded['modified'] ?? null,
+        ]);
+    }
+
+    /** Keep whatever the server gave us to ask with next time. */
+    private function rememberValidator(string $url, Response $response): void
+    {
+        $etag = $response->header('etag') ?: null;
+        $modified = $response->header('last-modified') ?: null;
+
+        if ($etag === null && $modified === null) {
+            return;
+        }
+
+        $path = $this->validatorPath($url);
+
+        File::ensureDirectoryExists(dirname($path));
+        File::put($path, json_encode(array_filter(['etag' => $etag, 'modified' => $modified])));
     }
 
     /**
