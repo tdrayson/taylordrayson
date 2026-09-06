@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use GuzzleHttp\Psr7\Header;
+use MensBeam\Microformats;
 
 /**
  * Where to send a webmention for a given page.
@@ -63,7 +64,7 @@ final class WebmentionEndpoint
             $target = trim((string) ($link[0] ?? ''), '<> ');
 
             if ($target !== '') {
-                return \Mf2\resolveUrl($base, $target);
+                return Links::absolute($base, $target);
             }
         }
 
@@ -80,7 +81,7 @@ final class WebmentionEndpoint
      */
     private static function fromDocument(string $html, string $base): ?string
     {
-        $parsed = rescue(fn (): array => \Mf2\parse($html, $base), [], report: false);
+        $parsed = rescue(fn (): array => Microformats::fromString($html, 'text/html', $base), [], report: false);
 
         return $parsed['rels']['webmention'][0] ?? null;
     }

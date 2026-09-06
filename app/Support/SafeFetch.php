@@ -80,7 +80,7 @@ final class SafeFetch
             if ($response->redirect() && $location !== '') {
                 // Resolved against the URL that issued it, since a Location may
                 // be a bare path. A hop that cannot be resolved ends the chain.
-                $url = self::resolve($url, $location);
+                $url = Links::absolute($url, $location);
 
                 if ($url === null) {
                     return null;
@@ -117,19 +117,5 @@ final class SafeFetch
         }
 
         return strlen($body) > $maxBytes ? null : $body;
-    }
-
-    /**
-     * An absolute URL for a Location header, which may be relative.
-     *
-     * Resolved by the microformats library rather than by hand: it implements
-     * the RFC 3986 rules, including the dot segments and the query-only and
-     * fragment-only forms that a hand-rolled version quietly gets wrong.
-     */
-    private static function resolve(string $from, string $location): ?string
-    {
-        $resolved = rescue(fn (): string => \Mf2\resolveUrl($from, $location), null, report: false);
-
-        return $resolved === '' ? null : $resolved;
     }
 }
