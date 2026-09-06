@@ -4,8 +4,6 @@ namespace App\Presenters;
 
 use App\Data\ConversationData;
 use App\Data\ConversationItem;
-use App\Models\Comment;
-use App\Models\Webmention;
 use App\Queries\ReactionsFor;
 use App\Support\InteractionTarget;
 use Illuminate\Database\Eloquent\Model;
@@ -42,18 +40,8 @@ final class Conversation
     private static function responses(Model $target): array
     {
         $items = [
-            ...Comment::query()
-                ->approved()
-                ->whereMorphedTo('commentable', $target)
-                ->get()
-                ->map(ConversationItem::fromComment(...))
-                ->all(),
-            ...Webmention::query()
-                ->approved()
-                ->whereMorphedTo('target', $target)
-                ->get()
-                ->map(ConversationItem::fromWebmention(...))
-                ->all(),
+            ...$target->comments()->approved()->get()->map(ConversationItem::fromComment(...))->all(),
+            ...$target->webmentions()->approved()->get()->map(ConversationItem::fromWebmention(...))->all(),
         ];
 
         usort($items, fn (ConversationItem $a, ConversationItem $b): int => $a->occurredAt <=> $b->occurredAt);

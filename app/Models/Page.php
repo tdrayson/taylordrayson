@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasInteractions;
 use App\Models\Concerns\SendsWebmentions;
 use App\Observers\LinkFaviconObserver;
 use Database\Factories\PageFactory;
@@ -29,6 +30,8 @@ class Page extends Model implements HasMedia
     use HasAttachments;
     /** @use HasFactory<PageFactory> */
     use HasFactory;
+
+    use HasInteractions;
 
     use SendsWebmentions;
 
