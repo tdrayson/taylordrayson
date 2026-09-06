@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
+use App\Support\Links;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -16,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'kind',
     'author_name',
     'author_url',
+    'author_host',
     'author_photo_path',
     'author_photo_url',
     'content',
@@ -42,6 +45,21 @@ class Webmention extends Model
             'verified_at' => 'datetime',
             'last_checked_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The sending site's host, kept in step with the URL it comes from.
+     *
+     * Derived rather than assigned so the two can never disagree: the host is
+     * what moderation trusts, and a writer that set the URL but forgot the host
+     * would silently make a known sender look like a stranger.
+     */
+    protected function authorUrl(): Attribute
+    {
+        return Attribute::set(fn (?string $value): array => [
+            'author_url' => $value,
+            'author_host' => $value === null ? null : Links::host($value),
+        ]);
     }
 
     /** @return MorphTo<Model, $this> */

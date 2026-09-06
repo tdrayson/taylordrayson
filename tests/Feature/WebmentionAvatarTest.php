@@ -83,3 +83,16 @@ it('refuses anything that is not an image, however it is labelled', function () 
 
     expect(app(StoreAuthorPhoto::class)($url))->toBeNull();
 });
+
+it('will not follow a photo redirect into the private network', function () {
+    $url = 'https://example.com/me.png';
+
+    Http::fake([
+        $url => Http::response('', 302, ['Location' => 'http://169.254.169.254/latest/meta-data/']),
+        '*' => Http::response('secrets', 200, ['content-type' => 'image/png']),
+    ]);
+
+    expect(app(StoreAuthorPhoto::class)($url))->toBeNull();
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '169.254.169.254'));
+});

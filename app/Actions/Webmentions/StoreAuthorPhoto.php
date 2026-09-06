@@ -2,10 +2,8 @@
 
 namespace App\Actions\Webmentions;
 
-use App\Support\SafeUrl;
-use Illuminate\Http\Client\Response;
+use App\Support\SafeFetch;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Image;
 use Throwable;
@@ -54,7 +52,8 @@ class StoreAuthorPhoto
     {
         $this->outcome = 'failed';
 
-        if ($photoUrl === null || ! SafeUrl::fetchable($photoUrl)) {
+        // SafeFetch validates the URL and every hop it leads to.
+        if ($photoUrl === null) {
             return null;
         }
 
@@ -103,27 +102,23 @@ class StoreAuthorPhoto
      */
     private function download(string $url, ?array $validator): ?string
     {
-        $response = rescue(
-            fn () => Http::timeout(self::TIMEOUT_SECONDS)->withHeaders($validator ?? [])->get($url),
-            null,
-            report: false,
+        // Through SafeFetch, so a photo URL that redirects into the private
+        // network is refused at every hop rather than only the first, and the
+        // ceiling is applied while reading rather than after.
+        $body = SafeFetch::body(
+            $url,
+            self::MAX_BYTES,
+            self::TIMEOUT_SECONDS,
+            ($validator ?? []) + ['Accept' => 'image/*'],
+            $status,
+            $headers,
         );
 
-        if ($response === null || $response->status() === 304 || ! $response->successful()) {
+        if ($body === null || ! str_starts_with((string) ($headers['content-type'] ?? ''), 'image/')) {
             return null;
         }
 
-        if (! str_starts_with((string) $response->header('content-type'), 'image/')) {
-            return null;
-        }
-
-        $body = $response->body();
-
-        if (strlen($body) > self::MAX_BYTES) {
-            return null;
-        }
-
-        $this->rememberValidator($url, $response);
+        $this->rememberValidator($url, $headers);
 
         return $body;
     }
@@ -153,11 +148,15 @@ class StoreAuthorPhoto
         ]);
     }
 
-    /** Keep whatever the server gave us to ask with next time. */
-    private function rememberValidator(string $url, Response $response): void
+    /**
+     * Keep whatever the server gave us to ask with next time.
+     *
+     * @param  array<string, string>  $headers
+     */
+    private function rememberValidator(string $url, array $headers): void
     {
-        $etag = $response->header('etag') ?: null;
-        $modified = $response->header('last-modified') ?: null;
+        $etag = $headers['etag'] ?? null;
+        $modified = $headers['last-modified'] ?? null;
 
         if ($etag === null && $modified === null) {
             return;
