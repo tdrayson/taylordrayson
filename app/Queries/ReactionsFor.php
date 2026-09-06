@@ -45,9 +45,7 @@ final class ReactionsFor
 
     private static function scoped(Model $target): Builder
     {
-        return Reaction::query()
-            ->where('reactable_type', $target->getMorphClass())
-            ->where('reactable_id', $target->getKey())
+        return $target->reactions()
             ->toBase();
     }
 }
