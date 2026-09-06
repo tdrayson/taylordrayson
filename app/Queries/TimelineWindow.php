@@ -3,8 +3,8 @@
 namespace App\Queries;
 
 use App\Models\TimelineEntry;
+use App\Support\DayBudget;
 use App\Support\SqlDate;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -16,21 +16,6 @@ use Illuminate\Support\Collection;
  */
 final class TimelineWindow
 {
-    /**
-     * Entries a page aims for. Soft: a single day carrying more than this still
-     * renders whole, since the alternative is splitting it.
-     */
-    private const ENTRY_BUDGET = 50;
-
-    /**
-     * Calendar days a page may span. Binds in the sparse early years, where the
-     * budget alone would sweep 2003 to 2011 into one page and label it as such.
-     */
-    private const MAX_SPAN = 92;
-
-    /** Logged days a page may hold, so a long quiet stretch still terminates. */
-    private const MAX_DAYS = 31;
-
     /**
      * The page of days at the cursor, and the cursors either side of it.
      *
@@ -47,7 +32,7 @@ final class TimelineWindow
             return ['from' => null, 'to' => null, 'olderThan' => null, 'newerThan' => null];
         }
 
-        $taken = $this->fill($candidates);
+        $taken = DayBudget::fill($candidates);
 
         // Filling forward walks oldest-first, so the run reads the other way round.
         $days = $forward ? $taken->reverse()->values() : $taken;
@@ -80,43 +65,9 @@ final class TimelineWindow
             ->when($after !== null, fn ($query) => $query->whereRaw("{$date} > ?", [$after]))
             ->groupBy('day')
             ->orderBy('day', $forward ? 'asc' : 'desc')
-            ->limit(self::MAX_DAYS)
+            ->limit(DayBudget::MAX_DAYS)
             ->get()
             ->map(fn (object $row): array => ['day' => (string) $row->day, 'total' => (int) $row->total]);
-    }
-
-    /**
-     * Take whole days until one of the limits would break, always at least one.
-     *
-     * @param  Collection<int, array{day: string, total: int}>  $candidates
-     * @return Collection<int, array{day: string, total: int}>
-     */
-    private function fill(Collection $candidates): Collection
-    {
-        $taken = collect();
-        $entries = 0;
-
-        foreach ($candidates as $day) {
-            if ($taken->isNotEmpty()) {
-                $overBudget = $entries + $day['total'] > self::ENTRY_BUDGET;
-                $overSpan = $this->span($taken->first()['day'], $day['day']) > self::MAX_SPAN;
-
-                if ($overBudget || $overSpan) {
-                    break;
-                }
-            }
-
-            $taken->push($day);
-            $entries += $day['total'];
-        }
-
-        return $taken;
-    }
-
-    /** Whole calendar days between two Y-m-d strings, in either order. */
-    private function span(string $a, string $b): int
-    {
-        return (int) Carbon::parse($a)->diffInDays(Carbon::parse($b), absolute: true);
     }
 
     /** Whether any day lies beyond this one, which is what decides the links. */

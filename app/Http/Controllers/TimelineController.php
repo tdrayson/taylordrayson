@@ -7,12 +7,15 @@ use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
+use App\Queries\MonthsInYear;
 use App\Queries\PeriodStats;
 use App\Queries\PodcastEpisodeCount;
 use App\Queries\TimelineWindow;
 use App\Queries\TimelineYears;
+use App\Support\DayBudget;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
+use App\Support\SqlDate;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -24,14 +27,13 @@ use Inertia\Response;
 
 class TimelineController extends Controller
 {
-    private const DAYS_PER_PAGE = 10;
-
     public function __construct(
         private readonly BuildTimelineFeed $feed,
         private readonly BuildMonthCalendar $monthCalendar,
         private readonly PeriodStats $periodStats,
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
+        private readonly MonthsInYear $months,
         private readonly PodcastEpisodeCount $podcastEpisodes,
         private readonly TimelineWindow $window,
         private readonly TimelineYears $years,
@@ -98,22 +100,29 @@ class TimelineController extends Controller
      */
     private function periodTail(Carbon $start, Carbon $end): array
     {
+        $date = SqlDate::date('occurred_at');
+
         $days = TimelineEntry::query()
             ->toBase()
-            ->selectRaw('DATE(occurred_at) as date')
+            ->selectRaw("{$date} as day, count(*) as total")
             ->whereBetween('occurred_at', [$start, $end])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->paginate(self::DAYS_PER_PAGE);
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get()
+            ->map(fn (object $row): array => ['day' => (string) $row->day, 'total' => (int) $row->total]);
 
-        $dates = collect($days->items())->pluck('date');
+        // Sized by what the days hold rather than by a fixed count: a month of
+        // 584 entries was four pages of 146, which is a long scroll for a page.
+        $pages = DayBudget::pages($days);
+        $current = max(1, min((int) request()->query('page', '1'), max(1, $pages->count())));
+        $dates = collect($pages->get($current - 1) ?? [])->pluck('day');
 
         return [
             'groups' => Inertia::defer(fn (): array => $dates->isEmpty()
                 ? []
                 : $this->groupsForDates($dates->last(), $dates->first(), true)),
-            'currentPage' => $days->currentPage(),
-            'lastPage' => $days->lastPage(),
+            'currentPage' => $current,
+            'lastPage' => max(1, $pages->count()),
         ];
     }
 
@@ -164,6 +173,9 @@ class TimelineController extends Controller
             'year' => $year,
             'og' => OgMeta::year($year),
             'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
+            // On every page, not just the first: the heatmap below is the only
+            // other way into a month, and it stops rendering past page one.
+            'months' => ($this->months)($year),
             ...$this->isFirstPage() ? [
                 'stats' => ($this->periodStats)($start, $end, withSuperlative: true),
                 'heatmap' => ($this->heatmapDays)($start, $end),
