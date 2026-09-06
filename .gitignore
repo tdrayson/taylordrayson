@@ -47,11 +47,16 @@ storage/backups/
 # Scratch screenshots dropped at the repo root, never part of the app.
 /*.png
 
-# Avatar images cached at runtime, keyed by a hash of their source. Nothing in
-# the app writes them any more, but the directory reappears on machines that
-# ran the older code.
+# Images fetched from third parties at runtime and written straight to disk:
+# favicons by links:favicons, brand marks by airlines:logos and
+# fuel:brand-logos, and avatars by code that no longer runs but whose directory
+# reappears on machines that once did.
+#
+# All are cache rather than source: re-derivable from the API they came from,
+# and every fetch command skips what is already there, so running one again
+# costs nothing. They survive a deploy because a deploy updates this checkout
+# in place rather than building a fresh one; run the fetch commands after
+# deploying to refill anything missing.
 /public/avatars/
-
-# Favicons downloaded at runtime by links:favicons, keyed by host. Fetched on
-# the server, so they are cache rather than source.
 /public/favicons/
+/public/logos/
