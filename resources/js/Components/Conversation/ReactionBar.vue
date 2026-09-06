@@ -192,7 +192,7 @@ function press() {
                 >
                     <span
                         v-if="mine && glyph(mine)"
-                        class="flex size-5 items-center justify-center rounded-full text-neutral-0"
+                        class="flex size-5 items-center justify-center rounded-full text-reaction-glyph"
                         :style="{ background: glyph(mine).colour }"
                         aria-hidden="true"
                     >
@@ -220,7 +220,7 @@ function press() {
                             >
                                 <span
                                     v-if="glyph(bucket)"
-                                    class="flex size-8 items-center justify-center rounded-full text-neutral-0"
+                                    class="flex size-8 items-center justify-center rounded-full text-reaction-glyph"
                                     :style="{ background: glyph(bucket).colour }"
                                     aria-hidden="true"
                                 >
@@ -266,7 +266,7 @@ function press() {
                     :title="`${bucket.count} ${bucket.label}`"
                 >
                     <span
-                        class="reaction-pip flex size-5 items-center justify-center rounded-full text-neutral-0 ring-2 ring-neutral-0"
+                        class="reaction-pip flex size-5 items-center justify-center rounded-full text-reaction-glyph ring-2 ring-neutral-0"
                         :style="glyph(bucket) ? { background: glyph(bucket).colour } : { background: 'var(--color-neutral-25)' }"
                     >
                         <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3" />

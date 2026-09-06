@@ -209,6 +209,10 @@
     --color-reaction-haha: hsl(45 85% 48%);
     --color-reaction-sad: hsl(215 45% 55%);
 
+    /* The disc keeps its colour in both themes, so its glyph has to keep its
+       own: a neutral token would flip to ink and disappear into the disc. */
+    --color-reaction-glyph: #ffffff;
+
     --color-sleep-awake: hsl(0 70% 72%);
     --color-sleep-rem: hsl(210 60% 58%);
     --color-sleep-light: hsl(210 50% 75%);
