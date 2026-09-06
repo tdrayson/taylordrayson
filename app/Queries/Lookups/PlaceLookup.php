@@ -3,7 +3,7 @@
 namespace App\Queries\Lookups;
 
 use App\Models\Checkin;
-use App\Services\GoogleMaps;
+use App\Services\GoogleMaps\Client;
 
 /**
  * Places for the location field, from Google.
@@ -14,7 +14,7 @@ use App\Services\GoogleMaps;
  */
 final class PlaceLookup
 {
-    public function __construct(private GoogleMaps $maps) {}
+    public function __construct(private Client $maps) {}
 
     /**
      * @return list<array{value: string, label: string, detail: string|null, fill: array<string, mixed>}>

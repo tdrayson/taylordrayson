@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Mapbox;
 
-use App\Services\Mapbox\GeocodeRequest;
-use App\Services\Mapbox\MapboxConnector;
 use RuntimeException;
 
 /**
@@ -14,9 +12,9 @@ use RuntimeException;
  * The same MAPBOX_TOKEN already renders every stored map, so a place picked
  * here and the map generated for it come from one source.
  */
-class Mapbox
+class Client
 {
-    public function __construct(private readonly MapboxConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Places matching a search, nearest-first when a position is supplied.

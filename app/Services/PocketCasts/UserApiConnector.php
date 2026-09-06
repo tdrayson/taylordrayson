@@ -5,8 +5,8 @@ namespace App\Services\PocketCasts;
 use App\Services\ApiConnector;
 use App\Services\PocketCasts\Concerns\AuthenticatesWithToken;
 
-/** The main Pocket Casts API host. */
-class PocketCastsConnector extends ApiConnector
+/** The user and account host, which most of the API lives on. */
+class UserApiConnector extends ApiConnector
 {
     use AuthenticatesWithToken;
 

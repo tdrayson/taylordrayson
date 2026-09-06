@@ -2,7 +2,7 @@
 
 use App\Actions\StoreActivityStreams;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -28,7 +28,7 @@ it('stores aligned absolute-time streams on the activity', function () {
     ]);
     $activity = Activity::factory()->create(['source_id' => '999', 'occurred_at' => '2024-01-01 08:00:00']);
 
-    $stored = app(StoreActivityStreams::class)($activity->fresh(), app(Strava::class));
+    $stored = app(StoreActivityStreams::class)($activity->fresh(), app(Client::class));
 
     expect($stored)->toBeTrue();
     $activity->refresh();
@@ -50,6 +50,6 @@ it('returns false and stores nothing when Strava has no streams', function () {
     ]);
     $activity = Activity::factory()->create(['source_id' => '998']);
 
-    expect(app(StoreActivityStreams::class)($activity, app(Strava::class)))->toBeFalse();
+    expect(app(StoreActivityStreams::class)($activity, app(Client::class)))->toBeFalse();
     expect($activity->fresh()->altitude)->toBeNull();
 });

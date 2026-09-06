@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\GoogleFavicons;
 
-use App\Services\GoogleFavicons\GoogleFaviconsConnector;
-use App\Services\GoogleFavicons\IconRequest;
 
 /**
  * Google's favicon service. Given a domain it returns that site's icon, having
@@ -13,9 +11,9 @@ use App\Services\GoogleFavicons\IconRequest;
  * The request goes to Google, never to the linked site, so an author-supplied
  * URL never becomes a request this app makes to an arbitrary host.
  */
-class GoogleFavicons
+class Client
 {
-    public function __construct(private readonly GoogleFaviconsConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Fetch a domain's favicon as raw image bytes.

@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Services\Tmdb;
+use App\Services\Tmdb\Client;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
@@ -41,7 +41,7 @@ class EnrichMedia implements ShouldQueue
         return [30, 120];
     }
 
-    public function handle(Tmdb $tmdb): void
+    public function handle(Client $tmdb): void
     {
         $meta = $this->subject->meta->toArray();
         $posterDownloaded = false;
@@ -71,7 +71,7 @@ class EnrichMedia implements ShouldQueue
      * @param  array<string, mixed>  $meta
      * @return array{0: array<string, mixed>, 1: bool} The updated meta, and whether a poster was downloaded.
      */
-    private function applyTmdb(Tmdb $tmdb, array $meta): array
+    private function applyTmdb(Client $tmdb, array $meta): array
     {
         $detail = $this->kind === 'tv' ? $tmdb->tv($this->tmdbId) : $tmdb->movie($this->tmdbId);
 

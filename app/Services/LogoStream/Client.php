@@ -1,11 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\LogoStream;
 
-use App\Services\LogoStream\AirlineLogoRequest;
-use App\Services\LogoStream\AirlineLogosConnector;
-use App\Services\LogoStream\AviationConnector;
-use App\Services\LogoStream\RouteRequest;
 use App\Support\Distance;
 
 /**
@@ -15,7 +11,7 @@ use App\Support\Distance;
  * the airline-logo host for raster airline icons/logos, and the aviation host for
  * route metadata.
  */
-class LogoStream
+class Client
 {
     public function __construct(
         private readonly AirlineLogosConnector $logos,

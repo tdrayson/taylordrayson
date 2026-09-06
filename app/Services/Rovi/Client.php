@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Rovi;
 
-use App\Services\Rovi\ResourceRequest;
-use App\Services\Rovi\RoviConnector;
 use Carbon\CarbonImmutable;
 use Saloon\Http\Auth\TokenAuthenticator;
 
@@ -16,13 +14,13 @@ use Saloon\Http\Auth\TokenAuthenticator;
  * `data` is a list (foods, activity, steps, weight, water, summaries, routes)
  * or an object (me, streaks, recipes, habits, cycle).
  */
-class Rovi
+class Client
 {
     private const DEFAULT_PAGE_SIZE = 100;
 
     private const MAX_PAGES = 1000;
 
-    public function __construct(private readonly RoviConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Your profile, goals and counters (the `data` object from /v1/me).
@@ -193,7 +191,7 @@ class Rovi
         }
 
         $response = $this->connector->send(
-            (new ResourceRequest($path, $query))->authenticate(new TokenAuthenticator($key)),
+            (new GetRequest($path, $query))->authenticate(new TokenAuthenticator($key)),
         );
 
         return $response->failed() ? null : $response->json();

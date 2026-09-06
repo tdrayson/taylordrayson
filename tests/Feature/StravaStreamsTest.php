@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Illuminate\Support\Facades\Cache;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -23,7 +23,7 @@ it('requests the time and latlng streams keyed by type', function () {
         ]),
     ]);
 
-    $streams = app(Strava::class)->activityStreams(123);
+    $streams = app(Client::class)->activityStreams(123);
 
     expect($streams['time']['data'])->toBe([0, 1, 2])
         ->and($streams['latlng']['data'][0])->toBe([51.1, -0.1]);
@@ -44,5 +44,5 @@ it('returns null when the streams request fails', function () {
         '/streams*' => MockResponse::make([], 500),
     ]);
 
-    expect(app(Strava::class)->activityStreams(123))->toBeNull();
+    expect(app(Client::class)->activityStreams(123))->toBeNull();
 });

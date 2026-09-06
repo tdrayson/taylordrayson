@@ -1,13 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\PocketCasts;
 
-use App\Services\PocketCasts\DiscoverConnector;
-use App\Services\PocketCasts\GetRequest;
-use App\Services\PocketCasts\LoginRequest;
-use App\Services\PocketCasts\PocketCastsConnector;
-use App\Services\PocketCasts\PodcastApiConnector;
-use App\Services\PocketCasts\PostRequest;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 use Saloon\Http\Response;
@@ -18,14 +12,14 @@ use Saloon\Http\Response;
  *
  * @phpstan-type PocketCastsResponse array<array-key, mixed>
  */
-class PocketCasts
+class Client
 {
     private const TOKEN_CACHE_KEY = 'pocketcasts.token';
 
     private const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 29;
 
     public function __construct(
-        private readonly PocketCastsConnector $api,
+        private readonly UserApiConnector $api,
         private readonly PodcastApiConnector $podcastApi,
         private readonly DiscoverConnector $discover,
     ) {

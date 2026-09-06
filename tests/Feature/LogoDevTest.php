@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\LogoDev;
+use App\Services\LogoDev\Client;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -11,7 +11,7 @@ beforeEach(function () {
 it('returns saved with body on an image response', function () {
     Saloon::fake(['img.logo.dev*' => MockResponse::make('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
 
-    $result = app(LogoDev::class)->logo('bp.com');
+    $result = app(Client::class)->logo('bp.com');
 
     expect($result['status'])->toBe('saved');
     expect($result['body'])->toBe('PNG-BYTES');
@@ -29,11 +29,11 @@ it('returns saved with body on an image response', function () {
 it('returns unavailable on a 404 (no logo for the domain)', function () {
     Saloon::fake(['img.logo.dev*' => MockResponse::make('', 404)]);
 
-    expect(app(LogoDev::class)->logo('nope.example')['status'])->toBe('unavailable');
+    expect(app(Client::class)->logo('nope.example')['status'])->toBe('unavailable');
 });
 
 it('returns error on a server failure or non-image response', function () {
     Saloon::fake(['img.logo.dev*' => MockResponse::make('<html/>', 200, ['Content-Type' => 'text/html'])]);
 
-    expect(app(LogoDev::class)->logo('bp.com')['status'])->toBe('error');
+    expect(app(Client::class)->logo('bp.com')['status'])->toBe('error');
 });

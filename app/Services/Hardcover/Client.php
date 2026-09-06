@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Hardcover;
 
 use App\Exceptions\HardcoverException;
-use App\Services\Hardcover\GraphqlRequest;
-use App\Services\Hardcover\HardcoverConnector;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Response;
 
@@ -13,9 +11,9 @@ use Saloon\Http\Response;
  * timeline. A failed response or a GraphQL `errors` payload throws rather than
  * returning an empty result set.
  */
-class Hardcover
+class Client
 {
-    public function __construct(private readonly HardcoverConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Run an arbitrary GraphQL query/mutation and return the `data` object.

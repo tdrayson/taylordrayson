@@ -1,7 +1,7 @@
 <?php
 
 use App\Exceptions\TraktException;
-use App\Services\Trakt;
+use App\Services\Trakt\Client;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -18,7 +18,7 @@ it('requests a history page with the required headers and params', function () {
         ], 200),
     ]);
 
-    $result = app(Trakt::class)->historyPage('movies', 1, 100, '2024-01-01T00:00:00Z');
+    $result = app(Client::class)->historyPage('movies', 1, 100, '2024-01-01T00:00:00Z');
 
     expect($result)->toHaveCount(1)
         ->and($result[0]['movie']['title'])->toBe('Dune');
@@ -36,14 +36,14 @@ it('requests a history page with the required headers and params', function () {
 it('throws a TraktException when a history page request fails', function () {
     Saloon::fake(['api.trakt.tv/*' => MockResponse::make('nope', 500)]);
 
-    expect(fn () => app(Trakt::class)->historyPage('episodes', 1))
+    expect(fn () => app(Client::class)->historyPage('episodes', 1))
         ->toThrow(TraktException::class);
 });
 
 it('throws a TraktException when a ratings page request fails', function () {
     Saloon::fake(['api.trakt.tv/*' => MockResponse::make('nope', 500)]);
 
-    expect(fn () => app(Trakt::class)->ratingsPage('movies', 1))
+    expect(fn () => app(Client::class)->ratingsPage('movies', 1))
         ->toThrow(TraktException::class);
 });
 
@@ -61,7 +61,7 @@ it('retries a 429 response and resolves to the eventual 200 body', function () {
         ]),
     ]);
 
-    $result = app(Trakt::class)->historyPage('movies', 1);
+    $result = app(Client::class)->historyPage('movies', 1);
 
     expect($result)->toHaveCount(1)
         ->and($result[0]['movie']['title'])->toBe('Dune');
@@ -72,6 +72,6 @@ it('retries a 429 response and resolves to the eventual 200 body', function () {
 it('remains null-tolerant for show and movie summary lookups', function () {
     Saloon::fake(['api.trakt.tv/*' => MockResponse::make('nope', 500)]);
 
-    expect(app(Trakt::class)->show(700))->toBeNull()
-        ->and(app(Trakt::class)->movie(9))->toBeNull();
+    expect(app(Client::class)->show(700))->toBeNull()
+        ->and(app(Client::class)->movie(9))->toBeNull();
 });

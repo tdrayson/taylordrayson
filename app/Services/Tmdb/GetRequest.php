@@ -11,7 +11,7 @@ use Saloon\Http\Request;
  * One class rather than four: every call is a GET of a path with no body, and
  * the paths differ only by the ids the caller already holds.
  */
-class ResourceRequest extends Request
+class GetRequest extends Request
 {
     protected Method $method = Method::GET;
 

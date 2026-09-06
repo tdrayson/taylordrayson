@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\ThisWeekWith;
 
-use App\Services\ThisWeekWith\EpisodesRequest;
-use App\Services\ThisWeekWith\ThisWeekWithConnector;
 use RuntimeException;
 
 /**
@@ -13,9 +11,9 @@ use RuntimeException;
  * The episodes endpoint is public (no auth) and paginated; this client walks
  * every page and returns the raw episode payloads for the caller to map.
  */
-class ThisWeekWith
+class Client
 {
-    public function __construct(private readonly ThisWeekWithConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Yield every published episode, newest first, fetching each page only as

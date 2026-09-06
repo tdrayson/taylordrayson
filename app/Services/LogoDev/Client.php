@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\LogoDev;
 
-use App\Services\LogoDev\LogoDevConnector;
-use App\Services\LogoDev\LogoRequest;
 
 /**
  * Client for the logo.dev image API, fetching a brand logo by web domain.
  */
-class LogoDev
+class Client
 {
-    public function __construct(private readonly LogoDevConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Fetch a brand logo PNG for a web domain as raw image bytes.

@@ -1,22 +1,17 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Strava;
 
-use App\Services\Strava\ActivitiesRequest;
-use App\Services\Strava\ActivityPhotosRequest;
-use App\Services\Strava\ActivityRequest;
-use App\Services\Strava\ActivityStreamsRequest;
-use App\Services\Strava\StravaConnector;
 use Saloon\Http\Request;
 
 /**
  * Client for the Strava API. The OAuth refresh-token flow, token caching and
- * the re-authenticate-on-401 retry all live on {@see StravaConnector}.
+ * the re-authenticate-on-401 retry all live on {@see Connector}.
  * Methods return the decoded JSON, or null when the request fails.
  */
-class Strava
+class Client
 {
-    public function __construct(private readonly StravaConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * The cached access token, refreshing when missing or when forced.

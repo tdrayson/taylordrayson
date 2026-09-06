@@ -5,7 +5,7 @@ namespace App\Console\Commands\Sync;
 use App\Actions\StoreActivityStreams;
 use App\Enums\Source;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
 #[Description('Backfill Strava altitude/speed/track/heart-rate streams onto route-bearing activities')]
 class StravaStreams extends Command
 {
-    public function handle(StoreActivityStreams $store, Strava $strava): int
+    public function handle(StoreActivityStreams $store, Client $strava): int
     {
         $query = Activity::query()
             ->where('source', Source::Strava->value)

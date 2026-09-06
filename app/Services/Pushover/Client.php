@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Pushover;
 
-use App\Services\Pushover\PushoverConnector;
-use App\Services\Pushover\SendMessageRequest;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -13,12 +11,12 @@ use Throwable;
  * Chosen over email because it is one POST with no transport to configure:
  * the app cannot currently send mail at all (MAIL_MAILER=log).
  */
-class Pushover
+class Client
 {
     /** Pushover truncates at 1024; leave room rather than have it cut mid-word. */
     private const LIMIT = 900;
 
-    public function __construct(private readonly PushoverConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Send a message, or do nothing when no credentials are configured.

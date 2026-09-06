@@ -1,18 +1,16 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Tmdb;
 
-use App\Services\Tmdb\ResourceRequest;
-use App\Services\Tmdb\TmdbConnector;
 
 /**
  * Client for the TMDB API v3, used for enrichment only (season/episode structure,
  * artwork). Never authoritative for identity: our own slug and the Trakt id
  * remain the source of truth. Methods return decoded JSON, or null on failure.
  */
-class Tmdb
+class Client
 {
-    public function __construct(private readonly TmdbConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * @return array<string, mixed>|null
@@ -53,7 +51,7 @@ class Tmdb
      */
     private function get(string $path): ?array
     {
-        $response = $this->connector->send(new ResourceRequest($path));
+        $response = $this->connector->send(new GetRequest($path));
 
         return $response->failed() ? null : $response->json();
     }

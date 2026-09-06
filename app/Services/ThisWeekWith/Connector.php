@@ -12,7 +12,7 @@ use Saloon\PaginationPlugin\Paginator;
 /**
  * The "This Week With" podcast website API. Public, so no authentication.
  */
-class ThisWeekWithConnector extends ApiConnector implements HasPagination
+class Connector extends ApiConnector implements HasPagination
 {
     public function resolveBaseUrl(): string
     {

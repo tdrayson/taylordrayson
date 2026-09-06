@@ -16,7 +16,7 @@ use Saloon\Http\Request;
  * just before it expires. An expired token still in cache comes back as a 401,
  * which {@see handleRetry} turns into a forced refresh and one more attempt.
  */
-class StravaConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     private const TOKEN_CACHE_KEY = 'strava_access_token';
 

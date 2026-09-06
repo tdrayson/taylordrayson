@@ -1,11 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Trakt;
 
 use App\Exceptions\TraktException;
-use App\Services\Trakt\GetRequest;
-use App\Services\Trakt\PostRequest;
-use App\Services\Trakt\TraktConnector;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Response;
 
@@ -14,9 +11,9 @@ use Saloon\Http\Response;
  * write needs a user OAuth token, minted per-run by the device flow and passed
  * in explicitly rather than stored (only an interactive command writes).
  */
-class Trakt
+class Client
 {
-    public function __construct(private readonly TraktConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /** Device-flow poll statuses meaning "keep waiting": 400 pending, 429 slow down. */
     private const DEVICE_PENDING_STATUSES = [400, 429];

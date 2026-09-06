@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Services\Strava;
+use App\Services\Strava\Client;
 
 /**
  * Page the athlete's full activity list once, keyed by Strava activity id. Paging
@@ -13,7 +13,7 @@ class FetchStravaActivitySummaries
 {
     private const PER_PAGE = 200;
 
-    public function __construct(private Strava $strava) {}
+    public function __construct(private Client $strava) {}
 
     /**
      * @return array<string, array{start_date: ?string, total_photo_count: int}>|null Null on a request failure.

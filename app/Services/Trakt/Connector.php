@@ -10,7 +10,7 @@ use App\Services\ApiConnector;
  * Every request carries the app's client id; a user token is added per request
  * by the caller, since most reads are public and only history needs one.
  */
-class TraktConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     public function resolveBaseUrl(): string
     {

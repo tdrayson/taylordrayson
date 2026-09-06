@@ -1,7 +1,7 @@
 <?php
 
-use App\Services\Strava;
 use App\Services\Strava\ActivityRequest;
+use App\Services\Strava\Client;
 use App\Services\Strava\TokenRequest;
 use Illuminate\Support\Facades\Cache;
 use Saloon\Http\Faking\MockResponse;
@@ -39,7 +39,7 @@ it('refreshes and caches the access token, reusing it across calls', function ()
         '/athlete/activities*' => MockResponse::make([['id' => 1]]),
     ]);
 
-    $strava = app(Strava::class);
+    $strava = app(Client::class);
 
     expect($strava->token())->toBe('fresh-token');
     expect(Cache::get('strava_access_token'))->toBe('fresh-token');
@@ -65,7 +65,7 @@ it('re-authenticates and retries once on a 401', function () {
         ]),
     ]);
 
-    expect(app(Strava::class)->activity(55))->toBe(['id' => 55, 'name' => 'Ride']);
+    expect(app(Client::class)->activity(55))->toBe(['id' => 55, 'name' => 'Ride']);
 
     // The dead token is replaced rather than left to fail the next call too.
     expect(Cache::get('strava_access_token'))->toBe('renewed');
@@ -76,8 +76,8 @@ it('returns null when the token cannot be refreshed', function () {
         '/oauth/token*' => MockResponse::make('nope', 401),
     ]);
 
-    expect(app(Strava::class)->token())->toBeNull();
-    expect(app(Strava::class)->activitiesPage(1, 200))->toBeNull();
+    expect(app(Client::class)->token())->toBeNull();
+    expect(app(Client::class)->activitiesPage(1, 200))->toBeNull();
 });
 
 it('returns the photos payload for an activity', function () {
@@ -87,7 +87,7 @@ it('returns the photos payload for an activity', function () {
         '/activities/9/photos*' => MockResponse::make([['urls' => ['2048' => 'https://example/p.jpg']]]),
     ]);
 
-    expect(app(Strava::class)->activityPhotos(9))->toBe([['urls' => ['2048' => 'https://example/p.jpg']]]);
+    expect(app(Client::class)->activityPhotos(9))->toBe([['urls' => ['2048' => 'https://example/p.jpg']]]);
 
     Saloon::assertSent(fn ($request, $response) => $request->query()->get('size') === 2048);
 });

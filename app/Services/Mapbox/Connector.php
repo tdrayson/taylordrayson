@@ -5,7 +5,7 @@ namespace App\Services\Mapbox;
 use App\Services\ApiConnector;
 
 /** The Mapbox Geocoding API. */
-class MapboxConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     public function resolveBaseUrl(): string
     {

@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\PetrolPrices;
+use App\Services\PetrolPrices\Client;
 use App\Services\PetrolPrices\FuelStationResult;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -41,7 +41,7 @@ it('maps a station, standardises casing and converts the distance to km', functi
         ],
     ]]);
 
-    $results = app(PetrolPrices::class)->search(latitude: 51.3024, longitude: -0.0747);
+    $results = app(Client::class)->search(latitude: 51.3024, longitude: -0.0747);
 
     expect($results)->toHaveCount(1);
     expect($results[0])->toBeInstanceOf(FuelStationResult::class);
@@ -66,7 +66,7 @@ it('takes the forecourt name from the trailing parenthetical', function () {
         ],
     ]]);
 
-    $results = app(PetrolPrices::class)->search(latitude: 1, longitude: 1);
+    $results = app(Client::class)->search(latitude: 1, longitude: 1);
 
     expect($results[0]->stationName)->toBe('Godstone Road SF Connect');
     expect($results[0]->brand)->toBe('BP');
@@ -79,7 +79,7 @@ it('canonicalises the brand name the feed reports', function () {
         ['properties' => ['fuel_brand_name' => 'HARVESTENERGY', 'name' => 'C (C)']],
     ]);
 
-    $brands = array_map(fn (FuelStationResult $s): ?string => $s->brand, app(PetrolPrices::class)->search(latitude: 1, longitude: 1));
+    $brands = array_map(fn (FuelStationResult $s): ?string => $s->brand, app(Client::class)->search(latitude: 1, longitude: 1));
 
     expect($brands)->toBe(['Tesco', "Sainsbury's", 'Harvest Energy']);
 });
@@ -89,7 +89,7 @@ it('falls back to a title-cased brand when it is not a known brand', function ()
         'properties' => ['fuel_brand_name' => 'INDIE FUELS', 'name' => 'SOME INDIE GARAGE (SOME INDIE GARAGE)'],
     ]]);
 
-    $results = app(PetrolPrices::class)->search(latitude: 1, longitude: 1);
+    $results = app(Client::class)->search(latitude: 1, longitude: 1);
 
     expect($results[0]->brand)->toBe('Indie Fuels');
     expect($results[0]->stationName)->toBe('Some Indie Garage');
@@ -98,7 +98,7 @@ it('falls back to a title-cased brand when it is not a known brand', function ()
 it('asks for distance ordering and a whole-mile radius rounded up', function () {
     fakePetrolPricesStations([]);
 
-    app(PetrolPrices::class)->search(latitude: 51.3024, longitude: -0.0747, radiusKm: 5);
+    app(Client::class)->search(latitude: 51.3024, longitude: -0.0747, radiusKm: 5);
 
     // 5 km is 3.1 miles, which must round up to 4 so the search is never narrower than asked.
     // getUrl() is the path only; Saloon keeps the query string separate.
@@ -111,11 +111,11 @@ it('asks for distance ordering and a whole-mile radius rounded up', function () 
 it('returns an empty array when the api fails', function () {
     Saloon::fake(['petrolprices.com/app/geojson*' => MockResponse::make('Not Found', 404)]);
 
-    expect(app(PetrolPrices::class)->search(latitude: 1, longitude: 1))->toBe([]);
+    expect(app(Client::class)->search(latitude: 1, longitude: 1))->toBe([]);
 });
 
 it('returns an empty array where there are no stations nearby', function () {
     fakePetrolPricesStations([]);
 
-    expect(app(PetrolPrices::class)->search(latitude: 56.5, longitude: 3.0))->toBe([]);
+    expect(app(Client::class)->search(latitude: 56.5, longitude: 3.0))->toBe([]);
 });

@@ -1,12 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\PetrolPrices;
 
-use App\Services\PetrolPrices\FuelBrands;
-use App\Services\PetrolPrices\FuelStationResult;
-use App\Services\PetrolPrices\PetrolPricesConnector;
-use App\Services\PetrolPrices\SearchStationsRequest;
-use App\Services\PetrolPrices\StationNormaliser;
 
 /**
  * Client for the PetrolPrices.com forecourt lookup, which returns GeoJSON
@@ -16,11 +11,11 @@ use App\Services\PetrolPrices\StationNormaliser;
  * are converted at this boundary and every value leaving this class is in
  * kilometres.
  */
-class PetrolPrices
+class Client
 {
     private const KM_PER_MILE = 1.609344;
 
-    public function __construct(private readonly PetrolPricesConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Stations within `$radiusKm` of a coordinate, nearest first.

@@ -10,7 +10,7 @@ use App\Services\ApiConnector;
  * A slower policy than the shared default: TMDB rate-limits in bursts, and the
  * enrichment it feeds is never on a request path a person is waiting on.
  */
-class TmdbConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     public function resolveBaseUrl(): string
     {

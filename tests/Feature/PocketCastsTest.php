@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\PocketCasts;
+use App\Services\PocketCasts\Client;
 use Illuminate\Support\Facades\Cache;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -17,7 +17,7 @@ it('logs in then calls an endpoint with the bearer token', function () {
         'api.pocketcasts.com/user/podcast/list' => MockResponse::make(['podcasts' => [['uuid' => 'p1']]]),
     ]);
 
-    expect(app(PocketCasts::class)->subscriptions())->toBe(['podcasts' => [['uuid' => 'p1']]]);
+    expect(app(Client::class)->subscriptions())->toBe(['podcasts' => [['uuid' => 'p1']]]);
 
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://api.pocketcasts.com/user/login'
         && $request->body()->all()['email'] === 'me@example.com'
@@ -35,7 +35,7 @@ it('caches the token and logs in only once across calls', function () {
         'api.pocketcasts.com/*' => MockResponse::make(['ok' => true]),
     ]);
 
-    $client = app(PocketCasts::class);
+    $client = app(Client::class);
     $client->history();
     $client->starred();
 
@@ -60,7 +60,7 @@ it('re-authenticates and retries once on a 401', function () {
         ]),
     ]);
 
-    expect(app(PocketCasts::class)->history())->toBe(['history' => []]);
+    expect(app(Client::class)->history())->toBe(['history' => []]);
 
     Saloon::assertSentCount(4);
 });
@@ -71,7 +71,7 @@ it('sends the search term', function () {
         'api.pocketcasts.com/discover/search' => MockResponse::make(['podcasts' => []]),
     ]);
 
-    app(PocketCasts::class)->search('syntax');
+    app(Client::class)->search('syntax');
 
     Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/discover/search') && json_decode($request->body()->all(), true)['term'] === 'syntax');
 });
@@ -82,7 +82,7 @@ it('reads episode show notes from the podcast-api host', function () {
         'podcast-api.pocketcasts.com/episode/show_notes/*' => MockResponse::make(['show_notes' => 'Notes']),
     ]);
 
-    expect(app(PocketCasts::class)->showNotes('ep-1'))->toBe(['show_notes' => 'Notes']);
+    expect(app(Client::class)->showNotes('ep-1'))->toBe(['show_notes' => 'Notes']);
 
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://podcast-api.pocketcasts.com/episode/show_notes/ep-1'
         && $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer jwt');
@@ -93,7 +93,7 @@ it('reads a public discover feed without authenticating', function () {
         'static.pocketcasts.com/discover/json/popular_world.json' => MockResponse::make(['status' => 'ok', 'result' => []]),
     ]);
 
-    expect(app(PocketCasts::class)->popular())->toBe(['status' => 'ok', 'result' => []]);
+    expect(app(Client::class)->popular())->toBe(['status' => 'ok', 'result' => []]);
 
     Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/user/login'));
     Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->getUrl() === 'https://static.pocketcasts.com/discover/json/popular_world.json'
@@ -103,5 +103,5 @@ it('reads a public discover feed without authenticating', function () {
 it('throws when credentials are not configured', function () {
     config()->set('services.pocketcasts.email', null);
 
-    app(PocketCasts::class)->history();
+    app(Client::class)->history();
 })->throws(RuntimeException::class);

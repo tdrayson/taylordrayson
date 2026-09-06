@@ -1,20 +1,18 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Foursquare;
 
-use App\Services\Foursquare\CheckinsRequest;
-use App\Services\Foursquare\FoursquareConnector;
 use RuntimeException;
 
 /**
  * Client for the Foursquare/Swarm v2 API, paging the account's check-in
  * history newest first.
  */
-class Foursquare
+class Client
 {
     private const PER_PAGE = 250;
 
-    public function __construct(private readonly FoursquareConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Yield every check-in item across all pages, newest first.

@@ -10,7 +10,7 @@ use Saloon\PaginationPlugin\OffsetPaginator;
 use Saloon\PaginationPlugin\Paginator;
 
 /** The Foursquare/Swarm v2 API. */
-class FoursquareConnector extends ApiConnector implements HasPagination
+class Connector extends ApiConnector implements HasPagination
 {
     public function resolveBaseUrl(): string
     {

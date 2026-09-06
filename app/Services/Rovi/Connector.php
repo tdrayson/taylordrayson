@@ -5,7 +5,7 @@ namespace App\Services\Rovi;
 use App\Services\ApiConnector;
 
 /** The Rovi API. Its base URL is configurable, so it is read per request. */
-class RoviConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     public function resolveBaseUrl(): string
     {

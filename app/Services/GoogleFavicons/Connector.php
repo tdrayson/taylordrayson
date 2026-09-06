@@ -5,7 +5,7 @@ namespace App\Services\GoogleFavicons;
 use App\Services\ApiConnector;
 
 /** Google's favicon service. */
-class GoogleFaviconsConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     private const TIMEOUT_SECONDS = 8;
 

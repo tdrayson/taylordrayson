@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\Tmdb;
+use App\Services\Tmdb\Client;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -18,7 +18,7 @@ it('requests tv details with the api key and returns the decoded body', function
         ], 200),
     ]);
 
-    $result = app(Tmdb::class)->tv(71712);
+    $result = app(Client::class)->tv(71712);
 
     expect($result)->toMatchArray([
         'id' => 71712,
@@ -37,7 +37,7 @@ it('requests movie details with the api key and returns the decoded body', funct
         'api.themoviedb.org/*' => MockResponse::make(['id' => 438631, 'title' => 'Dune'], 200),
     ]);
 
-    $result = app(Tmdb::class)->movie(438631);
+    $result = app(Client::class)->movie(438631);
 
     expect($result)->toMatchArray(['id' => 438631, 'title' => 'Dune']);
 
@@ -52,7 +52,7 @@ it('requests images for a given kind and id', function () {
         'api.themoviedb.org/*' => MockResponse::make(['logos' => [['file_path' => '/logo.png']]], 200),
     ]);
 
-    $result = app(Tmdb::class)->images('tv', 71712);
+    $result = app(Client::class)->images('tv', 71712);
 
     expect($result)->toMatchArray(['logos' => [['file_path' => '/logo.png']]]);
 
@@ -63,16 +63,16 @@ it('requests images for a given kind and id', function () {
 });
 
 it('builds an image url from a path and size', function () {
-    expect(app(Tmdb::class)->imageUrl('/abc.jpg', 'w780'))
+    expect(app(Client::class)->imageUrl('/abc.jpg', 'w780'))
         ->toBe('https://image.tmdb.org/t/p/w780/abc.jpg');
 });
 
 it('returns null for an image url when the path is null', function () {
-    expect(app(Tmdb::class)->imageUrl(null, 'w780'))->toBeNull();
+    expect(app(Client::class)->imageUrl(null, 'w780'))->toBeNull();
 });
 
 it('returns null when the request fails', function () {
     Saloon::fake(['api.themoviedb.org/*' => MockResponse::make('nope', 500)]);
 
-    expect(app(Tmdb::class)->tv(71712))->toBeNull();
+    expect(app(Client::class)->tv(71712))->toBeNull();
 });

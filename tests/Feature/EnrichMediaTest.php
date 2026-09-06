@@ -3,7 +3,7 @@
 use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
-use App\Services\Tmdb;
+use App\Services\Tmdb\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Saloon\Http\Faking\MockResponse;
@@ -71,7 +71,7 @@ it('enriches a series with tmdb structure and downloaded art', function () {
     fakeEnrichmentApis();
 
     $series = Series::factory()->create();
-    (new EnrichMedia($series, 'tv', 71712, null))->handle(app(Tmdb::class));
+    (new EnrichMedia($series, 'tv', 71712, null))->handle(app(Client::class));
 
     $fresh = $series->fresh();
 
@@ -100,7 +100,7 @@ it('falls back to the trakt poster when tmdb has no poster', function () {
 
     $media = Media::factory()->create(['type' => 'film']);
     (new EnrichMedia($media, 'movie', 438631, 'walter-r2.trakt.tv/posters/dune-2021.jpg'))
-        ->handle(app(Tmdb::class));
+        ->handle(app(Client::class));
 
     expect($media->fresh()->getFirstMedia('cover'))->not->toBeNull();
 });

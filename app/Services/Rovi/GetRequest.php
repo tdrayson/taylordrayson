@@ -5,8 +5,8 @@ namespace App\Services\Rovi;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
 
-/** Any read-only Rovi resource by path. */
-class ResourceRequest extends Request
+/** Any Rovi read, by path. */
+class GetRequest extends Request
 {
     protected Method $method = Method::GET;
 

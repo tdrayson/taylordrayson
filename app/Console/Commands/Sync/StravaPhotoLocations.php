@@ -6,7 +6,7 @@ use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\ResolvePhotoCoordinate;
 use App\Enums\Source;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Attributes\Description;
@@ -28,7 +28,7 @@ class StravaPhotoLocations extends Command
 
     private const RATE_WINDOW = 900;
 
-    public function handle(Strava $strava, FetchStravaActivitySummaries $summaries, ResolvePhotoCoordinate $resolveCoordinate): int
+    public function handle(Client $strava, FetchStravaActivitySummaries $summaries, ResolvePhotoCoordinate $resolveCoordinate): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -94,7 +94,7 @@ class StravaPhotoLocations extends Command
      * @param  array<string, array{start_date: ?string, total_photo_count: int}>  $remote
      */
     private function locatePhotos(
-        Strava $strava,
+        Client $strava,
         ResolvePhotoCoordinate $resolveCoordinate,
         Collection $targets,
         array $remote,

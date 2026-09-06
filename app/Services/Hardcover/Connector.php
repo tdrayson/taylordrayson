@@ -5,7 +5,7 @@ namespace App\Services\Hardcover;
 use App\Services\ApiConnector;
 
 /** The Hardcover GraphQL API. */
-class HardcoverConnector extends ApiConnector
+class Connector extends ApiConnector
 {
     public function resolveBaseUrl(): string
     {

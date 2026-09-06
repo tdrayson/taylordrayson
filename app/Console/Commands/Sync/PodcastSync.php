@@ -5,7 +5,7 @@ namespace App\Console\Commands\Sync;
 use App\Jobs\StorePodcastMedia;
 use App\Models\Podcast;
 use App\Queries\PodcastEpisodeCount;
-use App\Services\ThisWeekWith;
+use App\Services\ThisWeekWith\Client;
 use App\Support\HtmlSanitizer;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
@@ -29,7 +29,7 @@ class PodcastSync extends Command
      * `--full` walks the whole feed instead, for a backfill or a re-map after
      * changing `mapEpisode()`.
      */
-    public function handle(ThisWeekWith $thisWeekWith): int
+    public function handle(Client $thisWeekWith): int
     {
         $perPage = (int) $this->option('per-page');
         $full = (bool) $this->option('full');

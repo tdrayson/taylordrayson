@@ -6,7 +6,7 @@ use App\Links\LinkResolvers;
 use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
-use App\Services\GoogleFavicons;
+use App\Services\GoogleFavicons\Client;
 use App\Support\Links;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\File;
@@ -107,7 +107,7 @@ it('treats a refused favicon as no favicon', function () {
         'www.google.com/s2/favicons*' => MockResponse::make('', 404),
     ]);
 
-    expect(app(GoogleFavicons::class)->icon('nowhere.test')['status'])->toBe('unavailable');
+    expect(app(Client::class)->icon('nowhere.test')['status'])->toBe('unavailable');
 });
 
 it('treats a non-image answer as an error rather than storing it', function () {
@@ -115,7 +115,7 @@ it('treats a non-image answer as an error rather than storing it', function () {
         'www.google.com/s2/favicons*' => MockResponse::make('<html>nope</html>', 200, ['content-type' => 'text/html']),
     ]);
 
-    expect(app(GoogleFavicons::class)->icon('example.com')['status'])->toBe('error');
+    expect(app(Client::class)->icon('example.com')['status'])->toBe('error');
 });
 
 it('returns the bytes for a real favicon', function () {
@@ -123,7 +123,7 @@ it('returns the bytes for a real favicon', function () {
         'www.google.com/s2/favicons*' => MockResponse::make(str_repeat('a', 400), 200, ['content-type' => 'image/png']),
     ]);
 
-    expect(app(GoogleFavicons::class)->icon('example.com'))
+    expect(app(Client::class)->icon('example.com'))
         ->status->toBe('saved')
         ->body->toHaveLength(400);
 });

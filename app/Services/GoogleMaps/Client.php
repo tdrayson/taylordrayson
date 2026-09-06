@@ -1,11 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\GoogleMaps;
 
-use App\Services\GoogleMaps\GeocodeRequest;
-use App\Services\GoogleMaps\GoogleMapsConnector;
-use App\Services\GoogleMaps\NearbyRequest;
-use App\Services\GoogleMaps\PlacesRequest;
 use RuntimeException;
 
 /**
@@ -13,7 +9,7 @@ use RuntimeException;
  * rather than Mapbox here because Mapbox ranks streets above businesses, so
  * venue searches returned the road instead. Mapbox still renders the maps.
  */
-class GoogleMaps
+class Client
 {
     /**
      * The legacy Text Search, not Places API (New): the new one is not enabled
@@ -22,7 +18,7 @@ class GoogleMaps
     /** Wide enough to reach the venue you are standing outside, not the next town. */
     private const NEARBY_RADIUS_METRES = 500;
 
-    public function __construct(private readonly GoogleMapsConnector $connector) {}
+    public function __construct(private readonly Connector $connector) {}
 
     /**
      * Places matching a search, biased to a position when one is known.

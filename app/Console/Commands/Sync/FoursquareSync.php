@@ -6,7 +6,7 @@ use App\Actions\Checkins\ImportCheckin;
 use App\Enums\Source;
 use App\Jobs\GenerateEntryMap;
 use App\Models\Checkin;
-use App\Services\Foursquare;
+use App\Services\Foursquare\Client;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
 use RuntimeException;
 
 #[Signature('foursquare:sync {--days=2 : Days back to re-check for new check-ins}')]
-#[Description('Sync new Foursquare/Swarm check-ins to the timeline')]
+#[Description('Sync new Client/Swarm check-ins to the timeline')]
 class FoursquareSync extends Command
 {
     /**
@@ -30,7 +30,7 @@ class FoursquareSync extends Command
      * that is older than --days, so a missed schedule self-heals; the overlap is
      * free because the action upserts on source_id.
      */
-    public function handle(Foursquare $foursquare, ImportCheckin $importCheckin): int
+    public function handle(Client $foursquare, ImportCheckin $importCheckin): int
     {
         $after = $this->resolveAfterTimestamp();
 

@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Fetch;
 
 use App\Models\Fuel;
-use App\Services\LogoDev;
+use App\Services\LogoDev\Client;
 use App\Services\PetrolPrices\FuelBrands;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 #[Description('Download fuel-station brand logos from logo.dev, keyed by brand slug')]
 class FetchFuelBrandLogos extends Command
 {
-    public function handle(LogoDev $logoDev): int
+    public function handle(Client $logoDev): int
     {
         if (! config('services.logodev.token')) {
             $this->components->error('LOGODEV_TOKEN is not set.');

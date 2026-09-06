@@ -4,7 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Enums\Source;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -19,7 +19,7 @@ class StravaPolylines extends Command
 
     private const POLYLINE_TYPES = ['run', 'walk', 'ride', 'e-bike-ride'];
 
-    public function handle(Strava $strava): int
+    public function handle(Client $strava): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
