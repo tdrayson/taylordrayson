@@ -38,17 +38,4 @@ enum WebmentionKind: string
             self::Mention => 'Mention',
         };
     }
-
-    /** The mf2 property that signals each kind, in the order they take precedence. */
-    public static function fromProperties(array $properties): self
-    {
-        return match (true) {
-            isset($properties['in-reply-to']) => self::Reply,
-            isset($properties['like-of']) => self::Like,
-            isset($properties['repost-of']) => self::Repost,
-            isset($properties['bookmark-of']) => self::Bookmark,
-            isset($properties['rsvp']) => self::Rsvp,
-            default => self::Mention,
-        };
-    }
 }

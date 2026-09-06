@@ -122,13 +122,21 @@ final class ParseMentionSource
      */
     private function kindOf(array $properties, string $targetUrl): WebmentionKind
     {
+        // An RSVP is an in-reply-to carrying a p-rsvp value, so it has to be
+        // recognised before the reply it would otherwise read as. Still only
+        // when the reply points here: an RSVP to someone else's event that
+        // happens to link here is a mention.
+        if (isset($properties['rsvp']) && $this->contains($properties['in-reply-to'] ?? [], $targetUrl)) {
+            return WebmentionKind::Rsvp;
+        }
+
         foreach (self::RESPONSE_PROPERTIES as $property => $kind) {
             if ($this->contains($properties[$property] ?? [], $targetUrl)) {
                 return $kind;
             }
         }
 
-        return isset($properties['rsvp']) ? WebmentionKind::Rsvp : WebmentionKind::Mention;
+        return WebmentionKind::Mention;
     }
 
     /**
