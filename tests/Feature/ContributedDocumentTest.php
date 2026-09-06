@@ -121,3 +121,24 @@ it('measures length on the words, not the markup', function () {
     postDoc($note->id, doc(str_repeat('a', 3999), ['strong']))->assertSuccessful();
     postDoc($note->id, doc(str_repeat('a', 4001), ['strong']))->assertStatus(422);
 });
+
+it('keeps the spaces between a span and the one it is marked apart from', function () {
+    $note = Note::factory()->create();
+
+    // TrimStrings recurses into arrays, so an unexcepted body would store
+    // "with" and "bold" with nothing between them and render them as one word.
+    postDoc($note->id, [[
+        '_type' => 'block',
+        '_key' => 'k1',
+        'style' => 'normal',
+        'markDefs' => [],
+        'children' => [
+            ['_type' => 'span', '_key' => 's1', 'text' => 'Testing with ', 'marks' => []],
+            ['_type' => 'span', '_key' => 's2', 'text' => 'formatting', 'marks' => ['strong']],
+            ['_type' => 'span', '_key' => 's3', 'text' => ' applied.', 'marks' => []],
+        ],
+    ]])->assertSuccessful();
+
+    expect(PortableText::plainText(Comment::query()->latest('id')->first()->body))
+        ->toBe('Testing with formatting applied.');
+});

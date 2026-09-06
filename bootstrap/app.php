@@ -40,7 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // goes. A Portable Text body is nested arrays of authored prose, so it
         // was having the space either side of every link, and the indentation
         // of every code block, quietly removed on save.
-        $middleware->trimStrings(except: ['content.*']);
+        // Both are Portable Text. Trimming recurses into arrays, so without this
+        // every span loses its edge spaces and "with <b>bold</b>" runs together.
+        $middleware->trimStrings(except: ['content.*', 'body.*']);
 
         // The webmention endpoint is posted to by other people's sites, which
         // by definition hold no token of ours. The spec requires accepting a
