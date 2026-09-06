@@ -12,28 +12,68 @@ function pixel(): string
     );
 }
 
+/** The first response stores a photo; the rest answer the refresh that follows. */
+function servePhoto(string $url, array $thenReplyWith): void
+{
+    $sequence = Http::sequence()->push(pixel(), 200, [
+        'content-type' => 'image/png',
+        'etag' => '"abc123"',
+    ]);
+
+    foreach ($thenReplyWith as [$body, $status, $headers]) {
+        $sequence->push($body, $status, $headers);
+    }
+
+    Http::fake([$url => $sequence]);
+}
+
 afterEach(function () {
     File::deleteDirectory(public_path('avatars'));
+    File::deleteDirectory(storage_path('app/avatar-validators'));
 });
 
 it('keeps the photo it has when a refresh cannot be fetched', function () {
     $url = 'https://example.com/me.png';
 
-    Http::fake([$url => Http::response(pixel(), 200, ['content-type' => 'image/png'])]);
+    // Stored, then their server falls over on the monthly refresh.
+    servePhoto($url, [['', 500, []]]);
 
-    $path = app(StoreAuthorPhoto::class)($url);
-
-    expect($path)->not->toBeNull()
-        ->and(File::exists(public_path($path)))->toBeTrue();
-
+    $action = app(StoreAuthorPhoto::class);
+    $path = $action($url);
     $before = File::get(public_path($path));
 
-    // The monthly refresh runs against a server that is now down. A cosmetic
-    // re-fetch must never cost us the face we already have.
-    Http::fake([$url => Http::response('', 500)]);
-
-    expect(app(StoreAuthorPhoto::class)($url, refresh: true))->toBe($path)
+    expect($action($url, refresh: true))->toBe($path)
+        ->and($action->outcome)->toBe('unchanged')
         ->and(File::get(public_path($path)))->toBe($before);
+});
+
+it('asks with a validator and does no work when told nothing changed', function () {
+    $url = 'https://example.com/me.png';
+
+    servePhoto($url, [['', 304, []]]);
+
+    $action = app(StoreAuthorPhoto::class);
+    $path = $action($url);
+    $written = File::lastModified(public_path($path));
+
+    expect($action($url, refresh: true))->toBe($path)
+        ->and($action->outcome)->toBe('unchanged')
+        // Not re-encoded: a 304 should cost both ends nothing but headers.
+        ->and(File::lastModified(public_path($path)))->toBe($written);
+
+    Http::assertSent(fn ($request) => $request->hasHeader('If-None-Match', '"abc123"'));
+});
+
+it('replaces the photo when the image behind the same URL has changed', function () {
+    $url = 'https://example.com/me.png';
+
+    servePhoto($url, [[pixel(), 200, ['content-type' => 'image/png']]]);
+
+    $action = app(StoreAuthorPhoto::class);
+    $path = $action($url);
+
+    expect($action($url, refresh: true))->toBe($path)
+        ->and($action->outcome)->toBe('stored');
 });
 
 it('refuses anything that is not an image, however it is labelled', function () {
