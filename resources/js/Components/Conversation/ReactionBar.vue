@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { cn } from '../../lib/cn.js';
+import { csrf } from '../../lib/csrf.js';
 import Icon from '../Ui/Icon.vue';
 
 /**
@@ -119,7 +120,7 @@ async function toggle(bucket) {
     try {
         const response = await fetch(`/reactions/${props.type}/${props.id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
             credentials: 'same-origin',
             body: JSON.stringify({ type: bucket.key }),
         });

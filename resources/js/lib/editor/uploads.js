@@ -4,15 +4,7 @@
  * both speak to the same endpoint the same way.
  */
 
-/**
- * Laravel ships the token as the XSRF-TOKEN cookie rather than a meta tag here,
- * and expects it back URL-decoded in X-XSRF-TOKEN.
- */
-function csrf() {
-    const cookie = document.cookie.split('; ').find((part) => part.startsWith('XSRF-TOKEN='));
-
-    return cookie ? decodeURIComponent(cookie.slice('XSRF-TOKEN='.length)) : '';
-}
+import { csrf } from '../csrf.js';
 
 /**
  * @param {File} file
