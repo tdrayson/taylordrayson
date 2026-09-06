@@ -51,7 +51,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
         :id="item.id"
         v-twemoji
         class="h-cite relative flex gap-3"
-        :class="[nested && 'response-nested ml-16']"
+        :class="[nested && 'response-nested ml-16', nested && ! item.lastNested && 'response-continues']"
     >
         <Avatar
             class="response-avatar"
@@ -149,6 +149,18 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
     border-left: 1px solid var(--color-neutral-50);
     border-bottom: 1px solid var(--color-neutral-50);
     border-bottom-left-radius: 0.5rem;
+}
+
+/* Carries the branch line past this reply to the next one, so a run of replies
+   hangs off a single line rather than a stack of loose brackets. Absent on the
+   last, which is where the line should stop. */
+.response-continues::after {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: calc((var(--text-meta) * var(--text-meta--line-height)) / 2);
+    bottom: -1.5rem;
+    border-left: 1px solid var(--color-neutral-50);
 }
 
 /* Centre the avatar on the name line rather than on the whole block: half the
