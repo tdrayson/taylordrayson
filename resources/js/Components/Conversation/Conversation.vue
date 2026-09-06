@@ -11,8 +11,8 @@ const CommentForm = defineAsyncComponent(() => import('./CommentForm.vue'));
 const props = defineProps({
     // One ConversationData: { type, id, url, reactions, responses }.
     conversation: { type: Object, required: true },
-    // The page's share card, shown under "Sharing this?" when it has one.
-    ogImage: { type: String, default: null },
+    // The page's Open Graph payload, shown under "Sharing this?".
+    og: { type: Object, default: () => ({}) },
 });
 
 const replyingTo = ref(null);
@@ -212,7 +212,7 @@ async function reply(item) {
                  happens inside the thread, against the response it answers. -->
             <CommentForm :type="conversation.type" :id="conversation.id" />
 
-            <ResponseAsides :url="conversation.url" :og-image="ogImage" />
+            <ResponseAsides :url="conversation.url" :og="og" />
         </div>
 
     </section>

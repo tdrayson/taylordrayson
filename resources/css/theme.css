@@ -200,6 +200,10 @@
     --color-note: hsl(36 40% 50%);
 
     /* Sleep stage colours */
+    /* The share card's own ratio, so its box can be reserved before it loads.
+       OgRenderer draws every card at 1200x630. */
+    --aspect-og: 1200 / 630;
+
     /* Reactions: a white glyph on a coloured disc, so each reads at a glance
        without depending on how a platform draws its emoji font. */
     --color-reaction-like: hsl(215 80% 52%);

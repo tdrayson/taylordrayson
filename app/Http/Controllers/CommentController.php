@@ -10,6 +10,7 @@ use App\Models\Comment;
 use App\Services\Pushover\Client as Pushover;
 use App\Support\FormNonce;
 use App\Support\InteractionTarget;
+use App\Support\PortableText;
 use Illuminate\Http\JsonResponse;
 
 class CommentController extends Controller
@@ -60,7 +61,7 @@ class CommentController extends Controller
     {
         $held = $comment->status === CommentStatus::Pending;
         $title = $held ? 'Comment held for moderation' : 'New comment';
-        $body = "{$comment->author_name}: ".str($comment->body)->limit(120);
+        $body = "{$comment->author_name}: ".str(PortableText::plainText($comment->body))->limit(120);
 
         dispatch(fn () => app(Pushover::class)->send($title, $body))->afterResponse();
     }

@@ -94,7 +94,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
         <BlockContent :document="content" class="mt-8" />
 
         <div v-if="conversation" class="mt-10 space-y-10 border-t border-neutral-50 pt-6">
-            <Conversation :conversation="conversation" :og-image="og.image" />
+            <Conversation :conversation="conversation" :og="og" />
         </div>
     </article>
 </template>
