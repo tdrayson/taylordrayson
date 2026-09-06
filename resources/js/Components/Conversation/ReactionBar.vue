@@ -288,9 +288,12 @@ function press() {
 
 <style scoped>
 /* Overlapped at rest so a handful of kinds stay one short mark, and spread on
-   hover so each is a target of its own and its title can be read. */
+   hover so each is a target of its own and its title can be read. The overlap
+   is barely more than the ring: a disc is 1.25rem and the glyph fills it, so
+   anything deeper clips the glyph rather than just the disc, and the row reads
+   as one smudge instead of as several things. */
 .reaction-item {
-    margin-left: -0.375rem;
+    margin-left: -0.125rem;
     transition: margin-left 150ms ease;
 }
 
