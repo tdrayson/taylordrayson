@@ -43,7 +43,7 @@ final class AuthorableTypes
      * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, label: string, icon: string, draftable: bool}>
      */
     private const TYPES = [
-        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'label' => 'Note', 'icon' => 'Note01Icon', 'draftable' => false],
+        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'label' => 'Note', 'icon' => 'StickyNote02Icon', 'draftable' => false],
         'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'label' => 'Article', 'icon' => 'File01Icon', 'draftable' => true],
         'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'label' => 'Page', 'icon' => 'File02Icon', 'draftable' => true],
         'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'label' => 'Project', 'icon' => 'RocketIcon', 'draftable' => false],
