@@ -35,6 +35,9 @@ final class SafeFetch
      * @param  array<string, string>|null  $responseHeaders  Set to the final
      *                                                       response's headers, lowercased, for a caller
      *                                                       that needs a caching validator back.
+     * @param  string|null  $finalUrl  Set to the URL actually answered, after
+     *                                 any redirects, which is the base a relative
+     *                                 link on that page resolves against.
      */
     public static function body(
         string $url,
@@ -43,9 +46,11 @@ final class SafeFetch
         array $headers = [],
         ?int &$status = null,
         ?array &$responseHeaders = null,
+        ?string &$finalUrl = null,
     ): ?string {
         $status = null;
         $responseHeaders = [];
+        $finalUrl = $url;
 
         for ($hop = 0; $hop <= self::MAX_REDIRECTS; $hop++) {
             if (! SafeUrl::fetchable($url)) {
@@ -66,6 +71,7 @@ final class SafeFetch
             }
 
             $status = $response->status();
+            $finalUrl = $url;
             $responseHeaders = array_change_key_case(
                 array_map(fn (array $values): string => $values[0] ?? '', $response->headers()),
             );
@@ -97,6 +103,13 @@ final class SafeFetch
     private static function read(Response $response, int $maxBytes): ?string
     {
         $stream = $response->toPsrResponse()->getBody();
+
+        // Reading consumes it, so a response that is read twice would come back
+        // empty the second time.
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
         $body = '';
 
         while (! $stream->eof() && strlen($body) <= $maxBytes) {
@@ -106,23 +119,17 @@ final class SafeFetch
         return strlen($body) > $maxBytes ? null : $body;
     }
 
-    /** An absolute URL for a Location header, which may be relative. */
+    /**
+     * An absolute URL for a Location header, which may be relative.
+     *
+     * Resolved by the microformats library rather than by hand: it implements
+     * the RFC 3986 rules, including the dot segments and the query-only and
+     * fragment-only forms that a hand-rolled version quietly gets wrong.
+     */
     private static function resolve(string $from, string $location): ?string
     {
-        if (preg_match('#^https?://#i', $location)) {
-            return $location;
-        }
+        $resolved = rescue(fn (): string => \Mf2\resolveUrl($from, $location), null, report: false);
 
-        $parts = parse_url($from);
-
-        if (! isset($parts['scheme'], $parts['host'])) {
-            return null;
-        }
-
-        $root = $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
-
-        return str_starts_with($location, '/')
-            ? $root.$location
-            : $root.'/'.ltrim($location, '/');
+        return $resolved === '' ? null : $resolved;
     }
 }
