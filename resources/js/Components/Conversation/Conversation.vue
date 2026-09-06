@@ -120,7 +120,7 @@ async function reply(item) {
 <template>
     <!-- No rules anywhere in here. Separation is space and the weight of the
          headings, which is what stops a short entry looking like a form. -->
-    <section aria-labelledby="conversation-heading">
+    <section aria-labelledby="responses">
 
         <div class="space-y-10">
             <!-- A summary line, not a labelled section: the counts read as part
@@ -134,7 +134,9 @@ async function reply(item) {
             />
 
             <div v-if="thread.length">
-                <h2 id="conversation-heading" class="font-display text-section text-neutral-900">{{ heading }}</h2>
+                <!-- Named for the URL as much as for the label: the count in the
+                     summary line above links to #responses, and so can anybody. -->
+                <h2 id="responses" class="scroll-mt-8 font-display text-section text-neutral-900">{{ heading }}</h2>
 
                 <!-- One stream, every kind. A gesture renders as a single line
                      and a written response as a block, so the weight difference

@@ -221,10 +221,18 @@ function press() {
                 </div>
             </div>
 
-            <span v-if="replyCount" class="inline-flex items-center gap-1.5 text-meta text-neutral-500">
+            <!-- A count of something further down the page is a way to get
+                 there. A plain hash link, so it works before the page has
+                 hydrated and can be copied and sent to somebody. -->
+            <a
+                v-if="replyCount"
+                href="#responses"
+                :aria-label="`${replyCount} written ${replyCount === 1 ? 'response' : 'responses'}, jump to them`"
+                class="inline-flex items-center gap-1.5 rounded-full text-meta text-neutral-500 transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            >
                 <Icon name="Comment01Icon" class="size-4" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
-            </span>
+            </a>
 
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for
