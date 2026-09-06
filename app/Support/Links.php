@@ -3,10 +3,12 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\File;
+use Uri\WhatWg\Url;
 
 /**
  * Shared helpers for the links inside a Portable Text document: which hosts a
- * document points at, and where that host's favicon lives once stored.
+ * document points at, where that host's favicon lives once stored, and how a
+ * URL somebody else wrote resolves against the page that carried it.
  */
 final class Links
 {
@@ -53,6 +55,25 @@ final class Links
         }
 
         return array_keys($urls);
+    }
+
+    /**
+     * An absolute form of $url, which may be relative to $base, or null when
+     * the pair resolves to nothing usable.
+     *
+     * Resolved by the WHATWG URL parser rather than by hand: it covers the dot
+     * segments and the query-only and fragment-only forms a hand-rolled version
+     * quietly gets wrong, and strips the newlines a header can smuggle in.
+     */
+    public static function absolute(string $base, string $url): ?string
+    {
+        $resolved = rescue(
+            fn (): ?Url => Url::parse($base)?->resolve($url),
+            null,
+            report: false,
+        );
+
+        return $resolved?->toAsciiString();
     }
 
     /**
