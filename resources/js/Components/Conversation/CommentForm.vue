@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, useId } from 'vue';
+import { defineAsyncComponent, onMounted, ref, useId } from 'vue';
 import { readCommenter, rememberCommenter } from '../../lib/commenter.js';
 import { csrf } from '../../lib/csrf.js';
 import Button from '../Ui/Button.vue';
@@ -17,6 +17,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['posted', 'cancel']);
+
+// The editor is a chunk most readers never fetch, so the box starts as a plain
+// textarea and becomes an editor the moment somebody means to write in it.
+const CommentEditor = defineAsyncComponent(() => import('./CommentEditor.vue'));
 
 const name = ref('');
 const email = ref('');
@@ -36,6 +40,18 @@ const bodyId = useId();
 // on first focus and never closed again: collapsing it while somebody tabs
 // towards the name field would take the field away as they reach for it.
 const revealed = ref(false);
+
+// Swapped in on first focus, carrying anything already typed. Once up, the
+// document is what gets posted and the plain string is only the fallback for a
+// reader whose editor chunk never arrived.
+const rich = ref(false);
+const document = ref(null);
+const labelId = useId();
+
+function beginWriting() {
+    revealed.value = true;
+    rich.value = true;
+}
 
 // Fetched when the form appears rather than baked into the page: only a
 // fraction of readers ever comment, and the issue time is what lets the server
@@ -78,7 +94,7 @@ async function submit() {
                 author_name: name.value,
                 author_email: email.value || null,
                 notify_replies: notify.value,
-                body: body.value,
+                body: rich.value && document.value ? document.value : body.value,
                 parent_id: props.parentId,
                 nonce: nonce.value,
                 website: website.value,
@@ -131,14 +147,22 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             <!-- Named for a screen reader but not on screen: the field is the
                  only thing here until you use it, and a label above it would
                  be a title for a form that is trying not to look like one. -->
-            <label :for="bodyId" class="sr-only">Comment</label>
+            <label :id="labelId" :for="bodyId" class="sr-only">Comment</label>
             <Textarea
+                v-if="! rich"
                 :id="bodyId"
                 v-model="body"
                 rows="4"
                 placeholder="Add a comment"
                 :invalid="Boolean(errorFor('body'))"
-                @focus="revealed = true"
+                @focus="beginWriting"
+            />
+            <CommentEditor
+                v-else
+                :initial-text="body"
+                :labelled-by="labelId"
+                :invalid="Boolean(errorFor('body'))"
+                @update:document="document = $event"
             />
             <span v-if="errorFor('body') || errorFor('nonce')" class="mt-1 block text-meta text-red-600">
                 {{ errorFor('body') ?? errorFor('nonce') }}
@@ -148,7 +172,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
         <div v-if="revealed" class="grid gap-3 sm:grid-cols-2">
             <label class="block text-label uppercase text-neutral-500">
                 Name
-                <Input v-model="name" class="mt-1" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
+                <Input v-model="name" class="mt-1" placeholder="Marty McFly" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
                 <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-meta text-red-600">
                     {{ errorFor('author_name') }}
                 </span>
@@ -156,7 +180,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
 
             <label class="block text-label uppercase text-neutral-500">
                 Email <span class="normal-case text-neutral-500">(optional)</span>
-                <Input v-model="email" type="email" class="mt-1" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
+                <Input v-model="email" type="email" class="mt-1" placeholder="marty@mcfly.com" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
                 <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-meta text-red-600">
                     {{ errorFor('author_email') }}
                 </span>
