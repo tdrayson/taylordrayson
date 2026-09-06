@@ -20,18 +20,20 @@ use App\Models\Sleep;
 use App\Queries\DayFoodTotals;
 use App\Support\Distance;
 use App\Support\PortableText;
-use App\Support\ShowTitle;
 use App\Support\Text;
-use App\Support\Units;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * The meta description for a single entry page, written as a sentence.
  *
- * A card title alone makes a useless description: "9h 21m sleep" repeated under
- * a heading that already says it tells a reader nothing and gives a search
- * engine nothing to rank. Each type instead spends its own fields on a line
- * that reads on its own, away from the page.
+ * Two rules decide what it says. Where the source gave us words of its own (a
+ * Strava description, a check-in note, an episode topic), those words are the
+ * description: they are always better than anything generated from the numbers.
+ * Where it did not, the description carries the facts the title had no room
+ * for, and never restates the title itself.
+ *
+ * Nothing here says the date. Every entry title ends with one, and a search
+ * result printing it twice wastes the only two lines there are.
  *
  * Kept as one class rather than one per type, the way the cards are split: a
  * description is a single sentence, so thirteen files would each hold about
@@ -51,113 +53,156 @@ final class EntryDescription
      */
     public static function for(Model $model, CardData $card): string
     {
-        $date = $card->occurredAt->format('l j F Y');
-
         $description = match (true) {
-            $model instanceof Sleep => self::sleep($model, $date),
-            $model instanceof Activity => self::activity($model, $card, $date),
-            $model instanceof Checkin => self::checkin($model, $date),
-            $model instanceof Flight => self::flight($model, $card, $date),
-            $model instanceof Media => self::media($model, $date),
-            $model instanceof Calorie => self::calorie($model, $date),
-            $model instanceof Fuel => self::fuel($model, $date),
-            $model instanceof Event => self::event($model, $date),
-            $model instanceof Appearance => self::appearance($model, $date),
-            $model instanceof Podcast => self::podcast($model, $date),
-            $model instanceof Article => self::article($model),
+            $model instanceof Sleep => self::sleep($model),
+            $model instanceof Activity => self::activity($model, $card),
+            $model instanceof Checkin => self::checkin($model),
+            $model instanceof Flight => self::flight($model),
+            $model instanceof Media => self::media($model),
+            $model instanceof Calorie => self::calorie($model),
+            $model instanceof Fuel => self::fuel($model),
+            $model instanceof Event => self::event($model),
+            $model instanceof Appearance => self::appearance($model),
+            $model instanceof Podcast => self::podcast($model),
+            $model instanceof Article => self::articleText($model),
             $model instanceof Note => self::note($model),
             $model instanceof Project => self::project($model),
-            default => self::fallback($card, $date),
+            default => self::fallback($card),
         };
 
-        return Text::excerpt($description, self::LIMIT) ?: self::fallback($card, $date);
+        $description = trim(preg_replace('/\s+/u', ' ', $description) ?? '');
+
+        return Text::excerpt($description, self::LIMIT) ?: self::fallback($card);
     }
 
-    private static function sleep(Sleep $model, string $date): string
+    /** The title already says how long I slept, so this spends itself on when. */
+    private static function sleep(Sleep $model): string
     {
-        $window = $model->bedtime->format('g:ia').' to '.$model->wake_time->format('g:ia');
-        $score = $model->score ? " My sleep score was {$model->score}." : '';
+        $window = sprintf('From %s to %s', $model->bedtime->format('g:ia'), $model->wake_time->format('g:ia'));
 
-        return sprintf('I slept %s on %s, from %s.%s', Units::humanDuration($model->duration), $date, $window, $score);
+        return $model->score
+            ? "{$window}, with a sleep score of {$model->score}."
+            : "{$window}.";
     }
 
-    private static function activity(Activity $model, CardData $card, string $date): string
+    /**
+     * What I wrote on Strava where I wrote anything, and otherwise the card's
+     * own sentence, which already reads as one ("I walked 3 mi in 59m and
+     * burned 303 kcal.").
+     */
+    private static function activity(Activity $model, CardData $card): string
     {
-        $name = $model->name ?? ucfirst(str_replace('-', ' ', $model->type));
-
-        return $card->subtitle
-            ? sprintf('%s on %s. %s', $name, $date, $card->subtitle)
-            : sprintf('%s, logged on %s.', $name, $date);
+        return self::source($model->description) ?? (string) $card->subtitle;
     }
 
-    private static function checkin(Checkin $model, string $date): string
+    /**
+     * The note I left, placed at the venue it was left at, because the title
+     * carries the venue alone and the town is worth having in a search result.
+     */
+    private static function checkin(Checkin $model): string
     {
         $place = collect([$model->venue_name, $model->city])->filter()->implode(', ');
+        $note = self::source($model->description);
+
+        if ($note !== null) {
+            return $place === '' ? $note : self::join($note, "at {$place}").'.';
+        }
+
         $category = $model->category ? " ({$model->category})" : '';
 
-        $lead = $model->event_name
-            ? sprintf('%s at %s%s on %s.', $model->event_name, $place, $category, $date)
-            : sprintf('I checked in at %s%s on %s.', $place, $category, $date);
-
-        return trim($lead.' '.(string) $model->description);
+        return $place === '' ? '' : "I checked in at {$place}{$category}.";
     }
 
-    private static function flight(Flight $model, CardData $card, string $date): string
+    /**
+     * Airports named rather than coded, which is the whole reason this line
+     * exists: "KRK to LGW" tells a reader nothing they can picture.
+     */
+    private static function flight(Flight $model): string
     {
-        $airline = $model->relationLoaded('airline') && $model->airline ? " with {$model->airline->name}" : '';
         $leg = sprintf(
             '%s to %s',
-            ($model->relationLoaded('origin') ? $model->origin?->city : null) ?? $model->origin_iata,
-            ($model->relationLoaded('destination') ? $model->destination?->city : null) ?? $model->destination_iata,
+            self::airport($model, 'origin') ?? $model->origin_iata,
+            self::airport($model, 'destination') ?? $model->destination_iata,
         );
+
+        $airline = $model->relationLoaded('airline') && $model->airline ? " with {$model->airline->name}" : '';
         $cabin = $model->cabin_class ? " in {$model->cabin_class->value}" : '';
         $distance = $model->distance
-            ? sprintf(' It was %s miles%s.', number_format(Distance::miles($model->distance)), $cabin)
-            : '';
+            ? sprintf(', %s miles%s', number_format(Distance::miles($model->distance)), $cabin)
+            : $cabin;
 
-        return sprintf('I flew from %s%s on %s.%s', $leg, $airline, $date, $distance);
+        return "{$leg}{$airline}{$distance}.";
     }
 
-    private static function media(Media $model, string $date): string
+    /**
+     * An airport's full name, which is the only field that reads correctly:
+     * its city is the parish the runway sits in ("Balice" for Kraków) and
+     * cannot tell Gatwick, Heathrow and Stansted apart, all three being
+     * "London". Null when the relation was not loaded for this caller.
+     */
+    private static function airport(Flight $model, string $relation): ?string
+    {
+        if (! $model->relationLoaded($relation)) {
+            return null;
+        }
+
+        $airport = $model->{$relation};
+
+        return $airport?->name ?? $airport?->city;
+    }
+
+    /**
+     * What the title could not hold: the shape of the thing rather than its
+     * name. A film has a runtime and genres, an episode its place in the run,
+     * a book its author.
+     */
+    private static function media(Media $model): string
     {
         $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
 
         $subject = match ($model->type) {
-            MediaType::Film => $model->meta->year ? "{$model->title} ({$model->meta->year})" : $model->title,
-            MediaType::TvEpisode => self::episodeSubject($model),
-            MediaType::Book => $model->meta->author ? "{$model->title} by {$model->meta->author}" : $model->title,
+            MediaType::Film => self::filmShape($model),
+            MediaType::TvEpisode => self::episodeShape($model),
+            MediaType::Book => $model->meta->author ? "By {$model->meta->author}." : '',
         };
 
-        $verb = $model->type === MediaType::Book ? 'read' : 'watched';
-
-        return sprintf('I %s %s on %s.%s', $verb, $subject, $date, $rating);
+        return trim($subject.$rating);
     }
 
-    /**
-     * The episode named the way it would be said: "season 4 episode 4 of Ted
-     * Lasso, Greyhounds' Day Off". "S04E04" is shorthand for a filename, and
-     * this sentence is read in a feed and a search result.
-     */
-    private static function episodeSubject(Media $model): string
+    /** "A 102-minute comedy romance from 2026", from whichever parts we hold. */
+    private static function filmShape(Media $model): string
     {
-        $show = ShowTitle::for($model);
+        $genres = array_slice((array) data_get($model->meta->tmdb, 'genres', []), 0, 2);
+        $runtime = $model->meta->runtime ? "{$model->meta->runtime}-minute" : null;
+        $noun = $genres === [] ? 'film' : mb_strtolower(implode(' ', $genres));
+
+        $shape = trim(($runtime ?? '').' '.$noun);
+        $year = $model->meta->year ? " from {$model->meta->year}" : '';
+
+        return ucfirst(self::indefiniteArticle($shape))." {$shape}{$year}.";
+    }
+
+    /** "Season 2, episode 17, 19 minutes", the episode's place in its show. */
+    private static function episodeShape(Media $model): string
+    {
         $where = $model->meta->season !== null && $model->meta->episode !== null
-            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
+            ? sprintf('Season %d, episode %d', $model->meta->season, $model->meta->episode)
             : null;
 
-        $lead = match (true) {
-            $where !== null && $show !== null => "{$where} of {$show}",
-            $show !== null => $show,
-            $where !== null => $where,
-            default => $model->title,
-        };
+        $runtime = $model->meta->runtime ? "{$model->meta->runtime} minutes" : null;
+        $parts = array_values(array_filter([$where, $runtime]));
 
-        return $model->title !== '' && $model->title !== $lead && $model->title !== $show
-            ? "{$lead}, {$model->title}"
-            : $lead;
+        return $parts === [] ? '' : implode(', ', $parts).'.';
     }
 
-    private static function calorie(Calorie $model, string $date): string
+    /** "a" or "an", for the shape sentence a film's description opens with. */
+    private static function indefiniteArticle(string $shape): string
+    {
+        return in_array(mb_substr($shape, 0, 1), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a';
+    }
+
+    /** The macros, since the title already carries the calorie count. */
+    private static function calorie(Calorie $model): string
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 
@@ -167,56 +212,49 @@ final class EntryDescription
             $totals['fat'] ? round($totals['fat']).'g of fat' : null,
         ])));
 
-        return sprintf(
-            'I ate %s calories on %s.%s',
-            number_format($totals['calories']),
-            $date,
-            $macros === '' ? '' : " That was {$macros}.",
-        );
+        return $macros === '' ? '' : "{$macros} across the day.";
     }
 
-    private static function fuel(Fuel $model, string $date): string
+    /** Litres and the pump price, where the title carries the total spend. */
+    private static function fuel(Fuel $model): string
     {
-        $where = collect([$model->station_name, $model->city])->filter()->implode(', ');
+        $rate = $model->price_per_litre
+            ? sprintf(' at £%s a litre', number_format((float) $model->price_per_litre, 3))
+            : '';
 
-        return sprintf(
-            'I filled up with %s litres%s on %s. It cost £%s.',
-            number_format((float) $model->litres, 2),
-            $where !== '' ? " at {$where}" : '',
-            $date,
-            number_format((float) $model->cost, 2),
-        );
+        $where = $model->city ? ", in {$model->city}" : '';
+
+        return sprintf('%s litres%s%s.', number_format((float) $model->litres, 2), $rate, $where);
     }
 
-    private static function event(Event $model, string $date): string
+    private static function event(Event $model): string
     {
         $where = collect([$model->venue_name, $model->city])->filter()->implode(', ');
+        $note = self::source($model->description);
 
-        $lead = $where !== ''
-            ? sprintf('I went to %s at %s on %s.', $model->name, $where, $date)
-            : sprintf('I went to %s on %s.', $model->name, $date);
+        if ($note !== null) {
+            return $where === '' ? $note : self::join($note, "at {$where}").'.';
+        }
 
-        return trim($lead.' '.(string) $model->description);
+        return $where === '' ? '' : "At {$where}.";
     }
 
-    private static function appearance(Appearance $model, string $date): string
+    private static function appearance(Appearance $model): string
     {
-        $lead = $model->show_name
-            ? sprintf('%s on %s, %s.', $model->title, $model->show_name, $date)
-            : sprintf('%s, %s.', $model->title, $date);
+        $note = self::source($model->description);
+        $show = $model->show_name ? "On {$model->show_name}." : '';
 
-        return trim($lead.' '.(string) $model->description);
+        return $note ?? $show;
     }
 
-    private static function podcast(Podcast $model, string $date): string
+    /** The episode's own topic line, which is the best summary anyone wrote. */
+    private static function podcast(Podcast $model): string
     {
-        $lead = sprintf('%s of This Week With, %s.', $model->title, $date);
-
-        return trim($lead.' '.(string) $model->topic);
+        return (string) self::source($model->topic);
     }
 
     /** The hand-written excerpt where there is one, else the opening prose. */
-    private static function article(Article $model): string
+    private static function articleText(Article $model): string
     {
         return Text::excerpt($model->excerpt, self::LIMIT)
             ?: (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
@@ -234,17 +272,37 @@ final class EntryDescription
     }
 
     /**
-     * Card title and subtitle stitched into a line. Reached only by a type with
-     * no case above, so a new type reads sensibly before anyone writes its
-     * sentence.
+     * Source text, or null when the field is absent or empty.
+     *
+     * Flattened to a single line: a Strava description or a show's notes can
+     * run to paragraphs, and a meta description is one line whatever it holds.
      */
-    private static function fallback(CardData $card, string $date): string
+    private static function source(?string $value): ?string
     {
-        return trim(sprintf(
-            '%s%s, logged on %s.',
-            $card->title,
-            $card->subtitle ? ": {$card->subtitle}" : '',
-            $date,
-        ));
+        $value = trim(preg_replace('/\s+/u', ' ', (string) $value) ?? '');
+
+        return $value === '' ? null : $value;
+    }
+
+    /**
+     * Attach a trailing clause to text somebody else wrote, without editing it.
+     * A note that already ends in a full stop gets the clause as its own
+     * sentence rather than "Lovely coffee. at Costa".
+     */
+    private static function join(string $text, string $clause): string
+    {
+        return preg_match('/[.!?…]$/u', $text) === 1
+            ? $text.' '.ucfirst($clause)
+            : $text.' '.$clause;
+    }
+
+    /**
+     * Card title and subtitle stitched into a line. Reached only by a type with
+     * no case above, or one whose own fields turned out empty, so a new type
+     * reads sensibly before anyone writes its sentence.
+     */
+    private static function fallback(CardData $card): string
+    {
+        return trim(sprintf('%s%s', $card->title, $card->subtitle ? ": {$card->subtitle}" : ''));
     }
 }
