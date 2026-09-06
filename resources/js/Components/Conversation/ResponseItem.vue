@@ -70,7 +70,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
                 <a
                     v-if="item.authorUrl"
                     :href="item.authorUrl"
-                    rel="noopener noreferrer nofollow"
+                    rel="ugc nofollow noopener noreferrer"
                     class="p-author h-card rounded-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                 >{{ item.authorName }}</a>
                 <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
@@ -100,7 +100,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
                 <a
                     v-if="via && item.sourceUrl"
                     :href="item.sourceUrl"
-                    rel="noopener noreferrer nofollow"
+                    rel="ugc nofollow noopener noreferrer"
                     class="rounded-sm text-caption text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 >via {{ via }}</a>
                 <span v-else-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
@@ -111,7 +111,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
             <p v-if="item.body && item.sourceUrl" class="mt-2 text-caption">
                 <a
                     :href="item.sourceUrl"
-                    rel="noopener noreferrer nofollow"
+                    rel="ugc nofollow noopener noreferrer"
                     class="u-url rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                 >Read it on {{ item.sourceHost }}</a>
             </p>
