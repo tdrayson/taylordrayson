@@ -16,7 +16,7 @@ it('uses the flat station_name as the card title', function () {
 
     expect($card->title)->toBe('£41.13 at ASDA Wallington');
     expect($card->titleLabel)->toContain('ASDA Wallington');
-    expect($card->subtitle)->toContain('32.13 litres');
+    expect($card->subtitle)->toContain('32.13L');
 });
 
 // The imported rows carry no station, city, brand or coordinates, so the title

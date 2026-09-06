@@ -265,15 +265,15 @@ final class EntryDescription
         };
 
         $where = trim(($garage !== null ? " at {$garage}" : '').($model->city ? " in {$model->city}" : ''));
-        $lead = sprintf('I filled my car with %s litres', number_format((float) $model->litres, 2));
+        $lead = sprintf('I filled my car with %sL', number_format((float) $model->litres, 2));
         $lead = $where === '' ? $lead : "{$lead} {$where}";
 
         $cost = number_format((float) $model->cost, 2);
 
-        // The price is what made the cost, so it goes in front of it rather
-        // than trailing off the end as an afterthought clause.
+        // One subject, two verbs: the price and the total are both things the
+        // fuel did, so neither needs a connective to carry it.
         return $model->price_per_litre
-            ? sprintf('%s. Fuel was %s a litre, so it cost £%s.', $lead, Units::pencePerLitre($model->price_per_litre), $cost)
+            ? sprintf('%s. Fuel was %s/L and cost £%s.', $lead, Units::pencePerLitre($model->price_per_litre), $cost)
             : sprintf('%s. It cost £%s.', $lead, $cost);
     }
 

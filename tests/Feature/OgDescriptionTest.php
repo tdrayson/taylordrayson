@@ -285,7 +285,7 @@ it('names a fill-up by its brand rather than its forecourt', function () {
     get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I filled my car with 31.28 litres at a BP garage in Croydon. Fuel was 161.9p a litre, so it cost £50.64.')
+            ->where('og.description', 'I filled my car with 31.28L at a BP garage in Croydon. Fuel was 161.9p/L and cost £50.64.')
         );
 });
 
@@ -305,7 +305,7 @@ it('still reads as a sentence when a fill-up has no garage on it', function () {
     get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I filled my car with 40.00 litres. Fuel was 150.0p a litre, so it cost £60.00.')
+            ->where('og.description', 'I filled my car with 40.00L. Fuel was 150.0p/L and cost £60.00.')
         );
 });
 
