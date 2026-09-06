@@ -99,7 +99,7 @@ it('writes the fuel subtitle as a sentence with a price clause', function () {
     ]);
 
     expect(CardPresenter::for($fuel)->toArray()['subtitle'])
-        ->toBe('I filled up with 33.00 litres in '.$fuel->city.'. That was 135.9p a litre.');
+        ->toBe('I filled up with 33.00 litres in '.$fuel->city.'. Fuel was 135.9p a litre.');
 });
 
 it('drops the price sentence when there is no price per litre', function () {

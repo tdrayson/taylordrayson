@@ -268,11 +268,13 @@ final class EntryDescription
         $lead = sprintf('I filled my car with %s litres', number_format((float) $model->litres, 2));
         $lead = $where === '' ? $lead : "{$lead} {$where}";
 
-        $rate = $model->price_per_litre
-            ? sprintf(', at %s a litre', Units::pencePerLitre($model->price_per_litre))
-            : '';
+        $cost = number_format((float) $model->cost, 2);
 
-        return sprintf('%s. It cost £%s%s.', $lead, number_format((float) $model->cost, 2), $rate);
+        // The price is what made the cost, so it goes in front of it rather
+        // than trailing off the end as an afterthought clause.
+        return $model->price_per_litre
+            ? sprintf('%s. Fuel was %s a litre, so it cost £%s.', $lead, Units::pencePerLitre($model->price_per_litre), $cost)
+            : sprintf('%s. It cost £%s.', $lead, $cost);
     }
 
     private static function event(Event $model): string

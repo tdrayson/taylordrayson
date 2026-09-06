@@ -68,8 +68,8 @@ final class FuelCard
             return $sentence;
         }
 
-        // Three decimals: pump prices are quoted to a tenth of a penny, the one
-        // documented exception to formatting money at two.
-        return $sentence.sprintf(' That was %s a litre.', Units::pencePerLitre($model->price_per_litre));
+        // "Fuel was", not "That was": the "that" pointed at the fill-up, which
+        // was not what cost a tenth of a penny.
+        return $sentence.sprintf(' Fuel was %s a litre.', Units::pencePerLitre($model->price_per_litre));
     }
 }
