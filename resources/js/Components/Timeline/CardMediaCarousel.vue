@@ -5,7 +5,7 @@ import ZoomButton from '../Ui/ZoomButton.vue';
 
 const props = defineProps({
     // The static location/route map (light) and its dark twin, shown as the
-    // first slide and linking through to the entry.
+    // last slide and linking through to the entry.
     map: { type: String, default: null },
     mapDark: { type: String, default: null },
     // Photo gallery in {src, srcset, full} shape; each becomes a slide that
@@ -23,11 +23,15 @@ const track = ref(null);
 // Index of the slide currently snapped into view, for the dot indicators.
 const active = ref(0);
 
-// Slides are the map (when present) followed by each photo. `photoIndex` maps a
-// photo slide back to its position in the parent's photos/lightbox array.
+// Photos lead and the map trails them: an entry with a photo should open on the
+// photo, and one without a photo shows the map anyway. `photoIndex` maps a photo
+// slide back to its position in the parent's photos/lightbox array.
 const slides = computed(() => {
-    const list = props.map ? [{ kind: 'map' }] : [];
-    props.photos.forEach((photo, index) => list.push({ kind: 'photo', photo, photoIndex: index }));
+    const list = props.photos.map((photo, index) => ({ kind: 'photo', photo, photoIndex: index }));
+
+    if (props.map) {
+        list.push({ kind: 'map' });
+    }
 
     return list;
 });
