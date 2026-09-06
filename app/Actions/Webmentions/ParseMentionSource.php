@@ -6,6 +6,7 @@ use App\Data\MentionData;
 use App\Enums\WebmentionKind;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use MensBeam\Microformats;
 
 /**
  * Reads a source page's microformats2 to work out what it is saying about one
@@ -31,7 +32,7 @@ final class ParseMentionSource
 
     public function __invoke(string $html, string $sourceUrl, string $targetUrl): MentionData
     {
-        $parsed = rescue(fn (): array => \Mf2\parse($html, $sourceUrl), [], report: false);
+        $parsed = rescue(fn (): array => Microformats::fromString($html, 'text/html', $sourceUrl), [], report: false);
 
         $entry = $this->entryAbout($parsed['items'] ?? [], $targetUrl);
 
