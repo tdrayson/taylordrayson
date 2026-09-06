@@ -183,7 +183,7 @@ function press() {
                     :aria-pressed="mine !== null"
                     :aria-label="mine ? `You reacted ${mine.label}` : 'React to this'"
                     :class="cn(
-                        'inline-flex items-center gap-1.5 rounded-full py-1 text-meta transition-colors',
+                        'inline-flex items-center gap-1.5 rounded-full py-1 text-body transition-colors',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                         mine ? 'text-accent-700' : 'text-neutral-500 hover:text-accent-700',
                         busy !== null && 'opacity-50',
@@ -192,14 +192,14 @@ function press() {
                 >
                     <span
                         v-if="mine && glyph(mine)"
-                        class="flex size-5 items-center justify-center rounded-full text-reaction-glyph"
+                        class="flex size-6 items-center justify-center rounded-full text-reaction-glyph"
                         :style="{ background: glyph(mine).colour }"
                         aria-hidden="true"
                     >
-                        <Icon :name="glyph(mine).icon" class="size-3" />
+                        <Icon :name="glyph(mine).icon" class="size-3.5" />
                     </span>
                     <span v-else-if="mine" v-twemoji aria-hidden="true">{{ mine.emoji }}</span>
-                    <Icon v-else name="ThumbsUpIcon" class="size-4" />
+                    <Icon v-else name="ThumbsUpIcon" class="size-5" />
                     <!-- Zero is shown too. A count that appears only once it
                          is non-zero makes the line a different shape on every
                          entry, and a lone number reads as a stray mark. -->
@@ -242,11 +242,11 @@ function press() {
                 :href="replyCount ? '#responses' : undefined"
                 :aria-label="responsesLabel"
                 :class="cn(
-                    'inline-flex items-center gap-1.5 rounded-full text-meta text-neutral-500',
+                    'inline-flex items-center gap-1.5 rounded-full text-body text-neutral-500',
                     replyCount && 'transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                 )"
             >
-                <Icon name="Comment01Icon" class="size-4" />
+                <Icon name="Comment01Icon" class="size-5" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
             </component>
 
@@ -266,10 +266,10 @@ function press() {
                     :title="`${bucket.count} ${bucket.label}`"
                 >
                     <span
-                        class="reaction-pip flex size-5 items-center justify-center rounded-full text-reaction-glyph ring-2 ring-neutral-0"
+                        class="reaction-pip flex size-6 items-center justify-center rounded-full text-reaction-glyph ring-2 ring-neutral-0"
                         :style="glyph(bucket) ? { background: glyph(bucket).colour } : { background: 'var(--color-neutral-25)' }"
                     >
-                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3" />
+                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3.5" />
                         <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
                     </span>
 
@@ -289,11 +289,11 @@ function press() {
 <style scoped>
 /* Overlapped at rest so a handful of kinds stay one short mark, and spread on
    hover so each is a target of its own and its title can be read. The overlap
-   is barely more than the ring: a disc is 1.25rem and the glyph fills it, so
+   is barely more than the ring: a disc is 1.5rem and the glyph fills it, so
    anything deeper clips the glyph rather than just the disc, and the row reads
    as one smudge instead of as several things. */
 .reaction-item {
-    margin-left: -0.125rem;
+    margin-left: -0.1875rem;
     transition: margin-left 150ms ease;
 }
 

@@ -207,7 +207,7 @@ async function reply(item) {
         <!-- The comment box is the one primary control here, so it carries
              no heading of its own: a title above a single field is a label for
              a form that is trying not to look like one. -->
-        <div class="mt-10">
+        <div class="mt-6">
             <!-- Only ever a new comment on the entry. Replying to somebody
                  happens inside the thread, against the response it answers. -->
             <CommentForm :type="conversation.type" :id="conversation.id" />
