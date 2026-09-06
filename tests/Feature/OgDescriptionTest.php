@@ -6,6 +6,7 @@ use App\Models\Airport;
 use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
@@ -15,10 +16,11 @@ use App\Models\Tag;
 use function Pest\Laravel\get;
 
 /**
- * The meta description used to be the page title repeated, so the real
- * assertion throughout is that the two differ and that the description carries
- * a fact the title does not. Where the source wrote its own words, those words
- * are the description and nothing generated replaces them.
+ * The meta description used to open on the very words of the title above it, so
+ * the assertion throughout is that it opens differently and reads as a sentence
+ * somebody would say. Naming the same thing again is fine; starting the same
+ * way is not. Where the source wrote its own words, those words are the
+ * description and nothing generated replaces them.
  */
 it('describes a sleep entry with its duration, date and window', function () {
     $sleep = Sleep::factory()->create([
@@ -33,7 +35,7 @@ it('describes a sleep entry with its duration, date and window', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.title', 'I slept for 9h 21m - 24 Aug 2026')
-            ->where('og.description', 'From 11:30pm to 8:51am, with a sleep score of 80.')
+            ->where('og.description', 'I went to bed at 11:30pm and woke at 8:51am. My sleep score was 80.')
         );
 });
 
@@ -63,11 +65,11 @@ it('names the show in front of an episode title', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.title', 'Formula 1: Netherlands (Race) - 23 Aug 2026')
-            ->where('og.description', fn (string $value): bool => str_starts_with($value, 'Season 2026, episode 69.'))
+            ->where('og.description', fn (string $value): bool => str_starts_with($value, 'I watched season 2026, episode 69 of Formula 1.'))
         );
 });
 
-it('describes a check-in with its venue, category and town', function () {
+it('describes a check-in with its venue, category and town as a sentence', function () {
     $checkin = Checkin::factory()->create([
         'venue_name' => 'Starbucks',
         'category' => 'Coffee Shop',
@@ -79,7 +81,7 @@ it('describes a check-in with its venue, category and town', function () {
     get('/'.$checkin->occurred_at->format('Y/m/d').'/'.$checkin->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I checked in at Starbucks, Bracknell (Coffee Shop).')
+            ->where('og.description', 'I checked in at Starbucks, a Coffee Shop in Bracknell.')
         );
 });
 
@@ -262,8 +264,48 @@ it('names the airports the title could only code', function () {
         ->assertInertia(fn ($page) => $page
             ->where('og.description', fn (string $value): bool => str_starts_with(
                 $value,
-                'Kraków John Paul II International Airport to London Gatwick Airport',
+                'I flew from Kraków John Paul II International Airport to London Gatwick Airport',
             ))
+        );
+});
+
+// "A BP garage" is what anyone would call it. "Beddington Lane Service Station"
+// is a name only its own paperwork uses.
+it('names a fill-up by its brand rather than its forecourt', function () {
+    $fuel = Fuel::factory()->create([
+        'brand' => 'BP',
+        'station_name' => 'Beddington Lane Service Station',
+        'city' => 'Croydon',
+        'litres' => 31.279,
+        'cost' => 50.64,
+        'price_per_litre' => 1.619,
+        'occurred_at' => '2026-08-28 17:00:00',
+    ]);
+
+    get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('og.description', 'I filled my car with 31.28 litres at a BP garage in Croydon. It cost £50.64, at £1.619 a litre.')
+        );
+});
+
+// 81 of the older rows carry no forecourt at all, and the sentence still has to
+// stand up without one.
+it('still reads as a sentence when a fill-up has no garage on it', function () {
+    $fuel = Fuel::factory()->create([
+        'brand' => null,
+        'station_name' => null,
+        'city' => null,
+        'litres' => 40.0,
+        'cost' => 60.0,
+        'price_per_litre' => 1.5,
+        'occurred_at' => '2026-08-27 17:00:00',
+    ]);
+
+    get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('og.description', 'I filled my car with 40.00 litres. It cost £60.00, at £1.500 a litre.')
         );
 });
 

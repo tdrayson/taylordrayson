@@ -20,17 +20,22 @@ use App\Models\Sleep;
 use App\Queries\DayFoodTotals;
 use App\Support\Distance;
 use App\Support\PortableText;
+use App\Support\ShowTitle;
 use App\Support\Text;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * The meta description for a single entry page, written as a sentence.
  *
- * Two rules decide what it says. Where the source gave us words of its own (a
- * Strava description, a check-in note, an episode topic), those words are the
- * description: they are always better than anything generated from the numbers.
- * Where it did not, the description carries the facts the title had no room
- * for, and never restates the title itself.
+ * Where the source gave us words of its own (a Strava description, a check-in
+ * note, an episode topic), those words are the description: they are always
+ * better than anything generated from the numbers. Where it did not, the
+ * description is written from the entry's own fields.
+ *
+ * Every line here is a sentence somebody would say out loud. Naming the same
+ * thing the title named is fine and often unavoidable; opening on the same
+ * words is not, which is why these lead with the verb or the context rather
+ * than with the subject the title already gave.
  *
  * Nothing here says the date. Every entry title ends with one, and a search
  * result printing it twice wastes the only two lines there are.
@@ -54,7 +59,7 @@ final class EntryDescription
     public static function for(Model $model, CardData $card): string
     {
         $description = match (true) {
-            $model instanceof Sleep => self::sleep($model),
+            $model instanceof Sleep => self::sleep($card),
             $model instanceof Activity => self::activity($model, $card),
             $model instanceof Checkin => self::checkin($model),
             $model instanceof Flight => self::flight($model),
@@ -75,14 +80,13 @@ final class EntryDescription
         return Text::excerpt($description, self::LIMIT) ?: self::fallback($card);
     }
 
-    /** The title already says how long I slept, so this spends itself on when. */
-    private static function sleep(Sleep $model): string
+    /**
+     * The card's own sentence, which already opens on bed and waking rather
+     * than on the duration the title carries.
+     */
+    private static function sleep(CardData $card): string
     {
-        $window = sprintf('From %s to %s', $model->bedtime->format('g:ia'), $model->wake_time->format('g:ia'));
-
-        return $model->score
-            ? "{$window}, with a sleep score of {$model->score}."
-            : "{$window}.";
+        return (string) $card->subtitle;
     }
 
     /**
@@ -108,9 +112,14 @@ final class EntryDescription
             return $place === '' ? $note : self::join($note, "at {$place}").'.';
         }
 
-        $category = $model->category ? " ({$model->category})" : '';
+        if ($model->venue_name === null) {
+            return '';
+        }
 
-        return $place === '' ? '' : "I checked in at {$place}{$category}.";
+        $category = $model->category ? ", a {$model->category}" : '';
+        $city = $model->city ? " in {$model->city}" : '';
+
+        return "I checked in at {$model->venue_name}{$category}{$city}.";
     }
 
     /**
@@ -127,11 +136,12 @@ final class EntryDescription
 
         $airline = $model->relationLoaded('airline') && $model->airline ? " with {$model->airline->name}" : '';
         $cabin = $model->cabin_class ? " in {$model->cabin_class->value}" : '';
-        $distance = $model->distance
-            ? sprintf(', %s miles%s', number_format(Distance::miles($model->distance)), $cabin)
-            : $cabin;
 
-        return "{$leg}{$airline}{$distance}.";
+        $distance = $model->distance
+            ? sprintf(' It was %s miles%s.', number_format(Distance::miles($model->distance)), $cabin)
+            : ($cabin === '' ? '' : ' I flew'.$cabin.'.');
+
+        return "I flew from {$leg}{$airline}.{$distance}";
     }
 
     /**
@@ -152,24 +162,28 @@ final class EntryDescription
     }
 
     /**
-     * What the title could not hold: the shape of the thing rather than its
-     * name. A film has a runtime and genres, an episode its place in the run,
-     * a book its author.
+     * What was watched or read, said the way it would be said aloud, with what
+     * the title could not hold: a film's runtime and genre, an episode's place
+     * in its run, a book's author.
      */
     private static function media(Media $model): string
     {
         $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
 
-        $subject = match ($model->type) {
-            MediaType::Film => self::filmShape($model),
-            MediaType::TvEpisode => self::episodeShape($model),
-            MediaType::Book => $model->meta->author ? "By {$model->meta->author}." : '',
+        $sentence = match ($model->type) {
+            MediaType::Film => sprintf('I watched %s%s.', $model->title, self::filmShape($model)),
+            MediaType::TvEpisode => self::episodeSentence($model),
+            MediaType::Book => sprintf(
+                'I read %s%s.',
+                $model->title,
+                $model->meta->author ? " by {$model->meta->author}" : '',
+            ),
         };
 
-        return trim($subject.$rating);
+        return trim($sentence.$rating);
     }
 
-    /** "A 102-minute comedy romance from 2026", from whichever parts we hold. */
+    /** ", a 102-minute comedy romance from 2026", from whichever parts we hold. */
     private static function filmShape(Media $model): string
     {
         $genres = array_slice((array) data_get($model->meta->tmdb, 'genres', []), 0, 2);
@@ -178,30 +192,33 @@ final class EntryDescription
 
         $shape = trim(($runtime ?? '').' '.$noun);
         $year = $model->meta->year ? " from {$model->meta->year}" : '';
+        $article = in_array(mb_substr($shape, 0, 1), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a';
 
-        return ucfirst(self::indefiniteArticle($shape))." {$shape}{$year}.";
+        return ", {$article} {$shape}{$year}";
     }
 
-    /** "Season 2, episode 17, 19 minutes", the episode's place in its show. */
-    private static function episodeShape(Media $model): string
+    /**
+     * The episode said as it would be said out loud: "season 2, episode 17 of
+     * Georgie & Mandy's First Marriage". "S02E17" is shorthand for a filename.
+     */
+    private static function episodeSentence(Media $model): string
     {
+        $show = ShowTitle::for($model);
         $where = $model->meta->season !== null && $model->meta->episode !== null
-            ? sprintf('Season %d, episode %d', $model->meta->season, $model->meta->episode)
+            ? sprintf('season %d, episode %d', $model->meta->season, $model->meta->episode)
             : null;
 
-        $runtime = $model->meta->runtime ? "{$model->meta->runtime} minutes" : null;
-        $parts = array_values(array_filter([$where, $runtime]));
+        $subject = match (true) {
+            $where !== null && $show !== null => "{$where} of {$show}",
+            $show !== null => "an episode of {$show}",
+            $where !== null => $where,
+            default => $model->title,
+        };
 
-        return $parts === [] ? '' : implode(', ', $parts).'.';
+        return "I watched {$subject}.";
     }
 
-    /** "a" or "an", for the shape sentence a film's description opens with. */
-    private static function indefiniteArticle(string $shape): string
-    {
-        return in_array(mb_substr($shape, 0, 1), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a';
-    }
-
-    /** The macros, since the title already carries the calorie count. */
+    /** The day's total broken into its macros, as its own sentence. */
     private static function calorie(Calorie $model): string
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
@@ -212,19 +229,40 @@ final class EntryDescription
             $totals['fat'] ? round($totals['fat']).'g of fat' : null,
         ])));
 
-        return $macros === '' ? '' : "{$macros} across the day.";
+        if ($macros === '') {
+            return '';
+        }
+
+        return sprintf(
+            "That day's food came to %s calories, with %s.",
+            number_format($totals['calories']),
+            $macros,
+        );
     }
 
-    /** Litres and the pump price, where the title carries the total spend. */
+    /**
+     * The fill as a sentence. Named by brand rather than by forecourt: "a BP
+     * garage" is what anyone would call it, where "Beddington Lane Service
+     * Station" is a name only its own paperwork uses. Both are absent on the
+     * 81 older rows, which say the amount and the cost and stop there.
+     */
     private static function fuel(Fuel $model): string
     {
+        $garage = match (true) {
+            (bool) $model->brand => 'a '.$model->brand.' garage',
+            (bool) $model->station_name => $model->station_name,
+            default => null,
+        };
+
+        $where = trim(($garage !== null ? " at {$garage}" : '').($model->city ? " in {$model->city}" : ''));
+        $lead = sprintf('I filled my car with %s litres', number_format((float) $model->litres, 2));
+        $lead = $where === '' ? $lead : "{$lead} {$where}";
+
         $rate = $model->price_per_litre
-            ? sprintf(' at £%s a litre', number_format((float) $model->price_per_litre, 3))
+            ? sprintf(', at £%s a litre', number_format((float) $model->price_per_litre, 3))
             : '';
 
-        $where = $model->city ? ", in {$model->city}" : '';
-
-        return sprintf('%s litres%s%s.', number_format((float) $model->litres, 2), $rate, $where);
+        return sprintf('%s. It cost £%s%s.', $lead, number_format((float) $model->cost, 2), $rate);
     }
 
     private static function event(Event $model): string
@@ -236,13 +274,13 @@ final class EntryDescription
             return $where === '' ? $note : self::join($note, "at {$where}").'.';
         }
 
-        return $where === '' ? '' : "At {$where}.";
+        return $where === '' ? '' : "I went to {$model->name} at {$where}.";
     }
 
     private static function appearance(Appearance $model): string
     {
         $note = self::source($model->description);
-        $show = $model->show_name ? "On {$model->show_name}." : '';
+        $show = $model->show_name ? "I appeared on {$model->show_name}." : '';
 
         return $note ?? $show;
     }
