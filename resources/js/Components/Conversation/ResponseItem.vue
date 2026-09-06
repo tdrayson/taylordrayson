@@ -108,7 +108,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 
             <p v-if="item.body" class="e-content mt-1 whitespace-pre-line text-body text-neutral-900">{{ item.body }}</p>
 
-            <p v-if="item.body && item.sourceUrl" class="mt-1 text-caption">
+            <p v-if="item.body && item.sourceUrl" class="mt-2 text-caption">
                 <a
                     :href="item.sourceUrl"
                     rel="noopener noreferrer nofollow"
@@ -119,7 +119,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
             <button
                 v-if="item.commentId"
                 type="button"
-                class="mt-1 rounded-sm text-caption text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                class="mt-2 rounded-sm text-caption text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                 @click="$emit('reply', item)"
             >
                 Reply

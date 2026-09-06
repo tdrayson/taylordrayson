@@ -120,7 +120,13 @@ async function reply(item) {
 <template>
     <!-- No rules anywhere in here. Separation is space and the weight of the
          headings, which is what stops a short entry looking like a form. -->
-    <section aria-labelledby="responses">
+    <!-- The heading names the section when there is one; with nothing said yet
+         there is no heading to point at, so the section carries its own name
+         rather than an aria-labelledby aimed at a missing id. -->
+    <section
+        :aria-labelledby="thread.length ? 'responses' : undefined"
+        :aria-label="thread.length ? undefined : 'Responses'"
+    >
 
         <div class="space-y-10">
             <!-- A summary line, not a labelled section: the counts read as part
