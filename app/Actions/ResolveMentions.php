@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Models\Subject;
 use App\Presenters\CardPresenter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,9 @@ class ResolveMentions
         'project' => Project::class,
         'event' => Event::class,
         'book' => Media::class,
+        // All four subject kinds (person, pet, spot, thing) share this one
+        // mention kind, since a subject id is already unique across kinds.
+        'subject' => Subject::class,
     ];
 
     /**
@@ -135,6 +139,10 @@ class ResolveMentions
     {
         if ($model instanceof Page) {
             return $model->title;
+        }
+
+        if ($model instanceof Subject) {
+            return $model->name;
         }
 
         // Everything else is timelineable, so its card already knows how it

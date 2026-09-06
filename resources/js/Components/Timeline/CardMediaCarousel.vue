@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import ZoomButton from '../Ui/ZoomButton.vue';
+import PhotoTagLayer from '../Subjects/PhotoTagLayer.vue';
 
 const props = defineProps({
     // The static location/route map (light) and its dark twin, shown as the
@@ -18,6 +19,10 @@ const props = defineProps({
 // Opening a photo slide bubbles its index up so the parent can drive the
 // shared Lightbox (whose items are the photos, map excluded).
 const emit = defineEmits(['open']);
+
+function hasTags(photo) {
+    return (photo.tags ?? []).some((tag) => tag.role === 'subject');
+}
 
 const track = ref(null);
 // Index of the slide currently snapped into view, for the dot indicators.
@@ -81,7 +86,12 @@ function goTo(index) {
                     aria-label="View photo"
                     @click="emit('open', slide.photoIndex)"
                 >
-                    <img :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
+                    <!-- Who is in it, on the same hover that offers the zoom,
+                         so a card answers it without opening the lightbox. -->
+                    <PhotoTagLayer v-if="hasTags(slide.photo)" :photo="slide.photo" static class="size-full">
+                        <img :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
+                    </PhotoTagLayer>
+                    <img v-else :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
                     <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                         <ZoomButton />
                     </span>

@@ -13,6 +13,7 @@ import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
+import RepeaterInput from './RepeaterInput.vue';
 import LengthRing from './LengthRing.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
 
@@ -174,6 +175,14 @@ function textToTags(value) {
             v-else-if="field.type === 'tags'"
             :id="field.name"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
+
+        <RepeaterInput
+            v-else-if="field.type === 'facts'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :columns="field.options?.length ? field.options : undefined"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

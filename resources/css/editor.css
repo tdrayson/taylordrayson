@@ -263,6 +263,13 @@
     color: hsl(340 60% 68%);
 }
 
+/* Contain the numbers below: markers run to 900 and the controls to 901, which
+   without a stacking context here are measured against the page and paint over
+   a lightbox opened on top of them. */
+.maplibregl-map {
+    isolation: isolate;
+}
+
 /* Above every marker, raised or not. MapLibre numbers its markers itself and
    ships the controls at 2, so a raised marker would sit over the zoom buttons.
    Qualified by the map class to beat MapLibre's own rule, whose stylesheet is

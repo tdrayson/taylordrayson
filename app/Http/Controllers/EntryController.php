@@ -7,6 +7,7 @@ use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\ResolveMentions;
 use App\Data\TagLink;
+use App\Enums\SubjectCategory;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
@@ -21,11 +22,13 @@ use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Podcast;
+use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\MediaArtwork;
+use App\Queries\MentionedSubjects;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
@@ -99,6 +102,7 @@ class EntryController extends Controller
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
+            'subjects' => $this->subjects($model),
             // Editing in place, offered only for hand-authored types: a synced
             // activity has no form, and inventing one would let an edit be
             // silently overwritten by the next sync.
@@ -350,6 +354,56 @@ class EntryController extends Controller
         return [
             'platform' => $platform,
             'url' => $model->platform_url,
+        ];
+    }
+
+    /**
+     * Subjects for the entry footer: display lines grouped by phrase, plus
+     * the entry's own direct tags for the picker to edit.
+     *
+     * @return array{lines: list<array{phrase: string, subjects: list<array<string, mixed>>}>, direct: list<array{id: int, name: string}>}
+     */
+    private function subjects(Model $model): array
+    {
+        if (! method_exists($model, 'allSubjects')) {
+            return ['lines' => [], 'direct' => [], 'mentioned' => []];
+        }
+
+        $byPhrase = [];
+
+        foreach ($model->allSubjects() as $subject) {
+            // A category the enum doesn't know has no phrase of its own, so
+            // the kind's supplies it.
+            $phrase = SubjectCategory::tryFrom((string) $subject->category)?->phrase() ?? $subject->kind->phrase();
+
+            if ($phrase === null) {
+                continue;
+            }
+
+            $byPhrase[$phrase][] = [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'url' => $subject->url(),
+                'image' => $subject->coverPhoto()['src'] ?? null,
+            ];
+        }
+
+        return [
+            'lines' => collect($byPhrase)
+                ->map(fn (array $subjects, string $phrase): array => ['phrase' => $phrase, 'subjects' => $subjects])
+                ->values()
+                ->all(),
+            'direct' => $model->subjects
+                ->map(fn (Subject $subject): array => ['id' => $subject->id, 'name' => $subject->name])
+                ->all(),
+            // Suggestions only, for the signed-in author who sees the picker;
+            // a mention is never attached on its own. Only prose types carry
+            // mentions at all.
+            'mentioned' => Auth::check() && ($model instanceof Article || $model instanceof Note)
+                ? app(MentionedSubjects::class)($model)
+                    ->map(fn (Subject $subject): array => ['id' => $subject->id, 'name' => $subject->name])
+                    ->all()
+                : [],
         ];
     }
 }

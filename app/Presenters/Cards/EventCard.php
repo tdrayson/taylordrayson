@@ -37,7 +37,7 @@ final class EventCard
             range: $model->dateRange(),
             meta: CardMeta::event(
                 photos: array_map(
-                    fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
+                    fn (array $photo): PhotoData => PhotoData::gallery($photo['id'], $photo['src'], $photo['srcset'], $photo['full'], $photo['alt'], $photo['caption'], $photo['latitude'], $photo['longitude']),
                     $photos,
                 ),
                 // Carried alongside any photos: the card shows map and first photo together.

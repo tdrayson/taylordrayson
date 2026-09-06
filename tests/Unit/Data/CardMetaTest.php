@@ -14,7 +14,7 @@ it('serialises empty meta as an empty array', function () {
 });
 
 it('serialises activity meta with only polyline, photos, map, mapDark', function () {
-    $photo = PhotoData::gallery('src.webp', null, 'full.webp', 1.1, 2.2);
+    $photo = PhotoData::gallery(1, 'src.webp', null, 'full.webp', null, null, 1.1, 2.2);
     $meta = CardMeta::activity('poly', [$photo], 'map.png', 'mapdark.png');
 
     expect($meta->toArray())->toBe([
@@ -74,7 +74,7 @@ it('serialises checkin meta with photos, map, mapDark, address, category', funct
 });
 
 it('serialises article photos meta with only photos', function () {
-    $photo = PhotoData::cover('src.webp', null, 'full.webp');
+    $photo = PhotoData::cover(1, 'src.webp', null, 'full.webp', null, null);
     $meta = CardMeta::photos([$photo]);
 
     expect($meta->toArray())->toBe(['photos' => [$photo->toArray()]]);

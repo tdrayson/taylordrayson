@@ -80,5 +80,11 @@ const secondValue = computed({
         <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
     </template>
 
+    <!-- Every non-"none" subject operator (includes/includes_all/excludes)
+         takes a list of subjects, so this never falls back to a text input. -->
+    <template v-else-if="dataType === 'subject'">
+        <MultiSelect v-model="listValue" :options="options ?? []" />
+    </template>
+
     <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
 </template>

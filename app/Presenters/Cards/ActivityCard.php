@@ -61,7 +61,7 @@ final class ActivityCard
     private function photoData(Activity $model): array
     {
         return array_map(
-            fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
+            fn (array $photo): PhotoData => PhotoData::gallery($photo['id'], $photo['src'], $photo['srcset'], $photo['full'], $photo['alt'], $photo['caption'], $photo['latitude'], $photo['longitude']),
             $model->galleryPhotos(),
         );
     }

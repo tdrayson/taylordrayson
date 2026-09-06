@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -38,6 +39,7 @@ class Fuel extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
+    use HasSubjects;
     use HasTimelineEntry;
 
     protected $table = 'fuel';
