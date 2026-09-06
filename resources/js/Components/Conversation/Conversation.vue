@@ -210,7 +210,7 @@ async function reply(item) {
         <!-- The comment box is the one primary control here, so it carries
              no heading of its own: a title above a single field is a label for
              a form that is trying not to look like one. -->
-        <div class="mt-6">
+        <div class="mt-10">
             <!-- Above the box in every state, because the two ways to answer
                  are not both visible: one is a text field and the other is a
                  panel further down that nobody would think to open. -->
