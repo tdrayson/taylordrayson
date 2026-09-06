@@ -7,11 +7,17 @@ use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
+use App\Queries\MonthsInYear;
 use App\Queries\PeriodStats;
 use App\Queries\PodcastEpisodeCount;
+use App\Queries\TimelineWindow;
+use App\Queries\TimelineYears;
+use App\Support\DayBudget;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
+use App\Support\SqlDate;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -21,39 +27,51 @@ use Inertia\Response;
 
 class TimelineController extends Controller
 {
-    private const DAYS_PER_PAGE = 10;
-
     public function __construct(
         private readonly BuildTimelineFeed $feed,
         private readonly BuildMonthCalendar $monthCalendar,
         private readonly PeriodStats $periodStats,
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
+        private readonly MonthsInYear $months,
         private readonly PodcastEpisodeCount $podcastEpisodes,
+        private readonly TimelineWindow $window,
+        private readonly TimelineYears $years,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $days = TimelineEntry::query()
-            ->toBase()
-            ->selectRaw('DATE(occurred_at) as date')
-            ->groupBy('date')
-            ->orderByDesc('date')
-            ->paginate(self::DAYS_PER_PAGE);
+        // Anchored to a date, not an offset: every entry logged today would
+        // otherwise shift what `?page=7` points at, so a shared link rots.
+        $window = ($this->window)(
+            $this->cursor($request->query('before')),
+            $this->cursor($request->query('after')),
+        );
 
-        $dates = collect($days->items())->pluck('date');
-
-        $groups = $dates->isEmpty()
+        $groups = $window['to'] === null
             ? []
-            : $this->groupsForDates($dates->first(), $dates->last());
+            : $this->groupsForDates($window['to'], $window['from']);
 
         return Inertia::render('Timeline', [
             'og' => OgMeta::timeline(),
             'groups' => $groups,
-            'currentPage' => $days->currentPage(),
-            'lastPage' => $days->lastPage(),
+            'range' => $window['to'] === null ? null : ['from' => $window['from'], 'to' => $window['to']],
+            'olderUrl' => $window['olderThan'] === null ? null : '/?before='.$window['olderThan'],
+            // The newest page is the bare URL, so the feed has one canonical front.
+            'newerUrl' => $window['newerThan'] === null ? null : '/?after='.$window['newerThan'],
+            'years' => ($this->years)(),
             'podcastEpisodes' => ($this->podcastEpisodes)(),
         ]);
+    }
+
+    /** A Y-m-d cursor from the query string, or null for anything else. */
+    private function cursor(mixed $value): ?string
+    {
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        return Carbon::hasFormat($value, 'Y-m-d') ? $value : null;
     }
 
     /**
@@ -82,22 +100,29 @@ class TimelineController extends Controller
      */
     private function periodTail(Carbon $start, Carbon $end): array
     {
+        $date = SqlDate::date('occurred_at');
+
         $days = TimelineEntry::query()
             ->toBase()
-            ->selectRaw('DATE(occurred_at) as date')
+            ->selectRaw("{$date} as day, count(*) as total")
             ->whereBetween('occurred_at', [$start, $end])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->paginate(self::DAYS_PER_PAGE);
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get()
+            ->map(fn (object $row): array => ['day' => (string) $row->day, 'total' => (int) $row->total]);
 
-        $dates = collect($days->items())->pluck('date');
+        // Sized by what the days hold rather than by a fixed count: a month of
+        // 584 entries was four pages of 146, which is a long scroll for a page.
+        $pages = DayBudget::pages($days);
+        $current = max(1, min((int) request()->query('page', '1'), max(1, $pages->count())));
+        $dates = collect($pages->get($current - 1) ?? [])->pluck('day');
 
         return [
             'groups' => Inertia::defer(fn (): array => $dates->isEmpty()
                 ? []
                 : $this->groupsForDates($dates->last(), $dates->first(), true)),
-            'currentPage' => $days->currentPage(),
-            'lastPage' => $days->lastPage(),
+            'currentPage' => $current,
+            'lastPage' => max(1, $pages->count()),
         ];
     }
 
@@ -148,6 +173,9 @@ class TimelineController extends Controller
             'year' => $year,
             'og' => OgMeta::year($year),
             'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
+            // On every page, not just the first: the heatmap below is the only
+            // other way into a month, and it stops rendering past page one.
+            'months' => ($this->months)($year),
             ...$this->isFirstPage() ? [
                 'stats' => ($this->periodStats)($start, $end, withSuperlative: true),
                 'heatmap' => ($this->heatmapDays)($start, $end),
