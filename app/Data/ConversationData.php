@@ -24,6 +24,13 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
         public array $responses,
     ) {}
 
+    /** Whether nobody has said, sent or clicked anything at all. */
+    public function isEmpty(): bool
+    {
+        return $this->responses === []
+            && array_sum(array_map(fn (ReactionBucket $b): int => $b->count, $this->reactions)) === 0;
+    }
+
     /**
      * @return array<string, mixed>
      */

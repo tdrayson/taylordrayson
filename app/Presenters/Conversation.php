@@ -16,6 +16,22 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Conversation
 {
+    /**
+     * The conversation to put on the page, or null when there is nothing to
+     * show and this type does not ask for one. An entry nobody has responded
+     * to should end where its content ends, not with an empty apparatus.
+     */
+    public static function shownFor(Model $target, ?string $identity = null): ?ConversationData
+    {
+        $conversation = self::for($target, $identity);
+
+        if ($conversation->isEmpty() && ! InteractionTarget::invitesResponses($conversation->type)) {
+            return null;
+        }
+
+        return $conversation;
+    }
+
     public static function for(Model $target, ?string $identity = null): ConversationData
     {
         return new ConversationData(
