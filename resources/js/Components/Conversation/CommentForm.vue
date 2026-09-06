@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import { csrf } from '../../lib/csrf.js';
 import Button from '../Ui/Button.vue';
 import Checkbox from '../Ui/Checkbox.vue';
 import Input from '../Ui/Input.vue';
@@ -35,7 +36,7 @@ onMounted(async () => {
     try {
         const response = await fetch('/comments/token', {
             method: 'POST',
-            headers: { Accept: 'application/json' },
+            headers: { Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
             credentials: 'same-origin',
         });
 
@@ -56,7 +57,7 @@ async function submit() {
     try {
         const response = await fetch(`/comments/${props.type}/${props.id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
             credentials: 'same-origin',
             body: JSON.stringify({
                 author_name: name.value,
