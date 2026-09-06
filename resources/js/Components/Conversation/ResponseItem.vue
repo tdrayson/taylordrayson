@@ -138,7 +138,11 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
        The parent's content starts one avatar column in (3rem), and the reply is
        indented past that (4rem), so the elbow turns in over the 1rem between. */
     left: -1rem;
-    width: 1rem;
+
+    /* Run on to the avatar's centre rather than stopping at its left edge: a
+       line that ends on the tangent of a pale circle reads as a gap. The avatar
+       is lifted over it below. 1rem of turn plus half a 2.25rem avatar. */
+    width: 2.125rem;
 
     /* Up into the gap above so it reads as coming from the parent, and down to
        this avatar's centre. With the avatar centred on its name line, that
@@ -146,8 +150,8 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
     top: -1.5rem;
     height: calc(1.5rem + (var(--text-meta) * var(--text-meta--line-height)) / 2);
 
-    border-left: 1px solid var(--color-neutral-50);
-    border-bottom: 1px solid var(--color-neutral-50);
+    border-left: 1px solid var(--color-neutral-100);
+    border-bottom: 1px solid var(--color-neutral-100);
     border-bottom-left-radius: 0.5rem;
 }
 
@@ -160,7 +164,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
     left: -1rem;
     top: calc((var(--text-meta) * var(--text-meta--line-height)) / 2);
     bottom: -1.5rem;
-    border-left: 1px solid var(--color-neutral-50);
+    border-left: 1px solid var(--color-neutral-100);
 }
 
 /* Centre the avatar on the name line rather than on the whole block: half the
@@ -168,5 +172,9 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
    from the type tokens so it follows if the scale changes. */
 .response-avatar {
     margin-top: calc((var(--text-meta) * var(--text-meta--line-height) - 2.25rem) / 2);
+
+    /* Positioned so it paints over the elbow running under it, the same way the
+       main rail passes behind the avatars rather than stopping at them. */
+    position: relative;
 }
 </style>
