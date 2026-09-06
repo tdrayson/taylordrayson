@@ -16,7 +16,8 @@ final readonly class MentionData
         public ?string $authorName,
         public ?string $authorUrl,
         public ?string $authorPhoto,
-        public ?string $content,
+        /** @var array<int, array<string, mixed>>|null Portable Text. */
+        public ?array $content,
         public ?CarbonInterface $publishedAt,
         /**
          * Set when the reply is a reacji: an in-reply-to whose whole content is

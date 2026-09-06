@@ -8,6 +8,7 @@ use App\Models\Note;
 use App\Models\Reaction;
 use App\Models\Webmention;
 use App\Presenters\Conversation;
+use App\Support\PortableText;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -68,8 +69,8 @@ it('reads the author and the body out of a real reply', function () {
         ->kind->toBe(WebmentionKind::Reply->value)
         ->author_name->toBe('Jo Bloggs')
         ->author_url->toBe('https://example.com/jo')
-        ->content->toBe('Nice one.')
         ->status->toBe(CommentStatus::Pending)
+        ->and(PortableText::plainText($mention->content))->toBe('Nice one.')
         ->and($mention->verified_at)->not->toBeNull()
         ->and($mention->target_id)->toBe($note->id);
 });
@@ -304,4 +305,22 @@ it('does not extend the allowlist to a host that merely starts with a trusted on
     $html = str_replace('https://example.com/jo', 'https://known.example.evil.tld/me', mentionSource($target, 'in-reply-to', 'Hello.'));
 
     expect(verify($note, $html))->status->toBe(CommentStatus::Pending);
+});
+
+it('keeps the links and quotes a reply was written with', function () {
+    $note = Note::factory()->create();
+
+    // The flattened text mf2 also offers would drop the anchor and the quote,
+    // which is most of what a considered reply is made of.
+    $body = 'Agreed. <a href="https://example.com/mine">I wrote this</a>.'
+        .'<blockquote>Your words here.</blockquote>'
+        .'<script>alert(1)</script>';
+
+    $target = rtrim(config('app.url'), '/').$note->url();
+    $document = verify($note, mentionSource($target, 'in-reply-to', $body))->content;
+
+    expect($document[0]['markDefs'][0]['href'])->toBe('https://example.com/mine')
+        ->and($document[1]['style'])->toBe('blockquote')
+        // The script's contents are not prose and must not arrive as words.
+        ->and(PortableText::plainText($document))->not->toContain('alert');
 });

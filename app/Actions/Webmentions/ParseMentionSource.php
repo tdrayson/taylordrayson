@@ -4,6 +4,8 @@ namespace App\Actions\Webmentions;
 
 use App\Data\MentionData;
 use App\Enums\WebmentionKind;
+use App\Support\HtmlToPortableText;
+use App\Support\PortableText;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use MensBeam\Microformats;
@@ -51,7 +53,7 @@ final class ParseMentionSource
             authorPhoto: $this->authorField($properties, 'photo'),
             content: $content,
             publishedAt: $this->published($properties),
-            emoji: $kind === WebmentionKind::Reply ? $this->emojiIn($content) : null,
+            emoji: $kind === WebmentionKind::Reply ? $this->emojiIn(PortableText::plainText($content ?? [])) : null,
         );
     }
 
@@ -62,9 +64,9 @@ final class ParseMentionSource
      * Counted in graphemes, not codepoints: 👨‍👩‍👧 is five codepoints joined
      * by ZWJs and a skin tone is two, so mb_strlen reads both as long replies.
      */
-    private function emojiIn(?string $content): ?string
+    private function emojiIn(string $content): ?string
     {
-        $trimmed = trim((string) $content);
+        $trimmed = trim($content);
 
         return grapheme_strlen($trimmed) === 1 && preg_match('/^\p{Extended_Pictographic}/u', $trimmed) === 1
             ? $trimmed
@@ -175,11 +177,26 @@ final class ParseMentionSource
     }
 
     /**
+     * The response's own words, as Portable Text.
+     *
+     * mf2 hands back both a `html` and a flattened `value` for e-content. The
+     * HTML is taken because the flattened form drops every link, quote and
+     * list; it is never held as HTML, only walked into blocks by an allowlist.
+     *
      * @param  array<string, mixed>  $properties
+     * @return array<int, array<string, mixed>>|null
      */
-    private function content(array $properties): ?string
+    private function content(array $properties): ?array
     {
         $content = $properties['content'][0] ?? null;
+
+        if (is_array($content) && is_string($content['html'] ?? null)) {
+            $document = HtmlToPortableText::convert($content['html']);
+
+            if ($document !== []) {
+                return $document;
+            }
+        }
 
         $text = match (true) {
             is_array($content) => $content['value'] ?? null,
@@ -187,7 +204,9 @@ final class ParseMentionSource
             default => null,
         } ?? $properties['summary'][0] ?? $properties['name'][0] ?? null;
 
-        return is_string($text) && trim($text) !== '' ? trim($text) : null;
+        return is_string($text) && trim($text) !== ''
+            ? PortableText::fromPlainText(trim($text))
+            : null;
     }
 
     /**

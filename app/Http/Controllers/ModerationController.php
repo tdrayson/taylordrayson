@@ -110,7 +110,7 @@ class ModerationController extends Controller
                 'kind' => 'mention',
                 'author' => $mention->author_name ?: $mention->source_url,
                 'email' => null,
-                'body' => $mention->content,
+                'body' => PortableText::plainText($mention->content ?? []),
                 'sourceUrl' => $mention->source_url,
                 'on' => self::targetUrl($mention->target),
                 'received' => $mention->created_at->diffForHumans(),

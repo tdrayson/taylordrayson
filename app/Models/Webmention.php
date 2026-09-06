@@ -40,6 +40,7 @@ class Webmention extends Model
     protected function casts(): array
     {
         return [
+            'content' => 'array',
             'status' => CommentStatus::class,
             'published_at' => 'datetime',
             'verified_at' => 'datetime',

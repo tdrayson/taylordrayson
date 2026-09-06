@@ -10,6 +10,7 @@ use App\Models\Page;
 use App\Models\Reaction;
 use App\Models\Webmention;
 use App\Support\InteractionTarget;
+use App\Support\PortableText;
 use App\Timeline\TypeRegistry;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -129,7 +130,7 @@ class SeedInteractions extends Command
                 'kind' => $kind->value,
                 'author_name' => $name,
                 'author_url' => $url,
-                'content' => $content,
+                'content' => $content === null ? null : PortableText::fromPlainText($content),
                 'published_at' => now()->subDays(7 - $index)->subHours($index),
                 'status' => CommentStatus::Approved,
                 'verified_at' => now(),
@@ -160,7 +161,7 @@ class SeedInteractions extends Command
         return $target->comments()->create([
             'parent_id' => $parentId,
             'author_name' => $name,
-            'body' => $body,
+            'body' => PortableText::fromPlainText($body),
             'status' => CommentStatus::Approved,
             'user_agent' => self::MARKER,
             'created_at' => now()->subDays(random_int(1, 6)),
