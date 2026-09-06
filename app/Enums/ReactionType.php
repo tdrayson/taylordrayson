@@ -4,11 +4,17 @@ namespace App\Enums;
 
 /**
  * The reaction set, deliberately positive-only: there is no downvote vector on
- * a personal site. Love is also the bucket an incoming webmention `like-of`
- * folds into, so on-site hearts and off-site likes count as one thing.
+ * a personal site.
+ *
+ * Like is first and separate from Love, because they are separate in the
+ * vocabulary this has to interoperate with: a `like-of` is a structured binary
+ * property, while the rest are reacji, an emoji somebody chose. An incoming
+ * like, a Strava kudo and a Swarm like are all plain approval, so they land on
+ * Like rather than being recorded as a heart nobody picked.
  */
 enum ReactionType: string
 {
+    case Like = 'like';
     case Love = 'love';
     case Celebrate = 'celebrate';
     case Wow = 'wow';
@@ -18,6 +24,7 @@ enum ReactionType: string
     public function label(): string
     {
         return match ($this) {
+            self::Like => 'Like',
             self::Love => 'Love',
             self::Celebrate => 'Celebrate',
             self::Wow => 'Wow',
@@ -29,6 +36,7 @@ enum ReactionType: string
     public function emoji(): string
     {
         return match ($this) {
+            self::Like => '👍',
             self::Love => '❤️',
             self::Celebrate => '🎉',
             self::Wow => '😲',

@@ -200,6 +200,15 @@
     --color-note: hsl(36 40% 50%);
 
     /* Sleep stage colours */
+    /* Reactions: a white glyph on a coloured disc, so each reads at a glance
+       without depending on how a platform draws its emoji font. */
+    --color-reaction-like: hsl(215 80% 52%);
+    --color-reaction-love: hsl(350 72% 55%);
+    --color-reaction-celebrate: hsl(270 55% 55%);
+    --color-reaction-wow: hsl(38 90% 52%);
+    --color-reaction-haha: hsl(45 85% 48%);
+    --color-reaction-sad: hsl(215 45% 55%);
+
     --color-sleep-awake: hsl(0 70% 72%);
     --color-sleep-rem: hsl(210 60% 58%);
     --color-sleep-light: hsl(210 50% 75%);

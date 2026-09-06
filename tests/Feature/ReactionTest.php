@@ -22,15 +22,15 @@ it('adds a reaction and toggles it off on a second click', function () {
     react('note', $note->id)
         ->assertSuccessful()
         ->assertJsonPath('on', true)
-        ->assertJsonPath('reactions.0.key', 'love')
-        ->assertJsonPath('reactions.0.count', 1)
-        ->assertJsonPath('reactions.0.mine', true);
+        ->assertJsonPath('reactions.1.key', 'love')
+        ->assertJsonPath('reactions.1.count', 1)
+        ->assertJsonPath('reactions.1.mine', true);
 
     react('note', $note->id)
         ->assertSuccessful()
         ->assertJsonPath('on', false)
-        ->assertJsonPath('reactions.0.count', 0)
-        ->assertJsonPath('reactions.0.mine', false);
+        ->assertJsonPath('reactions.1.count', 0)
+        ->assertJsonPath('reactions.1.mine', false);
 
     expect(Reaction::count())->toBe(0);
 });
@@ -73,9 +73,11 @@ it('returns every bucket even when nothing has been reacted to', function () {
 
     $buckets = react('note', $note->id)->json('reactions');
 
-    expect($buckets)->toHaveCount(5)
+    // Like leads and is its own bucket: an incoming like-of, a kudo and a Swarm
+    // like are plain approval, not a heart anybody picked.
+    expect($buckets)->toHaveCount(6)
         ->and(collect($buckets)->pluck('key')->all())
-        ->toBe(['love', 'celebrate', 'wow', 'haha', 'sad']);
+        ->toBe(['like', 'love', 'celebrate', 'wow', 'haha', 'sad']);
 });
 
 it('accepts a published page, which is what makes a guestbook work', function () {
