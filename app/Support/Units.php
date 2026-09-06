@@ -97,6 +97,23 @@ class Units
     }
 
     /**
+     * A fuel price in pence, the way a forecourt board shows it: £1.619 a
+     * litre is "161.9p".
+     *
+     * Always to a tenth of a penny, because that is the unit fuel is sold in,
+     * and the reason this one price does not go through the two-decimal money
+     * formatter. Null for a blank value, so a caller can drop the line.
+     */
+    public static function pencePerLitre(mixed $pounds): ?string
+    {
+        if ($pounds === null || $pounds === '') {
+            return null;
+        }
+
+        return number_format((float) $pounds * 100, 1).'p';
+    }
+
+    /**
      * Normalise a distance input to integer metres. Accepts numbers (already
      * metres), numeric strings, and "5.2 km" / "774 miles" / "1200 m" style
      * strings. Returns null when unparseable.

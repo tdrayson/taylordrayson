@@ -6,6 +6,7 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\TimelineType;
 use App\Models\Fuel;
+use App\Support\Units;
 
 /**
  * Builds the timeline card for a Fuel stop: what it cost and where, with the
@@ -60,15 +61,15 @@ final class FuelCard
         // "filled up with", not "put ... in": the trailing "in" collides with
         // the city clause ("I put 33 litres in, in Grimsby") whenever there is
         // no price between them.
-        $sentence = sprintf('I filled up with %s litres', number_format((float) $model->litres, 2));
+        $sentence = sprintf('I filled up with %sL', number_format((float) $model->litres, 2));
         $sentence .= $model->city ? " in {$model->city}." : '.';
 
         if (! $model->price_per_litre) {
             return $sentence;
         }
 
-        // Three decimals: pump prices are quoted to a tenth of a penny, the one
-        // documented exception to formatting money at two.
-        return $sentence.sprintf(' That was £%s a litre.', number_format((float) $model->price_per_litre, 3));
+        // "Fuel was", not "That was": the "that" pointed at the fill-up, which
+        // was not what cost a tenth of a penny.
+        return $sentence.sprintf(' Fuel was %s/L.', Units::pencePerLitre($model->price_per_litre));
     }
 }
