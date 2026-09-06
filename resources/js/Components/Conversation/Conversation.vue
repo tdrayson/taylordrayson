@@ -145,9 +145,11 @@ async function reply(item) {
                             <ResponseItem :item="item" :nested="item.nested" @reply="reply" />
                         </li>
 
-                        <!-- Indented to the reply column, so the form sits where
-                             what you write is about to appear. -->
-                        <li v-if="formFollows === item.id" id="reply-form" class="ml-16">
+                        <!-- Indented to where a reply's words start, not to its
+                             avatar: the form holds what you are writing, so it
+                             lines up with the writing above it. That is the 4rem
+                             reply indent plus the 2.25rem avatar and its gap. -->
+                        <li v-if="formFollows === item.id" id="reply-form" class="ml-28">
                             <CommentForm
                                 :type="conversation.type"
                                 :id="conversation.id"
