@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ReactionType;
 use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
@@ -41,8 +42,8 @@ it('counts two visitors separately but one visitor once', function () {
     react('note', $note->id, ip: '203.0.113.1');
     react('note', $note->id, ip: '203.0.113.2');
 
-    // The same visitor reacting differently is two reactions, not two votes
-    // in one bucket.
+    // A visitor holds one reaction, so picking another moves theirs rather
+    // than adding a second: their love comes back off as the haha goes on.
     react('note', $note->id, 'haha', ip: '203.0.113.1');
 
     $counts = react('note', $note->id, 'wow', ip: '203.0.113.3')
@@ -50,7 +51,41 @@ it('counts two visitors separately but one visitor once', function () {
         ->json('reactions');
 
     expect(collect($counts)->pluck('count', 'key')->all())
-        ->toMatchArray(['love' => 2, 'haha' => 1, 'wow' => 1, 'celebrate' => 0, 'sad' => 0]);
+        ->toMatchArray(['love' => 1, 'haha' => 1, 'wow' => 1, 'celebrate' => 0, 'sad' => 0]);
+});
+
+it('moves a visitor to their new emoji, keeping when they first reacted', function () {
+    $note = Note::factory()->create();
+
+    react('note', $note->id, 'love');
+
+    $before = Reaction::sole();
+    $this->travel(5)->minutes();
+
+    react('note', $note->id, 'haha')
+        ->assertSuccessful()
+        ->assertJsonPath('on', true);
+
+    // The same row, moved. Reacting again is a change of mind about one
+    // reaction, not a second one, so the time it was left does not reset.
+    $after = Reaction::sole();
+
+    expect($after->id)->toBe($before->id)
+        ->and($after->type)->toBe(ReactionType::Haha)
+        ->and($after->created_at->timestamp)->toBe($before->created_at->timestamp);
+});
+
+it('takes the reaction back when the same emoji is pressed again', function () {
+    $note = Note::factory()->create();
+
+    react('note', $note->id, 'love');
+    react('note', $note->id, 'haha');
+
+    react('note', $note->id, 'haha')
+        ->assertSuccessful()
+        ->assertJsonPath('on', false);
+
+    expect(Reaction::count())->toBe(0);
 });
 
 it('ignores a forged X-Forwarded-For, so one machine cannot stuff the count', function () {
