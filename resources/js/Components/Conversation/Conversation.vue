@@ -179,18 +179,7 @@ async function reply(item) {
                 :id="conversation.id"
             />
 
-            <!-- Says what to do, not that there is nothing here: the heading
-                 already said that, and repeating it is the whole of the line. -->
-            <p v-if="! thread.length" class="text-body text-neutral-500">
-                Add a comment below, or
-                <button
-                    type="button"
-                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                    @click="asides?.openWebmention()"
-                >send me the link to your own post</button>.
-            </p>
-
-            <div v-else>
+            <div v-if="thread.length">
                 <!-- One stream, every kind. A gesture renders as a single line
                      and a written response as a block, so the weight difference
                      comes from the content rather than from separate lists. -->
@@ -222,6 +211,18 @@ async function reply(item) {
              no heading of its own: a title above a single field is a label for
              a form that is trying not to look like one. -->
         <div class="mt-6">
+            <!-- Above the box in every state, because the two ways to answer
+                 are not both visible: one is a text field and the other is a
+                 panel further down that nobody would think to open. -->
+            <p class="mb-3 text-body text-neutral-500">
+                Add a comment, or
+                <button
+                    type="button"
+                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    @click="asides?.openWebmention()"
+                >send me the link to your own post</button>.
+            </p>
+
             <!-- Only ever a new comment on the entry. Replying to somebody
                  happens inside the thread, against the response it answers. -->
             <CommentForm :type="conversation.type" :id="conversation.id" />
