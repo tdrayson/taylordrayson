@@ -49,6 +49,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
          avatars run down one axis however long each response is. -->
     <article
         :id="item.id"
+        v-twemoji
         class="h-cite relative flex gap-3"
         :class="[nested && 'response-nested ml-6 pl-6 sm:ml-11']"
     >

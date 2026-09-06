@@ -162,7 +162,7 @@ function toggleDefault() {
                     >
                         <Icon :name="glyph(mine).icon" class="size-3" />
                     </span>
-                    <span v-else-if="mine" aria-hidden="true">{{ mine.emoji }}</span>
+                    <span v-else-if="mine" v-twemoji aria-hidden="true">{{ mine.emoji }}</span>
                     <Icon v-else name="ThumbsUpIcon" class="size-4" />
                     <span v-if="total" class="tnum font-medium">{{ total }}</span>
                 </button>
@@ -187,7 +187,7 @@ function toggleDefault() {
                                 >
                                     <Icon :name="glyph(bucket).icon" class="size-4" />
                                 </span>
-                                <span v-else class="flex size-8 items-center justify-center text-lg" aria-hidden="true">{{ bucket.emoji }}</span>
+                                <span v-else v-twemoji class="flex size-8 items-center justify-center text-lg" aria-hidden="true">{{ bucket.emoji }}</span>
                             </button>
                         </li>
                     </ul>
@@ -211,7 +211,7 @@ function toggleDefault() {
                     :title="`${bucket.count} ${bucket.label}`"
                 >
                     <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3" />
-                    <span v-else class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
+                    <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
                 </li>
             </ul>
         </div>
