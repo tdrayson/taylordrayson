@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Page;
 use App\Timeline\TypeRegistry;
@@ -35,24 +36,6 @@ final class InteractionTarget
         return $model !== null && self::isVisible($model) ? $model : null;
     }
 
-    /**
-     * Whether this type should ask for a response even when nobody has left
-     * one.
-     *
-     * The line is between something said and something done. A note or an
-     * article is speech, and an invitation to reply belongs under it whether or
-     * not anybody has. A walk, a meal, a night's sleep or a tank of fuel is a
-     * record: a reply is possible and is shown when it arrives, but standing
-     * invitations under every one of them are furniture on a page nobody came
-     * to argue with.
-     *
-     * Every type still accepts everything. This governs the invitation only.
-     */
-    public static function invitesResponses(string $type): bool
-    {
-        return in_array($type, ['note', 'article', 'page', 'project'], strict: true);
-    }
-
     /** Whether this model takes comments, reactions and mentions right now. */
     public static function accepts(Model $model): bool
     {
@@ -80,6 +63,10 @@ final class InteractionTarget
             fn (array $type): string => $type['model'],
             TypeRegistry::all(),
         );
+
+        // A project is a standing description of a thing that exists, not a
+        // post about a moment, so there is no occasion to respond to.
+        unset($types[TimelineType::Project->value]);
 
         // Pages are not timeline entries, and are the whole reason a guestbook
         // works: /guestbook is a page like any other.
