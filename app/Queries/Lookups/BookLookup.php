@@ -3,7 +3,7 @@
 namespace App\Queries\Lookups;
 
 use App\Exceptions\HardcoverException;
-use App\Services\Hardcover;
+use App\Services\Hardcover\Client;
 
 /**
  * Books from Hardcover. The client fails closed on a bad response, which would
@@ -12,7 +12,7 @@ use App\Services\Hardcover;
  */
 final class BookLookup
 {
-    public function __construct(private Hardcover $hardcover) {}
+    public function __construct(private Client $hardcover) {}
 
     /**
      * @return list<array{value: string, label: string, detail: string|null, fill: array<string, mixed>}>

@@ -2,7 +2,7 @@
 
 namespace App\Actions\Links;
 
-use App\Services\GoogleFavicons;
+use App\Services\GoogleFavicons\Client;
 use App\Support\Links;
 use Illuminate\Support\Facades\File;
 
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\File;
  */
 class StoreFavicon
 {
-    public function __construct(private GoogleFavicons $favicons) {}
+    public function __construct(private Client $favicons) {}
 
     /**
      * @return 'saved'|'unavailable'|'error'|'skipped' 'skipped' when one is already stored

@@ -4,7 +4,8 @@ namespace App\Console\Commands\Sync;
 
 use App\Jobs\StorePodcastMedia;
 use App\Models\Podcast;
-use App\Services\ThisWeekWith;
+use App\Queries\PodcastEpisodeCount;
+use App\Services\ThisWeekWith\Client;
 use App\Support\HtmlSanitizer;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
@@ -28,7 +29,7 @@ class PodcastSync extends Command
      * `--full` walks the whole feed instead, for a backfill or a re-map after
      * changing `mapEpisode()`.
      */
-    public function handle(ThisWeekWith $thisWeekWith): int
+    public function handle(Client $thisWeekWith): int
     {
         $perPage = (int) $this->option('per-page');
         $full = (bool) $this->option('full');
@@ -75,13 +76,10 @@ class PodcastSync extends Command
             return self::FAILURE;
         }
 
-        // Only when something actually moved: the mirror is a full rewrite of
-        // every episode, and at this cadence most runs change nothing.
-        //
-        // Rebuilt from the database rather than from the episodes fetched this
-        // run, because an incremental run holds only a handful and writing
-        // those would truncate the mirror to the newest few.
+        // Only when something actually moved: at this cadence most runs change
+        // nothing, and the timeline's episode figure is cached until midnight.
         if ($changed) {
+            PodcastEpisodeCount::forget();
         }
 
         $this->info("Synced {$created} new episode(s), {$seen} already stored.");

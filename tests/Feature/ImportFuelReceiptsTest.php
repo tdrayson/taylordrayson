@@ -5,7 +5,8 @@ use App\Actions\Fuel\ReceiptLocation;
 use App\Models\Fuel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     $this->folder = storage_path('app/test-receipts');
@@ -32,8 +33,8 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
         }
     });
 
-    Http::fake([
-        '*petrolprices.com/app/geojson*' => Http::response(['data' => ['features' => [[
+    Saloon::fake([
+        'petrolprices.com/app/geojson*' => MockResponse::make(['data' => ['features' => [[
             'type' => 'Feature',
             'geometry' => ['coordinates' => [-0.1313, 51.3767]],
             'properties' => [
@@ -61,11 +62,11 @@ it('writes a review csv matching a receipt to the nearest fuel entry and station
 });
 
 it('applies a reviewed csv onto fuel rows and regenerates the backup csv', function () {
-    Http::fake([
-        '*/api/brands*' => Http::response(['brands' => [
+    Saloon::fake([
+        '/api/brands*' => MockResponse::make(['brands' => [
             ['brand' => 'ASDA', 'logo' => 'https://cdn.brandfetch.io/asda.com'],
         ]]),
-        '*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png']),
+        'img.logo.dev*' => MockResponse::make('PNG-BYTES', 200, ['Content-Type' => 'image/png']),
     ]);
 
     $fuel = Fuel::factory()->create(['station_name' => null]);
@@ -90,7 +91,7 @@ it('applies a reviewed csv onto fuel rows and regenerates the backup csv', funct
 
 it('fetches brand logos after applying the reviewed csv', function () {
     config(['services.logodev.token' => 'test-token']);
-    Http::fake(['*img.logo.dev*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
+    Saloon::fake(['img.logo.dev*' => MockResponse::make('PNG-BYTES', 200, ['Content-Type' => 'image/png'])]);
 
     $fuel = Fuel::factory()->create(['station_name' => null]);
     $header = 'receipt_file,receipt_time,fuel_id,fuel_occurred_at,delta_minutes,receipt_lat,receipt_lng,station_name,brand,address,postcode,city,station_lat,station_lng,distance_km,alt1_name,alt2_name,flag';

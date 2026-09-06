@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildMonthCalendar;
 use App\Actions\BuildTimelineFeed;
-use App\Models\Podcast;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
 use App\Queries\PeriodStats;
+use App\Queries\PodcastEpisodeCount;
 use App\Queries\TimelineWindow;
 use App\Queries\TimelineYears;
 use App\Support\GalleryPhotos;
@@ -32,6 +32,7 @@ class TimelineController extends Controller
         private readonly PeriodStats $periodStats,
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
+        private readonly PodcastEpisodeCount $podcastEpisodes,
         private readonly TimelineWindow $window,
         private readonly TimelineYears $years,
     ) {}
@@ -57,7 +58,7 @@ class TimelineController extends Controller
             // The newest page is the bare URL, so the feed has one canonical front.
             'newerUrl' => $window['newerThan'] === null ? null : '/?after='.$window['newerThan'],
             'years' => ($this->years)(),
-            'podcastEpisodes' => Podcast::query()->count(),
+            'podcastEpisodes' => ($this->podcastEpisodes)(),
         ]);
     }
 

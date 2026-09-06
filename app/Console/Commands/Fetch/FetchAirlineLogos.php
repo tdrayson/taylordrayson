@@ -4,7 +4,7 @@ namespace App\Console\Commands\Fetch;
 
 use App\Models\Airline;
 use App\Models\Flight;
-use App\Services\LogoStream;
+use App\Services\LogoStream\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -25,7 +25,7 @@ class FetchAirlineLogos extends Command
         'logo' => 'logo-transparent',
     ];
 
-    public function handle(LogoStream $logoStream): int
+    public function handle(Client $logoStream): int
     {
         if (! config('services.logostream.key')) {
             $this->components->error('LOGOSTREAM_KEY is not set.');
@@ -104,7 +104,7 @@ class FetchAirlineLogos extends Command
      * @return 'saved'|'unavailable'|'error' 'unavailable' when LogoStream has no
      *                                       real logo, 'error' on a request failure.
      */
-    private function download(LogoStream $logoStream, string $iata, string $variant, string $path): string
+    private function download(Client $logoStream, string $iata, string $variant, string $path): string
     {
         $result = $logoStream->airlineLogo($iata, $variant);
 

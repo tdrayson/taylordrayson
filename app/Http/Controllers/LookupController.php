@@ -10,7 +10,7 @@ use App\Queries\Lookups\PlaceLookup;
 use App\Queries\Lookups\StationLookup;
 use App\Queries\Lookups\TagLookup;
 use App\Queries\Lookups\TimezoneLookup;
-use App\Services\GoogleMaps;
+use App\Services\GoogleMaps\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -50,7 +50,7 @@ class LookupController extends Controller
      * from the search above because the browser supplies a position rather
      * than a query, and there is exactly one answer.
      */
-    public function reverse(Request $request, GoogleMaps $maps): JsonResponse
+    public function reverse(Request $request, Client $maps): JsonResponse
     {
         $validated = $request->validate([
             'lat' => ['required', 'numeric', 'between:-90,90'],
