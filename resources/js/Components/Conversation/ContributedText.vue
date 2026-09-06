@@ -62,13 +62,52 @@ function renderSpan(span, markDefs) {
 
 const paragraphs = computed(() => props.blocks.filter((block) => block?._type === 'block'));
 
-const Rendered = () => paragraphs.value.map((block) => h(
-    'p',
-    { class: 'mt-1 first:mt-0' },
-    (block.children ?? [])
+/** A block's own spans, whatever wrapper it ends up in. */
+function childrenOf(block) {
+    return (block.children ?? [])
         .filter((span) => span?._type === 'span' || span?.text !== undefined)
-        .map((span) => renderSpan(span, block.markDefs ?? [])),
-));
+        .map((span) => renderSpan(span, block.markDefs ?? []));
+}
+
+/**
+ * Blocks in order, with consecutive list items gathered into one list. Portable
+ * Text has no list node: an item is a block carrying `listItem`, so the run has
+ * to be found here rather than read off the document.
+ */
+const Rendered = () => {
+    const out = [];
+
+    for (let i = 0; i < paragraphs.value.length; i++) {
+        const block = paragraphs.value[i];
+
+        if (block.listItem) {
+            const kind = block.listItem;
+            const items = [];
+
+            while (i < paragraphs.value.length && paragraphs.value[i].listItem === kind) {
+                items.push(h('li', childrenOf(paragraphs.value[i])));
+                i++;
+            }
+
+            i--;
+            out.push(h(kind === 'number' ? 'ol' : 'ul', {
+                class: kind === 'number'
+                    ? 'mt-1 list-decimal space-y-1 pl-5 first:mt-0'
+                    : 'mt-1 list-disc space-y-1 pl-5 first:mt-0',
+            }, items));
+
+            continue;
+        }
+
+        out.push(block.style === 'blockquote'
+            ? h('blockquote', { class: 'mt-1 border-l-2 border-neutral-100 pl-3 text-neutral-700 first:mt-0' }, [
+                h('p', childrenOf(block)),
+            ])
+            : h('p', { class: 'mt-1 whitespace-pre-line first:mt-0' }, childrenOf(block)));
+    }
+
+    return out;
+};
 </script>
 
 <template>
