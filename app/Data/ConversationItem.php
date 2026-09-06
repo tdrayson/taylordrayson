@@ -8,6 +8,7 @@ use App\Models\Webmention;
 use App\Support\LocalTime;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Str;
 use JsonSerializable;
 
 /**
@@ -80,9 +81,16 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         );
     }
 
+    /**
+     * The site a response came from, as somebody would say it out loud. The
+     * `www.` is dropped: it is how the URL is written, not what the site is
+     * called, and "via www.strava.com" reads as an address rather than a place.
+     */
     private static function hostOf(string $url): string
     {
-        return (string) (parse_url($url, PHP_URL_HOST) ?: $url);
+        $host = (string) (parse_url($url, PHP_URL_HOST) ?: $url);
+
+        return Str::chopStart($host, 'www.');
     }
 
     /**
