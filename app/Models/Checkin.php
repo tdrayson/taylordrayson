@@ -20,6 +20,7 @@ use Spatie\MediaLibrary\HasMedia;
     'venue_name',
     'category',
     'address',
+    'postcode',
     'city',
     'county',
     'country',
