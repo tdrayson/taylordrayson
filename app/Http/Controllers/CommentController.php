@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Comments\NotifyOfReply;
 use App\Actions\Comments\StoreComment;
 use App\Enums\CommentStatus;
 use App\Http\Requests\Interactions\StoreCommentRequest;
@@ -35,6 +36,12 @@ class CommentController extends Controller
         // point of catching it.
         if ($comment !== null && $comment->status !== CommentStatus::Spam) {
             $this->notify($comment);
+        }
+
+        // A reply that skipped the queue still owes the person it answers an
+        // email. Only the moderation path used to send one.
+        if ($comment !== null) {
+            app(NotifyOfReply::class)($comment);
         }
 
         // A dropped bot submission answers exactly as a held one does, so
