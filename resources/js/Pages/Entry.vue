@@ -180,6 +180,6 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
             class="mt-10"
         />
 
-        <Conversation v-if="conversation" :conversation="conversation" :og="og" class="mt-6" />
+        <Conversation v-if="conversation" :conversation="conversation" :og="og" class="mt-12" />
     </article>
 </template>
