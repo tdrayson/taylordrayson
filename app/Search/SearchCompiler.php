@@ -3,8 +3,11 @@
 namespace App\Search;
 
 use App\Models\Article;
+use App\Models\Calorie;
 use App\Models\Page;
+use App\Support\SqlDate;
 use App\Timeline\TypeRegistry;
+use Closure;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -101,6 +104,8 @@ class SearchCompiler
      */
     private function applyConditions(Builder $query, array $group, array $type): void
     {
+        $items = [];
+
         foreach ($group['conditions'] as $condition) {
             $field = $type['fields'][$condition['field']] ?? null;
 
@@ -108,7 +113,80 @@ class SearchCompiler
                 continue;
             }
 
-            $this->applyCondition($query, $field, $condition['operator'], $condition['value']);
+            match ($field['scope'] ?? null) {
+                'item' => $items[] = [$field, $condition['operator'], $condition['value']],
+                'day' => $this->dayTotalClause($query, $field, $condition['operator'], $condition['value']),
+                default => $this->applyCondition($query, $field, $condition['operator'], $condition['value']),
+            };
+        }
+
+        if ($items === []) {
+            return;
+        }
+
+        // Gathered into one EXISTS rather than applied separately, so they
+        // describe a single item rather than several that share a day.
+        $this->whereDayHasItem($query, function (Builder $sub) use ($items): void {
+            foreach ($items as [$field, $operator, $value]) {
+                if (in_array($operator, SearchSchema::operatorsFor($field['dataType']), true)) {
+                    $this->clause($sub, 'items.'.$field['column'], $field['dataType'], $operator, $value);
+                }
+            }
+        });
+    }
+
+    /**
+     * Constrain a food day by the items logged in it: true when one row sharing
+     * the calendar date satisfies the constraint.
+     *
+     * A food entry is a whole day but hangs off the first row of that day, so a
+     * condition applied to the query directly reads one item out of a dozen.
+     *
+     * @param  Builder  $query  A Calorie query for the row the entry hangs off.
+     * @param  Closure(Builder): void  $constrain  Applies the conditions to the aliased item query.
+     */
+    private function whereDayHasItem(Builder $query, Closure $constrain): void
+    {
+        $items = Calorie::query()->from('calories as items')->selectRaw('1');
+
+        $constrain($items);
+
+        $items->whereRaw(SqlDate::date('items.occurred_at').' = '.SqlDate::date('calories.occurred_at'));
+
+        $query->whereExists($items);
+    }
+
+    /**
+     * Compare a day's summed macro against a value.
+     *
+     * The card totals the day, so the filter has to as well. Summed over every
+     * row of the date, independently of any item condition in the same group:
+     * "a day with chicken in it, totalling 3,000 kcal" counts the whole day,
+     * not the chicken.
+     *
+     * @param  array<string, mixed>  $field  The field definition (column, dataType).
+     * @param  mixed  $value  A scalar, or a [min, max] array for "between".
+     */
+    private function dayTotalClause(Builder $query, array $field, string $operator, mixed $value): void
+    {
+        // Interpolated, not bound: the column is a schema constant, never input.
+        $total = '(select coalesce(sum(totals.'.$field['column'].'), 0) from calories as totals where '
+            .SqlDate::date('totals.occurred_at').' = '.SqlDate::date('calories.occurred_at').')';
+
+        if ($operator === 'between' || $operator === 'not_between') {
+            $range = $this->numberRange($value);
+
+            if ($range !== null) {
+                $query->whereRaw($total.($operator === 'not_between' ? ' not between ? and ?' : ' between ? and ?'), $range);
+            }
+
+            return;
+        }
+
+        $comparators = ['eq' => '=', 'neq' => '!=', 'gt' => '>', 'gte' => '>=', 'lt' => '<', 'lte' => '<='];
+
+        if (isset($comparators[$operator])) {
+            $query->whereRaw($total.' '.$comparators[$operator].' ?', [$value]);
         }
     }
 
@@ -166,11 +244,21 @@ class SearchCompiler
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
             $columns = SearchSchema::TEXT_COLUMNS[$key] ?? [];
 
-            $morph->where(function (Builder $inner) use ($columns, $value): void {
+            $match = fn (Builder $inner, string $prefix) => $inner->where(function (Builder $any) use ($columns, $value, $prefix): void {
                 foreach ($columns as $column) {
-                    $inner->orWhere($column, 'like', "%{$value}%");
+                    $any->orWhere($prefix.$column, 'like', "%{$value}%");
                 }
             });
+
+            // A food day is named by whichever item the entry hangs off, so
+            // matching that row alone hides most of what was eaten.
+            if ($modelClass === Calorie::class) {
+                $this->whereDayHasItem($morph, fn (Builder $items) => $match($items, 'items.'));
+
+                return;
+            }
+
+            $match($morph, '');
         });
     }
 
