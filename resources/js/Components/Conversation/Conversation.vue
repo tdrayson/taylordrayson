@@ -55,10 +55,20 @@ const thread = computed(() => {
     return all
         .filter((item) => item.parentId === null)
         .sort((a, b) => lastActivity(b) - lastActivity(a))
-        .flatMap((parent) => [
-            { ...parent, nested: false },
-            ...(children.get(parent.commentId) ?? []).sort(byOldest).map((child) => ({ ...child, nested: true })),
-        ]);
+        .flatMap((parent) => {
+            const replies = (children.get(parent.commentId) ?? []).sort(byOldest);
+
+            return [
+                { ...parent, nested: false },
+                // The last reply stops the branch line; the ones before it carry
+                // it down to the next, so a run of replies hangs off one line.
+                ...replies.map((child, index) => ({
+                    ...child,
+                    nested: true,
+                    lastNested: index === replies.length - 1,
+                })),
+            ];
+        });
 });
 
 const heading = computed(() => (thread.value.length === 1 ? '1 response' : `${thread.value.length} responses`));
