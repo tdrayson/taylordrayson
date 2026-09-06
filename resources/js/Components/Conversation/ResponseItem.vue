@@ -36,16 +36,20 @@ const isGesture = computed(() => ! props.item.body);
 </script>
 
 <template>
+    <!-- One avatar size for every kind: a smaller one on gestures narrowed the
+         column and stepped their text left of everything else. The weight
+         difference comes from whether there is a body, not from the avatar.
+         It centres on the name line whether or not a body follows, so the
+         avatars run down one axis however long each response is. -->
     <article
         :id="item.id"
-        class="h-cite flex gap-3"
-        :class="nested && 'ml-6 border-l border-neutral-50 pl-4 sm:ml-11'"
+        class="h-cite relative flex gap-3"
+        :class="[nested && 'response-nested ml-6 pl-6 sm:ml-11']"
     >
         <Avatar
+            class="response-avatar"
             :name="item.authorName"
             :photo="item.authorPhoto"
-            :size="isGesture ? 'sm' : 'md'"
-            :class="isGesture || 'mt-0.5'"
         />
 
         <div class="min-w-0 flex-1">
@@ -65,9 +69,14 @@ const isGesture = computed(() => ! props.item.body);
                     <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
                     <!-- Wrapped, so the flex gap sits between the marker and the
                          phrase whether the marker is an SVG or an emoji glyph. -->
+                    <!-- Where it came from, only when the name is not already a
+                         link to it. A webmention author's name carries their site,
+                         so repeating the host says it twice; a syndicated gesture
+                         has no profile to link, so the platform is named instead. -->
                     <span>
                         {{ kind.says }}
-                        <template v-if="isGesture && item.sourceHost">from {{ item.sourceHost }}</template>
+                        <template v-if="isGesture && item.source">on {{ item.source }}</template>
+                        <template v-else-if="isGesture && ! item.authorUrl && item.sourceHost">from {{ item.sourceHost }}</template>
                     </span>
                 </span>
 
@@ -99,3 +108,28 @@ const isGesture = computed(() => ! props.item.body);
         </div>
     </article>
 </template>
+
+<style scoped>
+/* A reply hangs off its parent with an elbow rather than a full-height rule:
+   the line drops from the parent and turns in, which says "this answers that"
+   where a bare left border only says "this is indented". Only ever one level
+   deep, so there is no ladder of them. */
+.response-nested::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc(-0.75rem - 1px);
+    bottom: 50%;
+    width: 1rem;
+    border-left: 1px solid var(--color-neutral-50);
+    border-bottom: 1px solid var(--color-neutral-50);
+    border-bottom-left-radius: 0.5rem;
+}
+
+/* Centre the avatar on the name line rather than on the whole block: half the
+   difference between the avatar and that line's box lifts it into place. Derived
+   from the type tokens so it follows if the scale changes. */
+.response-avatar {
+    margin-top: calc((var(--text-meta) * var(--text-meta--line-height) - 2.25rem) / 2);
+}
+</style>
