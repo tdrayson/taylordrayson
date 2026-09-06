@@ -213,3 +213,16 @@ it('falls back to a bare mention when the source only links here', function () {
 
     expect(verify($note, $html)->kind)->toBe(WebmentionKind::Mention->value);
 });
+
+it('keeps a mention when the source is merely unreachable', function () {
+    // Their outage is not a retraction. Deleting on any failed response meant
+    // a re-send during a blip destroyed the mention for good. A note each,
+    // because one source may only mention one target once.
+    expect(verify(Note::factory()->create(), null, 500))->not->toBeNull()
+        ->and(verify(Note::factory()->create(), null, 403))->not->toBeNull();
+});
+
+it('removes a mention when the source is gone for good', function () {
+    expect(verify(Note::factory()->create(), null, 404))->toBeNull()
+        ->and(verify(Note::factory()->create(), null, 410))->toBeNull();
+});

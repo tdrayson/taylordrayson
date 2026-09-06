@@ -12,6 +12,7 @@ use App\Support\SafeUrl;
 use App\Support\WebmentionTarget;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -55,9 +56,19 @@ class VerifyWebmention implements ShouldQueue
             report: false,
         );
 
-        // Gone, unreachable, or no longer linking here: the mention has been
-        // retracted, whether or not the sender said so.
-        if ($response === null || $response->failed() || ! $this->linksToTarget($response->body(), $mention->target_url)) {
+        // A source we could not reach has said nothing. A timeout, a 500, a
+        // rate limit or a bot wall is their outage or their firewall, not a
+        // retraction, and deleting on it meant a re-send during a blip
+        // destroyed the mention for good.
+        if ($response === null || ($response->failed() && ! $this->isGone($response))) {
+            $mention->update(['last_checked_at' => now()]);
+
+            return;
+        }
+
+        // Gone, or no longer linking here: retracted, whether or not the
+        // sender said so.
+        if ($this->isGone($response) || ! $this->linksToTarget($response->body(), $mention->target_url)) {
             $mention->delete();
 
             return;
@@ -79,6 +90,16 @@ class VerifyWebmention implements ShouldQueue
             'verified_at' => now(),
             'last_checked_at' => now(),
         ])->save();
+    }
+
+    /**
+     * Whether the source is definitively gone, as opposed to merely failing.
+     * Only these two say the page no longer exists; everything else says the
+     * server could not answer for it right now.
+     */
+    private function isGone(Response $response): bool
+    {
+        return in_array($response->status(), [404, 410], strict: true);
     }
 
     /**
