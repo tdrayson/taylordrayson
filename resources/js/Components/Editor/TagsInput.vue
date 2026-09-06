@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { CONTROL } from '../../lib/editor/control.js';
+import { tagName } from '../../lib/editor/defaults.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
@@ -59,7 +60,9 @@ function onInput(value) {
 
 /** Add a tag, ignoring blanks and case-insensitive duplicates. */
 function commit(value) {
-    const name = value.trim();
+    // Capitalised on the way in, matching what the server would store, so the
+    // chip is not one thing and the saved tag another.
+    const name = tagName(value.trim());
 
     if (name === '' || tags.value.some((tag) => tag.toLowerCase() === name.toLowerCase())) {
         return;

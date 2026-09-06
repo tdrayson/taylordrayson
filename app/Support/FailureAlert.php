@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Services\Pushover;
+use App\Services\Pushover\Client;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -17,7 +17,7 @@ class FailureAlert
 {
     private const WINDOW = 3600;
 
-    public function __construct(private readonly Pushover $pushover) {}
+    public function __construct(private readonly Client $pushover) {}
 
     /**
      * @param  string  $key  What is failing, e.g. the command name. Repeats

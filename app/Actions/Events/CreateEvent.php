@@ -3,6 +3,7 @@
 namespace App\Actions\Events;
 
 use App\Models\Event;
+use App\Support\EntryInstant;
 
 class CreateEvent
 {
@@ -20,7 +21,7 @@ class CreateEvent
 
         $event = Event::create([
             ...$attributes,
-            'occurred_at' => $attributes['occurred_at'] ?? now(),
+            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
         ]);
 

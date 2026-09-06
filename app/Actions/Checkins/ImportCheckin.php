@@ -40,6 +40,7 @@ class ImportCheckin
                 'venue_name' => $venue['name'] ?? 'Unknown',
                 'category' => $venue['categories'][0]['name'] ?? null,
                 'address' => $location['address'] ?? null,
+                'postcode' => $location['postalCode'] ?? null,
                 'city' => $location['city'] ?? null,
                 'county' => $location['state'] ?? null,
                 'country' => $location['country'] ?? null,

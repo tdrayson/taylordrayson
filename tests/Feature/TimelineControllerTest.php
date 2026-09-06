@@ -6,6 +6,7 @@ use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Podcast;
+use App\Support\PortableText;
 
 use function Pest\Laravel\get;
 
@@ -55,20 +56,81 @@ it('exposes the card type for each entry', function () {
     );
 });
 
-it('paginates by day', function () {
-    foreach (range(1, 12) as $offset) {
+it('pages on a date cursor, not an offset', function () {
+    // Enough to run past a page: one a day, over the entry budget in total.
+    foreach (range(1, 60) as $offset) {
         Activity::factory()->create(['occurred_at' => now()->subDays($offset)]);
     }
 
-    get('/')->assertInertia(fn ($page) => $page
-        ->where('currentPage', 1)
-        ->where('lastPage', 2)
-        ->has('groups', 10)
+    $first = get('/')->assertInertia(fn ($page) => $page
+        // Nothing newer than the front of the feed, so no link back.
+        ->where('newerUrl', null)
+        ->where('range.to', now()->subDay()->toDateString())
+        ->has('groups')
     );
 
-    get('/?page=2')->assertInertia(fn ($page) => $page
-        ->where('currentPage', 2)
-        ->has('groups', 2)
+    $older = $first->viewData('page')['props']['olderUrl'];
+
+    expect($older)->toBeString()->toStartWith('/?before=');
+
+    get($older)->assertInertia(fn ($page) => $page
+        ->has('groups')
+        // The way back exists once you are past the front.
+        ->where('newerUrl', fn ($url) => str_contains((string) $url, 'after='))
+    );
+});
+
+it('never splits a day across pages', function () {
+    // One day carrying more than a page's entry budget on its own. Activity,
+    // not Calorie: a day's food collapses to a single spine row.
+    Activity::factory()->count(60)->create(['occurred_at' => now()->subDay()]);
+    Activity::factory()->create(['occurred_at' => now()->subDays(2)]);
+
+    get('/')->assertInertia(fn ($page) => $page
+        // The heavy day renders whole rather than being cut at the budget.
+        ->has('groups', 1)
+        ->has('groups.0.items', 60)
+        ->where('range.from', now()->subDay()->toDateString())
+    );
+});
+
+it('takes fewer days per page when the days are dense', function () {
+    // Three days of 20 entries: two fit the budget of 50, the third does not.
+    foreach (range(1, 3) as $offset) {
+        Activity::factory()->count(20)->create(['occurred_at' => now()->subDays($offset)]);
+    }
+
+    get('/')->assertInertia(fn ($page) => $page->has('groups', 2));
+});
+
+it('caps how far a page may reach back when entries are sparse', function () {
+    // A handful of entries spread over years: the entry budget alone would
+    // sweep them all onto one page and label it as spanning a decade.
+    foreach ([1, 400, 800, 1200] as $offset) {
+        Activity::factory()->create(['occurred_at' => now()->subDays($offset)]);
+    }
+
+    get('/')->assertInertia(fn ($page) => $page->has('groups', 1));
+});
+
+it('ignores a cursor that is not a date', function () {
+    Activity::factory()->create(['occurred_at' => now()->subDay()]);
+
+    foreach (['garbage', '2026-13-99', '../etc/passwd'] as $cursor) {
+        get('/?before='.urlencode($cursor))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('groups', 1));
+    }
+});
+
+it('offers every year the timeline holds something in', function () {
+    Activity::factory()->create(['occurred_at' => '2024-06-01 09:00:00']);
+    Activity::factory()->create(['occurred_at' => '2022-06-01 09:00:00']);
+
+    get('/')->assertInertia(fn ($page) => $page
+        ->where('years.0.year', 2024)
+        ->where('years.0.href', '/2024')
+        ->where('years.1.year', 2022)
     );
 });
 
@@ -99,14 +161,15 @@ it('shows day grouping headers', function () {
     );
 });
 
-it('ships full note content as the card body', function () {
+it('ships the whole note document as the card body, paragraphs intact', function () {
     Note::factory()->create([
         'content' => "Long thought about grinders.\n\nSecond paragraph of the same note.",
         'occurred_at' => now()->subHour(),
     ]);
 
     get('/')->assertInertia(fn ($page) => $page
-        ->where('groups.0.items.0.body', "Long thought about grinders.\n\nSecond paragraph of the same note.")
+        ->where('groups.0.items.0.body', fn ($body) => count($body) === 2
+            && PortableText::plainText($body) === 'Long thought about grinders. Second paragraph of the same note.')
         ->where('groups.0.items.0.iconKey', 'note'));
 });
 

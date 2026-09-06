@@ -35,6 +35,17 @@ it('validates content is required', function () {
         ->assertJsonValidationErrors(['content']);
 });
 
+it('holds a note to the same length limit as the editor', function () {
+    $this->withToken('test-token')
+        ->postJson('/api/v1/notes', ['content' => str_repeat('a', Note::MAX_LENGTH + 1)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['content']);
+
+    $this->withToken('test-token')
+        ->postJson('/api/v1/notes', ['content' => str_repeat('a', Note::MAX_LENGTH)])
+        ->assertCreated();
+});
+
 it('rejects unauthenticated writes', function () {
     $this->postJson('/api/v1/notes', ['content' => 'nope'])->assertUnauthorized();
 

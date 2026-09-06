@@ -5,7 +5,9 @@ namespace App\Support;
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
 use App\Models\Article;
+use App\Models\Checkin;
 use App\Models\Media;
+use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\TimelineEntry;
 use App\Presenters\EntryDescription;
@@ -32,6 +34,16 @@ use Illuminate\Support\Str;
 class OgMeta
 {
     private const SITE_DESCRIPTION = 'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
+
+    /** Where Google truncates a title, measured on the whole assembled string. */
+    private const TITLE_LIMIT = 60;
+
+    /**
+     * The cost of the " | Taylor Drayson" that AppHead.vue appends. Budgeted
+     * for here because this is where the title is cut, and a cut measured
+     * without it overflows by exactly this much.
+     */
+    private const SITE_SUFFIX_LENGTH = 17;
 
     /**
      * @return OgPayload
@@ -473,10 +485,14 @@ class OgMeta
     /**
      * A page title that identifies one entry among its type's thousands.
      *
-     * Log entries repeat their titles heavily: 655 walks are all called "Walk",
-     * and a search result listing them is useless. Dating them is what tells
-     * one from another. Hand-authored pieces are already named deliberately, so
-     * they keep the title as written.
+     * Log entries repeat their titles heavily: only 12% of activity names are
+     * distinct, and a search result listing them is useless. Dating them is
+     * what tells one from another. Hand-authored pieces are already named
+     * deliberately, so they keep the title as written.
+     *
+     * The date hangs off a dash rather than a comma because the titles it
+     * follows are full of commas of their own ("Season 7, Episode 255", "I ate
+     * 1,745 calories"), where one more reads as another list item.
      */
     private static function entryTitle(Model $model, CardData $card): string
     {
@@ -486,10 +502,25 @@ class OgMeta
 
         // An episode's card title is the episode's alone, which off the show's
         // page names nothing: "Netherlands (Race)" needs "Formula 1" in front.
-        $show = $model instanceof Media ? ShowTitle::for($model) : null;
-        $title = $show !== null ? "{$show}: {$card->title}" : $card->title;
+        // A podcast has the same problem for the same reason: on the timeline
+        // its show is the type eyebrow, which does not travel with the title.
+        $show = match (true) {
+            $model instanceof Media => ShowTitle::for($model),
+            $model instanceof Podcast => 'This Week With',
+            default => null,
+        };
 
-        return Text::excerpt($title, 60).', '.$card->occurredAt->format('j F Y');
+        // A check-in card reads "at Cineworld", which is a phrase in a feed but
+        // not a title. The venue is the name of the thing.
+        $title = match (true) {
+            $model instanceof Checkin => trim(collect([$model->event_name, $model->venue_name])->filter()->implode(' at ')),
+            $show !== null => "{$show}: {$card->title}",
+            default => $card->title,
+        };
+
+        $suffix = ' - '.$card->occurredAt->format('j M Y');
+
+        return Text::excerpt($title, self::TITLE_LIMIT - self::SITE_SUFFIX_LENGTH - mb_strlen($suffix)).$suffix;
     }
 
     /**

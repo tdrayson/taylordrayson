@@ -65,7 +65,7 @@ it('filters checkins by category slug', function () {
     Checkin::factory()->create(['venue_name' => 'City Gym', 'category' => 'Gym', 'occurred_at' => now()->subDays(2)]);
 
     get('/places/coffee-shop')->assertOk()->assertInertia(fn ($page) => $page
-        ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'Blue Bottle') && ! archiveTitlesContains($groups, 'City Gym'))
+        ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'at Blue Bottle') && ! archiveTitlesContains($groups, 'at City Gym'))
     );
 });
 

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Import;
 
-use App\Services\PocketCasts;
+use App\Services\PocketCasts\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -18,7 +18,7 @@ class ImportPodcastListens extends Command
     /** Pocket Casts playing-status codes that count as "listened", mapped to a label. */
     private const LISTENED = ['2' => 'in-progress', '3' => 'played'];
 
-    public function handle(PocketCasts $pocketCasts): int
+    public function handle(Client $pocketCasts): int
     {
         $file = (string) $this->argument('file');
 
@@ -131,7 +131,7 @@ class ImportPodcastListens extends Command
      *
      * @return array<string, array{title: string, show: string, author: string, published: string, duration: int, url: string, podcast_uuid: string}>
      */
-    private function buildMetadataMap(PocketCasts $pocketCasts): array
+    private function buildMetadataMap(Client $pocketCasts): array
     {
         $map = [];
 

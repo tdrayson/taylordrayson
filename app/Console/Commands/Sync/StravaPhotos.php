@@ -6,7 +6,7 @@ use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\SyncStravaPhotos;
 use App\Enums\Source;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Attributes\Description;
@@ -22,7 +22,7 @@ class StravaPhotos extends Command
 
     private const RATE_WINDOW = 900;
 
-    public function handle(Strava $strava, SyncStravaPhotos $sync, FetchStravaActivitySummaries $summaries): int
+    public function handle(Client $strava, SyncStravaPhotos $sync, FetchStravaActivitySummaries $summaries): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -141,7 +141,7 @@ class StravaPhotos extends Command
      *
      * @param  Collection<int, array{activity: Activity, start: ?CarbonImmutable}>  $targets
      */
-    private function fetchPhotos(Strava $strava, SyncStravaPhotos $sync, Collection $targets): int
+    private function fetchPhotos(Client $strava, SyncStravaPhotos $sync, Collection $targets): int
     {
         $stored = 0;
         $requestsInWindow = 0;

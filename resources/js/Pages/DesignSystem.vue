@@ -16,6 +16,9 @@ import ExternalLink from '../Components/Ui/ExternalLink.vue';
 import SocialLinks from '../Components/Profile/SocialLinks.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
+import YearJump from '../Components/Timeline/YearJump.vue';
+import MonthStrip from '../Components/Timeline/MonthStrip.vue';
+import StyledSelect from '../Components/Search/StyledSelect.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -36,6 +39,23 @@ const note = ref('');
 const checked = ref(true);
 const toggled = ref(true);
 const page = ref(2);
+
+// Static stand-ins for the date-anchored pagination. Real figures come from the
+// controller; these are shaped like them so wiring it up is a prop swap.
+const jumpYears = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018]
+    .map((year) => ({ year, href: `/${year}` }));
+const selectYear = ref(2025);
+const yearOptions = jumpYears.map(({ year }) => ({ value: year, label: String(year) }));
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// A dense year, then one with gaps, to show both states of the strip.
+const denseMonths = MONTH_NAMES.map((label, i) => ({
+    month: i + 1, label, href: `/2025/${String(i + 1).padStart(2, '0')}`, total: 300 + i * 7,
+}));
+const sparseMonths = MONTH_NAMES.map((label, i) => ({
+    month: i + 1, label, href: `/2012/${String(i + 1).padStart(2, '0')}`,
+    total: [0, 4, 0, 0, 2, 6, 0, 0, 3, 0, 4, 0][i],
+}));
 
 // One Portable Text callout per variant, so the set is reviewable in one place.
 const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant, i) => ({
@@ -237,6 +257,13 @@ function swatchInk(step) {
                     <label class="flex items-center gap-2 text-meta"><Checkbox v-model="checked" /> Checkbox</label>
                     <label class="flex items-center gap-2 text-meta"><Switch v-model="toggled" /> Switch</label>
                 </div>
+
+                <p class="ds-sub pt-3">Select, boxed and bare</p>
+                <StyledSelect v-model="selectYear" :options="yearOptions" />
+                <p class="text-meta text-neutral-500">
+                    Sits inline in a sentence, jump to
+                    <StyledSelect v-model="selectYear" variant="bare" :options="yearOptions" />
+                </p>
             </div>
         </section>
 
@@ -288,6 +315,33 @@ function swatchInk(step) {
             <h2 class="ds-label">Pagination</h2>
             <div class="max-w-md">
                 <Pagination :current-page="page" :last-page="5" @navigate="page = $event" />
+            </div>
+
+            <p class="ds-sub pt-6">Timeline, date anchored</p>
+            <div class="max-w-xl">
+                <Pagination :current-page="2" :last-page="99" prev-label="Newer" next-label="Older" prev-url="/?before=2026-09-03" next-url="/?before=2026-08-24">
+                    <template #label>24 Aug &ndash; 2 Sep 2026</template>
+                </Pagination>
+                <YearJump :years="jumpYears" :current="2026" />
+            </div>
+
+            <p class="ds-sub pt-6">Year archive, month strip</p>
+            <div class="max-w-xl space-y-4">
+                <div>
+                    <p class="mb-2 text-caption text-neutral-500">Full year, June current</p>
+                    <MonthStrip :year="2025" :months="denseMonths" :current="6" />
+                </div>
+                <div>
+                    <p class="mb-2 text-caption text-neutral-500">Sparse year, empty months not linked</p>
+                    <MonthStrip :year="2012" :months="sparseMonths" />
+                </div>
+            </div>
+
+            <p class="ds-sub pt-6">Month archive, date anchored</p>
+            <div class="max-w-xl">
+                <Pagination :current-page="2" :last-page="12" prev-label="Newer" next-label="Older" prev-url="/2018/05" next-url="/2018/05">
+                    <template #label>4 &ndash; 9 May 2018</template>
+                </Pagination>
             </div>
         </section>
 

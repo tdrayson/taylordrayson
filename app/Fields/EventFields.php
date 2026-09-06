@@ -24,6 +24,8 @@ final class EventFields
             FieldData::optional('all_day', 'All day', FieldType::Boolean),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, source: 'place'),
+            FieldData::optional('address', 'Street', FieldType::Text, group: 'Address'),
+            FieldData::optional('postcode', 'Postcode', FieldType::Text, group: 'Address'),
             FieldData::optional('city', 'City', FieldType::Text, group: 'Address'),
             FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),

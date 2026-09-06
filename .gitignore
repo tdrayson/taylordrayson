@@ -47,6 +47,11 @@ storage/backups/
 # Scratch screenshots dropped at the repo root, never part of the app.
 /*.png
 
+# Avatar images cached at runtime, keyed by a hash of their source. Nothing in
+# the app writes them any more, but the directory reappears on machines that
+# ran the older code.
+/public/avatars/
+
 # Favicons downloaded at runtime by links:favicons, keyed by host. Fetched on
 # the server, so they are cache rather than source.
 /public/favicons/

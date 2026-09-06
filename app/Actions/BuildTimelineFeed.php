@@ -30,7 +30,7 @@ class BuildTimelineFeed
                 'label' => $group->first()->occurred_at->format('l j F Y'),
                 'date' => $group->first()->occurred_at->format('Y-m-d'),
                 'href' => '/'.$group->first()->occurred_at->format('Y/m/d'),
-                'items' => $group->map(fn (TimelineEntry $entry): array => $this->cardItem($entry))->all(),
+                'items' => $this->items($group),
             ])
             ->values()
             ->all();
@@ -57,6 +57,51 @@ class BuildTimelineFeed
     }
 
     /**
+     * Shape an ordered run of entries into feed cards.
+     *
+     * @param  Collection<int, TimelineEntry>  $entries
+     * @return array<int, array<string, mixed>>
+     */
+    public function items(Collection $entries): array
+    {
+        return $this->withoutRepeatedBackdrops(
+            $entries->map(fn (TimelineEntry $entry): array => $this->cardItem($entry))->all(),
+        );
+    }
+
+    /**
+     * Keep the first card to carry a given backdrop and blank it on the rest. A
+     * day of one show borrows the same show artwork for every episode, which
+     * renders as the same picture several times down the feed; the run reads as
+     * one image followed by its episodes instead.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function withoutRepeatedBackdrops(array $items): array
+    {
+        $seen = [];
+
+        foreach ($items as $index => $item) {
+            $backdrop = $item['backdrop'] ?? null;
+
+            if ($backdrop === null) {
+                continue;
+            }
+
+            if (isset($seen[$backdrop])) {
+                $items[$index]['backdrop'] = null;
+
+                continue;
+            }
+
+            $seen[$backdrop] = true;
+        }
+
+        return $items;
+    }
+
+    /**
      * Shape a single timeline entry into the feed card payload consumed by FeedItem.vue.
      *
      * @return array<string, mixed>
@@ -78,6 +123,8 @@ class BuildTimelineFeed
             'meta' => Text::excerpt($card->subtitle, 240),
             'metaTokens' => $card->subtitleTokens,
             'body' => $card->meta->body,
+            'previews' => $card->meta->previews,
+            'favicons' => $card->meta->favicons,
             'segments' => $card->meta->segments,
             'route' => $card->meta->route,
             'media' => $card->meta->media,
@@ -88,6 +135,8 @@ class BuildTimelineFeed
             'brandLogo' => $card->meta->brandLogo,
             'brand' => $card->meta->brand,
             'address' => $card->meta->address,
+            'category' => $card->meta->category,
+            'backdrop' => $card->meta->backdrop,
             'range' => $card->range,
             // A day total has no clock reading to show, but keeps a real
             // instant in `datetime` for ordering, microformats and the tooltip.

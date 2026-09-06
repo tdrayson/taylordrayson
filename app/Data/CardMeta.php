@@ -25,19 +25,33 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?array $segments,
         public ?MediaData $media,
         public ?RouteData $route,
-        public ?string $body,
+        public ?array $body,
         public ?string $brand,
         public ?string $brandLogo,
         private array $present,
         public ?string $address = null,
+        public ?string $backdrop = null,
+        public ?string $category = null,
+        public ?array $previews = null,
+        public ?array $favicons = null,
     ) {}
 
     /**
-     * No meta at all (Calorie, Media, Project).
+     * No meta at all (Calorie, Project).
      */
     public static function empty(): self
     {
         return new self(null, null, null, null, null, null, null, null, null, null, []);
+    }
+
+    /**
+     * Media: the wide artwork behind a film or episode. Its own key rather than
+     * a photo, so the card renders it as context and not as something to open
+     * in the lightbox.
+     */
+    public static function backdrop(?string $backdrop): self
+    {
+        return new self(null, null, null, null, null, null, null, null, null, null, ['backdrop'], null, $backdrop);
     }
 
     /**
@@ -88,13 +102,14 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
 
     /**
      * Checkin: the check-in's own photos alongside the generated location map,
-     * both rather than one-or-other, with the address beneath.
+     * both rather than one-or-other, with the address beneath and Foursquare's
+     * category as a label.
      *
      * @param  list<PhotoData>  $photos
      */
-    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address): self
+    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address, ?string $category): self
     {
-        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address'], $address);
+        return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address', 'category'], $address, null, $category);
     }
 
     /**
@@ -116,13 +131,21 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Note: body, photos.
+     * Note: body, photos, previews, favicons.
      *
+     * A note is the entry itself rather than a summary of one, so the feed
+     * renders its whole document. The resolved link data rides along on the
+     * card because every feed surface needs it, unlike the entry page, which
+     * provides it once for the page.
+     *
+     * @param  array<int, array<string, mixed>>  $body
      * @param  list<PhotoData>  $photos
+     * @param  array<string, array<string, mixed>>  $previews
+     * @param  array<string, string>  $favicons
      */
-    public static function note(string $body, array $photos): self
+    public static function note(array $body, array $photos, array $previews = [], array $favicons = []): self
     {
-        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos']);
+        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos', 'previews', 'favicons'], null, null, null, $previews, $favicons);
     }
 
     /**
@@ -142,6 +165,10 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'brand' => $this->brand,
             'brandLogo' => $this->brandLogo,
             'address' => $this->address,
+            'backdrop' => $this->backdrop,
+            'category' => $this->category,
+            'previews' => $this->previews,
+            'favicons' => $this->favicons,
         ];
 
         $result = [];

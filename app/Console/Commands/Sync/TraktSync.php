@@ -6,7 +6,7 @@ use App\Exceptions\TraktException;
 use App\Jobs\EnrichMedia;
 use App\Models\Media;
 use App\Models\Series;
-use App\Services\Trakt;
+use App\Services\Trakt\Client;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -61,9 +61,9 @@ class TraktSync extends Command
      * halves so the every-minute history schedule and the daily ratings one can
      * never race; a plain run does both.
      */
-    public function handle(Trakt $trakt): int
+    public function handle(Client $trakt): int
     {
-        // Fail closed: a mid-pagination Trakt failure throws (see `Trakt::historyPage`/
+        // Fail closed: a mid-pagination Trakt failure throws (see `Trakt\Client::historyPage`/
         // `ratingsPage`), and any work already imported before the failure stays
         // (never rolled back), but the command reports failure so a partial sync is
         // never mistaken for a complete one.
@@ -214,7 +214,7 @@ class TraktSync extends Command
      * Pull personal star ratings (1-10) and apply them onto matching Media/Series
      * rows by `meta.ids.trakt` or `Series.trakt_id`.
      */
-    private function syncRatings(Trakt $trakt): void
+    private function syncRatings(Client $trakt): void
     {
         // Ratings are "last known wins": a title later un-rated on Trakt keeps
         // its stored value rather than being cleared. This is deliberate. A
@@ -294,7 +294,7 @@ class TraktSync extends Command
      *
      * @return array<int|string, int>
      */
-    private function fetchAllRatingPages(Trakt $trakt, string $type): array
+    private function fetchAllRatingPages(Client $trakt, string $type): array
     {
         $ratings = [];
         $page = 1;
@@ -328,7 +328,7 @@ class TraktSync extends Command
     /**
      * @param  Collection<string, int>  $existing
      */
-    private function importMovies(Trakt $trakt, ?string $startAt, Collection $existing): int
+    private function importMovies(Client $trakt, ?string $startAt, Collection $existing): int
     {
         $created = 0;
 
@@ -347,7 +347,7 @@ class TraktSync extends Command
     /**
      * @param  Collection<string, int>  $existing
      */
-    private function importEpisodes(Trakt $trakt, ?string $startAt, Collection $existing): int
+    private function importEpisodes(Client $trakt, ?string $startAt, Collection $existing): int
     {
         $created = 0;
 
@@ -369,7 +369,7 @@ class TraktSync extends Command
      *
      * @return array<int, array<string, mixed>>
      */
-    private function fetchAllPages(Trakt $trakt, string $type, ?string $startAt): array
+    private function fetchAllPages(Client $trakt, string $type, ?string $startAt): array
     {
         $items = [];
         $page = 1;
@@ -391,7 +391,7 @@ class TraktSync extends Command
     /**
      * @param  array<string, mixed>  $item
      */
-    private function createFilm(Trakt $trakt, array $item): void
+    private function createFilm(Client $trakt, array $item): void
     {
         $movie = $item['movie'];
 
@@ -419,7 +419,7 @@ class TraktSync extends Command
     /**
      * @param  array<string, mixed>  $item
      */
-    private function createEpisode(Trakt $trakt, array $item): void
+    private function createEpisode(Client $trakt, array $item): void
     {
         $show = $item['show'];
         $episode = $item['episode'];
@@ -516,7 +516,7 @@ class TraktSync extends Command
      *
      * @return array<string, mixed>|null
      */
-    private function showSummary(Trakt $trakt, int|string|null $traktId): ?array
+    private function showSummary(Client $trakt, int|string|null $traktId): ?array
     {
         if ($traktId === null) {
             return null;

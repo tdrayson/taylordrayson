@@ -1,13 +1,14 @@
 <?php
 
 use App\Models\Activity;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 function fakeStravaSync(): void
 {
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::response([]),
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => MockResponse::make([]),
     ]);
 }
 
@@ -16,9 +17,9 @@ function stravaAfter(): int
 {
     $sent = 0;
 
-    Http::assertSent(function ($request) use (&$sent): bool {
-        if (str_contains($request->url(), 'athlete/activities')) {
-            $sent = (int) $request['after'];
+    Saloon::assertSent(function ($request, $response) use (&$sent): bool {
+        if (str_contains($response->getPendingRequest()->getUrl(), 'athlete/activities')) {
+            $sent = (int) $request->query()->get('after');
         }
 
         return true;
@@ -90,8 +91,8 @@ function stravaDetailRequests(): int
 {
     $count = 0;
 
-    Http::assertSent(function ($request) use (&$count): bool {
-        if (preg_match('#/api/v3/activities/\d+$#', parse_url($request->url(), PHP_URL_PATH) ?? '')) {
+    Saloon::assertSent(function ($request, $response) use (&$count): bool {
+        if (preg_match('#/api/v3/activities/\d+$#', parse_url($response->getPendingRequest()->getUrl(), PHP_URL_PATH) ?? '')) {
             $count++;
         }
 
@@ -113,12 +114,16 @@ it('picks up a title and description edited after the activity was published', f
         'occurred_at' => now()->subHours(3),
     ]);
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()
-            ->push([stravaSummary(['name' => 'Parkrun PB'])])
-            ->push([]),
-        '*/api/v3/activities/555' => Http::response(stravaSummary([
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([stravaSummary(['name' => 'Parkrun PB'])]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/api/v3/activities/555' => MockResponse::make(stravaSummary([
             'name' => 'Parkrun PB',
             'description' => 'Took two minutes off.',
         ])),
@@ -142,10 +147,16 @@ it('spends no detail request on an activity whose summary still matches', functi
         'occurred_at' => now()->subHours(3),
     ]);
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()->push([stravaSummary()])->push([]),
-        '*/api/v3/activities/*' => Http::response([]),
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([stravaSummary()]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/api/v3/activities/*' => MockResponse::make([]),
     ]);
 
     $this->artisan('strava:sync --days=7')->assertSuccessful();
@@ -166,10 +177,16 @@ it('re-fetches an unchanged activity when --refresh is passed', function () {
         'occurred_at' => now()->subHours(3),
     ]);
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()->push([stravaSummary()])->push([]),
-        '*/api/v3/activities/555' => Http::response(stravaSummary([
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([stravaSummary()]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/api/v3/activities/555' => MockResponse::make(stravaSummary([
             'description' => 'Written the next morning.',
         ])),
     ]);
@@ -196,13 +213,19 @@ it('holds the refresh to --days even when the window stretched to heal a gap', f
         'occurred_at' => now()->subDays(30),
     ]);
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()->push([stravaSummary([
-            'start_date' => now()->subDays(30)->format('Y-m-d\TH:i:s\Z'),
-            'start_date_local' => now()->subDays(30)->format('Y-m-d\TH:i:s\Z'),
-        ])])->push([]),
-        '*/api/v3/activities/*' => Http::response([]),
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([stravaSummary([
+                'start_date' => now()->subDays(30)->format('Y-m-d\TH:i:s\Z'),
+                'start_date_local' => now()->subDays(30)->format('Y-m-d\TH:i:s\Z'),
+            ])]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/api/v3/activities/*' => MockResponse::make([]),
     ]);
 
     $this->artisan('strava:sync --days=2 --refresh')->assertSuccessful();
@@ -216,12 +239,17 @@ it('holds the refresh to --days even when the window stretched to heal a gap', f
  * in summer and Africa/Abidjan in winter (#285).
  */
 it('does not store a zone Strava guessed from the offset', function () {
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()
-            ->push([stravaSummary(['id' => 777, 'sport_type' => 'WeightTraining', 'timezone' => '(GMT+01:00) Africa/Algiers'])])
-            ->push([]),
-        '*/api/v3/activities/777' => Http::response(stravaSummary([
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([stravaSummary(['id' => 777, 'sport_type' => 'WeightTraining', 'timezone' => '(GMT+01:00) Africa/Algiers'])]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/api/v3/activities/777/streams*' => MockResponse::make([]),
+        '/api/v3/activities/777' => MockResponse::make(stravaSummary([
             'id' => 777,
             'sport_type' => 'WeightTraining',
             'timezone' => '(GMT+01:00) Africa/Algiers',
@@ -240,10 +268,17 @@ it('stores a foreign zone when the activity has a route to back it up', function
         'map' => ['polyline' => 'ki{eFvqfiVsAvJ'],
     ];
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()->push([stravaSummary($abroad)])->push([]),
-        '*/api/v3/activities/778' => Http::response(stravaSummary($abroad)),
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([stravaSummary($abroad)]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/api/v3/activities/778/streams*' => MockResponse::make([]),
+        '/api/v3/activities/778' => MockResponse::make(stravaSummary($abroad)),
     ]);
 
     $this->artisan('strava:sync --days=7')->assertSuccessful();

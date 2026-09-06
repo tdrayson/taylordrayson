@@ -2,7 +2,8 @@
 
 use App\Models\Airline;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.logostream.key' => 'test-key']);
@@ -17,14 +18,16 @@ afterEach(function () {
 });
 
 it('downloads real logos and skips airlines with no logo available', function () {
-    Http::fake(function ($request) {
-        if (str_contains($request->url(), '/iata/XX')) {
-            return Http::response('FAKE-PNG-BYTES', 200, ['Content-Type' => 'image/png', 'x-asset' => 'XXX_logo']);
+    // A callable mock receives the PendingRequest, so one wildcard entry can
+    // answer differently per URL.
+    Saloon::fake(['*' => function ($pendingRequest) {
+        if (str_contains($pendingRequest->getUrl(), '/iata/XX')) {
+            return MockResponse::make('FAKE-PNG-BYTES', 200, ['Content-Type' => 'image/png', 'x-asset' => 'XXX_logo']);
         }
 
         // LogoStream serves an SVG placeholder with x-asset "-" when it has no logo.
-        return Http::response('<svg/>', 200, ['Content-Type' => 'image/svg+xml', 'x-asset' => '-']);
-    });
+        return MockResponse::make('<svg/>', 200, ['Content-Type' => 'image/svg+xml', 'x-asset' => '-']);
+    }]);
 
     $this->artisan('airlines:logos', ['iata' => ['XX', 'YY']])->assertExitCode(0);
 
@@ -40,11 +43,11 @@ it('does not re-download logos that already exist without --force', function () 
     File::put(public_path('logos/airlines/icon/XX.png'), 'existing');
     File::put(public_path('logos/airlines/logo/XX.png'), 'existing');
 
-    Http::fake();
+    Saloon::fake(['' => MockResponse::make('', 200)]);
 
     $this->artisan('airlines:logos', ['iata' => ['XX']])->assertExitCode(0);
 
-    Http::assertNothingSent();
+    Saloon::assertNothingSent();
     expect(File::get(public_path('logos/airlines/logo/XX.png')))->toBe('existing');
 });
 

@@ -3,7 +3,10 @@
    Deliberately mirrors PortableTextBlocks.js rather than inventing its own
    scale: what you type has to look like what gets published, or the editor is
    lying about the result. Keep the two in step when either changes. */
-.ProseMirror {
+/* Only the long-read surface takes a measure. A prose field is drawn inside a
+   bordered control that already sets the width, and capping the text there
+   left an empty gutter down the right of the box. */
+.ProseMirror.prose-editor--document {
     max-width: var(--container-prose, 65ch);
 }
 
@@ -151,7 +154,7 @@
     height: 0.875em;
     margin-right: 0.25em;
     vertical-align: -0.125em;
-    background: #fff center/contain no-repeat var(--editor-link-favicon, none);
+    background: center/contain no-repeat var(--editor-link-favicon, none);
 }
 
 /* Internal links have no host to fetch an icon for. They carry a generic entry

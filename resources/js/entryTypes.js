@@ -7,7 +7,7 @@
 export const entryTypes = {
     activity: { icon: 'WorkoutRunIcon', label: 'Activity', href: '/activities', accent: 'activity' },
     sleep: { icon: 'Moon02Icon', label: 'Sleep', href: '/sleep', accent: 'sleep' },
-    calorie: { icon: 'Dish02Icon', label: 'Food', href: '/food', accent: 'food' },
+    calorie: { icon: 'UtensilsIcon', label: 'Food', href: '/food', accent: 'food' },
     media: { icon: 'Film01Icon', label: 'Media', href: '/media', accent: 'media' },
     event: { icon: 'Ticket01Icon', label: 'Event', href: '/events', accent: 'event' },
     appearance: { icon: 'Mic01Icon', label: 'Appearance', href: '/appearances', accent: 'appearance' },
@@ -17,7 +17,7 @@ export const entryTypes = {
     fuel: { icon: 'PetrolPumpIcon', label: 'Fuel', href: '/fuel', accent: 'fuel' },
     project: { icon: 'RocketIcon', label: 'Project', href: '/projects', accent: 'project' },
     article: { icon: 'File01Icon', label: 'Article', href: '/articles', accent: 'article' },
-    note: { icon: 'Note01Icon', label: 'Note', href: '/notes', accent: 'note' },
+    note: { icon: 'StickyNote02Icon', label: 'Note', href: '/notes', accent: 'note' },
     // Not timeline types: the other things an internal link can point at, so a
     // link preview has a glyph for each. See App\\Links\\Resolvers.
     story: { icon: 'BookOpen01Icon', label: 'Story', href: '/stories', accent: 'article' },
@@ -28,5 +28,5 @@ export const entryTypes = {
 };
 
 export function entryType(type) {
-    return entryTypes[type] ?? { icon: 'Note01Icon', label: type, accent: 'note' };
+    return entryTypes[type] ?? { icon: 'StickyNote02Icon', label: type, accent: 'note' };
 }

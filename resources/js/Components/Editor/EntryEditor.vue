@@ -1,13 +1,15 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
-import { noteSlug, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
+import LengthNotice from './LengthNotice.vue';
 
 /**
  * The editing surface for any type: one column, mobile first, nothing floating.
@@ -22,6 +24,10 @@ const props = defineProps({
     action: { type: String, required: true },
     method: { type: String, default: 'patch' },
     submitLabel: { type: String, default: 'Post' },
+    // The type this one graduates into when its capped field overflows, e.g. a
+    // note into an article. Null on every surface where that is not on offer,
+    // which includes editing something already posted.
+    convertTo: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -213,11 +219,52 @@ function applyFill(values) {
     });
 }
 
+/** The field carrying a character limit, if this type declares one. */
+const cappedField = computed(() => props.fields.find((field) => field.max) ?? null);
+
+/** Characters spent on it, measured on readable text the way the server measures. */
+const usedCharacters = computed(() => (cappedField.value === null
+    ? 0
+    : plainTextOf(form[cappedField.value.name]).length));
+
+const overBy = computed(() => (cappedField.value === null ? 0 : usedCharacters.value - cappedField.value.max));
+
+/**
+ * Past the cap the save is refused, so the button is stopped here rather than
+ * letting it round-trip to a validation error. The words are never truncated:
+ * the way out is the bigger type, not a sentence cut in half.
+ */
+const overLimit = computed(() => cappedField.value !== null && overBy.value > 0);
+
+/** Where the offer to graduate is drawn, when this type has one to make. */
+const noticeAfter = computed(() => (props.convertTo === null ? null : cappedField.value?.name ?? null));
+
+/**
+ * Open the bigger type's editor holding what has been written so far.
+ *
+ * Both types name their body `content`, so the document crosses as it is: a
+ * note's blocks are a subset of what an article allows.
+ */
+function convert() {
+    stash(props.convertTo, {
+        content: form[cappedField.value.name],
+        tags: form.tags ?? [],
+    });
+
+    router.visit(`/new/${props.convertTo}`);
+}
+
 const errorCount = computed(() => Object.keys(form.errors).length);
 
 const status = computed(() => {
     if (form.processing) {
         return publishField.value ? 'Saving...' : 'Posting...';
+    }
+
+    // Ahead of the dirty check for the same reason the error count is: the form
+    // being dirty is not the news when the save button will not fire.
+    if (overLimit.value) {
+        return `Too long to post, by ${overBy.value.toLocaleString()} ${overBy.value === 1 ? 'character' : 'characters'}`;
     }
 
     // Ahead of the dirty check: a rejected save leaves the form dirty, and
@@ -286,6 +333,14 @@ function submit(published = null) {
             @fill="applyFill"
         />
 
+        <LengthNotice
+            v-if="noticeAfter && bodyField?.name === noticeAfter"
+            :used="usedCharacters"
+            :max="cappedField.max"
+            :convert-to="convertTo"
+            @convert="convert"
+        />
+
         <!-- Ruled off from the writing surface: what follows is metadata about
              the entry rather than more of the entry. -->
         <div
@@ -294,20 +349,31 @@ function submit(published = null) {
             :class="bodyField ? 'mt-12 border-t border-neutral-50 pt-8' : 'mt-6'"
         >
             <template v-for="row in rows" :key="row.key">
-                <FieldInput
-                    v-if="row.kind === 'field'"
-                    :field="row.field"
-                    :model-value="form[row.field.name]"
-                    :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
-                    :latitude="form.latitude ?? null"
-                    :longitude="form.longitude ?? null"
-                    :error="form.errors[row.field.name]"
-                    :readonly="row.field.type === 'slug' && slugLocked"
-                    :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
-                    :hint="row.field.type === 'slug' ? slugPreview : null"
-                    @update:model-value="onFieldInput(row.field, $event)"
-                    @fill="applyFill"
-                />
+                <!-- Wrapped so the notice hangs off its own field rather than
+                     becoming another row in the stack's spacing. -->
+                <div v-if="row.kind === 'field'">
+                    <FieldInput
+                        :field="row.field"
+                        :model-value="form[row.field.name]"
+                        :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
+                        :latitude="form.latitude ?? null"
+                        :longitude="form.longitude ?? null"
+                        :error="form.errors[row.field.name]"
+                        :readonly="row.field.type === 'slug' && slugLocked"
+                        :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
+                        :hint="row.field.type === 'slug' ? slugPreview : null"
+                        @update:model-value="onFieldInput(row.field, $event)"
+                        @fill="applyFill"
+                    />
+
+                    <LengthNotice
+                        v-if="row.field.name === noticeAfter"
+                        :used="usedCharacters"
+                        :max="cappedField.max"
+                        :convert-to="convertTo"
+                        @convert="convert"
+                    />
+                </div>
 
                 <FieldGroup
                     v-else
@@ -337,7 +403,7 @@ function submit(published = null) {
                 <Button
                     :variant="isPublished ? 'ghost' : 'secondary'"
                     size="lg"
-                    :disabled="form.processing"
+                    :disabled="form.processing || overLimit"
                     @click="submit(isPublished ? false : null)"
                 >
                     {{ isPublished ? 'Unpublish' : 'Save draft' }}
@@ -346,14 +412,14 @@ function submit(published = null) {
                 <Button
                     variant="primary"
                     size="lg"
-                    :disabled="form.processing"
+                    :disabled="form.processing || overLimit"
                     @click="submit(isPublished ? null : true)"
                 >
                     {{ isPublished ? 'Update' : 'Publish' }}
                 </Button>
             </div>
 
-            <Button v-else variant="primary" size="lg" class="shrink-0" :disabled="form.processing" @click="submit">
+            <Button v-else variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit" @click="submit">
                 {{ submitLabel }}
             </Button>
         </div>

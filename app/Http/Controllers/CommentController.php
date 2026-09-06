@@ -7,7 +7,7 @@ use App\Actions\Comments\StoreComment;
 use App\Enums\CommentStatus;
 use App\Http\Requests\Interactions\StoreCommentRequest;
 use App\Models\Comment;
-use App\Services\Pushover;
+use App\Services\Pushover\Client as Pushover;
 use App\Support\FormNonce;
 use App\Support\InteractionTarget;
 use Illuminate\Http\JsonResponse;

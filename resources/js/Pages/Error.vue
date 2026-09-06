@@ -15,24 +15,17 @@ const props = defineProps({
 });
 
 const messages = {
+    404: { title: "Uh oh! You weren't supposed to find this.", body: "Either something broke, or you went poking around for a page that doesn't exist. Either way, bold move. While you're here, I should mention I've logged 1000 entries over a 100-day streak, so I genuinely didn't expect anyone to wander this far off the map." },
     403: { title: 'This entry is private.', body: "You don't have access to this corner of the log." },
     500: { title: 'Something glitched.', body: 'An error crept into the log. Try again in a moment.' },
     503: { title: 'Briefly offline.', body: 'The log is down for a quick moment. Check back soon.' },
 };
 
-const copy = computed(() => {
-    if (props.status === 404) {
-        return { title: "You weren't supposed to find this." };
-    }
-
-    return messages[props.status] ?? messages[500];
-});
+const copy = messages[props.status] ?? messages[500];
 </script>
 
 <template>
     <AppHead :og="og" />
-
-    <p class="text-eyebrow uppercase text-neutral-500">Error {{ status }}</p>
 
     <h1 class="mt-3 font-display text-display">{{ copy.title }}</h1>
 

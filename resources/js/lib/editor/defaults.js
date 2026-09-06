@@ -90,6 +90,19 @@ export function slugifyInput(value) {
         .replace(/^-+/, '');
 }
 
+/**
+ * A tag's name as it will be stored. Mirrors HasTags::titleCaseTag on the
+ * server, so the chip shows what saving produces: an all-lowercase word is
+ * capitalised, and a word already carrying a capital ("TV", "iOS") is left
+ * exactly as it was typed.
+ */
+export function tagName(value) {
+    return String(value ?? '').replace(
+        /[\p{L}\p{N}']+/gu,
+        (word) => (word === word.toLowerCase() ? word[0].toUpperCase() + word.slice(1) : word),
+    );
+}
+
 /** How much of a note the derived slug uses. Mirrors Note::SLUG_WORDS. */
 const NOTE_SLUG_WORDS = 6;
 
@@ -105,13 +118,22 @@ export function noteSlug(document, fallback = 'note') {
     return slugify(words.slice(0, NOTE_SLUG_WORDS).join(' ')) || fallback;
 }
 
-/** The readable text of a Portable Text document, ignoring its structure. */
-function plainTextOf(document) {
+/**
+ * The readable text of a Portable Text document, ignoring its structure.
+ *
+ * Mirrors PortableText::plainText(), which the note length limit is measured
+ * with: spans join with nothing and blocks with a space, so marking a word as
+ * a link cannot change the count. The two have to agree or the counter will
+ * disagree with the save.
+ */
+export function plainTextOf(document) {
     if (typeof document === 'string') {
         return document;
     }
 
-    return (Array.isArray(document) ? document : [])
-        .flatMap((block) => (block?.children ?? []).map((child) => child?.text ?? ''))
-        .join(' ');
+    const parts = (Array.isArray(document) ? document : []).map((node) => (node?._type === 'code'
+        ? node.code ?? ''
+        : (node?.children ?? []).map((child) => child?.text ?? '').join('')));
+
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
 }

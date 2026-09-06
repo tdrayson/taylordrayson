@@ -10,6 +10,7 @@ import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import CardMediaCarousel from './CardMediaCarousel.vue';
+import NoteBody from '../Ui/NoteBody.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
@@ -26,9 +27,10 @@ const props = defineProps({
     title: { type: String, required: true },
     // Accessible name for the title when the visible text lacks context (e.g. "3,145 kcal").
     titleLabel: { type: String, default: null },
-    // Full note content: title-less types render this as body text instead of
-    // the display-font title, with the timestamp acting as the permalink.
-    body: { type: String, default: null },
+    // Full note content as a Portable Text document: title-less types render
+    // this instead of the display-font title, with the timestamp acting as the
+    // permalink. Rendered rather than flattened so its links survive the feed.
+    body: { type: [Array, String], default: null },
     meta: { type: String, default: '' },
     // Structured subtitle tokens (raw metres/kg + literal text) composed reactively
     // via useFormat; null falls back to the plain `meta` string (e.g. notes).
@@ -38,6 +40,9 @@ const props = defineProps({
     media: { type: Object, default: null },
     photos: { type: Array, default: null },
     polyline: { type: String, default: null },
+    // Wide artwork for a film or episode (an episode borrows its show's). Shown
+    // as context, so unlike `photos` it has no lightbox.
+    backdrop: { type: String, default: null },
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
@@ -53,6 +58,9 @@ const props = defineProps({
     // A check-in's full address, shown beneath the map regardless of whether the
     // card has a note.
     address: { type: String, default: null },
+    // Foursquare's own word for what the place is, shown as a label rather than
+    // written into a sentence: the vocabulary includes Road, Platform and Town.
+    category: { type: String, default: null },
     // Multi-day span ({ start, end, days, label }), e.g. a multi-day event.
     range: { type: Object, default: null },
     pb: { type: Boolean, default: false },
@@ -63,6 +71,11 @@ const props = defineProps({
 
 // Unit-aware distance formatter; route.distance is already in miles.
 const { distance, weight, distanceFromMiles } = useFormat();
+
+// A note renders its document in place of the display-font title, so the
+// heading below is a v-else on this rather than on `body` being truthy: an
+// empty array is truthy and would silently swallow the title.
+const hasBody = computed(() => (Array.isArray(props.body) ? props.body.length > 0 : Boolean(props.body)));
 
 const videoSlot = ref(null);
 
@@ -220,7 +233,7 @@ function openLightbox(index) {
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
             </div>
         </div>
-        <p v-if="body" v-twemoji class="e-content mt-1.5 max-w-prose whitespace-pre-line text-base leading-relaxed text-neutral-900">{{ body }}</p>
+        <NoteBody v-if="hasBody" :document="body" />
         <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
         <h3 v-else class="mt-1 max-w-md font-display text-item-title">
             <component
@@ -232,6 +245,7 @@ function openLightbox(index) {
                 :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
             >{{ title }}</component>
         </h3>
+        <p v-if="category" class="mt-1.5 text-caption text-neutral-500">{{ category }}</p>
         <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
                 <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
@@ -272,6 +286,20 @@ function openLightbox(index) {
             class="lg:hidden"
             @open="openLightbox"
         />
+
+        <!-- Context, not a photograph: no zoom button and no lightbox, and the
+             whole thing is aria-hidden because the text permalink above says
+             the same. Lazy, since media is the bulk of the feed. -->
+        <component
+            :is="url ? Link : 'div'"
+            v-if="backdrop"
+            :href="url || undefined"
+            :tabindex="url ? -1 : undefined"
+            :aria-hidden="url ? 'true' : undefined"
+            class="mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
+        >
+            <img :src="backdrop" alt="" loading="lazy" decoding="async" class="size-full object-cover">
+        </component>
 
         <!-- Image link and zoom button are siblings, not nested; the image link
              duplicates the text permalink, so it is aria-hidden. -->

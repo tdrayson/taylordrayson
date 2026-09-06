@@ -6,6 +6,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
+import { claim } from '../lib/editor/handoff.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -25,7 +26,11 @@ setLayoutProps({
         : [{ label: 'New' }],
 });
 
-const values = computed(() => valuesFor(props.fields));
+// Anything a smaller type handed over on the way here, claimed once on setup
+// rather than in the computed: claiming clears it, and a computed may run again.
+const carried = claim(props.type);
+
+const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
 </script>
 
 <template>
@@ -56,6 +61,7 @@ const values = computed(() => valuesFor(props.fields));
             :action="`/entries/${type}`"
             method="post"
             submit-label="Post"
+            :convert-to="type === 'note' ? 'article' : null"
         />
     </div>
 </template>

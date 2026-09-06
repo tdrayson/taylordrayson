@@ -6,9 +6,11 @@ use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Models\Media;
+use App\Models\Sleep;
 use App\Presenters\CardPresenter;
 
-it('joins activity distance and duration with "in" and keeps calories comma-joined', function () {
+it('writes an activity subtitle as a sentence, with distance still a token', function () {
     $activity = Activity::factory()->create([
         'type' => 'run',
         'distance' => 2574, // ~1.6 mi
@@ -19,14 +21,16 @@ it('joins activity distance and duration with "in" and keeps calories comma-join
 
     $card = CardPresenter::for($activity)->toArray();
 
-    expect($card['subtitle'])->toContain(' in ')
-        ->and($card['subtitle'])->toMatch('/mi in .*, 210 kcal/');
+    expect($card['subtitle'])->toBe('I ran 1.6 mi in 22m and burned 210 kcal.');
 
-    $durationToken = collect($card['subtitleTokens'])->first(fn (array $token): bool => $token['t'] === 'text' && str_contains($token['v'], 'm'));
-    expect($durationToken['sep'])->toBe(' in ');
+    // Distance stays a raw-metres token so the mi/km toggle can rewrite it in
+    // place; the sentence around it is plain text.
+    $distanceToken = collect($card['subtitleTokens'])->firstWhere('t', 'dist');
+    expect($distanceToken['m'])->toBe(2574)
+        ->and($distanceToken['sep'])->toBe(' ');
 });
 
-it('does not lead activity subtitle with "in" when there is no distance', function () {
+it('names the activity instead of its distance when it has none', function () {
     $activity = Activity::factory()->create([
         'type' => 'gym',
         'distance' => null,
@@ -37,15 +41,14 @@ it('does not lead activity subtitle with "in" when there is no distance', functi
 
     $card = CardPresenter::for($activity)->toArray();
 
-    expect($card['subtitle'])->not->toContain(' in ')
-        ->and($card['subtitle'])->toBe('22m, 210 kcal');
+    expect($card['subtitle'])->toBe('I did 22m of gym and burned 210 kcal.');
 
-    $durationToken = $card['subtitleTokens'][0];
-    expect($durationToken['t'])->toBe('text')
-        ->and($durationToken)->not->toHaveKey('sep');
+    $opening = $card['subtitleTokens'][0];
+    expect($opening['t'])->toBe('text')
+        ->and($opening)->not->toHaveKey('sep');
 });
 
-it('activity subtitle shows just distance when duration and calories are absent', function () {
+it('drops the trailing clauses when duration and calories are absent', function () {
     $activity = Activity::factory()->create([
         'type' => 'run',
         'distance' => 2574,
@@ -54,50 +57,52 @@ it('activity subtitle shows just distance when duration and calories are absent'
         'meta' => [],
     ]);
 
-    expect(CardPresenter::for($activity)->toArray()['subtitle'])->toBe('1.6 mi');
+    expect(CardPresenter::for($activity)->toArray()['subtitle'])->toBe('I ran 1.6 mi.');
 });
 
-it('joins flight distance and cabin class with "in"', function () {
+it('writes the flight subtitle as a sentence, with distance still a token', function () {
     $flight = Flight::factory()->create([
+        'origin_iata' => 'FCO',
+        'destination_iata' => 'BCN',
         'distance' => 482803, // ~300 mi
         'cabin_class' => 'economy',
     ]);
 
     $card = CardPresenter::for($flight)->toArray();
 
-    expect($card['subtitle'])->toContain(' in economy');
+    expect($card['subtitle'])->toBe('I flew from FCO to BCN. It was 300 mi in economy.');
 
-    $cabinToken = collect($card['subtitleTokens'])->firstWhere('v', 'economy');
-    expect($cabinToken['sep'])->toBe(' in ');
+    $distanceToken = collect($card['subtitleTokens'])->firstWhere('t', 'dist');
+    expect($distanceToken['m'])->toBe(482803)
+        ->and($distanceToken['sep'])->toBe(' ');
 });
 
-it('does not dangle "in" when a flight has no cabin class', function () {
+it('closes the flight sentence without a cabin class', function () {
     $flight = Flight::factory()->create([
+        'origin_iata' => 'FCO',
+        'destination_iata' => 'BCN',
         'distance' => 482803, // ~300 mi
         'cabin_class' => null,
     ]);
 
     $card = CardPresenter::for($flight)->toArray();
 
-    expect($card['subtitle'])->toBe('300 mi')
-        ->and($card['subtitle'])->not->toContain(' in ')
-        ->and($card['subtitle'])->not->toMatch('/\s$/');
-
-    expect($card['subtitleTokens'])->toHaveCount(1);
-    expect($card['subtitleTokens'][0])->not->toHaveKey('sep');
+    expect($card['subtitle'])->toBe('I flew from FCO to BCN. It was 300 mi.')
+        ->and($card['subtitle'])->not->toContain(' in ');
 });
 
-it('builds the fuel subtitle with "for" and "at" clauses', function () {
+it('writes the fuel subtitle as a sentence with a price clause', function () {
     $fuel = Fuel::factory()->create([
         'litres' => 33,
         'cost' => 45.06,
         'price_per_litre' => 1.359,
     ]);
 
-    expect(CardPresenter::for($fuel)->toArray()['subtitle'])->toBe('33 L for £45.06 at £1.359/L');
+    expect(CardPresenter::for($fuel)->toArray()['subtitle'])
+        ->toBe('I filled up with 33.00L in '.$fuel->city.'. Fuel was 135.9p/L.');
 });
 
-it('omits the "at" clause when fuel has no price per litre', function () {
+it('drops the price sentence when there is no price per litre', function () {
     $fuel = Fuel::factory()->create([
         'litres' => 33,
         'cost' => 45.06,
@@ -106,8 +111,8 @@ it('omits the "at" clause when fuel has no price per litre', function () {
 
     $subtitle = CardPresenter::for($fuel)->toArray()['subtitle'];
 
-    expect($subtitle)->toBe('33 L for £45.06')
-        ->and($subtitle)->not->toContain(' at ');
+    expect($subtitle)->toBe('I filled up with 33.00L in '.$fuel->city.'.')
+        ->and($subtitle)->not->toContain('p/L');
 });
 
 it('uses the checkin note as its subtitle when present', function () {
@@ -120,9 +125,12 @@ it('uses the checkin note as its subtitle when present', function () {
     expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Great coffee here');
 });
 
-it('gives a checkin no subtitle without a note, carrying the address in meta instead', function () {
+// Foursquare's vocabulary includes Road, Platform and Town, so the category is
+// shown as its own label rather than written into a sentence about the place.
+it('leaves a checkin with no note unsubtitled, carrying its category as data', function () {
     $checkin = Checkin::factory()->create([
         'description' => null,
+        'venue_name' => 'Blue Bottle',
         'category' => 'Coffee Shop',
         'city' => 'London',
         'address' => 'High Street',
@@ -130,17 +138,19 @@ it('gives a checkin no subtitle without a note, carrying the address in meta ins
 
     $card = CardPresenter::for($checkin)->toArray();
 
-    expect($card['subtitle'])->toBeNull()
+    expect($card['title'])->toBe('at Blue Bottle')
+        ->and($card['subtitle'])->toBeNull()
+        ->and($card['meta']['category'])->toBe('Coffee Shop')
         ->and($card['meta']['address'])->toContain('London');
 });
 
-it('joins event venue and city with "in"', function () {
+it('writes an event subtitle as a sentence naming venue and city', function () {
     $event = Event::factory()->create([
         'venue_name' => 'The Roundhouse',
         'city' => 'London',
     ]);
 
-    expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('The Roundhouse in London');
+    expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('I went to The Roundhouse in London.');
 });
 
 it('keeps the calorie subtitle comma-joined with no connectives', function () {
@@ -155,4 +165,48 @@ it('keeps the calorie subtitle comma-joined with no connectives', function () {
 
     expect($subtitle)->toContain(',')
         ->and($subtitle)->not->toContain(' in ');
+});
+
+it('names a film by its leading genre and how long it ran', function () {
+    $media = Media::factory()->create([
+        'type' => 'film',
+        'title' => 'Exit 8',
+        'rating' => null,
+        'meta' => [
+            'year' => 2026,
+            'runtime' => 95,
+            // TMDB orders genres by relevance, so the first is the one to use.
+            'tmdb' => ['genres' => ['Horror', 'Mystery']],
+        ],
+    ]);
+
+    expect(CardPresenter::for($media)->toArray()['subtitle'])
+        ->toBe('I watched this 2026 horror film. It was 95 minutes long.');
+});
+
+it('falls back to "film" when TMDB gave no genre', function () {
+    $media = Media::factory()->create([
+        'type' => 'film',
+        'title' => 'Unknown',
+        'rating' => null,
+        'meta' => ['year' => 2026],
+    ]);
+
+    expect(CardPresenter::for($media)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
+});
+
+// "9h 21m" is read out a letter at a time, so the link's accessible name spells
+// the duration while the visible title stays compact.
+it('spells the duration in the sleep card\'s accessible name', function () {
+    $sleep = Sleep::factory()->create([
+        'duration' => 33660, // 9h 21m
+        'bedtime' => '2026-08-24 23:30:00',
+        'wake_time' => '2026-08-25 08:51:00',
+        'score' => 80,
+    ]);
+
+    $card = CardPresenter::for($sleep)->toArray();
+
+    expect($card['title'])->toBe('I slept for 9h 21m')
+        ->and($card['titleLabel'])->toBe('Sleep log, I slept for 9 hours 21 minutes');
 });

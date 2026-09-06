@@ -4,6 +4,9 @@ use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
+use Saloon\Config as SaloonConfig;
+use Saloon\Http\Faking\MockClient;
+use Saloon\Http\Faking\MockResponse;
 use Tests\TestCase;
 
 /*
@@ -24,7 +27,14 @@ pest()->extend(TestCase::class)
 // The HTTP client retries a rate limit or a 5xx with a backoff (see ApiHttp).
 // Tests that fake those responses would otherwise sit through the real wait,
 // which cost the suite about 26 seconds.
-uses()->beforeEach(fn () => Sleep::fake())->in('Feature', 'Unit', 'Browser');
+// Sleep::fake() keeps retry backoff from actually waiting. preventStrayRequests
+// makes a missing Saloon mock fail loudly: without it an unmocked request goes
+// to the real internet and the test hangs on the retry policy rather than failing.
+uses()->beforeEach(function (): void {
+    Sleep::fake();
+    MockClient::destroyGlobal();
+    SaloonConfig::preventStrayRequests();
+})->in('Feature', 'Unit', 'Browser');
 
 /*
 |--------------------------------------------------------------------------
@@ -183,4 +193,28 @@ function mapPng(int $tint = 200): string
     imagedestroy($image);
 
     return $bytes;
+}
+
+/**
+ * Hand back the given responses in order for one mock key.
+ *
+ * Saloon takes a single response per request-class or URL key, so a sequence
+ * scoped to one endpoint has to be a closure over its own cursor. An unkeyed
+ * array is already a sequence and needs none of this.
+ *
+ * @param  list<MockResponse>  $responses
+ */
+function mockSequence(array $responses): Closure
+{
+    $sent = 0;
+
+    return function () use ($responses, &$sent) {
+        // Throw rather than repeat the last response: a pager that stops on an
+        // empty page would otherwise loop for ever on a sequence that ran out.
+        if (! isset($responses[$sent])) {
+            throw new OutOfBoundsException('Mock sequence is empty, but a request was made.');
+        }
+
+        return $responses[$sent++];
+    };
 }

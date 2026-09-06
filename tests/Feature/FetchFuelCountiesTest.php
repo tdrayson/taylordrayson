@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\Fuel;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 function fakeCountyLookup(array $properties): void
 {
-    Http::fake(['*petrolprices.com/app/geojson*' => Http::response(['data' => ['features' => [[
+    Saloon::fake(['petrolprices.com/app/geojson*' => MockResponse::make(['data' => ['features' => [[
         'type' => 'Feature',
         'geometry' => ['coordinates' => [-0.1318, 51.3731]],
         'properties' => $properties,
@@ -85,5 +86,5 @@ it('skips rows that already have a county', function () {
 
     $this->artisan('fuel:counties', ['--apply' => true])->assertExitCode(0);
 
-    Http::assertNothingSent();
+    Saloon::assertNothingSent();
 });
