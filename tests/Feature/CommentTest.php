@@ -6,8 +6,10 @@ use App\Http\Requests\Interactions\StoreCommentRequest;
 use App\Models\Comment;
 use App\Models\Note;
 use App\Models\Page;
+use App\Notifications\ReplyPosted;
 use App\Support\FormNonce;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 use function Pest\Laravel\postJson;
@@ -187,4 +189,31 @@ it('sends a slur straight to spam but leaves ordinary swearing alone', function 
 it('spends the nonce it was given', function () {
     expect(FormNonce::claim(StoreComment::NONCE_PURPOSE, FormNonce::issue(StoreComment::NONCE_PURPOSE)))
         ->toBeGreaterThanOrEqual(0);
+});
+
+it('emails the person a reply answers, even when it skips the queue', function () {
+    Notification::fake();
+
+    $note = Note::factory()->create();
+
+    // Somebody who asked to hear about replies.
+    $parent = $note->comments()->create([
+        'author_name' => 'Jo',
+        'author_email' => 'jo@example.com',
+        'notify_replies' => true,
+        'body' => 'The original comment.',
+        'status' => CommentStatus::Approved,
+    ]);
+
+    // Sam comments once and is approved, which makes the name trusted from
+    // this address: the reply below is then approved on arrival and never
+    // passes through the moderation queue.
+    comment($note->id, ['author_name' => 'Sam']);
+    Comment::query()->where('author_name', 'Sam')->update(['status' => CommentStatus::Approved]);
+
+    comment($note->id, ['author_name' => 'Sam', 'parent_id' => $parent->id])
+        ->assertCreated()
+        ->assertJsonPath('status', 'approved');
+
+    Notification::assertSentOnDemand(ReplyPosted::class);
 });

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Comments\NotifyOfReply;
 use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Webmention;
-use App\Notifications\ReplyPosted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,11 +67,7 @@ class ModerationController extends Controller
             return;
         }
 
-        $parent = $model->parent;
-
-        if ($parent?->wantsReplyNotifications()) {
-            Notification::route('mail', $parent->author_email)->notify(new ReplyPosted($model, $parent));
-        }
+        app(NotifyOfReply::class)($model);
     }
 
     /**
