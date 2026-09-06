@@ -94,6 +94,15 @@ const chosen = computed(() => buckets.value.filter((bucket) => bucket.count > 0)
 const total = computed(() => chosen.value.reduce((sum, bucket) => sum + bucket.count, 0) + props.likeCount);
 const mine = computed(() => buckets.value.find((bucket) => bucket.mine) ?? null);
 
+/** Read out in full, since "5" beside a speech bubble is not a sentence. */
+const responsesLabel = computed(() => {
+    if (! props.replyCount) {
+        return 'No written responses yet';
+    }
+
+    return `${props.replyCount} written ${props.replyCount === 1 ? 'response' : 'responses'}, jump to them`;
+});
+
 /** What the summary reads out, since a row of emoji says nothing on its own. */
 const summaryLabel = computed(() => {
     const parts = chosen.value.map((bucket) => `${bucket.count} ${bucket.label}`);
@@ -191,7 +200,10 @@ function press() {
                     </span>
                     <span v-else-if="mine" v-twemoji aria-hidden="true">{{ mine.emoji }}</span>
                     <Icon v-else name="ThumbsUpIcon" class="size-4" />
-                    <span v-if="total" class="tnum font-medium">{{ total }}</span>
+                    <!-- Zero is shown too. A count that appears only once it
+                         is non-zero makes the line a different shape on every
+                         entry, and a lone number reads as a stray mark. -->
+                    <span class="tnum font-medium">{{ total }}</span>
                 </button>
 
                 <div v-show="picking" class="absolute bottom-full left-0 z-20 pb-1">
@@ -222,17 +234,21 @@ function press() {
             </div>
 
             <!-- A count of something further down the page is a way to get
-                 there. A plain hash link, so it works before the page has
-                 hydrated and can be copied and sent to somebody. -->
-            <a
-                v-if="replyCount"
-                href="#responses"
-                :aria-label="`${replyCount} written ${replyCount === 1 ? 'response' : 'responses'}, jump to them`"
-                class="inline-flex items-center gap-1.5 rounded-full text-meta text-neutral-500 transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                 there, so it is a plain hash link: it works before the page has
+                 hydrated and can be copied and sent to somebody. With nothing
+                 written yet there is nowhere to go, so it is only a number. -->
+            <component
+                :is="replyCount ? 'a' : 'span'"
+                :href="replyCount ? '#responses' : undefined"
+                :aria-label="responsesLabel"
+                :class="cn(
+                    'inline-flex items-center gap-1.5 rounded-full text-meta text-neutral-500',
+                    replyCount && 'transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                )"
             >
                 <Icon name="Comment01Icon" class="size-4" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
-            </a>
+            </component>
 
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for
