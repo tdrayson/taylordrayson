@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'author_name',
     'author_url',
     'author_photo_path',
+    'author_photo_url',
     'content',
     'published_at',
     'status',
