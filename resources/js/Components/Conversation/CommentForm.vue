@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, useId } from 'vue';
+import { readCommenter, rememberCommenter } from '../../lib/commenter.js';
 import { csrf } from '../../lib/csrf.js';
 import Button from '../Ui/Button.vue';
 import Checkbox from '../Ui/Checkbox.vue';
@@ -28,11 +29,24 @@ const nonce = ref(null);
 const sending = ref(false);
 const errors = ref({});
 const done = ref(null);
+const bodyId = useId();
+
+// Who you are is asked for only once there is something to attribute. Opened
+// on first focus and never closed again: collapsing it while somebody tabs
+// towards the name field would take the field away as they reach for it.
+const revealed = ref(false);
 
 // Fetched when the form appears rather than baked into the page: only a
 // fraction of readers ever comment, and the issue time is what lets the server
 // tell a person typing from a bot posting instantly.
 onMounted(async () => {
+    const known = readCommenter();
+
+    if (known) {
+        name.value = known.name;
+        email.value = known.email;
+    }
+
     try {
         const response = await fetch('/comments/token', {
             method: 'POST',
@@ -72,6 +86,7 @@ async function submit() {
 
         if (response.status === 422) {
             errors.value = (await response.json()).errors ?? {};
+            revealed.value = true;
 
             return;
         }
@@ -79,6 +94,8 @@ async function submit() {
         if (! response.ok) {
             throw new Error(response.status);
         }
+
+        rememberCommenter(name.value, email.value);
 
         // Held and approved read the same to the sender, so a bot learns
         // nothing from the answer.
@@ -111,36 +128,49 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             </button>
         </p>
 
-        <label class="block text-label uppercase text-neutral-500">
-            Name
-            <Input v-model="name" class="mt-1" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
-            <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-caption text-red-600">
-                {{ errorFor('author_name') }}
-            </span>
-        </label>
-
-        <label class="block text-label uppercase text-neutral-500">
-            Email <span class="normal-case text-neutral-500">(optional)</span>
-            <Input v-model="email" type="email" class="mt-1" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
-            <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-caption text-red-600">
-                {{ errorFor('author_email') }}
-            </span>
-        </label>
-
-        <!-- Only offered once there is an address to send to, so the tick box
-             never asks for something it cannot do. -->
-        <label v-if="email" class="flex items-center gap-2 text-meta text-neutral-700">
-            <Checkbox v-model="notify" />
-            Email me if somebody replies
-        </label>
-
-        <label class="block text-label uppercase text-neutral-500">
-            Comment
-            <Textarea v-model="body" rows="4" class="mt-1" :invalid="Boolean(errorFor('body'))" />
-            <span v-if="errorFor('body') || errorFor('nonce')" class="mt-1 block normal-case text-caption text-red-600">
+        <div>
+            <!-- Named for a screen reader but not on screen: the field is the
+                 only thing here until you use it, and a label above it would
+                 be a title for a form that is trying not to look like one. -->
+            <label :for="bodyId" class="sr-only">Comment</label>
+            <Textarea
+                :id="bodyId"
+                v-model="body"
+                rows="3"
+                placeholder="Add a comment"
+                :invalid="Boolean(errorFor('body'))"
+                @focus="revealed = true"
+            />
+            <span v-if="errorFor('body') || errorFor('nonce')" class="mt-1 block text-caption text-red-600">
                 {{ errorFor('body') ?? errorFor('nonce') }}
             </span>
-        </label>
+        </div>
+
+        <div v-if="revealed" class="space-y-3">
+            <label class="block text-label uppercase text-neutral-500">
+                Name
+                <Input v-model="name" class="mt-1" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
+                <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-caption text-red-600">
+                    {{ errorFor('author_name') }}
+                </span>
+            </label>
+
+            <label class="block text-label uppercase text-neutral-500">
+                Email <span class="normal-case text-neutral-500">(optional)</span>
+                <Input v-model="email" type="email" class="mt-1" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
+                <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-caption text-red-600">
+                    {{ errorFor('author_email') }}
+                </span>
+            </label>
+
+            <!-- Only offered once there is an address to send to, so the tick
+                 box never asks for something it cannot do. Never restored from
+                 storage: an opt-in somebody did not just make is not one. -->
+            <label v-if="email" class="flex items-center gap-2 text-meta text-neutral-700">
+                <Checkbox v-model="notify" />
+                Email me if somebody replies
+            </label>
+        </div>
 
         <!-- The honeypot: hidden from people and from screen readers, out of
              the tab order, and named for a field a form-filling bot expects.
@@ -156,7 +186,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             <Button type="submit" variant="primary" :disabled="sending">
                 {{ sending ? 'Posting...' : 'Post comment' }}
             </Button>
-            <p class="text-caption text-neutral-500">Your email is never shown, and only used for replies.</p>
+            <p v-if="revealed" class="text-caption text-neutral-500">Your email is never shown, and only used for replies.</p>
         </div>
     </form>
 </template>
