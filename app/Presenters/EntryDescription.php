@@ -269,7 +269,7 @@ final class EntryDescription
         $lead = $where === '' ? $lead : "{$lead} {$where}";
 
         $rate = $model->price_per_litre
-            ? sprintf(', at £%s a litre', number_format((float) $model->price_per_litre, 3))
+            ? sprintf(', at %s a litre', Units::pencePerLitre($model->price_per_litre))
             : '';
 
         return sprintf('%s. It cost £%s%s.', $lead, number_format((float) $model->cost, 2), $rate);
