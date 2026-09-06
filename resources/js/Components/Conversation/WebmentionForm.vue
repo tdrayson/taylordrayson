@@ -67,7 +67,7 @@ async function submit() {
             />
 
             <Button type="submit" class="shrink-0" :disabled="sending || ! looksLikeUrl">
-                {{ sending ? 'Sending...' : 'Send the link' }}
+                {{ sending ? 'Sending...' : 'Send webmention' }}
             </Button>
         </div>
 
