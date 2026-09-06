@@ -73,7 +73,12 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 
                 <span class="inline-flex items-baseline gap-x-1.5 text-caption text-neutral-500">
                     <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
-                    <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
+                    <!-- Centred rather than baselined: an SVG has no baseline,
+                         so the browser synthesises one from its bottom edge and
+                         the icon sits on the line instead of on it. The phrase
+                         beside it stays baselined, which is what gives this span
+                         a real baseline to align with the rest of the row. -->
+                    <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5 self-center" />
                     <!-- Wrapped, so the flex gap sits between the marker and the
                          phrase whether the marker is an SVG or an emoji glyph. -->
                     <!-- Where it came from, only when the name is not already a
