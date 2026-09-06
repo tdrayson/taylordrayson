@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { cn } from '../../lib/cn.js';
 import Icon from '../Ui/Icon.vue';
 
@@ -52,6 +52,13 @@ const group = ref(null);
 const control = ref(null);
 
 /**
+ * A touch device has no hover, so there is nothing to reveal the picker with.
+ * There, tapping the control opens it and a second tap chooses; with a pointer,
+ * tapping reacts straight away and hovering reveals the rest.
+ */
+const canHover = typeof window !== 'undefined' && window.matchMedia?.('(hover: hover)').matches;
+
+/**
  * Close only when the pointer or focus has left the control and the picker
  * together. relatedTarget is where it went: still inside means it moved between
  * the two, which is the whole gesture rather than the end of it.
@@ -61,6 +68,16 @@ function leave(event) {
         picking.value = false;
     }
 }
+
+/** A tap outside closes it, which is the only way out on a touch device. */
+function closeOnOutside(event) {
+    if (picking.value && ! group.value?.contains(event.target)) {
+        picking.value = false;
+    }
+}
+
+onMounted(() => document.addEventListener('pointerdown', closeOnOutside));
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOnOutside));
 
 /** Escape closes and hands focus back, so a keyboard is never left inside. */
 function dismiss() {
@@ -120,8 +137,17 @@ async function toggle(bucket) {
     }
 }
 
-/** Clicking the control itself repeats your reaction, or gives the first one. */
-function toggleDefault() {
+/**
+ * Clicking the control repeats your reaction, or gives the first one. Without
+ * hover it opens the picker instead, since that is the only way to reach it.
+ */
+function press() {
+    if (! canHover && ! picking.value) {
+        picking.value = true;
+
+        return;
+    }
+
     toggle(mine.value ?? buckets.value.find(isOurs));
 }
 </script>
@@ -152,7 +178,7 @@ function toggleDefault() {
                         mine ? 'text-accent-700' : 'text-neutral-500 hover:text-accent-700',
                         busy !== null && 'opacity-50',
                     )"
-                    @click="toggleDefault"
+                    @click="press"
                 >
                     <span
                         v-if="mine && glyph(mine)"
@@ -202,16 +228,29 @@ function toggleDefault() {
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for
                  its own count. -->
-            <ul v-if="chosen.length" class="reaction-pile flex items-center" :aria-label="summaryLabel">
+            <ul
+                v-if="chosen.length"
+                class="reaction-pile flex items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                tabindex="0"
+                :aria-label="summaryLabel"
+            >
                 <li
                     v-for="bucket in chosen"
                     :key="bucket.key"
-                    class="reaction-pip flex size-5 items-center justify-center rounded-full text-neutral-0 ring-2 ring-neutral-0"
-                    :style="glyph(bucket) ? { background: glyph(bucket).colour } : { background: 'var(--color-neutral-25)' }"
+                    class="reaction-item flex items-center"
                     :title="`${bucket.count} ${bucket.label}`"
                 >
-                    <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3" />
-                    <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
+                    <span
+                        class="reaction-pip flex size-5 items-center justify-center rounded-full text-neutral-0 ring-2 ring-neutral-0"
+                        :style="glyph(bucket) ? { background: glyph(bucket).colour } : { background: 'var(--color-neutral-25)' }"
+                    >
+                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3" />
+                        <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
+                    </span>
+
+                    <!-- Its own count, revealed with the spread so each disc can
+                         be read rather than guessed at. -->
+                    <span class="reaction-count tnum text-caption text-neutral-500" aria-hidden="true">{{ bucket.count }}</span>
                 </li>
             </ul>
         </div>
@@ -225,27 +264,47 @@ function toggleDefault() {
 <style scoped>
 /* Overlapped at rest so a handful of kinds stay one short mark, and spread on
    hover so each is a target of its own and its title can be read. */
-.reaction-pip {
+.reaction-item {
     margin-left: -0.375rem;
     transition: margin-left 150ms ease;
 }
 
-.reaction-pip:first-child {
+.reaction-item:first-child {
     margin-left: 0;
 }
 
-.reaction-pile:hover .reaction-pip,
-.reaction-pile:focus-within .reaction-pip {
-    margin-left: 0.125rem;
+.reaction-pile:hover .reaction-item,
+.reaction-pile:focus-within .reaction-item,
+.reaction-pile:focus .reaction-item {
+    margin-left: 0.375rem;
 }
 
-.reaction-pile:hover .reaction-pip:first-child,
-.reaction-pile:focus-within .reaction-pip:first-child {
+.reaction-pile:hover .reaction-item:first-child,
+.reaction-pile:focus-within .reaction-item:first-child,
+.reaction-pile:focus .reaction-item:first-child {
     margin-left: 0;
+}
+
+/* Hidden by width rather than display, so the reveal can be animated and the
+   discs slide apart instead of jumping. */
+.reaction-count {
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 150ms ease, opacity 150ms ease, margin-left 150ms ease;
+}
+
+.reaction-pile:hover .reaction-count,
+.reaction-pile:focus-within .reaction-count,
+.reaction-pile:focus .reaction-count {
+    max-width: 2rem;
+    margin-left: 0.25rem;
+    opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .reaction-pip {
+    .reaction-item,
+    .reaction-count {
         transition: none;
     }
 }

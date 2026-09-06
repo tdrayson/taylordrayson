@@ -51,7 +51,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
         :id="item.id"
         v-twemoji
         class="h-cite relative flex gap-3"
-        :class="[nested && 'response-nested ml-6 pl-6 sm:ml-11']"
+        :class="[nested && 'response-nested ml-16']"
     >
         <Avatar
             class="response-avatar"
@@ -60,7 +60,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
         />
 
         <div class="min-w-0 flex-1">
-            <p class="flex flex-wrap items-baseline gap-x-2 text-meta">
+            <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-meta">
                 <!-- Same tab: an author's own site is a normal onward link,
                      not an aside, so it needs no new-tab announcement. -->
                 <a
@@ -71,7 +71,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
                 >{{ item.authorName }}</a>
                 <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
 
-                <span class="inline-flex items-center gap-1 text-caption text-neutral-500">
+                <span class="inline-flex items-baseline gap-x-1.5 text-caption text-neutral-500">
                     <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
                     <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
                     <!-- Wrapped, so the flex gap sits between the marker and the
@@ -93,7 +93,13 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
                      interrupting it. A platform names itself; a webmention names
                      the site it was published on. A comment left here has no
                      elsewhere, so it says nothing. -->
-                <span v-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
+                <a
+                    v-if="via && item.sourceUrl"
+                    :href="item.sourceUrl"
+                    rel="noopener noreferrer nofollow"
+                    class="rounded-sm text-caption text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                >via {{ via }}</a>
+                <span v-else-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
             </p>
 
             <p v-if="item.body" class="e-content mt-1 whitespace-pre-line text-body text-neutral-900">{{ item.body }}</p>
@@ -126,10 +132,20 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 .response-nested::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: calc(-0.75rem - 1px);
-    bottom: 50%;
+
+    /* Dropped from under the parent's text rather than from the main rail: on
+       the rail it read as the thread continuing instead of branching off it.
+       The parent's content starts one avatar column in (3rem), and the reply is
+       indented past that (4rem), so the elbow turns in over the 1rem between. */
+    left: -1rem;
     width: 1rem;
+
+    /* Up into the gap above so it reads as coming from the parent, and down to
+       this avatar's centre. With the avatar centred on its name line, that
+       centre sits half a line box below the article top. */
+    top: -1.5rem;
+    height: calc(1.5rem + (var(--text-meta) * var(--text-meta--line-height)) / 2);
+
     border-left: 1px solid var(--color-neutral-50);
     border-bottom: 1px solid var(--color-neutral-50);
     border-bottom-left-radius: 0.5rem;
