@@ -17,15 +17,19 @@ defineEmits(['reply']);
  * What each kind did, as an icon and a phrase. A comment gets no phrase: it is
  * the ordinary case, and saying "commented" under every one is noise.
  */
+/**
+ * Each kind finishes the sentence its byline starts, ending in "on" so the date
+ * that follows is part of it: "Jo Bloggs replied on Thursday 3 September".
+ */
 const KINDS = {
-    comment: { icon: 'Comment01Icon', says: null },
-    reply: { icon: 'MailReply01Icon', says: 'replied' },
-    rsvp: { icon: 'Calendar01Icon', says: 'RSVP’d' },
-    like: { icon: 'FavouriteIcon', says: 'liked this' },
-    repost: { icon: 'RepeatIcon', says: 'reposted this' },
-    bookmark: { icon: 'Bookmark01Icon', says: 'bookmarked this' },
-    mention: { icon: 'Link01Icon', says: 'linked to this' },
-    reacji: { icon: null, says: 'reacted' },
+    comment: { icon: 'Comment01Icon', says: 'commented on' },
+    reply: { icon: 'MailReply01Icon', says: 'replied on' },
+    rsvp: { icon: 'Calendar01Icon', says: 'RSVP’d on' },
+    like: { icon: 'FavouriteIcon', says: 'liked this on' },
+    repost: { icon: 'RepeatIcon', says: 'reposted this on' },
+    bookmark: { icon: 'Bookmark01Icon', says: 'bookmarked this on' },
+    mention: { icon: 'Link01Icon', says: 'linked to this on' },
+    reacji: { icon: null, says: 'reacted on' },
 };
 
 const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
@@ -33,6 +37,8 @@ const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
 // A gesture with nothing written in it is one line, not a block. This is the
 // weight difference a facepile would otherwise be needed for.
 const isGesture = computed(() => ! props.item.body);
+
+const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 </script>
 
 <template>
@@ -64,7 +70,7 @@ const isGesture = computed(() => ! props.item.body);
                 >{{ item.authorName }}</a>
                 <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
 
-                <span v-if="kind.says || item.emoji" class="inline-flex items-center gap-1 text-caption text-neutral-500">
+                <span class="inline-flex items-center gap-1 text-caption text-neutral-500">
                     <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
                     <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
                     <!-- Wrapped, so the flex gap sits between the marker and the
@@ -73,11 +79,7 @@ const isGesture = computed(() => ! props.item.body);
                          link to it. A webmention author's name carries their site,
                          so repeating the host says it twice; a syndicated gesture
                          has no profile to link, so the platform is named instead. -->
-                    <span>
-                        {{ kind.says }}
-                        <template v-if="isGesture && item.source">on {{ item.source }}</template>
-                        <template v-else-if="isGesture && ! item.authorUrl && item.sourceHost">from {{ item.sourceHost }}</template>
-                    </span>
+                    <span>{{ kind.says }}</span>
                 </span>
 
                 <time
@@ -85,6 +87,12 @@ const isGesture = computed(() => ! props.item.body);
                     :datetime="item.occurredAt.iso"
                     :title="`${item.occurredAt.label} (UTC${item.occurredAt.offset})`"
                 >{{ item.occurredAt.label }}</time>
+
+                <!-- Where it came from, closing the sentence rather than
+                     interrupting it. A platform names itself; a webmention names
+                     the site it was published on. A comment left here has no
+                     elsewhere, so it says nothing. -->
+                <span v-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
             </p>
 
             <p v-if="item.body" class="e-content mt-1 whitespace-pre-line text-body text-neutral-900">{{ item.body }}</p>
