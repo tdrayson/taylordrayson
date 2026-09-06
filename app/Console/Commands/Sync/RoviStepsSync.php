@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Services\Rovi;
+use App\Services\Rovi\Client;
 use App\Support\TodaySteps;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -18,7 +18,7 @@ class RoviStepsSync extends Command
      * keyed by their own date, not Rovi's `date` field, which holds the write
      * time and can be months adrift. A failed fetch leaves the previous value.
      */
-    public function handle(Rovi $rovi): int
+    public function handle(Client $rovi): int
     {
         $today = Carbon::today()->toDateString();
 

@@ -3,8 +3,17 @@
 use App\Models\Note;
 use App\Models\User;
 use App\Support\PortableText;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
-beforeEach(fn () => $this->actingAs(User::factory()->create()));
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+
+    // A note carrying a link queues a favicon fetch. Mocked rather than left to
+    // reach Google: the fetch swallows its own failures, so a real call here
+    // went unnoticed until stray requests started failing loudly.
+    Saloon::fake(['*' => MockResponse::make('', 404)]);
+});
 
 /** A document of one block holding exactly $length readable characters. */
 function noteOf(int $length): array

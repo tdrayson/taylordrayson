@@ -6,8 +6,19 @@ use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 use function Pest\Laravel\get;
+
+// Photo bytes are fetched with Http::get(), not through a connector, so they
+// need Laravel's own fake alongside Saloon's.
+beforeEach(fn () => Http::fake(['*' => Http::response(fakeJpeg())]));
+
+// Photo bytes are fetched with Http::get(), not through a connector, so they
+// need Laravel's own fake alongside Saloon's.
+// Photo bytes are fetched with Http::get(), not through a connector.
+beforeEach(fn () => Http::fake(['*' => Http::response(fakeJpeg())]));
 
 beforeEach(function () {
     config([
@@ -30,18 +41,22 @@ beforeEach(function () {
 function fakeStravaPhotos(array $summaries, array $photosById, array $extra = []): void
 {
     $responses = [
-        '*/oauth/token*' => Http::response(['access_token' => 'token', 'expires_in' => 3600]),
-        '*dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg()),
-        '*/athlete/activities*' => Http::sequence()
-            ->push($summaries)
-            ->push([]),
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/streams*' => MockResponse::make([]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make($summaries),
+
+            MockResponse::make([]),
+
+        ]),
     ];
 
     foreach ($photosById as $id => $photos) {
-        $responses["*/activities/{$id}/photos*"] = Http::response($photos);
+        $responses["*/activities/{$id}/photos*"] = MockResponse::make($photos);
     }
 
-    Http::fake(array_merge($responses, $extra));
+    Saloon::fake(array_merge($responses, $extra));
 }
 
 it('stores the first photo as cover and the rest in the gallery', function () {
@@ -81,19 +96,23 @@ it('backfills photos only for activities that have them on strava', function () 
     $withPhotos = Activity::factory()->create(['source' => 'strava', 'source_id' => '777', 'name' => 'Sunset run']);
     $withoutPhotos = Activity::factory()->create(['source' => 'strava', 'source_id' => '888']);
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()
-            ->push([
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 't', 'expires_in' => 3600]),
+        '/streams*' => MockResponse::make([]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([
                 ['id' => 777, 'total_photo_count' => 2],
                 ['id' => 888, 'total_photo_count' => 0],
-            ])
-            ->push([]),
-        '*/activities/777/photos*' => Http::response([
+            ]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/activities/777/photos*' => MockResponse::make([
             ['unique_id' => 'a', 'urls' => ['2048' => 'https://cdn.example/a.jpg']],
             ['unique_id' => 'b', 'urls' => ['2048' => 'https://cdn.example/b.jpg']],
         ]),
-        'https://cdn.example/*' => Http::response(fakeJpeg(), 200),
     ]);
 
     $this->artisan('strava:photos')->assertSuccessful();
@@ -102,7 +121,7 @@ it('backfills photos only for activities that have them on strava', function () 
     expect($withPhotos->getMedia('photos'))->toHaveCount(1);
     expect($withoutPhotos->refresh()->getMedia('cover'))->toHaveCount(0);
 
-    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/activities/888/photos'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/activities/888/photos'));
 });
 
 it('skips activities whose photos are already migrated unless forced', function () {
@@ -112,20 +131,24 @@ it('skips activities whose photos are already migrated unless forced', function 
         ->withCustomProperties(['captured_at' => '2026-04-28T17:34:35Z'])
         ->toMediaCollection('cover');
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()
-            ->push([['id' => 777, 'total_photo_count' => 1]])
-            ->push([]),
-        '*/activities/777/photos*' => Http::response([
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 't', 'expires_in' => 3600]),
+        '/streams*' => MockResponse::make([]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([['id' => 777, 'total_photo_count' => 1]]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/activities/777/photos*' => MockResponse::make([
             ['unique_id' => 'new', 'urls' => ['2048' => 'https://cdn.example/new.jpg']],
         ]),
-        'https://cdn.example/*' => Http::response(fakeJpeg(), 200),
     ]);
 
     $this->artisan('strava:photos')->assertSuccessful();
 
-    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/photos'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/photos'));
 });
 
 it('reprocesses an activity whose photos predate captured_at', function () {
@@ -142,7 +165,7 @@ it('reprocesses an activity whose photos predate captured_at', function () {
 
     $this->artisan('strava:photos')->assertSuccessful();
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/activities/500/photos'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/activities/500/photos'));
 
     $media = $activity->refresh()->getFirstMedia('cover');
 
@@ -175,8 +198,8 @@ it('resumes without redoing already-migrated activities', function () {
 
     $this->artisan('strava:photos')->assertSuccessful();
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/activities/602/photos'));
-    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/activities/601/photos'));
+    Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/activities/602/photos'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/activities/601/photos'));
 });
 
 it('includes the photos gallery in the activity feed card', function () {
@@ -212,18 +235,22 @@ it('still stores photos when the strava summary has no start date', function () 
     // and must not cost us the photo download.
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '999']);
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
-        '*/athlete/activities*' => Http::sequence()
-            ->push([
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 't', 'expires_in' => 3600]),
+        '/streams*' => MockResponse::make([]),
+        '/athlete/activities*' => mockSequence([
+
+            MockResponse::make([
                 ['id' => 999, 'total_photo_count' => 1],
                 // Note: intentionally no 'start_date' key to test null handling
-            ])
-            ->push([]),
-        '*/activities/999/photos*' => Http::response([
+            ]),
+
+            MockResponse::make([]),
+
+        ]),
+        '/activities/999/photos*' => MockResponse::make([
             ['unique_id' => 'x', 'urls' => ['2048' => 'https://cdn.example/x.jpg']],
         ]),
-        'https://cdn.example/*' => Http::response(fakeJpeg(), 200),
     ]);
 
     $this->artisan('strava:photos')->assertSuccessful();
@@ -237,7 +264,7 @@ it('stores photos with coordinates interpolated from the stream', function () {
     fakeStravaPhotos(
         [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
         ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
-        ['*/streams*' => Http::response([
+        ['/streams*' => MockResponse::make([
             'time' => ['data' => [0, 10, 20]],
             'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
         ])],
@@ -257,7 +284,7 @@ it('still stores the photo when the streams request fails', function () {
     fakeStravaPhotos(
         [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
         ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
-        ['*/streams*' => Http::response([], 500)],
+        ['/streams*' => MockResponse::make([], 500)],
     );
 
     $this->artisan('strava:photos')->assertSuccessful();
@@ -278,7 +305,7 @@ it('still stores the photo when the strava summary has a malformed start date', 
     fakeStravaPhotos(
         [['id' => 100, 'start_date' => 'not-a-date', 'total_photo_count' => 1]],
         ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
-        ['*/streams*' => Http::response([
+        ['/streams*' => MockResponse::make([
             'time' => ['data' => [0, 10, 20]],
             'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
         ])],
@@ -298,7 +325,7 @@ it('still stores the photo for an indoor activity with no latlng stream', functi
     fakeStravaPhotos(
         [['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 1]],
         ['100' => [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')]],
-        ['*/streams*' => Http::response([
+        ['/streams*' => MockResponse::make([
             'time' => ['data' => [0, 10, 20]],
             'distance' => ['data' => [0, 5, 9]],
         ])],
@@ -318,7 +345,7 @@ it('does not fabricate a start when the strava summary has no start date', funct
     fakeStravaPhotos(
         [['id' => 100, 'total_photo_count' => 1]],
         ['100' => [stravaPhotoPayload('photo-a', now()->toIso8601ZuluString())]],
-        ['*/streams*' => Http::response([
+        ['/streams*' => MockResponse::make([
             'time' => ['data' => [0, 10, 20]],
             'latlng' => ['data' => [[51.0, -0.0], [51.1, -0.1], [51.2, -0.2]]],
         ])],

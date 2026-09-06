@@ -2,8 +2,9 @@
 
 use App\Models\Activity;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config([
@@ -39,15 +40,18 @@ function fakeStravaLocations(array $summaries, array $streams, array $photos = [
         $photos = [stravaPhotoPayload('photo-a', '2023-10-31T21:00:10Z')];
     }
 
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token']),
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token']),
         // Two full pages (summaries, then empty to end pagination) per command
         // invocation. One of the tests below runs the command twice.
-        '*/athlete/activities*' => Http::sequence()
-            ->push($summaries)->push([])
-            ->push($summaries)->push([]),
-        '*/photos*' => Http::response($photos),
-        '*/streams*' => Http::response($streams),
+        '/athlete/activities*' => mockSequence([
+            MockResponse::make($summaries),
+            MockResponse::make([]),
+            MockResponse::make($summaries),
+            MockResponse::make([]),
+        ]),
+        '/photos*' => MockResponse::make($photos),
+        '/streams*' => MockResponse::make($streams),
     ]);
 }
 
@@ -70,7 +74,7 @@ it('writes coordinates onto existing media without re-downloading the image', fu
         ->and($media->getCustomProperty('longitude'))->toBe(-0.1);
 
     // The whole point of this command: no image bytes are fetched again.
-    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'cloudfront.net'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), 'cloudfront.net'));
 });
 
 it('clamps a finish-line photo taken shortly after the stream ended to the last point', function () {
@@ -111,7 +115,7 @@ it('places an existing photo from its Strava location without fetching the strea
     // The photo's own GPS wins over the stream, so the stream is never fetched.
     expect($media->getCustomProperty('latitude'))->toBe(48.86)
         ->and($media->getCustomProperty('longitude'))->toBe(2.35);
-    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/streams'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/streams'));
 });
 
 it('leaves an out-of-window photo without coordinates', function () {
@@ -233,5 +237,5 @@ it('skips an activity with no start_date rather than fabricating one', function 
 
     expect($activity->refresh()->getFirstMedia('cover')->hasCustomProperty('latitude'))->toBeFalse();
 
-    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/streams'));
+    Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/streams'));
 });

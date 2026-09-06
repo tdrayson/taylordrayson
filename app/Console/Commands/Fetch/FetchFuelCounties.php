@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Fetch;
 
 use App\Models\Fuel;
-use App\Services\PetrolPrices;
+use App\Services\PetrolPrices\Client;
 use App\Services\PetrolPrices\FuelStationResult;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
 #[Description('Fill in the county on fuel rows that have coordinates but no county')]
 class FetchFuelCounties extends Command
 {
-    public function handle(PetrolPrices $petrolPrices): int
+    public function handle(Client $petrolPrices): int
     {
         $rows = Fuel::query()
             ->whereNotNull('latitude')
@@ -87,7 +87,7 @@ class FetchFuelCounties extends Command
      * but a stored postcode can be stale, and neighbouring forecourts are close
      * enough that distance alone would sometimes pick the wrong one.
      */
-    private function match(PetrolPrices $petrolPrices, Fuel $fuel): ?FuelStationResult
+    private function match(Client $petrolPrices, Fuel $fuel): ?FuelStationResult
     {
         $stations = new Collection($petrolPrices->search(
             latitude: (float) $fuel->latitude,
