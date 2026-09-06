@@ -89,3 +89,11 @@ Schedule::command('backup:monitor')->dailyAt('09:00')->when($mirrorReady);
 
 // Originals only; conversions and responsive images rebuild from them.
 Schedule::command('assets:mirror')->dailyAt('04:40')->when($mirrorReady)->withoutOverlapping();
+
+// Cached faces and favicons, refreshed on a slow cycle. Both are written once
+// when the thing that needs them arrives and never revisited, so a changed
+// avatar or a rebranded site keeps its old image indefinitely, and a directory
+// lost to a deploy stays lost. Monthly is enough for both: they are cosmetic,
+// and each run re-downloads every file, which is not something to do often.
+Schedule::command('webmentions:avatars')->monthlyOn(1, '04:20')->withoutOverlapping();
+Schedule::command('links:favicons --force')->monthlyOn(1, '04:50')->withoutOverlapping();

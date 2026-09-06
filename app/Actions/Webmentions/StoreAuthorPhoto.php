@@ -34,8 +34,12 @@ class StoreAuthorPhoto
     /**
      * The stored path relative to the public root, or null when there is
      * nothing worth storing.
+     *
+     * With $refresh the file is fetched again even though it is already there,
+     * which is how a changed avatar is picked up. A failed refresh keeps what
+     * is on disk: an unreachable server should not cost us the face we have.
      */
-    public function __invoke(?string $photoUrl): ?string
+    public function __invoke(?string $photoUrl, bool $refresh = false): ?string
     {
         if ($photoUrl === null || ! SafeUrl::fetchable($photoUrl)) {
             return null;
@@ -45,20 +49,25 @@ class StoreAuthorPhoto
         // publishes several people from one domain.
         $relative = 'avatars/'.hash('sha256', $photoUrl).'.webp';
         $path = public_path($relative);
+        $held = File::exists($path);
 
-        if (File::exists($path)) {
+        if ($held && ! $refresh) {
             return $relative;
         }
 
         $body = $this->download($photoUrl);
 
         if ($body === null) {
-            return null;
+            return $held ? $relative : null;
         }
 
         File::ensureDirectoryExists(dirname($path));
 
-        return $this->square($body, $path) ? $relative : null;
+        if ($this->square($body, $path)) {
+            return $relative;
+        }
+
+        return $held ? $relative : null;
     }
 
     private function download(string $url): ?string
@@ -85,10 +94,14 @@ class StoreAuthorPhoto
     /**
      * Crop to a square and re-encode, which also means the bytes finally served
      * are an image this app produced rather than whatever arrived.
+     *
+     * Encoded beside the target and moved into place, so a refresh that fails
+     * halfway leaves the previous file whole rather than truncated.
      */
     private function square(string $body, string $path): bool
     {
         $temporary = $path.'.download';
+        $encoded = $path.'.encoding';
 
         try {
             File::put($temporary, $body);
@@ -97,13 +110,16 @@ class StoreAuthorPhoto
                 ->fit(Fit::Crop, self::SIZE, self::SIZE)
                 ->format('webp')
                 ->quality(self::QUALITY)
-                ->save($path);
+                ->save($encoded);
+
+            File::move($encoded, $path);
 
             return true;
         } catch (Throwable) {
             return false;
         } finally {
             File::delete($temporary);
+            File::delete($encoded);
         }
     }
 }
