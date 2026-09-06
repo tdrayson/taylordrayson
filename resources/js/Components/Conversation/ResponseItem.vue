@@ -60,7 +60,11 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
         />
 
         <div class="min-w-0 flex-1">
-            <p class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-meta">
+            <!-- Centred, not baselined: the row mixes two type sizes with an icon,
+                 and an SVG has no baseline of its own, so the browser synthesises
+                 one from its bottom edge and sits it on the line. Centring holds
+                 the name, the marker and the date on one optical line. -->
+            <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta">
                 <!-- Same tab: an author's own site is a normal onward link,
                      not an aside, so it needs no new-tab announcement. -->
                 <a
@@ -71,14 +75,9 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
                 >{{ item.authorName }}</a>
                 <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
 
-                <span class="inline-flex items-baseline gap-x-1.5 text-caption text-neutral-500">
+                <span class="inline-flex items-center gap-x-1.5 text-caption text-neutral-500">
                     <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
-                    <!-- Centred rather than baselined: an SVG has no baseline,
-                         so the browser synthesises one from its bottom edge and
-                         the icon sits on the line instead of on it. The phrase
-                         beside it stays baselined, which is what gives this span
-                         a real baseline to align with the rest of the row. -->
-                    <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5 self-center" />
+                    <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
                     <!-- Wrapped, so the flex gap sits between the marker and the
                          phrase whether the marker is an SVG or an emoji glyph. -->
                     <!-- Where it came from, only when the name is not already a
