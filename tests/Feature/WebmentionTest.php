@@ -5,6 +5,7 @@ use App\Models\Note;
 use App\Models\Page;
 use App\Models\Webmention;
 use App\Support\SafeUrl;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Queue;
 
 use function Pest\Laravel\get;
@@ -122,4 +123,12 @@ it('accepts a mention against a published page but not a draft one', function ()
         'source' => 'https://jo.example/other',
         'target' => $base.'/'.Page::factory()->draft()->create()->slug,
     ])->assertStatus(400);
+});
+
+it('is exempt from CSRF, because the senders are other people\'s sites', function () {
+    // Asserted against the config rather than through a request: Laravel skips
+    // CSRF entirely under test, so a POST here passes whether or not the real
+    // endpoint would. Without the exemption every incoming mention is a 419 and
+    // the receiver is unreachable to everyone but this site's own form.
+    expect(app(PreventRequestForgery::class)->getExcludedPaths())->toContain('webmention');
 });

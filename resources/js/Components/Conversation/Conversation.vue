@@ -15,7 +15,6 @@ const props = defineProps({
 });
 
 const replyingTo = ref(null);
-const commentsOpen = ref(false);
 
 /**
  * The thread: newest conversation first, but each reply kept under the response
@@ -59,16 +58,37 @@ const thread = computed(() => {
             const replies = (children.get(parent.commentId) ?? []).sort(byOldest);
 
             return [
-                { ...parent, nested: false },
+                // groupId marks everything belonging to one conversation, which
+                // is what the reply form is placed against: it opens at the end
+                // of the thread, wherever in it you pressed Reply.
+                { ...parent, nested: false, groupId: parent.id },
                 // The last reply stops the branch line; the ones before it carry
                 // it down to the next, so a run of replies hangs off one line.
                 ...replies.map((child, index) => ({
                     ...child,
                     nested: true,
+                    groupId: parent.id,
                     lastNested: index === replies.length - 1,
                 })),
             ];
         });
+});
+
+/**
+ * The response the reply form opens under: the last one in the thread being
+ * replied to, rather than the one whose button was pressed. A form dropped
+ * between two replies would break the branch line running down them, and the
+ * reply will be posted to the end of the thread anyway, which is where the form
+ * should sit to say so.
+ */
+const formFollows = computed(() => {
+    if (! replyingTo.value) {
+        return null;
+    }
+
+    const group = thread.value.filter((item) => item.groupId === replyingTo.value.groupId);
+
+    return group[group.length - 1]?.id ?? null;
 });
 
 const heading = computed(() => (thread.value.length === 1 ? '1 response' : `${thread.value.length} responses`));
@@ -81,13 +101,19 @@ const likeCount = computed(() => thread.value.filter((item) => item.kind === 'li
 // Anything that carried something written, whoever wrote it and wherever from.
 const replyCount = computed(() => thread.value.filter((item) => item.body).length);
 
-/** Open the comment form against a comment, and take the reader to it. */
+/**
+ * What the reply is filed under. Nesting stops at one level, so replying to a
+ * reply files under the same root and lands beside it rather than a step
+ * further right.
+ */
+const replyParentId = computed(() => replyingTo.value?.parentId ?? replyingTo.value?.commentId ?? null);
+
+/** Open the reply form inside the thread, and take the reader to it. */
 async function reply(item) {
     replyingTo.value = item;
-    commentsOpen.value = true;
 
     await nextTick();
-    document.getElementById('leave-a-comment')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('reply-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 </script>
 
@@ -114,18 +140,33 @@ async function reply(item) {
                      and a written response as a block, so the weight difference
                      comes from the content rather than from separate lists. -->
                 <ol class="conversation-rail mt-6 flex flex-col gap-6">
-                    <li v-for="item in thread" :key="item.id" class="relative">
-                        <ResponseItem :item="item" :nested="item.nested" @reply="reply" />
-                    </li>
+                    <template v-for="item in thread" :key="item.id">
+                        <li class="relative">
+                            <ResponseItem :item="item" :nested="item.nested" @reply="reply" />
+                        </li>
+
+                        <!-- Indented to the reply column, so the form sits where
+                             what you write is about to appear. -->
+                        <li v-if="formFollows === item.id" id="reply-form" class="ml-16">
+                            <CommentForm
+                                :type="conversation.type"
+                                :id="conversation.id"
+                                :parent-id="replyParentId"
+                                :replying-to="replyingTo.authorName"
+                                @cancel="replyingTo = null"
+                            />
+                        </li>
+                    </template>
                 </ol>
             </div>
         </div>
 
+        <!-- Only ever a new comment on the entry. Replying to somebody happens
+             inside the thread, against the response it answers. -->
         <Accordion
             id="leave-a-comment"
             class="mt-10 max-w-md"
-            :title="replyingTo ? `Reply to ${replyingTo.authorName}` : 'Leave a comment'"
-            :open="commentsOpen"
+            title="Leave a comment"
             :bordered="false"
         >
             <template #default="{ expanded }">
@@ -133,9 +174,6 @@ async function reply(item) {
                     v-if="expanded"
                     :type="conversation.type"
                     :id="conversation.id"
-                    :parent-id="replyingTo?.commentId ?? null"
-                    :replying-to="replyingTo?.authorName ?? null"
-                    @cancel="replyingTo = null"
                 />
             </template>
 

@@ -42,6 +42,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // of every code block, quietly removed on save.
         $middleware->trimStrings(except: ['content.*']);
 
+        // The webmention endpoint is posted to by other people's sites, which
+        // by definition hold no token of ours. The spec requires accepting a
+        // form-encoded POST from anywhere, so CSRF cannot apply; the payload is
+        // two URLs, and everything it leads to is verified by fetching the
+        // source and looking for a link back.
+        $middleware->validateCsrfTokens(except: ['webmention']);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

@@ -28,7 +28,7 @@ const KINDS = {
     like: { icon: 'FavouriteIcon', says: 'liked this on' },
     repost: { icon: 'RepeatIcon', says: 'reposted this on' },
     bookmark: { icon: 'Bookmark01Icon', says: 'bookmarked this on' },
-    mention: { icon: 'Link01Icon', says: 'linked to this on' },
+    mention: { icon: 'Link02Icon', says: 'linked to this on' },
     reacji: { icon: null, says: 'reacted on' },
 };
 
