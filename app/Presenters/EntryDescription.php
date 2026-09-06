@@ -185,7 +185,7 @@ final class EntryDescription
     }
 
     /**
-     * ", a comedy romance from 2026. It runs 1 hour 42 minutes.", from
+     * ", a comedy romance from 2026. It was 1 hour 42 minutes long.", from
      * whichever parts we hold.
      *
      * The runtime is a clause of its own rather than a modifier: spelled out is
@@ -201,7 +201,7 @@ final class EntryDescription
 
         $year = $model->meta->year ? " from {$model->meta->year}" : '';
         $runtime = $model->meta->runtime
-            ? ' It runs '.Units::spokenDuration((int) $model->meta->runtime * 60).'.'
+            ? ' It was '.Units::spokenDuration((int) $model->meta->runtime * 60).' long.'
             : '';
 
         return ", {$article} {$noun}{$year}.{$runtime}";
