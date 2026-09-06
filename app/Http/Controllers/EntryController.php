@@ -99,7 +99,7 @@ class EntryController extends Controller
             // h-cite markup that other IndieWeb sites parse, and a reader with
             // no JS should still see what people said. Only the reply *form*
             // is loaded on demand.
-            'conversation' => Conversation::for($model, VisitorIdentity::onTarget(request(), $model)),
+            'conversation' => Conversation::shownFor($model, VisitorIdentity::onTarget(request(), $model)),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'trip' => $this->trip($model),
             'entry' => $model instanceof Calorie
