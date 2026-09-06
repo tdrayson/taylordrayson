@@ -94,13 +94,17 @@ const chosen = computed(() => buckets.value.filter((bucket) => bucket.count > 0)
 const total = computed(() => chosen.value.reduce((sum, bucket) => sum + bucket.count, 0) + props.likeCount);
 const mine = computed(() => buckets.value.find((bucket) => bucket.mine) ?? null);
 
-/** Read out in full, since "5" beside a speech bubble is not a sentence. */
+/**
+ * Spelled out for the tooltip and the screen reader alike: the heading above
+ * counts everything that arrived, this counts the ones that carry words, and
+ * the two disagreeing without explanation is what made them confusing.
+ */
 const responsesLabel = computed(() => {
     if (! props.replyCount) {
         return 'No written responses yet';
     }
 
-    return `${props.replyCount} written ${props.replyCount === 1 ? 'response' : 'responses'}, jump to them`;
+    return `${props.replyCount} written ${props.replyCount === 1 ? 'response' : 'responses'}`;
 });
 
 /** What the summary reads out, since a row of emoji says nothing on its own. */
@@ -233,22 +237,16 @@ function press() {
                 </div>
             </div>
 
-            <!-- A count of something further down the page is a way to get
-                 there, so it is a plain hash link: it works before the page has
-                 hydrated and can be copied and sent to somebody. With nothing
-                 written yet there is nowhere to go, so it is only a number. -->
-            <component
-                :is="replyCount ? 'a' : 'span'"
-                :href="replyCount ? '#responses' : undefined"
+            <!-- Not a link any more: the heading it used to jump to now sits
+                 directly above this line. -->
+            <span
+                class="inline-flex items-center gap-1.5 text-body text-neutral-500"
                 :aria-label="responsesLabel"
-                :class="cn(
-                    'inline-flex items-center gap-1.5 rounded-full text-body text-neutral-500',
-                    replyCount && 'transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                )"
+                :title="responsesLabel"
             >
                 <Icon name="Comment01Icon" class="size-5" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
-            </component>
+            </span>
 
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, ref } from 'vue';
+import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
 import { copyText } from '../../lib/clipboard.js';
 import Accordion from '../Ui/Accordion.vue';
 
@@ -14,6 +14,23 @@ const props = defineProps({
 const WebmentionForm = defineAsyncComponent(() => import('./WebmentionForm.vue'));
 
 const copied = ref(false);
+const sendingLink = ref(false);
+const webmention = ref(null);
+
+/**
+ * Open the webmention panel and put it on screen, for the invitation further up
+ * the page. Closed first so a second click reopens one the reader had shut:
+ * the panel follows this prop's changes, and setting true over true is not one.
+ */
+async function openWebmention() {
+    sendingLink.value = false;
+    await nextTick();
+    sendingLink.value = true;
+    await nextTick();
+    webmention.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+defineExpose({ openWebmention });
 
 /** The bare domain, the way a share card labels its source. */
 const host = computed(() => {
@@ -35,7 +52,7 @@ async function copy() {
     <!-- Three side doors, all at the same weight, so none of them competes
          with the comment box above or with the entry itself. -->
     <div class="mt-10">
-        <Accordion variant="quiet" title="Written about this on your own site?">
+        <Accordion ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
             <template #default="{ expanded }">
                 <p class="mb-3 text-meta text-neutral-500">
                     Send me the link and your

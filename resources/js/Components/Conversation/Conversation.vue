@@ -16,6 +16,7 @@ const props = defineProps({
 });
 
 const replyingTo = ref(null);
+const asides = ref(null);
 
 /**
  * The thread: newest conversation first, but each reply kept under the response
@@ -124,15 +125,22 @@ const formFollows = computed(() => {
     return group[group.length - 1]?.id ?? null;
 });
 
-const heading = computed(() => (thread.value.length === 1 ? '1 response' : `${thread.value.length} responses`));
+const heading = computed(() => {
+    if (! thread.value.length) {
+        return 'No responses yet';
+    }
+
+    return thread.value.length === 1 ? '1 response' : `${thread.value.length} responses`;
+});
 
 // Derived from the responses rather than sent separately, so the summary line
 // can never disagree with the thread it summarises.
 // A like is the binary gesture: a webmention like-of today, a kudo or a Swarm
 // like later. Reacji are counted by the bar itself from its own buckets.
 const likeCount = computed(() => thread.value.filter((item) => item.kind === 'like').length);
+
+const replyCount = computed(() => thread.value.filter((item) => item.body?.length).length);
 // Anything that carried something written, whoever wrote it and wherever from.
-const replyCount = computed(() => thread.value.filter((item) => item.body).length);
 
 /**
  * The comment being answered, recorded as it actually happened. Depth is kept
@@ -153,15 +161,14 @@ async function reply(item) {
 <template>
     <!-- No rules anywhere in here. Separation is space and the weight of the
          headings, which is what stops a short entry looking like a form. -->
-    <!-- The heading names the section when there is one; with nothing said yet
-         there is no heading to point at, so the section carries its own name
-         rather than an aria-labelledby aimed at a missing id. -->
-    <section
-        :aria-labelledby="thread.length ? 'responses' : undefined"
-        :aria-label="thread.length ? undefined : 'Responses'"
-    >
+    <section aria-labelledby="responses">
+        <!-- The heading is here whether or not anybody has said anything. An
+             entry that opened straight onto a summary line and a text box had
+             nothing naming what any of it was for, which read as debris at the
+             bottom of the page rather than as a section. -->
+        <h2 id="responses" class="scroll-mt-8 font-display text-section text-neutral-900">{{ heading }}</h2>
 
-        <div class="space-y-10">
+        <div class="mt-4 space-y-8">
             <!-- A summary line, not a labelled section: the counts read as part
                  of the entry rather than as a form to fill in. -->
             <ReactionBar
@@ -172,15 +179,22 @@ async function reply(item) {
                 :id="conversation.id"
             />
 
-            <div v-if="thread.length">
-                <!-- Named for the URL as much as for the label: the count in the
-                     summary line above links to #responses, and so can anybody. -->
-                <h2 id="responses" class="scroll-mt-8 font-display text-section text-neutral-900">{{ heading }}</h2>
+            <!-- Says what to do, not that there is nothing here: the heading
+                 already said that, and repeating it is the whole of the line. -->
+            <p v-if="! thread.length" class="text-body text-neutral-500">
+                Add a comment below, or
+                <button
+                    type="button"
+                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    @click="asides?.openWebmention()"
+                >send me the link to your own post</button>.
+            </p>
 
+            <div v-else>
                 <!-- One stream, every kind. A gesture renders as a single line
                      and a written response as a block, so the weight difference
                      comes from the content rather than from separate lists. -->
-                <ol class="conversation-rail mt-6 flex flex-col gap-6">
+                <ol class="conversation-rail flex flex-col gap-6">
                     <template v-for="item in thread" :key="item.id">
                         <li class="relative">
                             <ResponseItem :item="item" :nested="item.nested" @reply="reply" />
@@ -212,7 +226,7 @@ async function reply(item) {
                  happens inside the thread, against the response it answers. -->
             <CommentForm :type="conversation.type" :id="conversation.id" />
 
-            <ResponseAsides :url="conversation.url" :og="og" />
+            <ResponseAsides ref="asides" :url="conversation.url" :og="og" />
         </div>
 
     </section>
@@ -231,9 +245,23 @@ async function reply(item) {
     position: absolute;
     left: 17px;
     top: 14px;
-    bottom: 14px;
+    bottom: 10px;
     width: 2px;
     background: linear-gradient(to bottom, var(--color-neutral-25), var(--color-neutral-50));
     border-radius: 2px;
+}
+
+/* The cap the timeline uses, on the same geometry: the line ends at 10px and
+   the dot's centre sits exactly there, so the thread stops rather than being
+   cut off. See FeedRail. */
+.conversation-rail::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    bottom: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-neutral-50);
 }
 </style>
