@@ -8,12 +8,12 @@ use App\Data\MentionData;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Models\Webmention;
-use App\Support\SafeUrl;
+use App\Support\Links;
+use App\Support\SafeFetch;
 use App\Support\WebmentionTarget;
+use DOMDocument;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
 
 /**
  * Fetches a claimed source, confirms it really does link to the target, and
@@ -29,6 +29,9 @@ class VerifyWebmention implements ShouldQueue
 
     private const TIMEOUT_SECONDS = 15;
 
+    /** A page carrying an h-entry, not a file. Anything past this is not one. */
+    private const MAX_BYTES = 2 * 1024 * 1024;
+
     public function __construct(private readonly int $webmentionId) {}
 
     public function handle(ParseMentionSource $parse): void
@@ -42,25 +45,30 @@ class VerifyWebmention implements ShouldQueue
         $target = WebmentionTarget::resolve($mention->target_url);
 
         // The target may have been unpublished between receipt and now.
-        if ($target === null || ! SafeUrl::fetchable($mention->source_url)) {
+        // The source is not checked here: SafeFetch validates it, and every
+        // redirect it leads to.
+        if ($target === null) {
             $mention->delete();
 
             return;
         }
 
-        $response = rescue(
-            fn () => Http::timeout(self::TIMEOUT_SECONDS)
-                ->withHeaders(['Accept' => 'text/html'])
-                ->get($mention->source_url),
-            null,
-            report: false,
+        // Every redirect hop is re-checked and the body is capped: the sender
+        // chose this URL, so they must not also get to choose where it leads or
+        // how much we read.
+        $html = SafeFetch::body(
+            $mention->source_url,
+            self::MAX_BYTES,
+            self::TIMEOUT_SECONDS,
+            ['Accept' => 'text/html'],
+            $status,
         );
 
         // A source we could not reach has said nothing. A timeout, a 500, a
         // rate limit or a bot wall is their outage or their firewall, not a
         // retraction, and deleting on it meant a re-send during a blip
         // destroyed the mention for good.
-        if ($response === null || ($response->failed() && ! $this->isGone($response))) {
+        if ($html === null && ! in_array($status, [404, 410], strict: true)) {
             $mention->update(['last_checked_at' => now()]);
 
             return;
@@ -68,13 +76,13 @@ class VerifyWebmention implements ShouldQueue
 
         // Gone, or no longer linking here: retracted, whether or not the
         // sender said so.
-        if ($this->isGone($response) || ! $this->linksToTarget($response->body(), $mention->target_url)) {
+        if ($html === null || ! $this->linksToTarget($html, $mention->target_url)) {
             $mention->delete();
 
             return;
         }
 
-        $parsed = $parse($response->body(), $mention->source_url, $mention->target_url);
+        $parsed = $parse($html, $mention->source_url, $mention->target_url);
 
         $mention->target()->associate($target);
         $mention->fill([
@@ -93,37 +101,97 @@ class VerifyWebmention implements ShouldQueue
     }
 
     /**
-     * Whether the source is definitively gone, as opposed to merely failing.
-     * Only these two say the page no longer exists; everything else says the
-     * server could not answer for it right now.
-     */
-    private function isGone(Response $response): bool
-    {
-        return in_array($response->status(), [404, 410], strict: true);
-    }
-
-    /**
-     * Whether the source page actually links to the target, matched without
-     * the scheme so an http/https mismatch does not read as a forgery.
+     * Whether the source page actually links to the target.
+     *
+     * The attributes are read rather than the raw HTML searched. A string
+     * search passed on the target appearing anywhere at all: in a script, in a
+     * comment, in prose, or as a prefix of a longer URL, so `/a-post` proved a
+     * link to `/a`. The protocol's one requirement is a link, so that is what
+     * is checked.
      */
     private function linksToTarget(string $html, string $target): bool
     {
-        return str_contains($html, (string) preg_replace('#^https?://#', '', rtrim($target, '/')));
+        $wanted = self::normalise($target);
+
+        foreach (self::linkedUrls($html) as $url) {
+            if (self::normalise($url) === $wanted) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Every URL the document points at through an attribute that makes it a
+     * link rather than a mention of one.
+     *
+     * @return list<string>
+     */
+    private static function linkedUrls(string $html): array
+    {
+        // An empty body is a ValueError rather than a parse failure, and a
+        // source answering 200 with nothing is a real thing that happens.
+        if (trim($html) === '') {
+            return [];
+        }
+
+        $document = new DOMDocument;
+
+        // Someone else's markup is never going to parse cleanly, and a warning
+        // per malformed tag would drown the log for no gain.
+        $loaded = @$document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING);
+
+        if (! $loaded) {
+            return [];
+        }
+
+        $urls = [];
+
+        foreach (['a' => 'href', 'link' => 'href', 'img' => 'src', 'video' => 'src', 'audio' => 'src'] as $tag => $attribute) {
+            foreach ($document->getElementsByTagName($tag) as $element) {
+                $value = trim($element->getAttribute($attribute));
+
+                if ($value !== '') {
+                    $urls[] = $value;
+                }
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Compared without the scheme and without a trailing slash, so http and
+     * https forms of one address match and a link written either way counts.
+     */
+    private static function normalise(string $url): string
+    {
+        return rtrim((string) preg_replace('#^https?://#i', '', trim($url)), '/');
     }
 
     /**
      * Hold the first mention from a site, then trust that site. Same rule as
-     * comments, keyed on the sending domain rather than a name.
+     * comments, keyed on the sending host rather than a name.
+     *
+     * Matched on the whole host. The old `like %host%` matched any substring,
+     * so one approved mention from indieweb.org silently trusted dieweb.org,
+     * and example.com trusted example.com.evil.tld. A host is either the same
+     * host or a different one; there is no partial credit.
      */
     private function statusFor(MentionData $parsed): CommentStatus
     {
-        $host = parse_url((string) $parsed->authorUrl, PHP_URL_HOST);
+        $host = $parsed->authorUrl === null ? null : Links::host($parsed->authorUrl);
 
-        if (! is_string($host) || $host === '') {
+        if ($host === null || $host === '') {
             return CommentStatus::Pending;
         }
 
-        return Webmention::query()->approved()->where('author_url', 'like', '%'.$host.'%')->exists()
+        if (in_array($host, config('webmentions.trusted_hosts', []), strict: true)) {
+            return CommentStatus::Approved;
+        }
+
+        return Webmention::query()->approved()->where('author_host', $host)->exists()
             ? CommentStatus::Approved
             : CommentStatus::Pending;
     }

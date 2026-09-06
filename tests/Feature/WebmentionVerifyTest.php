@@ -226,3 +226,82 @@ it('removes a mention when the source is gone for good', function () {
     expect(verify(Note::factory()->create(), null, 404))->toBeNull()
         ->and(verify(Note::factory()->create(), null, 410))->toBeNull();
 });
+
+it('refuses a source that only mentions the target without linking to it', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    // The URL in prose, in a script, and in a comment. A string search over the
+    // raw HTML called all three a link.
+    $html = <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="https://example.com/jo">Jo Bloggs</a>
+        <div class="e-content">Have a look at {$target} sometime.</div>
+        <script>var seen = "{$target}";</script>
+        <!-- {$target} -->
+    </div></body></html>
+    HTML;
+
+    expect(verify($note, $html))->toBeNull();
+});
+
+it('refuses a link to a longer URL that merely starts with the target', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    expect(verify($note, mentionSource($target.'-and-then-some', 'in-reply-to', 'Nice one.')))->toBeNull();
+});
+
+it('will not follow a redirect into a private address', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    Http::fake([SOURCE => Http::response('', 302, ['Location' => 'http://127.0.0.1/metadata'])]);
+
+    $mention = Webmention::query()->create(['source_url' => SOURCE, 'target_url' => $target]);
+
+    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+
+    // Nothing was fetched from the redirect target, so nothing was verified.
+    expect($mention->fresh()?->verified_at)->toBeNull();
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '127.0.0.1'));
+});
+
+it('trusts a host only when it is the same host, not a substring of one', function () {
+    // An approved mention from indieweb.org used to make dieweb.org trusted,
+    // because the check was `author_url like %dieweb.org%`.
+    Webmention::query()->create([
+        'source_url' => 'https://indieweb.org/a',
+        'target_url' => 'https://example.test/x',
+        'author_url' => 'https://indieweb.org/Jo',
+        'author_host' => 'indieweb.org',
+        'status' => CommentStatus::Approved,
+    ]);
+
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $html = str_replace('https://example.com/jo', 'https://dieweb.org/imposter', mentionSource($target, 'in-reply-to', 'Trust me.'));
+
+    expect(verify($note, $html))->status->toBe(CommentStatus::Pending);
+});
+
+it('lets a configured host through without waiting to be approved', function () {
+    config(['webmentions.trusted_hosts' => ['known.example']]);
+
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+    $html = str_replace('https://example.com/jo', 'https://known.example/me', mentionSource($target, 'in-reply-to', 'Hello.'));
+
+    expect(verify($note, $html))->status->toBe(CommentStatus::Approved);
+});
+
+it('does not extend the allowlist to a host that merely starts with a trusted one', function () {
+    config(['webmentions.trusted_hosts' => ['known.example']]);
+
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+    $html = str_replace('https://example.com/jo', 'https://known.example.evil.tld/me', mentionSource($target, 'in-reply-to', 'Hello.'));
+
+    expect(verify($note, $html))->status->toBe(CommentStatus::Pending);
+});
