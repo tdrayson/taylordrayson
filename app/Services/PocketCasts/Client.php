@@ -2,6 +2,7 @@
 
 namespace App\Services\PocketCasts;
 
+use App\Services\GetRequest;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 use Saloon\Http\Response;

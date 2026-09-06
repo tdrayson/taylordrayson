@@ -1,7 +1,6 @@
 <?php
 
 use App\Services\ThisWeekWith\Client;
-use App\Services\ThisWeekWith\EpisodesRequest;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -37,7 +36,7 @@ it('does not request later pages when the caller stops early', function () {
 
 it('throws when a page request fails', function () {
     Saloon::fake([
-        EpisodesRequest::class => MockResponse::make('down', 503),
+        '/episodes*' => MockResponse::make('down', 503),
     ]);
 
     iterator_to_array(app(Client::class)->episodes(), false);

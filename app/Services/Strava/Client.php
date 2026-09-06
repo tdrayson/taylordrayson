@@ -2,6 +2,7 @@
 
 namespace App\Services\Strava;
 
+use App\Services\GetRequest;
 use Saloon\Http\Request;
 
 /**
@@ -41,7 +42,7 @@ class Client
      */
     public function activity(int|string $id): ?array
     {
-        return $this->json(new ActivityRequest($id));
+        return $this->json(new GetRequest("/api/v3/activities/{$id}"));
     }
 
     /**

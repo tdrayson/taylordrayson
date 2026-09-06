@@ -2,6 +2,7 @@
 
 namespace App\Services\ThisWeekWith;
 
+use App\Services\GetRequest;
 use RuntimeException;
 
 /**
@@ -29,7 +30,7 @@ class Client
      */
     public function episodes(int $perPage = 50): iterable
     {
-        $paginator = $this->connector->paginate(new EpisodesRequest);
+        $paginator = $this->connector->paginate(new GetRequest('/episodes'));
         $paginator->setPerPageLimit($perPage);
 
         // The paginator yields responses, not items, so a failed page can still

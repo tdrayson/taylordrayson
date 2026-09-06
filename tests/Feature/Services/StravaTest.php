@@ -1,6 +1,5 @@
 <?php
 
-use App\Services\Strava\ActivityRequest;
 use App\Services\Strava\Client;
 use App\Services\Strava\TokenRequest;
 use Illuminate\Support\Facades\Cache;
@@ -59,7 +58,7 @@ it('re-authenticates and retries once on a 401', function () {
             MockResponse::make(['access_token' => 'expired', 'expires_in' => 3600]),
             MockResponse::make(['access_token' => 'renewed', 'expires_in' => 3600]),
         ]),
-        ActivityRequest::class => inOrder([
+        '/activities/55' => inOrder([
             MockResponse::make(['error' => 'unauthorized'], 401),
             MockResponse::make(['id' => 55, 'name' => 'Ride']),
         ]),

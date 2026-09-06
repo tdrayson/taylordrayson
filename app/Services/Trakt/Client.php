@@ -3,6 +3,7 @@
 namespace App\Services\Trakt;
 
 use App\Exceptions\TraktException;
+use App\Services\GetRequest;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Response;
 

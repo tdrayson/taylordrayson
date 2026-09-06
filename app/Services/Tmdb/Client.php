@@ -2,6 +2,7 @@
 
 namespace App\Services\Tmdb;
 
+use App\Services\GetRequest;
 
 /**
  * Client for the TMDB API v3, used for enrichment only (season/episode structure,

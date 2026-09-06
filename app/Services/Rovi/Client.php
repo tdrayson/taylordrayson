@@ -2,6 +2,7 @@
 
 namespace App\Services\Rovi;
 
+use App\Services\GetRequest;
 use Carbon\CarbonImmutable;
 use Saloon\Http\Auth\TokenAuthenticator;
 
