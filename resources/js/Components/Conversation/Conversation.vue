@@ -8,6 +8,7 @@ import ResponseItem from './ResponseItem.vue';
 // in the server-rendered HTML is not there to be found by something scraping
 // for forms to post at.
 const CommentForm = defineAsyncComponent(() => import('./CommentForm.vue'));
+const WebmentionForm = defineAsyncComponent(() => import('./WebmentionForm.vue'));
 
 const props = defineProps({
     // One ConversationData: { type, id, url, reactions, responses }.
@@ -15,6 +16,7 @@ const props = defineProps({
 });
 
 const replyingTo = ref(null);
+const sendingLink = ref(false);
 
 /**
  * The thread: newest conversation first, but each reply kept under the response
@@ -171,23 +173,34 @@ async function reply(item) {
             </div>
         </div>
 
-        <!-- Only ever a new comment on the entry. Replying to somebody happens
-             inside the thread, against the response it answers. -->
-        <Accordion
-            id="leave-a-comment"
-            class="mt-10 max-w-md"
-            title="Leave a comment"
-            :bordered="false"
-        >
-            <template #default="{ expanded }">
-                <CommentForm
-                    v-if="expanded"
-                    :type="conversation.type"
-                    :id="conversation.id"
-                />
-            </template>
+        <!-- One place to respond, holding both doors. Sending a link used to
+             sit up with the entry's tags and source, where it read as a stray
+             line among facts rather than as the other way of answering. -->
+        <div class="mt-10 max-w-md">
+            <!-- Only ever a new comment on the entry. Replying to somebody
+                 happens inside the thread, against the response it answers. -->
+            <Accordion id="leave-a-comment" title="Leave a comment" :bordered="false">
+                <template #default="{ expanded }">
+                    <CommentForm
+                        v-if="expanded"
+                        :type="conversation.type"
+                        :id="conversation.id"
+                    />
+                </template>
+            </Accordion>
 
-        </Accordion>
+            <p class="text-caption text-neutral-500">
+                Or if you wrote about this on your own site,
+                <button
+                    type="button"
+                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    :aria-expanded="sendingLink"
+                    @click="sendingLink = ! sendingLink"
+                >send me the link</button>.
+            </p>
+
+            <WebmentionForm v-if="sendingLink" :target="conversation.url" class="mt-4" />
+        </div>
     </section>
 </template>
 

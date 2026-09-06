@@ -66,7 +66,7 @@ async function submit() {
         />
 
         <Button type="submit" :disabled="sending || ! looksLikeUrl">
-            {{ sending ? 'Sending...' : 'Send webmention' }}
+            {{ sending ? 'Sending...' : 'Send the link' }}
         </Button>
 
         <p v-if="error" class="text-caption text-red-600">{{ error }}</p>

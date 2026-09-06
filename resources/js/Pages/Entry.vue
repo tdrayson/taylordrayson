@@ -186,7 +186,6 @@ setLayoutProps({
         <EntryFooter
             :source="source"
             :tags="tags"
-            :webmention-target="conversation?.url ?? null"
             class="mt-10"
         />
 
