@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import Avatar from './Avatar.vue';
+import ContributedText from './ContributedText.vue';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
@@ -36,7 +37,9 @@ const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
 
 // A gesture with nothing written in it is one line, not a block. This is the
 // weight difference a facepile would otherwise be needed for.
-const isGesture = computed(() => ! props.item.body);
+// A document with no blocks is still nothing said, so it reads as a gesture
+// rather than as a response with an empty body.
+const isGesture = computed(() => ! props.item.body?.length);
 
 const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 </script>
@@ -106,7 +109,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
                 <span v-else-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
             </p>
 
-            <p v-if="item.body" class="e-content mt-1 whitespace-pre-line text-body text-neutral-900">{{ item.body }}</p>
+            <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-1" />
 
             <p v-if="item.body && item.sourceUrl" class="mt-2 text-caption">
                 <a
