@@ -145,6 +145,9 @@ class BuildTimelineFeed
             'label' => $local['label'],
             'offset' => $local['offset'],
             'url' => $entry->timelineable->url(),
+            // The entry's own key, so a card can address the reaction endpoint
+            // without the feed having to resolve a model again.
+            'id' => $entry->timelineable->getKey(),
         ];
     }
 }

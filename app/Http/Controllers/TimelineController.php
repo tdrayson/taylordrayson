@@ -7,6 +7,7 @@ use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
+use App\Queries\InteractionsForFeed;
 use App\Queries\MonthsInYear;
 use App\Queries\PeriodStats;
 use App\Queries\PodcastEpisodeCount;
@@ -55,6 +56,11 @@ class TimelineController extends Controller
         return Inertia::render('Timeline', [
             'og' => OgMeta::timeline(),
             'groups' => $groups,
+            // Deferred: the counts are visitor-specific and would keep the feed
+            // out of any page-wide cache, and the feed reads fine without them.
+            'interactions' => Inertia::defer(fn (): array => $window['to'] === null
+                ? []
+                : $this->interactionsForDates($window['to'], $window['from'], $request)),
             'range' => $window['to'] === null ? null : ['from' => $window['from'], 'to' => $window['to']],
             'olderUrl' => $window['olderThan'] === null ? null : '/?before='.$window['olderThan'],
             // The newest page is the bare URL, so the feed has one canonical front.
@@ -62,6 +68,25 @@ class TimelineController extends Controller
             'years' => ($this->years)(),
             'podcastEpisodes' => ($this->podcastEpisodes)(),
         ]);
+    }
+
+    /**
+     * Reaction and response counts for every entry in a window, keyed `type:id`.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function interactionsForDates(string $newest, string $oldest, Request $request): array
+    {
+        $entries = TimelineEntry::query()
+            ->with('timelineable')
+            ->whereDate('occurred_at', '<=', $newest)
+            ->whereDate('occurred_at', '>=', $oldest)
+            ->get();
+
+        return app(InteractionsForFeed::class)(
+            $entries->pluck('timelineable')->filter()->values(),
+            $request,
+        );
     }
 
     /** A Y-m-d cursor from the query string, or null for anything else. */

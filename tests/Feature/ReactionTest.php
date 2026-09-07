@@ -5,6 +5,8 @@ use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Reaction;
+use App\Queries\InteractionsForFeed;
+use Illuminate\Support\Facades\DB;
 
 use function Pest\Laravel\postJson;
 
@@ -147,4 +149,22 @@ it('rejects an emoji outside the offered set', function () {
     react('note', $note->id, 'rocket')->assertStatus(422);
 
     expect(Reaction::count())->toBe(0);
+});
+
+it('answers for a whole page of entries in a fixed number of queries', function () {
+    $notes = Note::factory()->count(12)->create();
+
+    foreach ($notes as $i => $note) {
+        $note->reactions()->create(['type' => ReactionType::Love, 'identity_key' => hash('sha256', "q{$i}")]);
+    }
+
+    DB::enableQueryLog();
+    $rows = app(InteractionsForFeed::class)(collect($notes), request());
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    // Reactions, this visitor's own, comments and mentions. Four whatever the
+    // page holds; the per-entry query would have been two dozen by now.
+    expect($queries)->toBe(4)
+        ->and($rows)->toHaveCount(12);
 });
