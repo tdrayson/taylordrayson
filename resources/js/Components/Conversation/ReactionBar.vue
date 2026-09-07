@@ -23,6 +23,12 @@ const props = defineProps({
     likeCount: { type: Number, default: 0 },
     // Responses carrying prose, for the count beside the speech bubble.
     replyCount: { type: Number, default: 0 },
+    // Shown only when somebody actually did one, so the row grows to fit the
+    // entry rather than carrying two permanent zeroes. Replies are deliberately
+    // not here: they already count in the speech bubble, and a number that is a
+    // subset of another number is what needed explaining last time.
+    repostCount: { type: Number, default: 0 },
+    bookmarkCount: { type: Number, default: 0 },
     type: { type: String, required: true },
     id: { type: Number, required: true },
 });
@@ -111,6 +117,14 @@ const responsesLabel = computed(() => {
     return `${props.replyCount} written ${props.replyCount === 1 ? 'response' : 'responses'}`;
 });
 
+/** The optional gesture counts, each one only there when it happened. */
+const gestures = computed(() => [
+    { key: 'repost', icon: 'RepeatIcon', count: props.repostCount, one: 'repost', many: 'reposts' },
+    { key: 'bookmark', icon: 'Bookmark01Icon', count: props.bookmarkCount, one: 'bookmark', many: 'bookmarks' },
+].filter((gesture) => gesture.count > 0));
+
+const gestureLabel = (gesture) => `${gesture.count} ${gesture.count === 1 ? gesture.one : gesture.many}`;
+
 /** What the summary reads out, since a row of emoji says nothing on its own. */
 const summaryLabel = computed(() => {
     const parts = chosen.value.map((bucket) => `${bucket.count} ${bucket.label}`);
@@ -171,7 +185,7 @@ function press() {
 </script>
 
 <template>
-    <div>
+    <div data-testid="reaction-bar">
         <div class="flex items-center gap-5">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
@@ -252,6 +266,13 @@ function press() {
                 <Icon name="Comment01Icon" class="size-5" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
             </span>
+
+            <Tooltip v-for="gesture in gestures" :key="gesture.key" :label="gestureLabel(gesture)" placement="top">
+                <span class="inline-flex items-center gap-1.5 text-body text-neutral-500" :aria-label="gestureLabel(gesture)">
+                    <Icon :name="gesture.icon" class="size-5" />
+                    <span class="tnum font-medium">{{ gesture.count }}</span>
+                </span>
+            </Tooltip>
 
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for
