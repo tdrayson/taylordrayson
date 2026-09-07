@@ -233,7 +233,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
                 {{ sending ? 'Posting...' : 'Post comment' }}
             </Button>
             <p v-if="revealed" class="flex items-center gap-1.5 text-meta text-neutral-500">
-                <Icon name="SecurityLockIcon" class="size-4 shrink-0 text-green-600" />
+                <Icon name="SecurityLockIcon" class="size-5 shrink-0 text-green-600" />
                 Your email is never shown, and only used for replies.
             </p>
         </div>
