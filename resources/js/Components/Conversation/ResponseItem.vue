@@ -20,23 +20,32 @@ defineEmits(['reply']);
  * the ordinary case, and saying "commented" under every one is noise.
  */
 /**
- * Each kind finishes the sentence its byline starts, ending in "on" so the date
- * that follows is part of it: "Jo Bloggs replied on Thursday 3 September".
+ * Each kind finishes the sentence its byline starts: "Jo Bloggs replied on
+ * Thursday 3 September", with the source's title sitting between the two when
+ * there is one.
  */
 const KINDS = {
-    comment: { icon: 'Comment01Icon', says: 'commented on' },
-    reply: { icon: 'MailReply01Icon', says: 'replied on' },
-    rsvp: { icon: 'Calendar01Icon', says: 'RSVP’d on' },
-    like: { icon: 'FavouriteIcon', says: 'liked this on' },
-    repost: { icon: 'RepeatIcon', says: 'reposted this on' },
-    bookmark: { icon: 'Bookmark01Icon', says: 'bookmarked this on' },
-    mention: { icon: 'Link02Icon', says: 'linked to this on' },
-    reacji: { icon: null, says: 'reacted on' },
+    comment: { icon: 'Comment01Icon', did: 'commented' },
+    reply: { icon: 'MailReply01Icon', did: 'replied' },
+    rsvp: { icon: 'Calendar01Icon', did: 'RSVP’d' },
+    like: { icon: 'FavouriteIcon', did: 'liked this' },
+    repost: { icon: 'RepeatIcon', did: 'reposted this' },
+    bookmark: { icon: 'Bookmark01Icon', did: 'bookmarked this' },
+    mention: { icon: 'Link02Icon', did: 'linked to this' },
+    reacji: { icon: null, did: 'reacted' },
 };
 
 const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
 
 const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
+
+/**
+ * Whether to name the post a response came from.
+ *
+ * Only the kinds that point at a piece of writing. A gesture is one clean line
+ * by design, and its title is whatever page the button happened to sit on.
+ */
+const showTitle = computed(() => Boolean(props.item.title) && ['reply', 'mention'].includes(props.item.kind));
 
 /**
  * Whether this response is a comment on the entry in the microformats sense.
@@ -88,7 +97,7 @@ const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind))
                 >{{ item.authorName }}</a>
                 <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
 
-                <span class="inline-flex items-center gap-x-1.5 text-caption text-neutral-500">
+                <span class="inline-flex flex-wrap items-center gap-x-1.5 text-caption text-neutral-500">
                     <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
                     <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
                     <!-- Wrapped, so the flex gap sits between the marker and the
@@ -97,7 +106,18 @@ const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind))
                          link to it. A webmention author's name carries their site,
                          so repeating the host says it twice; a syndicated gesture
                          has no profile to link, so the platform is named instead. -->
-                    <span>{{ kind.says }}</span>
+                    <span>{{ kind.did }}</span>
+
+                    <!-- "in" and the title share one element so the space
+                         between them is real text rather than a flex gap,
+                         which copies and reads back correctly. -->
+                    <span v-if="showTitle">in{{ ' ' }}<a
+                        :href="item.sourceUrl"
+                        rel="ugc nofollow noopener noreferrer"
+                        class="p-name u-url rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    ><cite class="not-italic">{{ item.title }}</cite></a></span>
+
+                    <span>on</span>
                 </span>
 
                 <time
@@ -119,26 +139,11 @@ const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind))
                 <span v-else-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
             </p>
 
-            <!-- The name of the post this came from, marked up as a name
-                 rather than as content. Folding it into the body published
-                 somebody's article title inside e-content, which told a parser
-                 the title was what they had written. -->
-            <p v-if="item.title" class="mt-1 text-body text-neutral-900">
-                <span class="text-neutral-500">in</span>
-                <a
-                    v-if="item.sourceUrl"
-                    :href="item.sourceUrl"
-                    rel="ugc nofollow noopener noreferrer"
-                    class="p-name u-url rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
-                ><cite class="not-italic">{{ item.title }}</cite></a>
-                <cite v-else class="p-name not-italic">{{ item.title }}</cite>
-            </p>
-
             <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-1" />
 
-            <!-- Only without a title, which is already a link to the same
-                 place and would otherwise give the citation two u-urls. -->
-            <p v-if="item.body && item.sourceUrl && ! item.title" class="mt-2 text-caption">
+            <!-- Only when the byline is not already naming the source, which
+                 links to the same place and would give it two u-urls. -->
+            <p v-if="item.body && item.sourceUrl && ! showTitle" class="mt-2 text-caption">
                 <a
                     :href="item.sourceUrl"
                     rel="ugc nofollow noopener noreferrer"
