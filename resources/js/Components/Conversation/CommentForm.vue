@@ -1,5 +1,5 @@
 <script setup>
-import { defineAsyncComponent, onMounted, ref, useId } from 'vue';
+import { computed, defineAsyncComponent, onMounted, ref, useId } from 'vue';
 import { readCommenter, rememberCommenter } from '../../lib/commenter.js';
 import { csrf } from '../../lib/csrf.js';
 import Button from '../Ui/Button.vue';
@@ -125,6 +125,26 @@ async function submit() {
     }
 }
 
+/**
+ * What has actually been written, whichever box is on screen. The server holds
+ * a comment to the same minimum, so an inert button is the same answer arriving
+ * sooner and without a round trip.
+ */
+const bodyLength = computed(() => {
+    if (! rich.value) {
+        return body.value.trim().length;
+    }
+
+    return (document.value ?? [])
+        .flatMap((block) => block.children ?? [])
+        .map((span) => span.text ?? '')
+        .join('')
+        .trim()
+        .length;
+});
+
+const canPost = computed(() => bodyLength.value >= 2);
+
 /** The first message for a field, since only one is ever worth showing. */
 const errorFor = (field) => errors.value[field]?.[0] ?? null;
 </script>
@@ -209,7 +229,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
              answers a question you have while deciding to press it. Wraps
              underneath where there is no room for both. -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2">
-            <Button type="submit" variant="primary" :disabled="sending">
+            <Button type="submit" variant="primary" :disabled="sending || ! canPost">
                 {{ sending ? 'Posting...' : 'Post comment' }}
             </Button>
             <p v-if="revealed" class="flex items-center gap-1.5 text-meta text-neutral-500">
