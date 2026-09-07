@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'source_url',
     'target_url',
     'kind',
+    'title',
     'author_name',
     'author_url',
     'author_host',
