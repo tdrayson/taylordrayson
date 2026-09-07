@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CommentStatus;
 use App\Enums\ReactionType;
 use App\Models\Note;
 use App\Support\PortableText;
@@ -59,4 +60,38 @@ it('keeps every disc dark enough to carry its glyph', function () {
     visit(noteWithEveryReaction()->url())
         ->assertPresent('.reaction-pip')
         ->assertScript($failing, 0);
+});
+
+it('counts reposts and bookmarks only once somebody has done one', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-09 09:00:00',
+        'content' => PortableText::fromPlainText('Something worth keeping.'),
+    ]);
+
+    // A permanent pair of zeroes would be furniture on every entry. Reactions
+    // and the written-response count keep showing at zero; these do not.
+    $labelled = "[...document.querySelectorAll('[aria-label]')]"
+        .".map((el) => el.getAttribute('aria-label')).filter((l) => /repost|bookmark/.test(l))";
+
+    // Waited for: script() reads the DOM the moment it is called, so asserting
+    // without one races Vue and passes against an empty shell.
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"]')
+        ->assertScript("{$labelled}.length", 0);
+
+    foreach (['repost', 'bookmark'] as $index => $kind) {
+        $note->webmentions()->create([
+            'source_url' => "https://jan.example/{$kind}",
+            'target_url' => config('app.url').$note->url(),
+            'kind' => $kind,
+            'author_name' => 'Jan',
+            'status' => CommentStatus::Approved,
+            'verified_at' => now(),
+            'published_at' => now()->subMinutes($index),
+        ]);
+    }
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"]')
+        ->assertScript("{$labelled}.sort().join('|')", '1 bookmark|1 repost');
 });

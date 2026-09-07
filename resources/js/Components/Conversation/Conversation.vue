@@ -140,6 +140,8 @@ const heading = computed(() => {
 const likeCount = computed(() => thread.value.filter((item) => item.kind === 'like').length);
 
 const replyCount = computed(() => thread.value.filter((item) => item.body?.length).length);
+const repostCount = computed(() => thread.value.filter((item) => item.kind === 'repost').length);
+const bookmarkCount = computed(() => thread.value.filter((item) => item.kind === 'bookmark').length);
 // Anything that carried something written, whoever wrote it and wherever from.
 
 /**
@@ -175,6 +177,8 @@ async function reply(item) {
                 :reactions="conversation.reactions"
                 :like-count="likeCount"
                 :reply-count="replyCount"
+                :repost-count="repostCount"
+                :bookmark-count="bookmarkCount"
                 :type="conversation.type"
                 :id="conversation.id"
             />

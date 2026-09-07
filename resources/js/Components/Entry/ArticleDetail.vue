@@ -54,7 +54,7 @@ const headingCount = computed(() => contentNodes.value.filter(
             <img
                 :src="entry.cover.full"
                 alt=""
-                class="size-full object-cover"
+                class="u-featured size-full object-cover"
             >
         </div>
 
