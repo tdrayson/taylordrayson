@@ -78,7 +78,7 @@ class ImportPlace
             return [0, []];
         }
 
-        $stored = $place->getMedia('photos')
+        $stored = $checkin->getMedia('photos')
             ->map(fn (Media $media): string => self::stemOf($media->file_name))
             ->all();
 
@@ -98,7 +98,7 @@ class ImportPlace
             }
 
             try {
-                $place->addMediaFromUrl($prefix.'original'.$suffix)->toMediaCollection('photos');
+                $checkin->addMediaFromUrl($prefix.'original'.$suffix)->toMediaCollection('photos');
                 $stored[] = self::stemOf($suffix);
                 $added++;
             } catch (Throwable $exception) {
