@@ -95,3 +95,26 @@ it('counts reposts and bookmarks only once somebody has done one', function () {
         ->assertPresent('[data-testid="reaction-bar"]')
         ->assertScript("{$labelled}.sort().join('|')", '1 bookmark|1 repost');
 });
+
+it('sets every number on the row at one size, so they sit on one line', function () {
+    // The per-reaction counts were text-caption while the reply, repost and
+    // bookmark counts beside them were text-body, so no two lined up.
+    $note = noteWithEveryReaction();
+
+    $note->webmentions()->create([
+        'source_url' => 'https://jan.example/repost',
+        'target_url' => config('app.url').$note->url(),
+        'kind' => 'repost',
+        'author_name' => 'Jan',
+        'status' => CommentStatus::Approved,
+        'verified_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $sizes = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tnum')]"
+        .'.map((el) => getComputedStyle(el).fontSize)).size';
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"] .tnum')
+        ->assertScript($sizes, 1);
+});
