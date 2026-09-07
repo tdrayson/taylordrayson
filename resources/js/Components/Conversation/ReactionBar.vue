@@ -221,7 +221,12 @@ function press() {
                         'inline-flex items-center gap-1.5 rounded-full py-1 transition-colors',
                         sizes.text,
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                        mine ? 'text-accent-700' : 'text-neutral-500 hover:text-accent-700',
+                        // The same grey as the counts beside it, whether or not
+                        // you have reacted. Tinting it to the chosen reaction
+                        // fails text contrast on four of the six, and the
+                        // accent fought whatever colour the disc happened to
+                        // be. The disc is what says you reacted.
+                        'text-neutral-500 hover:text-accent-700',
                         busy !== null && 'opacity-50',
                     )"
                     @click="press"
@@ -238,8 +243,10 @@ function press() {
                     <Icon v-else name="ThumbsUpIcon" :class="sizes.icon" />
                     <!-- Zero is shown too. A count that appears only once it
                          is non-zero makes the line a different shape on every
-                         entry, and a lone number reads as a stray mark. -->
-                    <span class="tnum font-medium">{{ total }}</span>
+                         entry, and a lone number reads as a stray mark.
+                         Weight, not colour, says you are in this count: the row
+                         stays one colour and the disc keeps whichever it has. -->
+                    <span class="tnum" :class="mine ? 'font-bold' : 'font-medium'">{{ total }}</span>
                 </button>
 
                 <Transition name="picker-pop">
