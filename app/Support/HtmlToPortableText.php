@@ -42,7 +42,12 @@ final class HtmlToPortableText
         'em' => 'em',
         'i' => 'em',
         'code' => 'code',
+        'u' => 'underline',
+        'ins' => 'underline',
     ];
+
+    /** An image contributes its description or nothing; long alt is a caption. */
+    private const MAX_LABEL = 120;
 
     /**
      * Elements whose text is not prose. Unwrapping these would harvest the
@@ -181,6 +186,15 @@ final class HtmlToPortableText
             return [PortableText::span("\n", $marks)];
         }
 
+        // No <img> reaches the page, so its description is the only thing of
+        // it worth keeping. Empty alt yields no span at all, which is what
+        // stops a linked image becoming an anchor around nothing.
+        if ($name === 'img') {
+            $label = self::label($node, ['alt', 'title']);
+
+            return $label === '' ? [] : [PortableText::span($label, $marks)];
+        }
+
         // Carried on the span rather than resolved here: the block that owns
         // these spans is the thing that holds markDefs.
         if ($name === 'a') {
@@ -201,7 +215,33 @@ final class HtmlToPortableText
             $spans = [...$spans, ...self::spansIn($child, $marks)];
         }
 
+        // A link whose only content was an undescribed image would otherwise be
+        // dropped silently; its own labelling attributes still name where it goes.
+        if ($name === 'a' && $spans === []) {
+            $label = self::label($node, ['title', 'aria-label']);
+
+            return $label === '' ? [] : [PortableText::span($label, $marks)];
+        }
+
         return $spans;
+    }
+
+    /**
+     * The first of these attributes that says something, collapsed and capped.
+     *
+     * @param  list<string>  $attributes
+     */
+    private static function label(DOMElement $node, array $attributes): string
+    {
+        foreach ($attributes as $attribute) {
+            $value = trim(preg_replace('/\s+/u', ' ', $node->getAttribute($attribute)) ?? '');
+
+            if ($value !== '') {
+                return mb_substr($value, 0, self::MAX_LABEL);
+            }
+        }
+
+        return '';
     }
 
     /**
