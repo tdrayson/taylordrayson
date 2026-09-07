@@ -71,7 +71,7 @@ async function copy() {
 
         <Accordion variant="quiet" title="Reference this post">
             <p class="mb-3 text-meta text-neutral-500">
-                Link back to this page if you write about it. I am Taylor Drayson, and the site is taylordrayson.com.
+                Link back to this page if you write about it.
             </p>
 
             <div class="flex flex-col gap-2 sm:flex-row">
