@@ -26,6 +26,15 @@ enum WebmentionKind: string
      */
     case Reacji = 'reacji';
 
+    /**
+     * A gesture is a response with no prose of its own: the sender pressed a
+     * button rather than writing something.
+     */
+    public function isGesture(): bool
+    {
+        return in_array($this, [self::Like, self::Repost, self::Bookmark, self::Rsvp], true);
+    }
+
     public function label(): string
     {
         return match ($this) {
