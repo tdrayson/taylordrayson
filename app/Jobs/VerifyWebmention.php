@@ -87,6 +87,7 @@ class VerifyWebmention implements ShouldQueue
         $mention->target()->associate($target);
         $mention->fill([
             'kind' => ($parsed->isReacji() ? WebmentionKind::Reacji : $parsed->kind)->value,
+            'title' => $parsed->title,
             'author_name' => $parsed->authorName,
             'author_url' => $parsed->authorUrl,
             'author_photo_path' => app(StoreAuthorPhoto::class)($parsed->authorPhoto),

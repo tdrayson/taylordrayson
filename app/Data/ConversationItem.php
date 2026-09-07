@@ -29,6 +29,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public string $authorName,
         public ?string $authorUrl,
         public ?string $authorPhoto,
+        /** The name of the post a mention came from; null for a comment. */
+        public ?string $title,
         /** @var array<int, array<string, mixed>>|null Portable Text, or null for a gesture. */
         public ?array $body,
         public CarbonInterface $occurredAt,
@@ -49,6 +51,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             authorName: $comment->author_name,
             authorUrl: null,
             authorPhoto: null,
+            title: null,
             body: $comment->body,
             occurredAt: $comment->created_at,
             parentId: $comment->parent_id,
@@ -73,6 +76,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             authorPhoto: $mention->author_photo_path === null
                 ? null
                 : '/'.ltrim($mention->author_photo_path, '/'),
+            title: $mention->title,
             // A reacji's body is its emoji, which the marker already shows.
             body: $isReacji || blank($mention->content) ? null : $mention->content,
             occurredAt: $mention->published_at ?? $mention->created_at,
@@ -106,6 +110,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'authorName' => $this->authorName,
             'authorUrl' => $this->authorUrl,
             'authorPhoto' => $this->authorPhoto,
+            'title' => $this->title,
             'body' => $this->body,
             // The site's timestamp shape, formatted server-side like every
             // other one: a comment is a real instant, shown in home time.

@@ -6,7 +6,8 @@ import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
-    // body, occurredAt, parentId, commentId, sourceUrl, sourceHost, emoji }.
+    // title, body, occurredAt, parentId, commentId, sourceUrl, sourceHost,
+    // emoji }.
     item: { type: Object, required: true },
     // Rendered as a reply to somebody, one level deep only.
     nested: { type: Boolean, default: false },
@@ -34,12 +35,6 @@ const KINDS = {
 };
 
 const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
-
-// A gesture with nothing written in it is one line, not a block. This is the
-// weight difference a facepile would otherwise be needed for.
-// A document with no blocks is still nothing said, so it reads as a gesture
-// rather than as a response with an empty body.
-const isGesture = computed(() => ! props.item.body?.length);
 
 const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 
@@ -124,9 +119,26 @@ const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind))
                 <span v-else-if="via" class="text-caption text-neutral-500">via {{ via }}</span>
             </p>
 
+            <!-- The name of the post this came from, marked up as a name
+                 rather than as content. Folding it into the body published
+                 somebody's article title inside e-content, which told a parser
+                 the title was what they had written. -->
+            <p v-if="item.title" class="mt-1 text-body text-neutral-900">
+                <span class="text-neutral-500">in</span>
+                <a
+                    v-if="item.sourceUrl"
+                    :href="item.sourceUrl"
+                    rel="ugc nofollow noopener noreferrer"
+                    class="p-name u-url rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                ><cite class="not-italic">{{ item.title }}</cite></a>
+                <cite v-else class="p-name not-italic">{{ item.title }}</cite>
+            </p>
+
             <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-1" />
 
-            <p v-if="item.body && item.sourceUrl" class="mt-2 text-caption">
+            <!-- Only without a title, which is already a link to the same
+                 place and would otherwise give the citation two u-urls. -->
+            <p v-if="item.body && item.sourceUrl && ! item.title" class="mt-2 text-caption">
                 <a
                     :href="item.sourceUrl"
                     rel="ugc nofollow noopener noreferrer"
