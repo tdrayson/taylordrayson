@@ -1,4 +1,5 @@
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
@@ -31,7 +32,19 @@ const props = defineProps({
     bookmarkCount: { type: Number, default: 0 },
     type: { type: String, required: true },
     id: { type: Number, required: true },
+    // 'compact' is the timeline feed: fifty full-size bars down a page is a lot
+    // of furniture, and hover-to-spread fights a page being scrolled.
+    variant: { type: String, default: 'full' },
+    // The entry's own URL. Only the compact bar needs it, for the jump link.
+    url: { type: String, default: null },
 });
+
+const compact = computed(() => props.variant === 'compact');
+
+/** One place for every size that differs, rather than a ternary per element. */
+const sizes = computed(() => (compact.value
+    ? { row: 'gap-4', text: 'text-meta', icon: 'size-4', disc: 'size-5', discIcon: 'size-3.5', pip: 'size-5', pipIcon: 'size-3.5' }
+    : { row: 'gap-5', text: 'text-body', icon: 'size-5', disc: 'size-6', discIcon: 'size-4', pip: 'size-6', pipIcon: 'size-4' }));
 
 /**
  * A white glyph on a coloured disc rather than an emoji glyph: an emoji is drawn
@@ -186,7 +199,7 @@ function press() {
 
 <template>
     <div data-testid="reaction-bar">
-        <div class="flex items-center gap-5">
+        <div :class="['flex items-center', sizes.row]">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
             <div
@@ -205,7 +218,8 @@ function press() {
                     :aria-pressed="mine !== null"
                     :aria-label="mine ? `You reacted ${mine.label}` : 'React to this'"
                     :class="cn(
-                        'inline-flex items-center gap-1.5 rounded-full py-1 text-body transition-colors',
+                        'inline-flex items-center gap-1.5 rounded-full py-1 transition-colors',
+                        sizes.text,
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                         mine ? 'text-accent-700' : 'text-neutral-500 hover:text-accent-700',
                         busy !== null && 'opacity-50',
@@ -214,14 +228,14 @@ function press() {
                 >
                     <span
                         v-if="mine && glyph(mine)"
-                        class="flex size-6 items-center justify-center rounded-full"
+                        :class="['flex items-center justify-center rounded-full', sizes.disc]"
                         :style="discOf(glyph(mine))"
                         aria-hidden="true"
                     >
-                        <Icon :name="glyph(mine).icon" class="size-4" />
+                        <Icon :name="glyph(mine).icon" :class="sizes.discIcon" />
                     </span>
                     <span v-else-if="mine" v-twemoji aria-hidden="true">{{ mine.emoji }}</span>
-                    <Icon v-else name="ThumbsUpIcon" class="size-5" />
+                    <Icon v-else name="ThumbsUpIcon" :class="sizes.icon" />
                     <!-- Zero is shown too. A count that appears only once it
                          is non-zero makes the line a different shape on every
                          entry, and a lone number reads as a stray mark. -->
@@ -258,18 +272,24 @@ function press() {
 
             <!-- Not a link any more: the heading it used to jump to now sits
                  directly above this line. -->
-            <span
-                class="inline-flex items-center gap-1.5 text-body text-neutral-500"
+            <component
+                :is="compact && url ? Link : 'span'"
+                :href="compact && url ? `${url}#responses` : undefined"
+                :class="[
+                    'inline-flex items-center gap-1.5 text-neutral-500',
+                    sizes.text,
+                    compact && url && 'rounded-sm transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                ]"
                 :aria-label="responsesLabel"
                 :title="responsesLabel"
             >
-                <Icon name="Comment01Icon" class="size-5" />
+                <Icon name="Comment01Icon" :class="sizes.icon" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
-            </span>
+            </component>
 
             <Tooltip v-for="gesture in gestures" :key="gesture.key" :label="gestureLabel(gesture)" placement="top">
-                <span class="inline-flex items-center gap-1.5 text-body text-neutral-500" :aria-label="gestureLabel(gesture)">
-                    <Icon :name="gesture.icon" class="size-5" />
+                <span :class="['inline-flex items-center gap-1.5 text-neutral-500', sizes.text]" :aria-label="gestureLabel(gesture)">
+                    <Icon :name="gesture.icon" :class="sizes.icon" />
                     <span class="tnum font-medium">{{ gesture.count }}</span>
                 </span>
             </Tooltip>
@@ -279,8 +299,8 @@ function press() {
                  its own count. -->
             <ul
                 v-if="chosen.length"
-                class="reaction-pile flex items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                tabindex="0"
+                :class="['reaction-pile flex items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500', compact && 'is-static']"
+                :tabindex="compact ? -1 : 0"
                 :aria-label="summaryLabel"
             >
                 <li
@@ -290,10 +310,10 @@ function press() {
                 >
                     <Tooltip :label="`${bucket.count} ${bucket.label}`" placement="top">
                     <span
-                        class="reaction-pip flex size-6 items-center justify-center rounded-full ring-2 ring-neutral-0"
+                        :class="['reaction-pip flex items-center justify-center rounded-full ring-2 ring-neutral-0', sizes.pip]"
                         :style="glyph(bucket) ? discOf(glyph(bucket)) : { background: 'var(--color-neutral-25)' }"
                     >
-                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-4" />
+                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" :class="sizes.pipIcon" />
                         <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
                     </span>
 
@@ -326,15 +346,15 @@ function press() {
     margin-left: 0;
 }
 
-.reaction-pile:hover .reaction-item,
-.reaction-pile:focus-within .reaction-item,
-.reaction-pile:focus .reaction-item {
+.reaction-pile:not(.is-static):hover .reaction-item,
+.reaction-pile:not(.is-static):focus-within .reaction-item,
+.reaction-pile:not(.is-static):focus .reaction-item {
     margin-left: 0.375rem;
 }
 
-.reaction-pile:hover .reaction-item:first-child,
-.reaction-pile:focus-within .reaction-item:first-child,
-.reaction-pile:focus .reaction-item:first-child {
+.reaction-pile:not(.is-static):hover .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus-within .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus .reaction-item:first-child {
     margin-left: 0;
 }
 
@@ -347,9 +367,9 @@ function press() {
     transition: max-width 150ms ease, opacity 150ms ease, margin-left 150ms ease;
 }
 
-.reaction-pile:hover .reaction-count,
-.reaction-pile:focus-within .reaction-count,
-.reaction-pile:focus .reaction-count {
+.reaction-pile:not(.is-static):hover .reaction-count,
+.reaction-pile:not(.is-static):focus-within .reaction-count,
+.reaction-pile:not(.is-static):focus .reaction-count {
     max-width: 2rem;
     margin-left: 0.25rem;
     opacity: 1;

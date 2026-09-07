@@ -206,18 +206,19 @@
 
     /* Reactions: a white glyph on a coloured disc, so each reads at a glance
        without depending on how a platform draws its emoji font. */
-    --color-reaction-like: hsl(215 80% 52%);
-    --color-reaction-love: hsl(350 72% 55%);
-    --color-reaction-celebrate: hsl(270 55% 55%);
-    --color-reaction-wow: hsl(25 85% 44%);
-    --color-reaction-haha: hsl(45 85% 34%);
-    --color-reaction-sad: hsl(215 45% 55%);
+    --color-reaction-like: hsl(212 100% 47%);
+    --color-reaction-love: hsl(348 90% 50%);
+    --color-reaction-celebrate: hsl(272 85% 56%);
+    --color-reaction-wow: hsl(25 100% 48%);
+    --color-reaction-haha: hsl(45 100% 36%);
+    --color-reaction-sad: hsl(212 60% 50%);
 
     /* The disc keeps its colour in both themes, so its glyph has to keep its
        own: a neutral token would flip to ink and disappear into the disc.
        Every disc is therefore dark enough to carry white at 3:1 or better, the
-       ratio WCAG asks of a graphical object. Wow and haha were the two that
-       were not, at 2.10:1 and 2.03:1, and were also within 0.07 of each other. */
+       ratio WCAG asks of a graphical object. Saturation is pushed as far as
+       that allows: yellow is the one hue where bright and legible cannot both
+       hold, so haha sits at the brightest gold that still carries a glyph. */
     --color-reaction-glyph: #ffffff;
 
     --color-sleep-awake: hsl(0 70% 72%);
