@@ -214,8 +214,12 @@
     --color-reaction-sad: hsl(215 45% 55%);
 
     /* The disc keeps its colour in both themes, so its glyph has to keep its
-       own: a neutral token would flip to ink and disappear into the disc. */
+       own: a neutral token would flip to ink and disappear into the disc.
+       Two of the discs are yellow, where white manages 2.1:1 and fails the 3:1
+       WCAG asks of a graphical object. Ink on the same yellow reads at 7.6:1,
+       so those keep their colour and darken the glyph instead. */
     --color-reaction-glyph: #ffffff;
+    --color-reaction-glyph-ink: #222222;
 
     --color-sleep-awake: hsl(0 70% 72%);
     --color-sleep-rem: hsl(210 60% 58%);

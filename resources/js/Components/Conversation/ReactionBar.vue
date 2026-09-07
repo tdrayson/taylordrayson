@@ -38,12 +38,20 @@ const GLYPHS = {
     like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)' },
     love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)' },
     celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)' },
-    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)' },
-    haha: { icon: 'LaughingIcon', colour: 'var(--color-reaction-haha)' },
-    sad: { icon: 'CryingIcon', colour: 'var(--color-reaction-sad)' },
+    // Ink, not white: these two discs are yellow, where a white glyph reads
+    // at 2.1:1 against the 3:1 a graphical object needs.
+    wow: { icon: 'ShockedIcon', colour: 'var(--color-reaction-wow)', ink: true },
+    haha: { icon: 'Relieved02Icon', colour: 'var(--color-reaction-haha)', ink: true },
+    sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)' },
 };
 
 const glyph = (bucket) => GLYPHS[bucket.key] ?? null;
+
+/** A disc's fill, and the glyph colour that stays legible on it. */
+const discOf = (g) => ({
+    background: g.colour,
+    color: g.ink ? 'var(--color-reaction-glyph-ink)' : 'var(--color-reaction-glyph)',
+});
 
 const buckets = ref([...props.reactions]);
 const busy = ref(null);
@@ -196,11 +204,11 @@ function press() {
                 >
                     <span
                         v-if="mine && glyph(mine)"
-                        class="flex size-6 items-center justify-center rounded-full text-reaction-glyph"
-                        :style="{ background: glyph(mine).colour }"
+                        class="flex size-6 items-center justify-center rounded-full"
+                        :style="discOf(glyph(mine))"
                         aria-hidden="true"
                     >
-                        <Icon :name="glyph(mine).icon" class="size-3.5" />
+                        <Icon :name="glyph(mine).icon" class="size-4" />
                     </span>
                     <span v-else-if="mine" v-twemoji aria-hidden="true">{{ mine.emoji }}</span>
                     <Icon v-else name="ThumbsUpIcon" class="size-5" />
@@ -224,11 +232,11 @@ function press() {
                             >
                                 <span
                                     v-if="glyph(bucket)"
-                                    class="flex size-8 items-center justify-center rounded-full text-reaction-glyph"
-                                    :style="{ background: glyph(bucket).colour }"
+                                    class="flex size-8 items-center justify-center rounded-full"
+                                    :style="discOf(glyph(bucket))"
                                     aria-hidden="true"
                                 >
-                                    <Icon :name="glyph(bucket).icon" class="size-4" />
+                                    <Icon :name="glyph(bucket).icon" class="size-5" />
                                 </span>
                                 <span v-else v-twemoji class="flex size-8 items-center justify-center text-lg" aria-hidden="true">{{ bucket.emoji }}</span>
                             </button>
@@ -264,10 +272,10 @@ function press() {
                     :title="`${bucket.count} ${bucket.label}`"
                 >
                     <span
-                        class="reaction-pip flex size-6 items-center justify-center rounded-full text-reaction-glyph ring-2 ring-neutral-0"
-                        :style="glyph(bucket) ? { background: glyph(bucket).colour } : { background: 'var(--color-neutral-25)' }"
+                        class="reaction-pip flex size-6 items-center justify-center rounded-full ring-2 ring-neutral-0"
+                        :style="glyph(bucket) ? discOf(glyph(bucket)) : { background: 'var(--color-neutral-25)' }"
                     >
-                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-3.5" />
+                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" class="size-4" />
                         <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
                     </span>
 
