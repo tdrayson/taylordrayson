@@ -8,6 +8,7 @@ import DateGroup from '../Components/Timeline/DateGroup.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
+import { provideInteractions } from '../lib/interactionContext.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -20,8 +21,12 @@ const props = defineProps({
     newerUrl: { type: String, default: null },
     // list<{ year, href }>, newest first.
     years: { type: Array, default: () => [] },
-    thisWeekWithEpisodes: { type: Number, default: 0 },
+    podcastEpisodes: { type: Number, default: 0 },
+    // Deferred, so this is undefined on first paint. Keyed `type:id`.
+    interactions: { type: Object, default: () => ({}) },
 });
+
+provideInteractions(computed(() => props.interactions ?? {}));
 
 setLayoutProps({
     breadcrumb: [],
