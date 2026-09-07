@@ -4,6 +4,8 @@ use App\Enums\CommentStatus;
 use App\Enums\ReactionType;
 use App\Models\Note;
 use App\Support\PortableText;
+use App\Support\VisitorIdentity;
+use Illuminate\Http\Request;
 
 /**
  * The reaction discs, as they actually paint.
@@ -117,4 +119,57 @@ it('sets every number on the row at one size, so they sit on one line', function
     visit($note->url())
         ->assertPresent('[data-testid="reaction-bar"] .tnum')
         ->assertScript($sizes, 1);
+});
+
+it('keeps every count the same colour, including the one you reacted with', function () {
+    // The trigger used to go accent blue once you had reacted, which fought
+    // whatever colour the disc beside it happened to be. Tinting it to the
+    // reaction instead is not an option: four of the six fail text contrast.
+    $note = noteWithEveryReaction();
+
+    $note->webmentions()->create([
+        'source_url' => 'https://jan.example/repost',
+        'target_url' => config('app.url').$note->url(),
+        'kind' => 'repost',
+        'author_name' => 'Jan',
+        'status' => CommentStatus::Approved,
+        'verified_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $colours = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tnum')]"
+        .'.map((el) => getComputedStyle(el).color)).size';
+
+    // Seeded rather than clicked: the accent only ever applied once you were in
+    // the count, so asserting on a page where nobody has reacted proves nothing,
+    // and clicking the control leaves it hovered, which is a colour of its own.
+    foreach (['127.0.0.1', '::1'] as $ip) {
+        $note->reactions()->create([
+            'type' => ReactionType::Love,
+            'identity_key' => VisitorIdentity::onTarget(
+                Request::create('/', 'GET', server: ['REMOTE_ADDR' => $ip]),
+                $note,
+            ),
+        ]);
+    }
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"] .tnum')
+        ->assertScript("document.querySelector('[data-testid=\"reaction-bar\"] button').getAttribute('aria-pressed')", 'true')
+        ->assertScript($colours, 1);
+});
+
+it('bolds the total when you are one of the people in it', function () {
+    $note = noteWithEveryReaction();
+
+    // Nobody has reacted from this browser, so the total reads like the rest.
+    $weight = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tnum')).fontWeight";
+
+    $page = visit($note->url())->assertPresent('[data-testid="reaction-bar"]');
+    $page->assertScript($weight, '500');
+
+    // Reacting is the only thing that changes, since the count stays the same
+    // colour and size as the ones beside it.
+    $page->click('[aria-label="React to this"]')
+        ->assertScript($weight, '700');
 });
