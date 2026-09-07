@@ -21,7 +21,16 @@ it('draws the lightbox above the map photo markers', function () {
     $page = visit($activity->url())->resize(1280, 900);
 
     $page->click('[data-testid="photo-marker"]')
-        ->assertPresent('[role="dialog"]');
+        ->assertPresent('[role="dialog"]')
+        // Present is not the same as painted: the overlay fades in over 0.2s
+        // and a hit-test run mid-fade still finds the marker underneath, which
+        // is what failed under a loaded suite. Waited rather than asserted,
+        // because assertScript evaluates once and would race the same way.
+        ->wait(0.5)
+        ->assertScript(
+            "getComputedStyle(document.querySelector('[role=\"dialog\"]')).opacity === '1'",
+            true,
+        );
 
     // Hit-test the marker's own centre: whatever paints there while the
     // lightbox is open must belong to the lightbox, not the map. Clicking a
