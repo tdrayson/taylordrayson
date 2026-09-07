@@ -242,6 +242,7 @@ function press() {
                     <span class="tnum font-medium">{{ total }}</span>
                 </button>
 
+                <Transition name="picker-pop">
                 <div v-show="picking" class="absolute bottom-full left-0 z-20 pb-1">
                     <ul class="flex gap-1 rounded-full border border-neutral-50 bg-neutral-0 px-2 py-1.5 shadow-lg">
                         <li v-for="bucket in buckets.filter(isOurs)" :key="bucket.key">
@@ -268,6 +269,7 @@ function press() {
                         </li>
                     </ul>
                 </div>
+                </Transition>
             </div>
 
             <!-- Not a link any more: the heading it used to jump to now sits
@@ -320,7 +322,7 @@ function press() {
 
                     <!-- Its own count, revealed with the spread so each disc can
                          be read rather than guessed at. -->
-                    <span class="reaction-count tnum text-caption text-neutral-500" aria-hidden="true">{{ bucket.count }}</span>
+                    <span :class="['reaction-count tnum font-medium text-neutral-500', sizes.text]" aria-hidden="true">{{ bucket.count }}</span>
                     </Tooltip>
                 </li>
             </ul>
@@ -333,6 +335,38 @@ function press() {
 </template>
 
 <style scoped>
+/* The same curve and distance as the tooltip and the link preview, so every
+   popup on the site arrives the same way. Grown from the bottom edge, which is
+   the one anchored to the control. */
+.picker-pop-enter-active,
+.picker-pop-leave-active {
+    transition:
+        opacity 0.14s ease,
+        scale 0.19s cubic-bezier(0.16, 1, 0.3, 1),
+        translate 0.19s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: bottom left;
+}
+
+.picker-pop-enter-from,
+.picker-pop-leave-to {
+    opacity: 0;
+    scale: 0.92;
+    translate: 0 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .picker-pop-enter-active,
+    .picker-pop-leave-active {
+        transition: opacity 0.14s ease;
+    }
+
+    .picker-pop-enter-from,
+    .picker-pop-leave-to {
+        scale: 1;
+        translate: none;
+    }
+}
+
 /* Overlapped at rest so a handful of kinds stay one short mark, and spread on
    hover so each is a target of its own and its title can be read. The overlap
    is barely more than the ring: a disc is 1.5rem and the glyph fills it, so
