@@ -58,8 +58,8 @@ const GLYPHS = {
     like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)' },
     love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)' },
     celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)' },
-    wow: { icon: 'ShockedIcon', colour: 'var(--color-reaction-wow)' },
-    haha: { icon: 'Relieved02Icon', colour: 'var(--color-reaction-haha)' },
+    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)' },
+    haha: { icon: 'HappyIcon', colour: 'var(--color-reaction-haha)' },
     sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)' },
 };
 
