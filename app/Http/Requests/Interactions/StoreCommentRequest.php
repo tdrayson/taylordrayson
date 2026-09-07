@@ -88,8 +88,18 @@ class StoreCommentRequest extends FormRequest
     {
         return [
             'author_name.required' => 'Add a name so people know who replied.',
+            'author_name.min' => 'That is too short to be a name.',
+            'author_name.max' => 'That is longer than a name needs to be.',
+
+            // Laravel's own would call the field "author email", which is a
+            // column name rather than anything the person filling it in typed.
+            'author_email.email' => 'That does not look like an email address.',
+            'author_email.max' => 'That address is too long.',
+
             'body.required' => 'Write something first.',
+            'body.min' => 'That is a little short to post.',
             'body.max' => 'That is longer than a comment box can take.',
+
             'nonce.required' => 'This form went stale. Reload the page and try again.',
         ];
     }
