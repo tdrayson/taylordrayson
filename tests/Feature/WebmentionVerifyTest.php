@@ -394,16 +394,20 @@ it('drops an undescribed image rather than linking to nothing', function () {
         ->and(PortableText::plainText($document))->toContain('after.');
 });
 
-it('keeps underlines a reply was written with', function () {
+it('drops an underline rather than dressing text up as a link', function () {
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
+    // Underlined text is indistinguishable from a link in a response, so the
+    // words are kept and the decoration is not.
     $body = '<p>Some <u>underlined</u> and <ins>inserted</ins> words.</p>';
     $document = verify($note, mentionSource($target, 'in-reply-to', $body))->content;
 
-    $marks = array_map(fn (array $span): array => $span['marks'], $document[0]['children']);
+    expect(PortableText::plainText($document))->toBe('Some underlined and inserted words.');
 
-    expect($marks)->toContain(['underline']);
+    foreach ($document[0]['children'] as $span) {
+        expect($span['marks'])->toBe([]);
+    }
 });
 
 it('does not let a sender microformat become a property of our own citation', function () {

@@ -45,6 +45,8 @@ const editor = useEditor({
             horizontalRule: false,
             codeBlock: false,
             strike: false,
+            // On by default, and an underline reads as a link it is not.
+            underline: false,
             link: false,
         }),
         TiptapLink.configure({ openOnClick: false, linkOnPaste: true, autolink: true }),
@@ -65,7 +67,6 @@ const editor = useEditor({
 const MARKS = [
     { name: 'bold', icon: 'TextBoldIcon', label: 'Bold' },
     { name: 'italic', icon: 'TextItalicIcon', label: 'Italic' },
-    { name: 'underline', icon: 'TextUnderlineIcon', label: 'Underline' },
     { name: 'code', icon: 'SourceCodeIcon', label: 'Code' },
 ];
 

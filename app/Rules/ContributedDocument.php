@@ -23,7 +23,7 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 class ContributedDocument implements ValidationRule
 {
     /** Emphasis a reply can carry. No headings, no lists, no blockquotes. */
-    private const DECORATORS = ['strong', 'em', 'underline', 'code'];
+    private const DECORATORS = ['strong', 'em', 'code'];
 
     /** The only annotation a contributed document may define. */
     private const ANNOTATIONS = ['link'];

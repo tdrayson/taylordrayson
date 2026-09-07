@@ -143,13 +143,14 @@ it('keeps the spaces between a span and the one it is marked apart from', functi
         ->toBe('Testing with formatting applied.');
 });
 
-it('accepts the underline the comment editor can produce', function () {
+it('refuses an underline, which the editor also no longer offers', function () {
     $note = Note::factory()->create();
 
-    // StarterKit ships Underline and the editor keeps it, so the mark reaches
-    // the endpoint whether or not the toolbar offers a button for it.
-    postDoc($note->id, doc('Read this bit', ['underline']))->assertSuccessful();
+    // StarterKit ships Underline on, so the editor has to switch it off and
+    // the endpoint has to refuse it. Either alone leaves the other reachable.
+    postDoc($note->id, doc('Read this bit', ['underline']))
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('body');
 
-    expect(Comment::query()->latest('id')->first()->body[0]['children'][0]['marks'])
-        ->toBe(['underline']);
+    expect(Comment::query()->count())->toBe(0);
 });
