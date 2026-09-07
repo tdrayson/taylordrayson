@@ -454,12 +454,12 @@ it('does not print a gesture page title as though somebody said it', function (s
     'bookmark' => ['bookmark-of', 'bookmark'],
 ]);
 
-it('still shows a title when somebody wrote a reply without marking up its content', function () {
+it('keeps a source post title apart from its content', function () {
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
-    // A reply is prose by definition, so its name is the best text available
-    // and is worth showing. Only gestures borrow nothing.
+    // The two are different claims: one names their post, the other is what
+    // they wrote. Folding the name into content publishes a title as e-content.
     $html = <<<HTML
     <div class="h-entry">
         <a class="p-author h-card" href="https://jan.systems">Jan</a>
@@ -468,6 +468,46 @@ it('still shows a title when somebody wrote a reply without marking up its conte
     </div>
     HTML;
 
-    expect(PortableText::plainText(verify($note, $html)->content))
-        ->toBe('Thoughts on slow software');
+    $mention = verify($note, $html);
+
+    expect($mention->title)->toBe('Thoughts on slow software')
+        ->and($mention->content)->toBeNull();
+});
+
+it('takes the title and the content when a source marks up both', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $html = <<<HTML
+    <div class="h-entry">
+        <a class="p-author h-card" href="https://jan.systems">Jan</a>
+        <h1 class="p-name">Thoughts on slow software</h1>
+        <a class="u-in-reply-to" href="{$target}">re</a>
+        <div class="e-content"><p>The bit I keep coming back to is the warm up.</p></div>
+    </div>
+    HTML;
+
+    $mention = verify($note, $html);
+
+    expect($mention->title)->toBe('Thoughts on slow software')
+        ->and(PortableText::plainText($mention->content))
+        ->toBe('The bit I keep coming back to is the warm up.');
+});
+
+it('refuses an implied name, which is the page text rather than a title', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    // An h-entry with nothing marked up inside it gets an implied name: the
+    // element's whole text. Shown as a title that reads as nonsense.
+    $sentence = str_repeat('Words that are plainly not a heading. ', 6);
+    $html = <<<HTML
+    <div class="h-entry">
+        <a class="p-author h-card" href="https://jan.systems">Jan</a>
+        <p>{$sentence}</p>
+        <a href="{$target}">this</a>
+    </div>
+    HTML;
+
+    expect(verify($note, $html)->title)->toBeNull();
 });

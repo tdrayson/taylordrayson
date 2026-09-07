@@ -97,3 +97,34 @@ it('says a comment is a comment on the entry, not a citation beside it', functio
         ->and($comment['properties']['author'][0]['properties']['name'][0] ?? $comment['properties']['author'][0])->toBe('Marty McFly')
         ->and($comment['properties']['content'][0]['value'])->toContain('This is the reply.');
 });
+
+it('publishes a mention title as a name, never as the content of their post', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-04 09:00:00',
+        'content' => PortableText::fromPlainText('Something worth linking to.'),
+    ]);
+
+    $note->webmentions()->create([
+        'source_url' => 'https://jan.example/posts/now',
+        'target_url' => config('app.url').$note->url(),
+        'kind' => 'mention',
+        'title' => 'Now, summer 2026',
+        'author_name' => 'Jan',
+        'author_url' => 'https://jan.example/',
+        'status' => CommentStatus::Approved,
+        'verified_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    // The title names their post. Publishing it inside e-content told a parser
+    // the words "Now, summer 2026" were what they wrote.
+    $entry = microformatItem(microformatsOf($note->url()), 'h-entry');
+
+    $citation = collect($entry['children'] ?? [])
+        ->first(fn (array $item): bool => in_array('h-cite', $item['type'] ?? [], true));
+
+    expect($citation)->not->toBeNull()
+        ->and($citation['properties']['name'][0])->toBe('Now, summer 2026')
+        ->and($citation['properties']['url'][0])->toBe('https://jan.example/posts/now')
+        ->and($citation['properties'])->not->toHaveKey('content');
+});
