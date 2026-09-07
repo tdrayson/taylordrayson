@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Demo;
 
+use App\Actions\Webmentions\ParseMentionSource;
 use App\Enums\CommentStatus;
 use App\Enums\ReactionType;
 use App\Enums\WebmentionKind;
@@ -172,6 +173,34 @@ class SeedInteractions extends Command
         ]);
 
         $rich->save();
+
+        // The commonest shape there is: an article that links here, carrying a
+        // title and no content or summary at all. Run through the real parser,
+        // because how a title-only mention reads is the open design question.
+        $target_url = rtrim((string) config('app.url'), '/').$target->url();
+
+        $titleOnly = <<<HTML
+        <div class="h-entry">
+            <a class="p-author h-card" href="https://jan.systems/">Jan Sydanviita</a>
+            <h1 class="p-name"><a class="u-url" href="https://jan.systems/posts/now">Now, summer 2026</a></h1>
+            <p>Plenty of prose here that is not marked up as content, and a link to
+            <a href="{$target_url}">something Taylor wrote</a> in the middle of it.</p>
+        </div>
+        HTML;
+
+        $parsed = (new ParseMentionSource)($titleOnly, self::SOURCE_HOST."/{$slug}/title-only", $target_url);
+
+        $target->webmentions()->make([
+            'source_url' => self::SOURCE_HOST."/{$slug}/title-only",
+            'target_url' => $target_url,
+            'kind' => $parsed->kind->value,
+            'author_name' => $parsed->authorName,
+            'author_url' => $parsed->authorUrl,
+            'content' => $parsed->content,
+            'published_at' => now()->subHours(5),
+            'status' => CommentStatus::Approved,
+            'verified_at' => now(),
+        ])->save();
 
         // A like that arrived from a platform rather than a personal site. The
         // closest this can get today: syndicated responses have no storage of

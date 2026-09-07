@@ -42,8 +42,6 @@ final class HtmlToPortableText
         'em' => 'em',
         'i' => 'em',
         'code' => 'code',
-        'u' => 'underline',
-        'ins' => 'underline',
     ];
 
     /** An image contributes its description or nothing; long alt is a caption. */
