@@ -324,3 +324,47 @@ it('keeps the links and quotes a reply was written with', function () {
         // The script's contents are not prose and must not arrive as words.
         ->and(PortableText::plainText($document))->not->toContain('alert');
 });
+
+it('quotes a long response rather than republishing it', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $long = str_repeat('A sentence from somebody who marked their whole article as e-content. ', 30);
+    $text = PortableText::plainText(verify($note, mentionSource($target, 'in-reply-to', $long))->content);
+
+    // Whole-article e-content is common, and republishing it makes "Read it on
+    // their site" meaningless as well as taking over the page.
+    expect(mb_strlen($text))->toBeLessThanOrEqual(600)
+        ->and($text)->toEndWith('…')
+        // What is kept is a prefix of what they wrote, so the cut landed on a
+        // word boundary and nothing was reordered on the way through.
+        ->and(trim((string) preg_replace('/\s+/', ' ', $long)))
+        ->toStartWith(rtrim($text, '…'));
+});
+
+it('prefers the summary the author wrote to a cut we made', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $long = str_repeat('Filler that runs well past the limit on its own. ', 30);
+    $html = <<<HTML
+    <div class="h-entry">
+        <a class="u-in-reply-to" href="{$target}">re</a>
+        <p class="p-summary">The short version, written by hand.</p>
+        <div class="e-content"><p>{$long}</p></div>
+    </div>
+    HTML;
+
+    expect(PortableText::plainText(verify($note, $html)->content))
+        ->toBe('The short version, written by hand.');
+});
+
+it('leaves a response that already fits exactly as it was written', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $said = 'Short and to the point.';
+
+    expect(PortableText::plainText(verify($note, mentionSource($target, 'in-reply-to', $said))->content))
+        ->toBe($said);
+});
