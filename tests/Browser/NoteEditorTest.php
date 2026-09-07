@@ -2,8 +2,20 @@
 
 use App\Models\Note;
 use App\Models\User;
+use App\Support\Links;
+use Illuminate\Support\Facades\File;
 
-beforeEach(fn () => $this->actingAs(User::factory()->create()));
+beforeEach(function (): void {
+    $this->actingAs(User::factory()->create());
+
+    // Saving a note runs ResolveLinkFavicons for each host it links to, and on
+    // the sync queue that is a real HTTP call the suite refuses, which fails
+    // the save rather than the fetch. A stored icon makes it a no-op.
+    File::ensureDirectoryExists(dirname(Links::faviconPath('example.com')));
+    File::put(Links::faviconPath('example.com'), file_get_contents(base_path('tests/Fixtures/pixel.webp')));
+});
+
+afterEach(fn () => File::delete(Links::faviconPath('example.com')));
 
 it('saves a note as portable text, with a pasted link marked up', function () {
     $browser = visit('/new/note');
