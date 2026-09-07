@@ -47,3 +47,14 @@ it('opens a panel when its control is pressed', function () {
             true,
         );
 });
+
+it('keeps a closed accordion out of the page text', function () {
+    // Clipped is not the same as hidden: content with a height of zero is still
+    // rendered, so it stays in innerText and in find-in-page. A units test on an
+    // unrelated page caught this by reading a stale "kg" out of a closed panel.
+    visit(noteWithAsides()->url())
+        ->assertPresent('.accordion-panel')
+        ->assertScript("document.body.innerText.includes('Link back to this page')", false)
+        ->click('button:has-text("Reference this post")')
+        ->assertScript("document.body.innerText.includes('Link back to this page')", true);
+});
