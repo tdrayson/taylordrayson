@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\Page;
 use App\Models\Reaction;
 use App\Models\Webmention;
+use App\Support\HtmlToPortableText;
 use App\Support\InteractionTarget;
 use App\Support\PortableText;
 use App\Timeline\TypeRegistry;
@@ -138,6 +139,39 @@ class SeedInteractions extends Command
 
             $mention->save();
         }
+
+        // A reply built the way a real one is: sender HTML through the
+        // converter, so the demo shows what the allowlist actually renders
+        // rather than a hand-written document that skips it.
+        $sent = <<<'HTML'
+        <p>This is the part I keep coming back to:</p>
+        <blockquote><p>Shorter warm up, yes. Made a real difference.</p></blockquote>
+        <p>I tried it for a fortnight and the difference was <strong>obvious</strong>,
+        though <em>only</em> on the longer runs. Wrote it up
+        <a href="https://rosa.example/warm-ups">over here</a> with the numbers, and
+        the bit that matters is <u>the first ten minutes</u>.</p>
+        <p>Two things that helped:</p>
+        <ul>
+            <li>Starting slower than feels right</li>
+            <li>Walking the first <code>400m</code></li>
+        </ul>
+        <p><a href="https://rosa.example/warm-ups"><img src="https://rosa.example/chart.png" alt="A chart of pace against week, climbing steadily"></a></p>
+        <p><img src="https://rosa.example/tracker.gif" alt=""> Thanks for writing it up.</p>
+        HTML;
+
+        $rich = $target->webmentions()->make([
+            'source_url' => self::SOURCE_HOST."/{$slug}/rich",
+            'target_url' => rtrim((string) config('app.url'), '/').$target->url(),
+            'kind' => WebmentionKind::Reply->value,
+            'author_name' => 'Rosa Lindqvist',
+            'author_url' => 'https://rosa.example/',
+            'content' => HtmlToPortableText::convert($sent),
+            'published_at' => now()->subHours(3),
+            'status' => CommentStatus::Approved,
+            'verified_at' => now(),
+        ]);
+
+        $rich->save();
 
         // A like that arrived from a platform rather than a personal site. The
         // closest this can get today: syndicated responses have no storage of
