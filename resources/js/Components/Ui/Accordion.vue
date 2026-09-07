@@ -108,9 +108,20 @@ function toggle() {
 }
 
 /* The row is the thing being sized, so the content has to be clipped by it or
-   it spills out of a collapsed panel at full height. */
+   it spills out of a collapsed panel at full height.
+
+   `visibility` as well as the clip: clipped-but-visible content still counts as
+   rendered, so it stays in innerText and in find-in-page. Delayed on the way
+   out so it survives the collapse and is only dropped once the row has closed. */
 .accordion-panel > section {
     overflow: hidden;
+    visibility: hidden;
+    transition: visibility 0s linear 220ms;
+}
+
+.accordion-panel.is-open > section {
+    visibility: visible;
+    transition-delay: 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {
