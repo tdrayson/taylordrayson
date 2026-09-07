@@ -36,15 +36,27 @@ it('resolves an icon for every reaction, so no disc paints empty', function () {
         ->assertScript('document.querySelectorAll(".reaction-pip svg").length', count(ReactionType::cases()));
 });
 
-it('darkens the glyph on the yellow discs, where white is unreadable', function () {
-    // White reads at 2.1:1 on these two, against the 3:1 WCAG asks of a
-    // graphical object. Ink on the same yellow reads at 7.6:1.
-    $colourOf = fn (int $index): string => "getComputedStyle(document.querySelectorAll('.reaction-pip')[{$index}]).color";
+it('keeps every disc dark enough to carry its glyph', function () {
+    // Wow and haha were yellow, where white read at 2.10:1 and 2.03:1 against
+    // the 3:1 WCAG asks of a graphical object. Measured on the painted pixels
+    // rather than the tokens, so a later theme edit cannot quietly undo it.
+    $failing = <<<'JS'
+    (() => {
+        const channel = (v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+        const luminance = (s) => {
+            const [r, g, b] = s.match(/[\d.]+/g).slice(0, 3).map((n) => channel(n / 255));
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        return [...document.querySelectorAll('.reaction-pip')].filter((el) => {
+            const style = getComputedStyle(el);
+            const a = luminance(style.backgroundColor);
+            const b = luminance(style.color);
+            return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) < 3;
+        }).length;
+    })()
+    JS;
 
-    $page = visit(noteWithEveryReaction()->url())->assertPresent('.reaction-pip');
-
-    // Order follows ReactionType: like, love, celebrate, wow, haha, sad.
-    $page->assertScript($colourOf(3), 'rgb(34, 34, 34)')
-        ->assertScript($colourOf(4), 'rgb(34, 34, 34)')
-        ->assertScript($colourOf(0), 'rgb(255, 255, 255)');
+    visit(noteWithEveryReaction()->url())
+        ->assertPresent('.reaction-pip')
+        ->assertScript($failing, 0);
 });
