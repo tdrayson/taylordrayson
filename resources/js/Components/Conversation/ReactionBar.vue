@@ -272,6 +272,7 @@ function press() {
 
             <!-- Not a link any more: the heading it used to jump to now sits
                  directly above this line. -->
+            <Tooltip :label="responsesLabel" placement="top">
             <component
                 :is="compact && url ? Link : 'span'"
                 :href="compact && url ? `${url}#responses` : undefined"
@@ -281,11 +282,11 @@ function press() {
                     compact && url && 'rounded-sm transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                 ]"
                 :aria-label="responsesLabel"
-                :title="responsesLabel"
             >
                 <Icon name="Comment01Icon" :class="sizes.icon" />
                 <span class="tnum font-medium">{{ replyCount }}</span>
             </component>
+            </Tooltip>
 
             <Tooltip v-for="gesture in gestures" :key="gesture.key" :label="gestureLabel(gesture)" placement="top">
                 <span :class="['inline-flex items-center gap-1.5 text-neutral-500', sizes.text]" :aria-label="gestureLabel(gesture)">
