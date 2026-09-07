@@ -61,7 +61,12 @@ class StorePodcastMedia implements ShouldQueue
         $temporaryFile = tempnam(sys_get_temp_dir(), 'tww');
 
         try {
-            $response = Http::timeout(600)->sink($temporaryFile)->get($url);
+            // Same publisher, same quirk as the API connector: their IPv6 edge
+            // answers 401 where IPv4 serves the file, and PHP prefers IPv6.
+            $response = Http::timeout(600)
+                ->withOptions(['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]])
+                ->sink($temporaryFile)
+                ->get($url);
         } catch (ConnectionException $exception) {
             @unlink($temporaryFile);
 
