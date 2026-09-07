@@ -423,3 +423,47 @@ it('does not let a sender microformat become a property of our own citation', fu
 
     expect(json_encode($document))->not->toContain('p-name');
 });
+
+it('does not print a gesture page title as though somebody said it', function (string $property, string $kind) {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    // The dominant shape for a gesture is author + name + url and no content
+    // at all, so the page title is the only prose on offer. It is the name of
+    // their post, not a remark about ours.
+    $html = <<<HTML
+    <div class="h-entry">
+        <a class="p-author h-card" href="https://jan.systems">Jan</a>
+        <h1 class="p-name">Some page title</h1>
+        <a class="u-{$property}" href="{$target}">gesture</a>
+    </div>
+    HTML;
+
+    verify($note, $html)->update(['status' => CommentStatus::Approved]);
+    $response = Conversation::for($note)->responses[0];
+
+    expect($response->kind)->toBe($kind)
+        ->and($response->body)->toBeNull();
+})->with([
+    'like' => ['like-of', 'like'],
+    'repost' => ['repost-of', 'repost'],
+    'bookmark' => ['bookmark-of', 'bookmark'],
+]);
+
+it('still shows a title when somebody wrote a reply without marking up its content', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    // A reply is prose by definition, so its name is the best text available
+    // and is worth showing. Only gestures borrow nothing.
+    $html = <<<HTML
+    <div class="h-entry">
+        <a class="p-author h-card" href="https://jan.systems">Jan</a>
+        <h1 class="p-name">Thoughts on slow software</h1>
+        <a class="u-in-reply-to" href="{$target}">re</a>
+    </div>
+    HTML;
+
+    expect(PortableText::plainText(verify($note, $html)->content))
+        ->toBe('Thoughts on slow software');
+});
