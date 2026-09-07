@@ -47,3 +47,14 @@ it('does not let a response push the page sideways', function () {
         ->assertPresent('.h-cite')
         ->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth', true);
 });
+
+it('sets the whole byline at one size, so the title is not the quietest thing on it', function () {
+    // The name was text-meta and everything after it text-caption, which left
+    // the phrase and the title smaller than the body they introduce.
+    $sizes = "['.p-author', '.p-name', '.dt-published']"
+        .".map((s) => getComputedStyle(document.querySelector('.h-cite ' + s)).fontSize)";
+
+    visit(noteWithTitledMention()->url())
+        ->assertPresent('.h-cite')
+        ->assertScript("new Set({$sizes}).size", 1);
+});
