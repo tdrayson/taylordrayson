@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CommentStatus;
 use App\Models\Article;
 use App\Models\Note;
 use App\Support\PortableText;
@@ -72,4 +73,27 @@ it('wraps the timeline in an authored h-feed', function () {
     expect($feed['properties']['author'][0]['properties']['name'][0])->toBe('Taylor Drayson')
         ->and($feed['children'])->not->toBeEmpty()
         ->and($feed['children'][0]['type'])->toContain('h-entry');
+});
+
+it('says a comment is a comment on the entry, not a citation beside it', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-03 09:00:00',
+        'content' => PortableText::fromPlainText('Something worth answering.'),
+    ]);
+
+    $note->comments()->create([
+        'author_name' => 'Marty McFly',
+        'body' => PortableText::fromPlainText('This is the reply.'),
+        'status' => CommentStatus::Approved,
+    ]);
+
+    // Without p-comment the h-cite parses as an unassigned child, so the page
+    // shows a response without ever saying what it is a response to.
+    $entry = microformatItem(microformatsOf($note->url()), 'h-entry');
+    $comment = $entry['properties']['comment'][0] ?? null;
+
+    expect($comment)->not->toBeNull()
+        ->and($comment['type'])->toContain('h-cite')
+        ->and($comment['properties']['author'][0]['properties']['name'][0] ?? $comment['properties']['author'][0])->toBe('Marty McFly')
+        ->and($comment['properties']['content'][0]['value'])->toContain('This is the reply.');
 });

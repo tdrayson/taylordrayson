@@ -42,6 +42,17 @@ const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
 const isGesture = computed(() => ! props.item.body?.length);
 
 const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
+
+/**
+ * Whether this response is a comment on the entry in the microformats sense.
+ *
+ * Without `p-comment` a nested h-cite parses as an unassigned child of the
+ * h-entry, so the page shows the responses without ever saying they are
+ * responses to this post. Only the kinds the property actually describes, "a
+ * comment on/reply to the parent h-entry": a like or a bookmark is a response
+ * too, but h-entry gives those their own URL properties rather than this one.
+ */
+const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind));
 </script>
 
 <template>
@@ -53,8 +64,12 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
     <article
         :id="item.id"
         v-twemoji
-        class="h-cite relative flex gap-3"
-        :class="[nested && 'response-nested ml-16', nested && ! item.lastNested && 'response-continues']"
+        :class="[
+            'h-cite relative flex gap-3',
+            isComment && 'p-comment',
+            nested && 'response-nested ml-16',
+            nested && ! item.lastNested && 'response-continues',
+        ]"
     >
         <Avatar
             class="response-avatar"
