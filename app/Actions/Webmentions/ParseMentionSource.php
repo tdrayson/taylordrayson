@@ -55,8 +55,8 @@ final class ParseMentionSource
         }
 
         $properties = $entry['properties'] ?? [];
-        $content = $this->content($properties);
         $kind = $this->kindOf($properties, $targetUrl);
+        $content = $this->content($properties, $kind);
 
         return new MentionData(
             kind: $kind,
@@ -198,7 +198,7 @@ final class ParseMentionSource
      * @param  array<string, mixed>  $properties
      * @return array<int, array<string, mixed>>|null
      */
-    private function content(array $properties): ?array
+    private function content(array $properties, WebmentionKind $kind): ?array
     {
         $content = $properties['content'][0] ?? null;
 
@@ -214,7 +214,14 @@ final class ParseMentionSource
             is_array($content) => $content['value'] ?? null,
             is_string($content) => $content,
             default => null,
-        } ?? $properties['summary'][0] ?? $properties['name'][0] ?? null;
+        };
+
+        // A gesture borrows nothing. Its page's title and summary describe
+        // their own post, so using either would print somebody's article name
+        // as though it were what they said about ours.
+        if ($text === null && ! $kind->isGesture()) {
+            $text = $properties['summary'][0] ?? $properties['name'][0] ?? null;
+        }
 
         return is_string($text) && trim($text) !== ''
             ? PortableText::truncate(PortableText::fromPlainText(trim($text)), self::MAX_CONTENT)
