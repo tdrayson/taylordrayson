@@ -128,3 +128,61 @@ it('publishes a mention title as a name, never as the content of their post', fu
         ->and($citation['properties']['url'][0])->toBe('https://jan.example/posts/now')
         ->and($citation['properties'])->not->toHaveKey('content');
 });
+
+/** A small real JPEG, since the cover goes through an image pipeline. */
+function jpegBytes(): string
+{
+    $image = imagecreatetruecolor(1280, 720);
+    imagefilledrectangle($image, 0, 0, 1279, 719, imagecolorallocate($image, 120, 90, 200));
+    ob_start();
+    imagejpeg($image, null, 80);
+
+    return (string) ob_get_clean();
+}
+
+it('names a tag and a cover as properties of the entry', function () {
+    $article = Article::factory()->create([
+        'published' => true,
+        'title' => 'A tagged piece',
+        'occurred_at' => '2024-03-07 09:00:00',
+        'content' => PortableText::fromPlainText('The body of the piece.'),
+    ]);
+
+    $article->syncTagNames(['indieweb', 'microformats']);
+    $article->addMediaFromString(jpegBytes())->usingFileName('cover.jpg')->toMediaCollection('cover');
+
+    // Stored title-cased, and the property carries what the page shows.
+    $entry = microformatItem(microformatsOf($article->url()), 'h-entry');
+
+    expect($entry['properties']['category'] ?? [])->toContain('Indieweb', 'Microformats')
+        // u-featured on an img with alt parses to { value, alt }, not a bare URL.
+        ->and($entry['properties']['featured'][0]['value'] ?? null)->toContain('cover');
+});
+
+it('gives each kind of response its own property, not an unnamed child', function (string $kind, string $property) {
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-08 09:00:00',
+        'content' => PortableText::fromPlainText('Something worth responding to.'),
+    ]);
+
+    $note->webmentions()->create([
+        'source_url' => 'https://jan.example/posts/now',
+        'target_url' => config('app.url').$note->url(),
+        'kind' => $kind,
+        'author_name' => 'Jan',
+        'author_url' => 'https://jan.example/',
+        'status' => CommentStatus::Approved,
+        'verified_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    // Without the property the h-cite parses as an unassigned child: the page
+    // shows a response without saying what kind of response it is.
+    $entry = microformatItem(microformatsOf($note->url()), 'h-entry');
+
+    expect($entry['properties'][$property][0]['type'] ?? [])->toContain('h-cite');
+})->with([
+    'a like' => ['like', 'like'],
+    'a repost' => ['repost', 'repost'],
+    'a bookmark' => ['bookmark', 'bookmark'],
+]);

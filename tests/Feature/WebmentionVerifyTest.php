@@ -8,6 +8,7 @@ use App\Models\Note;
 use App\Models\Reaction;
 use App\Models\Webmention;
 use App\Presenters\Conversation;
+use App\Services\Pushover\Client as Pushover;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Http;
 
@@ -510,4 +511,33 @@ it('refuses an implied name, which is the page text rather than a title', functi
     HTML;
 
     expect(verify($note, $html)->title)->toBeNull();
+});
+
+it('announces a verified mention, the way a new comment already is', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $sent = [];
+    $this->mock(Pushover::class, function ($mock) use (&$sent): void {
+        $mock->shouldReceive('send')->andReturnUsing(function (string $title, string $body) use (&$sent): bool {
+            $sent[] = [$title, $body];
+
+            return true;
+        });
+    });
+
+    $html = <<<HTML
+    <div class="h-entry">
+        <a class="p-author h-card" href="https://jan.systems">Jan</a>
+        <h1 class="p-name">Thoughts on slow software</h1>
+        <a class="u-in-reply-to" href="{$target}">re</a>
+    </div>
+    HTML;
+
+    verify($note, $html);
+
+    expect($sent)->toHaveCount(1)
+        ->and($sent[0][0])->toContain('Reply')
+        ->and($sent[0][1])->toContain('Jan')
+        ->and($sent[0][1])->toContain('Thoughts on slow software');
 });

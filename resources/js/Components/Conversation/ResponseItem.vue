@@ -48,15 +48,22 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 const showTitle = computed(() => Boolean(props.item.title) && ['reply', 'mention'].includes(props.item.kind));
 
 /**
- * Whether this response is a comment on the entry in the microformats sense.
+ * The h-entry property this response is, in the microformats sense.
  *
- * Without `p-comment` a nested h-cite parses as an unassigned child of the
- * h-entry, so the page shows the responses without ever saying they are
- * responses to this post. Only the kinds the property actually describes, "a
- * comment on/reply to the parent h-entry": a like or a bookmark is a response
- * too, but h-entry gives those their own URL properties rather than this one.
+ * Without one a nested h-cite parses as an unassigned child, so the page shows
+ * responses without ever saying they are responses to this post. The set and
+ * the embedded-h-cite shape both follow what aaronparecki.com publishes, which
+ * emits nothing for a mention or an RSVP: those stay unassigned children.
  */
-const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind));
+const PROPERTIES = {
+    comment: 'p-comment',
+    reply: 'p-comment',
+    like: 'p-like',
+    repost: 'p-repost',
+    bookmark: 'p-bookmark',
+};
+
+const property = computed(() => PROPERTIES[props.item.kind] ?? null);
 </script>
 
 <template>
@@ -70,7 +77,7 @@ const isComment = computed(() => ['comment', 'reply'].includes(props.item.kind))
         v-twemoji
         :class="[
             'h-cite relative flex gap-3',
-            isComment && 'p-comment',
+            property,
             nested && 'response-nested ml-16',
             nested && ! item.lastNested && 'response-continues',
         ]"

@@ -8,6 +8,7 @@ use App\Data\MentionData;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Models\Webmention;
+use App\Services\Pushover\Client as Pushover;
 use App\Support\Links;
 use App\Support\SafeFetch;
 use App\Support\WebmentionTarget;
@@ -99,6 +100,30 @@ class VerifyWebmention implements ShouldQueue
             'verified_at' => now(),
             'last_checked_at' => now(),
         ])->save();
+
+        $this->notify($mention);
+    }
+
+    /**
+     * A verified mention says so out loud, the way a comment already does.
+     *
+     * A held one waits to be read and would otherwise wait forever. Reactions
+     * are deliberately not announced: that would be a notification per click.
+     *
+     * Sent inline rather than `afterResponse()` as the comment controller does:
+     * this is already a queued job, so there is no response to defer behind,
+     * and it is rescued so a Pushover outage cannot fail the verification.
+     */
+    private function notify(Webmention $mention): void
+    {
+        $kind = WebmentionKind::tryFrom((string) $mention->kind)?->label() ?? 'Mention';
+        $held = $mention->status === CommentStatus::Pending;
+        $who = $mention->author_name ?: $mention->author_host ?: 'Someone';
+
+        $title = $held ? "{$kind} held for moderation" : "New {$kind}";
+        $body = trim($who.' '.($mention->title ?? $mention->source_url));
+
+        rescue(fn () => app(Pushover::class)->send($title, (string) str($body)->limit(160)), report: false);
     }
 
     /**
