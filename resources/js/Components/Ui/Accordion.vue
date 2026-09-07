@@ -72,16 +72,50 @@ function toggle() {
                 />
             </button>
         </component>
-        <section
-            :id="contentId"
-            :aria-labelledby="headerId"
-            :hidden="! expanded"
-            :class="quiet ? 'pb-4 pl-5.5' : 'mt-2 pb-6'"
-        >
-            <!-- `expanded` is exposed so a caller can v-if a lazily imported
-                 component: `hidden` keeps the slot mounted, which would fetch
-                 the chunk on page load and undo the point of deferring it. -->
-            <slot :expanded="expanded" />
-        </section>
+        <!-- Animated by grid rows rather than height: 0fr to 1fr transitions
+             without anyone measuring the content, which a height in pixels
+             would need and would get wrong the moment the panel reflowed.
+             `inert` does what `hidden` used to, keeping a closed panel out of
+             the tab order and the accessibility tree, while leaving it in the
+             layout so it has something to grow from. -->
+        <div class="accordion-panel" :class="{ 'is-open': expanded }">
+            <section
+                :id="contentId"
+                :aria-labelledby="headerId"
+                :inert="! expanded || undefined"
+            >
+                <!-- `expanded` is exposed so a caller can v-if a lazily
+                     imported component: the slot stays mounted otherwise,
+                     which would fetch the chunk on page load and undo the
+                     point of deferring it. -->
+                <div :class="quiet ? 'pb-4 pl-5.5' : 'mt-2 pb-6'">
+                    <slot :expanded="expanded" />
+                </div>
+            </section>
+        </div>
     </div>
 </template>
+
+<style scoped>
+.accordion-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accordion-panel.is-open {
+    grid-template-rows: 1fr;
+}
+
+/* The row is the thing being sized, so the content has to be clipped by it or
+   it spills out of a collapsed panel at full height. */
+.accordion-panel > section {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .accordion-panel {
+        transition: none;
+    }
+}
+</style>
