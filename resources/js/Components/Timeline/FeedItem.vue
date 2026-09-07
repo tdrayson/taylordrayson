@@ -435,6 +435,8 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :reply-count="row.replyCount"
             :repost-count="row.repostCount"
             :bookmark-count="row.bookmarkCount"
+            :rsvp-count="row.rsvpCount"
+            :mention-count="row.mentionCount"
         />
     </div>
 </template>

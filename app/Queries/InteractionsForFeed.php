@@ -69,10 +69,15 @@ final class InteractionsForFeed
                     )->toArray(),
                     ReactionType::cases(),
                 ),
-                'replyCount' => (int) ($comments[$pair] ?? 0) + (int) ($mentions[$pair]['prose'] ?? 0),
-                'likeCount' => (int) ($mentions[$pair][WebmentionKind::Like->value] ?? 0),
+                // Counted by kind, matching the entry page: every interaction
+                // lands in exactly one figure, so the parts sum to the whole.
+                'replyCount' => (int) ($comments[$pair] ?? 0) + (int) ($mentions[$pair][WebmentionKind::Reply->value] ?? 0),
+                'likeCount' => (int) ($mentions[$pair][WebmentionKind::Like->value] ?? 0)
+                    + (int) ($mentions[$pair][WebmentionKind::Reacji->value] ?? 0),
                 'repostCount' => (int) ($mentions[$pair][WebmentionKind::Repost->value] ?? 0),
                 'bookmarkCount' => (int) ($mentions[$pair][WebmentionKind::Bookmark->value] ?? 0),
+                'rsvpCount' => (int) ($mentions[$pair][WebmentionKind::Rsvp->value] ?? 0),
+                'mentionCount' => (int) ($mentions[$pair][WebmentionKind::Mention->value] ?? 0),
             ];
         }
 
@@ -158,8 +163,7 @@ final class InteractionsForFeed
     }
 
     /**
-     * Mentions by kind, plus a `prose` tally of the ones carrying words, which
-     * is what the speech bubble counts alongside local comments.
+     * Mentions by kind.
      *
      * @param  list<string>  $classes
      * @param  list<int|string>  $ids
@@ -169,24 +173,17 @@ final class InteractionsForFeed
     {
         $rows = Webmention::query()
             ->toBase()
-            ->selectRaw('target_type, target_id, kind, content, count(*) as total')
+            ->selectRaw('target_type, target_id, kind, count(*) as total')
             ->where('status', CommentStatus::Approved->value)
             ->whereIn('target_type', $classes)
             ->whereIn('target_id', $ids)
-            ->groupBy('target_type', 'target_id', 'kind', 'content')
+            ->groupBy('target_type', 'target_id', 'kind')
             ->get();
 
         $out = [];
 
         foreach ($rows as $row) {
-            $key = $row->target_type.':'.$row->target_id;
-            $out[$key][(string) $row->kind] = ($out[$key][(string) $row->kind] ?? 0) + (int) $row->total;
-
-            $isReacji = (string) $row->kind === WebmentionKind::Reacji->value;
-
-            if (! $isReacji && filled($row->content) && $row->content !== '[]') {
-                $out[$key]['prose'] = ($out[$key]['prose'] ?? 0) + (int) $row->total;
-            }
+            $out[$row->target_type.':'.$row->target_id][(string) $row->kind] = (int) $row->total;
         }
 
         return $out;
