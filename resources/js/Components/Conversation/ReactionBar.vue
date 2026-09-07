@@ -30,6 +30,8 @@ const props = defineProps({
     // subset of another number is what needed explaining last time.
     repostCount: { type: Number, default: 0 },
     bookmarkCount: { type: Number, default: 0 },
+    rsvpCount: { type: Number, default: 0 },
+    mentionCount: { type: Number, default: 0 },
     type: { type: String, required: true },
     id: { type: Number, required: true },
     // 'compact' is the timeline feed: fifty full-size bars down a page is a lot
@@ -124,16 +126,18 @@ const mine = computed(() => buckets.value.find((bucket) => bucket.mine) ?? null)
  */
 const responsesLabel = computed(() => {
     if (! props.replyCount) {
-        return 'No written responses yet';
+        return 'No replies yet';
     }
 
-    return `${props.replyCount} written ${props.replyCount === 1 ? 'response' : 'responses'}`;
+    return `${props.replyCount} ${props.replyCount === 1 ? 'reply' : 'replies'}`;
 });
 
 /** The optional gesture counts, each one only there when it happened. */
 const gestures = computed(() => [
     { key: 'repost', icon: 'RepeatIcon', count: props.repostCount, one: 'repost', many: 'reposts' },
     { key: 'bookmark', icon: 'Bookmark01Icon', count: props.bookmarkCount, one: 'bookmark', many: 'bookmarks' },
+    { key: 'rsvp', icon: 'Calendar01Icon', count: props.rsvpCount, one: 'RSVP', many: 'RSVPs' },
+    { key: 'mention', icon: 'Link02Icon', count: props.mentionCount, one: 'mention', many: 'mentions' },
 ].filter((gesture) => gesture.count > 0));
 
 const gestureLabel = (gesture) => `${gesture.count} ${gesture.count === 1 ? gesture.one : gesture.many}`;

@@ -125,24 +125,42 @@ const formFollows = computed(() => {
     return group[group.length - 1]?.id ?? null;
 });
 
+/**
+ * Counted by what each thing IS, so no interaction lands in two figures.
+ *
+ * Counting the written ones by "carries a body" instead put a mention with
+ * prose in the speech bubble and also in the mention tally, and left the
+ * heading as a total nobody could reach by adding up what was beside it.
+ */
+const countOf = (...kinds) => thread.value.filter((item) => kinds.includes(item.kind)).length;
+
+// On-site clicks plus the gestures that mean the same thing from somebody
+// else's site: a like sent by webmention, and a single-emoji reply.
+const onSite = computed(() => props.conversation.reactions.reduce((sum, bucket) => sum + bucket.count, 0));
+const likeCount = computed(() => countOf('like', 'reacji'));
+const reactionCount = computed(() => onSite.value + likeCount.value);
+
+const replyCount = computed(() => countOf('comment', 'reply'));
+const repostCount = computed(() => countOf('repost'));
+const bookmarkCount = computed(() => countOf('bookmark'));
+const rsvpCount = computed(() => countOf('rsvp'));
+const mentionCount = computed(() => countOf('mention'));
+
+// Every kind, each counted once, which is what makes the heading add up.
+const total = computed(() => reactionCount.value
+    + replyCount.value
+    + repostCount.value
+    + bookmarkCount.value
+    + rsvpCount.value
+    + mentionCount.value);
+
 const heading = computed(() => {
-    if (! thread.value.length) {
-        return 'No responses yet';
+    if (! total.value) {
+        return 'No interactions yet';
     }
 
-    return thread.value.length === 1 ? '1 response' : `${thread.value.length} responses`;
+    return total.value === 1 ? '1 interaction' : `${total.value} interactions`;
 });
-
-// Derived from the responses rather than sent separately, so the summary line
-// can never disagree with the thread it summarises.
-// A like is the binary gesture: a webmention like-of today, a kudo or a Swarm
-// like later. Reacji are counted by the bar itself from its own buckets.
-const likeCount = computed(() => thread.value.filter((item) => item.kind === 'like').length);
-
-const replyCount = computed(() => thread.value.filter((item) => item.body?.length).length);
-const repostCount = computed(() => thread.value.filter((item) => item.kind === 'repost').length);
-const bookmarkCount = computed(() => thread.value.filter((item) => item.kind === 'bookmark').length);
-// Anything that carried something written, whoever wrote it and wherever from.
 
 /**
  * The comment being answered, recorded as it actually happened. Depth is kept
@@ -179,6 +197,8 @@ async function reply(item) {
                 :reply-count="replyCount"
                 :repost-count="repostCount"
                 :bookmark-count="bookmarkCount"
+                :rsvp-count="rsvpCount"
+                :mention-count="mentionCount"
                 :type="conversation.type"
                 :id="conversation.id"
             />
