@@ -85,3 +85,41 @@ it('takes the responses with the entry they were left on', function () {
         ->and(Reaction::query()->count())->toBe(0)
         ->and(Webmention::query()->count())->toBe(0);
 });
+
+it('explains what is wrong with each field in its own words', function () {
+    $note = Note::factory()->create();
+
+    postJson("/comments/note/{$note->id}", [
+        'author_name' => 'J',
+        'author_email' => 'not-an-address',
+        'body' => 'x',
+        'nonce' => spamNonce(),
+    ], ['REMOTE_ADDR' => '203.0.113.7'])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors([
+            'author_name' => 'That is too short to be a name.',
+            'author_email' => 'That does not look like an email address.',
+            'body' => 'That is a little short to post.',
+        ]);
+});
+
+it('keeps an email that is real and refuses one that is not', function (string $email, bool $valid) {
+    $note = Note::factory()->create();
+
+    postJson("/comments/note/{$note->id}", [
+        'author_name' => 'Marty McFly',
+        'author_email' => $email,
+        'body' => 'A comment with an address attached.',
+        'nonce' => spamNonce(),
+    ], ['REMOTE_ADDR' => '203.0.113.8'])
+        ->assertStatus($valid ? 201 : 422);
+})->with([
+    ['marty@mcfly.com', true],
+    ['marty.mcfly+1955@example.co.uk', true],
+    ['marty@', false],
+    ['@mcfly.com', false],
+    ['marty mcfly@example.com', false],
+    // RFC-valid, like user@localhost. Rejecting it needs a DNS lookup on the
+    // request path, which is a network call and a way for the form to break.
+    ['marty@mcfly', true],
+]);
