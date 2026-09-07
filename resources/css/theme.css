@@ -209,17 +209,16 @@
     --color-reaction-like: hsl(215 80% 52%);
     --color-reaction-love: hsl(350 72% 55%);
     --color-reaction-celebrate: hsl(270 55% 55%);
-    --color-reaction-wow: hsl(38 90% 52%);
-    --color-reaction-haha: hsl(45 85% 48%);
+    --color-reaction-wow: hsl(25 85% 44%);
+    --color-reaction-haha: hsl(45 85% 34%);
     --color-reaction-sad: hsl(215 45% 55%);
 
     /* The disc keeps its colour in both themes, so its glyph has to keep its
        own: a neutral token would flip to ink and disappear into the disc.
-       Two of the discs are yellow, where white manages 2.1:1 and fails the 3:1
-       WCAG asks of a graphical object. Ink on the same yellow reads at 7.6:1,
-       so those keep their colour and darken the glyph instead. */
+       Every disc is therefore dark enough to carry white at 3:1 or better, the
+       ratio WCAG asks of a graphical object. Wow and haha were the two that
+       were not, at 2.10:1 and 2.03:1, and were also within 0.07 of each other. */
     --color-reaction-glyph: #ffffff;
-    --color-reaction-glyph-ink: #222222;
 
     --color-sleep-awake: hsl(0 70% 72%);
     --color-sleep-rem: hsl(210 60% 58%);
