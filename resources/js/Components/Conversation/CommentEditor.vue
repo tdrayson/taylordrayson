@@ -65,6 +65,7 @@ const editor = useEditor({
 const MARKS = [
     { name: 'bold', icon: 'TextBoldIcon', label: 'Bold' },
     { name: 'italic', icon: 'TextItalicIcon', label: 'Italic' },
+    { name: 'underline', icon: 'TextUnderlineIcon', label: 'Underline' },
     { name: 'code', icon: 'SourceCodeIcon', label: 'Code' },
 ];
 

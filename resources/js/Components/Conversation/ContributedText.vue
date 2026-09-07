@@ -17,6 +17,7 @@ const props = defineProps({
 const DECORATORS = {
     strong: 'strong',
     em: 'em',
+    underline: 'u',
     code: 'code',
 };
 

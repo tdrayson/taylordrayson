@@ -368,3 +368,58 @@ it('leaves a response that already fits exactly as it was written', function () 
     expect(PortableText::plainText(verify($note, mentionSource($target, 'in-reply-to', $said))->content))
         ->toBe($said);
 });
+
+it('keeps an image as the words describing it, and a linked image as a link', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $body = '<p>Here it is: <a href="https://example.com/post"><img src="https://example.com/a.png" alt="the dashboard"></a></p>';
+    $document = verify($note, mentionSource($target, 'in-reply-to', $body))->content;
+
+    expect(PortableText::plainText($document))->toContain('the dashboard')
+        ->and($document[0]['markDefs'][0]['href'])->toBe('https://example.com/post');
+});
+
+it('drops an undescribed image rather than linking to nothing', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    // A span is only made where there is text, and a link is a mark on a span,
+    // so an image nobody described cannot leave an anchor around an empty string.
+    $body = '<p>Before <a href="https://example.com/post"><img src="https://example.com/a.png"></a> after.</p>';
+    $document = verify($note, mentionSource($target, 'in-reply-to', $body))->content;
+
+    expect($document[0]['markDefs'])->toBe([])
+        ->and(PortableText::plainText($document))->toContain('Before')
+        ->and(PortableText::plainText($document))->toContain('after.');
+});
+
+it('keeps underlines a reply was written with', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $body = '<p>Some <u>underlined</u> and <ins>inserted</ins> words.</p>';
+    $document = verify($note, mentionSource($target, 'in-reply-to', $body))->content;
+
+    $marks = array_map(fn (array $span): array => $span['marks'], $document[0]['children']);
+
+    expect($marks)->toContain(['underline']);
+});
+
+it('does not let a sender microformat become a property of our own citation', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    // mf2 hoists a nested p-name into the enclosing h-cite. Republishing the
+    // sender's classes would make their article title our comment's name.
+    $body = '<h1 class="p-name">Their article title</h1><p>My actual reply.</p>';
+    $document = verify($note, mentionSource($target, 'in-reply-to', $body))->content;
+
+    foreach ($document as $block) {
+        foreach ($block['children'] as $span) {
+            expect($span)->not->toHaveKey('class');
+        }
+    }
+
+    expect(json_encode($document))->not->toContain('p-name');
+});

@@ -142,3 +142,14 @@ it('keeps the spaces between a span and the one it is marked apart from', functi
     expect(PortableText::plainText(Comment::query()->latest('id')->first()->body))
         ->toBe('Testing with formatting applied.');
 });
+
+it('accepts the underline the comment editor can produce', function () {
+    $note = Note::factory()->create();
+
+    // StarterKit ships Underline and the editor keeps it, so the mark reaches
+    // the endpoint whether or not the toolbar offers a button for it.
+    postDoc($note->id, doc('Read this bit', ['underline']))->assertSuccessful();
+
+    expect(Comment::query()->latest('id')->first()->body[0]['children'][0]['marks'])
+        ->toBe(['underline']);
+});
