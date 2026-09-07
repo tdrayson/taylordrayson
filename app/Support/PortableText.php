@@ -33,6 +33,98 @@ class PortableText
     }
 
     /**
+     * The first $max characters of readable text, cut at a block boundary where
+     * one falls close enough and mid-span otherwise.
+     *
+     * Measured on the words rather than the encoded document, so marking a
+     * phrase as a link cannot change where the cut lands.
+     *
+     * @param  array<int, array<string, mixed>>  $document
+     * @return array<int, array<string, mixed>>
+     */
+    public static function truncate(array $document, int $max, string $ellipsis = '…'): array
+    {
+        if (mb_strlen(self::plainText($document)) <= $max) {
+            return $document;
+        }
+
+        $kept = [];
+        $used = 0;
+
+        foreach ($document as $block) {
+            $length = mb_strlen(self::plainText([$block]));
+
+            if ($used + $length <= $max) {
+                $kept[] = $block;
+                // plainText joins blocks with a space, so the budget loses one.
+                $used += $length + 1;
+
+                continue;
+            }
+
+            $remaining = $max - $used;
+
+            if ($remaining > 0) {
+                $kept[] = self::trimBlock($block, $remaining, $ellipsis);
+            } elseif ($kept !== []) {
+                $last = array_key_last($kept);
+                $kept[$last] = self::trimBlock($kept[$last], PHP_INT_MAX, $ellipsis);
+            }
+
+            break;
+        }
+
+        return array_values($kept);
+    }
+
+    /**
+     * One block cut to $max characters of its own text, keeping the spans that
+     * fit whole and cutting the one that straddles the limit.
+     *
+     * @param  array<string, mixed>  $block
+     * @return array<string, mixed>
+     */
+    private static function trimBlock(array $block, int $max, string $ellipsis): array
+    {
+        $children = [];
+        $used = 0;
+
+        foreach ($block['children'] ?? [] as $span) {
+            $text = $span['text'] ?? '';
+            $length = mb_strlen($text);
+
+            if ($used + $length <= $max) {
+                $children[] = $span;
+                $used += $length;
+
+                continue;
+            }
+
+            $remaining = $max - $used;
+
+            if ($remaining > 0) {
+                // Cut on the last space inside the budget, so the excerpt does
+                // not end halfway through a word.
+                $cut = mb_substr($text, 0, $remaining);
+                $space = mb_strrpos($cut, ' ');
+                $span['text'] = rtrim($space === false ? $cut : mb_substr($cut, 0, $space));
+                $children[] = $span;
+            }
+
+            break;
+        }
+
+        if ($children !== []) {
+            $last = array_key_last($children);
+            $children[$last]['text'] = rtrim($children[$last]['text'], ' .,;:').$ellipsis;
+        }
+
+        $block['children'] = array_values($children);
+
+        return $block;
+    }
+
+    /**
      * The document's text with its paragraph breaks intact, unlike
      * {@see plainText()} which collapses all whitespace.
      *

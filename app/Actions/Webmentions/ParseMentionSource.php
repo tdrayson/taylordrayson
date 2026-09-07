@@ -25,6 +25,18 @@ final class ParseMentionSource
      *
      * @var array<string, WebmentionKind>
      */
+    /**
+     * How much of somebody else's post to show under ours.
+     *
+     * A mention quotes a response, it does not republish it. Without a cap a
+     * source that marks its whole article as e-content puts the whole article
+     * on our page, and "Read it on their site" stops meaning anything.
+     */
+    private const MAX_CONTENT = 600;
+
+    /**
+     * @var array<string, WebmentionKind>
+     */
     private const RESPONSE_PROPERTIES = [
         'in-reply-to' => WebmentionKind::Reply,
         'like-of' => WebmentionKind::Like,
@@ -194,7 +206,7 @@ final class ParseMentionSource
             $document = HtmlToPortableText::convert($content['html']);
 
             if ($document !== []) {
-                return $document;
+                return $this->withinLength($document, $properties);
             }
         }
 
@@ -205,8 +217,34 @@ final class ParseMentionSource
         } ?? $properties['summary'][0] ?? $properties['name'][0] ?? null;
 
         return is_string($text) && trim($text) !== ''
-            ? PortableText::fromPlainText(trim($text))
+            ? PortableText::truncate(PortableText::fromPlainText(trim($text)), self::MAX_CONTENT)
             : null;
+    }
+
+    /**
+     * A long response shown at a length that suits our page.
+     *
+     * A hand-written p-summary is preferred over our own cut, because the
+     * author summarised their own post better than a truncation can. Whatever
+     * is used is still capped: a summary can be long too.
+     *
+     * @param  array<int, array<string, mixed>>  $document
+     * @param  array<string, mixed>  $properties
+     * @return array<int, array<string, mixed>>
+     */
+    private function withinLength(array $document, array $properties): array
+    {
+        if (mb_strlen(PortableText::plainText($document)) <= self::MAX_CONTENT) {
+            return $document;
+        }
+
+        $summary = $properties['summary'][0] ?? null;
+
+        if (is_string($summary) && trim($summary) !== '') {
+            return PortableText::truncate(PortableText::fromPlainText(trim($summary)), self::MAX_CONTENT);
+        }
+
+        return PortableText::truncate($document, self::MAX_CONTENT);
     }
 
     /**
