@@ -66,6 +66,6 @@ final class NoteCard
             ?? $model->rsvp_value?->sentence()
             ?? 'I responded to';
 
-        return $sentence.' '.$response->title;
+        return $sentence.' '.$response->fullTitle();
     }
 }

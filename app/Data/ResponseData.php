@@ -44,6 +44,18 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
     ) {}
 
     /**
+     * The name with the site after it, for the places that print one string:
+     * "How to send webmentions on aaronparecki.com".
+     *
+     * The two are kept apart in the payload because only the name is the
+     * p-name, and the site is said outside the link that carries it.
+     */
+    public function fullTitle(): string
+    {
+        return $this->host === null ? $this->title : "{$this->title} on {$this->host}";
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array
