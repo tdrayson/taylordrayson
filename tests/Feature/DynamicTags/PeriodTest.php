@@ -83,3 +83,14 @@ it('degrades an unparseable from bound to an open-ended window instead of throwi
 
     expect(fn () => $registry->value('entries.count', ['from' => 'lastweek']))->not->toThrow(Throwable::class);
 });
+
+it('resolves this-month against local time, not a UTC now still in the previous month', function () {
+    // 00:30 in Europe/London during BST is 23:30 the previous day in UTC, so
+    // a "now" resolved via app.timezone lands a whole month early on 1 July.
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-07-01 00:30:00', 'Europe/London'));
+
+    $period = Period::from(['period' => 'this-month']);
+
+    expect($period->start->toDateString())->toBe('2026-07-01')
+        ->and($period->end->toDateString())->toBe('2026-07-31');
+});
