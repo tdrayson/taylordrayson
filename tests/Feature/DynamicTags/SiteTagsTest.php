@@ -17,6 +17,10 @@ it('resolves a social link', function () {
         ->toBe(config('site.social.github'));
 });
 
+it('resolves no social link when the network option is missing, same as an unknown one', function () {
+    expect(app(DynamicTagRegistry::class)->value('site.social', []))->toBeNull();
+});
+
 it('rewrites a dynamicHref markDef into a link', function () {
     $document = [[
         '_type' => 'block', '_key' => 'b1', 'style' => 'normal',
