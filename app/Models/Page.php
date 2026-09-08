@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasInteractions;
 use App\Models\Concerns\SendsWebmentions;
 use App\Observers\LinkFaviconObserver;
+use App\Observers\MentionObserver;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -24,15 +25,15 @@ use Spatie\MediaLibrary\HasMedia;
     'content',
     'published',
 ])]
-#[ObservedBy(LinkFaviconObserver::class)]
+#[ObservedBy([LinkFaviconObserver::class, MentionObserver::class])]
 class Page extends Model implements HasMedia
 {
     use HasAttachments;
+
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
     use HasInteractions;
-
     use SendsWebmentions;
 
     /**

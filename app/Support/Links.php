@@ -58,6 +58,40 @@ final class Links
     }
 
     /**
+     * Every site-relative path a document links to, deduplicated, in document
+     * order.
+     *
+     * The inverse of urlsIn(), which drops our own URLs because there is no
+     * webmention to send home. A link home is still a mention to record, and it
+     * may be written either way round, so both forms come back as a path.
+     *
+     * @param  ?array<int, mixed>  $blocks
+     * @return list<string>
+     */
+    public static function internalPathsIn(?array $blocks): array
+    {
+        $paths = [];
+
+        foreach ($blocks ?? [] as $block) {
+            foreach ($block['markDefs'] ?? [] as $def) {
+                $href = $def['href'] ?? null;
+
+                if (($def['_type'] ?? null) !== 'link' || ! is_string($href)) {
+                    continue;
+                }
+
+                $path = self::internalPath($href);
+
+                if ($path !== null) {
+                    $paths[$path] = true;
+                }
+            }
+        }
+
+        return array_keys($paths);
+    }
+
+    /**
      * An absolute form of $url, which may be relative to $base, or null when
      * the pair resolves to nothing usable.
      *

@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\Comment;
+use App\Models\Mention;
 use App\Models\Reaction;
 use App\Models\Webmention;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -30,6 +31,7 @@ trait HasInteractions
             $model->comments()->delete();
             $model->reactions()->delete();
             $model->webmentions()->delete();
+            $model->mentions()->delete();
         });
     }
 
@@ -49,5 +51,18 @@ trait HasInteractions
     public function webmentions(): MorphMany
     {
         return $this->morphMany(Webmention::class, 'target');
+    }
+
+    /**
+     * The entries of mine that link here.
+     *
+     * Named for the direction the page reads in: a mention row also names its
+     * source, but nothing asks an entry what it linked to.
+     *
+     * @return MorphMany<Mention, $this>
+     */
+    public function mentions(): MorphMany
+    {
+        return $this->morphMany(Mention::class, 'target');
     }
 }

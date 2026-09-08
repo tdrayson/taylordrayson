@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
 import ContributedText from './ContributedText.vue';
 import Icon from '../Ui/Icon.vue';
@@ -32,6 +33,7 @@ const KINDS = {
     repost: { icon: 'RepeatIcon', did: 'reposted this' },
     bookmark: { icon: 'Bookmark01Icon', did: 'bookmarked this' },
     mention: { icon: 'Link02Icon', did: 'linked to this' },
+    'mention-internal': { icon: 'Link02Icon', did: 'mentioned this' },
     reacji: { icon: null, did: 'reacted' },
 };
 
@@ -45,7 +47,7 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
  * Only the kinds that point at a piece of writing. A gesture is one clean line
  * by design, and its title is whatever page the button happened to sit on.
  */
-const showTitle = computed(() => Boolean(props.item.title) && ['reply', 'mention'].includes(props.item.kind));
+const showTitle = computed(() => Boolean(props.item.title) && ['reply', 'mention', 'mention-internal'].includes(props.item.kind));
 
 /**
  * The h-entry property this response is, in the microformats sense.
@@ -64,6 +66,16 @@ const PROPERTIES = {
 };
 
 const property = computed(() => PROPERTIES[props.item.kind] ?? null);
+
+/**
+ * One of my own entries, which is shown here as a convenience and carries no
+ * microformats at all.
+ *
+ * The machine-readable fact is the link on the source's own h-entry. Repeating
+ * it as an h-cite would tell a parser somebody responded to this post, and a
+ * loose p-name would hoist up and rename the entry itself.
+ */
+const isInternal = computed(() => props.item.kind === 'mention-internal');
 </script>
 
 <template>
@@ -76,7 +88,8 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
         :id="item.id"
         v-twemoji
         :class="[
-            'h-cite relative flex gap-3',
+            'relative flex gap-3',
+            ! isInternal && 'h-cite',
             property,
             nested && 'response-nested ml-16',
             nested && ! item.lastNested && 'response-continues',
@@ -118,11 +131,15 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                     <!-- "in" and the title share one element so the space
                          between them is real text rather than a flex gap,
                          which copies and reads back correctly. -->
-                    <span v-if="showTitle">in{{ ' ' }}<a
+                    <span v-if="showTitle">in{{ ' ' }}<component
+                        :is="isInternal ? Link : 'a'"
                         :href="item.sourceUrl"
-                        rel="ugc nofollow noopener noreferrer"
-                        class="p-name u-url rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                    ><cite class="not-italic">{{ item.title }}</cite></a></span>
+                        :rel="isInternal ? null : 'ugc nofollow noopener noreferrer'"
+                        :class="[
+                            'rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                            ! isInternal && 'p-name u-url',
+                        ]"
+                    ><cite class="not-italic">{{ item.title }}</cite></component></span>
 
                     <span>on</span>
                 </span>

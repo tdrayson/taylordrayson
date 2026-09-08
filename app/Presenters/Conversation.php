@@ -52,6 +52,10 @@ final class Conversation
         $items = [
             ...$target->comments()->approved()->get()->map(ConversationItem::fromComment(...))->all(),
             ...$target->webmentions()->approved()->get()->map(ConversationItem::fromWebmention(...))->all(),
+            // No moderation state to filter on: these are written by the same
+            // person the page belongs to, and the source is only ever an entry
+            // that is already published.
+            ...$target->mentions()->with('source')->get()->map(ConversationItem::fromMention(...))->all(),
         ];
 
         usort($items, fn (ConversationItem $a, ConversationItem $b): int => $b->occurredAt <=> $a->occurredAt);
