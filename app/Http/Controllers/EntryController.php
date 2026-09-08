@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Actions\BuildResponseContext;
+use App\Actions\ResolveMentions;
 use App\Data\TagLink;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
@@ -312,7 +314,13 @@ class EntryController extends Controller
             $data['cover'] = $model->coverPhoto();
         }
 
-        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Place) {
+        // Notes and articles are the only types that answer somebody: every
+        // other one records something that happened.
+        if ($model instanceof Article || $model instanceof Note) {
+            $data['response'] = app(BuildResponseContext::class)($model)?->toArray();
+        }
+
+        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Checkin) {
             $data['photos'] = $model->galleryPhotos();
         }
 
