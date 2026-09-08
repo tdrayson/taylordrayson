@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\ResponseKind;
+use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasResponse;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -22,12 +25,15 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
+    'response_kind',
+    'response_url',
+    'rsvp_value',
     'published',
     'timezone',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -38,6 +44,8 @@ class Article extends Model implements HasMedia, Timelineable
             'occurred_at' => 'datetime',
             'content' => 'array',
             'published' => 'boolean',
+            'response_kind' => ResponseKind::class,
+            'rsvp_value' => RsvpValue::class,
         ];
     }
 

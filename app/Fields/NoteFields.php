@@ -4,6 +4,8 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Enums\ResponseKind;
+use App\Enums\RsvpValue;
 use App\Models\Note;
 
 /**
@@ -21,6 +23,9 @@ final class NoteFields
     {
         return [
             FieldData::primary('content', 'Note', FieldType::Prose, required: true, max: Note::MAX_LENGTH),
+            FieldData::optional('response_kind', 'Response', FieldType::Select, ResponseKind::options()),
+            FieldData::optional('response_url', 'Responding to', FieldType::Url, showWhen: ['response_kind' => []]),
+            FieldData::optional('rsvp_value', 'Answer', FieldType::Select, RsvpValue::options(), showWhen: ['response_kind' => ['rsvp']]),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
