@@ -180,10 +180,10 @@ class EntryController extends Controller
                 ? app(AttachedMediaValues::class)($model, FieldRegistry::for($model))
                 : [],
             'linkPreviews' => $model instanceof Article || $model instanceof Note
-                ? app(BuildLinkPreviews::class)($model->content)
+                ? app(BuildLinkPreviews::class)($model->resolvedContent())
                 : [],
             'linkFavicons' => $model instanceof Article || $model instanceof Note
-                ? (new BuildLinkFavicons)($model->content)
+                ? (new BuildLinkFavicons)($model->resolvedContent())
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled
@@ -287,6 +287,10 @@ class EntryController extends Controller
 
         if ($model instanceof Article) {
             $data['cover'] = $model->coverPhoto();
+        }
+
+        if ($model instanceof Article || $model instanceof Note) {
+            $data['content'] = $model->resolvedContent();
         }
 
         // Notes and articles are the only types that answer somebody: every

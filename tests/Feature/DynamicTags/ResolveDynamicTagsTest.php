@@ -4,22 +4,6 @@ use App\Actions\ResolveDynamicTags;
 use App\Models\Note;
 use App\Support\PortableText;
 
-/** A paragraph reading "I have logged {tag} things." */
-function contentTagging(string $tag, array $options = []): array
-{
-    return [[
-        '_type' => 'block',
-        '_key' => 'b1',
-        'style' => 'normal',
-        'markDefs' => [],
-        'children' => [
-            ['_type' => 'span', '_key' => 's1', 'text' => 'I have logged ', 'marks' => []],
-            ['_type' => 'dynamicTag', '_key' => 't1', 'tag' => $tag, 'options' => $options],
-            ['_type' => 'span', '_key' => 's2', 'text' => ' things.', 'marks' => []],
-        ],
-    ]];
-}
-
 it('replaces an inline tag with a span carrying the resolved text', function () {
     Note::factory()->count(3)->create();
 
