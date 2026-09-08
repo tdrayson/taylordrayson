@@ -2,9 +2,12 @@
 
 use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
+use App\Jobs\SendWebmentions;
 use App\Models\Article;
 use App\Models\Note;
+use App\Support\OutboundLinks;
 use App\Support\PostType;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * What a post is, derived from the properties it carries rather than from the
@@ -131,4 +134,40 @@ it('sends no response context for a plain note', function () {
 
     Pest\Laravel\get($note->url())
         ->assertInertia(fn ($page) => $page->where('entry.response', null));
+});
+
+// The whole point of declaring a reply is that the other site hears about it.
+it('sends a webmention to the post it replies to', function () {
+    Queue::fake();
+
+    Note::factory()->create([
+        'content' => [],
+        'response_kind' => ResponseKind::Like,
+        'response_url' => 'https://example.com/liked',
+    ]);
+
+    Queue::assertPushed(SendWebmentions::class);
+});
+
+it('counts the target among the urls a send goes out to', function () {
+    $note = Note::factory()->create([
+        'content' => [],
+        'response_kind' => ResponseKind::Like,
+        'response_url' => 'https://example.com/liked',
+    ]);
+
+    expect(OutboundLinks::for($note))->toContain('https://example.com/liked');
+});
+
+// One of mine is recorded as a mention, not announced over HTTP to myself.
+it('sends nothing when the target is one of my own entries', function () {
+    $article = Article::factory()->create(['published' => true]);
+
+    $note = Note::factory()->create([
+        'content' => [],
+        'response_kind' => ResponseKind::Reply,
+        'response_url' => rtrim(config('app.url'), '/').$article->url(),
+    ]);
+
+    expect(OutboundLinks::for($note))->toBe([]);
 });

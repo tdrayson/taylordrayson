@@ -118,7 +118,8 @@ it('reproduces the pre-refactor note card shape', function () {
         'title' => 'A short note about today.',
         'subtitle' => null,
         'occurred_at' => $note->occurred_at,
-        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => []],
+        'accent' => 'note',
+        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => [], 'response' => null],
     ]);
 });
 

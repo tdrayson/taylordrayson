@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Data\ResponseData;
+use App\Enums\ResponseKind;
 use App\Links\LinkResolvers;
 use App\Support\Links;
 use App\Support\PostType;
@@ -37,11 +38,36 @@ class BuildResponseContext
             label: $kind->label(),
             property: $kind->property(),
             url: $url,
+            title: self::name($kind, $preview, $host, $url),
             rsvp: $post->rsvp_value?->value,
             rsvpLabel: $post->rsvp_value?->label(),
             host: $host,
             favicon: $host === null ? null : Links::faviconUrl($host),
             preview: $preview,
         );
+    }
+
+    /**
+     * What to call the target.
+     *
+     * A post of mine has a real title. Somebody else's is only a URL, and no
+     * card should print one: "a post on seblog.nl" is how you would say it.
+     * What you RSVP to is an event, and calling it a post reads as a mistake.
+     *
+     * @param  array<string, mixed>|null  $preview
+     */
+    private static function name(ResponseKind $kind, ?array $preview, ?string $host, string $url): string
+    {
+        if ($preview !== null) {
+            return $preview['title'];
+        }
+
+        if ($host === null) {
+            return $url;
+        }
+
+        $noun = $kind === ResponseKind::Rsvp ? 'an event' : 'a post';
+
+        return "{$noun} on {$host}";
     }
 }

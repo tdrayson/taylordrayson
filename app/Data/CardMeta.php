@@ -34,6 +34,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?string $category = null,
         public ?array $previews = null,
         public ?array $favicons = null,
+        public ?array $response = null,
     ) {}
 
     /**
@@ -125,9 +126,9 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      *
      * @param  list<PhotoData>  $photos
      */
-    public static function photos(array $photos): self
+    public static function photos(array $photos, ?array $response = null): self
     {
-        return new self(null, $photos, null, null, null, null, null, null, null, null, ['photos']);
+        return new self(null, $photos, null, null, null, null, null, null, null, null, ['photos', 'response'], null, null, null, null, null, $response);
     }
 
     /**
@@ -143,9 +144,9 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      * @param  array<string, array<string, mixed>>  $previews
      * @param  array<string, string>  $favicons
      */
-    public static function note(array $body, array $photos, array $previews = [], array $favicons = []): self
+    public static function note(array $body, array $photos, array $previews = [], array $favicons = [], ?array $response = null): self
     {
-        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos', 'previews', 'favicons'], null, null, null, $previews, $favicons);
+        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos', 'previews', 'favicons', 'response'], null, null, null, $previews, $favicons, $response);
     }
 
     /**
@@ -169,6 +170,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'category' => $this->category,
             'previews' => $this->previews,
             'favicons' => $this->favicons,
+            'response' => $this->response,
         ];
 
         $result = [];

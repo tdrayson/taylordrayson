@@ -3,6 +3,7 @@
 use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
 use App\Models\Note;
+use App\Support\PortableText;
 
 /**
  * The property class is the whole point of the context card: without it a
@@ -51,4 +52,31 @@ it('draws no context card on a note that answers nobody', function () {
     $note = Note::factory()->create(['occurred_at' => now()->subHour()]);
 
     visit($note->url())->assertMissing('a.h-cite');
+});
+
+// A gesture's card title is the whole card, so repeating the target underneath
+// would say it twice.
+it('names the target in a gesture card title without drawing the card twice', function () {
+    Note::factory()->create([
+        'occurred_at' => now()->subMinutes(5),
+        'content' => [],
+        'response_kind' => ResponseKind::Like,
+        'response_url' => 'https://seblog.nl/bookmarks-and-likes',
+    ]);
+
+    visit('/')
+        ->assertSee('I liked a post on seblog.nl')
+        ->assertMissing('a.h-cite.u-like-of');
+});
+
+// A reply has words of its own, so the feed has to say what they answer.
+it('names the target on a reply card, which has its own words to show', function () {
+    Note::factory()->create([
+        'occurred_at' => now()->subMinutes(5),
+        'content' => PortableText::fromPlainText('Completely agree with this.'),
+        'response_kind' => ResponseKind::Reply,
+        'response_url' => 'https://example.com/a-post',
+    ]);
+
+    visit('/')->assertPresent('a.h-cite.u-in-reply-to[href="https://example.com/a-post"]');
 });
