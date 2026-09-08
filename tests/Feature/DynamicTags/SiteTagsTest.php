@@ -40,3 +40,38 @@ it('drops an unresolvable markDef so the text survives unlinked', function () {
 
     expect(app(ResolveDynamicTags::class)($document)[0]['markDefs'])->toBe([]);
 });
+
+it('gives an email markDef a mailto href rather than the bare address', function () {
+    $document = [[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal',
+        'markDefs' => [['_type' => 'dynamicHref', '_key' => 'd1', 'tag' => 'site.email', 'options' => []]],
+        'children' => [['_type' => 'span', '_key' => 's1', 'text' => 'email me', 'marks' => ['d1']]],
+    ]];
+
+    expect(app(ResolveDynamicTags::class)($document)[0]['markDefs'][0]['href'])
+        ->toBe('mailto:'.config('site.email'));
+});
+
+it('resolves a block carrying both an ordinary link and a dynamicHref markDef', function () {
+    $document = [[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal',
+        'markDefs' => [
+            ['_type' => 'link', '_key' => 'l1', 'href' => 'https://example.com'],
+            ['_type' => 'dynamicHref', '_key' => 'd1', 'tag' => 'site.social', 'options' => ['network' => 'github']],
+        ],
+        'children' => [
+            ['_type' => 'span', '_key' => 's1', 'text' => 'example', 'marks' => ['l1']],
+            ['_type' => 'span', '_key' => 's2', 'text' => ' and ', 'marks' => []],
+            ['_type' => 'span', '_key' => 's3', 'text' => 'my GitHub', 'marks' => ['d1']],
+        ],
+    ]];
+
+    $resolved = app(ResolveDynamicTags::class)($document)[0];
+
+    expect($resolved['markDefs'])->toBe([
+        ['_type' => 'link', '_key' => 'l1', 'href' => 'https://example.com'],
+        ['_type' => 'link', '_key' => 'd1', 'href' => config('site.social.github')],
+    ])
+        ->and($resolved['children'][0]['marks'])->toBe(['l1'])
+        ->and($resolved['children'][2]['marks'])->toBe(['d1']);
+});

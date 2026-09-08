@@ -55,4 +55,15 @@ abstract class DynamicTag
     {
         return is_int($value) ? number_format($value) : (string) $value;
     }
+
+    /**
+     * The string used when this tag sits behind a link's href. Defaults to
+     * {@see format()}; a tag needing a different scheme (e.g. `mailto:`) overrides it.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function href(mixed $value, array $options): string
+    {
+        return $this->format($value, $options);
+    }
 }
