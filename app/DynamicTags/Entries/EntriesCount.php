@@ -4,8 +4,10 @@ namespace App\DynamicTags\Entries;
 
 use App\Data\TagOption;
 use App\DynamicTags\DynamicTag;
+use App\Enums\StatsPeriod;
 use App\Enums\TimelineType;
 use App\Models\TimelineEntry;
+use App\Support\Period;
 use App\Timeline\TypeRegistry;
 
 /** How many things are on the timeline, optionally of one type. */
@@ -33,6 +35,9 @@ class EntriesCount extends DynamicTag
     {
         return [
             new TagOption('type', 'Type', array_column(TimelineType::cases(), 'value')),
+            new TagOption('period', 'Period', array_column(StatsPeriod::cases(), 'value'), StatsPeriod::AllTime->value),
+            new TagOption('from', 'From'),
+            new TagOption('to', 'To'),
         ];
     }
 
@@ -53,6 +58,6 @@ class EntriesCount extends DynamicTag
             $query->where('timelineable_type', $model);
         }
 
-        return $query->count();
+        return Period::from($options)->apply($query)->count();
     }
 }
