@@ -39,8 +39,8 @@ uses()->beforeEach(function (): void {
 })->in('Feature', 'Unit', 'Browser');
 
 // The same guard for the plain client, which the jobs use. The queue runs sync
-// under test, so storing an entry draws its map there and then: without this a
-// test spends real Mapbox credit on the live token.
+// under test, so saving a model with an outbound link sends its webmentions
+// inline: without this a test posts a real one to somebody else's endpoint.
 // Unit tests are left out because they run without the framework booted.
 uses()->beforeEach(function (): void {
     Http::preventStrayRequests();
@@ -75,22 +75,6 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
-}
-
-/**
- * Invoke an MCP tool directly, bypassing the transport. Lives here rather than
- * in one test file so every test file can call it: paratest runs each test
- * file in its own process, and a function declared inside a test file is
- * invisible to any other file when the suite runs in parallel.
- *
- * @return array{error: bool, data: mixed, text: string}
- */
-function callTool(string $tool, array $arguments = []): array
-{
-    $response = app($tool)->handle(new Request($arguments));
-    $text = $response->content()->toArray()['text'];
-
-    return ['error' => $response->isError(), 'data' => json_decode($text, true), 'text' => $text];
 }
 
 /**
