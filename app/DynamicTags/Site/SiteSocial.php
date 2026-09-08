@@ -35,24 +35,26 @@ class SiteSocial extends DynamicTag
     }
 
     /**
-     * One choice per network configured in `site.social`.
+     * One choice per network configured in `site.social`; no default, so an
+     * author must pick one.
      *
      * @return list<TagOption>
      */
     public function options(): array
     {
         return [
-            new TagOption('network', 'Network', array_keys(config('site.social')), 'github'),
+            new TagOption('network', 'Network', array_keys(config('site.social'))),
         ];
     }
 
     /**
-     * Falls back to github when the network option is missing.
+     * Null when the network option is missing or unrecognised, same as an
+     * unknown network.
      *
      * @param  array<string, string>  $options
      */
     public function resolve(array $options): ?string
     {
-        return config('site.social.'.($options['network'] ?? 'github'));
+        return isset($options['network']) ? config('site.social.'.$options['network']) : null;
     }
 }
