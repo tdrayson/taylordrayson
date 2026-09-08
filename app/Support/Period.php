@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\StatsPeriod;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Throwable;
 
 /**
  * A date window from tag options: a named preset, a bare year, or an explicit
@@ -26,17 +27,17 @@ final readonly class Period
     {
         if (isset($options['from'], $options['to'])) {
             return new self(
-                CarbonImmutable::parse($options['from'])->startOfDay(),
-                CarbonImmutable::parse($options['to'])->endOfDay(),
+                self::parse($options['from'])?->startOfDay(),
+                self::parse($options['to'])?->endOfDay(),
             );
         }
 
         if (isset($options['from'])) {
-            return new self(CarbonImmutable::parse($options['from'])->startOfDay(), null);
+            return new self(self::parse($options['from'])?->startOfDay(), null);
         }
 
         if (isset($options['to'])) {
-            return new self(null, CarbonImmutable::parse($options['to'])->endOfDay());
+            return new self(null, self::parse($options['to'])?->endOfDay());
         }
 
         $period = $options['period'] ?? StatsPeriod::AllTime->value;
@@ -48,6 +49,16 @@ final readonly class Period
         }
 
         return self::preset(StatsPeriod::tryFrom($period) ?? StatsPeriod::AllTime);
+    }
+
+    /** An unparseable bound degrades to null, the same open-ended state a lone bound already means. */
+    private static function parse(string $value): ?CarbonImmutable
+    {
+        try {
+            return CarbonImmutable::parse($value);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private static function preset(StatsPeriod $preset): self

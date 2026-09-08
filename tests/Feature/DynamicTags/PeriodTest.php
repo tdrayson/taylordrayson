@@ -73,3 +73,13 @@ it('counts entries within a period', function () {
     expect($registry->value('entries.count', ['period' => '2025'])['value'])->toBe(1)
         ->and($registry->value('entries.count', [])['value'])->toBe(2);
 });
+
+it('degrades an unparseable from bound to an open-ended window instead of throwing', function () {
+    // Reproduces {entries.count from:lastweek}, which used to 500 the entry
+    // page and, via NoteCard, the timeline listing it too.
+    expect(Period::from(['from' => 'lastweek'])->start)->toBeNull();
+
+    $registry = app(DynamicTagRegistry::class);
+
+    expect(fn () => $registry->value('entries.count', ['from' => 'lastweek']))->not->toThrow(Throwable::class);
+});
