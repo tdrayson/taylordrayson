@@ -43,6 +43,12 @@ class ResolveDynamicTags
             $node['children'] = array_map($this->child(...), $node['children']);
         }
 
+        if (isset($node['markDefs'])) {
+            $node['markDefs'] = array_values(array_filter(
+                array_map($this->markDef(...), $node['markDefs']),
+            ));
+        }
+
         return $node;
     }
 
@@ -73,5 +79,26 @@ class ResolveDynamicTags
         }
 
         return $span;
+    }
+
+    /**
+     * A resolved dynamicHref becomes an ordinary link, keeping its `_key` so
+     * the span's marks still point at it. An unresolvable one is dropped,
+     * which renderSpan already handles by leaving the text unlinked.
+     *
+     * @param  array<string, mixed>  $def
+     * @return array<string, mixed>|null
+     */
+    private function markDef(array $def): ?array
+    {
+        if (($def['_type'] ?? null) !== 'dynamicHref') {
+            return $def;
+        }
+
+        $resolved = $this->registry->value($def['tag'] ?? '', $def['options'] ?? []);
+
+        return $resolved === null
+            ? null
+            : ['_type' => 'link', '_key' => $def['_key'], 'href' => $resolved['text']];
     }
 }
