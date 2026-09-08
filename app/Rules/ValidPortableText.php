@@ -86,14 +86,7 @@ class ValidPortableText implements ValidationRule
             return $this->tagError($node, Placement::Image);
         }
 
-        $url = $node['url'] ?? null;
-
-        // Absolute URLs or root-relative paths (own-hosted media is stored
-        // domain-portable, e.g. /storage/...).
-        $validUrl = $this->nonEmptyString($url)
-            && (filter_var($url, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $url) === 1);
-
-        if (! $validUrl) {
+        if (! $this->isValidHref($node['url'] ?? null)) {
             return 'image requires a valid url';
         }
 
@@ -110,25 +103,12 @@ class ValidPortableText implements ValidationRule
 
     private function videoError(array $node): ?string
     {
-        $url = $node['url'] ?? null;
-
-        // Same rule as image: absolute URLs or root-relative paths (own-hosted
-        // media is stored domain-portable, e.g. /storage/...).
-        $validUrl = $this->nonEmptyString($url)
-            && (filter_var($url, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $url) === 1);
-
-        if (! $validUrl) {
+        if (! $this->isValidHref($node['url'] ?? null)) {
             return 'video requires a valid url';
         }
 
-        if (array_key_exists('poster', $node) && $node['poster'] !== null) {
-            $poster = $node['poster'];
-            $validPoster = $this->nonEmptyString($poster)
-                && (filter_var($poster, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $poster) === 1);
-
-            if (! $validPoster) {
-                return 'video poster must be a valid url when present';
-            }
+        if (array_key_exists('poster', $node) && $node['poster'] !== null && ! $this->isValidHref($node['poster'])) {
+            return 'video poster must be a valid url when present';
         }
 
         foreach (['width', 'height'] as $dimension) {
@@ -212,7 +192,7 @@ class ValidPortableText implements ValidationRule
                 if ($error !== null) {
                     return $error;
                 }
-            } elseif (($def['_type'] ?? null) !== 'link' || filter_var($def['href'] ?? '', FILTER_VALIDATE_URL) === false) {
+            } elseif (($def['_type'] ?? null) !== 'link' || ! $this->isValidHref($def['href'] ?? null)) {
                 return 'markDefs must be link definitions with a _key and valid href';
             }
 
@@ -286,6 +266,25 @@ class ValidPortableText implements ValidationRule
     private function nonEmptyString(mixed $value): bool
     {
         return is_string($value) && $value !== '';
+    }
+
+    /**
+     * A link target we accept: an absolute URL, a root-relative path
+     * (own-hosted media is stored domain-portable, e.g. /storage/..., and the
+     * `@` mention picker inserts entry paths this shape), a fragment, or a
+     * mailto: or tel: address.
+     */
+    private function isValidHref(mixed $value): bool
+    {
+        if (! $this->nonEmptyString($value)) {
+            return false;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_URL) !== false
+            || preg_match('#^/[^/]#', $value) === 1
+            || str_starts_with($value, '#')
+            || str_starts_with($value, 'mailto:')
+            || str_starts_with($value, 'tel:');
     }
 
     /**

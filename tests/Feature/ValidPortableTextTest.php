@@ -51,6 +51,30 @@ it('rejects malformed documents', function (mixed $document) {
     'image with protocol-relative url' => [[['_type' => 'image', '_key' => 'k1', 'url' => '//example.com/a.webp']]],
 ]);
 
+it('accepts a markDef href that is a root-relative entry path, as the mention picker inserts', function () {
+    $link = PortableText::key();
+
+    expect(ptPasses([
+        [
+            '_type' => 'block', '_key' => PortableText::key(), 'style' => 'normal',
+            'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => '/2025/03/04/slug']],
+            'children' => [PortableText::span('a mention', [$link])],
+        ],
+    ]))->toBeTrue();
+});
+
+it('accepts a markDef href using the mailto: scheme', function () {
+    $link = PortableText::key();
+
+    expect(ptPasses([
+        [
+            '_type' => 'block', '_key' => PortableText::key(), 'style' => 'normal',
+            'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => 'mailto:hello@example.com']],
+            'children' => [PortableText::span('email me', [$link])],
+        ],
+    ]))->toBeTrue();
+});
+
 it('accepts every stored article document', function () {
     Article::factory()->count(3)->create()->each(function ($article) {
         expect(ptPasses($article->content))->toBeTrue();
