@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\DynamicTags\DynamicTagRegistry;
 use App\DynamicTags\Entries\EntriesCount;
+use App\DynamicTags\Entries\EntriesFirst;
+use App\DynamicTags\Entries\EntriesLatest;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
@@ -49,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         // The single registration path for every dynamic tag, including ones
         // generated at runtime rather than written as classes: bind an
         // instance under its own key and tag that key the same way.
-        $this->app->tag([EntriesCount::class], DynamicTagRegistry::CONTAINER_TAG);
+        $this->app->tag([EntriesCount::class, EntriesFirst::class, EntriesLatest::class], DynamicTagRegistry::CONTAINER_TAG);
         $this->app->singleton(DynamicTagRegistry::class);
 
         $this->registerArchiveRoutes();
