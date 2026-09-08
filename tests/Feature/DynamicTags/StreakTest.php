@@ -47,3 +47,15 @@ it('defaults to the food streak', function () {
 
     expect(app(DynamicTagRegistry::class)->value('streak.current', [])['value'])->toBe(1);
 });
+
+it('holds the current streak just after local midnight during BST, when app.timezone is UTC', function () {
+    // 00:30 in Europe/London during BST is still 23:30 the previous day in
+    // UTC, so a "now" resolved via app.timezone lands a whole day early.
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-07-01 00:30:00', 'Europe/London'));
+
+    Calorie::factory()->create(['occurred_at' => '2026-06-30 20:00:00']);
+    Calorie::factory()->create(['occurred_at' => '2026-07-01 00:15:00']);
+
+    expect(app(DynamicTagRegistry::class)->value('streak.current', ['type' => 'calorie'])['value'])
+        ->toBe(2);
+});
