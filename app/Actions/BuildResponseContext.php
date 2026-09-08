@@ -2,10 +2,10 @@
 
 namespace App\Actions;
 
+use App\Actions\Mentions\ResolveInternalTarget;
 use App\Data\ResponseData;
 use App\Enums\ResponseKind;
-use App\Enums\TimelineType;
-use App\Links\LinkResolvers;
+use App\Support\EntryName;
 use App\Support\Links;
 use App\Support\PostType;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class BuildResponseContext
 {
-    public function __construct(private LinkResolvers $resolvers) {}
+    public function __construct(private ResolveInternalTarget $resolve) {}
 
     public function __invoke(Model $post): ?ResponseData
     {
@@ -28,11 +28,11 @@ class BuildResponseContext
 
         $url = (string) $post->response_url;
         $path = Links::internalPath($url);
-        $preview = $path === null ? null : $this->resolvers->resolve($path)?->toArray();
+        $target = $path === null ? null : ($this->resolve)($path);
 
-        // One or the other, never both: a target of mine is drawn as its own
-        // card, and naming the host as well would be my own address twice.
-        $host = $preview === null ? Links::host($url) : null;
+        // One or the other, never both: an entry of mine is named as mine, and
+        // saying my own address after it says nothing a reader here needs.
+        $host = $target === null ? Links::host($url) : null;
 
         return new ResponseData(
             kind: $kind->value,
@@ -41,32 +41,29 @@ class BuildResponseContext
             label: $post->rsvp_value?->verb() ?? $kind->label(),
             property: $kind->property(),
             url: $url,
-            title: self::name($kind, $preview, $host, $url, $post->response_title),
+            title: self::name($kind, $target, $host, $url, $post->response_title),
             rsvp: $post->rsvp_value?->value,
             host: $host,
             favicon: $host === null ? null : Links::faviconUrl($host),
-            preview: $preview,
+            internal: $target !== null,
         );
     }
 
     /**
      * What to call the target.
      *
-     * A note of mine has none: its card title is its opening words, which read
-     * as a quotation of something nobody said, so it is named by what it is.
-     * Everything else of mine has a real one.
+     * One of mine is named by EntryName, which knows that some of my types
+     * have real titles and some only have card copy.
      *
      * Somebody else's is whatever FetchResponseTitle read off the page. Until
      * that comes back, or when it finds nothing usable, all we honestly know is
      * that it is a post, or an event if you are RSVPing to it. The host is not
      * part of the name: it is said after it, and only the name is the p-name.
-     *
-     * @param  array<string, mixed>|null  $preview
      */
-    private static function name(ResponseKind $kind, ?array $preview, ?string $host, string $url, ?string $fetched): string
+    private static function name(ResponseKind $kind, ?Model $target, ?string $host, string $url, ?string $fetched): string
     {
-        if ($preview !== null) {
-            return ($preview['type'] ?? null) === TimelineType::Note->value ? 'a note' : $preview['title'];
+        if ($target !== null) {
+            return EntryName::for($target, possessive: true);
         }
 
         if (filled($fetched)) {
