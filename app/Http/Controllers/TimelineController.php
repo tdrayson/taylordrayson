@@ -21,7 +21,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Inertia\DeferProp;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -92,11 +91,9 @@ class TimelineController extends Controller
     }
 
     /**
-     * Day-paginated, chronological timeline tail for a period. Returns the
-     * pagination metadata immediately and the (expensive) hydrated groups as
-     * a deferred closure, so the archive's stats paint before its feed.
+     * Day-paginated, chronological timeline tail for a period.
      *
-     * @return array{groups: DeferProp, currentPage: int, lastPage: int}
+     * @return array{groups: array<int, mixed>, currentPage: int, lastPage: int}
      */
     private function periodTail(Carbon $start, Carbon $end): array
     {
@@ -118,9 +115,13 @@ class TimelineController extends Controller
         $dates = collect($pages->get($current - 1) ?? [])->pluck('day');
 
         return [
-            'groups' => Inertia::defer(fn (): array => $dates->isEmpty()
+            // Resolved in the response rather than deferred: the feed carries
+            // the page's h-feed, and a deferred prop is excluded from the
+            // initial render, so under SSR a parser would be served the loading
+            // state instead of the entries.
+            'groups' => $dates->isEmpty()
                 ? []
-                : $this->groupsForDates($dates->last(), $dates->first(), true)),
+                : $this->groupsForDates($dates->last(), $dates->first(), true),
             'currentPage' => $current,
             'lastPage' => max(1, $pages->count()),
         ];
