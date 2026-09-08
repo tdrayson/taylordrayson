@@ -243,7 +243,7 @@ function choosePreset(preset) {
                         >{{ year }}</button>
                     </div>
 
-                    <button type="button" class="mt-3 w-full rounded-md bg-neutral-900 py-1.5 text-nav font-medium text-neutral-0 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40" :disabled="!start" @click="applyCustom">
+                    <button type="button" class="mt-3 w-full rounded-md bg-neutral-900 py-1.5 text-nav font-medium text-neutral-0 transition-opacity not-disabled:hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40" :disabled="!start" @click="applyCustom">
                         Apply
                     </button>
                 </div>

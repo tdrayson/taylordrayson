@@ -44,6 +44,17 @@
         cursor: pointer;
     }
 
+    /* Unavailable, not merely inert: every disabled control says so on hover,
+       whether it is really disabled or only aria-disabled (a link cannot be). */
+    button:disabled,
+    fieldset:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+
     /* Twemoji replaces native emoji glyphs with CDN images (see v-twemoji);
        size and align them like a character in the surrounding text. */
     img.emoji {
