@@ -2,6 +2,7 @@
 
 use App\Models\Article;
 use App\Models\Note;
+use App\Models\User;
 use App\Presenters\CardPresenter;
 use App\Support\PortableText;
 
@@ -37,4 +38,32 @@ it('memoises the resolution per model instance', function () {
     $article = Article::factory()->create(['content' => contentTagging('entries.count')]);
 
     expect($article->resolvedContent())->toBe($article->resolvedContent());
+});
+
+it('exposes the unresolved document to a signed-in editor, not the resolved one', function () {
+    $article = Article::factory()->create([
+        'published' => true,
+        'content' => contentTagging('entries.count', ['type' => 'note']),
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/'.$article->url())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            // The renderer's own copy stays resolved.
+            ->where('entry.content', fn ($content) => PortableText::plainText($content) === 'I have logged 0 things.')
+            // The editor's copy still carries the dynamicTag node, so saving
+            // the form unchanged cannot bake the resolved text over it.
+            ->where('entry.rawContent.0.children.1._type', 'dynamicTag'));
+});
+
+it('sends no raw content to a guest, who cannot reach the editor anyway', function () {
+    $article = Article::factory()->create([
+        'published' => true,
+        'content' => contentTagging('entries.count', ['type' => 'note']),
+    ]);
+
+    get('/'.$article->url())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->missing('entry.rawContent'));
 });
