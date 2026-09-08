@@ -34,8 +34,9 @@
     }
 
     /* Clickable elements show a pointer cursor (Tailwind v4 no longer sets it
-       on buttons). Disabled controls keep the default cursor. */
-    button:not(:disabled),
+       on buttons). A control that opens the lightbox overrides this with
+       cursor-zoom-in, so the cursor says "enlarge" rather than "navigate". */
+    button:not(:disabled):not([aria-disabled='true']),
     label,
     select,
     summary,

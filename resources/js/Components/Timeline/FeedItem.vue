@@ -316,7 +316,7 @@ function openLightbox(index) {
             >
                 <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
             </component>
-            <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
+            <button type="button" class="absolute right-2 top-2 cursor-zoom-in opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                 <ZoomButton />
             </button>
             <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
@@ -350,7 +350,7 @@ function openLightbox(index) {
                 >
                     <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
                 </component>
-                <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
+                <button type="button" class="absolute right-2 top-2 cursor-zoom-in opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                     <ZoomButton />
                 </button>
                 <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
