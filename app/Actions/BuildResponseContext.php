@@ -35,12 +35,13 @@ class BuildResponseContext
 
         return new ResponseData(
             kind: $kind->value,
-            label: $kind->label(),
+            // An RSVP's answer is its verb, so it replaces the label rather
+            // than being appended to one.
+            label: $post->rsvp_value?->verb() ?? $kind->label(),
             property: $kind->property(),
             url: $url,
             title: self::name($kind, $preview, $host, $url),
             rsvp: $post->rsvp_value?->value,
-            rsvpLabel: $post->rsvp_value?->label(),
             host: $host,
             favicon: $host === null ? null : Links::faviconUrl($host),
             preview: $preview,

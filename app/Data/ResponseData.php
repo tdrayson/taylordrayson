@@ -26,9 +26,11 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
         public string $url,
         /** What to call the target: its own title, or where it lives. */
         public string $title,
-        /** The RSVP answer and its wording, on an RSVP and nothing else. */
+        /**
+         * The RSVP answer, on an RSVP and nothing else. Its wording is already
+         * in the label; this is the machine-readable half.
+         */
         public ?string $rsvp,
-        public ?string $rsvpLabel,
         /** The site responded to, for a target that is not one of mine. */
         public ?string $host,
         public ?string $favicon,
@@ -53,7 +55,6 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
             'url' => $this->url,
             'title' => $this->title,
             'rsvp' => $this->rsvp,
-            'rsvpLabel' => $this->rsvpLabel,
             'host' => $this->host,
             'favicon' => $this->favicon,
             'preview' => $this->preview,
