@@ -14,6 +14,8 @@ trait HasDynamicContent
     private ?array $resolvedContent = null;
 
     /**
+     * Memoised per instance, so rendering the same model twice resolves tags once.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function resolvedContent(): array

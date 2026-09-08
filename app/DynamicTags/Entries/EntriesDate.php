@@ -26,6 +26,8 @@ abstract class EntriesDate extends DynamicTag
     }
 
     /**
+     * `format` selects a {@see TagDateFormat} rendering; defaults to `date`.
+     *
      * @return list<TagOption>
      */
     public function options(): array

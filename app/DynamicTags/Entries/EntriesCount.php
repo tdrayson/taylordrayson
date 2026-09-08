@@ -30,6 +30,8 @@ class EntriesCount extends DynamicTag
     }
 
     /**
+     * `from`/`to` are a free-form date range and win over `period` when both are given.
+     *
      * @return list<TagOption>
      */
     public function options(): array
@@ -43,6 +45,8 @@ class EntriesCount extends DynamicTag
     }
 
     /**
+     * Null when the type is unrecognised; otherwise the count is never null.
+     *
      * @param  array<string, string>  $options
      */
     public function resolve(array $options): ?int

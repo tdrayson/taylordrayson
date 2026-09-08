@@ -18,6 +18,8 @@ final readonly class Period
     ) {}
 
     /**
+     * `from`/`to` win over `period`; a bare four-digit `period` is read as a year.
+     *
      * @param  array<string, string>  $options
      */
     public static function from(array $options): self

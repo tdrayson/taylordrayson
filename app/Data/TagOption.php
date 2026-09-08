@@ -12,6 +12,8 @@ use JsonSerializable;
 final readonly class TagOption implements Arrayable, JsonSerializable
 {
     /**
+     * An empty `$choices` accepts any string; a populated one is a closed set.
+     *
      * @param  list<string>  $choices
      */
     public function __construct(
@@ -22,6 +24,8 @@ final readonly class TagOption implements Arrayable, JsonSerializable
     ) {}
 
     /**
+     * The shape the tag-editor UI reads to render this option's field.
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array
@@ -35,6 +39,8 @@ final readonly class TagOption implements Arrayable, JsonSerializable
     }
 
     /**
+     * Delegates to {@see toArray()}, so JSON output matches it exactly.
+     *
      * @return array<string, mixed>
      */
     public function jsonSerialize(): array

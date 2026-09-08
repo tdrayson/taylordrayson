@@ -14,6 +14,8 @@ class ResolveDynamicTags
     public function __construct(private readonly DynamicTagRegistry $registry) {}
 
     /**
+     * A null document resolves to an empty one rather than throwing.
+     *
      * @param  array<int, array<string, mixed>>|null  $blocks
      * @return array<int, array<string, mixed>>
      */
@@ -23,6 +25,8 @@ class ResolveDynamicTags
     }
 
     /**
+     * Recurses into callout children so a tag nested inside one still resolves.
+     *
      * @param  array<string, mixed>  $node
      * @return array<string, mixed>
      */
@@ -43,6 +47,9 @@ class ResolveDynamicTags
     }
 
     /**
+     * Non-tag children pass through unchanged; a dynamicTag child is rewritten
+     * into a span, with `dynamicTag` metadata omitted when it fails to resolve.
+     *
      * @param  array<string, mixed>  $child
      * @return array<string, mixed>
      */
