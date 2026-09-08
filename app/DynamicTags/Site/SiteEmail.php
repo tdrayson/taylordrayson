@@ -42,4 +42,15 @@ class SiteEmail extends DynamicTag
     {
         return config('site.email');
     }
+
+    /**
+     * Prefixes `mailto:`, so the href actually opens a compose window instead
+     * of being read as a relative path.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function href(mixed $value, array $options): string
+    {
+        return 'mailto:'.$this->format($value, $options);
+    }
 }
