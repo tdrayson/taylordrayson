@@ -11,7 +11,7 @@ return [
     'author_name' => 'Taylor Drayson',
     // Not config('site.email'): config files load alphabetically, so 'feed'
     // runs before 'site' exists in the repository. Default matches site.php.
-    'author_email' => env('SITE_EMAIL', 'hello@taylordrayson.com'),
+    'author_email' => env('SITE_EMAIL', 'taylor@drayson.co.uk'),
 
     'feeds' => [
         'atom' => [
