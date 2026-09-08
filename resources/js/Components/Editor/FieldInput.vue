@@ -177,17 +177,6 @@ function textToTags(value) {
             />
         </div>
 
-        <StatusInput
-            v-else-if="field.type === 'status'"
-            :id="field.name"
-            :model-value="modelValue ?? 'published'"
-            :password="password"
-            :options="field.options ?? []"
-            :readonly="readonly"
-            @update:model-value="$emit('update:modelValue', $event)"
-            @fill="$emit('fill', $event)"
-        />
-
         <Select
             v-else-if="field.type === 'select'"
             :id="field.name"
