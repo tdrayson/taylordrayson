@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\SyncBodyImages;
 use App\Actions\SyncEntryMedia;
 use App\Data\FieldData;
-use App\Enums\FieldType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
@@ -80,15 +79,15 @@ class AuthoringController extends Controller
     }
 
     /**
-     * Reparse literal `{tag options}` text in a Prose field's blocks back into
-     * dynamicTag nodes, before validation runs (see PortableText::withTags()).
+     * Reparse literal `{tag options}` text in a Portable Text field's blocks
+     * back into dynamicTag nodes, before validation runs (see PortableText::withTags()).
      *
      * @param  list<FieldData>  $fields
      */
     private function injectDynamicTags(Request $request, array $fields): void
     {
         foreach ($fields as $field) {
-            if ($field->type !== FieldType::Prose) {
+            if (! $field->type->isRichText()) {
                 continue;
             }
 
