@@ -2,6 +2,8 @@
 
 namespace App\DynamicTags;
 
+use App\DynamicTags\Entries\EntriesCount;
+
 /**
  * Every registered tag, keyed by name. Listed explicitly rather than
  * discovered, so nothing becomes referenceable by being dropped in a folder.
@@ -10,7 +12,7 @@ class DynamicTagRegistry
 {
     /** @var list<class-string<DynamicTag>> */
     private const TAGS = [
-        Entries\EntriesCount::class,
+        EntriesCount::class,
     ];
 
     /** @var array<string, DynamicTag>|null */
