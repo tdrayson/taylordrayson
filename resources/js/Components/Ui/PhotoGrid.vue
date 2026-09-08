@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
-import { DEFAULT_COLUMNS, GAP, ROW, preset as presetFor } from '../../lib/photoGrid.js';
+import { DEFAULT_COLUMNS, GAP, ROW, SQUARE_SPAN, preset as presetFor, spanForRatio } from '../../lib/photoGrid.js';
 
 // Masonry via CSS grid row spans: photos stay in document order so keyboard
 // focus moves across rows in that order, while each tile spans the rows
@@ -77,13 +77,13 @@ onBeforeUnmount(() => {
 });
 
 function rowSpan(photo) {
+    // Unmeasured, or a photo whose dimensions never made it into the payload:
+    // a square tile is the least-wrong guess.
     if (!columnWidth.value || !photo.width || !photo.height) {
-        return 28;
+        return SQUARE_SPAN;
     }
 
-    const height = columnWidth.value * (photo.height / photo.width);
-
-    return Math.max(1, Math.round((height + GAP) / (ROW + GAP)));
+    return spanForRatio(columnWidth.value, photo.height / photo.width);
 }
 </script>
 

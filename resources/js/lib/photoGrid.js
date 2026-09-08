@@ -25,3 +25,25 @@ export function preset(columns) {
 /** Grid geometry, shared so a skeleton tile lines up with a real one. */
 export const GAP = 12; // matches gap-3
 export const ROW = 8; // grid-auto-rows base unit
+
+/**
+ * Rows a tile spans for a given aspect ratio, matching the CSS grid geometry
+ * above. A span of n renders `n * (ROW + GAP) - GAP` pixels tall.
+ *
+ * @param {number} columnWidth - measured column width in px
+ * @param {number} ratio - height / width of the image
+ * @returns {number}
+ */
+export function spanForRatio(columnWidth, ratio) {
+    return Math.max(1, Math.round((columnWidth * ratio + GAP) / (ROW + GAP)));
+}
+
+/** Span of a square tile at a typical column width, the fallback shape. */
+export const SQUARE_SPAN = 10;
+
+/**
+ * Aspect ratios a placeholder grid cycles through: portrait, landscape and
+ * square in the rough proportion a phone camera roll produces, so the skeleton
+ * staggers like real masonry instead of reading as a uniform table.
+ */
+export const PLACEHOLDER_RATIOS = [4 / 3, 3 / 4, 1, 4 / 3, 3 / 4, 16 / 9, 1, 4 / 3];
