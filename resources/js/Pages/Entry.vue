@@ -48,8 +48,6 @@ const props = defineProps({
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
     media: { type: Object, default: () => ({}) },
-    // kind:id -> resolved mention, for content that carries any.
-    mentions: { type: Object, default: () => ({}) },
     // Editing in place: only hand-authored types get a form at all.
     editing: { type: Boolean, default: false },
     editType: { type: String, default: null },
