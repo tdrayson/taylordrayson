@@ -42,12 +42,31 @@ const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
 const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 
 /**
+ * One of my own entries, which is shown here as a convenience and carries no
+ * microformats at all.
+ *
+ * The machine-readable fact is the link on the source's own h-entry. Repeating
+ * it as an h-cite would tell a parser somebody responded to this post, and a
+ * loose p-name would hoist up and rename the entry itself.
+ */
+const isInternal = computed(() => props.item.kind === 'mention-internal');
+
+/**
+ * What to call the entry this came from.
+ *
+ * A note of mine has no title, and the server sends null rather than its
+ * opening words, which after "in" would read as a quotation. It is named by
+ * what it is, so the byline still has something to click.
+ */
+const sourceLabel = computed(() => props.item.title ?? (isInternal.value ? 'a note' : null));
+
+/**
  * Whether to name the post a response came from.
  *
  * Only the kinds that point at a piece of writing. A gesture is one clean line
  * by design, and its title is whatever page the button happened to sit on.
  */
-const showTitle = computed(() => Boolean(props.item.title) && ['reply', 'mention', 'mention-internal'].includes(props.item.kind));
+const showTitle = computed(() => Boolean(sourceLabel.value) && ['reply', 'mention', 'mention-internal'].includes(props.item.kind));
 
 /**
  * The h-entry property this response is, in the microformats sense.
@@ -67,15 +86,6 @@ const PROPERTIES = {
 
 const property = computed(() => PROPERTIES[props.item.kind] ?? null);
 
-/**
- * One of my own entries, which is shown here as a convenience and carries no
- * microformats at all.
- *
- * The machine-readable fact is the link on the source's own h-entry. Repeating
- * it as an h-cite would tell a parser somebody responded to this post, and a
- * loose p-name would hoist up and rename the entry itself.
- */
-const isInternal = computed(() => props.item.kind === 'mention-internal');
 </script>
 
 <template>
@@ -139,7 +149,7 @@ const isInternal = computed(() => props.item.kind === 'mention-internal');
                             'rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                             ! isInternal && 'p-name u-url',
                         ]"
-                    ><cite class="not-italic">{{ item.title }}</cite></component></span>
+                    ><cite v-if="item.title" class="not-italic">{{ item.title }}</cite><template v-else>{{ sourceLabel }}</template></component></span>
 
                     <span>on</span>
                 </span>
