@@ -4,14 +4,12 @@ import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
-    // One ResponseData: { kind, label, property, url, title, rsvp, rsvpLabel,
-    // host, favicon, preview }.
+    // One ResponseData: { kind, label, property, url, title, rsvp, host,
+    // favicon, preview }.
     response: { type: Object, required: true },
-    // One line in a feed card rather than the block an entry page carries.
-    compact: { type: Boolean, default: false },
 });
 
-/** What each kind did, matching the markers the conversation uses for the same verbs. */
+/** What each kind did, using the markers the conversation already uses for these verbs. */
 const ICONS = {
     reply: 'MailReply01Icon',
     like: 'FavouriteIcon',
@@ -21,9 +19,8 @@ const ICONS = {
 
 const icon = computed(() => ICONS[props.response.kind] ?? 'Link02Icon');
 
-// One of mine resolves to a card; anybody else's is only ever a URL on a host.
-const preview = computed(() => props.response.preview ?? null);
-const internal = computed(() => preview.value !== null);
+// One of mine is an ordinary internal link; anybody else's leaves the site.
+const internal = computed(() => props.response.preview !== null);
 
 /**
  * The microformats property this link carries, which is what makes the post a
@@ -33,44 +30,26 @@ const property = computed(() => `u-${props.response.property}`);
 </script>
 
 <template>
-    <div :class="compact ? '' : 'max-w-prose'">
-        <p class="flex items-center gap-1.5 text-neutral-500" :class="compact ? 'text-caption' : 'text-meta'">
-            <Icon :name="icon" class="size-3.5" />
-            <span>{{ response.label }}</span>
-            <!-- The answer is the point of an RSVP, so it is said in the label
-                 rather than left for the reader to infer from the target. -->
-            <template v-if="response.rsvpLabel">
-                <span aria-hidden="true">,</span>
-                <data class="p-rsvp font-medium text-neutral-700" :value="response.rsvp">{{ response.rsvpLabel }}</data>
-            </template>
-        </p>
+    <!-- One line, built like a conversation byline: the marker, what I did, and
+         the thing I did it to. Whatever the post says follows underneath. -->
+    <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta text-neutral-500">
+        <Icon :name="icon" class="size-3.5 shrink-0" />
+        <!-- An RSVP's answer is the verb, so it is the label, and the element
+             carries the machine-readable value the wording spells out. -->
+        <data v-if="response.rsvp" class="p-rsvp" :value="response.rsvp">{{ response.label }}</data>
+        <span v-else>{{ response.label }}</span>
 
         <component
             :is="internal ? Link : 'a'"
             :href="response.url"
             :rel="internal ? null : 'noopener'"
             :class="[
-                'h-cite flex items-center gap-2 rounded-lg border border-neutral-50 bg-neutral-25 transition-colors hover:border-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                compact ? 'mt-1 max-w-sm px-2.5 py-1.5' : 'mt-1.5 px-3 py-2.5',
+                'h-cite inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                 property,
             ]"
         >
-            <span
-                v-if="internal"
-                class="size-2 shrink-0 rounded-full"
-                :style="{ backgroundColor: `var(--color-${preview.accent ?? preview.type}, var(--color-neutral-400))` }"
-            />
-            <img v-else-if="response.favicon" :src="response.favicon" alt="" loading="lazy" class="size-4 shrink-0 rounded-sm">
-
-            <span class="min-w-0 flex-1">
-                <span class="p-name block truncate font-medium text-neutral-900" :class="compact ? 'text-caption' : 'text-body'">{{ response.title }}</span>
-                <!-- The second line is context, and a feed card has the whole
-                     timeline for context already. -->
-                <template v-if="! compact">
-                    <span v-if="preview?.excerpt" class="block truncate text-caption text-neutral-500">{{ preview.excerpt }}</span>
-                    <span v-else-if="response.host" class="block truncate text-caption text-neutral-500">{{ response.host }}</span>
-                </template>
-            </span>
+            <img v-if="response.favicon" :src="response.favicon" alt="" loading="lazy" class="size-3.5 shrink-0 rounded-sm">
+            <cite class="p-name truncate not-italic">{{ response.title }}</cite>
         </component>
-    </div>
+    </p>
 </template>

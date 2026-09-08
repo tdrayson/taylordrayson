@@ -26,6 +26,20 @@ enum RsvpValue: string
     }
 
     /**
+     * How the context line says it. The answer is the verb: "Going to an event
+     * on indieweb.org" reads, where "RSVP'd to Going an event" does not.
+     */
+    public function verb(): string
+    {
+        return match ($this) {
+            self::Yes => 'Going to',
+            self::No => 'Not going to',
+            self::Maybe => 'Maybe going to',
+            self::Interested => 'Interested in',
+        };
+    }
+
+    /**
      * How a timeline card says it. The answer carries the verb, so an RSVP
      * needs no wording of its own beyond this.
      */

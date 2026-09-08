@@ -248,13 +248,14 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
             </div>
         </div>
-        <!-- Above the words, the same order the entry page reads in. Skipped
-             when the card's own title already names what it responds to. -->
-        <ResponseContext v-if="response && ! response.namedInTitle" :response="response" compact class="mt-1.5" />
+        <!-- Above the words, the same order the entry page reads in. -->
+        <ResponseContext v-if="response" :response="response" class="mt-1.5" />
 
         <NoteBody v-if="hasBody" :document="body" />
-        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
-        <h3 v-else class="mt-1 max-w-md font-display text-item-title">
+        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3
+             heading. A gesture has none, because the line above is the card:
+             its title only restates that line in a display face. -->
+        <h3 v-else-if="! response?.namedInTitle" class="mt-1 max-w-md font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji

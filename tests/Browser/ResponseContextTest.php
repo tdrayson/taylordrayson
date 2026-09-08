@@ -54,9 +54,9 @@ it('draws no context card on a note that answers nobody', function () {
     visit($note->url())->assertMissing('a.h-cite');
 });
 
-// A gesture's card title is the whole card, so repeating the target underneath
-// would say it twice.
-it('names the target in a gesture card title without drawing the card twice', function () {
+// A gesture is the one line and nothing else, so the display-font title, which
+// only restates that line, is not drawn beside it.
+it('draws a gesture as one line rather than a headline that repeats it', function () {
     Note::factory()->create([
         'occurred_at' => now()->subMinutes(5),
         'content' => [],
@@ -65,8 +65,8 @@ it('names the target in a gesture card title without drawing the card twice', fu
     ]);
 
     visit('/')
-        ->assertSee('I liked a post on seblog.nl')
-        ->assertMissing('a.h-cite.u-like-of');
+        ->assertPresent('a.h-cite.u-like-of[href="https://seblog.nl/bookmarks-and-likes"]')
+        ->assertDontSee('I liked a post on seblog.nl');
 });
 
 // A reply has words of its own, so the feed has to say what they answer.
