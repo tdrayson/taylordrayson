@@ -144,7 +144,9 @@ const replyCount = computed(() => countOf('comment', 'reply'));
 const repostCount = computed(() => countOf('repost'));
 const bookmarkCount = computed(() => countOf('bookmark'));
 const rsvpCount = computed(() => countOf('rsvp'));
-const mentionCount = computed(() => countOf('mention'));
+// My own entries count alongside everyone else's links: the heading has to add
+// up to what the row beside it shows, whoever wrote the thing that links here.
+const mentionCount = computed(() => countOf('mention', 'mention-internal'));
 
 // Every kind, each counted once, which is what makes the heading add up.
 const total = computed(() => reactionCount.value
