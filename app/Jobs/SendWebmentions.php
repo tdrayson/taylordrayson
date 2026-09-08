@@ -36,6 +36,12 @@ class SendWebmentions implements ShouldQueue
 
     public function handle(): void
     {
+        // Nowhere but production can be fetched back to verify the mention, so
+        // a send from anywhere else is noise on the target's site.
+        if (! config('webmentions.send')) {
+            return;
+        }
+
         $sourceUrl = rtrim((string) config('app.url'), '/').$this->source->url();
         $links = OutboundLinks::for($this->source);
         $hash = OutboundLinks::fingerprint($this->source);
