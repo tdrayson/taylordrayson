@@ -10,7 +10,6 @@ use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
 use App\Presenters\CardPresenter;
-use App\Rules\ValidPortableText;
 use App\Support\EntryInstant;
 use App\Support\EntryZone;
 use App\Support\PortableText;
@@ -81,11 +80,8 @@ class AuthoringController extends Controller
     }
 
     /**
-     * Reparse any literal `{tag options}` text left in a Prose field's blocks
-     * back into dynamicTag nodes, before validation runs. The editor has no
-     * node for a tag yet, so it round trips one as this text (toProseMirror.js);
-     * left unparsed it would fail {@see ValidPortableText} or save
-     * as dead text instead of a live one.
+     * Reparse literal `{tag options}` text in a Prose field's blocks back into
+     * dynamicTag nodes, before validation runs (see PortableText::withTags()).
      *
      * @param  list<FieldData>  $fields
      */

@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\DynamicTags\DynamicTagRegistry;
-use App\Rules\ValidPortableText;
 use Illuminate\Support\Str;
 
 class PortableText
@@ -120,9 +119,6 @@ class PortableText
     /**
      * Reparse `{tag options}` tokens out of a document's span text back into
      * dynamicTag nodes, using the same tokeniser {@see fromPlainText()} runs.
-     * The editor has no node for a tag yet (see toProseMirror.js), so it round
-     * trips one as this literal text; this is what turns it back into a node
-     * before {@see ValidPortableText} sees it.
      *
      * @param  array<int, array<string, mixed>>  $document
      * @return array<int, array<string, mixed>>
