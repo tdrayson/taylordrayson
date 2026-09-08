@@ -5,7 +5,7 @@ import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     // One ResponseData: { kind, label, property, url, title, rsvp, host,
-    // favicon, preview }.
+    // favicon, internal }.
     response: { type: Object, required: true },
 });
 
@@ -20,7 +20,7 @@ const ICONS = {
 const icon = computed(() => ICONS[props.response.kind] ?? 'Link02Icon');
 
 // One of mine is an ordinary internal link; anybody else's leaves the site.
-const internal = computed(() => props.response.preview !== null);
+const internal = computed(() => props.response.internal);
 
 /**
  * The microformats property this link carries, which is what makes the post a
@@ -42,7 +42,7 @@ const property = computed(() => `u-${props.response.property}`);
         <component
             :is="internal ? Link : 'a'"
             :href="response.url"
-            :rel="internal ? null : 'noopener'"
+            :rel="internal ? null : 'noopener noreferrer'"
             :class="[
                 'h-cite inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                 property,

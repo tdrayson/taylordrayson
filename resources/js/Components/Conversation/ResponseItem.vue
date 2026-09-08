@@ -52,13 +52,10 @@ const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 const isInternal = computed(() => props.item.kind === 'mention-internal');
 
 /**
- * What to call the entry this came from.
- *
- * A note of mine has no title, and the server sends null rather than its
- * opening words, which after "in" would read as a quotation. It is named by
- * what it is, so the byline still has something to click.
+ * What to call the entry this came from. EntryName decides it server-side, so
+ * one of mine that has no title of its own arrives already named.
  */
-const sourceLabel = computed(() => props.item.title ?? (isInternal.value ? 'a note' : null));
+const sourceLabel = computed(() => props.item.title ?? null);
 
 /**
  * Whether to name the post a response came from.

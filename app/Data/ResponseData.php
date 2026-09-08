@@ -34,13 +34,8 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
         /** The site responded to, for a target that is not one of mine. */
         public ?string $host,
         public ?string $favicon,
-        /**
-         * The target's own card, for one of mine. Null for anybody else's,
-         * where the host and the URL are all we honestly know about it.
-         *
-         * @var array<string, mixed>|null
-         */
-        public ?array $preview,
+        /** Whether the target is an entry here, which decides how it is linked. */
+        public bool $internal,
     ) {}
 
     /**
@@ -69,7 +64,7 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
             'rsvp' => $this->rsvp,
             'host' => $this->host,
             'favicon' => $this->favicon,
-            'preview' => $this->preview,
+            'internal' => $this->internal,
         ];
     }
 

@@ -112,14 +112,18 @@ it('records nothing for an entry that links to itself', function () {
     expect(Mention::query()->count())->toBe(0);
 });
 
-// A note's first eighty characters are not a name. Sent as null so the byline
-// can say what the source is instead of quoting the top of it.
-it('sends no title for a mention that came from a note', function () {
+// A note's first eighty characters are not a name, so the byline says what the
+// source is and when, rather than quoting the top of it. Not possessive: the
+// byline already names who wrote it.
+it('names a note source by what it is rather than quoting its first words', function () {
     $sleep = Sleep::factory()->create();
-    Note::factory()->create(['content' => linkedTo($sleep->url())]);
+    Note::factory()->create([
+        'occurred_at' => now()->setDate(now()->year, 3, 14),
+        'content' => linkedTo($sleep->url()),
+    ]);
 
     get($sleep->url())
-        ->assertInertia(fn ($page) => $page->where('conversation.responses.0.title', null));
+        ->assertInertia(fn ($page) => $page->where('conversation.responses.0.title', 'a note from 14 March'));
 });
 
 it('sends the title for a mention that came from an article', function () {

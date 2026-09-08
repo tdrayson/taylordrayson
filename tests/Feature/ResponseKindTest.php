@@ -114,11 +114,11 @@ it('carries the reply context to the entry page', function () {
             ->where('entry.response.property', 'in-reply-to')
             ->where('entry.response.label', 'Replied to')
             ->where('entry.response.host', 'aaronparecki.com')
-            // Somebody else's post is a URL on a host, never a card of ours.
-            ->where('entry.response.preview', null));
+            // Somebody else's post leaves the site, so it is not linked as ours.
+            ->where('entry.response.internal', false));
 });
 
-it('draws one of my own entries as its own card rather than a host', function () {
+it('names one of my own entries rather than the site it is already on', function () {
     $article = Article::factory()->create(['published' => true]);
 
     $note = Note::factory()->create([
@@ -129,7 +129,8 @@ it('draws one of my own entries as its own card rather than a host', function ()
     Pest\Laravel\get($note->url())
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('entry.response.preview.title', $article->title)
+            ->where('entry.response.title', $article->title)
+            ->where('entry.response.internal', true)
             ->where('entry.response.host', null));
 });
 
@@ -244,16 +245,20 @@ it('drops the fetched name when the post is pointed somewhere else', function ()
     expect($note->fresh()->response_title)->toBeNull();
 });
 
-// A note of mine has no name, and its opening words are not one.
-it('calls one of my own notes a note rather than quoting its first words', function () {
-    $target = Note::factory()->create(['content' => PortableText::fromPlainText('Some passing thought.')]);
+// A note of mine has no name, and its opening words are not one. The date is
+// what makes "my note" specific enough to be worth clicking.
+it('calls one of my own notes a note from the day it was written', function () {
+    $target = Note::factory()->create([
+        'occurred_at' => now()->setDate(now()->year, 3, 14),
+        'content' => PortableText::fromPlainText('Some passing thought.'),
+    ]);
 
     $note = Note::factory()->create([
         'response_kind' => ResponseKind::Reply,
         'response_url' => rtrim(config('app.url'), '/').$target->url(),
     ]);
 
-    expect(app(BuildResponseContext::class)($note)->fullTitle())->toBe('a note');
+    expect(app(BuildResponseContext::class)($note)->fullTitle())->toBe('my note from 14 March');
 });
 
 it('says the site after the name, so only the name is the p-name', function () {
