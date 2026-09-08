@@ -120,16 +120,16 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
     }
 
     /**
-     * What to call the entry a mention came from.
+     * What to call the entry a mention came from, or null for one that has no
+     * name of its own.
      *
-     * Read off the model rather than through CardPresenter: a card assembles
-     * link previews, favicons and photos, none of which a one-line byline uses.
+     * A note is the only source without a title, and its first eighty
+     * characters are not one: printed after "in" they read as a quotation of
+     * something nobody said. The byline names it by what it is instead.
      */
-    private static function titleOf(Model $source): string
+    private static function titleOf(Model $source): ?string
     {
-        return $source instanceof Note
-            ? Str::limit(PortableText::plainText($source->content), 80)
-            : (string) $source->title;
+        return $source instanceof Note ? null : (string) $source->title;
     }
 
     /**

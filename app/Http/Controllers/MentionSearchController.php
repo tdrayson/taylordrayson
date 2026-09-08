@@ -10,8 +10,7 @@ use Illuminate\Http\Request;
  * Candidates for the editor's @-mention menu.
  *
  * Session-guarded rather than token-guarded: the only caller is the editor,
- * which runs in an authenticated browser. It is also why it returns drafts —
- * a draft is exactly the thing you want to point at from another draft.
+ * which runs in an authenticated browser.
  */
 class MentionSearchController extends Controller
 {

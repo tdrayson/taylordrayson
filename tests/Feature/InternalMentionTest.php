@@ -112,6 +112,27 @@ it('records nothing for an entry that links to itself', function () {
     expect(Mention::query()->count())->toBe(0);
 });
 
+// A note's first eighty characters are not a name. Sent as null so the byline
+// can say what the source is instead of quoting the top of it.
+it('sends no title for a mention that came from a note', function () {
+    $sleep = Sleep::factory()->create();
+    Note::factory()->create(['content' => linkedTo($sleep->url())]);
+
+    get($sleep->url())
+        ->assertInertia(fn ($page) => $page->where('conversation.responses.0.title', null));
+});
+
+it('sends the title for a mention that came from an article', function () {
+    $sleep = Sleep::factory()->create();
+    $article = Article::factory()->create([
+        'published' => true,
+        'content' => linkedTo($sleep->url()),
+    ]);
+
+    get($sleep->url())
+        ->assertInertia(fn ($page) => $page->where('conversation.responses.0.title', $article->title));
+});
+
 it('shows the mention in the linked entry\'s conversation', function () {
     $sleep = Sleep::factory()->create();
     Note::factory()->create(['content' => linkedTo($sleep->url())]);
