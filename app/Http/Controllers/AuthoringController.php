@@ -8,12 +8,15 @@ use App\Actions\SyncBodyImages;
 use App\Actions\SyncEntryMedia;
 use App\Data\FieldData;
 use App\Enums\EntryStatus;
+use App\Enums\FieldType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
 use App\Presenters\CardPresenter;
+use App\Rules\ValidPortableText;
 use App\Support\EntryInstant;
 use App\Support\EntryZone;
+use App\Support\PortableText;
 use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -52,6 +55,7 @@ class AuthoringController extends Controller
         $fields = FieldRegistry::for($blank);
 
         $this->stampDefaults($request, $fields);
+        $this->injectDynamicTags($request, $fields);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: true), [], FieldRules::labels($fields));
         $attributes = app(FetchRemoteMedia::class)($fields, $attributes);
@@ -71,6 +75,8 @@ class AuthoringController extends Controller
         $model = $definition['model']::query()->findOrFail($id);
         $fields = FieldRegistry::for($model);
 
+        $this->injectDynamicTags($request, $fields);
+
         $attributes = $request->validate(FieldRules::for($fields, creating: false, stored: $model), [], FieldRules::labels($fields));
         $attributes = app(FetchRemoteMedia::class)($fields, $attributes);
         $attributes = $this->prepare($definition, $model, $this->statusRules($model, $attributes));
@@ -81,6 +87,30 @@ class AuthoringController extends Controller
         $this->attachBodyImages($model, $definition, $fields, $attributes);
 
         return $this->afterSave($model->refresh());
+    }
+
+    /**
+     * Reparse any literal `{tag options}` text left in a Prose field's blocks
+     * back into dynamicTag nodes, before validation runs. The editor has no
+     * node for a tag yet, so it round trips one as this text (toProseMirror.js);
+     * left unparsed it would fail {@see ValidPortableText} or save
+     * as dead text instead of a live one.
+     *
+     * @param  list<FieldData>  $fields
+     */
+    private function injectDynamicTags(Request $request, array $fields): void
+    {
+        foreach ($fields as $field) {
+            if ($field->type !== FieldType::Prose) {
+                continue;
+            }
+
+            $value = $request->input($field->name);
+
+            if (is_array($value)) {
+                $request->merge([$field->name => PortableText::withTags($value)]);
+            }
+        }
     }
 
     /**

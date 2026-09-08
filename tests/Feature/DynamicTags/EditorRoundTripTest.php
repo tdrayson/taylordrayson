@@ -1,0 +1,61 @@
+<?php
+
+use App\Models\Note;
+use App\Models\User;
+use App\Support\PortableText;
+
+it('reparses a tag left as literal text back into a dynamicTag node', function () {
+    // The exact text form toProseMirror.js renders a dynamicTag node as
+    // (tag name, then each option as `key:value`, space separated).
+    $document = [PortableText::block('Logged {entries.count type:note period:2026}.')];
+
+    $children = PortableText::withTags($document)[0]['children'];
+
+    expect($children)->toHaveCount(3)
+        ->and($children[0]['text'])->toBe('Logged ')
+        ->and($children[1])->toMatchArray([
+            '_type' => 'dynamicTag',
+            'tag' => 'entries.count',
+            'options' => ['type' => 'note', 'period' => '2026'],
+        ])
+        ->and($children[2]['text'])->toBe('.');
+});
+
+it('is a no-op on a document with no tokens', function () {
+    $document = [PortableText::block('Nothing to see here.')];
+
+    expect(PortableText::withTags($document))->toBe($document);
+});
+
+it('leaves an unregistered tag as literal text', function () {
+    $document = [PortableText::block('A typo like {entriez.count} stays put.')];
+
+    expect(PortableText::withTags($document))->toBe($document);
+});
+
+it('saves a tag typed into the editor as a dynamicTag node, not dead text', function () {
+    $this->actingAs(User::factory()->create());
+
+    $content = [[
+        '_type' => 'block',
+        '_key' => 'b1',
+        'style' => 'normal',
+        'markDefs' => [],
+        'children' => [
+            ['_type' => 'span', '_key' => 's1', 'text' => 'Logged {entries.count type:note}.', 'marks' => []],
+        ],
+    ]];
+
+    $response = $this->post('/entries/note', ['content' => $content, 'slug' => 'editor-tag-note']);
+
+    $response->assertRedirect();
+
+    $note = Note::sole();
+    $children = $note->content[0]['children'];
+
+    expect($children[1])->toMatchArray([
+        '_type' => 'dynamicTag',
+        'tag' => 'entries.count',
+        'options' => ['type' => 'note'],
+    ]);
+});
