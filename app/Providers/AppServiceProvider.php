@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\DynamicTags\DynamicTagRegistry;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
@@ -43,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
         // Held for the request so every food card on a page shares one read of
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
+
+        $this->app->singleton(DynamicTagRegistry::class);
 
         $this->registerArchiveRoutes();
     }
