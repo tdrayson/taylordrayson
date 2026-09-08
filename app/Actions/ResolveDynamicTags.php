@@ -14,24 +14,41 @@ class ResolveDynamicTags
     public function __construct(private readonly DynamicTagRegistry $registry) {}
 
     /**
-     * A null document resolves to an empty one rather than throwing.
+     * A null document resolves to an empty one rather than throwing. Empty
+     * results are filtered out, since an unresolvable image node drops itself.
      *
      * @param  array<int, array<string, mixed>>|null  $blocks
      * @return array<int, array<string, mixed>>
      */
     public function __invoke(?array $blocks): array
     {
-        return array_map($this->node(...), $blocks ?? []);
+        return array_values(array_filter(array_map($this->node(...), $blocks ?? [])));
     }
 
     /**
      * Recurses into callout children so a tag nested inside one still resolves.
+     * An unresolvable image tag returns `[]`, dropping the node rather than
+     * rendering a broken `<img>`.
      *
      * @param  array<string, mixed>  $node
      * @return array<string, mixed>
      */
     private function node(array $node): array
     {
+        if (($node['_type'] ?? null) === 'image' && isset($node['tag'])) {
+            $tag = $this->registry->find($node['tag']);
+            $resolved = $this->registry->value($node['tag'], $node['options'] ?? []);
+
+            if ($tag === null || $resolved === null) {
+                return [];
+            }
+
+            $node['url'] = $tag->href($resolved['value'], $node['options'] ?? []);
+            unset($node['tag'], $node['options']);
+
+            return $node;
+        }
+
         // Callouts nest blocks, so their children are walked too.
         if (($node['_type'] ?? null) === 'callout') {
             $node['children'] = $this($node['children'] ?? []);
