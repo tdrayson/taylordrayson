@@ -5,9 +5,8 @@ namespace App\Support;
 use App\Models\Appearance;
 use App\Models\Concerns\Timelineable;
 use App\Models\Media as MediaEntry;
-use App\Models\Page;
-use App\Models\Series;
 use App\Presenters\PhotoCaption;
+use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -28,15 +27,20 @@ class GalleryPhotos
     public const ENRICHMENT_MODELS = [Appearance::class, MediaEntry::class];
 
     /**
-     * Every model type the gallery skips, as a list a query can filter on. The
-     * runtime guard is contributesPhotos(); this is the same rule stated ahead
-     * of hydration, so a count and the stream itself cannot disagree.
+     * Model types whose photos reach the gallery, for a query that must filter
+     * before it can hydrate. Derived from the timeline registry rather than
+     * listed, so this states the same rule contributesPhotos() applies at
+     * runtime: every timeline type, minus the enrichment art.
      *
      * @return list<class-string>
      */
-    public static function excludedModels(): array
+    public static function includedModels(): array
     {
-        return [...self::ENRICHMENT_MODELS, Page::class, Series::class];
+        return collect(TypeRegistry::all())
+            ->pluck('model')
+            ->reject(fn (string $model): bool => in_array($model, self::ENRICHMENT_MODELS, true))
+            ->values()
+            ->all();
     }
 
     /**

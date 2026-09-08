@@ -32,6 +32,11 @@ final class PhotoStream
      */
     public function __invoke(?int $limit = null, int $offset = 0): array
     {
+        if ($limit !== null && $limit < 1) {
+            return [];
+        }
+
+        $offset = max(0, $offset);
         $photos = [];
         $seen = 0;
 
@@ -74,11 +79,15 @@ final class PhotoStream
      */
     public function paginate(int $perPage, int $page): LengthAwarePaginator
     {
-        $page = max(1, $page);
+        $total = $this->count();
+
+        // Clamped, so ?page=999 returns the last page rather than an empty grid
+        // under a heading that promises hundreds of photos.
+        $page = max(1, min($page, (int) max(1, ceil($total / max(1, $perPage)))));
 
         return new LengthAwarePaginator(
             $this($perPage, ($page - 1) * $perPage),
-            $this->count(),
+            $total,
             $perPage,
             $page,
             ['path' => Paginator::resolveCurrentPath()],
@@ -96,7 +105,7 @@ final class PhotoStream
     {
         return Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNotIn('model_type', GalleryPhotos::excludedModels())
+            ->whereIn('model_type', GalleryPhotos::includedModels())
             ->count();
     }
 
@@ -116,7 +125,7 @@ final class PhotoStream
 
         $attachments = Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNotIn('model_type', GalleryPhotos::excludedModels())
+            ->whereIn('model_type', GalleryPhotos::includedModels())
             ->get();
 
         return $this->groups = $attachments

@@ -32,7 +32,7 @@ const block = 'animate-pulse rounded-md bg-neutral-25 motion-reduce:animate-none
 <template>
     <!-- aria-hidden throughout: the wait is announced by the region these fill,
          and a screen reader has nothing to gain from the placeholder shapes. -->
-    <div v-if="variant === 'feed'" class="space-y-6" aria-hidden="true">
+    <div v-if="variant === 'feed'" :class="cn('space-y-6', props.class)" aria-hidden="true">
         <div v-for="i in count" :key="i" class="space-y-3">
             <div :class="cn(block, 'h-6 w-48')" />
             <div :class="cn(block, 'h-24 rounded-lg')" />
@@ -41,8 +41,7 @@ const block = 'animate-pulse rounded-md bg-neutral-25 motion-reduce:animate-none
 
     <ul
         v-else-if="variant === 'photos'"
-        class="grid gap-3"
-        :class="gridColsClass"
+        :class="cn('grid gap-3', gridColsClass, props.class)"
         :style="{ gridAutoRows: `${ROW}px` }"
         aria-hidden="true"
     >

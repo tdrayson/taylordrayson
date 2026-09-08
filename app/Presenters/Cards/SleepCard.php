@@ -21,9 +21,9 @@ final class SleepCard
         $formatted = Units::humanDuration($model->duration);
 
         return new CardData(
-            type: TimelineType::Sleep,
+            type: $this->type(),
             icon: 'bed',
-            title: "I slept for {$formatted}",
+            title: $this->title($model),
             titleLabel: 'Sleep log, I slept for '.Units::spokenDuration($model->duration),
             subtitle: $this->sentence($model),
             subtitleTokens: null,
@@ -69,5 +69,15 @@ final class SleepCard
             ->map(fn (array $segment): SegmentData => new SegmentData($segment['label'], $segment['stage'], $segment['seconds']))
             ->values()
             ->all();
+    }
+
+    public function title(Sleep $model): string
+    {
+        return 'I slept for '.Units::humanDuration($model->duration);
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Sleep;
     }
 }

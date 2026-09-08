@@ -93,7 +93,7 @@ function rowSpan(photo) {
         ref="grid"
         class="grid gap-3"
         :class="gridColsClass"
-        style="grid-auto-rows: 8px"
+        :style="{ gridAutoRows: `${ROW}px` }"
     >
         <li
             v-for="(photo, index) in photos"

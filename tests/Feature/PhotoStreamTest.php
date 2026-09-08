@@ -59,7 +59,14 @@ it('pages the stream without shaping or dropping photos at a group boundary', fu
         ->and($all)->toHaveCount(6)
         // Consecutive pages reassemble the full stream in order, with nothing
         // repeated across the group the boundary cuts through.
-        ->and([...$stream(3, 0), ...$stream(3, 3)])->toBe($all);
+        ->and([...$stream(3, 0), ...$stream(3, 3)])->toBe($all)
+        // Every page size reassembles exactly, including sizes that split a
+        // group and sizes larger than the stream.
+        ->and([...$stream(1, 0), ...$stream(1, 1), ...$stream(1, 2), ...$stream(1, 3), ...$stream(1, 4), ...$stream(1, 5)])->toBe($all)
+        ->and($stream(100, 0))->toBe($all)
+        // Asking past the end is empty rather than a wrapped page.
+        ->and($stream(3, 6))->toBe([])
+        ->and($stream(3, 99))->toBe([]);
 });
 
 it('captions a photo with its entry title, accent and permalink', function () {
