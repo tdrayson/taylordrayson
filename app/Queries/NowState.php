@@ -23,7 +23,7 @@ final class NowState
         'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower'],
         // `high`/`low` are still accepted and stored, but nothing renders them.
         'weather' => ['condition' => 'condition', 'temp' => 'temp', 'humidity' => 'humidity', 'wind' => 'wind'],
-        'location' => ['city' => 'city', 'state' => 'state', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
+        'location' => ['city' => 'city', 'state' => 'state', 'county' => 'county', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
         'rings' => ['move' => 'move', 'move_goal' => 'moveGoal', 'exercise' => 'exercise', 'exercise_goal' => 'exerciseGoal', 'stand' => 'stand', 'stand_goal' => 'standGoal', 'steps' => 'steps'],
     ];
 
@@ -34,6 +34,17 @@ final class NowState
     private const COORDINATE_PLACES = 0;
 
     public function __construct(private readonly StateStore $state) {}
+
+    /**
+     * The allow-list itself, read-only. Lets the ambient tag generator build
+     * from the same map rather than duplicating it.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public static function fieldMap(): array
+    {
+        return self::FIELDS;
+    }
 
     /**
      * @return array<string, array<string, mixed>|null>

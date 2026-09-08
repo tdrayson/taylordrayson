@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\DynamicTags\Ambient\AmbientTag;
 use App\DynamicTags\DynamicTagRegistry;
 use App\DynamicTags\Entries\EntriesCount;
 use App\DynamicTags\Entries\EntriesFirst;
@@ -54,6 +55,15 @@ class AppServiceProvider extends ServiceProvider
         // generated at runtime rather than written as classes: bind an
         // instance under its own key and tag that key the same way.
         $this->app->tag([EntriesCount::class, EntriesFirst::class, EntriesLatest::class, StreakCurrent::class, StreakLongest::class], DynamicTagRegistry::CONTAINER_TAG);
+
+        // Generated rather than classes: bind each instance under its own
+        // name and tag that name the same way, so the field map stays the
+        // single source and no ambient tag name is hardcoded here.
+        foreach (AmbientTag::generate() as $tag) {
+            $this->app->instance($tag->name(), $tag);
+            $this->app->tag([$tag->name()], DynamicTagRegistry::CONTAINER_TAG);
+        }
+
         $this->app->singleton(DynamicTagRegistry::class);
 
         $this->registerArchiveRoutes();
