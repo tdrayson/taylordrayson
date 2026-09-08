@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { Deferred, usePage } from '@inertiajs/vue3';
 import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
+import Skeleton from '../Ui/Skeleton.vue';
 import ActivityProfile from './ActivityProfile.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
@@ -124,7 +125,7 @@ function weightLabel(value) {
 
         <Deferred data="profile">
             <template #fallback>
-                <div class="h-40 w-full animate-pulse rounded-lg bg-neutral-25" />
+                <Skeleton class="h-40 w-full rounded-lg" />
             </template>
             <ActivityProfile v-if="profile" :profile="profile" :duration="entry.duration" :cursor="cursor" />
         </Deferred>

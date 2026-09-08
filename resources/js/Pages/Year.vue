@@ -7,6 +7,7 @@ import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
 import StatGrid from '../Components/Stats/StatGrid.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
+import Skeleton from '../Components/Ui/Skeleton.vue';
 import Heatmap from '../Components/Stats/Heatmap.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
@@ -70,13 +71,7 @@ setLayoutProps({
         <section v-if="entriesCount" class="mt-12">
             <Deferred data="groups">
                 <template #fallback>
-                    <!-- Pulsing skeleton while the tail loads. -->
-                    <div class="space-y-6">
-                        <div v-for="i in 3" :key="i" class="animate-pulse space-y-3">
-                            <div class="h-6 w-48 rounded-md bg-neutral-25" />
-                            <div class="h-24 rounded-lg bg-neutral-25" />
-                        </div>
-                    </div>
+                    <Skeleton variant="feed" />
                 </template>
 
                 <div class="h-feed flex flex-col gap-14">
