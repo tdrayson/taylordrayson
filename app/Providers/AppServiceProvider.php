@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\DynamicTags\DynamicTagRegistry;
+use App\DynamicTags\Entries\EntriesCount;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
@@ -45,6 +46,10 @@ class AppServiceProvider extends ServiceProvider
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
 
+        // The single registration path for every dynamic tag, including ones
+        // generated at runtime rather than written as classes: bind an
+        // instance under its own key and tag that key the same way.
+        $this->app->tag([EntriesCount::class], DynamicTagRegistry::CONTAINER_TAG);
         $this->app->singleton(DynamicTagRegistry::class);
 
         $this->registerArchiveRoutes();
