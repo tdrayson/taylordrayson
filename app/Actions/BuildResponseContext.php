@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Data\ResponseData;
 use App\Enums\ResponseKind;
+use App\Enums\TimelineType;
 use App\Links\LinkResolvers;
 use App\Support\Links;
 use App\Support\PostType;
@@ -40,7 +41,7 @@ class BuildResponseContext
             label: $post->rsvp_value?->verb() ?? $kind->label(),
             property: $kind->property(),
             url: $url,
-            title: self::name($kind, $preview, $host, $url),
+            title: self::name($kind, $preview, $host, $url, $post->response_title),
             rsvp: $post->rsvp_value?->value,
             host: $host,
             favicon: $host === null ? null : Links::faviconUrl($host),
@@ -51,24 +52,31 @@ class BuildResponseContext
     /**
      * What to call the target.
      *
-     * A post of mine has a real title. Somebody else's is only a URL, and no
-     * card should print one: "a post on seblog.nl" is how you would say it.
-     * What you RSVP to is an event, and calling it a post reads as a mistake.
+     * A note of mine has none: its card title is its opening words, which read
+     * as a quotation of something nobody said, so it is named by what it is.
+     * Everything else of mine has a real one.
+     *
+     * Somebody else's is whatever FetchResponseTitle read off the page. Until
+     * that comes back, or when it finds nothing usable, all we honestly know is
+     * that it is a post, or an event if you are RSVPing to it. The host is not
+     * part of the name: it is said after it, and only the name is the p-name.
      *
      * @param  array<string, mixed>|null  $preview
      */
-    private static function name(ResponseKind $kind, ?array $preview, ?string $host, string $url): string
+    private static function name(ResponseKind $kind, ?array $preview, ?string $host, string $url, ?string $fetched): string
     {
         if ($preview !== null) {
-            return $preview['title'];
+            return ($preview['type'] ?? null) === TimelineType::Note->value ? 'a note' : $preview['title'];
+        }
+
+        if (filled($fetched)) {
+            return $fetched;
         }
 
         if ($host === null) {
             return $url;
         }
 
-        $noun = $kind === ResponseKind::Rsvp ? 'an event' : 'a post';
-
-        return "{$noun} on {$host}";
+        return $kind === ResponseKind::Rsvp ? 'an event' : 'a post';
     }
 }

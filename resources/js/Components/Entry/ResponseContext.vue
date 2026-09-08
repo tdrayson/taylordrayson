@@ -51,5 +51,9 @@ const property = computed(() => `u-${props.response.property}`);
             <img v-if="response.favicon" :src="response.favicon" alt="" loading="lazy" class="size-3.5 shrink-0 rounded-sm">
             <cite class="p-name truncate not-italic">{{ response.title }}</cite>
         </component>
+
+        <!-- Outside the link, because only the name is the p-name: the site is
+             where it lives, not what it is called. -->
+        <span v-if="response.host">on {{ response.host }}</span>
     </p>
 </template>
