@@ -1,13 +1,12 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { setLayoutProps, Deferred } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import StatGrid from '../Components/Stats/StatGrid.vue';
 import CalendarMonth from '../Components/Stats/CalendarMonth.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
-import FeedSkeleton from '../Components/Ui/FeedSkeleton.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
@@ -103,23 +102,17 @@ setLayoutProps({
         </template>
 
         <section v-if="entriesCount" class="mt-12">
-            <Deferred data="groups">
-                <template #fallback>
-                    <FeedSkeleton />
-                </template>
-
-                <div class="h-feed flex flex-col gap-14">
-                    <AuthorRef />
-                    <DateGroup
-                        v-for="group in groups"
-                        :key="group.date"
-                        :label="group.label"
-                        :date="group.date"
-                        :href="group.href"
-                        :items="group.items"
-                    />
-                </div>
-            </Deferred>
+            <div class="h-feed flex flex-col gap-14">
+                <AuthorRef />
+                <DateGroup
+                    v-for="group in groups"
+                    :key="group.date"
+                    :label="group.label"
+                    :date="group.date"
+                    :href="group.href"
+                    :items="group.items"
+                />
+            </div>
 
             <Pagination
                 v-if="lastPage > 1"
