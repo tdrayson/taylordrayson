@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * A date window from tag options: a named preset, a bare year, or an explicit
- * from/to. A parameter object only, so the stats layer can take the same one.
+ * from/to, which wins over period. A parameter object only, shared with stats.
  */
 final readonly class Period
 {
@@ -27,6 +27,14 @@ final readonly class Period
                 CarbonImmutable::parse($options['from'])->startOfDay(),
                 CarbonImmutable::parse($options['to'])->endOfDay(),
             );
+        }
+
+        if (isset($options['from'])) {
+            return new self(CarbonImmutable::parse($options['from'])->startOfDay(), null);
+        }
+
+        if (isset($options['to'])) {
+            return new self(null, CarbonImmutable::parse($options['to'])->endOfDay());
         }
 
         $period = $options['period'] ?? StatsPeriod::AllTime->value;

@@ -28,6 +28,38 @@ it('resolves an explicit range', function () {
     expect($period->end->toDateString())->toBe('2025-06-30');
 });
 
+it('leaves a lone from bound open-ended', function () {
+    $period = Period::from(['from' => '2025-06-01']);
+
+    expect($period->start->toDateString())->toBe('2025-06-01')
+        ->and($period->end)->toBeNull();
+});
+
+it('leaves a lone to bound open-ended', function () {
+    $period = Period::from(['to' => '2025-06-30']);
+
+    expect($period->start)->toBeNull()
+        ->and($period->end->toDateString())->toBe('2025-06-30');
+});
+
+it('filters entries by a lone from bound', function () {
+    Note::factory()->create(['occurred_at' => '2025-06-01 10:00:00']);
+    Note::factory()->create(['occurred_at' => '2025-08-01 10:00:00']);
+
+    $registry = app(DynamicTagRegistry::class);
+
+    expect($registry->value('entries.count', ['from' => '2025-07-01'])['value'])->toBe(1);
+});
+
+it('filters entries by a lone to bound', function () {
+    Note::factory()->create(['occurred_at' => '2025-06-01 10:00:00']);
+    Note::factory()->create(['occurred_at' => '2025-08-01 10:00:00']);
+
+    $registry = app(DynamicTagRegistry::class);
+
+    expect($registry->value('entries.count', ['to' => '2025-07-01'])['value'])->toBe(1);
+});
+
 it('is unbounded by default', function () {
     expect(Period::from([])->start)->toBeNull();
 });
