@@ -57,8 +57,8 @@ abstract class DynamicTag
     }
 
     /**
-     * The string used when this tag sits behind a link's href. Defaults to
-     * {@see format()}; a tag needing a different scheme (e.g. `mailto:`) overrides it.
+     * The URL a `dynamicHref` markDef or tagged image resolves to. Defaults to
+     * {@see format()}; override when the link target differs from the display text.
      *
      * @param  array<string, string>  $options
      */
