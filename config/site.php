@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'email' => env('SITE_EMAIL', 'hello@taylordrayson.com'),
+    'email' => env('SITE_EMAIL', 'taylor@drayson.co.uk'),
 
     // Where I am based, deliberately distinct from ambient.location, which
     // follows me around.

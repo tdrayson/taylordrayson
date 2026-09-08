@@ -3,13 +3,31 @@
 use App\Actions\ResolveDynamicTags;
 use App\DynamicTags\DynamicTagRegistry;
 use App\Enums\Placement;
+use App\Support\PortableText;
 
-it('resolves the email as text and as a mailto href', function () {
+it('resolves the email with the @ spelled out, inline only', function () {
     $registry = app(DynamicTagRegistry::class);
 
-    expect($registry->value('site.email', [])['text'])->toBe(config('site.email'))
+    expect($registry->value('site.email', [])['text'])
+        ->toBe(str_replace('@', '(at)', config('site.email')))
+        ->not->toContain('@')
         ->and($registry->find('site.email')->supports())
-        ->toContain(Placement::Inline, Placement::Href);
+        ->toBe([Placement::Inline]);
+});
+
+it('never puts the real address in a resolved document, so plainText stays harvester-safe too', function () {
+    $document = [[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [
+            PortableText::span('Reach me at '),
+            ['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'site.email', 'options' => []],
+        ],
+    ]];
+
+    $resolved = app(ResolveDynamicTags::class)($document);
+
+    expect($resolved[0]['children'][1]['text'])->not->toContain('@')
+        ->and(PortableText::plainText($resolved))->not->toContain('@');
 });
 
 it('resolves a social link', function () {
@@ -43,17 +61,6 @@ it('drops an unresolvable markDef so the text survives unlinked', function () {
     ]];
 
     expect(app(ResolveDynamicTags::class)($document)[0]['markDefs'])->toBe([]);
-});
-
-it('gives an email markDef a mailto href rather than the bare address', function () {
-    $document = [[
-        '_type' => 'block', '_key' => 'b1', 'style' => 'normal',
-        'markDefs' => [['_type' => 'dynamicHref', '_key' => 'd1', 'tag' => 'site.email', 'options' => []]],
-        'children' => [['_type' => 'span', '_key' => 's1', 'text' => 'email me', 'marks' => ['d1']]],
-    ]];
-
-    expect(app(ResolveDynamicTags::class)($document)[0]['markDefs'][0]['href'])
-        ->toBe('mailto:'.config('site.email'));
 });
 
 it('resolves a block carrying both an ordinary link and a dynamicHref markDef', function () {
