@@ -9,7 +9,9 @@ $language = 'en-GB';
 
 return [
     'author_name' => 'Taylor Drayson',
-    'author_email' => 'hello@taylordrayson.com',
+    // Loaded directly rather than via config('site.email'): config files load
+    // alphabetically, so 'feed' runs before 'site' exists in the repository.
+    'author_email' => (require config_path('site.php'))['email'],
 
     'feeds' => [
         'atom' => [
