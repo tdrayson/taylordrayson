@@ -105,7 +105,7 @@ function rowSpan(photo) {
         >
             <button
                 type="button"
-                class="block size-full focus:outline-none"
+                class="block size-full cursor-zoom-in focus:outline-none"
                 :aria-label="`View photo from ${photo.caption}, ${photo.date}`"
                 @click="emit('open', index)"
             >

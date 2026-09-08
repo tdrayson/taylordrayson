@@ -336,7 +336,7 @@ function renderImage(node, onImageClick) {
             // img margins must not apply inside the zoom button wrapper. For
             // portraits the button shrink-wraps so the zoom overlay anchors to
             // the image corner, not the column edge.
-            class: `group/zoom not-prose relative block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
+            class: `group/zoom not-prose relative block cursor-zoom-in rounded-lg transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
             onClick: () => onImageClick(node.url),
         }, [
             h('img', {

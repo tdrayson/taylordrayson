@@ -33,7 +33,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
         </p>
 
         <p v-if="! groups.length" class="mt-8 text-body text-neutral-700">
-            Nothing unfinished. <Link href="/new" class="text-accent-500 underline underline-offset-2">Start something</Link>.
+            Nothing unfinished. <Link href="/new" class="text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Start something</Link>.
         </p>
 
         <section v-for="group in groups" :key="group.type" class="mt-8">
