@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\DynamicTags\DynamicTagRegistry;
 use Illuminate\Support\Str;
 
 class PortableText
@@ -116,18 +117,106 @@ class PortableText
     }
 
     /**
+     * A paragraph with its dynamic tags lifted into nodes and the text between
+     * them autolinked as usual.
+     *
+     * @return array<string, mixed>
+     */
+    private static function autolinked(string $paragraph): array
+    {
+        $tokens = self::tagTokens($paragraph);
+
+        if ($tokens === []) {
+            return self::autolinkedRun($paragraph);
+        }
+
+        $children = [];
+        $markDefs = [];
+        $cursor = 0;
+
+        foreach ([...$tokens, ['offset' => strlen($paragraph), 'length' => 0, 'tag' => null, 'options' => []]] as $token) {
+            $run = substr($paragraph, $cursor, $token['offset'] - $cursor);
+
+            if ($run !== '') {
+                $block = self::autolinkedRun($run);
+                $children = [...$children, ...$block['children']];
+                $markDefs = [...$markDefs, ...($block['markDefs'] ?? [])];
+            }
+
+            if ($token['tag'] !== null) {
+                $children[] = [
+                    '_type' => 'dynamicTag',
+                    '_key' => self::key(),
+                    'tag' => $token['tag'],
+                    'options' => $token['options'],
+                ];
+            }
+
+            $cursor = $token['offset'] + $token['length'];
+        }
+
+        return [
+            '_type' => 'block',
+            '_key' => self::key(),
+            'style' => 'normal',
+            'markDefs' => $markDefs,
+            'children' => $children,
+        ];
+    }
+
+    /**
+     * Split a paragraph on `{tag key:value}` tokens, emitting a dynamicTag child
+     * for each registered one. An unregistered tag stays literal text, so a typo
+     * is visible rather than silently dropped.
+     *
+     * @return list<array{offset: int, length: int, tag: string, options: array<string, string>}>
+     */
+    private static function tagTokens(string $paragraph): array
+    {
+        $pattern = '/\{([a-z]+(?:\.[a-z]+)+)((?:\s+[a-z]+:[a-z0-9-]+)*)\}/i';
+
+        if (preg_match_all($pattern, $paragraph, $matches, PREG_OFFSET_CAPTURE) === 0) {
+            return [];
+        }
+
+        $registry = app(DynamicTagRegistry::class);
+        $tokens = [];
+
+        foreach ($matches[0] as $index => [$match, $offset]) {
+            $name = $matches[1][$index][0];
+
+            if ($registry->find($name) === null) {
+                continue;
+            }
+
+            $options = [];
+
+            foreach (preg_split('/\s+/', trim($matches[2][$index][0])) ?: [] as $pair) {
+                if ($pair !== '') {
+                    [$key, $value] = explode(':', $pair, 2);
+                    $options[$key] = $value;
+                }
+            }
+
+            $tokens[] = ['offset' => $offset, 'length' => strlen($match), 'tag' => $name, 'options' => $options];
+        }
+
+        return $tokens;
+    }
+
+    /**
      * A paragraph with bare URLs turned into links. The editor does this itself
      * (Tiptap autolinks as you type), so this is for the clients that can only
      * send a string and would otherwise leave URLs as dead text.
      *
      * @return array<string, mixed>
      */
-    private static function autolinked(string $paragraph): array
+    private static function autolinkedRun(string $paragraph): array
     {
         preg_match_all('#\bhttps?://[^\s<>"\']+#i', $paragraph, $matches, PREG_OFFSET_CAPTURE);
 
         if ($matches[0] === []) {
-            return self::block($paragraph);
+            return [...self::block($paragraph), 'markDefs' => []];
         }
 
         $children = [];
