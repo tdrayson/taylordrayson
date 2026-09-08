@@ -81,6 +81,26 @@ function parseMicroformats(string $html, string $url): array
     return Microformats::fromString($html, 'text/html', $url);
 }
 
+/**
+ * A paragraph reading "I have logged {tag} things."
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function contentTagging(string $tag, array $options = []): array
+{
+    return [[
+        '_type' => 'block',
+        '_key' => 'b1',
+        'style' => 'normal',
+        'markDefs' => [],
+        'children' => [
+            ['_type' => 'span', '_key' => 's1', 'text' => 'I have logged ', 'marks' => []],
+            ['_type' => 'dynamicTag', '_key' => 't1', 'tag' => $tag, 'options' => $options],
+            ['_type' => 'span', '_key' => 's2', 'text' => ' things.', 'marks' => []],
+        ],
+    ]];
+}
+
 /** The first parsed item of the given type, or null. */
 function microformatItem(array $parsed, string $type): ?array
 {

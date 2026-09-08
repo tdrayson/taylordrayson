@@ -19,7 +19,7 @@ class NoteResource extends JsonResource
             'content' => $this->content,
             // The flattened text alongside the blocks, so a client that only
             // wants a string does not have to walk the document itself.
-            'text' => PortableText::plainText($this->content),
+            'text' => PortableText::plainText($this->resolvedContent()),
             'slug' => $this->getAttributes()['slug'] ?? null,
             'url' => $this->url(),
             'timezone' => $this->timezone,
