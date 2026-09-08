@@ -5,7 +5,7 @@ namespace App\DynamicTags\Ambient;
 use App\Data\TagOption;
 use App\DynamicTags\DynamicTag;
 use App\Queries\NowState;
-use App\Support\StateStore;
+use App\Support\EntryInstant;
 use Carbon\CarbonImmutable;
 use IntlTimeZone;
 
@@ -15,9 +15,6 @@ use IntlTimeZone;
  */
 class AmbientTag extends DynamicTag
 {
-    /** Coordinates would only ever render "51" and "0", so they are excluded. */
-    private const EXCLUDED = ['latitude', 'longitude'];
-
     public function __construct(
         private readonly string $group,
         private readonly string $field,
@@ -35,7 +32,7 @@ class AmbientTag extends DynamicTag
 
         foreach (NowState::fieldMap() as $group => $fields) {
             foreach ([...array_values($fields), 'updated'] as $field) {
-                if (in_array($field, self::EXCLUDED, true)) {
+                if (in_array($field, NowState::TAG_EXCLUDED_FIELDS, true)) {
                     continue;
                 }
 
@@ -92,7 +89,7 @@ class AmbientTag extends DynamicTag
      */
     public function resolve(array $options): mixed
     {
-        $group = (new NowState(new StateStore))()[$this->group] ?? null;
+        $group = app(NowState::class)()[$this->group] ?? null;
 
         if ($group === null) {
             return null;
@@ -102,6 +99,9 @@ class AmbientTag extends DynamicTag
     }
 
     /**
+     * Every field falls through to the default numeric/string rendering
+     * except `timezone` and `countryCode`, which read `$options['format']`.
+     *
      * @param  array<string, string>  $options
      */
     public function format(mixed $value, array $options): string
@@ -111,14 +111,16 @@ class AmbientTag extends DynamicTag
         }
 
         if ($this->field === 'countryCode' && ($options['format'] ?? 'name') === 'name') {
-            return (string) ((new NowState(new StateStore))()['location']['country'] ?? $value);
+            return (string) (app(NowState::class)()['location']['country'] ?? $value);
         }
 
         return parent::format($value, $options);
     }
 
+    /** An unrecognised stored zone falls back to home before it can throw. */
     private function timezone(string $zone, string $format): string
     {
+        $zone = EntryInstant::zone($zone);
         $now = CarbonImmutable::now($zone);
 
         return match ($format) {

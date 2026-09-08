@@ -5,7 +5,6 @@ namespace App\DynamicTags\Ambient;
 use App\Data\TagOption;
 use App\DynamicTags\DynamicTag;
 use App\Queries\NowState;
-use App\Support\StateStore;
 
 /** How far through a ring today is, as a percentage of its goal. */
 class RingPercent extends DynamicTag
@@ -43,7 +42,7 @@ class RingPercent extends DynamicTag
      */
     public function resolve(array $options): ?float
     {
-        $rings = (new NowState(new StateStore))()['rings'] ?? null;
+        $rings = app(NowState::class)()['rings'] ?? null;
         $goal = $rings[$this->ring.'Goal'] ?? null;
 
         if ($goal === null || $goal <= 0 || ! isset($rings[$this->ring])) {
@@ -54,6 +53,8 @@ class RingPercent extends DynamicTag
     }
 
     /**
+     * `precision` chooses decimal places; anything else falls back to 0.
+     *
      * @param  array<string, string>  $options
      */
     public function format(mixed $value, array $options): string
