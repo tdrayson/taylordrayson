@@ -20,11 +20,15 @@ abstract class DynamicTag
     abstract public function group(): string;
 
     /**
+     * Null means the tag has nothing to report for these options.
+     *
      * @param  array<string, string>  $options
      */
     abstract public function resolve(array $options): mixed;
 
     /**
+     * Every tag defaults to inline-only; override to allow other placements.
+     *
      * @return list<Placement>
      */
     public function supports(): array
@@ -33,6 +37,8 @@ abstract class DynamicTag
     }
 
     /**
+     * The fields the tag editor renders; empty when the tag takes no options.
+     *
      * @return list<TagOption>
      */
     public function options(): array
@@ -41,6 +47,8 @@ abstract class DynamicTag
     }
 
     /**
+     * Default rendering when a subclass doesn't override it.
+     *
      * @param  array<string, string>  $options
      */
     public function format(mixed $value, array $options): string

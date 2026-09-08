@@ -28,6 +28,8 @@ class DynamicTagRegistry
     public function __construct(private readonly Container $container) {}
 
     /**
+     * Built from the container's tagged bindings on first call, then memoised.
+     *
      * @return array<string, DynamicTag>
      */
     public function all(): array
