@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  * (a Strava activity, a check-in note). The plain form is run through
  * PortableText::fromPlainText(), which autolinks bare URLs, so both end up in
  * the same structure and one extractor covers them.
+ *
+ * A response_url is neither: it is a bare URL in a column of its own. It rides
+ * the plain-string path, which autolinks it, so the post a reply answers gets
+ * told about the reply without a second code path.
  */
 final class OutboundLinks
 {
@@ -23,7 +27,7 @@ final class OutboundLinks
      * Public because it doubles as the list of columns a save has to have
      * touched before an outgoing webmention could possibly be needed.
      */
-    public const SOURCES = ['title', 'content', 'description'];
+    public const SOURCES = ['title', 'content', 'description', 'response_url'];
 
     /**
      * Every external URL the entry links to.

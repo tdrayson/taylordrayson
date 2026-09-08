@@ -24,6 +24,8 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
         /** The microformats2 property the link carries. */
         public string $property,
         public string $url,
+        /** What to call the target: its own title, or where it lives. */
+        public string $title,
         /** The RSVP answer and its wording, on an RSVP and nothing else. */
         public ?string $rsvp,
         public ?string $rsvpLabel,
@@ -49,6 +51,7 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
             'label' => $this->label,
             'property' => $this->property,
             'url' => $this->url,
+            'title' => $this->title,
             'rsvp' => $this->rsvp,
             'rsvpLabel' => $this->rsvpLabel,
             'host' => $this->host,

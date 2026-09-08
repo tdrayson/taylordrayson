@@ -46,6 +46,23 @@ enum ResponseKind: string
         };
     }
 
+    /**
+     * How a timeline card says it, as a first-person sentence, matching the
+     * other generated titles ("I slept for 7h 55m", "I walked 0.7 mi").
+     *
+     * An RSVP has none of its own: its answer supplies the verb, so
+     * RsvpValue::sentence() speaks for it.
+     */
+    public function sentence(): ?string
+    {
+        return match ($this) {
+            self::Reply => 'I replied to',
+            self::Like => 'I liked',
+            self::Repost => 'I reposted',
+            self::Rsvp => null,
+        };
+    }
+
     /** A gesture has no words of its own: the target is the whole post. */
     public function isGesture(): bool
     {

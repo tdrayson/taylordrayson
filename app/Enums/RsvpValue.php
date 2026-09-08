@@ -26,6 +26,20 @@ enum RsvpValue: string
     }
 
     /**
+     * How a timeline card says it. The answer carries the verb, so an RSVP
+     * needs no wording of its own beyond this.
+     */
+    public function sentence(): string
+    {
+        return match ($this) {
+            self::Yes => 'I’m going to',
+            self::No => 'I’m not going to',
+            self::Maybe => 'I might go to',
+            self::Interested => 'I’m interested in',
+        };
+    }
+
+    /**
      * @return list<array{value: string, label: string}>
      */
     public static function options(): array

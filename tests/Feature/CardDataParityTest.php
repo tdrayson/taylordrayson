@@ -128,7 +128,7 @@ it('reproduces the pre-refactor note card shape', function () {
         'subtitle' => null,
         'occurred_at' => $note->occurred_at,
         'accent' => 'note',
-        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => []],
+        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => [], 'response' => null],
     ]);
 });
 

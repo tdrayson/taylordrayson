@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Cards;
 
+use App\Actions\BuildResponseContext;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\PhotoData;
@@ -20,6 +21,7 @@ final class ArticleCard
     public function present(Article $model): CardData
     {
         $cover = $model->coverPhoto();
+        $response = app(BuildResponseContext::class)($model);
 
         return new CardData(
             type: TimelineType::Article,
@@ -33,6 +35,7 @@ final class ArticleCard
             range: null,
             meta: CardMeta::photos(
                 $cover !== null ? [PhotoData::cover($cover['src'], $cover['srcset'], $cover['full'])] : [],
+                $response?->toArray(),
             ),
         );
     }
