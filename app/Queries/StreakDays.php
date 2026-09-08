@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Enums\Cadence;
 use App\Models\TimelineEntry;
+use App\Support\EntryInstant;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 
@@ -20,7 +21,9 @@ final class StreakDays
      */
     public function __invoke(): array
     {
-        return Cache::remember(self::KEY, now()->endOfDay(), fn (): array => $this->compute());
+        // Local end of day, not now()->endOfDay(): app.timezone is UTC, so the
+        // latter expires an hour into the local day during BST.
+        return Cache::remember(self::KEY, EntryInstant::nowLocal()->endOfDay(), fn (): array => $this->compute());
     }
 
     /** Drop the cached streaks, so the next read recomputes them. */
@@ -79,7 +82,9 @@ final class StreakDays
             $endsAt = $bucket;
         }
 
-        $now = $cadence->index(CarbonImmutable::now());
+        // Local wall clock, not CarbonImmutable::now(): app.timezone is UTC,
+        // which would put "now" in the wrong bucket during BST.
+        $now = $cadence->index(EntryInstant::nowLocal());
         $current = ($endsAt === $now || $endsAt === $now - 1) ? $run : 0;
 
         return ['current' => $current, 'longest' => $longest];
