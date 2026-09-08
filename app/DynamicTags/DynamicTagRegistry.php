@@ -2,18 +2,17 @@
 
 namespace App\DynamicTags;
 
-use App\DynamicTags\Entries\EntriesCount;
+use Illuminate\Contracts\Container\Container;
 
 /**
- * Every registered tag, keyed by name. Listed explicitly rather than
- * discovered, so nothing becomes referenceable by being dropped in a folder.
+ * Every registered tag, keyed by name. Bound explicitly via the container tag
+ * below rather than discovered, so nothing becomes referenceable by being
+ * dropped in a folder.
  */
 class DynamicTagRegistry
 {
-    /** @var list<class-string<DynamicTag>> */
-    private const TAGS = [
-        EntriesCount::class,
-    ];
+    /** The container tag every {@see DynamicTag} binding is registered under. */
+    public const CONTAINER_TAG = 'dynamic-tags';
 
     /** @var array<string, DynamicTag>|null */
     private ?array $tags = null;
@@ -26,6 +25,8 @@ class DynamicTagRegistry
      */
     private array $resolved = [];
 
+    public function __construct(private readonly Container $container) {}
+
     /**
      * @return array<string, DynamicTag>
      */
@@ -34,8 +35,7 @@ class DynamicTagRegistry
         if ($this->tags === null) {
             $this->tags = [];
 
-            foreach (self::TAGS as $class) {
-                $tag = new $class;
+            foreach ($this->container->tagged(self::CONTAINER_TAG) as $tag) {
                 $this->tags[$tag->name()] = $tag;
             }
         }
