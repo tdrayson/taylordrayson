@@ -63,7 +63,9 @@ final readonly class Period
 
     private static function preset(StatsPeriod $preset): self
     {
-        $now = CarbonImmutable::now();
+        // Local wall clock, not CarbonImmutable::now(): app.timezone is UTC,
+        // which puts "now" an hour into the wrong day during BST.
+        $now = CarbonImmutable::parse(EntryInstant::nowLocal());
 
         return match ($preset) {
             StatsPeriod::AllTime => new self(null, null),
