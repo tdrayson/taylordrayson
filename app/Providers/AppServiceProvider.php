@@ -13,6 +13,7 @@ use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Queries\DayFoodTotals;
+use App\Queries\NowState;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
 use App\Support\FeedDiscovery;
@@ -50,6 +51,11 @@ class AppServiceProvider extends ServiceProvider
         // Held for the request so every food card on a page shares one read of
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
+
+        // Scoped so the status-bar share and every ambient tag on an article
+        // resolve the same instance, and StateStore::entries() runs once per
+        // request no matter how many ambient readings are referenced.
+        $this->app->scoped(NowState::class);
 
         // The single registration path for every dynamic tag, including ones
         // generated at runtime rather than written as classes: bind an

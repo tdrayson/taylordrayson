@@ -2,6 +2,7 @@
 
 use App\DynamicTags\DynamicTagRegistry;
 use App\Models\State;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     State::query()->create([
@@ -47,7 +48,21 @@ it('renders the timezone four ways', function (string $format, string $expected)
     ['identifier', 'Europe/London'],
     ['abbreviation', 'BST'],
     ['offset', '+01:00'],
+    ['long', 'British Summer Time'],
 ]);
+
+it('reads the ambient state once per request no matter how many tags are resolved', function () {
+    DB::enableQueryLog();
+
+    $registry = app(DynamicTagRegistry::class);
+    $registry->value('ambient.location.city', []);
+    $registry->value('ambient.location.county', []);
+    $registry->value('ambient.weather.temp', []);
+
+    $stateQueries = array_filter(DB::getQueryLog(), fn (array $query): bool => str_contains($query['query'], 'states'));
+
+    expect($stateQueries)->toHaveCount(1);
+});
 
 it('derives a ring percentage against its goal', function () {
     State::query()->create([
