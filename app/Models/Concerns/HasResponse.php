@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Enums\ResponseKind;
+use App\Jobs\FetchResponseTitle;
 use App\Support\PostType;
 
 /**
@@ -29,6 +30,20 @@ trait HasResponse
 
             if ($model->response_kind !== ResponseKind::Rsvp) {
                 $model->rsvp_value = null;
+            }
+
+            // A title belongs to the URL it was read from, so pointing the post
+            // somewhere else drops it rather than mislabelling the new target
+            // until the fetch comes back. Unless a title is being written in the
+            // same breath, which is somebody supplying one, not a stale one.
+            if ($model->isDirty('response_url') && ! $model->isDirty('response_title')) {
+                $model->response_title = null;
+            }
+        });
+
+        static::saved(function (self $model): void {
+            if ($model->wasChanged('response_url') && filled($model->response_url)) {
+                FetchResponseTitle::dispatch($model);
             }
         });
     }

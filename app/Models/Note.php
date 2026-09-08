@@ -27,6 +27,7 @@ use Spatie\MediaLibrary\HasMedia;
     'content',
     'response_kind',
     'response_url',
+    'response_title',
     'rsvp_value',
     'slug',
     'timezone',
