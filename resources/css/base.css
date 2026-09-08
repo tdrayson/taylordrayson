@@ -34,8 +34,8 @@
     }
 
     /* Clickable elements show a pointer cursor (Tailwind v4 no longer sets it
-       on buttons). A control that opens the lightbox overrides this with
-       cursor-zoom-in, so the cursor says "enlarge" rather than "navigate". */
+       on buttons). An image whose own surface opens the lightbox overrides this
+       with cursor-zoom-in; a button stays a click, chip or not. */
     button:not(:disabled):not([aria-disabled='true']),
     label,
     select,
