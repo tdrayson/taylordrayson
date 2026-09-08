@@ -125,7 +125,7 @@ function weightLabel(value) {
 
         <Deferred data="profile">
             <template #fallback>
-                <Skeleton class="h-40 w-full rounded-lg" />
+                <Skeleton variant="card" class="h-40 w-full" />
             </template>
             <ActivityProfile v-if="profile" :profile="profile" :duration="entry.duration" :cursor="cursor" />
         </Deferred>

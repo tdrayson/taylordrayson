@@ -4,7 +4,7 @@ import { setLayoutProps, InfiniteScroll } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
-import Skeleton from '../Components/Ui/Skeleton.vue';
+import PhotoGridSkeleton from '../Components/Ui/PhotoGridSkeleton.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -38,13 +38,13 @@ const lightboxIndex = ref(null);
 
     <div class="mt-8">
         <!-- The first page is deferred, so the heading paints while it loads. -->
-        <Skeleton v-if="!props.photos" variant="photos" :count="12" />
+        <PhotoGridSkeleton v-if="!props.photos" />
 
         <InfiniteScroll v-else-if="total" data="photos" only-next>
             <PhotoGrid :photos="photos" @open="lightboxIndex = $event" />
 
             <template #loading>
-                <Skeleton variant="photos" :count="4" class="mt-3" />
+                <PhotoGridSkeleton :count="4" class="mt-3" />
             </template>
         </InfiniteScroll>
 

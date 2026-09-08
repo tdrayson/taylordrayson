@@ -7,7 +7,7 @@ import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
 import StatGrid from '../Components/Stats/StatGrid.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
-import Skeleton from '../Components/Ui/Skeleton.vue';
+import FeedSkeleton from '../Components/Ui/FeedSkeleton.vue';
 import Heatmap from '../Components/Stats/Heatmap.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
@@ -71,7 +71,7 @@ setLayoutProps({
         <section v-if="entriesCount" class="mt-12">
             <Deferred data="groups">
                 <template #fallback>
-                    <Skeleton variant="feed" />
+                    <FeedSkeleton />
                 </template>
 
                 <div class="h-feed flex flex-col gap-14">
