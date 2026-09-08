@@ -3,10 +3,8 @@
 namespace App\DynamicTags\Entries;
 
 /** When a type last appeared on the timeline. */
-class EntriesLatest extends EntriesFirst
+class EntriesLatest extends EntriesDate
 {
-    protected string $direction = 'desc';
-
     public function name(): string
     {
         return 'entries.latest';
@@ -15,5 +13,10 @@ class EntriesLatest extends EntriesFirst
     public function label(): string
     {
         return 'Latest entry';
+    }
+
+    protected function direction(): string
+    {
+        return 'desc';
     }
 }
