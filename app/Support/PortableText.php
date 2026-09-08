@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\DynamicTags\DynamicTagRegistry;
+use App\Rules\ValidPortableText;
 use Illuminate\Support\Str;
 
 class PortableText
@@ -114,6 +115,79 @@ class PortableText
             fn (string $paragraph): array => self::autolinked(trim($paragraph)),
             array_filter($paragraphs, fn (string $paragraph): bool => trim($paragraph) !== ''),
         ));
+    }
+
+    /**
+     * Reparse `{tag options}` tokens out of a document's span text back into
+     * dynamicTag nodes, using the same tokeniser {@see fromPlainText()} runs.
+     * The editor has no node for a tag yet (see toProseMirror.js), so it round
+     * trips one as this literal text; this is what turns it back into a node
+     * before {@see ValidPortableText} sees it.
+     *
+     * @param  array<int, array<string, mixed>>  $document
+     * @return array<int, array<string, mixed>>
+     */
+    public static function withTags(array $document): array
+    {
+        return array_map(fn (mixed $node): mixed => self::nodeWithTags($node), $document);
+    }
+
+    private static function nodeWithTags(mixed $node): mixed
+    {
+        if (! is_array($node) || ($node['_type'] ?? null) !== 'block' || ! is_array($node['children'] ?? null)) {
+            return $node;
+        }
+
+        return [...$node, 'children' => self::childrenWithTags($node['children'])];
+    }
+
+    /**
+     * @param  array<int, mixed>  $children
+     * @return array<int, mixed>
+     */
+    private static function childrenWithTags(array $children): array
+    {
+        $result = [];
+
+        foreach ($children as $child) {
+            if (! is_array($child) || ($child['_type'] ?? 'span') !== 'span' || ! is_string($child['text'] ?? null)) {
+                $result[] = $child;
+
+                continue;
+            }
+
+            $tokens = self::tagTokens($child['text']);
+
+            if ($tokens === []) {
+                $result[] = $child;
+
+                continue;
+            }
+
+            $marks = $child['marks'] ?? [];
+            $cursor = 0;
+
+            foreach ([...$tokens, ['offset' => strlen($child['text']), 'length' => 0, 'tag' => null, 'options' => []]] as $token) {
+                $run = substr($child['text'], $cursor, $token['offset'] - $cursor);
+
+                if ($run !== '') {
+                    $result[] = self::span($run, $marks);
+                }
+
+                if ($token['tag'] !== null) {
+                    $result[] = [
+                        '_type' => 'dynamicTag',
+                        '_key' => self::key(),
+                        'tag' => $token['tag'],
+                        'options' => $token['options'],
+                    ];
+                }
+
+                $cursor = $token['offset'] + $token['length'];
+            }
+        }
+
+        return $result;
     }
 
     /**
