@@ -7,6 +7,7 @@ use App\DynamicTags\DynamicTagRegistry;
 use App\DynamicTags\Entries\EntriesCount;
 use App\DynamicTags\Entries\EntriesFirst;
 use App\DynamicTags\Entries\EntriesLatest;
+use App\DynamicTags\Entries\EntriesPhoto;
 use App\DynamicTags\Site\SiteEmail;
 use App\DynamicTags\Site\SiteHome;
 use App\DynamicTags\Site\SiteSocial;
@@ -64,7 +65,7 @@ class AppServiceProvider extends ServiceProvider
         // The single registration path for every dynamic tag, including ones
         // generated at runtime rather than written as classes: bind an
         // instance under its own key and tag that key the same way.
-        $this->app->tag([EntriesCount::class, EntriesFirst::class, EntriesLatest::class, StreakCurrent::class, StreakLongest::class, SiteEmail::class, SiteSocial::class, SiteHome::class, SiteUpdated::class], DynamicTagRegistry::CONTAINER_TAG);
+        $this->app->tag([EntriesCount::class, EntriesFirst::class, EntriesLatest::class, EntriesPhoto::class, StreakCurrent::class, StreakLongest::class, SiteEmail::class, SiteSocial::class, SiteHome::class, SiteUpdated::class], DynamicTagRegistry::CONTAINER_TAG);
 
         // Generated rather than classes: bind each instance under its own
         // name and tag that name the same way, so the field map stays the
