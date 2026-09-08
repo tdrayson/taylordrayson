@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Datasets\Datasets;
+use App\DynamicTags\DynamicTagRegistry;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
@@ -47,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(DayFoodTotals::class);
 
         $this->app->bind(DisplayFormat::class, fn ($app): DisplayFormat => DisplayFormat::for($app['request']));
+
+        $this->app->singleton(DynamicTagRegistry::class);
 
         $this->registerArchiveRoutes();
     }

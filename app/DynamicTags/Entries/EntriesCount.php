@@ -1,0 +1,59 @@
+<?php
+
+namespace App\DynamicTags\Entries;
+
+use App\Data\TagOption;
+use App\DynamicTags\DynamicTag;
+use App\Enums\TimelineType;
+use App\Models\TimelineEntry;
+use App\Timeline\TypeRegistry;
+use Illuminate\Database\Eloquent\Relations\Relation;
+
+/** How many things are on the timeline, optionally of one type. */
+class EntriesCount extends DynamicTag
+{
+    public function name(): string
+    {
+        return 'entries.count';
+    }
+
+    public function label(): string
+    {
+        return 'Entry count';
+    }
+
+    public function group(): string
+    {
+        return 'Entries';
+    }
+
+    /**
+     * @return list<TagOption>
+     */
+    public function options(): array
+    {
+        return [
+            new TagOption('type', 'Type', array_column(TimelineType::cases(), 'value')),
+        ];
+    }
+
+    /**
+     * @param  array<string, string>  $options
+     */
+    public function resolve(array $options): ?int
+    {
+        $query = TimelineEntry::query();
+
+        if (isset($options['type'])) {
+            $model = TypeRegistry::find($options['type'])['model'] ?? null;
+
+            if ($model === null) {
+                return null;
+            }
+
+            $query->where('dataset', Relation::getMorphAlias($model));
+        }
+
+        return $query->count();
+    }
+}
