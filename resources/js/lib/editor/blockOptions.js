@@ -55,6 +55,28 @@ export const BLOCK_OPTIONS = {
             { name: 'poster', label: 'Thumbnail URL', type: 'text', wide: true },
         ],
     },
+    // Name, mime and size are stamped by the server when the upload is
+    // attached, and read from GitHub for a release, so neither is offered here.
+    file: {
+        type: 'file',
+        label: 'File',
+        icon: 'File01Icon',
+        fields: [
+            {
+                name: 'source',
+                label: 'Source',
+                type: 'select',
+                options: [
+                    { value: 'upload', label: 'Upload' },
+                    { value: 'github', label: 'GitHub release' },
+                ],
+            },
+            { name: 'title', label: 'Shown as', type: 'text', wide: true },
+            { name: 'repo', label: 'Repository', type: 'text', wide: true },
+            { name: 'asset', label: 'Asset filename', type: 'text', wide: true },
+            { name: 'poster', label: 'Preview URL', type: 'text', wide: true },
+        ],
+    },
 };
 
 /** The definition for whichever block the caret is in, or null. */

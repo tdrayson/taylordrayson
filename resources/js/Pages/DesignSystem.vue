@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import 'plyr/dist/plyr.css';
@@ -15,6 +15,7 @@ import Pagination from '../Components/Ui/Pagination.vue';
 import ExternalLink from '../Components/Ui/ExternalLink.vue';
 import SocialLinks from '../Components/Profile/SocialLinks.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
+import { provideLinkContext } from '../lib/linkContext.js';
 import AppLayout from '../Layouts/AppLayout.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
@@ -22,7 +23,7 @@ import StyledSelect from '../Components/Search/StyledSelect.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
-defineProps({
+const props = defineProps({
     og: { type: Object, default: () => ({}) },
     // A sample document exercising every link treatment, with the maps the
     // chips resolve against, exactly as an entry page supplies them.
@@ -34,6 +35,21 @@ defineProps({
 setLayoutProps({
     breadcrumb: [{ label: 'Design system' }],
 });
+
+// Sample data, like the callouts and files below: the page shows a resolved
+// release without asking GitHub about one, which also keeps the smart-link
+// chips working off the maps the controller does supply.
+const sampleReleases = {
+    'tdrayson/global-styles-migrator#global-styles-migrator.zip': {
+        name: 'global-styles-migrator.zip', version: 'v1.0.4', size: 55296, releasedAt: '12 September 2024',
+    },
+};
+
+provideLinkContext(computed(() => ({
+    previews: props.linkPreviews,
+    favicons: props.linkFavicons,
+    releases: sampleReleases,
+})));
 
 const note = ref('');
 const checked = ref(true);
@@ -69,6 +85,15 @@ const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant
         { _type: 'span', _key: `ds-callout-${variant}-c`, text: ` in config to use every ${variant} feature while in development, like unlimited users and permissions. (${i + 1}/5)`, marks: [] },
     ],
 }));
+
+// The file card in each state it can reach: an upload, a release resolved to a
+// version and size, and a release whose lookup has not landed yet.
+const files = [
+    { _type: 'file', _key: 'ds-file-zip', source: 'upload', url: '#', name: 'global-styles-migrator-1.0.4.zip', mime: 'application/zip', size: 55296 },
+    { _type: 'file', _key: 'ds-file-txt', source: 'upload', url: '#', name: 'country-to-code.txt', mime: 'text/plain', size: 7168, title: 'Country to dialling code' },
+    { _type: 'file', _key: 'ds-file-release', source: 'github', repo: 'tdrayson/global-styles-migrator', asset: 'global-styles-migrator.zip' },
+    { _type: 'file', _key: 'ds-file-cold', source: 'github', repo: 'tdrayson/ff-validation-manager', asset: 'ff-validation-manager.zip' },
+];
 
 const neutral = [0, 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 const accent = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -235,6 +260,12 @@ function swatchInk(step) {
         <section class="space-y-3">
             <h2 class="ds-label">Callouts</h2>
             <BlockContent :document="callouts" />
+        </section>
+
+        <!-- File cards (Portable Text nodes) -->
+        <section class="space-y-3">
+            <h2 class="ds-label">File cards</h2>
+            <BlockContent :document="files" />
         </section>
 
         <!-- Pills -->

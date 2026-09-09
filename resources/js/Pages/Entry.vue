@@ -47,6 +47,7 @@ const props = defineProps({
     // consumes it, so it's bound conditionally below rather than on every type.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
+    fileReleases: { type: Object, default: () => ({}) },
     media: { type: Object, default: () => ({}) },
     // kind:id -> resolved mention, for content that carries any.
     mentions: { type: Object, default: () => ({}) },
@@ -61,7 +62,7 @@ const signedIn = computed(() => usePage().props.signedIn === true);
 // This entry's own URL, for the u-url a parser needs on a permalink.
 const permalink = computed(() => usePage().url);
 
-provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
+provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons, releases: props.fileReleases })));
 
 // Current values for the form, read off the entry payload. Dotted field names
 // address into meta, which is where a book keeps its author.

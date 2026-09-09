@@ -7,6 +7,7 @@ import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
 import VideoEmbed from './VideoEmbed.vue';
+import FileCard from './FileCard.vue';
 
 
 // Turn heading text into a URL-safe slug: lowercase, non-alphanumerics
@@ -404,7 +405,29 @@ function renderVideo(node) {
     });
 }
 
-function renderNode(node, headingIds, onImageClick, favicons, previews) {
+/**
+ * A download card. A release node carries no metadata of its own, so its
+ * version and size are looked up in the map the page resolved server-side,
+ * keyed by repository and asset. A miss renders the card without them rather
+ * than not at all, since the download link works regardless.
+ */
+function renderFile(node, releases) {
+    return h(FileCard, {
+        key: node._key,
+        source: node.source ?? 'upload',
+        url: node.url ?? null,
+        name: node.name ?? null,
+        mime: node.mime ?? null,
+        size: node.size ?? null,
+        repo: node.repo ?? null,
+        asset: node.asset ?? null,
+        title: node.title ?? null,
+        poster: node.poster ?? null,
+        release: releases[`${node.repo}#${node.asset}`] ?? null,
+    });
+}
+
+function renderNode(node, headingIds, onImageClick, favicons, previews, releases) {
     if (node._type === 'block') {
         return renderTextBlock(node, headingIds, favicons, previews);
     }
@@ -425,6 +448,10 @@ function renderNode(node, headingIds, onImageClick, favicons, previews) {
         return renderVideo(node);
     }
 
+    if (node._type === 'file') {
+        return renderFile(node, releases);
+    }
+
     if (node._type === 'divider') {
         return h('hr', { key: node._key, class: 'border-neutral-50' });
     }
@@ -434,7 +461,7 @@ function renderNode(node, headingIds, onImageClick, favicons, previews) {
 
 // Single pass over the document: consecutive listItem blocks are peeled off
 // into their own grouped run (see renderListRun); everything else renders node-by-node.
-function renderDocument(nodes, headingIds, onImageClick, favicons, previews) {
+function renderDocument(nodes, headingIds, onImageClick, favicons, previews, releases) {
     const out = [];
     let i = 0;
 
@@ -451,7 +478,7 @@ function renderDocument(nodes, headingIds, onImageClick, favicons, previews) {
 
             out.push(...renderListRun(run, favicons, previews));
         } else {
-            const vnode = renderNode(node, headingIds, onImageClick, favicons, previews);
+            const vnode = renderNode(node, headingIds, onImageClick, favicons, previews, releases);
 
             if (vnode) {
                 out.push(vnode);
@@ -474,6 +501,8 @@ export default {
         favicons: { type: Object, default: () => ({}) },
         // Map of internal href -> preview, so a resolved link renders as a chip.
         previews: { type: Object, default: () => ({}) },
+        // Map of `repo#asset` -> resolved GitHub release, for file cards.
+        releases: { type: Object, default: () => ({}) },
     },
     emits: ['image-click'],
     setup(props, { emit }) {
@@ -482,7 +511,7 @@ export default {
         return () => {
             const headingIds = assignHeadingIds(props.nodes);
 
-            return renderDocument(props.nodes, headingIds, (url) => emit('image-click', url), props.favicons, props.previews);
+            return renderDocument(props.nodes, headingIds, (url) => emit('image-click', url), props.favicons, props.previews, props.releases);
         };
     },
 };

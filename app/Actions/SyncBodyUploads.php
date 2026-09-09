@@ -8,16 +8,25 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
- * Turn the images an author dropped into a document into real attachments.
+ * Turn the images and files an author dropped into a document into real
+ * attachments.
  *
- * While the editor is open an image points at its parked upload, which is the
+ * While the editor is open an upload points at its parked file, which is the
  * only URL that exists before the entry does. Once there is something to own it
  * the file moves into the entry's `body` collection and the document is
  * rewritten to the permanent URL.
  */
-class SyncBodyImages
+class SyncBodyUploads
 {
     private const COLLECTION = 'body';
+
+    /**
+     * Node types that carry an upload. A `file` node sourced from GitHub names a
+     * release asset instead of a URL, so it never matches and is left alone.
+     *
+     * @var list<string>
+     */
+    private const UPLOAD_TYPES = ['image', 'file'];
 
     /**
      * @param  list<FieldData>  $fields
@@ -42,7 +51,7 @@ class SyncBodyImages
         }
 
         // Absent means "not edited", which is not the same as a document that
-        // no longer mentions an image: an update touching one field must not
+        // no longer mentions an upload: an update touching one field must not
         // delete what it never sent.
         if ($edited) {
             $this->detachRemoved($model, $values, $fields);
@@ -52,7 +61,7 @@ class SyncBodyImages
     }
 
     /**
-     * Delete any body image the document no longer points at.
+     * Delete any body attachment the document no longer points at.
      *
      * Attaching without this leaks: an image removed in the editor keeps both
      * its attachment row and its file, and nothing else ever cleans them up.
@@ -78,7 +87,7 @@ class SyncBodyImages
     }
 
     /**
-     * Every image URL in a document, however deeply nested.
+     * Every attachment URL in a document, however deeply nested.
      *
      * @param  array<int, mixed>  $document
      * @param  list<string>  $urls
@@ -90,7 +99,7 @@ class SyncBodyImages
                 continue;
             }
 
-            if (($node['_type'] ?? null) === 'image' && is_string($node['url'] ?? null)) {
+            if (in_array($node['_type'] ?? null, self::UPLOAD_TYPES, true) && is_string($node['url'] ?? null)) {
                 $urls[] = $node['url'];
             }
 
@@ -111,11 +120,11 @@ class SyncBodyImages
                 $node['children'] = $this->rewrite($model, $node['children']);
             }
 
-            if (! is_array($node) || ($node['_type'] ?? null) !== 'image') {
+            if (! is_array($node) || ! in_array($node['_type'] ?? null, self::UPLOAD_TYPES, true)) {
                 return $node;
             }
 
-            $token = $this->tokenIn($node['url'] ?? '');
+            $token = $this->tokenIn(is_string($node['url'] ?? null) ? $node['url'] : '');
 
             if ($token === null) {
                 return $node;
@@ -131,6 +140,14 @@ class SyncBodyImages
             PendingUploads::forget($token);
 
             $node['url'] = $media->getUrl();
+
+            if ($node['_type'] === 'file') {
+                // The card is labelled from these, and only the stored media
+                // knows what the file ended up being called.
+                $node['name'] = $media->file_name;
+                $node['mime'] = $media->mime_type;
+                $node['size'] = $media->size;
+            }
 
             return $node;
         }, $document);

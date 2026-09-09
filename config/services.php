@@ -95,4 +95,9 @@ return [
         'key' => env('HARDCOVER_API_KEY'),
     ],
 
+    // Optional: release lookups work unauthenticated at 60 requests an hour.
+    'github' => [
+        'token' => env('GITHUB_TOKEN'),
+    ],
+
 ];

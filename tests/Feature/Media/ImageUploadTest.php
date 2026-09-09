@@ -29,9 +29,27 @@ it('parks an upload and serves it back for preview', function () {
     $this->get($response->json('data.url'))->assertOk();
 });
 
-it('refuses a file that is not an image', function () {
-    $this->postJson('/media/pending', ['file' => UploadedFile::fake()->create('notes.pdf', 20, 'application/pdf')])
+it('refuses a file that is neither an image nor a document', function () {
+    $this->postJson('/media/pending', ['file' => UploadedFile::fake()->create('installer.exe', 20)])
         ->assertJsonValidationErrors('file');
+});
+
+it('parks a zip, since an article can offer a download too', function () {
+    $response = $this->postJson('/media/pending', ['file' => zipUpload()])->assertOk();
+
+    expect($response->json('data.name'))->toBe('bundle.zip');
+
+    $this->get($response->json('data.url'))->assertOk();
+});
+
+// A csv reads as text/plain or as vnd.ms-excel depending on the machine, which
+// is why the extension rather than the detected type decides.
+it('parks a csv, whichever type the system detects it as', function () {
+    $response = $this->postJson('/media/pending', [
+        'file' => UploadedFile::fake()->createWithContent('members.csv', "name,email\nA,a@example.com\n"),
+    ])->assertOk();
+
+    expect($response->json('data.name'))->toBe('members.csv');
 });
 
 it('keeps the whole authoring upload behind the login', function () {

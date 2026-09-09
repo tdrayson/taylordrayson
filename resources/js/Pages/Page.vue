@@ -28,11 +28,12 @@ const props = defineProps({
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
+    fileReleases: { type: Object, default: () => ({}) },
     // kind:id -> {title, url, exists} for the mentions in the content.
     mentions: { type: Object, default: () => ({}) },
 });
 
-provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
+provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons, releases: props.fileReleases })));
 
 setLayoutProps({ minimal: props.editing, breadcrumb: [{ label: props.title }] });
 

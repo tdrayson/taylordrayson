@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Actions\Files\BuildFileReleases;
 use App\Actions\ResolveMentions;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
@@ -55,6 +56,7 @@ class PageController extends Controller
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content)),
             'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
             'linkFavicons' => (new BuildLinkFavicons)($page->content),
+            'fileReleases' => app(BuildFileReleases::class)($page->content),
             'mentions' => (new ResolveMentions)($page->content),
         ]);
     }
