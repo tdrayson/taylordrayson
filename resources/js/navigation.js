@@ -1,4 +1,4 @@
-import { entryTypes } from './entryTypes.js';
+import { timelineTypes } from './entryTypes.js';
 
 // Icons are icon-registry name strings (resolved by Icon.vue), so this module
 // carries no direct hugeicons imports.
@@ -14,6 +14,7 @@ export const pageCommands = [
     // The flight globe, which is the only map page that exists; the keywords
     // carry the searches that used to land on a bare /map.
     { label: 'Flight map', href: '/flights/map', icon: 'MapsLocation01Icon', keywords: 'map places location flights globe' },
+    { label: 'Tags', href: '/tags', icon: 'Tag01Icon', keywords: 'topics labels taxonomy' },
     { label: 'More', href: '/more', icon: 'Menu01Icon', keywords: 'directory everything types index' },
     { label: 'About', href: '/about', icon: 'UserIcon', keywords: 'bio profile me' },
     { label: 'Advanced search', href: '/search', icon: 'Search01Icon', keywords: 'query builder filter advanced' },
@@ -43,7 +44,7 @@ const archiveKeywords = {
 /**
  * One destination per timeline data type (activities, sleep, food, flights, …).
  */
-export const archiveCommands = Object.entries(entryTypes)
+export const archiveCommands = Object.entries(timelineTypes)
     .filter(([, type]) => type.href)
     .map(([key, type]) => ({ label: type.label, href: type.href, icon: type.icon, keywords: archiveKeywords[key] }));
 

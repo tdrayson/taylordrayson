@@ -17,9 +17,9 @@ final class PodcastCard
     public function present(Podcast $model): CardData
     {
         return new CardData(
-            type: TimelineType::Podcast,
+            type: $this->type(),
             icon: 'headphones',
-            title: $model->title,
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $model->topic,
             subtitleTokens: null,
@@ -38,5 +38,15 @@ final class PodcastCard
                 url: $model->url(),
             )),
         );
+    }
+
+    public function title(Podcast $model): string
+    {
+        return $model->title;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Podcast;
     }
 }

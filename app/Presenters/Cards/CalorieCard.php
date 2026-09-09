@@ -21,9 +21,9 @@ final class CalorieCard
         $kcal = number_format($totals['calories']);
 
         return new CardData(
-            type: TimelineType::Calorie,
+            type: $this->type(),
             icon: 'utensils',
-            title: "I ate {$kcal} calories",
+            title: $this->title($model),
             titleLabel: "Food log, I ate {$kcal} calories",
             subtitle: $this->sentence($totals),
             subtitleTokens: null,
@@ -54,5 +54,20 @@ final class CalorieCard
         ]));
 
         return $macros === [] ? null : sprintf('That was %s.', Text::sentenceList($macros));
+    }
+
+    /**
+     * Reads the day's totals, so this is the one card title that costs a query.
+     */
+    public function title(Calorie $model): string
+    {
+        $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
+
+        return 'I ate '.number_format($totals['calories']).' calories';
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Calorie;
     }
 }

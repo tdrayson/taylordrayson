@@ -12,7 +12,7 @@ defineEmits(['select']);
         type="button"
         data-testid="photo-marker"
         :aria-label="label"
-        class="group block size-11 rounded-full focus-visible:outline-none"
+        class="group block size-11 cursor-zoom-in rounded-full focus-visible:outline-none"
         @click="$emit('select')"
     >
         <!-- The scale lives on this inner disc, not the button: MapLibre writes an

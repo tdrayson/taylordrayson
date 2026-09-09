@@ -33,7 +33,13 @@ it('shows only photos taken, excluding posters and non-timeline art', function (
     Series::factory()->create()
         ->addMediaFromString(galleryJpegBytes())->usingFileName('series.jpg')->toMediaCollection('cover');
 
+    // The gallery defers and paginates its photos, so the shell carries the
+    // total and the deferred reload is what shapes the first page.
     $this->get('/photos')
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Photos')->has('photos', 1));
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Photos')
+            ->where('total', 1)
+            ->missing('photos')
+            ->loadDeferredProps(fn (Assert $page) => $page->has('photos.data', 1)));
 });
