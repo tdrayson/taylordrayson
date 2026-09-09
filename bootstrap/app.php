@@ -25,7 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // No proxy sits in front of the app: DNS points at the VPS and nginx
+        // talks to PHP-FPM over a local socket, so REMOTE_ADDR is already the
+        // real client. Trusting `*` meant believing a client-supplied
+        // X-Forwarded-For instead, which nginx never sets here, making every
+        // IP-keyed rate limiter and reaction identity spoofable by a header.
+        $middleware->trustProxies(at: []);
 
         // Display preferences are written by the browser, so they arrive
         // unencrypted and would otherwise be discarded as tampered with.

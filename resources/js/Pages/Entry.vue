@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
+import Conversation from '../Components/Conversation/Conversation.vue';
 import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import { entryType } from '../entryTypes.js';
@@ -41,6 +42,8 @@ const props = defineProps({
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
     og: { type: Object, default: () => ({}) },
+    // One ConversationData, server-rendered so the responses read without JS.
+    conversation: { type: Object, default: null },
     occurredLabel: { type: String, default: '' },
     occurredOffset: { type: String, default: '' },
     // Map of href -> preview data for internal content links; only ArticleDetail
@@ -180,6 +183,13 @@ setLayoutProps({
             <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
         </p>
 
-        <EntryFooter :source="source" :tags="tags" class="mt-10" />
+        <EntryFooter
+            :source="source"
+            :tags="tags"
+            :webmention-target="conversation?.url ?? null"
+            class="mt-10"
+        />
+
+        <Conversation v-if="conversation" :conversation="conversation" class="mt-10" />
     </article>
 </template>

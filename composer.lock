@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0ee2dcc37691655ce0e10f4c2c22e767",
+    "content-hash": "b74cf62ed711fc49c95c99df90123d11",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -156,6 +156,67 @@
                 "source": "https://github.com/aws/aws-sdk-php/tree/3.393.5"
             },
             "time": "2026-08-24T18:17:30+00:00"
+        },
+        {
+            "name": "blaspsoft/blasp",
+            "version": "v4.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Blaspsoft/blasp.git",
+                "reference": "e0a2ea52cbe7987bcb06a07aedc5ff5b5d730ad6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Blaspsoft/blasp/zipball/e0a2ea52cbe7987bcb06a07aedc5ff5b5d730ad6",
+                "reference": "e0a2ea52cbe7987bcb06a07aedc5ff5b5d730ad6",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0|^11.0",
+                "phpunit/phpunit": "^11.0|^12.5.12"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Blasp": "Blaspsoft\\Blasp\\Facades\\Blasp"
+                    },
+                    "providers": [
+                        "Blaspsoft\\Blasp\\BlaspServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Blaspsoft\\Blasp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Deeming",
+                    "email": "michael.deeming90@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Blasp is a powerful and customisable profanity filter package for Laravel applications",
+            "homepage": "https://github.com/blaspsoft/blasp",
+            "keywords": [
+                "blasp",
+                "blaspsoft"
+            ],
+            "support": {
+                "issues": "https://github.com/Blaspsoft/blasp/issues",
+                "source": "https://github.com/Blaspsoft/blasp/tree/v4.0.1"
+            },
+            "time": "2026-03-27T07:00:36+00:00"
         },
         {
             "name": "brick/math",
@@ -3018,6 +3079,68 @@
                 }
             ],
             "time": "2026-04-11T18:38:28+00:00"
+        },
+        {
+            "name": "mf2/mf2",
+            "version": "v0.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/microformats/php-mf2.git",
+                "reference": "ddc56de6be62ed4a21f569de9b80e17af678ca50"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/microformats/php-mf2/zipball/ddc56de6be62ed4a21f569de9b80e17af678ca50",
+                "reference": "ddc56de6be62ed4a21f569de9b80e17af678ca50",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+                "mf2/tests": "dev-master#e9e2b905821ba0a5b59dab1a8eaf40634ce9cd49",
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpunit/phpunit": "^5.7",
+                "squizlabs/php_codesniffer": "^3.6.2"
+            },
+            "suggest": {
+                "barnabywalters/mf-cleaner": "To more easily handle the canonical data php-mf2 gives you",
+                "masterminds/html5": "Alternative HTML parser for PHP, for better HTML5 support."
+            },
+            "bin": [
+                "bin/fetch-mf2",
+                "bin/parse-mf2"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Mf2/Parser.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "CC0-1.0"
+            ],
+            "authors": [
+                {
+                    "name": "Barnaby Walters",
+                    "homepage": "http://waterpigs.co.uk"
+                }
+            ],
+            "description": "A pure, generic microformats2 parser — makes HTML as easy to consume as a JSON API",
+            "keywords": [
+                "html",
+                "microformats",
+                "microformats 2",
+                "parser",
+                "semantic"
+            ],
+            "support": {
+                "issues": "https://github.com/microformats/php-mf2/issues",
+                "source": "https://github.com/microformats/php-mf2/tree/v0.5.0"
+            },
+            "time": "2022-02-10T01:05:27+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -8459,6 +8582,73 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
+        },
+        {
+            "name": "tosend/tosend-laravel",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tosend/tosend-laravel.git",
+                "reference": "613f588de7bd6bc71a6da86de15aa4f786e67d0c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tosend/tosend-laravel/zipball/613f588de7bd6bc71a6da86de15aa4f786e67d0c",
+                "reference": "613f588de7bd6bc71a6da86de15aa4f786e67d0c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "illuminate/mail": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+                "phpunit/phpunit": "^10.0|^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "ToSend": "ToSend\\Laravel\\Facades\\ToSend"
+                    },
+                    "providers": [
+                        "ToSend\\Laravel\\ToSendServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "ToSend\\Laravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "ToSend",
+                    "email": "support@tosend.com"
+                }
+            ],
+            "description": "Official Laravel SDK for the ToSend email API",
+            "homepage": "https://github.com/tosend/tosend-laravel",
+            "keywords": [
+                "api",
+                "email",
+                "laravel",
+                "mail",
+                "tosend",
+                "transactional"
+            ],
+            "support": {
+                "issues": "https://github.com/tosend/tosend-laravel/issues",
+                "source": "https://github.com/tosend/tosend-laravel"
+            },
+            "time": "2026-06-30T05:14:17+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -13993,5 +14183,5 @@
         "ext-imagick": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

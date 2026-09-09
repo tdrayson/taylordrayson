@@ -12,6 +12,10 @@
 
     <link rel="me" href="https://github.com/tdrayson">
 
+    {{-- Webmention discovery. In the Blade layout, not a Vue component: a
+         sender fetches the HTML and never runs the JS. --}}
+    <link rel="webmention" href="{{ route('webmention') }}">
+
     @vite(['resources/js/app.js'])
     @inertiaHead
 </head>

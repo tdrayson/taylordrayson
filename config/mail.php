@@ -37,6 +37,12 @@ return [
 
     'mailers' => [
 
+        // The provider. Registered as a transport by tosend/tosend-laravel, so
+        // nothing in the app refers to it beyond this entry and MAIL_MAILER.
+        'tosend' => [
+            'transport' => 'tosend',
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
