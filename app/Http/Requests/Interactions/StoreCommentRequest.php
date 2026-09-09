@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Interactions;
 
 use App\Data\CommentSubmission;
+use App\Rules\ContributedDocument;
+use App\Support\PortableText;
 use App\Support\ProfanityFilter;
 use App\Support\VisitorIdentity;
 use Closure;
@@ -24,9 +26,13 @@ class StoreCommentRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $body = $this->input('body');
+
         $this->merge([
             'author_name' => trim(strip_tags((string) $this->input('author_name'))),
-            'body' => trim(strip_tags((string) $this->input('body'))),
+            // Only a string is stripped. Casting a document to a string to run
+            // strip_tags over it would flatten the whole comment to "Array".
+            'body' => is_string($body) ? trim(strip_tags($body)) : $body,
         ]);
     }
 
@@ -53,11 +59,26 @@ class StoreCommentRequest extends FormRequest
             'author_email' => ['nullable', 'email:rfc', 'max:255'],
             'notify_replies' => ['boolean'],
 
-            'body' => ['required', 'string', 'min:2', 'max:4000'],
+            'body' => $this->bodyRules(),
             'parent_id' => ['nullable', 'integer'],
             'nonce' => ['required', 'string', 'uuid'],
             self::HONEYPOT => ['nullable', 'string'],
         ];
+    }
+
+    /**
+     * A document from the editor, or a plain string from a client without one.
+     * Both are stored as Portable Text; only the document has a shape worth
+     * checking, and it is checked against a narrower allowlist than anything
+     * the site itself publishes.
+     *
+     * @return array<int, ValidationRule|string>
+     */
+    private function bodyRules(): array
+    {
+        return is_array($this->input('body'))
+            ? ['required', 'array', new ContributedDocument]
+            : ['required', 'string', 'min:2', 'max:4000'];
     }
 
     /**
@@ -67,10 +88,32 @@ class StoreCommentRequest extends FormRequest
     {
         return [
             'author_name.required' => 'Add a name so people know who replied.',
+            'author_name.min' => 'That is too short to be a name.',
+            'author_name.max' => 'That is longer than a name needs to be.',
+
+            // Laravel's own would call the field "author email", which is a
+            // column name rather than anything the person filling it in typed.
+            'author_email.email' => 'That does not look like an email address.',
+            'author_email.max' => 'That address is too long.',
+
             'body.required' => 'Write something first.',
+            'body.min' => 'That is a little short to post.',
             'body.max' => 'That is longer than a comment box can take.',
+
             'nonce.required' => 'This form went stale. Reload the page and try again.',
         ];
+    }
+
+    /**
+     * The comment as Portable Text, whatever shape it arrived in.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function document(): array
+    {
+        $body = $this->validated('body');
+
+        return is_array($body) ? $body : PortableText::fromPlainText($body);
     }
 
     public function submission(): CommentSubmission
@@ -79,7 +122,7 @@ class StoreCommentRequest extends FormRequest
             authorName: $this->validated('author_name'),
             authorEmail: $this->validated('author_email'),
             notifyReplies: $this->boolean('notify_replies'),
-            body: $this->validated('body'),
+            body: $this->document(),
             parentId: $this->validated('parent_id'),
             nonce: $this->validated('nonce'),
             honeypotFilled: filled($this->input(self::HONEYPOT)),

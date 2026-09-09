@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b74cf62ed711fc49c95c99df90123d11",
+    "content-hash": "419f3669cd8dcba2aef3fe44c9c014ac",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -3081,66 +3081,322 @@
             "time": "2026-04-11T18:38:28+00:00"
         },
         {
-            "name": "mf2/mf2",
-            "version": "v0.5.0",
+            "name": "mensbeam/html-parser",
+            "version": "1.4.3",
             "source": {
                 "type": "git",
-                "url": "https://github.com/microformats/php-mf2.git",
-                "reference": "ddc56de6be62ed4a21f569de9b80e17af678ca50"
+                "url": "https://github.com/mensbeam/HTML-Parser.git",
+                "reference": "8de1a97cbc28729434bcc75f772fb5f8e6eaa945"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/microformats/php-mf2/zipball/ddc56de6be62ed4a21f569de9b80e17af678ca50",
-                "reference": "ddc56de6be62ed4a21f569de9b80e17af678ca50",
+                "url": "https://api.github.com/repos/mensbeam/HTML-Parser/zipball/8de1a97cbc28729434bcc75f772fb5f8e6eaa945",
+                "reference": "8de1a97cbc28729434bcc75f772fb5f8e6eaa945",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.6.0"
+                "ext-dom": "*",
+                "mensbeam/intl": ">=0.9.1",
+                "mensbeam/mimesniff": ">=0.2.0",
+                "php": ">=7.1"
             },
             "require-dev": {
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
-                "mf2/tests": "dev-master#e9e2b905821ba0a5b59dab1a8eaf40634ce9cd49",
-                "phpcompatibility/php-compatibility": "^9.3",
-                "phpunit/phpunit": "^5.7",
-                "squizlabs/php_codesniffer": "^3.6.2"
+                "bamarni/composer-bin-plugin": "^1.3"
             },
             "suggest": {
-                "barnabywalters/mf-cleaner": "To more easily handle the canonical data php-mf2 gives you",
-                "masterminds/html5": "Alternative HTML parser for PHP, for better HTML5 support."
+                "ext-ctype": "Improved performance"
             },
-            "bin": [
-                "bin/fetch-mf2",
-                "bin/parse-mf2"
-            ],
             "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": false,
+                    "forward-command": true
+                }
+            },
             "autoload": {
                 "files": [
-                    "Mf2/Parser.php"
+                    "lib/Parser/ctype.php"
+                ],
+                "psr-4": {
+                    "MensBeam\\HTML\\": [
+                        "lib/"
+                    ]
+                },
+                "classmap": [
+                    "lib/Parser/Token.php"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "CC0-1.0"
+                "MIT"
             ],
             "authors": [
                 {
-                    "name": "Barnaby Walters",
-                    "homepage": "http://waterpigs.co.uk"
+                    "name": "Dustin Wilson",
+                    "email": "dustin@dustinwilson.com",
+                    "homepage": "https://dustinwilson.com/"
+                },
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
                 }
             ],
-            "description": "A pure, generic microformats2 parser — makes HTML as easy to consume as a JSON API",
+            "description": "Parser and serializer for modern HTML documents",
             "keywords": [
+                "HTML5",
+                "WHATWG",
+                "dom",
                 "html",
-                "microformats",
-                "microformats 2",
                 "parser",
-                "semantic"
+                "parsing"
             ],
             "support": {
-                "issues": "https://github.com/microformats/php-mf2/issues",
-                "source": "https://github.com/microformats/php-mf2/tree/v0.5.0"
+                "source": "https://github.com/mensbeam/HTML-Parser/tree/1.4.3"
             },
-            "time": "2022-02-10T01:05:27+00:00"
+            "time": "2026-01-19T23:44:48+00:00"
+        },
+        {
+            "name": "mensbeam/intl",
+            "version": "0.9.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mensbeam/Intl.git",
+                "reference": "4cddddc30fe147b9249b1ffe751ebffd68ff3745"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mensbeam/Intl/zipball/4cddddc30fe147b9249b1ffe751ebffd68ff3745",
+                "reference": "4cddddc30fe147b9249b1ffe751ebffd68ff3745",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "*",
+                "ext-intl": "*"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": false,
+                    "forward-command": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MensBeam\\Intl\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "A set of dependency-free basic internationalization tools",
+            "keywords": [
+                "WHATWG",
+                "charset",
+                "encoding",
+                "internationalization",
+                "intl",
+                "unicode",
+                "utf-8",
+                "utf8"
+            ],
+            "support": {
+                "source": "https://github.com/mensbeam/Intl/tree/0.9.4"
+            },
+            "time": "2026-01-19T19:58:03+00:00"
+        },
+        {
+            "name": "mensbeam/microformats",
+            "version": "0.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mensbeam/microformats.git",
+                "reference": "bfb3b0099dc39c9cb302c6b80ff560e7e5ed3764"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mensbeam/microformats/zipball/bfb3b0099dc39c9cb302c6b80ff560e7e5ed3764",
+                "reference": "bfb3b0099dc39c9cb302c6b80ff560e7e5ed3764",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-json": "*",
+                "mensbeam/html-parser": "^1.3",
+                "mensbeam/mimesniff": "^0.3.0",
+                "mensbeam/uri": "^1.0",
+                "php": ">=7.3"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "*"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": false,
+                    "forward-command": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MensBeam\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "A microformats parser",
+            "keywords": [
+                "html",
+                "indieweb",
+                "mf2",
+                "microformats",
+                "parser"
+            ],
+            "support": {
+                "issues": "https://github.com/mensbeam/microformats/issues",
+                "source": "https://github.com/mensbeam/microformats/tree/0.2.2"
+            },
+            "time": "2026-07-07T18:47:13+00:00"
+        },
+        {
+            "name": "mensbeam/mimesniff",
+            "version": "0.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mensbeam/mime.git",
+                "reference": "6fd3dc5f83e2440311e67daa8953f8a31705ac71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mensbeam/mime/zipball/6fd3dc5f83e2440311e67daa8953f8a31705ac71",
+                "reference": "6fd3dc5f83e2440311e67daa8953f8a31705ac71",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1",
+                "psr/http-message": "^1.0 || ^2.0"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.3",
+                "ext-intl": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MensBeam\\Mime\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "An implementation of the WHATWG MIME Sniffing specification",
+            "keywords": [
+                "WHATWG",
+                "mime",
+                "mimesniff"
+            ],
+            "support": {
+                "issues": "https://github.com/mensbeam/mime/issues",
+                "source": "https://github.com/mensbeam/mime/tree/0.3.1"
+            },
+            "time": "2026-08-20T11:37:35+00:00"
+        },
+        {
+            "name": "mensbeam/uri",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://codeberg.org/mensbeam/uri-polyfill.git",
+                "reference": "7f4f38fec31a5c9b5e198868f0c47f0b79cee66d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://codeberg.org/api/v1/repos/mensbeam/uri-polyfill/archive/7f4f38fec31a5c9b5e198868f0c47f0b79cee66d.zip",
+                "reference": "7f4f38fec31a5c9b5e198868f0c47f0b79cee66d",
+                "shasum": ""
+            },
+            "require": {
+                "mensbeam/intl": "^0.9.4",
+                "php": ">=7.1",
+                "symfony/polyfill-intl-idn": "^1.0"
+            },
+            "provide": {
+                "ext-uri": "8.5.*"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.9",
+                "pear/archive_tar": "^1.6"
+            },
+            "suggest": {
+                "ext-intl": "For faster and more accurate IDN handling"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "\\": "polyfill",
+                    "Uri\\": "polyfill/Uri/",
+                    "MensBeam\\Uri\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "An implementation of the PHP URI extension for older PHP versions",
+            "keywords": [
+                "WHATWG",
+                "ext-uri",
+                "polyfill",
+                "rfc3986",
+                "uri",
+                "url"
+            ],
+            "support": {
+                "issues": "https://codeberg.org/mensbeam/uri-polyfill/issues",
+                "source": "https://codeberg.org/mensbeam/uri-polyfill/tag/1.0.0"
+            },
+            "time": "2026-07-07T12:00:15+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -11008,324 +11264,6 @@
                 }
             ],
             "time": "2026-03-15T20:22:25+00:00"
-        },
-        {
-            "name": "mensbeam/html-parser",
-            "version": "1.4.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mensbeam/HTML-Parser.git",
-                "reference": "8de1a97cbc28729434bcc75f772fb5f8e6eaa945"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mensbeam/HTML-Parser/zipball/8de1a97cbc28729434bcc75f772fb5f8e6eaa945",
-                "reference": "8de1a97cbc28729434bcc75f772fb5f8e6eaa945",
-                "shasum": ""
-            },
-            "require": {
-                "ext-dom": "*",
-                "mensbeam/intl": ">=0.9.1",
-                "mensbeam/mimesniff": ">=0.2.0",
-                "php": ">=7.1"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.3"
-            },
-            "suggest": {
-                "ext-ctype": "Improved performance"
-            },
-            "type": "library",
-            "extra": {
-                "bamarni-bin": {
-                    "bin-links": false,
-                    "forward-command": true
-                }
-            },
-            "autoload": {
-                "files": [
-                    "lib/Parser/ctype.php"
-                ],
-                "psr-4": {
-                    "MensBeam\\HTML\\": [
-                        "lib/"
-                    ]
-                },
-                "classmap": [
-                    "lib/Parser/Token.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dustin Wilson",
-                    "email": "dustin@dustinwilson.com",
-                    "homepage": "https://dustinwilson.com/"
-                },
-                {
-                    "name": "J. King",
-                    "email": "jking@jkingweb.ca",
-                    "homepage": "https://jkingweb.ca/"
-                }
-            ],
-            "description": "Parser and serializer for modern HTML documents",
-            "keywords": [
-                "HTML5",
-                "WHATWG",
-                "dom",
-                "html",
-                "parser",
-                "parsing"
-            ],
-            "support": {
-                "source": "https://github.com/mensbeam/HTML-Parser/tree/1.4.3"
-            },
-            "time": "2026-01-19T23:44:48+00:00"
-        },
-        {
-            "name": "mensbeam/intl",
-            "version": "0.9.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mensbeam/Intl.git",
-                "reference": "4cddddc30fe147b9249b1ffe751ebffd68ff3745"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mensbeam/Intl/zipball/4cddddc30fe147b9249b1ffe751ebffd68ff3745",
-                "reference": "4cddddc30fe147b9249b1ffe751ebffd68ff3745",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "*",
-                "ext-intl": "*"
-            },
-            "type": "library",
-            "extra": {
-                "bamarni-bin": {
-                    "bin-links": false,
-                    "forward-command": true
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MensBeam\\Intl\\": "lib/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "J. King",
-                    "email": "jking@jkingweb.ca",
-                    "homepage": "https://jkingweb.ca/"
-                }
-            ],
-            "description": "A set of dependency-free basic internationalization tools",
-            "keywords": [
-                "WHATWG",
-                "charset",
-                "encoding",
-                "internationalization",
-                "intl",
-                "unicode",
-                "utf-8",
-                "utf8"
-            ],
-            "support": {
-                "source": "https://github.com/mensbeam/Intl/tree/0.9.4"
-            },
-            "time": "2026-01-19T19:58:03+00:00"
-        },
-        {
-            "name": "mensbeam/microformats",
-            "version": "0.2.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mensbeam/microformats.git",
-                "reference": "bfb3b0099dc39c9cb302c6b80ff560e7e5ed3764"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mensbeam/microformats/zipball/bfb3b0099dc39c9cb302c6b80ff560e7e5ed3764",
-                "reference": "bfb3b0099dc39c9cb302c6b80ff560e7e5ed3764",
-                "shasum": ""
-            },
-            "require": {
-                "ext-dom": "*",
-                "ext-json": "*",
-                "mensbeam/html-parser": "^1.3",
-                "mensbeam/mimesniff": "^0.3.0",
-                "mensbeam/uri": "^1.0",
-                "php": ">=7.3"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "*"
-            },
-            "type": "library",
-            "extra": {
-                "bamarni-bin": {
-                    "bin-links": false,
-                    "forward-command": true
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MensBeam\\": "lib/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "J. King",
-                    "email": "jking@jkingweb.ca",
-                    "homepage": "https://jkingweb.ca/"
-                }
-            ],
-            "description": "A microformats parser",
-            "keywords": [
-                "html",
-                "indieweb",
-                "mf2",
-                "microformats",
-                "parser"
-            ],
-            "support": {
-                "issues": "https://github.com/mensbeam/microformats/issues",
-                "source": "https://github.com/mensbeam/microformats/tree/0.2.2"
-            },
-            "time": "2026-07-07T18:47:13+00:00"
-        },
-        {
-            "name": "mensbeam/mimesniff",
-            "version": "0.3.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mensbeam/mime.git",
-                "reference": "6fd3dc5f83e2440311e67daa8953f8a31705ac71"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mensbeam/mime/zipball/6fd3dc5f83e2440311e67daa8953f8a31705ac71",
-                "reference": "6fd3dc5f83e2440311e67daa8953f8a31705ac71",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1",
-                "psr/http-message": "^1.0 || ^2.0"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.3",
-                "ext-intl": "*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "MensBeam\\Mime\\": "lib/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "J. King",
-                    "email": "jking@jkingweb.ca",
-                    "homepage": "https://jkingweb.ca/"
-                }
-            ],
-            "description": "An implementation of the WHATWG MIME Sniffing specification",
-            "keywords": [
-                "WHATWG",
-                "mime",
-                "mimesniff"
-            ],
-            "support": {
-                "issues": "https://github.com/mensbeam/mime/issues",
-                "source": "https://github.com/mensbeam/mime/tree/0.3.1"
-            },
-            "time": "2026-08-20T11:37:35+00:00"
-        },
-        {
-            "name": "mensbeam/uri",
-            "version": "1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://codeberg.org/mensbeam/uri-polyfill.git",
-                "reference": "7f4f38fec31a5c9b5e198868f0c47f0b79cee66d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://codeberg.org/api/v1/repos/mensbeam/uri-polyfill/archive/7f4f38fec31a5c9b5e198868f0c47f0b79cee66d.zip",
-                "reference": "7f4f38fec31a5c9b5e198868f0c47f0b79cee66d",
-                "shasum": ""
-            },
-            "require": {
-                "mensbeam/intl": "^0.9.4",
-                "php": ">=7.1",
-                "symfony/polyfill-intl-idn": "^1.0"
-            },
-            "provide": {
-                "ext-uri": "8.5.*"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.9",
-                "pear/archive_tar": "^1.6"
-            },
-            "suggest": {
-                "ext-intl": "For faster and more accurate IDN handling"
-            },
-            "type": "library",
-            "extra": {
-                "bamarni-bin": {
-                    "bin-links": true,
-                    "forward-command": true
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "\\": "polyfill",
-                    "Uri\\": "polyfill/Uri/",
-                    "MensBeam\\Uri\\": "lib/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "J. King",
-                    "email": "jking@jkingweb.ca",
-                    "homepage": "https://jkingweb.ca/"
-                }
-            ],
-            "description": "An implementation of the PHP URI extension for older PHP versions",
-            "keywords": [
-                "WHATWG",
-                "ext-uri",
-                "polyfill",
-                "rfc3986",
-                "uri",
-                "url"
-            ],
-            "support": {
-                "issues": "https://codeberg.org/mensbeam/uri-polyfill/issues",
-                "source": "https://codeberg.org/mensbeam/uri-polyfill/tag/1.0.0"
-            },
-            "time": "2026-07-07T12:00:15+00:00"
         },
         {
             "name": "mockery/mockery",

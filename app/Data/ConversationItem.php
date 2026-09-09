@@ -4,10 +4,15 @@ namespace App\Data;
 
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
+use App\Models\Mention;
+use App\Models\Note;
 use App\Models\Webmention;
 use App\Support\LocalTime;
+use App\Support\PortableText;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use JsonSerializable;
 
 /**
@@ -27,7 +32,10 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public string $authorName,
         public ?string $authorUrl,
         public ?string $authorPhoto,
-        public ?string $body,
+        /** The name of the post a mention came from; null for a comment. */
+        public ?string $title,
+        /** @var array<int, array<string, mixed>>|null Portable Text, or null for a gesture. */
+        public ?array $body,
         public CarbonInterface $occurredAt,
         public ?int $parentId,
         /** The row id, when replying to this is possible; null for a mention. */
@@ -46,6 +54,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             authorName: $comment->author_name,
             authorUrl: null,
             authorPhoto: null,
+            title: null,
             body: $comment->body,
             occurredAt: $comment->created_at,
             parentId: $comment->parent_id,
@@ -70,19 +79,85 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             authorPhoto: $mention->author_photo_path === null
                 ? null
                 : '/'.ltrim($mention->author_photo_path, '/'),
+            title: $mention->title,
             // A reacji's body is its emoji, which the marker already shows.
-            body: $isReacji ? null : $mention->content,
+            body: $isReacji || blank($mention->content) ? null : $mention->content,
             occurredAt: $mention->published_at ?? $mention->created_at,
             parentId: null,
             commentId: null,
             sourceUrl: $mention->source_url,
-            emoji: $isReacji ? trim((string) $mention->content) : null,
+            emoji: $isReacji ? trim(PortableText::plainText($mention->content ?? [])) : null,
         );
     }
 
+    /**
+     * One of my own entries linking to another.
+     *
+     * Carries no body. The prose lives on the source, and copying it here would
+     * publish the same words on two pages and in two feeds; the title and the
+     * link are what the reader needs to get to it.
+     */
+    public static function fromMention(Mention $mention): self
+    {
+        $source = $mention->source;
+
+        return new self(
+            id: 'linked-'.$mention->id,
+            kind: 'mention-internal',
+            authorName: (string) config('feed.author_name'),
+            // No author URL: linking my own name back to my own site, from a
+            // page on it, gives the reader nowhere new to go.
+            authorUrl: null,
+            authorPhoto: (string) config('feed.author_photo'),
+            title: self::titleOf($source),
+            body: null,
+            occurredAt: $source->occurred_at ?? $source->created_at,
+            parentId: null,
+            commentId: null,
+            sourceUrl: $source->url(),
+            emoji: null,
+        );
+    }
+
+    /**
+     * What to call the entry a mention came from, or null for one that has no
+     * name of its own.
+     *
+     * A note is the only source without a title, and its first eighty
+     * characters are not one: printed after "in" they read as a quotation of
+     * something nobody said. The byline names it by what it is instead.
+     */
+    private static function titleOf(Model $source): ?string
+    {
+        return $source instanceof Note ? null : (string) $source->title;
+    }
+
+    /**
+     * The site a response came from, as somebody would say it out loud. The
+     * `www.` is dropped: it is how the URL is written, not what the site is
+     * called, and "via www.strava.com" reads as an address rather than a place.
+     */
     private static function hostOf(string $url): string
     {
-        return (string) (parse_url($url, PHP_URL_HOST) ?: $url);
+        $host = (string) (parse_url($url, PHP_URL_HOST) ?: $url);
+
+        return Str::chopStart($host, 'www.');
+    }
+
+    /**
+     * The site to name a response by: "linked to this from robin.example" reads
+     * better than the full URL, which the link itself carries anyway.
+     *
+     * Null for one of my own entries, whose source URL is a path on this site.
+     * Naming the host there would close the sentence with my own address.
+     */
+    private function sourceHost(): ?string
+    {
+        if ($this->sourceUrl === null || parse_url($this->sourceUrl, PHP_URL_HOST) === null) {
+            return null;
+        }
+
+        return self::hostOf($this->sourceUrl);
     }
 
     /**
@@ -96,6 +171,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'authorName' => $this->authorName,
             'authorUrl' => $this->authorUrl,
             'authorPhoto' => $this->authorPhoto,
+            'title' => $this->title,
             'body' => $this->body,
             // The site's timestamp shape, formatted server-side like every
             // other one: a comment is a real instant, shown in home time.
@@ -103,9 +179,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'parentId' => $this->parentId,
             'commentId' => $this->commentId,
             'sourceUrl' => $this->sourceUrl,
-            // The bare host: "linked to this from robin.example" reads better
-            // than the full URL, which the link itself carries anyway.
-            'sourceHost' => $this->sourceUrl === null ? null : self::hostOf($this->sourceUrl),
+            'sourceHost' => $this->sourceHost(),
             'emoji' => $this->emoji,
         ];
     }

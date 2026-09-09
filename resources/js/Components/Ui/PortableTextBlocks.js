@@ -140,6 +140,11 @@ function renderExternalLink(def, label, text, favicons) {
     // destination opens away, which is the expected default.
     const away = def.blank ?? true;
 
+    // No nofollow, deliberately: everything this renderer draws was written by
+    // the site's author, and disavowing your own outbound links is wrong.
+    // Contributed content (comments, mentions) must NOT be routed through here
+    // for that reason, and because this renderer draws images, callouts and
+    // embeds that a stranger's document has no business containing.
     return h('a', {
         href: def.href,
         rel: away ? 'noopener noreferrer' : null,

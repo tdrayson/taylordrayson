@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Comments\NotifyOfReply;
 use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Webmention;
-use App\Notifications\ReplyPosted;
+use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,11 +68,7 @@ class ModerationController extends Controller
             return;
         }
 
-        $parent = $model->parent;
-
-        if ($parent?->wantsReplyNotifications()) {
-            Notification::route('mail', $parent->author_email)->notify(new ReplyPosted($model, $parent));
-        }
+        app(NotifyOfReply::class)($model);
     }
 
     /**
@@ -91,7 +87,7 @@ class ModerationController extends Controller
                 'author' => $comment->author_name,
                 // Shown so a name can be recognised, never rendered publicly.
                 'email' => $comment->author_email,
-                'body' => $comment->body,
+                'body' => PortableText::plainText($comment->body),
                 'on' => self::targetUrl($comment->commentable),
                 'received' => $comment->created_at->diffForHumans(),
             ])
@@ -114,7 +110,7 @@ class ModerationController extends Controller
                 'kind' => 'mention',
                 'author' => $mention->author_name ?: $mention->source_url,
                 'email' => null,
-                'body' => $mention->content,
+                'body' => PortableText::plainText($mention->content ?? []),
                 'sourceUrl' => $mention->source_url,
                 'on' => self::targetUrl($mention->target),
                 'received' => $mention->created_at->diffForHumans(),

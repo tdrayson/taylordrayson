@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\Comment;
+use App\Models\Mention;
 use App\Models\Reaction;
 use App\Models\Webmention;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -13,6 +14,27 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 trait HasInteractions
 {
+    /**
+     * Take the responses with the thing they were left on.
+     *
+     * A morph row names a type and an id, and nothing in the database stops it
+     * naming one that no longer exists. Left behind, the rows are unreachable
+     * until an autoincrement hands the same id to a new entry, at which point
+     * somebody else's conversation appears under it.
+     *
+     * Outgoing sends are deliberately not swept up: they record what we told
+     * other sites, which stays true after the post is gone.
+     */
+    public static function bootHasInteractions(): void
+    {
+        static::deleting(function (self $model): void {
+            $model->comments()->delete();
+            $model->reactions()->delete();
+            $model->webmentions()->delete();
+            $model->mentions()->delete();
+        });
+    }
+
     /** @return MorphMany<Comment, $this> */
     public function comments(): MorphMany
     {
@@ -29,5 +51,18 @@ trait HasInteractions
     public function webmentions(): MorphMany
     {
         return $this->morphMany(Webmention::class, 'target');
+    }
+
+    /**
+     * The entries of mine that link here.
+     *
+     * Named for the direction the page reads in: a mention row also names its
+     * source, but nothing asks an entry what it linked to.
+     *
+     * @return MorphMany<Mention, $this>
+     */
+    public function mentions(): MorphMany
+    {
+        return $this->morphMany(Mention::class, 'target');
     }
 }

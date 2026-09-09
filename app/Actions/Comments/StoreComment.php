@@ -28,6 +28,15 @@ final class StoreComment
     private const MIN_SECONDS_ON_FORM = 3;
 
     /**
+     * More destinations than a person puts in a comment. Link stuffing is what
+     * almost all comment spam is for, so the count is the signal rather than
+     * anything about the words around it.
+     */
+    private const LINKS_BEFORE_HOLDING = 2;
+
+    private const LINKS_BEFORE_SPAM = 5;
+
+    /**
      * The stored comment, or null when the submission was a bot and has been
      * dropped. The caller answers the same either way, so nothing learns which
      * check it failed.
@@ -75,7 +84,13 @@ final class StoreComment
      */
     private function statusFor(CommentSubmission $submission): CommentStatus
     {
-        if (ProfanityFilter::isAbusive($submission->body)) {
+        if (ProfanityFilter::isAbusive($submission->plainBody())) {
+            return CommentStatus::Spam;
+        }
+
+        $links = $submission->linkCount();
+
+        if ($links >= self::LINKS_BEFORE_SPAM) {
             return CommentStatus::Spam;
         }
 
@@ -85,7 +100,12 @@ final class StoreComment
             ->where('ip_hash', $submission->ipHash)
             ->exists();
 
-        return $knownGood ? CommentStatus::Approved : CommentStatus::Pending;
+        // A link-heavy comment is never waved through on a name alone. Earning
+        // approval once and then reusing the name is the shape link spam takes,
+        // and holding it costs a real commenter one wait.
+        return $knownGood && $links <= self::LINKS_BEFORE_HOLDING
+            ? CommentStatus::Approved
+            : CommentStatus::Pending;
     }
 
     /**

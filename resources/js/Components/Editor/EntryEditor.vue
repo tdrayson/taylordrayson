@@ -5,6 +5,7 @@ import { withMediaIds } from '../../lib/editor/media.js';
 import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
 import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
+import { hiddenNames, revealed } from '../../lib/editor/visibility.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
@@ -42,7 +43,27 @@ const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? n
 const publishField = computed(() => props.fields.find((field) => field.isPublished) ?? null);
 const isPublished = computed(() => publishField.value !== null && form[publishField.value.name] === true);
 
-const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
+const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished && revealed(field, form)));
+
+/**
+ * A field that stops being shown gives up its value.
+ *
+ * Choosing "RSVP", filling in the reply, then switching to "Like" would
+ * otherwise save the RSVP nobody can see any more, and a stray property is
+ * what post type discovery reads a post's whole type from.
+ */
+const hiddenByCondition = computed(() => hiddenNames(props.fields, form));
+
+// Keyed on the names rather than the array, which is rebuilt on every keystroke
+// and would otherwise fire this on all of them.
+watch(
+    () => hiddenByCondition.value.join(','),
+    () => hiddenByCondition.value.forEach((name) => {
+        if (form[name] !== null && form[name] !== undefined && form[name] !== '') {
+            form[name] = null;
+        }
+    }),
+);
 
 // Title and body are drawn above the stack, so neither appears in it.
 const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));

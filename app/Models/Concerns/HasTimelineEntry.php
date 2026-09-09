@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 trait HasTimelineEntry
 {
+    use HasInteractions;
     use SendsWebmentions;
 
     /**

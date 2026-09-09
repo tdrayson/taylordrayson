@@ -111,16 +111,30 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* Mirrors the previous always-mounted opacity-0/opacity-100 + transition-opacity
-   duration-150 classes, now driven by v-if via Transition since the bubble only
-   exists in the DOM while visible. */
+/* Driven by v-if via Transition, since the bubble only exists in the DOM while
+   visible. `scale` and `translate` as their own properties rather than
+   `transform`: the bubble sets a translate inline to centre and flip itself,
+   and animating transform would fight that placement. Same curve and distance
+   as the link preview, so the two popups feel like one behaviour. */
 .tooltip-fade-enter-active,
 .tooltip-fade-leave-active {
-    transition: opacity 150ms;
+    transition:
+        opacity 0.14s ease,
+        scale 0.19s cubic-bezier(0.16, 1, 0.3, 1),
+        translate 0.19s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tooltip-fade-enter-from,
 .tooltip-fade-leave-to {
     opacity: 0;
+    scale: 0.92;
+}
+
+/* Nothing to grow from: the tween is off, so starting scaled would only snap. */
+@media (prefers-reduced-motion: reduce) {
+    .tooltip-fade-enter-from,
+    .tooltip-fade-leave-to {
+        scale: 1;
+    }
 }
 </style>

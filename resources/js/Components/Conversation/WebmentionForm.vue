@@ -48,27 +48,30 @@ async function submit() {
 </script>
 
 <template>
-    <div v-if="sent" class="max-w-md rounded-lg bg-neutral-25 p-4 text-meta text-neutral-700">
+    <div v-if="sent" class="rounded-lg bg-neutral-25 p-4 text-meta text-neutral-700">
         Got it. I will fetch your post shortly, and it will appear here once I have read it.
     </div>
 
-    <form v-else class="max-w-md space-y-2" novalidate @submit.prevent="submit">
-        <p class="text-caption text-neutral-500">
-            Paste its URL and I will pull in what you said. Your post needs to link back to this page.
-        </p>
+    <form v-else novalidate @submit.prevent="submit">
+        <!-- One row: the field and the thing that sends it belong together,
+             and a button on its own line reads as a second, separate step. -->
+        <div class="flex flex-col gap-2 sm:flex-row">
+            <label class="sr-only" for="webmention-source">The URL of your post</label>
+            <Input
+                id="webmention-source"
+                v-model="source"
+                type="url"
+                class="min-w-0 flex-1"
+                placeholder="https://your-site.com/your-post"
+                :invalid="Boolean(error)"
+            />
 
-        <Input
-            id="webmention-source"
-            v-model="source"
-            type="url"
-            placeholder="https://your-site.com/your-post"
-            :invalid="Boolean(error)"
-        />
+            <Button type="submit" class="shrink-0" :disabled="sending || ! looksLikeUrl">
+                {{ sending ? 'Sending...' : 'Send webmention' }}
+            </Button>
+        </div>
 
-        <Button type="submit" :disabled="sending || ! looksLikeUrl">
-            {{ sending ? 'Sending...' : 'Send webmention' }}
-        </Button>
-
-        <p v-if="error" class="text-caption text-red-600">{{ error }}</p>
+        <p class="mt-2 text-meta text-neutral-500">Your post needs to link back to this page.</p>
+        <p v-if="error" class="mt-2 text-meta text-red-600">{{ error }}</p>
     </form>
 </template>

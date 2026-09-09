@@ -3,6 +3,8 @@ import { ref, computed, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import ReactionBar from '../Conversation/ReactionBar.vue';
+import { useInteractions } from '../../lib/interactionContext.js';
 import Button from '../Ui/Button.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
@@ -22,6 +24,8 @@ const props = defineProps({
     iconKey: { type: String, default: null },
     accent: { type: String, default: null },
     type: { type: String, default: '' },
+    // The entry's own key, for addressing the reaction endpoint.
+    id: { type: [Number, String], default: null },
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
@@ -209,6 +213,13 @@ const lightboxItems = computed(() => props.photos ?? []);
 function openLightbox(index) {
     lightboxIndex.value = index;
 }
+
+// Deferred, so absent on first paint and present on the second request. A card
+// whose type takes no interactions never gets a row at all.
+const interactions = useInteractions();
+// Keyed on iconKey: that is the timeline type value the reaction endpoint is
+// addressed by. The `type` prop is the display label and is empty in the feed.
+const row = computed(() => (props.id === null ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
 </script>
 
 <template>
@@ -411,6 +422,22 @@ function openLightbox(index) {
             {{ mediaPlaying ? 'Pause' : 'Listen' }}
         </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
+
+        <ReactionBar
+            v-if="row"
+            variant="compact"
+            class="mt-3"
+            :type="iconKey"
+            :id="Number(id)"
+            :url="url"
+            :reactions="row.reactions"
+            :like-count="row.likeCount"
+            :reply-count="row.replyCount"
+            :repost-count="row.repostCount"
+            :bookmark-count="row.bookmarkCount"
+            :rsvp-count="row.rsvpCount"
+            :mention-count="row.mentionCount"
+        />
     </div>
 </template>
 

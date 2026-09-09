@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Page;
 use App\Timeline\TypeRegistry;
@@ -62,6 +63,10 @@ final class InteractionTarget
             fn (array $type): string => $type['model'],
             TypeRegistry::all(),
         );
+
+        // A project is a standing description of a thing that exists, not a
+        // post about a moment, so there is no occasion to respond to.
+        unset($types[TimelineType::Project->value]);
 
         // Pages are not timeline entries, and are the whole reason a guestbook
         // works: /guestbook is a page like any other.

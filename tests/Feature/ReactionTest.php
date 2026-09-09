@@ -1,9 +1,12 @@
 <?php
 
+use App\Enums\ReactionType;
 use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Reaction;
+use App\Queries\InteractionsForFeed;
+use Illuminate\Support\Facades\DB;
 
 use function Pest\Laravel\postJson;
 
@@ -22,15 +25,15 @@ it('adds a reaction and toggles it off on a second click', function () {
     react('note', $note->id)
         ->assertSuccessful()
         ->assertJsonPath('on', true)
-        ->assertJsonPath('reactions.0.key', 'love')
-        ->assertJsonPath('reactions.0.count', 1)
-        ->assertJsonPath('reactions.0.mine', true);
+        ->assertJsonPath('reactions.1.key', 'love')
+        ->assertJsonPath('reactions.1.count', 1)
+        ->assertJsonPath('reactions.1.mine', true);
 
     react('note', $note->id)
         ->assertSuccessful()
         ->assertJsonPath('on', false)
-        ->assertJsonPath('reactions.0.count', 0)
-        ->assertJsonPath('reactions.0.mine', false);
+        ->assertJsonPath('reactions.1.count', 0)
+        ->assertJsonPath('reactions.1.mine', false);
 
     expect(Reaction::count())->toBe(0);
 });
@@ -41,8 +44,8 @@ it('counts two visitors separately but one visitor once', function () {
     react('note', $note->id, ip: '203.0.113.1');
     react('note', $note->id, ip: '203.0.113.2');
 
-    // The same visitor reacting differently is two reactions, not two votes
-    // in one bucket.
+    // A visitor holds one reaction, so picking another moves theirs rather
+    // than adding a second: their love comes back off as the haha goes on.
     react('note', $note->id, 'haha', ip: '203.0.113.1');
 
     $counts = react('note', $note->id, 'wow', ip: '203.0.113.3')
@@ -50,7 +53,41 @@ it('counts two visitors separately but one visitor once', function () {
         ->json('reactions');
 
     expect(collect($counts)->pluck('count', 'key')->all())
-        ->toMatchArray(['love' => 2, 'haha' => 1, 'wow' => 1, 'celebrate' => 0, 'sad' => 0]);
+        ->toMatchArray(['love' => 1, 'haha' => 1, 'wow' => 1, 'celebrate' => 0, 'sad' => 0]);
+});
+
+it('moves a visitor to their new emoji, keeping when they first reacted', function () {
+    $note = Note::factory()->create();
+
+    react('note', $note->id, 'love');
+
+    $before = Reaction::sole();
+    $this->travel(5)->minutes();
+
+    react('note', $note->id, 'haha')
+        ->assertSuccessful()
+        ->assertJsonPath('on', true);
+
+    // The same row, moved. Reacting again is a change of mind about one
+    // reaction, not a second one, so the time it was left does not reset.
+    $after = Reaction::sole();
+
+    expect($after->id)->toBe($before->id)
+        ->and($after->type)->toBe(ReactionType::Haha)
+        ->and($after->created_at->timestamp)->toBe($before->created_at->timestamp);
+});
+
+it('takes the reaction back when the same emoji is pressed again', function () {
+    $note = Note::factory()->create();
+
+    react('note', $note->id, 'love');
+    react('note', $note->id, 'haha');
+
+    react('note', $note->id, 'haha')
+        ->assertSuccessful()
+        ->assertJsonPath('on', false);
+
+    expect(Reaction::count())->toBe(0);
 });
 
 it('ignores a forged X-Forwarded-For, so one machine cannot stuff the count', function () {
@@ -73,9 +110,11 @@ it('returns every bucket even when nothing has been reacted to', function () {
 
     $buckets = react('note', $note->id)->json('reactions');
 
-    expect($buckets)->toHaveCount(5)
+    // Like leads and is its own bucket: an incoming like-of, a kudo and a Swarm
+    // like are plain approval, not a heart anybody picked.
+    expect($buckets)->toHaveCount(6)
         ->and(collect($buckets)->pluck('key')->all())
-        ->toBe(['love', 'celebrate', 'wow', 'haha', 'sad']);
+        ->toBe(['like', 'love', 'celebrate', 'wow', 'haha', 'sad']);
 });
 
 it('accepts a published page, which is what makes a guestbook work', function () {
@@ -110,4 +149,22 @@ it('rejects an emoji outside the offered set', function () {
     react('note', $note->id, 'rocket')->assertStatus(422);
 
     expect(Reaction::count())->toBe(0);
+});
+
+it('answers for a whole page of entries in a fixed number of queries', function () {
+    $notes = Note::factory()->count(12)->create();
+
+    foreach ($notes as $i => $note) {
+        $note->reactions()->create(['type' => ReactionType::Love, 'identity_key' => hash('sha256', "q{$i}")]);
+    }
+
+    DB::enableQueryLog();
+    $rows = app(InteractionsForFeed::class)(collect($notes), request());
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    // Reactions, this visitor's own, comments and mentions. Four whatever the
+    // page holds; the per-entry query would have been two dozen by now.
+    expect($queries)->toBe(4)
+        ->and($rows)->toHaveCount(12);
 });

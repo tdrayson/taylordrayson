@@ -186,10 +186,9 @@ setLayoutProps({
         <EntryFooter
             :source="source"
             :tags="tags"
-            :webmention-target="conversation?.url ?? null"
             class="mt-10"
         />
 
-        <Conversation v-if="conversation" :conversation="conversation" class="mt-10" />
+        <Conversation v-if="conversation" :conversation="conversation" :og="og" class="mt-12" />
     </article>
 </template>

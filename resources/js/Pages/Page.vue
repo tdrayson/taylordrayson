@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { setLayoutProps, usePage, Link } from '@inertiajs/vue3';
 import Conversation from '../Components/Conversation/Conversation.vue';
-import WebmentionPrompt from '../Components/Conversation/WebmentionPrompt.vue';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
@@ -95,11 +94,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
         <BlockContent :document="content" class="mt-8" />
 
         <div v-if="conversation" class="mt-10 space-y-10 border-t border-neutral-50 pt-6">
-            <!-- A page has no EntryFooter to hang this off, so it gets the
-                 same metadata line here. -->
-            <WebmentionPrompt :target="conversation.url" />
-
-            <Conversation :conversation="conversation" />
+            <Conversation :conversation="conversation" :og="og" />
         </div>
     </article>
 </template>

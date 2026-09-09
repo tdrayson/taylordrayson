@@ -39,7 +39,7 @@ class PageController extends Controller
             // Same as an entry: server-rendered so it is readable and
             // parseable without JS. This is also what makes a guestbook page
             // work, being a page like any other.
-            'conversation' => Conversation::for($page, VisitorIdentity::onTarget(request(), $page)),
+            'conversation' => Conversation::shownFor($page, VisitorIdentity::onTarget(request(), $page)),
             // ?edit opens the editor in place. Only ever honoured for a
             // signed-in visitor; the save route enforces it again server-side.
             'editing' => Auth::check() && request()->has('edit'),

@@ -200,6 +200,28 @@
     --color-note: hsl(36 40% 50%);
 
     /* Sleep stage colours */
+    /* The share card's own ratio, so its box can be reserved before it loads.
+       OgRenderer draws every card at 1200x630. */
+    --aspect-og: 1200 / 630;
+
+    /* Reactions: a white glyph on a coloured disc, so each reads at a glance
+       without depending on how a platform draws its emoji font. */
+    --color-reaction-like: hsl(212 100% 47%);
+    --color-reaction-love: hsl(348 90% 50%);
+    --color-reaction-celebrate: hsl(272 85% 56%);
+    --color-reaction-wow: hsl(25 100% 47%);
+    --color-reaction-haha: hsl(150 100% 33%);
+    --color-reaction-sad: hsl(192 100% 38%);
+
+    /* The disc keeps its colour in both themes, so its glyph has to keep its
+       own: a neutral token would flip to ink and disappear into the disc.
+       Every disc is therefore dark enough to carry white at 3:1 or better, the
+       ratio WCAG asks of a graphical object. Six hues spread around the wheel
+       rather than five plus a yellow: yellow is the one hue where bright and
+       legible cannot both hold, so haha is green and sad is a teal that cannot
+       be mistaken for like's blue. */
+    --color-reaction-glyph: #ffffff;
+
     --color-sleep-awake: hsl(0 70% 72%);
     --color-sleep-rem: hsl(210 60% 58%);
     --color-sleep-light: hsl(210 50% 75%);

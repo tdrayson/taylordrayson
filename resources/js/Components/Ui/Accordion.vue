@@ -1,15 +1,25 @@
 <script setup>
 import { ref, useId, watch } from 'vue';
+import { cn } from '../../lib/cn.js';
 import Icon from './Icon.vue';
 
 const props = defineProps({
     title: { type: String, required: true },
     open: { type: Boolean, default: false },
+    /**
+     * 'section' is a named part of the page and carries a heading to match.
+     * 'quiet' is a side door (send a link, cite this page) that sits under the
+     * content without competing with it, so it is neither a heading nor
+     * display-sized, and its marker leads the label instead of being flung to
+     * the far edge of the container.
+     */
+    variant: { type: String, default: 'section' },
     // Off where accordions are stacked as bare toggles and a rule per row
     // would read as a stack of dividers rather than a list of choices.
     bordered: { type: Boolean, default: true },
 });
 
+const quiet = props.variant === 'quiet';
 const expanded = ref(props.open);
 
 // Followed rather than read once, so a caller can open the panel in response
@@ -26,35 +36,97 @@ function toggle() {
 </script>
 
 <template>
-    <div :class="bordered && 'border-t border-neutral-50'">
-        <h2 class="m-0">
+    <div :class="bordered && ! quiet && 'border-t border-neutral-50'">
+        <component :is="quiet ? 'div' : 'h2'" class="m-0">
             <button
                 :id="headerId"
                 type="button"
-                class="flex w-full items-center justify-between gap-4 py-4 text-left font-display text-section transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none"
+                :class="cn(
+                    'flex w-full items-center text-left transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    quiet
+                        ? 'gap-1.5 rounded-sm py-2 text-body text-neutral-700 hover:text-accent-700'
+                        : 'justify-between gap-4 py-4 font-display text-section hover:text-accent-500',
+                )"
                 :aria-expanded="expanded"
                 :aria-controls="contentId"
                 @click="toggle"
             >
+                <!-- Leading in the quiet variant so the marker stays against
+                     the words: pushed to the end of a narrow column it reads as
+                     a stray glyph rather than as the control's own arrow. -->
+                <Icon
+                    v-if="quiet"
+                    name="ArrowRight01Icon"
+                    class="size-4 shrink-0 transition-transform"
+                    :class="{ 'rotate-90': expanded }"
+                    aria-hidden="true"
+                />
                 {{ title }}
                 <Icon
+                    v-if="! quiet"
                     name="ArrowDown01Icon"
                     class="size-5 shrink-0 text-neutral-500 transition-transform"
                     :class="{ 'rotate-180': expanded }"
                     aria-hidden="true"
                 />
             </button>
-        </h2>
-        <section
-            :id="contentId"
-            :aria-labelledby="headerId"
-            :hidden="!expanded"
-            class="mt-2 pb-6"
-        >
-            <!-- `expanded` is exposed so a caller can v-if a lazily imported
-                 component: `hidden` keeps the slot mounted, which would fetch
-                 the chunk on page load and undo the point of deferring it. -->
-            <slot :expanded="expanded" />
-        </section>
+        </component>
+        <!-- Animated by grid rows rather than height: 0fr to 1fr transitions
+             without anyone measuring the content, which a height in pixels
+             would need and would get wrong the moment the panel reflowed.
+             `inert` does what `hidden` used to, keeping a closed panel out of
+             the tab order and the accessibility tree, while leaving it in the
+             layout so it has something to grow from. -->
+        <div class="accordion-panel" :class="{ 'is-open': expanded }">
+            <section
+                :id="contentId"
+                :aria-labelledby="headerId"
+                :inert="! expanded || undefined"
+            >
+                <!-- `expanded` is exposed so a caller can v-if a lazily
+                     imported component: the slot stays mounted otherwise,
+                     which would fetch the chunk on page load and undo the
+                     point of deferring it. -->
+                <div :class="quiet ? 'pb-4 pl-5.5' : 'mt-2 pb-6'">
+                    <slot :expanded="expanded" />
+                </div>
+            </section>
+        </div>
     </div>
 </template>
+
+<style scoped>
+.accordion-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accordion-panel.is-open {
+    grid-template-rows: 1fr;
+}
+
+/* The row is the thing being sized, so the content has to be clipped by it or
+   it spills out of a collapsed panel at full height.
+
+   `visibility` as well as the clip: clipped-but-visible content still counts as
+   rendered, so it stays in innerText and in find-in-page. Delayed on the way
+   out so it survives the collapse and is only dropped once the row has closed. */
+.accordion-panel > section {
+    overflow: hidden;
+    visibility: hidden;
+    transition: visibility 0s linear 220ms;
+}
+
+.accordion-panel.is-open > section {
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .accordion-panel {
+        transition: none;
+    }
+}
+</style>

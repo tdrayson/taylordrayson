@@ -2,84 +2,69 @@
 
 namespace App\Support;
 
-use DOMDocument;
-use DOMXPath;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Psr7\Header;
+use MensBeam\Microformats;
 
 /**
- * Finds where to send a webmention for a given URL.
+ * Where to send a webmention for a given page.
  *
- * Rediscovered on every send rather than cached, as the spec asks: an endpoint
- * can move, and a stored one is a hint rather than a fact.
- *
- * Discovery order is the spec's, and the order matters: a Link header wins
- * over anything in the body, and the first match wins over later ones.
+ * The spec's order: the Link header wins over the document, and the first
+ * `rel="webmention"` wins over any later one. A page that advertises none
+ * simply does not take mentions.
  */
 final class WebmentionEndpoint
 {
     private const TIMEOUT_SECONDS = 10;
 
+    /** A page advertising an endpoint, not a download. */
+    private const MAX_BYTES = 2 * 1024 * 1024;
+
     /** An absolute endpoint URL, or null when the target advertises none. */
     public static function discover(string $url): ?string
     {
-        if (! SafeUrl::fetchable($url)) {
-            return null;
-        }
-
-        $response = rescue(
-            fn () => Http::timeout(self::TIMEOUT_SECONDS)->withOptions(['allow_redirects' => ['max' => 5]])->get($url),
-            null,
-            report: false,
+        $html = SafeFetch::body(
+            $url,
+            self::MAX_BYTES,
+            self::TIMEOUT_SECONDS,
+            ['Accept' => 'text/html'],
+            $status,
+            $headers,
+            $finalUrl,
         );
 
-        if ($response === null || $response->failed()) {
+        if ($html === null) {
             return null;
         }
 
-        $found = self::fromHeaders(self::linkHeaders($response))
-            ?? self::fromBody($response->body());
-
-        // Resolved against the URL actually fetched, so a relative endpoint on
+        // Resolved against the URL actually answered, so a relative endpoint on
         // a redirected page still points somewhere real.
-        return $found === null ? null : self::absolute($found, (string) ($response->effectiveUri() ?? $url));
+        return self::fromHeaders($headers, $finalUrl)
+            ?? self::fromDocument($html, $finalUrl);
     }
 
     /**
-     * Every Link header, unjoined. Header names arrive in whatever case the
-     * server sent, so they are matched insensitively rather than looked up.
+     * `Link: <https://example.com/wm>; rel="webmention"`, where rel may be a
+     * space-separated list that webmention is one of.
      *
-     * @return list<string>
+     * Parsed by Guzzle's header parser rather than by pattern: it already
+     * handles the comma-separated list, the quoting and the parameter split,
+     * which is three edge cases not worth owning.
+     *
+     * @param  array<string, string>  $headers
      */
-    private static function linkHeaders(Response $response): array
+    private static function fromHeaders(array $headers, string $base): ?string
     {
-        foreach ($response->headers() as $name => $values) {
-            if (strcasecmp($name, 'Link') === 0) {
-                return array_values($values);
+        foreach (Header::parse($headers['link'] ?? '') as $link) {
+            $rel = preg_split('/\s+/', trim((string) ($link['rel'] ?? ''))) ?: [];
+
+            if (! in_array('webmention', array_map('strtolower', $rel), true)) {
+                continue;
             }
-        }
 
-        return [];
-    }
+            $target = trim((string) ($link[0] ?? ''), '<> ');
 
-    /**
-     * `Link: <https://example.com/wm>; rel="webmention"`, with rel being a
-     * space-separated list that webmention may be one of.
-     *
-     * @param  list<string>  $headers
-     */
-    private static function fromHeaders(array $headers): ?string
-    {
-        foreach ($headers as $header) {
-            foreach (explode(',', $header) as $link) {
-                if (preg_match('/<([^>]*)>\s*;\s*(.*)/', trim($link), $matches) !== 1) {
-                    continue;
-                }
-
-                if (preg_match('/rel\s*=\s*"?([^";]*)"?/i', $matches[2], $rel) === 1
-                    && in_array('webmention', preg_split('/\s+/', trim($rel[1])) ?: [], true)) {
-                    return trim($matches[1]);
-                }
+            if ($target !== '') {
+                return Links::absolute($base, $target);
             }
         }
 
@@ -87,47 +72,17 @@ final class WebmentionEndpoint
     }
 
     /**
-     * The first <link> or <a> carrying rel="webmention", in document order,
-     * which is what the spec makes authoritative when several are present.
+     * The first `rel="webmention"` in the document.
+     *
+     * Read from the microformats parser's own rel index rather than by walking
+     * the DOM here. It already collects every rel on the page, in order, across
+     * both `<link>` and `<a>`, and resolves each against the document's base.
+     * That was previously reimplemented, base resolution included.
      */
-    private static function fromBody(string $html): ?string
+    private static function fromDocument(string $html, string $base): ?string
     {
-        $document = new DOMDocument;
+        $parsed = rescue(fn (): array => Microformats::fromString($html, 'text/html', $base), [], report: false);
 
-        if (! @$document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING)) {
-            return null;
-        }
-
-        foreach ((new DOMXPath($document))->query('//link[@rel]|//a[@rel]') ?: [] as $node) {
-            $rel = preg_split('/\s+/', trim((string) $node->getAttribute('rel'))) ?: [];
-
-            if (in_array('webmention', array_map('strtolower', $rel), true)) {
-                // An empty href is legal and means "this page".
-                return $node->getAttribute('href');
-            }
-        }
-
-        return null;
-    }
-
-    private static function absolute(string $href, string $base): string
-    {
-        if ($href === '') {
-            return $base;
-        }
-
-        if (parse_url($href, PHP_URL_SCHEME) !== null) {
-            return $href;
-        }
-
-        $parts = parse_url($base);
-        $root = ($parts['scheme'] ?? 'https').'://'.($parts['host'] ?? '')
-            .(isset($parts['port']) ? ':'.$parts['port'] : '');
-
-        if (str_starts_with($href, '/')) {
-            return $root.$href;
-        }
-
-        return $root.rtrim(dirname($parts['path'] ?? '/'), '/').'/'.$href;
+        return $parsed['rels']['webmention'][0] ?? null;
     }
 }
