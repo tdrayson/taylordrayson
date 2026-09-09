@@ -70,14 +70,13 @@ const contentEl = ref(null);
 /* Vertical rhythm, in rem so every gap is a multiple of the body line rather
    than of the element's own size. The typography plugin scales heading margins
    from the heading, which leaves a heading further from the text it introduces
-   than paragraphs sit from each other. */
-.block-content :deep(p),
-.block-content :deep(ul),
-.block-content :deep(ol),
-.block-content :deep(blockquote),
-.block-content :deep(figure),
-.block-content :deep(pre),
-.block-content :deep(table) {
+   than paragraphs sit from each other.
+
+   Elements in the flow only. A card or panel lays itself out with its own
+   padding and utility classes, and these rules outrank those, so a paragraph
+   inside one would otherwise carry a line of the page's rhythm into a box that
+   already accounts for its own spacing. :where() keeps the exclusion free. */
+.block-content :deep(:is(p, ul, ol, blockquote, figure, pre, table):not(:where(.not-prose *))) {
     margin-top: 0;
     margin-bottom: 1.5rem;
 }
@@ -133,13 +132,16 @@ const contentEl = ref(null);
     margin-bottom: 0;
 }
 
-.block-content :deep(a) {
+/* Prose links only. A self-contained card carries its own colours, and this
+   rule outranks the utility classes setting them, so it stays out of any
+   not-prose island. :where() keeps the exclusion at zero specificity. */
+.block-content :deep(a:not(:where(.not-prose *))) {
     color: var(--color-accent-500);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
 
-.block-content :deep(a:hover) {
+.block-content :deep(a:not(:where(.not-prose *)):hover) {
     color: var(--color-accent-700);
 }
 
