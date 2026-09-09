@@ -16,6 +16,9 @@ const props = defineProps({
     variant: { type: String, default: 'boxed' },
     // The server refused this field, so it is drawn the way a bad input is.
     invalid: { type: Boolean, default: false },
+    // Whether the placeholder row can be chosen again, which is how an
+    // optional field is emptied after something has been picked.
+    clearable: { type: Boolean, default: false },
     class: { type: [String, Array, Object], default: '' },
 });
 
@@ -50,7 +53,7 @@ const iconClass = computed(() => (isBare.value
             :class="[selectClass, isEmpty ? 'text-neutral-500' : 'text-neutral-900']"
             @change="emit('update:modelValue', $event.target.value)"
         >
-            <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
+            <option v-if="placeholder" value="" :disabled="! clearable">{{ placeholder }}</option>
             <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
         </select>
         <Icon name="ArrowDown01Icon" :class="iconClass" />
