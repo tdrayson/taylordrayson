@@ -3,6 +3,8 @@
 namespace App\Console\Commands\Import;
 
 use App\Actions\Snippetclub\ImportPost;
+use App\Actions\Snippetclub\RewriteLinks;
+use App\Models\Article;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -22,7 +24,7 @@ class SnippetclubImport extends Command
 {
     private const DIRECTORY = 'snippetclub';
 
-    public function handle(ImportPost $import): int
+    public function handle(ImportPost $import, RewriteLinks $rewriteLinks): int
     {
         if ($this->option('fetch') && ! $this->fetch()) {
             return self::FAILURE;
@@ -57,6 +59,10 @@ class SnippetclubImport extends Command
             $this->components->task(sprintf('%s (%d nodes, %d tags)', $result->slug, $result->nodes, count($result->tags)));
         }
 
+        if (! $dryRun) {
+            $notes = [...$notes, ...$this->relink($rewriteLinks)];
+        }
+
         $this->newLine();
 
         foreach ($notes as $note) {
@@ -74,6 +80,35 @@ class SnippetclubImport extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Point the old site's internal links at where those pages live now. A
+     * second pass because an article can link forward to one imported after it.
+     *
+     * @return list<string>
+     */
+    private function relink(RewriteLinks $rewriteLinks): array
+    {
+        $notes = [];
+        $rewritten = 0;
+
+        foreach (Article::all() as $article) {
+            $result = $rewriteLinks($article->content ?? []);
+
+            if ($result['rewritten'] > 0) {
+                $article->update(['content' => $result['nodes']]);
+                $rewritten += $result['rewritten'];
+            }
+
+            foreach ($result['unresolved'] as $href) {
+                $notes[] = $article->slug.': link to the old site with no home here: '.$href;
+            }
+        }
+
+        $this->components->info('Rewrote '.$rewritten.' links to the old site.');
+
+        return $notes;
     }
 
     /**

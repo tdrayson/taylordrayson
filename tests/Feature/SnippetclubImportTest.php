@@ -2,6 +2,7 @@
 
 use App\Actions\Snippetclub\ConvertContent;
 use App\Actions\Snippetclub\ImportPost;
+use App\Actions\Snippetclub\RewriteLinks;
 use App\Models\Article;
 use App\Support\Gutenberg\BlockParser;
 
@@ -126,4 +127,44 @@ it('gives a slugless draft a slug of its own', function () {
     $import(['title' => 'Second draft', 'slug' => '', 'status' => 'draft', 'content_raw' => '']);
 
     expect(Article::whereIn('slug', ['first-draft', 'second-draft'])->count())->toBe(2);
+});
+
+it('points the old site\'s own links at where those pages live now', function () {
+    $article = Article::factory()->create(['slug' => 'a-tutorial', 'published' => true, 'occurred_at' => '2022-11-16 12:00:00']);
+
+    $nodes = [[
+        '_type' => 'block',
+        '_key' => 'b1',
+        'style' => 'normal',
+        'markDefs' => [
+            ['_key' => 'm1', '_type' => 'link', 'href' => 'https://snippetclub.com/a-tutorial/'],
+            ['_key' => 'm2', '_type' => 'link', 'href' => 'https://snippetclub.com/contact/'],
+            ['_key' => 'm3', '_type' => 'link', 'href' => 'mailto:support@snippetclub.com'],
+            ['_key' => 'm4', '_type' => 'link', 'href' => 'https://example.com/elsewhere'],
+        ],
+        'children' => [['_type' => 'span', '_key' => 's1', 'text' => 'Links', 'marks' => []]],
+    ]];
+
+    $result = app(RewriteLinks::class)($nodes);
+
+    expect(array_column($result['nodes'][0]['markDefs'], 'href'))->toBe([
+        '/'.$article->timelineEntry->occurred_at->format('Y/m/d').'/a-tutorial',
+        '/contact',
+        '/contact',
+        // Somebody else's site is not ours to move.
+        'https://example.com/elsewhere',
+    ])->and($result['rewritten'])->toBe(3);
+});
+
+it('leaves a dead link to the old site alone and says so', function () {
+    $result = app(RewriteLinks::class)([[
+        '_type' => 'block',
+        '_key' => 'b1',
+        'style' => 'normal',
+        'markDefs' => [['_key' => 'm1', '_type' => 'link', 'href' => 'https://snippetclub.com/gone/']],
+        'children' => [['_type' => 'span', '_key' => 's1', 'text' => 'Gone', 'marks' => []]],
+    ]]);
+
+    expect($result['rewritten'])->toBe(0)
+        ->and($result['unresolved'])->toBe(['https://snippetclub.com/gone/']);
 });
