@@ -362,6 +362,11 @@ function renderImage(node, onImageClick) {
 function renderCode(node) {
     return h(CodeBlock, {
         key: node._key,
+        // Its own rhythm, like the callout below. The component's root is a
+        // not-prose div, so no element rule reaches it, and the spacing that
+        // used to look like a gap after the block was really the inner <pre>'s
+        // margin sitting inside the box.
+        class: 'my-6',
         code: node.code ?? '',
         language: node.language ?? null,
         filename: node.filename ?? null,
