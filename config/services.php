@@ -96,6 +96,13 @@ return [
     ],
 
     // Optional: release lookups work unauthenticated at 60 requests an hour.
+    // Temporary, for the one-time SnippetClub migration. Remove with the
+    // import command once the content has moved.
+    'snippetclub' => [
+        'url' => env('SNIPPETCLUB_URL', 'https://snippetclub.com'),
+        'key' => env('SNIPPETCLUB_KEY'),
+    ],
+
     'github' => [
         'token' => env('GITHUB_TOKEN'),
     ],
