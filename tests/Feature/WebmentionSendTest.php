@@ -7,6 +7,12 @@ use App\Models\WebmentionSend;
 use App\Support\PortableText;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
+
+// Publishing a post also fetches favicons for the hosts it links to, which
+// goes out through Saloon and has nothing to do with what these tests assert.
+beforeEach(fn () => Saloon::fake(['*' => MockResponse::make('', 404)]));
 
 const LINKED = 'https://example.com/post';
 
