@@ -244,7 +244,7 @@ const editor = useEditor({
     }),
     editorProps: {
         attributes: {
-            class: 'prose-editor focus:outline-none min-h-32',
+            class: `prose-editor prose-editor--${props.profile} focus:outline-none min-h-32`,
         },
         /**
          * Never leave the draft by clicking a link in it. `openOnClick: false`

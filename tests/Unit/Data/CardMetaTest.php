@@ -7,6 +7,7 @@ use App\Data\PhotoData;
 use App\Data\RouteData;
 use App\Data\RoutePoint;
 use App\Data\SegmentData;
+use App\Support\PortableText;
 
 it('serialises empty meta as an empty array', function () {
     expect(CardMeta::empty()->toArray())->toBe([]);
@@ -60,10 +61,16 @@ it('serialises route meta with only route, map, mapDark', function () {
     expect($meta->toArray())->toBe(['route' => $route->toArray(), 'map' => 'map.png', 'mapDark' => null]);
 });
 
-it('serialises checkin meta with photos, map, mapDark, address', function () {
-    $meta = CardMeta::checkin([], 'map.png', 'mapdark.png', 'High Street, London');
+it('serialises checkin meta with photos, map, mapDark, address, category', function () {
+    $meta = CardMeta::checkin([], 'map.png', 'mapdark.png', 'High Street, London', 'Coffee Shop');
 
-    expect($meta->toArray())->toBe(['photos' => [], 'map' => 'map.png', 'mapDark' => 'mapdark.png', 'address' => 'High Street, London']);
+    expect($meta->toArray())->toBe([
+        'photos' => [],
+        'map' => 'map.png',
+        'mapDark' => 'mapdark.png',
+        'address' => 'High Street, London',
+        'category' => 'Coffee Shop',
+    ]);
 });
 
 it('serialises article photos meta with only photos', function () {
@@ -73,8 +80,15 @@ it('serialises article photos meta with only photos', function () {
     expect($meta->toArray())->toBe(['photos' => [$photo->toArray()]]);
 });
 
-it('serialises note meta with only body, photos', function () {
-    $meta = CardMeta::note('Some note text', []);
+it('serialises note meta with only body, photos, previews, favicons', function () {
+    $document = PortableText::fromPlainText('Some note text');
 
-    expect($meta->toArray())->toBe(['body' => 'Some note text', 'photos' => []]);
+    $meta = CardMeta::note($document, []);
+
+    expect($meta->toArray())->toBe([
+        'body' => $document,
+        'photos' => [],
+        'previews' => [],
+        'favicons' => [],
+    ]);
 });

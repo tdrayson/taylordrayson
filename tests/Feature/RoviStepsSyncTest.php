@@ -2,7 +2,8 @@
 
 use App\Support\TodaySteps;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 /**
  * Shape captured from a live /v1/me/steps response. `id` is the day; `date`
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Http;
  */
 function fakeRoviSteps(array $rows): void
 {
-    Http::fake(['*/v1/me/steps*' => Http::response([
+    Saloon::fake(['/v1/me/steps*' => MockResponse::make([
         'data' => $rows,
         'paging' => ['nextCursor' => null, 'hasMore' => false],
     ])]);

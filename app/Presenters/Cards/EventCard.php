@@ -18,15 +18,17 @@ final class EventCard
     public function present(Event $model): CardData
     {
         $subtitle = match (true) {
-            $model->venue_name && $model->city => "{$model->venue_name} in {$model->city}",
-            default => $model->venue_name ?? $model->city,
+            (bool) $model->venue_name && (bool) $model->city => "I went to {$model->venue_name} in {$model->city}.",
+            (bool) $model->venue_name => "I went to {$model->venue_name}.",
+            (bool) $model->city => "I was in {$model->city}.",
+            default => null,
         };
         $photos = $model->galleryPhotos();
 
         return new CardData(
-            type: TimelineType::Event,
+            type: $this->type(),
             icon: 'music',
-            title: $model->name,
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $subtitle,
             subtitleTokens: null,
@@ -43,5 +45,15 @@ final class EventCard
                 mapDark: $model->optimisedUrl('map_dark'),
             ),
         );
+    }
+
+    public function title(Event $model): string
+    {
+        return $model->name;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Event;
     }
 }

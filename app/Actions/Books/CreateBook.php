@@ -4,6 +4,7 @@ namespace App\Actions\Books;
 
 use App\Enums\MediaType;
 use App\Models\Media;
+use App\Support\EntryInstant;
 
 class CreateBook
 {
@@ -19,7 +20,7 @@ class CreateBook
         return Media::create([
             'title' => $attributes['title'],
             'type' => MediaType::Book,
-            'occurred_at' => $attributes['occurred_at'] ?? now(),
+            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
             'rating' => $attributes['rating'] ?? null,
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
             'source' => 'manual',

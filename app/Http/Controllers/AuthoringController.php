@@ -9,6 +9,8 @@ use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
 use App\Presenters\CardPresenter;
+use App\Support\EntryInstant;
+use App\Support\EntryZone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -97,13 +99,21 @@ class AuthoringController extends Controller
      * sends them empty so an entry is dated when it is saved rather than when the
      * form was opened, which leaves the server to supply the value.
      *
+     * The clock is read where the entry is happening, not on the server: these
+     * columns hold a local reading, and app.timezone is UTC.
+     *
      * @param  list<FieldData>  $fields
      */
     private function stampDefaults(Request $request, array $fields): void
     {
+        $stamp = null;
+
         foreach ($fields as $field) {
             if ($field->defaultsToNow && blank($request->input($field->name))) {
-                $request->merge([$field->name => now()->format('Y-m-d H:i:s')]);
+                $stamp ??= EntryInstant::nowLocal(app(EntryZone::class)->forEntryAt(now()))
+                    ->format('Y-m-d H:i:s');
+
+                $request->merge([$field->name => $stamp]);
             }
         }
     }

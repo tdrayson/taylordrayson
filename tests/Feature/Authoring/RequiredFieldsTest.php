@@ -3,6 +3,7 @@
 use App\Models\Article;
 use App\Models\Fuel;
 use App\Models\User;
+use App\Support\EntryInstant;
 
 beforeEach(fn () => $this->actingAs(User::factory()->create()));
 
@@ -26,7 +27,10 @@ it('stamps a date that defaults to now rather than refusing the save', function 
 
     $this->post('/entries/fuel', ['cost' => 51.87, 'price_per_litre' => 1.599])->assertRedirect();
 
-    expect(Fuel::sole()->occurred_at->format('Y-m-d H:i'))->toBe(now()->format('Y-m-d H:i'));
+    // Against the local clock, not now(): occurred_at is a local reading and
+    // app.timezone is UTC, so comparing the two asserts the bug under BST.
+    expect(Fuel::sole()->occurred_at->format('Y-m-d H:i'))
+        ->toBe(EntryInstant::nowLocal()->format('Y-m-d H:i'));
 });
 
 it('names the field the way the form labels it', function () {

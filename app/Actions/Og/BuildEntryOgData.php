@@ -4,14 +4,19 @@ namespace App\Actions\Og;
 
 use App\Data\CardData;
 use App\Data\SegmentData;
+use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
+use App\Models\Media;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
+use App\Queries\DayFoodTotals;
 use App\Support\OgPhrases;
+use App\Support\ShowTitle;
 use App\Support\StaticMap;
 use App\Support\TypeColors;
+use App\Support\Units;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -139,18 +144,24 @@ final class BuildEntryOgData
 
     /**
      * The card headline for an entry. Stat entries (sleep, food, fuel, podcast)
-     * get a personable, varied phrase built from their real numbers; everything
-     * else keeps its real title.
+     * get a personable, varied phrase built from their real numbers; media names
+     * what was watched or read; everything else keeps its real title.
+     *
+     * Every value here is read from the model rather than parsed back out of the
+     * card title. Reading the title meant the wording broke silently the moment
+     * the cards started saying "I slept for 3h 38m", which the sleep phrase then
+     * wrapped into "I slept I slept for 3h 38m".
      */
     private function entryTitle(Model $model, CardData $card, string $seed): string
     {
         $phrase = match ($card->type) {
-            TimelineType::Sleep => OgPhrases::pick('sleep', ['duration' => str_replace(' sleep', '', $card->title)], $seed),
-            TimelineType::Calorie => OgPhrases::pick('food', ['kcal' => trim(str_replace('kcal', '', $card->title))], $seed),
+            TimelineType::Sleep => OgPhrases::pick('sleep', ['duration' => Units::humanDuration($model->duration)], $seed),
+            TimelineType::Calorie => OgPhrases::pick('food', ['kcal' => number_format(app(DayFoodTotals::class)->for($model->occurred_at->toDateString())['calories'])], $seed),
             TimelineType::Fuel => OgPhrases::pick('fuel', ['cost' => number_format((float) $model->cost, 2), 'litres' => $model->litres], $seed),
             TimelineType::Podcast => $model->season_number && $model->episode_number
                 ? OgPhrases::pick('podcast', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
                 : null,
+            TimelineType::Media => $this->mediaTitle($model),
             default => null,
         };
 
@@ -158,9 +169,46 @@ final class BuildEntryOgData
     }
 
     /**
+     * What was watched or read, said the way the card says it. The card title is
+     * the work's own name, which on its own reads as a caption rather than as
+     * something I did.
+     *
+     * An episode names its show and where in it, so a day of one programme does
+     * not share four identical cards.
+     */
+    private function mediaTitle(Media $model): string
+    {
+        $verb = $model->type === MediaType::Book ? 'read' : 'watched';
+
+        return "I {$verb} ".($model->type === MediaType::TvEpisode
+            ? $this->episodeSubject($model)
+            : $model->title);
+    }
+
+    /** "season 4 episode 4 of Ted Lasso", falling back to whatever is known. */
+    private function episodeSubject(Media $model): string
+    {
+        $show = ShowTitle::for($model);
+        $where = $model->meta->season !== null && $model->meta->episode !== null
+            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
+            : null;
+
+        return match (true) {
+            $where !== null && $show !== null => "{$where} of {$show}",
+            $show !== null => $show,
+            default => $model->title,
+        };
+    }
+
+    /**
      * Choose the card layout and background image for an entry: a route map for
-     * activities/flights, a marker for check-ins, a cover for media when one
-     * exists, otherwise a plain gradient (text layout).
+     * activities/flights, a marker for check-ins, otherwise the type's own
+     * gradient (text layout).
+     *
+     * Only generated imagery goes behind the text. A cover used to, blurred, but
+     * a poster or an article header reduced to a smear reads as a rendering
+     * fault rather than a backdrop; the type colour says more and says it
+     * cleanly.
      *
      * @return array{0: string, 1: ?string} The [layout, image URL] pair.
      */
@@ -195,14 +243,6 @@ final class BuildEntryOgData
 
             if ($latitude !== null && $longitude !== null) {
                 return ['media', StaticMap::marker($longitude, $latitude, $accent)];
-            }
-        }
-
-        if (in_array($type, [TimelineType::Media, TimelineType::Article], true) && method_exists($model, 'getFirstMediaUrl')) {
-            $cover = $model->getFirstMediaUrl('cover');
-
-            if ($cover !== '') {
-                return ['cover', $cover];
             }
         }
 

@@ -4,6 +4,7 @@ use App\Models\Article;
 use App\Models\Note;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\PortableText;
 
 use function Pest\Laravel\get;
 
@@ -24,7 +25,10 @@ it('shows a cross-type feed of every article, note, and project carrying the tag
 
             return in_array('Tagged Article', $titles, true)
                 && in_array('Tagged Project', $titles, true)
-                && collect($groups)->flatMap(fn ($group) => collect($group['items'])->pluck('body'))->contains('Tagged note content');
+                && collect($groups)
+                    ->flatMap(fn ($group) => collect($group['items'])->pluck('body'))
+                    ->map(fn ($body) => PortableText::plainText($body))
+                    ->contains('Tagged note content');
         })
     );
 });

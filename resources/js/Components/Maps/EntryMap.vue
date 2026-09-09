@@ -34,10 +34,92 @@ const locatedPhotos = computed(() =>
 // maxZoom caps how far fit-to-route zooms in, so short, tightly-clustered
 // activities (e.g. padel) keep surrounding map context instead of filling the
 // frame with an unreadable scribble.
+const hasLocatedPhotos = computed(() => locatedPhotos.value.length > 0);
+
 const FIT_OPTIONS = { padding: 48, maxZoom: 17 };
 
 const container = ref(null);
 const ready = ref(false);
+
+// Whether there is a route worth drawing, and whether the draw is running now
+// (which is the only thing the control's play/pause face depends on).
+const replayable = ref(false);
+const playing = ref(false);
+
+// The draw itself lives inside onMounted's closure, so the control reaches it
+// through these, assigned once the map is up.
+let startDraw = null;
+let pauseDraw = null;
+
+// Photo markers can be dismissed to get the route back on an activity carrying
+// enough of them to bury it.
+const photosVisible = ref(true);
+
+function togglePhotos() {
+    photosVisible.value = ! photosVisible.value;
+    applyPhotoVisibility();
+}
+
+/** Matches the pop transition in vendor.css, so display waits for the shrink. */
+const PHOTO_POP_MS = 260;
+
+let photoPopTimer = null;
+
+/**
+ * Hide or show the photo markers, popping them out and back in. They still end
+ * up at `display: none`, so a hidden marker leaves the tab order rather than
+ * keeping a focus stop on the map for something nobody can see; the class does
+ * the animating and display only follows once it has finished.
+ */
+function applyPhotoVisibility() {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const elements = markerRefs.value.filter(Boolean);
+
+    if (photoPopTimer !== null) {
+        clearTimeout(photoPopTimer);
+        photoPopTimer = null;
+    }
+
+    if (photosVisible.value) {
+        elements.forEach((element) => {
+            element.style.display = '';
+            // Read back the layout so the browser has a shrunken frame to
+            // animate away from; without it the class removal is coalesced
+            // with the display change and nothing transitions.
+            void element.offsetWidth;
+            element.classList.remove('entry-map-photo-pop--out');
+        });
+
+        return;
+    }
+
+    elements.forEach((element) => element.classList.add('entry-map-photo-pop--out'));
+
+    photoPopTimer = setTimeout(() => {
+        photoPopTimer = null;
+
+        // Re-checked rather than assumed: a second press during the shrink
+        // leaves the markers visible, and they must not then be hidden.
+        if (photosVisible.value) {
+            return;
+        }
+
+        elements.forEach((element) => {
+            element.style.display = 'none';
+        });
+    }, reducedMotion ? 0 : PHOTO_POP_MS);
+}
+
+/** Resume or replay the route draw, or pause it if it is already running. */
+function toggleReplay() {
+    if (playing.value) {
+        pauseDraw?.();
+
+        return;
+    }
+
+    startDraw?.();
+}
 
 /**
  * The intro draws at a steady on-screen speed rather than a fixed duration:
@@ -142,6 +224,10 @@ onMounted(async () => {
         new maplibregl.LngLatBounds(coords[0], coords[0]),
     );
 
+    // How far through the draw we are, 0..1. Survives a pause so resuming
+    // continues the line rather than restarting it.
+    let progress = 0;
+
     // Builds the dot marker the first time a non-empty track arrives, so the
     // element exists in the DOM (hidden) even before the visitor scrubs a chart.
     function ensureRouteDot() {
@@ -245,7 +331,7 @@ onMounted(async () => {
      * the line reaches where it was taken. Deceleration at the end stops the
      * finish feeling abrupt on a long route.
      */
-    function playDraw() {
+    function playDraw(from = 0) {
         const { cumulative, total } = measureRoute();
 
         // A route with no on-screen length (every point projecting to the same
@@ -263,12 +349,16 @@ onMounted(async () => {
 
         startMarker?.getElement().classList.remove('entry-map-endpoint--pending');
 
-        drawHead = new maplibregl.Marker({ element: drawHeadElement() })
+        // Resuming keeps the head it already had; only a fresh draw makes one.
+        drawHead ??= new maplibregl.Marker({ element: drawHeadElement() })
             .setLngLat(coords[0])
             .addTo(map);
 
-        const start = performance.now();
+        // Wound back so `elapsed` picks up where the pause left off.
+        const start = performance.now() - from * duration;
         let index = 1;
+
+        playing.value = true;
 
         /**
          * The point `target` pixels along the route, interpolated inside the
@@ -287,6 +377,8 @@ onMounted(async () => {
 
         function frame(now) {
             const elapsed = (now - start) / duration;
+
+            progress = Math.min(elapsed, 1);
             // Gently eased rather than sharply: a cubic ease-out draws most of a
             // short route in the first third, which reads as a snap, not a draw.
             const eased = 1 - (1 - Math.min(elapsed, 1)) ** 2;
@@ -323,6 +415,8 @@ onMounted(async () => {
 
     /** Show the whole route and every photo on it, and retire the head dot. */
     function finishDraw() {
+        progress = 1;
+        playing.value = false;
         drawn = coords.length;
         map.getSource('route')?.setData(routeUpTo(drawn));
         revealPhotosUpTo(drawn);
@@ -330,6 +424,46 @@ onMounted(async () => {
         finishMarker?.getElement().classList.remove('entry-map-endpoint--pending');
         retireDrawHead();
     }
+
+    /** Put the map back to how it looked before the draw, ready to run again. */
+    function resetDraw() {
+        progress = 0;
+        drawn = 0;
+        map.getSource('route')?.setData(routeUpTo(drawn));
+        photoReveals.forEach(({ element }) => element.classList.add('entry-map-photo', 'entry-map-photo--pending'));
+        startMarker?.getElement().classList.add('entry-map-endpoint--pending');
+        finishMarker?.getElement().classList.add('entry-map-endpoint--pending');
+        drawHead?.remove();
+        drawHead = null;
+    }
+
+    startDraw = () => {
+        if (drawStartTimer !== null) {
+            clearTimeout(drawStartTimer);
+            drawStartTimer = null;
+        }
+
+        // A finished draw starts over; a paused one carries on from where it is.
+        if (progress >= 1) {
+            resetDraw();
+        }
+
+        playDraw(progress);
+    };
+
+    pauseDraw = () => {
+        if (drawStartTimer !== null) {
+            clearTimeout(drawStartTimer);
+            drawStartTimer = null;
+        }
+
+        if (drawFrame !== null) {
+            cancelAnimationFrame(drawFrame);
+            drawFrame = null;
+        }
+
+        playing.value = false;
+    };
 
     /**
      * The dot riding the front of the line as it draws. An out-and-back retraces
@@ -384,6 +518,7 @@ onMounted(async () => {
 
             // Sit above the scrub dot (z-index 1) regardless of insertion order.
             element.style.zIndex = '2';
+            element.classList.add('entry-map-photo-pop');
 
             markers.push(
                 new maplibregl.Marker({ element })
@@ -391,9 +526,12 @@ onMounted(async () => {
                     .addTo(map),
             );
 
+            // Recorded whether or not the intro plays: the replay control needs
+            // these to hide the photos again before drawing a second time.
+            photoReveals.push({ element, at: nearestCoordIndex(photo) });
+
             if (animating) {
                 element.classList.add('entry-map-photo', 'entry-map-photo--pending');
-                photoReveals.push({ element, at: nearestCoordIndex(photo) });
             }
         });
     }
@@ -457,6 +595,8 @@ onMounted(async () => {
 
     animating = coords.length > 1 && ! reducedMotion;
     drawn = animating ? 0 : coords.length;
+    progress = animating ? 0 : 1;
+    replayable.value = coords.length > 1;
 
     map = new maplibregl.Map({
         container: container.value,
@@ -480,7 +620,8 @@ onMounted(async () => {
         addRouteLayer();
 
         if (animating) {
-            drawStartTimer = setTimeout(playDraw, DRAW_START_DELAY);
+            playing.value = true;
+            drawStartTimer = setTimeout(() => playDraw(), DRAW_START_DELAY);
         }
     });
 
@@ -529,23 +670,60 @@ onBeforeUnmount(() => {
     stopCursorWatch?.();
     routeDot?.remove();
     routeDot = null;
+    if (photoPopTimer !== null) {
+        clearTimeout(photoPopTimer);
+        photoPopTimer = null;
+    }
+
+    startDraw = null;
+    pauseDraw = null;
+    playing.value = false;
     map?.remove();
     map = null;
 });
 </script>
 
 <template>
-    <div class="relative">
+    <!-- isolate: a hovered or focused photo marker lifts itself to z-index 900 to
+         clear its neighbours, which without a stacking context here is measured
+         against the whole page and paints the marker over the lightbox it just
+         opened. Contained, the markers can only outrank each other. -->
+    <div class="relative isolate">
         <div ref="container" class="w-full overflow-hidden rounded-lg border border-neutral-50" :class="heightClass" />
-        <button
-            v-if="ready"
-            type="button"
-            class="absolute left-2.5 top-2.5 z-10 flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
-            aria-label="Re-center map"
-            @click="recenter"
-        >
-            <Icon name="CenterFocusIcon" class="size-4" />
-        </button>
+        <div v-if="ready" class="absolute left-2.5 top-2.5 z-10 flex gap-1.5">
+            <button
+                type="button"
+                class="flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                aria-label="Re-center map"
+                @click="recenter"
+            >
+                <Icon name="CenterFocusIcon" class="size-4" />
+            </button>
+
+            <button
+                v-if="replayable"
+                type="button"
+                data-testid="replay-route"
+                class="flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                :aria-label="playing ? 'Pause the route replay' : 'Replay the route'"
+                @click="toggleReplay"
+            >
+                <Icon :name="playing ? 'PauseIcon' : 'PlayIcon'" class="size-4" />
+            </button>
+
+            <button
+                v-if="hasLocatedPhotos"
+                type="button"
+                data-testid="toggle-photos"
+                class="flex size-8 items-center justify-center rounded-md border border-neutral-100 bg-neutral-0 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                :class="photosVisible ? 'text-neutral-700' : 'text-neutral-400'"
+                :aria-pressed="photosVisible"
+                :aria-label="photosVisible ? 'Hide photos on the map' : 'Show photos on the map'"
+                @click="togglePhotos"
+            >
+                <Icon name="Image01Icon" class="size-4" />
+            </button>
+        </div>
 
         <div class="hidden">
             <PhotoMarker

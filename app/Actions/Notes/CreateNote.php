@@ -3,6 +3,7 @@
 namespace App\Actions\Notes;
 
 use App\Models\Note;
+use App\Support\EntryInstant;
 use App\Support\PortableText;
 
 class CreateNote
@@ -23,7 +24,7 @@ class CreateNote
             'content' => is_string($attributes['content'])
                 ? PortableText::fromPlainText($attributes['content'])
                 : $attributes['content'],
-            'occurred_at' => $attributes['occurred_at'] ?? now(),
+            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
             'slug' => $attributes['slug'] ?? null,
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
         ]);

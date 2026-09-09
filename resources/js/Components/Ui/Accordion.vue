@@ -31,7 +31,7 @@ function toggle() {
             <button
                 :id="headerId"
                 type="button"
-                class="flex w-full items-center justify-between gap-4 py-4 text-left font-display text-section"
+                class="flex w-full items-center justify-between gap-4 py-4 text-left font-display text-section transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none"
                 :aria-expanded="expanded"
                 :aria-controls="contentId"
                 @click="toggle"

@@ -17,11 +17,11 @@ final class AppearanceCard
     public function present(Appearance $model): CardData
     {
         return new CardData(
-            type: TimelineType::Appearance,
+            type: $this->type(),
             icon: 'mic',
-            title: $model->title,
+            title: $this->title($model),
             titleLabel: null,
-            subtitle: $model->show_name,
+            subtitle: $model->show_name ? "I spoke at {$model->show_name}." : null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'appearance',
@@ -37,5 +37,15 @@ final class AppearanceCard
                 url: $model->url(),
             )),
         );
+    }
+
+    public function title(Appearance $model): string
+    {
+        return $model->title;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Appearance;
     }
 }

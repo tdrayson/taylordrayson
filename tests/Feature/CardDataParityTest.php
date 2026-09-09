@@ -13,11 +13,14 @@ use App\Support\Distance;
 use App\Support\YouTube;
 
 /**
- * Proves CardData::toArray() reproduces, byte-for-byte, the array literal each
- * model's card() used to return before the DTO refactor. Values are computed
- * the same way the original inline arrays computed them (Distance::miles(),
- * number_format(), the model's own helper methods), not re-hardcoded, so
- * these tests fail if the DTO wiring silently drops or renames a key.
+ * Pins the exact array CardData::toArray() emits per type: every key, the order
+ * they appear in, and which of them are omitted rather than null.
+ *
+ * Originally a parity guard proving the DTO reproduced the pre-refactor card()
+ * arrays byte-for-byte. That premise ended when the card copy was rewritten;
+ * what still earns its keep is the shape, so values that are computed rather
+ * than authored (Distance::miles(), the model's own helpers) stay computed
+ * here rather than hardcoded.
  */
 it('reproduces the pre-refactor activity card shape', function () {
     $activity = Activity::factory()->create([
@@ -34,11 +37,13 @@ it('reproduces the pre-refactor activity card shape', function () {
         'type' => 'activity',
         'icon' => 'footprints',
         'title' => 'Morning Run',
-        'subtitle' => Distance::miles(5000, 1).' mi in 30m, 350 kcal',
+        'subtitle' => 'I ran '.Distance::miles(5000, 1).' mi in 30m and burned 350 kcal.',
         'subtitleTokens' => [
-            ['t' => 'dist', 'm' => 5000, 'p' => 1],
-            ['t' => 'text', 'v' => '30m', 'sep' => ' in '],
-            ['t' => 'text', 'v' => '350 kcal'],
+            ['t' => 'text', 'v' => 'I ran'],
+            ['t' => 'dist', 'm' => 5000, 'p' => 1, 'sep' => ' '],
+            ['t' => 'text', 'v' => 'in 30m', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'and burned 350 kcal', 'sep' => ' '],
+            ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $activity->occurred_at,
         'accent' => 'activity',
@@ -65,10 +70,12 @@ it('reproduces the pre-refactor flight card shape', function () {
         'type' => 'flight',
         'icon' => 'plane',
         'title' => 'LHR → JFK',
-        'subtitle' => '1,000 mi in economy',
+        'subtitle' => 'I flew from LHR to JFK. It was 1,000 mi in economy.',
         'subtitleTokens' => [
-            ['t' => 'dist', 'm' => 1609344, 'p' => 0],
-            ['t' => 'text', 'v' => 'economy', 'sep' => ' in '],
+            ['t' => 'text', 'v' => 'I flew from LHR to JFK. It was'],
+            ['t' => 'dist', 'm' => 1609344, 'p' => 0, 'sep' => ' '],
+            ['t' => 'text', 'v' => 'in economy', 'sep' => ' '],
+            ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $flight->occurred_at,
         'accent' => 'flight',
@@ -101,10 +108,10 @@ it('reproduces the pre-refactor media card shape', function () {
         'type' => 'media',
         'icon' => 'film',
         'title' => 'Interstellar',
-        'subtitle' => '★ 9 / 10, 2014',
+        'subtitle' => 'I watched this 2014 film and rated it 9/10.',
         'occurred_at' => $media->occurred_at,
         'accent' => 'media',
-        'meta' => [],
+        'meta' => ['backdrop' => null],
     ]);
 });
 
@@ -121,7 +128,7 @@ it('reproduces the pre-refactor note card shape', function () {
         'subtitle' => null,
         'occurred_at' => $note->occurred_at,
         'accent' => 'note',
-        'meta' => ['body' => 'A short note about today.', 'photos' => []],
+        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => []],
     ]);
 });
 
@@ -138,7 +145,7 @@ it('reproduces the pre-refactor single-day event card shape', function () {
         'type' => 'event',
         'icon' => 'music',
         'title' => 'Test Gig',
-        'subtitle' => 'Some Venue in London',
+        'subtitle' => 'I went to Some Venue in London.',
         'occurred_at' => $event->occurred_at,
         'accent' => 'event',
         'meta' => ['photos' => [], 'map' => null, 'mapDark' => null],
@@ -160,9 +167,9 @@ it('reproduces the pre-refactor sleep card shape', function () {
     expect(CardPresenter::for($sleep)->toArray())->toEqual([
         'type' => 'sleep',
         'icon' => 'bed',
-        'title' => '8h sleep',
-        'titleLabel' => 'Sleep log, 8h',
-        'subtitle' => '11:00pm → 7:00am',
+        'title' => 'I slept for 8h',
+        'titleLabel' => 'Sleep log, I slept for 8 hours',
+        'subtitle' => 'I went to bed at 11:00pm and woke at 7:00am.',
         'occurred_at' => $sleep->occurred_at,
         'accent' => 'sleep',
         'meta' => [
@@ -190,7 +197,7 @@ it('reproduces the pre-refactor appearance card shape', function () {
         'type' => 'appearance',
         'icon' => 'mic',
         'title' => 'Building a Lifelog',
-        'subtitle' => 'Laracon EU',
+        'subtitle' => 'I spoke at Laracon EU.',
         'occurred_at' => $appearance->occurred_at,
         'accent' => 'appearance',
         'meta' => [

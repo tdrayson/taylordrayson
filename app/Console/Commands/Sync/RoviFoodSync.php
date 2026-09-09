@@ -4,7 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Enums\Source;
 use App\Models\Calorie;
-use App\Services\Rovi;
+use App\Services\Rovi\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -31,7 +31,7 @@ class RoviFoodSync extends Command
      * newest synced day so a gap self-heals, bounded by MAX_CATCHUP_DAYS. Only
      * source=rovi rows are touched, and a failed fetch skips reconciliation.
      */
-    public function handle(Rovi $rovi): int
+    public function handle(Client $rovi): int
     {
         $days = max(0, (int) $this->option('days'));
 
@@ -98,7 +98,7 @@ class RoviFoodSync extends Command
      *
      * @return list<array<string, mixed>>|null
      */
-    private function fetchDiary(Rovi $rovi, string $from, string $to): ?array
+    private function fetchDiary(Client $rovi, string $from, string $to): ?array
     {
         $items = [];
         $query = ['from' => $from, 'to' => $to, 'limit' => 500];

@@ -7,24 +7,25 @@ use App\Data\CardMeta;
 use App\Enums\TimelineType;
 use App\Models\Calorie;
 use App\Queries\DayFoodTotals;
+use App\Support\Text;
 
 /**
- * Builds the timeline card for a Calorie entry: the day's total kcal as the
- * title, plus a protein/carbs/fat macro breakdown for the day as the subtitle.
+ * Builds the timeline card for a Calorie entry: the day's total calories as the
+ * title, with the macro breakdown written as a sentence beneath it.
  */
 final class CalorieCard
 {
     public function present(Calorie $model): CardData
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
-        $dailyTotal = $totals['calories'];
+        $kcal = number_format($totals['calories']);
 
         return new CardData(
-            type: TimelineType::Calorie,
+            type: $this->type(),
             icon: 'utensils',
-            title: number_format($dailyTotal).' kcal',
-            titleLabel: 'Food log, '.number_format($dailyTotal).' kcal for the day',
-            subtitle: $this->cardSubtitle($totals),
+            title: $this->title($model),
+            titleLabel: "Food log, I ate {$kcal} calories",
+            subtitle: $this->sentence($totals),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'food',
@@ -34,24 +35,39 @@ final class CalorieCard
     }
 
     /**
+     * The day's macros as a sentence. The title says what was eaten, so this
+     * breaks it down rather than repeating the verb, and names no date: the
+     * date-group heading carries one, and EntryDescription writes the standalone
+     * sentence for the surfaces that have no heading above them.
+     *
+     * No meal count: the rows carry a meal slot (breakfast/lunch/dinner/snacks),
+     * so counting them counts groupings rather than meals eaten.
+     *
      * @param  array{calories: int, protein: float, carbs: float, fat: float}  $totals
      */
-    private function cardSubtitle(array $totals): ?string
+    private function sentence(array $totals): ?string
     {
-        $parts = [];
+        $macros = array_values(array_filter([
+            $totals['protein'] ? round($totals['protein']).'g of protein' : null,
+            $totals['carbs'] ? round($totals['carbs']).'g of carbs' : null,
+            $totals['fat'] ? round($totals['fat']).'g of fat' : null,
+        ]));
 
-        if ($totals['protein']) {
-            $parts[] = round($totals['protein']).'g protein';
-        }
+        return $macros === [] ? null : sprintf('That was %s.', Text::sentenceList($macros));
+    }
 
-        if ($totals['carbs']) {
-            $parts[] = round($totals['carbs']).'g carbs';
-        }
+    /**
+     * Reads the day's totals, so this is the one card title that costs a query.
+     */
+    public function title(Calorie $model): string
+    {
+        $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 
-        if ($totals['fat']) {
-            $parts[] = round($totals['fat']).'g fat';
-        }
+        return 'I ate '.number_format($totals['calories']).' calories';
+    }
 
-        return $parts ? implode(', ', $parts) : null;
+    public function type(): TimelineType
+    {
+        return TimelineType::Calorie;
     }
 }

@@ -8,6 +8,10 @@ const props = defineProps({
     lastPage: { type: Number, default: 1 },
     prevUrl: { type: String, default: null },
     nextUrl: { type: String, default: null },
+    // 'Newer'/'Older' on a time-ordered feed, where "previous" could mean
+    // either direction.
+    prevLabel: { type: String, default: 'Previous' },
+    nextLabel: { type: String, default: 'Next' },
 });
 
 const emit = defineEmits(['navigate']);
@@ -27,29 +31,33 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             :is="prevTag"
             :href="prevUrl || undefined"
             :type="prevTag === 'button' ? 'button' : undefined"
-            aria-label="Previous page"
+            :aria-label="`${prevLabel} page`"
             :aria-disabled="prevUrl || hasPrev ? undefined : 'true'"
             class="inline-flex items-center gap-1.5"
-            :class="prevUrl || hasPrev ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'cursor-default text-neutral-500/40'"
+            :class="prevUrl || hasPrev ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'text-neutral-500/40'"
             @click="!prevUrl && hasPrev && emit('navigate', currentPage - 1)"
         >
             <Icon name="ArrowLeft01Icon" class="size-4" />
-            Previous
+            {{ prevLabel }}
         </component>
 
-        <span class="text-neutral-500 tnum" aria-current="page">Page {{ currentPage }} of {{ lastPage }}</span>
+        <!-- A date-ordered feed says where it is by date; a flat list of one type
+             says it by page number, which is what the fallback keeps. -->
+        <span class="text-neutral-500 tnum" aria-current="page">
+            <slot name="label">Page {{ currentPage }} of {{ lastPage }}</slot>
+        </span>
 
         <component
             :is="nextTag"
             :href="nextUrl || undefined"
             :type="nextTag === 'button' ? 'button' : undefined"
-            aria-label="Next page"
+            :aria-label="`${nextLabel} page`"
             :aria-disabled="nextUrl || hasNext ? undefined : 'true'"
             class="inline-flex items-center gap-1.5"
-            :class="nextUrl || hasNext ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'cursor-default text-neutral-500/40'"
+            :class="nextUrl || hasNext ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'text-neutral-500/40'"
             @click="!nextUrl && hasNext && emit('navigate', currentPage + 1)"
         >
-            Next
+            {{ nextLabel }}
             <Icon name="ArrowRight01Icon" class="size-4" />
         </component>
     </nav>

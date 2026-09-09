@@ -3,11 +3,14 @@
  * `icon` is an icon-registry name, `href` mirrors the archive slugs in
  * App\Timeline\TypeRegistry, and `accent` is the --color-* token key, which
  * matches the type key except where it diverges server-side (calorie -> food).
+ *
+ * Kept separate from `linkTypes` below because this is also the list of type
+ * archives: anything added here becomes a destination in the command palette.
  */
-export const entryTypes = {
+export const timelineTypes = {
     activity: { icon: 'WorkoutRunIcon', label: 'Activity', href: '/activities', accent: 'activity' },
     sleep: { icon: 'Moon02Icon', label: 'Sleep', href: '/sleep', accent: 'sleep' },
-    calorie: { icon: 'Dish02Icon', label: 'Food', href: '/food', accent: 'food' },
+    calorie: { icon: 'UtensilsIcon', label: 'Food', href: '/food', accent: 'food' },
     media: { icon: 'Film01Icon', label: 'Media', href: '/media', accent: 'media' },
     event: { icon: 'Ticket01Icon', label: 'Event', href: '/events', accent: 'event' },
     appearance: { icon: 'Mic01Icon', label: 'Appearance', href: '/appearances', accent: 'appearance' },
@@ -17,9 +20,15 @@ export const entryTypes = {
     fuel: { icon: 'PetrolPumpIcon', label: 'Fuel', href: '/fuel', accent: 'fuel' },
     project: { icon: 'RocketIcon', label: 'Project', href: '/projects', accent: 'project' },
     article: { icon: 'File01Icon', label: 'Article', href: '/articles', accent: 'article' },
-    note: { icon: 'Note01Icon', label: 'Note', href: '/notes', accent: 'note' },
-    // Not timeline types: the other things an internal link can point at, so a
-    // link preview has a glyph for each. See App\\Links\\Resolvers.
+    note: { icon: 'StickyNote02Icon', label: 'Note', href: '/notes', accent: 'note' },
+};
+
+/**
+ * The other things an internal link can point at, so a link preview has a glyph
+ * for each. See App\Links\Resolvers. Their `href` is where a link of that kind
+ * goes, not an archive, so they stay out of the palette's Archives list.
+ */
+const linkTypes = {
     story: { icon: 'BookOpen01Icon', label: 'Story', href: '/stories', accent: 'article' },
     page: { icon: 'File02Icon', label: 'Page', accent: 'article' },
     period: { icon: 'Calendar03Icon', label: 'Archive', href: '/', accent: 'article' },
@@ -27,6 +36,9 @@ export const entryTypes = {
     live: { icon: 'Clock01Icon', label: 'Now', href: '/now', accent: 'activity' },
 };
 
+/** Every type a card, link preview or icon lookup can be handed. */
+export const entryTypes = { ...timelineTypes, ...linkTypes };
+
 export function entryType(type) {
-    return entryTypes[type] ?? { icon: 'Note01Icon', label: type, accent: 'note' };
+    return entryTypes[type] ?? { icon: 'StickyNote02Icon', label: type, accent: 'note' };
 }

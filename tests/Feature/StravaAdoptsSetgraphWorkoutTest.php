@@ -1,7 +1,8 @@
 <?php
 
 use App\Models\Activity;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.strava.client_id' => 'x', 'services.strava.client_secret' => 'y', 'services.strava.refresh_token' => 'z']);
@@ -21,13 +22,15 @@ beforeEach(function () {
         'timezone' => '(GMT+00:00) Europe/London',
     ];
 
-    Http::fake([
-        '*oauth/token*' => Http::response(['access_token' => 'tok', 'expires_in' => 3600]),
-        '*athlete/activities*' => Http::sequence()
-            ->push([$summary])
-            ->push([]),
-        '*activities/19532725079/streams*' => Http::response([]),
-        '*activities/19532725079*' => Http::response($summary),
+    Saloon::fake([
+        'oauth/token*' => MockResponse::make(['access_token' => 'tok', 'expires_in' => 3600]),
+        'athlete/activities*' => mockSequence([
+            MockResponse::make([$summary]),
+            // The empty page that ends pagination.
+            MockResponse::make([]),
+        ]),
+        'activities/19532725079/streams*' => MockResponse::make([]),
+        'activities/19532725079*' => MockResponse::make($summary),
     ]);
 });
 
