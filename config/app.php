@@ -97,6 +97,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Development Auto Login
+    |--------------------------------------------------------------------------
+    |
+    | When true, GET /dev-login signs in that account without asking for the
+    | password, so a fresh local workspace opens ready to edit. The route is
+    | only registered in local, so setting this in production does nothing.
+    |
+    */
+
+    'dev_auto_login' => (bool) env('DEV_AUTO_LOGIN', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
