@@ -37,8 +37,8 @@ final class ImportPost
         );
 
         $attributes = [
-            'title' => $post['title'] ?? '',
-            'excerpt' => ($post['excerpt'] ?? '') !== '' ? $post['excerpt'] : null,
+            'title' => $this->decoded($post['title'] ?? ''),
+            'excerpt' => ($post['excerpt'] ?? '') !== '' ? $this->decoded($post['excerpt']) : null,
             'content' => $converted->nodes,
             'published' => ($post['status'] ?? '') === 'publish',
             'occurred_at' => $post['date'] ?? EntryInstant::nowLocal(),
@@ -100,6 +100,15 @@ final class ImportPost
             }
         }
 
-        return array_values(array_unique(array_filter($names)));
+        return array_values(array_unique(array_filter(array_map($this->decoded(...), $names))));
+    }
+
+    /**
+     * WordPress stores titles and term names HTML-encoded, so `Hooks &amp;
+     * Filters` arrives as those characters rather than as an ampersand.
+     */
+    private function decoded(string $value): string
+    {
+        return trim(html_entity_decode($value, ENT_QUOTES | ENT_HTML5));
     }
 }

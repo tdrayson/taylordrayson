@@ -168,3 +168,21 @@ it('leaves a dead link to the old site alone and says so', function () {
     expect($result['rewritten'])->toBe(0)
         ->and($result['unresolved'])->toBe(['https://snippetclub.com/gone/']);
 });
+
+// WordPress stores titles and term names HTML-encoded, so an ampersand arrives
+// as an entity and would otherwise be title-cased into "Hooks &Amp; Filters".
+it('decodes the entities WordPress stores in titles and tags', function () {
+    app(ImportPost::class)([
+        'title' => 'Removing Prefixes &amp; Suffixes',
+        'slug' => 'prefixes',
+        'status' => 'publish',
+        'date' => '2022-11-16 19:27:41',
+        'content_raw' => '',
+        'tags' => [['name' => 'Hooks &amp; Filters']],
+    ]);
+
+    $article = Article::where('slug', 'prefixes')->first();
+
+    expect($article->title)->toBe('Removing Prefixes & Suffixes')
+        ->and($article->tagNames())->toContain('Hooks & Filters');
+});
