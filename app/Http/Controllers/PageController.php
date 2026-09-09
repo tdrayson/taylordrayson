@@ -6,7 +6,6 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\Files\BuildFileReleases;
-use App\Actions\ResolveMentions;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
 use App\Support\OgMeta;
@@ -57,7 +56,6 @@ class PageController extends Controller
             'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
             'linkFavicons' => (new BuildLinkFavicons)($page->content),
             'fileReleases' => app(BuildFileReleases::class)($page->content),
-            'mentions' => (new ResolveMentions)($page->content),
         ]);
     }
 }

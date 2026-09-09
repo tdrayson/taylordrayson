@@ -58,9 +58,9 @@ final class ActivityCard
     public function present(Activity $model): CardData
     {
         return new CardData(
-            type: TimelineType::Activity,
+            type: $this->type(),
             icon: 'footprints',
-            title: $model->name ?? ucfirst($model->type),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $this->cardSubtitle($model),
             subtitleTokens: $this->subtitleTokens($model),
@@ -242,5 +242,15 @@ final class ActivityCard
         $tokens[] = SubtitleToken::text('.', '');
 
         return $tokens;
+    }
+
+    public function title(Activity $model): string
+    {
+        return $model->name ?? ucfirst($model->type);
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Activity;
     }
 }

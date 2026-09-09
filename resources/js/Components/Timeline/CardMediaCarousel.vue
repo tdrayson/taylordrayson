@@ -81,7 +81,7 @@ function goTo(index) {
                 <button
                     v-else
                     type="button"
-                    class="group/zoom block size-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+                    class="group/zoom block size-full cursor-zoom-in transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
                     aria-label="View photo"
                     @click="emit('open', slide.photoIndex)"
                 >

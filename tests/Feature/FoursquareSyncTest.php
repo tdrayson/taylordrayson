@@ -95,6 +95,7 @@ it('caps the catch-up so a long gap does not refetch all history', function () {
 });
 
 it('stores a newly returned check-in', function () {
+    fakeMapImages();
     fakeSwarmRuns([[swarmItem('fresh', 'Flat white')]]);
 
     $this->artisan('foursquare:sync')->assertSuccessful();
@@ -128,6 +129,7 @@ it('queues the pin for a new check-in, but not for one seen again', function () 
 });
 
 it('updates rather than duplicates a check-in seen again in the overlap window', function () {
+    fakeMapImages();
     fakeSwarmRuns([
         [swarmItem('same')],
         [swarmItem('same', 'Added later')],

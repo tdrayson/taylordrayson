@@ -16,13 +16,16 @@ const props = defineProps({
     class: { type: [String, Array, Object], default: '' },
 });
 
+// Hover is gated on not-disabled rather than switched off with
+// pointer-events-none: a disabled button has to stay hoverable for its
+// not-allowed cursor to show. `:not(:disabled)` also matches the Link form.
 const VARIANTS = {
-    primary: 'bg-accent-500 text-white hover:bg-accent-700',
-    secondary: 'border border-neutral-100 text-neutral-900 hover:bg-neutral-25',
-    ghost: 'text-neutral-900 hover:text-accent-500',
-    chip: 'bg-neutral-25 uppercase text-neutral-700 hover:bg-accent-50 hover:text-accent-700',
-    destructive: 'bg-red-600 text-white hover:bg-red-700',
-    link: 'text-accent-500 underline underline-offset-2 hover:text-accent-700',
+    primary: 'bg-accent-500 text-white not-disabled:hover:bg-accent-700',
+    secondary: 'border border-neutral-100 text-neutral-900 not-disabled:hover:bg-neutral-25',
+    ghost: 'text-neutral-900 not-disabled:hover:text-accent-500',
+    chip: 'bg-neutral-25 uppercase text-neutral-700 not-disabled:hover:bg-accent-50 not-disabled:hover:text-accent-700',
+    destructive: 'bg-red-600 text-white not-disabled:hover:bg-red-700',
+    link: 'text-accent-500 underline underline-offset-2 not-disabled:hover:text-accent-700',
 };
 
 const SIZES = {
@@ -34,7 +37,7 @@ const SIZES = {
 
 const classes = computed(() =>
     cn(
-        'inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:opacity-40',
         props.pill ? 'rounded-full' : 'rounded-md',
         VARIANTS[props.variant] ?? VARIANTS.secondary,
         SIZES[props.size] ?? SIZES.md,
