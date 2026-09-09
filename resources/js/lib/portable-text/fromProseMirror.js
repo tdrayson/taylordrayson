@@ -37,18 +37,6 @@ function inlineToSpans(content) {
     const markDefs = [];
 
     for (const node of content ?? []) {
-        // A mention is a reference, not decorated text: it stores kind and id
-        // only, and its title is resolved at render time.
-        if (node.type === 'mention') {
-            children.push({
-                _type: 'mention',
-                _key: node.attrs?._key ?? newKey(),
-                kind: node.attrs?.kind ?? null,
-                id: node.attrs?.id ?? null,
-            });
-            continue;
-        }
-
         if (node.type !== 'text') {
             continue;
         }
