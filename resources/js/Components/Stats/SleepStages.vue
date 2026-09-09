@@ -129,7 +129,7 @@ const cursor = computed(() => {
     <div class="overflow-x-clip">
         <div
             ref="track"
-            class="relative h-24 w-full touch-pan-y select-none"
+            class="relative h-24 w-full cursor-crosshair touch-pan-y select-none"
             @pointerdown="onMove"
             @pointermove="onMove"
             @pointerleave="onLeave"

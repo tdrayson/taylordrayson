@@ -20,13 +20,10 @@ final class CheckinCard
             ->filter()
             ->implode(', ');
 
-        // Display-only: the URL slug still comes from the venue (Checkin::slug()).
-        $title = $model->event_name
-            ? "{$model->event_name} at {$model->venue_name}"
-            : "at {$model->venue_name}";
+        $title = $this->title($model);
 
         return new CardData(
-            type: TimelineType::Checkin,
+            type: $this->type(),
             icon: 'map-pin',
             title: $title,
             // "Check-in at Cineworld" reads straight through; an event title
@@ -51,5 +48,20 @@ final class CheckinCard
                 category: $model->category,
             ),
         );
+    }
+
+    /**
+     * Display-only: the URL slug still comes from the venue (Checkin::slug()).
+     */
+    public function title(Checkin $model): string
+    {
+        return $model->event_name
+            ? "{$model->event_name} at {$model->venue_name}"
+            : "at {$model->venue_name}";
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Checkin;
     }
 }

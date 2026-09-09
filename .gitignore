@@ -56,5 +56,5 @@ storage/backups/
 # the server, so they are cache rather than source.
 /public/favicons/
 
-# Bloom workspace id, written per worktree by the local tooling.
+# Bloom's workspace identifier, written into the checkout by the local tooling.
 /.bloom-site
