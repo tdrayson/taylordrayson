@@ -19,7 +19,7 @@ final class FuelCard
         $title = $this->title($model);
 
         return new CardData(
-            type: TimelineType::Fuel,
+            type: $this->type(),
             icon: 'fuel',
             title: $title,
             titleLabel: "Fuel stop, {$title}",
@@ -42,7 +42,7 @@ final class FuelCard
      * carry no station, city, brand or coordinates at all, so they name no
      * place rather than inventing one.
      */
-    private function title(Fuel $model): string
+    public function title(Fuel $model): string
     {
         $cost = '£'.number_format((float) $model->cost, 2);
 
@@ -71,5 +71,10 @@ final class FuelCard
         // "Fuel was", not "That was": the "that" pointed at the fill-up, which
         // was not what cost a tenth of a penny.
         return $sentence.sprintf(' Fuel was %s/L.', Units::pencePerLitre($model->price_per_litre));
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Fuel;
     }
 }

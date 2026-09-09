@@ -180,7 +180,7 @@ setLayoutProps({
         />
 
         <p v-if="signedIn && editType" class="mt-6">
-            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
+            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
         </p>
 
         <EntryFooter :source="source" :tags="tags" class="mt-10" />

@@ -19,7 +19,11 @@ function galleryPhoto(object $model, string $collection, string $name): void
 }
 
 it('renders the photos page', function () {
-    get('/photos')->assertOk()->assertInertia(fn ($page) => $page->component('Photos')->has('photos', 0));
+    get('/photos')->assertOk()->assertInertia(fn ($page) => $page
+        ->component('Photos')
+        ->where('total', 0)
+        ->loadDeferredProps(fn ($page) => $page->has('photos.data', 0))
+    );
 });
 
 it('shows only real photos, newest first, excluding maps and appearance thumbnails', function () {
@@ -36,12 +40,17 @@ it('shows only real photos, newest first, excluding maps and appearance thumbnai
     $appearance = Appearance::factory()->create(['occurred_at' => '2026-07-01 09:00:00']);
     galleryPhoto($appearance, 'cover', 'youtube-thumb.jpg');
 
+    // The photos are deferred and paginated, so they arrive on the reload the
+    // client makes rather than in the shell.
     get('/photos')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Photos')
-        ->has('photos', 3) // 2 from the newer activity + 1 from the older; map + appearance excluded
-        ->where('photos.0.caption', 'Newer run') // newest first
-        ->has('photos.0.full')
-        ->has('photos.0.url')
-        ->has('photos.0.date')
+        ->where('total', 3) // 2 from the newer activity + 1 from the older; map + appearance excluded
+        ->loadDeferredProps(fn ($page) => $page
+            ->has('photos.data', 3)
+            ->where('photos.data.0.caption', 'Newer run') // newest first
+            ->has('photos.data.0.full')
+            ->has('photos.data.0.url')
+            ->has('photos.data.0.date')
+        )
     );
 });
