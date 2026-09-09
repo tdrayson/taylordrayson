@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
-use App\Actions\ResolveMentions;
 use App\Data\TagLink;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
@@ -117,11 +116,6 @@ class EntryController extends Controller
                 : [],
             'linkFavicons' => $model instanceof Article || $model instanceof Note
                 ? (new BuildLinkFavicons)($model->content)
-                : [],
-            // Mentions store {kind, id}, so their titles and hrefs are resolved
-            // per request rather than baked into the content at save time.
-            'mentions' => $model instanceof Article || $model instanceof Note
-                ? (new ResolveMentions)($model->content)
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled

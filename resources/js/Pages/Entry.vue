@@ -48,8 +48,6 @@ const props = defineProps({
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
     media: { type: Object, default: () => ({}) },
-    // kind:id -> resolved mention, for content that carries any.
-    mentions: { type: Object, default: () => ({}) },
     // Editing in place: only hand-authored types get a form at all.
     editing: { type: Boolean, default: false },
     editType: { type: String, default: null },
@@ -177,7 +175,7 @@ setLayoutProps({
         />
 
         <p v-if="signedIn && editType" class="mt-6">
-            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">Edit this entry</Link>
+            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
         </p>
 
         <EntryFooter :source="source" :tags="tags" class="mt-10" />

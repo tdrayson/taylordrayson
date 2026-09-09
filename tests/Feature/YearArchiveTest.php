@@ -105,23 +105,19 @@ it('serves the year timeline tail ascending, day-paginated and deferred', functi
         Note::factory()->count(6)->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
     }
 
-    // Initial load: deferred prop absent, pagination metadata present. Loading
-    // the deferred prop performs the follow-up partial reload the client would
-    // make, resolving the tail oldest-first.
+    // The feed carries the page's h-feed, so it resolves in the response
+    // itself rather than a follow-up reload. Tail is oldest-first.
     get('/2025')->assertInertia(fn ($page) => $page
-        ->missing('groups')
         ->where('currentPage', 1)
         ->where('lastPage', 2)
-        ->loadDeferredProps(fn ($reload) => $reload
-            ->has('groups', 8)
-            ->where('groups.0.date', '2025-05-01')
-            ->where('groups.7.date', '2025-05-08')));
+        ->has('groups', 8)
+        ->where('groups.0.date', '2025-05-01')
+        ->where('groups.7.date', '2025-05-08'));
 
     get('/2025?page=2')->assertInertia(fn ($page) => $page
         ->where('currentPage', 2)
-        ->loadDeferredProps(fn ($reload) => $reload
-            ->has('groups', 4)
-            ->where('groups.0.date', '2025-05-09')));
+        ->has('groups', 4)
+        ->where('groups.0.date', '2025-05-09'));
 });
 
 /**
@@ -135,7 +131,7 @@ it('takes fewer days per page when the days are dense', function () {
 
     get('/2025')->assertInertia(fn ($page) => $page
         ->where('lastPage', 2)
-        ->loadDeferredProps(fn ($reload) => $reload->has('groups', 2)));
+        ->has('groups', 2));
 });
 
 it('offers every month of the year, marking the empty ones', function () {
@@ -171,14 +167,12 @@ it('serves the month tail and photos strip', function () {
 
     get('/2025/05')->assertInertia(fn ($page) => $page
         ->component('Month')
-        ->missing('groups')
         ->where('currentPage', 1)
         ->where('lastPage', 1)
         ->has('photos', 1)
         ->has('photos.0.src')
-        ->loadDeferredProps(fn ($reload) => $reload
-            ->has('groups', 1)
-            ->where('groups.0.date', '2025-05-03')));
+        ->has('groups', 1)
+        ->where('groups.0.date', '2025-05-03'));
 });
 
 it('sends the period summary on the first page only', function () {
@@ -204,4 +198,17 @@ it('shows every photo in the month, uncapped', function () {
     get('/2025/05')->assertInertia(fn ($page) => $page
         ->component('Month')
         ->has('photos', 13));
+});
+
+it('resolves the archive feed in the initial response so its microformats survive SSR', function () {
+    Note::factory()->create(['occurred_at' => '2025-05-03 10:00:00']);
+
+    // The archive feed carries the page's h-feed. A deferred prop is excluded
+    // from the initial render, so deferring this would serve a parser the
+    // loading state instead of the entries.
+    foreach (['/2025', '/2025/05'] as $url) {
+        get($url)->assertInertia(fn ($page) => $page
+            ->has('groups', 1)
+            ->missing('deferredProps'));
+    }
 });

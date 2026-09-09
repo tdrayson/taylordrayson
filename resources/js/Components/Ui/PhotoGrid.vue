@@ -2,36 +2,23 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
+import { DEFAULT_COLUMNS, GAP, ROW, SQUARE_SPAN, preset as presetFor, spanForRatio } from '../../lib/photoGrid.js';
 
 // Masonry via CSS grid row spans: photos stay in document order so keyboard
 // focus moves across rows in that order, while each tile spans the rows
-// needed for its aspect ratio, giving the staggered masonry look.
-const GAP = 12; // matches gap-3
-const ROW = 8; // grid-auto-rows base unit
-
-// Presets keyed by the desktop (lg) column count: the per-breakpoint counts
-// drive the JS row-span math, and `cols` is the matching static Tailwind class
-// string (Tailwind needs literal classes, so these are enumerated, not built).
-// Smaller breakpoints collapse automatically. Add a key here to support a new
-// column count; an unknown `columns` value falls back to 4.
-const PRESETS = {
-    2: { counts: { base: 1, sm: 2, lg: 2 }, cols: 'grid-cols-1 sm:grid-cols-2' },
-    3: { counts: { base: 2, sm: 2, lg: 3 }, cols: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3' },
-    4: { counts: { base: 2, sm: 3, lg: 4 }, cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' },
-    5: { counts: { base: 2, sm: 3, lg: 5 }, cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' },
-    6: { counts: { base: 3, sm: 4, lg: 6 }, cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6' },
-};
+// needed for its aspect ratio, giving the staggered masonry look. The column
+// presets live in lib/photoGrid.js, shared with the loading skeleton.
 
 const props = defineProps({
     photos: { type: Array, required: true },
     // Desktop column count; smaller screens collapse to fewer columns via the
     // matching preset. Supported: 2-6 (default 4). Unknown values fall back to 4.
-    columns: { type: Number, default: 4, validator: (value) => Number.isInteger(value) && value >= 2 && value <= 6 },
+    columns: { type: Number, default: DEFAULT_COLUMNS, validator: (value) => Number.isInteger(value) && value >= 2 && value <= 6 },
 });
 
 const emit = defineEmits(['open']);
 
-const preset = computed(() => PRESETS[props.columns] ?? PRESETS[4]);
+const preset = computed(() => presetFor(props.columns));
 const columnsByBreakpoint = computed(() => preset.value.counts);
 const gridColsClass = computed(() => preset.value.cols);
 
@@ -39,7 +26,7 @@ const grid = ref(null);
 const columnWidth = ref(0);
 
 // Scroll-reveal: tiles start hidden and fade + rise as they cross into view,
-// lightly staggered within each batch that enters together — so the first
+// lightly staggered within each batch that enters together, so the first
 // screenful eases in on load and each new row does the same on scroll.
 const revealed = ref(new Set());
 const delays = ref({});
@@ -90,13 +77,13 @@ onBeforeUnmount(() => {
 });
 
 function rowSpan(photo) {
+    // Unmeasured, or a photo whose dimensions never made it into the payload:
+    // a square tile is the least-wrong guess.
     if (!columnWidth.value || !photo.width || !photo.height) {
-        return 28;
+        return SQUARE_SPAN;
     }
 
-    const height = columnWidth.value * (photo.height / photo.width);
-
-    return Math.max(1, Math.round((height + GAP) / (ROW + GAP)));
+    return spanForRatio(columnWidth.value, photo.height / photo.width);
 }
 </script>
 
@@ -106,7 +93,7 @@ function rowSpan(photo) {
         ref="grid"
         class="grid gap-3"
         :class="gridColsClass"
-        style="grid-auto-rows: 8px"
+        :style="{ gridAutoRows: `${ROW}px` }"
     >
         <li
             v-for="(photo, index) in photos"
@@ -118,7 +105,7 @@ function rowSpan(photo) {
         >
             <button
                 type="button"
-                class="block size-full focus:outline-none"
+                class="block size-full cursor-zoom-in focus:outline-none"
                 :aria-label="`View photo from ${photo.caption}, ${photo.date}`"
                 @click="emit('open', index)"
             >
