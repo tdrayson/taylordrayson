@@ -77,7 +77,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <div v-if="signedIn || !published" class="mt-3 flex items-center gap-3">
                 <Pill v-if="!published" label="Draft" variant="accent" />
 
-                <Link v-if="signedIn" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2">
+                <Link v-if="signedIn" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
                     Edit this page
                 </Link>
             </div>
