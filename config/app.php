@@ -97,16 +97,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Development Auto Login
+    | Automatic Sign-In
     |--------------------------------------------------------------------------
     |
-    | When true, GET /dev-login signs in that account without asking for the
-    | password, so a fresh local workspace opens ready to edit. The route is
-    | only registered in local, so setting this in production does nothing.
+    | When true, visiting /login signs that account in without the password
+    | form, so a fresh local workspace opens ready to edit. Honoured in local
+    | only, so setting it in production does nothing.
     |
     */
 
-    'dev_auto_login' => (bool) env('DEV_AUTO_LOGIN', false),
+    'auto_login' => (bool) env('AUTO_LOGIN', false),
 
     /*
     |--------------------------------------------------------------------------
