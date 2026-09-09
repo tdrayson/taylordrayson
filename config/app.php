@@ -97,6 +97,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Automatic Sign-In
+    |--------------------------------------------------------------------------
+    |
+    | When true, visiting /login signs that account in without the password
+    | form, so a fresh local workspace opens ready to edit. Honoured in local
+    | only, so setting it in production does nothing.
+    |
+    */
+
+    'auto_login' => (bool) env('AUTO_LOGIN', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
