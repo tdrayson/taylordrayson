@@ -86,7 +86,7 @@ class ValidPortableText implements ValidationRule
         }
 
         foreach (['width', 'height'] as $dimension) {
-            if (array_key_exists($dimension, $node) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
+            if (isset($node[$dimension]) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
                 return "image {$dimension} must be a positive integer when present";
             }
         }
@@ -125,7 +125,7 @@ class ValidPortableText implements ValidationRule
             return 'file requires a valid url';
         }
 
-        if (array_key_exists('size', $node) && $node['size'] !== null && (! is_int($node['size']) || $node['size'] < 0)) {
+        if (isset($node['size']) && (! is_int($node['size']) || $node['size'] < 0)) {
             return 'file size must be a non-negative integer when present';
         }
 
@@ -156,7 +156,7 @@ class ValidPortableText implements ValidationRule
         }
 
         foreach (['width', 'height'] as $dimension) {
-            if (array_key_exists($dimension, $node) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
+            if (isset($node[$dimension]) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
                 return "video {$dimension} must be a positive integer when present";
             }
         }
@@ -180,12 +180,12 @@ class ValidPortableText implements ValidationRule
         }
 
         foreach (['language', 'filename'] as $optional) {
-            if (array_key_exists($optional, $node) && ! $this->nonEmptyString($node[$optional])) {
+            if (isset($node[$optional]) && ! $this->nonEmptyString($node[$optional])) {
                 return "code {$optional} must be a non-empty string when present";
             }
         }
 
-        if (array_key_exists('lineNumbers', $node) && ! is_bool($node['lineNumbers'])) {
+        if (isset($node['lineNumbers']) && ! is_bool($node['lineNumbers'])) {
             return 'code lineNumbers must be a boolean when present';
         }
 
@@ -223,7 +223,7 @@ class ValidPortableText implements ValidationRule
             if (! is_array($def)
                 || ($def['_type'] ?? null) !== 'link'
                 || ! $this->nonEmptyString($def['_key'] ?? null)
-                || filter_var($def['href'] ?? '', FILTER_VALIDATE_URL) === false) {
+                || ! $this->validHref($def['href'] ?? null)) {
                 return 'markDefs must be link definitions with a _key and valid href';
             }
 
@@ -278,6 +278,22 @@ class ValidPortableText implements ValidationRule
         }
 
         return null;
+    }
+
+    /**
+     * A link target: an absolute URL, a root-relative path, a fragment on the
+     * page itself, or a mailto. The editor writes all four, so accepting only
+     * what FILTER_VALIDATE_URL likes would reject its own output.
+     */
+    private function validHref(mixed $href): bool
+    {
+        if (! $this->nonEmptyString($href)) {
+            return false;
+        }
+
+        return filter_var($href, FILTER_VALIDATE_URL) !== false
+            || preg_match('#^/[^/]#', $href) === 1
+            || str_starts_with($href, '#');
     }
 
     private function nonEmptyString(mixed $value): bool
