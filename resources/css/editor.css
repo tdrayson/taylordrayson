@@ -10,6 +10,14 @@
     max-width: var(--container-prose, 65ch);
 }
 
+/* Same as .block-content on the published side. Without it a pasted URL is one
+   unbreakable token: it will not fit beside its favicon, so it drops whole to
+   the next line and leaves the icon stranded on the one above. Code blocks are
+   unaffected, their `white-space: pre` disabling soft wrap entirely. */
+.ProseMirror {
+    overflow-wrap: anywhere;
+}
+
 .ProseMirror > * + * {
     margin-top: 1.25rem;
 }
