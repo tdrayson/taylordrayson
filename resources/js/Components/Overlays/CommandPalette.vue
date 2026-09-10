@@ -392,7 +392,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                             <div class="px-4 pb-1 pt-2 text-label uppercase text-neutral-500">{{ section.heading }}</div>
                             <button
                                 v-for="item in section.items"
-                                :key="item.href ?? item.label"
+                                :key="item.index"
                                 type="button"
                                 :data-active="item.index === activeIndex"
                                 class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-nav transition-colors"

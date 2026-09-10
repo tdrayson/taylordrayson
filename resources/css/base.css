@@ -34,13 +34,25 @@
     }
 
     /* Clickable elements show a pointer cursor (Tailwind v4 no longer sets it
-       on buttons). Disabled controls keep the default cursor. */
-    button:not(:disabled),
+       on buttons). An image whose own surface opens the lightbox overrides this
+       with cursor-zoom-in; a button stays a click, chip or not. */
+    button:not(:disabled):not([aria-disabled='true']),
     label,
     select,
     summary,
     [role='button']:not([aria-disabled='true']) {
         cursor: pointer;
+    }
+
+    /* Unavailable, not merely inert: every disabled control says so on hover,
+       whether it is really disabled or only aria-disabled (a link cannot be). */
+    button:disabled,
+    fieldset:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
     }
 
     /* Twemoji replaces native emoji glyphs with CDN images (see v-twemoji);

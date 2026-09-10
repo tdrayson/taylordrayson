@@ -175,7 +175,7 @@ function move(index, by) {
                     <div v-if="multiple" class="flex gap-0.5">
                         <button
                             type="button"
-                            class="rounded p-0.5 text-neutral-0 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
+                            class="rounded p-0.5 text-neutral-0 transition-colors not-disabled:hover:text-accent-300 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
                             :aria-label="`Move ${item.name} earlier`"
                             :disabled="index === 0"
                             @click="move(index, -1)"
@@ -183,7 +183,7 @@ function move(index, by) {
 
                         <button
                             type="button"
-                            class="rounded p-0.5 text-neutral-0 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
+                            class="rounded p-0.5 text-neutral-0 transition-colors not-disabled:hover:text-accent-300 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
                             :aria-label="`Move ${item.name} later`"
                             :disabled="index === items.length - 1"
                             @click="move(index, 1)"

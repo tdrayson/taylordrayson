@@ -33,7 +33,7 @@ defineEmits(['open']);
                 :key="index"
                 type="button"
                 :aria-label="`View photo ${index + 1}`"
-                class="group/zoom relative aspect-square overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="group/zoom relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 @click="$emit('open', index)"
             >
                 <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 33vw, 50vw" alt="" class="size-full object-cover">

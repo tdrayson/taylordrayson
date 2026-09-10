@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-label text-neutral-500 tnum">{{ clock(currentTime) }}</span>
                         <div
-                            class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                            class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 transition-colors hover:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                             role="slider"
                             tabindex="0"
                             aria-label="Seek"
