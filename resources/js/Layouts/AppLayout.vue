@@ -7,7 +7,7 @@ import MediaPlayer from '../Components/Overlays/MediaPlayer.vue';
 import Breadcrumb from '../Components/Layout/Breadcrumb.vue';
 import CommandPalette from '../Components/Overlays/CommandPalette.vue';
 import SettingsModal from '../Components/Layout/SettingsModal.vue';
-import QuickAdd from '../Components/Layout/QuickAdd.vue';
+import FloatingActions from '../Components/Layout/FloatingActions.vue';
 
 defineProps({
     breadcrumb: { type: Array, default: () => [] },
@@ -46,8 +46,6 @@ const page = usePage();
         <MediaPlayer />
         <CommandPalette />
         <SettingsModal />
-        <!-- Off the writing screens: they carry their own Post button on the
-             same edge, and there is nothing to quick-add from inside a form. -->
-        <QuickAdd v-if="! minimal" />
+        <FloatingActions :minimal="minimal" />
     </div>
 </template>
