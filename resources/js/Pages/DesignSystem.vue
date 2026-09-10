@@ -78,12 +78,17 @@ const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant
     _type: 'callout',
     _key: `ds-callout-${variant}`,
     variant,
-    markDefs: [],
-    children: [
+    children: [{
+        _type: 'block',
+        _key: `ds-callout-${variant}-body`,
+        style: 'normal',
+        markDefs: [],
+        children: [
         { _type: 'span', _key: `ds-callout-${variant}-a`, text: 'Set ', marks: [] },
         { _type: 'span', _key: `ds-callout-${variant}-b`, text: "'pro' => true", marks: ['code'] },
-        { _type: 'span', _key: `ds-callout-${variant}-c`, text: ` in config to use every ${variant} feature while in development, like unlimited users and permissions. (${i + 1}/5)`, marks: [] },
-    ],
+            { _type: 'span', _key: `ds-callout-${variant}-c`, text: ` in config to use every ${variant} feature while in development, like unlimited users and permissions. (${i + 1}/5)`, marks: [] },
+        ],
+    }],
 }));
 
 // The file card in each state it can reach: an upload, a release resolved to a

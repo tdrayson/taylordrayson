@@ -251,12 +251,13 @@ final class ConvertContent
 
         $this->notes[] = 'was a grey box, now a '.$variant.' callout: '.mb_strimwidth($text, 0, 70, '...');
 
+        // Blocks, not spans: the editor's callout node declares `block+`, so a
+        // callout of spans is emptied the first time one is opened and saved.
         return [[
             '_type' => 'callout',
             '_key' => PortableText::key(),
             'variant' => $variant,
-            'markDefs' => [],
-            'children' => $this->inline->convert($text)['children'],
+            'children' => $this->textBlock($block->innerHtml, 'normal'),
         ]];
     }
 

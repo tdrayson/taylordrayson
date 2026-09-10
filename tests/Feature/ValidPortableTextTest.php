@@ -71,20 +71,31 @@ it('rejects malformed code node extras', function (mixed $document) {
     'non-bool lineNumbers' => [[['_type' => 'code', '_key' => 'k1', 'code' => 'x', 'lineNumbers' => 'yes']]],
 ]);
 
+// A callout holds blocks, not one paragraph of spans: its editor node declares
+// `block+`, and a callout of spans is emptied the first time one is saved.
 it('accepts a valid callout node', function () {
     $link = PortableText::key();
 
     expect(ptPasses([
         [
             '_type' => 'callout', '_key' => PortableText::key(), 'variant' => 'tip',
-            'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => 'https://example.com']],
-            'children' => [PortableText::span('Bold '), PortableText::span('link', ['strong', $link])],
+            'children' => [[
+                '_type' => 'block', '_key' => PortableText::key(), 'style' => 'normal',
+                'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => 'https://example.com']],
+                'children' => [PortableText::span('Bold '), PortableText::span('link', ['strong', $link])],
+            ]],
         ],
     ]))->toBeTrue();
 
     foreach (['note', 'tip', 'important', 'warning', 'caution'] as $variant) {
         expect(ptPasses([
-            ['_type' => 'callout', '_key' => PortableText::key(), 'variant' => $variant, 'markDefs' => [], 'children' => [PortableText::span('Body text')]],
+            [
+                '_type' => 'callout', '_key' => PortableText::key(), 'variant' => $variant,
+                'children' => [[
+                    '_type' => 'block', '_key' => PortableText::key(), 'style' => 'normal',
+                    'markDefs' => [], 'children' => [PortableText::span('Body text')],
+                ]],
+            ],
         ]))->toBeTrue();
     }
 });

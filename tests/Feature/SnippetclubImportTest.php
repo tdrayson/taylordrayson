@@ -94,7 +94,8 @@ it('turns an advisory grey box into a callout, and says it did', function () {
     );
 
     expect($result->nodes[0])->toMatchArray(['_type' => 'callout', 'variant' => 'note'])
-        ->and($result->nodes[0]['children'][0]['text'])->toBe('Make sure to replace line 3 with your API key.')
+        ->and($result->nodes[0]['children'][0]['_type'])->toBe('block')
+        ->and($result->nodes[0]['children'][0]['children'][0]['text'])->toBe('Make sure to replace line 3 with your API key.')
         ->and($result->notes)->toHaveCount(1);
 });
 
