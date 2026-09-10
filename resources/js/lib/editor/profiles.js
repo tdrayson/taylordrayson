@@ -36,6 +36,22 @@ const Link = TiptapLink.extend({
     },
 
     /**
+     * `_key` keeps this mark's identity across a save, the same as every other
+     * node's; a mark carries no attribute TipTap doesn't declare, so without
+     * this the key silently drops the moment the document round-trips through
+     * the editor. `tag`/`options` let a link point at a dynamic tag instead of
+     * a stored `href`.
+     */
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            _key: { default: null, rendered: false },
+            tag: { default: null, rendered: false },
+            options: { default: null, rendered: false },
+        };
+    },
+
+    /**
      * Anchors, plus this mark's own output.
      *
      * Copying from the editor puts spans on the clipboard, not anchors, so
@@ -50,12 +66,16 @@ const Link = TiptapLink.extend({
                 getAttrs: (element) => ({
                     href: element.getAttribute('data-href'),
                     target: element.getAttribute('data-target'),
+                    tag: element.getAttribute('data-dynamic-tag'),
+                    options: element.getAttribute('data-dynamic-options')
+                        ? JSON.parse(element.getAttribute('data-dynamic-options'))
+                        : null,
                 }),
             },
         ];
     },
 
-    renderHTML({ HTMLAttributes }) {
+    renderHTML({ mark, HTMLAttributes }) {
         const href = HTMLAttributes.href ?? '';
         // A URL back to this site is internal, however it is written.
         const host = hostOf(href) === hostOf(window.location.href) ? null : hostOf(href);
@@ -64,6 +84,12 @@ const Link = TiptapLink.extend({
             class: 'editor-link',
             'data-href': href,
             'data-target': HTMLAttributes.target,
+            // A dynamic link has no href to compute a favicon from, and needs
+            // its tag on the DOM so copy/paste round-trips it rather than
+            // silently downgrading to a plain, empty link.
+            ...(mark.attrs.tag
+                ? { 'data-dynamic-tag': mark.attrs.tag, 'data-dynamic-options': JSON.stringify(mark.attrs.options ?? {}) }
+                : {}),
             // An internal link has no host to fetch an icon for, so it reads as
             // the entry chip the published page renders instead.
             ...(host

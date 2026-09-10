@@ -1,12 +1,18 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 import BlockOptions from './BlockOptions.vue';
+import DynamicTagOptions from './DynamicTagOptions.vue';
 import { blockOptionsFor } from '../../lib/editor/blockOptions';
 import { useMounted } from '../../composables/useMounted';
+import { defaultOptionsFor, useDynamicTags } from '../../composables/useDynamicTags';
 
 const mounted = useMounted();
+const { tags: dynamicTagList, previewFor } = useDynamicTags();
+
+/** Tags legal as a link target, today just site.social. */
+const hrefTags = computed(() => dynamicTagList.value.filter((tag) => tag.supports.includes('href')));
 
 /**
  * The formatting bar over a selection, and the editor's only way to reach a
@@ -24,6 +30,14 @@ const props = defineProps({
 const editingLink = ref(false);
 const href = ref('');
 const blank = ref(false);
+
+// null while editing a typed URL; a tag name once the author points the link
+// at a dynamic tag instead.
+const linkTagName = ref(null);
+const linkTagOptions = ref({});
+const linkTag = computed(() => hrefTags.value.find((candidate) => candidate.name === linkTagName.value) ?? null);
+const linkTagPreview = computed(() => (linkTag.value ? (previewFor(linkTag.value.name, linkTagOptions.value) ?? linkTag.value.label) : linkTagName.value));
+const tagOptionsOpen = ref(false);
 
 const BUTTONS = [
     { mark: 'bold', icon: 'TextBoldIcon', label: 'Bold' },
@@ -165,6 +179,8 @@ function startLink() {
 
     const link = props.editor.getAttributes('link');
 
+    linkTagName.value = link.tag ?? null;
+    linkTagOptions.value = link.options ?? {};
     href.value = link.href ?? '';
     // A new link to another host defaults to opening away, which is what is
     // wanted almost every time; the toggle is for the exceptions.
@@ -174,14 +190,21 @@ function startLink() {
 }
 
 function applyLink() {
-    const value = href.value.trim();
     const chain = props.editor.chain().focus().extendMarkRange('link');
 
-    // An emptied field is how you remove a link, rather than a separate control.
-    (value === ''
-        ? chain.unsetLink()
-        : chain.setLink({ href: value, target: blank.value ? '_blank' : '_self' })
-    ).run();
+    if (linkTagName.value) {
+        // href/target explicitly nulled so a mode switched away from a typed
+        // URL doesn't leave its old value merged onto the mark.
+        chain.setLink({ tag: linkTagName.value, options: linkTagOptions.value, href: null, target: null }).run();
+    } else {
+        const value = href.value.trim();
+
+        // An emptied field is how you remove a link, rather than a separate control.
+        (value === ''
+            ? chain.unsetLink()
+            : chain.setLink({ href: value, target: blank.value ? '_blank' : '_self', tag: null, options: null })
+        ).run();
+    }
 
     editingLink.value = false;
 }
@@ -189,6 +212,28 @@ function applyLink() {
 function cancelLink() {
     editingLink.value = false;
     props.editor.commands.focus();
+}
+
+/** Switches the href editor to a dynamic tag, opening its options form immediately when it takes any. */
+function selectLinkTag(name) {
+    linkTagName.value = name === '' ? null : name;
+
+    if (! linkTagName.value) {
+        return;
+    }
+
+    const tag = hrefTags.value.find((candidate) => candidate.name === linkTagName.value);
+
+    linkTagOptions.value = tag ? defaultOptionsFor(tag) : {};
+
+    if (tag?.options.length) {
+        tagOptionsOpen.value = true;
+    }
+}
+
+function applyLinkTagOptions(options) {
+    linkTagOptions.value = options;
+    tagOptionsOpen.value = false;
 }
 </script>
 
@@ -202,7 +247,22 @@ function cancelLink() {
     >
         <div class="flex items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-0 p-1 shadow-lg">
         <template v-if="editingLink">
+            <template v-if="linkTagName">
+                <span class="inline-flex max-w-40 items-center gap-1 truncate rounded px-2 py-1 text-meta text-neutral-500">
+                    <Icon name="ChartColumnIcon" class="size-3.5 shrink-0" />{{ linkTagPreview }}
+                </span>
+
+                <button
+                    v-if="linkTag?.options.length"
+                    type="button"
+                    class="rounded p-1.5 text-neutral-500 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    :aria-label="`Edit ${linkTag.label} options`"
+                    @click="tagOptionsOpen = true"
+                ><Icon name="Settings01Icon" class="size-4" /></button>
+            </template>
+
             <input
+                v-else
                 v-model="href"
                 type="url"
                 placeholder="https://"
@@ -212,7 +272,20 @@ function cancelLink() {
                 @keydown.esc.prevent="cancelLink"
             >
 
+            <select
+                v-if="hrefTags.length"
+                :value="linkTagName ?? ''"
+                aria-label="Link target"
+                class="rounded px-1 py-1 text-meta text-neutral-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                @change="selectLinkTag($event.target.value)"
+                @keydown.esc.prevent="cancelLink"
+            >
+                <option value="">Custom URL</option>
+                <option v-for="tag in hrefTags" :key="tag.name" :value="tag.name">{{ tag.label }}</option>
+            </select>
+
             <button
+                v-if="! linkTagName"
                 type="button"
                 class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 :class="blank ? 'bg-accent-50 text-accent-700' : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
@@ -227,6 +300,15 @@ function cancelLink() {
                 aria-label="Apply link"
                 @click="applyLink"
             ><Icon name="Tick02Icon" class="size-4" /></button>
+
+            <DynamicTagOptions
+                v-if="linkTag"
+                :open="tagOptionsOpen"
+                :tag="linkTag"
+                :options="linkTagOptions"
+                @apply="applyLinkTagOptions"
+                @update:open="tagOptionsOpen = $event"
+            />
         </template>
 
         <template v-else>

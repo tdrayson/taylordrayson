@@ -35,6 +35,12 @@ function spanToText(span, markDefs) {
                     target: def.blank === undefined ? null : (def.blank ? '_blank' : '_self'),
                 },
             });
+        } else if (def?._type === 'dynamicHref') {
+            // No href: the tag resolves to one at render, and never before.
+            marks.push({
+                type: 'link',
+                attrs: { _key: def._key, tag: def.tag, options: def.options ?? {} },
+            });
         }
     }
 

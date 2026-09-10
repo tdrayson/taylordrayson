@@ -50,3 +50,75 @@ test('a tag survives a full round trip unchanged', () => {
 
     assert.deepEqual(fromProseMirror(toProseMirror(original))[0].children[0], original[0].children[0]);
 });
+
+test('a dynamicHref markDef becomes a link mark carrying its tag', () => {
+    const doc = toProseMirror([{
+        _type: 'block', _key: 'b1', style: 'normal',
+        markDefs: [{ _key: 'd1', _type: 'dynamicHref', tag: 'site.social', options: { network: 'github' } }],
+        children: [{ _type: 'span', _key: 's1', text: 'my GitHub', marks: ['d1'] }],
+    }]);
+
+    const mark = doc.content[0].content[0].marks[0];
+
+    assert.equal(mark.type, 'link');
+    assert.deepEqual(mark.attrs, { _key: 'd1', tag: 'site.social', options: { network: 'github' } });
+});
+
+test('a dynamic link mark serialises to a dynamicHref markDef', () => {
+    const blocks = fromProseMirror({
+        type: 'doc',
+        content: [{
+            type: 'paragraph',
+            attrs: { _key: 'b1' },
+            content: [{
+                type: 'text',
+                text: 'my GitHub',
+                marks: [{ type: 'link', attrs: { _key: 'd1', tag: 'site.social', options: { network: 'github' } } }],
+            }],
+        }],
+    });
+
+    assert.deepEqual(blocks[0].markDefs[0], {
+        _key: 'd1', _type: 'dynamicHref', tag: 'site.social', options: { network: 'github' },
+    });
+    assert.deepEqual(blocks[0].children[0].marks, ['d1']);
+});
+
+test('an ordinary link keeps its own markDef alongside a dynamic one', () => {
+    resetKeyCounter();
+
+    const blocks = fromProseMirror({
+        type: 'doc',
+        content: [{
+            type: 'paragraph',
+            attrs: { _key: 'b1' },
+            content: [
+                { type: 'text', text: 'plain', marks: [{ type: 'link', attrs: { _key: 'l1', href: 'https://example.com' } }] },
+                { type: 'text', text: ' and ' },
+                { type: 'text', text: 'dynamic', marks: [{ type: 'link', attrs: { _key: 'd1', tag: 'site.social', options: {} } }] },
+            ],
+        }],
+    });
+
+    assert.deepEqual(blocks[0].markDefs, [
+        { _key: 'l1', _type: 'link', href: 'https://example.com' },
+        { _key: 'd1', _type: 'dynamicHref', tag: 'site.social', options: {} },
+    ]);
+    assert.deepEqual(blocks[0].children[0].marks, ['l1']);
+    assert.deepEqual(blocks[0].children[2].marks, ['d1']);
+});
+
+test('a dynamic link survives a full round trip unchanged', () => {
+    resetKeyCounter();
+
+    const original = [{
+        _type: 'block', _key: 'b1', style: 'normal',
+        markDefs: [{ _key: 'd1', _type: 'dynamicHref', tag: 'site.social', options: { network: 'github' } }],
+        children: [{ _type: 'span', _key: 's1', text: 'my GitHub', marks: ['d1'] }],
+    }];
+
+    const back = fromProseMirror(toProseMirror(original));
+
+    assert.deepEqual(back[0].markDefs, original[0].markDefs);
+    assert.deepEqual(back[0].children[0].marks, original[0].children[0].marks);
+});

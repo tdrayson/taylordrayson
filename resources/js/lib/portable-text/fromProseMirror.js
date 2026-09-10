@@ -27,6 +27,32 @@ export function resetKeyCounter() {
 }
 
 /**
+ * A link mark's attrs, turned into the markDef it serialises to: a
+ * `dynamicHref` when the mark carries a tag, an ordinary `link` otherwise.
+ *
+ * @param {string} key
+ * @param {object} attrs
+ * @returns {object}
+ */
+function linkMarkDef(key, attrs = {}) {
+    if (attrs.tag) {
+        return { _key: key, _type: 'dynamicHref', tag: attrs.tag, options: attrs.options ?? {} };
+    }
+
+    const def = { _key: key, _type: 'link', href: attrs.href ?? '' };
+
+    // Written only once the author has actually chosen, so a link left alone
+    // keeps deciding by its host.
+    if (attrs.target === '_blank') {
+        def.blank = true;
+    } else if (attrs.target === '_self') {
+        def.blank = false;
+    }
+
+    return def;
+}
+
+/**
  * Convert a run of PM text nodes into Portable Text spans plus the markDefs
  * their links reference.
  *
@@ -66,17 +92,7 @@ function inlineToSpans(content) {
                 const key = mark.attrs?._key ?? newKey();
 
                 if (! markDefs.some((def) => def._key === key)) {
-                    const def = { _key: key, _type: 'link', href: mark.attrs?.href ?? '' };
-
-                    // Written only once the author has actually chosen, so a
-                    // link left alone keeps deciding by its host.
-                    if (mark.attrs?.target === '_blank') {
-                        def.blank = true;
-                    } else if (mark.attrs?.target === '_self') {
-                        def.blank = false;
-                    }
-
-                    markDefs.push(def);
+                    markDefs.push(linkMarkDef(key, mark.attrs));
                 }
 
                 linkKeys.push(key);
