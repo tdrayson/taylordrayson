@@ -122,3 +122,20 @@ test('a dynamic link survives a full round trip unchanged', () => {
     assert.deepEqual(back[0].markDefs, original[0].markDefs);
     assert.deepEqual(back[0].children[0].marks, original[0].children[0].marks);
 });
+
+test('an image carrying a tag round-trips without a url', () => {
+    const original = [{ _type: 'image', _key: 'i1', tag: 'entries.photo', options: {} }];
+    const back = fromProseMirror(toProseMirror(original));
+
+    assert.equal(back[0]._type, 'image');
+    assert.equal(back[0].tag, 'entries.photo');
+    assert.ok(! back[0].url, 'a tagged image must not carry a url');
+});
+
+test('a plain image keeps its url and carries no tag', () => {
+    const original = [{ _type: 'image', _key: 'i1', url: '/storage/1/a.jpg', alt: null, ratio: null, caption: null, width: null, height: null }];
+    const back = fromProseMirror(toProseMirror(original));
+
+    assert.equal(back[0].url, '/storage/1/a.jpg');
+    assert.ok(! back[0].tag, 'an ordinary image must not carry a tag');
+});

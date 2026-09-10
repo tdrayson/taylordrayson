@@ -162,17 +162,28 @@ function customToBlock(node) {
     const key = node.attrs?._key ?? newKey();
 
     switch (node.type) {
-        case 'image':
+        case 'image': {
+            const tag = node.attrs?.tag ?? null;
+
+            return {
+                _type: 'image',
+                _key: key,
+                // A tagged image has no stored url: writing a null one fails
+                // ValidPortableText, which requires either a valid url or a tag.
+                ...(tag ? { tag, options: node.attrs?.options ?? {} } : { url: node.attrs?.url ?? null }),
+                alt: node.attrs?.alt ?? null,
+                ratio: node.attrs?.ratio ?? null,
+                caption: node.attrs?.caption ?? null,
+                width: node.attrs?.width ?? null,
+                height: node.attrs?.height ?? null,
+            };
+        }
         case 'video':
             return {
-                _type: node.type,
+                _type: 'video',
                 _key: key,
                 url: node.attrs?.url ?? null,
-                // Each type keeps only its own extras: an image has alt and a
-                // crop ratio, a video the still shown before it plays.
-                ...(node.type === 'image'
-                    ? { alt: node.attrs?.alt ?? null, ratio: node.attrs?.ratio ?? null }
-                    : { poster: node.attrs?.poster ?? null }),
+                poster: node.attrs?.poster ?? null,
                 caption: node.attrs?.caption ?? null,
                 width: node.attrs?.width ?? null,
                 height: node.attrs?.height ?? null,

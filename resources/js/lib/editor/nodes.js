@@ -80,6 +80,9 @@ export const CodeBlockMeta = Extension.create({
  * TipTap's image node speaks `src`, while the stored document speaks `url` and
  * carries a caption and alt text alongside it. Declared here so none of them
  * are dropped on load.
+ *
+ * `tag`/`options` stand in for `url` when the image is a live dynamic photo
+ * rather than a stored one; the two are mutually exclusive.
  */
 export const ImageMeta = Extension.create({
     name: 'imageMeta',
@@ -94,6 +97,8 @@ export const ImageMeta = Extension.create({
                 caption: { default: null, rendered: false },
                 width: { default: null, rendered: false },
                 height: { default: null, rendered: false },
+                tag: { default: null, rendered: false },
+                options: { default: null, rendered: false },
             },
         }];
     },

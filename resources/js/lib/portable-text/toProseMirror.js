@@ -139,7 +139,10 @@ function customToNode(node) {
                 type: 'image',
                 attrs: {
                     _key: node._key,
-                    url: node.url ?? null,
+                    // A tagged image has no stored url; url and tag never coexist.
+                    url: node.tag ? null : (node.url ?? null),
+                    tag: node.tag ?? null,
+                    options: node.tag ? (node.options ?? {}) : null,
                     alt: node.alt ?? null,
                     ratio: node.ratio ?? null,
                     caption: node.caption ?? null,
