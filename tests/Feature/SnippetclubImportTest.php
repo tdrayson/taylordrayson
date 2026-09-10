@@ -290,3 +290,24 @@ it('lifts an advisory paragraph into a callout, but leaves the walkthrough alone
     ['You should now see the Blockstudio editor in your sidebar.', null],
     ['We next need to convert our polyline to an array of points.', null],
 ]);
+
+// The source numbered its steps by hand, so the table of contents read as an
+// outline of an outline. A year is not numbering.
+it('strips a heading\'s old numbering and trailing colon', function (string $html, string $expected) {
+    $nodes = (new ConvertContent)('<!-- wp:heading -->'.$html.'<!-- /wp:heading -->')->nodes;
+
+    $text = '';
+
+    foreach ($nodes[0]['children'] as $child) {
+        $text .= $child['text'];
+    }
+
+    expect(trim($text))->toBe($expected);
+})->with([
+    ['<h2>2. Creating our form</h2>', 'Creating our form'],
+    ['<h3>2.1 Advanced Custom Fields</h3>', 'Advanced Custom Fields'],
+    ['<h2>Available options:</h2>', 'Available options'],
+    ['<h2>3. How to use:</h2>', 'How to use'],
+    ['<h2>2024 in review</h2>', '2024 in review'],
+    ['<h2>10 things I learned</h2>', '10 things I learned'],
+]);

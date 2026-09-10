@@ -147,7 +147,23 @@ final class ConvertContent
         }
 
         // h1 belongs to the page title, so a heading written as one steps down.
-        return $this->textBlock($block->innerHtml, 'h'.max(2, min(6, (int) $match[1])));
+        return $this->textBlock($this->plainHeading($block->innerHtml), 'h'.max(2, min(6, (int) $match[1])));
+    }
+
+    /**
+     * A heading without its old numbering or trailing colon.
+     *
+     * The source numbered its steps by hand, so a heading read "2.1 Metabox"
+     * and the table of contents read as an outline of an outline. The colon
+     * belonged to a label introducing something, which a heading already does.
+     */
+    private function plainHeading(string $html): string
+    {
+        // `2.` and `2.1`, but never a bare number: a heading may legitimately
+        // open with a year.
+        $html = (string) preg_replace('/^((?:\s|<[^>]*>)*)(?:\d+\.\d+(?:\.\d+)*|\d+\.)\s+/u', '$1', $html);
+
+        return (string) preg_replace('/\s*:\s*((?:<\/[^>]*>\s*)*)$/u', '$1', $html);
     }
 
     /**
