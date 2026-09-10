@@ -217,6 +217,9 @@ it('tells an aside apart from a code fragment in a grey box', function (string $
     ['https://domain.com/?pw=password123', null],
     ['FluentForm\App\Modules\Component - line 548', null],
     ['Name = tct_author_meta Arguments = role', null],
+    // An encoded polyline runs to 857 characters without a space, and PHP's
+    // str_word_count still calls that 166 words.
+    ['cwjwHggc@LCZ?DED@TGLQFELYDgAIsABo@GSGKAWEW@]Kw@@WCk@IYI{@Ia@Wo@GQSg@Gg@IOAaAPQ^@BAFGF@h@h@PFf@FVHH@FCXa@VmAPa@HYDET', null],
 ]);
 
 // A snippet site tags by plugin, so two thirds of its tags named a product

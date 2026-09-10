@@ -56,6 +56,13 @@ final class ClassifyPreformatted
      */
     private function looksLikeCode(string $text): bool
     {
+        // Prose has spaces in it. An encoded polyline runs to 857 characters
+        // without one, and str_word_count still calls that 166 words, so the
+        // word count alone lets it through.
+        if (mb_strlen($text) >= 40 && preg_match_all('/\s/', $text) < mb_strlen($text) / 25) {
+            return true;
+        }
+
         return (bool) preg_match('#^\[[^\]]+\]#', $text)          // [shortcode ...]
             || (bool) preg_match('#^/[\w./-]+$#', $text)           // /a/path/to/file.php
             || (bool) preg_match('#^https?://#i', $text)           // a bare URL
