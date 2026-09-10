@@ -30,6 +30,9 @@ const props = defineProps({
 const editingLink = ref(false);
 const href = ref('');
 const blank = ref(false);
+// The mark's own key, carried through whichever kind of link is applied so a
+// save stays a diff rather than minting a new key for the same link.
+const linkKey = ref(null);
 
 // null while editing a typed URL; a tag name once the author points the link
 // at a dynamic tag instead.
@@ -179,6 +182,7 @@ function startLink() {
 
     const link = props.editor.getAttributes('link');
 
+    linkKey.value = link._key ?? null;
     linkTagName.value = link.tag ?? null;
     linkTagOptions.value = link.options ?? {};
     href.value = link.href ?? '';
@@ -194,15 +198,16 @@ function applyLink() {
 
     if (linkTagName.value) {
         // href/target explicitly nulled so a mode switched away from a typed
-        // URL doesn't leave its old value merged onto the mark.
-        chain.setLink({ tag: linkTagName.value, options: linkTagOptions.value, href: null, target: null }).run();
+        // URL doesn't leave its old value merged onto the mark. _key carries
+        // over so converting an existing link doesn't mint a new one on save.
+        chain.setLink({ _key: linkKey.value, tag: linkTagName.value, options: linkTagOptions.value, href: null, target: null }).run();
     } else {
         const value = href.value.trim();
 
         // An emptied field is how you remove a link, rather than a separate control.
         (value === ''
             ? chain.unsetLink()
-            : chain.setLink({ href: value, target: blank.value ? '_blank' : '_self', tag: null, options: null })
+            : chain.setLink({ _key: linkKey.value, href: value, target: blank.value ? '_blank' : '_self', tag: null, options: null })
         ).run();
     }
 
