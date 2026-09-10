@@ -16,6 +16,7 @@ import ImageBlock from './ImageBlock.vue';
 import CodeBlockView from './CodeBlockView.vue';
 import VideoBlock from './VideoBlock.vue';
 import DynamicTagChip from './DynamicTagChip.vue';
+import DynamicTagOptions from './DynamicTagOptions.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { suggestionExtension } from '../../lib/editor/slashCommands';
@@ -221,25 +222,51 @@ async function matchDynamicTags(query) {
 }
 
 /**
- * Insert a picked tag, applying its declared defaults for now.
- *
- * Seam for the options popup (a later task): a tag with options should still
- * land here today rather than being blocked on a popup that doesn't exist
- * yet, but once it does it should collect the author's choices and call
- * `insertTagNode` directly, bypassing the default-filling in this function.
+ * The tag options popup, opened either after picking a tag with options from
+ * the "{" menu (`instance` holds where to insert once applied) or never, for
+ * a tag with none, which inserts immediately with no options at all.
+ */
+const tagOptionsPopup = reactive({ open: false, tag: null, options: {} });
+let pendingInsert = null;
+
+/**
+ * Insert a picked tag. The typed trigger is removed immediately either way; a
+ * tag with no options is inserted right there, one with options is inserted
+ * once the popup is applied, at the cursor the trigger left behind.
  */
 function insertDynamicTag(instance, range, tag) {
-    insertTagNode(instance, range, tag.name, defaultOptionsFor(tag));
+    instance.chain().focus().deleteRange(range).run();
+
+    if (tag.options.length === 0) {
+        insertTagAtCursor(instance, tag.name, {});
+
+        return;
+    }
+
+    pendingInsert = instance;
+    tagOptionsPopup.tag = tag;
+    tagOptionsPopup.options = defaultOptionsFor(tag);
+    tagOptionsPopup.open = true;
 }
 
-/** Replace the suggestion range, including the typed "{", with a tag chip. */
-function insertTagNode(instance, range, name, options) {
-    instance
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertContent({ type: 'dynamicTag', attrs: { tag: name, options } })
-        .run();
+/** Insert a tag chip at the current selection, rather than replacing a range. */
+function insertTagAtCursor(instance, name, options) {
+    instance.chain().focus().insertContent({ type: 'dynamicTag', attrs: { tag: name, options } }).run();
+}
+
+/** The popup's primary action: insert the tag with the options just chosen. */
+function applyInsertedTag(options) {
+    if (pendingInsert) {
+        insertTagAtCursor(pendingInsert, tagOptionsPopup.tag.name, options);
+    }
+
+    pendingInsert = null;
+}
+
+/** Escape, the backdrop, or Cancel: the range is already gone, nothing more to undo. */
+function closeTagOptionsPopup() {
+    tagOptionsPopup.open = false;
+    pendingInsert = null;
 }
 
 function pickDynamicTag(item) {
@@ -454,6 +481,15 @@ defineExpose({ focus: () => editor.value?.commands.focus() });
             :get-rect="dynamicTagMenu.getRect"
             empty-label="No matching tag"
             @pick="pickDynamicTag"
+        />
+
+        <DynamicTagOptions
+            v-if="tagOptionsPopup.tag"
+            :open="tagOptionsPopup.open"
+            :tag="tagOptionsPopup.tag"
+            :options="tagOptionsPopup.options"
+            @apply="applyInsertedTag"
+            @update:open="closeTagOptionsPopup"
         />
     </div>
 </template>

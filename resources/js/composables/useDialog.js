@@ -80,6 +80,11 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapF
     // and still gets scroll-lock and focus save/restore from the watcher below.
     const needsKeydownListener = closeOnEsc || Boolean(onKeydown) || trapFocus;
 
+    // Immediate: a dialog that mounts already open (a popup opened by the same
+    // action that creates it, rather than toggled on an always-mounted
+    // instance) needs this to run on that first render, not just on a later
+    // change - without it, the first watch call is the close that never
+    // fired, and neither the Escape listener nor the initial focus ever land.
     watch(isOpen, (open) => {
         document.body.style.overflow = open ? 'hidden' : '';
 
@@ -104,7 +109,7 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapF
 
             lastFocused = null;
         }
-    });
+    }, { immediate: true });
 
     onBeforeUnmount(() => {
         document.removeEventListener('keydown', handleKeydown);

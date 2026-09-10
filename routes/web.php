@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
+use App\Http\Controllers\DynamicTagPreviewController;
 use App\Http\Controllers\DynamicTagsController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
@@ -37,6 +38,9 @@ require __DIR__.'/auth.php';
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
     Route::get('/dynamic-tags', DynamicTagsController::class)->name('dynamic-tags');
+    // Resolves a tag against options an author is still choosing, rather than
+    // only ever the defaults the list above carries.
+    Route::get('/dynamic-tags/preview', DynamicTagPreviewController::class)->name('dynamic-tags.preview');
 
     // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
     Route::get('/new', [AuthoringController::class, 'new'])->name('new');
