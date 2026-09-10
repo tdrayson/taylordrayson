@@ -37,6 +37,18 @@ function inlineToSpans(content) {
     const markDefs = [];
 
     for (const node of content ?? []) {
+        // A tag is a reference, not decorated text: only its name and options are
+        // stored, and its value is resolved server-side at render.
+        if (node.type === 'dynamicTag') {
+            children.push({
+                _type: 'dynamicTag',
+                _key: node.attrs?._key ?? newKey(),
+                tag: node.attrs?.tag ?? null,
+                options: node.attrs?.options ?? {},
+            });
+            continue;
+        }
+
         if (node.type !== 'text') {
             continue;
         }

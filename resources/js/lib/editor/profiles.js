@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes.js';
+import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout, DynamicTagNode } from './nodes.js';
 
 /** The display host for a URL, or null for an internal path. */
 function hostOf(href) {
@@ -93,9 +93,16 @@ const PROSE = [
         link: false,
     }),
     Link.configure({ openOnClick: false, linkOnPaste: true }),
+    DynamicTagNode,
 ];
 
-/** Everything above, plus the block-level nodes only a long piece needs. */
+/**
+ * Everything above, plus the block-level nodes only a long piece needs.
+ *
+ * This list does not actually spread PROSE (StarterKit and Link are
+ * reconfigured here with their own options), so any node meant for both
+ * profiles, including DynamicTagNode, has to be added to both arrays.
+ */
 const DOCUMENT = [
     StarterKit.configure({
         heading: { levels: [2, 3, 4, 5, 6] },
@@ -109,6 +116,7 @@ const DOCUMENT = [
     Image,
     Video,
     Callout,
+    DynamicTagNode,
     CodeBlockMeta,
     ImageMeta,
 ];
@@ -117,12 +125,12 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, codeBlock?: object}} options
+ * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, dynamicTag?: object, codeBlock?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, codeBlock = null } = {}) {
-    // The caller's callout replaces the plain node, so the editor can draw it
-    // with its picker while the renderer keeps the bare definition.
-    const overrides = { callout, image, video };
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, dynamicTag = null, codeBlock = null } = {}) {
+    // The caller's version replaces the plain node, so the editor can draw it
+    // with its node view while the renderer keeps the bare definition.
+    const overrides = { callout, image, video, dynamicTag };
 
     const base = (profile === 'document' ? DOCUMENT : PROSE)
         .map((extension) => overrides[extension.name] ?? extension);

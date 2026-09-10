@@ -29,6 +29,7 @@ export const PreserveKeys = Extension.create({
                 'image',
                 'video',
                 'callout',
+                'dynamicTag',
             ],
             attributes: {
                 _key: { default: null, rendered: false },
@@ -126,6 +127,37 @@ export const Video = Node.create({
 
     renderHTML({ HTMLAttributes }) {
         return ['div', { 'data-video': '', ...HTMLAttributes }];
+    },
+});
+
+/**
+ * A dynamic tag: a reference to live site data that resolves at render, e.g.
+ * `{entries.count type:note}`. Only its name and options are stored; its
+ * value is resolved server-side and never travels with the document.
+ *
+ * An atom with no content, so the caret steps over it as one character and
+ * backspace removes the whole tag rather than half a token.
+ */
+export const DynamicTagNode = Node.create({
+    name: 'dynamicTag',
+    group: 'inline',
+    inline: true,
+    atom: true,
+    selectable: true,
+
+    addAttributes() {
+        return {
+            tag: { default: null },
+            options: { default: () => ({}) },
+        };
+    },
+
+    parseHTML() {
+        return [{ tag: 'span[data-dynamic-tag]' }];
+    },
+
+    renderHTML({ HTMLAttributes }) {
+        return ['span', { 'data-dynamic-tag': HTMLAttributes.tag }, HTMLAttributes.tag];
     },
 });
 
