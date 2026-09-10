@@ -23,6 +23,12 @@ describe('optionsEqual', () => {
         assert.equal(optionsEqual(undefined, {}), true);
         assert.equal(optionsEqual({}, undefined), true);
     });
+
+    it('treats an explicit undefined value as a distinct key from one missing entirely', () => {
+        // `resolvedOptions` never builds one of these itself; pins the
+        // contract so a future caller cannot rely on the two being confused.
+        assert.equal(optionsEqual({ type: undefined }, {}), false);
+    });
 });
 
 describe('isFourDigitYear', () => {

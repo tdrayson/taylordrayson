@@ -28,6 +28,12 @@ it('rejects an option key the tag does not declare', function () {
         ->assertInvalid('options.bogus');
 });
 
+it('rejects a value outside the option\'s declared choices', function () {
+    $this->actingAs(User::factory()->create())
+        ->getJson('/dynamic-tags/preview?name=entries.count&options[type]=bogus')
+        ->assertInvalid('options.type');
+});
+
 it('accepts a bare four-digit year as a period', function () {
     Note::factory()->create(['occurred_at' => '2019-06-01 12:00:00']);
     Note::factory()->create(['occurred_at' => '2023-06-01 12:00:00']);

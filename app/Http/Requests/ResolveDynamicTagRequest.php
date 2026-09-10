@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\DynamicTags\DynamicTagRegistry;
+use App\Rules\ValidPortableText;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,9 +11,11 @@ use Illuminate\Validation\Validator;
 
 /**
  * A tag name plus an arbitrary option set to resolve. `name` is checked against
- * the registry so an unregistered tag is never resolved, and each option key is
- * checked against that tag's own declared schema so the popup cannot ask the
- * server to evaluate an option a tag doesn't accept.
+ * the registry so an unregistered tag is never resolved, and each option is
+ * checked against that tag's own declared schema, both the key and the value,
+ * so the popup cannot ask the server to evaluate an option a tag doesn't
+ * accept or a value it doesn't declare. Mirrors {@see ValidPortableText::tagError()},
+ * the save-time check for the same shape stored on a document.
  */
 class ResolveDynamicTagRequest extends FormRequest
 {
@@ -46,10 +49,25 @@ class ResolveDynamicTagRequest extends FormRequest
                     return;
                 }
 
-                $allowed = array_column($tag->options(), 'name');
+                $declared = collect($tag->options())->keyBy('name');
 
-                foreach (array_diff(array_keys((array) $this->input('options', [])), $allowed) as $key) {
-                    $validator->errors()->add("options.{$key}", "Unknown option for {$tag->name()}.");
+                foreach ((array) $this->input('options', []) as $key => $value) {
+                    $option = $declared->get($key);
+
+                    if ($option === null) {
+                        $validator->errors()->add("options.{$key}", "Unknown option for {$tag->name()}.");
+
+                        continue;
+                    }
+
+                    // A bare year is accepted alongside period's own named presets.
+                    if ($key === 'period' && preg_match('/^\d{4}$/', (string) $value) === 1) {
+                        continue;
+                    }
+
+                    if ($option->choices !== [] && ! in_array($value, $option->choices, true)) {
+                        $validator->errors()->add("options.{$key}", "Invalid value for option {$key}.");
+                    }
                 }
             },
         ];

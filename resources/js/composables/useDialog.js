@@ -42,6 +42,12 @@ function focusableWithin(el) {
 export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapFocus = true }) {
     const panelEl = ref(null);
     let lastFocused = null;
+    // Set once this instance has actually opened. Guards the closed branch
+    // below so a dialog that mounts already-closed (every consumer, every
+    // time `immediate` runs its first call) does not run close-cleanup for an
+    // open it never had - without it, mounting a closed dialog while a sibling
+    // is genuinely open would clear that sibling's scroll lock and listener.
+    let hasOpened = false;
 
     function handleKeydown(event) {
         if (closeOnEsc && event.key === 'Escape') {
@@ -86,9 +92,9 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapF
     // change - without it, the first watch call is the close that never
     // fired, and neither the Escape listener nor the initial focus ever land.
     watch(isOpen, (open) => {
-        document.body.style.overflow = open ? 'hidden' : '';
-
         if (open) {
+            hasOpened = true;
+            document.body.style.overflow = 'hidden';
             lastFocused = document.activeElement;
 
             if (needsKeydownListener) {
@@ -98,7 +104,9 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapF
             nextTick(() => {
                 (focusableWithin(panelEl.value)[0] ?? panelEl.value)?.focus();
             });
-        } else {
+        } else if (hasOpened) {
+            document.body.style.overflow = '';
+
             if (needsKeydownListener) {
                 document.removeEventListener('keydown', handleKeydown);
             }
