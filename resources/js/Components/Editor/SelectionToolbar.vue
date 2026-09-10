@@ -36,7 +36,7 @@ const blank = ref(false);
 const linkTagName = ref(null);
 const linkTagOptions = ref({});
 const linkTag = computed(() => hrefTags.value.find((candidate) => candidate.name === linkTagName.value) ?? null);
-const linkTagPreview = computed(() => (linkTag.value ? (previewFor(linkTag.value.name, linkTagOptions.value) ?? linkTag.value.label) : linkTagName.value));
+const linkTagPreview = computed(() => (linkTag.value ? (previewFor(linkTag.value.name, linkTagOptions.value, 'href') ?? linkTag.value.label) : linkTagName.value));
 const tagOptionsOpen = ref(false);
 
 const BUTTONS = [
@@ -306,6 +306,7 @@ function applyLinkTagOptions(options) {
                 :open="tagOptionsOpen"
                 :tag="linkTag"
                 :options="linkTagOptions"
+                placement="href"
                 @apply="applyLinkTagOptions"
                 @update:open="tagOptionsOpen = $event"
             />

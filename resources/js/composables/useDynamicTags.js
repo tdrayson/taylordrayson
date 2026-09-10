@@ -19,11 +19,15 @@ let request = null;
  */
 const resolved = reactive({});
 
-/** A stable cache key regardless of the order the caller built its options in. */
-function resolvedKey(name, options) {
+/**
+ * A stable cache key regardless of the order the caller built its options in.
+ * Placement is part of the key because an `href` preview and an `inline` one
+ * can be different strings for the same tag and options.
+ */
+function resolvedKey(name, options, placement) {
     const parts = Object.keys(options).sort().map((key) => `${key}=${options[key]}`);
 
-    return `${name}?${parts.join('&')}`;
+    return `${placement}:${name}?${parts.join('&')}`;
 }
 
 /**
@@ -33,10 +37,11 @@ function resolvedKey(name, options) {
  *
  * @param {string} name
  * @param {Object<string, string>} options
+ * @param {'inline'|'href'|'image'} placement
  * @returns {Promise<string|null>}
  */
-async function fetchPreview(name, options) {
-    const query = new URLSearchParams({ name });
+async function fetchPreview(name, options, placement) {
+    const query = new URLSearchParams({ name, placement });
 
     for (const [key, value] of Object.entries(options)) {
         query.append(`options[${key}]`, value);
@@ -96,41 +101,44 @@ export function defaultOptionsFor(tag) {
 /**
  * The fetched tag list, plus the value each one currently reads as.
  *
- * @returns {{tags: import('vue').Ref<Array>, previewFor: (name: string, options?: Object) => string|null, ensureLoaded: () => Promise<void>}}
+ * @returns {{tags: import('vue').Ref<Array>, previewFor: (name: string, options?: Object, placement?: 'inline'|'href'|'image') => string|null, ensureLoaded: () => Promise<void>}}
  */
 export function useDynamicTags() {
     ensureLoaded();
 
     /**
      * The live text a chip or the options popup shows in place of the raw tag
-     * name. Options are part of the lookup, not just the name, because
-     * `entries.count` with `type: calorie` and without it are different
-     * values.
+     * name, or the URL it resolves to when it stands in for a link's href or
+     * an image's src. Options are part of the lookup, not just the name,
+     * because `entries.count` with `type: calorie` and without it are
+     * different values, and placement matters because a tag's href and its
+     * display text can differ.
      *
-     * The default option set resolves instantly from the list already loaded
-     * by `ensureLoaded`. Anything else is resolved lazily against the preview
-     * endpoint and cached in `resolved`; the caller sees null until that
-     * settles, then gets the real value on the next reactive read. Callers
-     * that mutate options on every keystroke (the popup) must debounce what
-     * they pass in themselves, since every distinct call here that isn't
-     * already cached fires its own request.
+     * The inline default option set resolves instantly from the list already
+     * loaded by `ensureLoaded`, which is always the display text. Anything
+     * else is resolved lazily against the preview endpoint and cached in
+     * `resolved`; the caller sees null until that settles, then gets the real
+     * value on the next reactive read. Callers that mutate options on every
+     * keystroke (the popup) must debounce what they pass in themselves, since
+     * every distinct call here that isn't already cached fires its own
+     * request.
      */
-    function previewFor(name, options = {}) {
+    function previewFor(name, options = {}, placement = 'inline') {
         const tag = tags.value.find((candidate) => candidate.name === name);
 
         if (! tag) {
             return null;
         }
 
-        if (optionsEqual(options, defaultOptionsFor(tag))) {
+        if (placement === 'inline' && optionsEqual(options, defaultOptionsFor(tag))) {
             return tag.preview;
         }
 
-        const key = resolvedKey(name, options);
+        const key = resolvedKey(name, options, placement);
 
         if (! (key in resolved)) {
             resolved[key] = null;
-            fetchPreview(name, options).then((text) => { resolved[key] = text; });
+            fetchPreview(name, options, placement).then((text) => { resolved[key] = text; });
         }
 
         return resolved[key];

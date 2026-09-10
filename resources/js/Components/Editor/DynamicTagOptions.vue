@@ -23,6 +23,9 @@ const props = defineProps({
     tag: { type: Object, required: true },
     // The option values to start the form from.
     options: { type: Object, default: () => ({}) },
+    // Where the tag is placed, so the preview shows the href for a link or
+    // image source rather than always the display text.
+    placement: { type: String, default: 'inline' },
 });
 
 const emit = defineEmits(['apply', 'update:open']);
@@ -104,7 +107,7 @@ watch(resolvedOptions, (value) => {
 
 onBeforeUnmount(() => clearTimeout(debounceTimer));
 
-const previewText = computed(() => previewFor(props.tag.name, debounced.value) ?? props.tag.name);
+const previewText = computed(() => previewFor(props.tag.name, debounced.value, props.placement) ?? props.tag.name);
 
 function apply() {
     if (periodInvalid.value) {

@@ -29,7 +29,7 @@ const tagName = computed(() => props.node.attrs.tag);
 /** Tags legal as an image source, today just entries.photo. */
 const imageTags = computed(() => tags.value.filter((candidate) => candidate.supports.includes('image')));
 /** The photo a tagged image currently resolves to; null until that settles. */
-const tagPreviewUrl = computed(() => (tagName.value ? previewFor(tagName.value, props.node.attrs.options ?? {}) : null));
+const tagPreviewUrl = computed(() => (tagName.value ? previewFor(tagName.value, props.node.attrs.options ?? {}, 'image') : null));
 
 const pendingImageTag = ref(null);
 const pendingImageOptions = ref({});
@@ -173,6 +173,7 @@ function applyImageTag(options) {
             :open="imageTagOptionsOpen"
             :tag="pendingImageTag"
             :options="pendingImageOptions"
+            placement="image"
             @apply="applyImageTag"
             @update:open="imageTagOptionsOpen = $event"
         />

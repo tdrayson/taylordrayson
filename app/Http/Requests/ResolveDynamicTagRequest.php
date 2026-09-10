@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\DynamicTags\DynamicTagRegistry;
+use App\Enums\Placement;
 use App\Rules\ValidPortableText;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,7 +16,8 @@ use Illuminate\Validation\Validator;
  * checked against that tag's own declared schema, both the key and the value,
  * so the popup cannot ask the server to evaluate an option a tag doesn't
  * accept or a value it doesn't declare. Mirrors {@see ValidPortableText::tagError()},
- * the save-time check for the same shape stored on a document.
+ * the save-time check for the same shape stored on a document. `placement`
+ * decides whether the preview is the display text or the resolved href.
  */
 class ResolveDynamicTagRequest extends FormRequest
 {
@@ -31,6 +33,7 @@ class ResolveDynamicTagRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', Rule::in(array_keys($registry->all()))],
+            'placement' => ['required', Rule::enum(Placement::class)],
             'options' => ['sometimes', 'array'],
             'options.*' => ['string'],
         ];

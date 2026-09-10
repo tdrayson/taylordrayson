@@ -2,12 +2,15 @@
 
 namespace App\Queries;
 
+use App\DynamicTags\DynamicTag;
 use App\DynamicTags\DynamicTagRegistry;
+use App\Enums\Placement;
 
 /**
- * The display text one tag resolves to for an arbitrary option set, so the
- * options popup can show a live preview as an author changes a choice rather
- * than only ever showing each tag's default.
+ * What one tag currently reads as for a given placement and option set, so the
+ * options popup can show a live preview as an author changes a choice. `href`
+ * and `image` ask for the resolved URL, `inline` for the display text; the two
+ * differ whenever a tag overrides {@see DynamicTag::href()}.
  */
 final class DynamicTagPreview
 {
@@ -18,8 +21,17 @@ final class DynamicTagPreview
      *
      * @param  array<string, string>  $options
      */
-    public function __invoke(string $name, array $options): ?string
+    public function __invoke(string $name, array $options, Placement $placement): ?string
     {
-        return $this->registry->value($name, $options)['text'] ?? null;
+        $tag = $this->registry->find($name);
+        $resolved = $this->registry->value($name, $options);
+
+        if ($tag === null || $resolved === null) {
+            return null;
+        }
+
+        return $placement === Placement::Inline
+            ? $resolved['text']
+            : $tag->href($resolved['value'], $options);
     }
 }
