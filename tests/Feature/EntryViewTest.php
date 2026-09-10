@@ -8,6 +8,7 @@ use App\Models\Checkin;
 use App\Models\Concerns\Timelineable;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Series;
 use App\Models\Sleep;
 
 use function Pest\Laravel\get;
@@ -137,6 +138,42 @@ it('renders a media entry via Inertia', function () {
             ->where('type', 'media')
             ->where('title', 'Episode 1')
             ->where('entry.meta.show_title', 'Jet Lag: The Game')
+        );
+});
+
+it('links an episode to its show page', function () {
+    $series = Series::factory()->create(['title' => 'Ted Lasso', 'slug' => 'ted-lasso']);
+
+    $media = Media::factory()->create([
+        'type' => MediaType::TvEpisode,
+        'title' => 'Riches of Embarrassment',
+        'series_id' => $series->id,
+        'occurred_at' => '2026-09-03 21:00:00',
+        'meta' => ['show_title' => 'Ted Lasso', 'season' => 4, 'episode' => 4],
+    ]);
+
+    get('/'.entryUrl($media))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('entry.showTitle', 'Ted Lasso')
+            ->where('entry.showUrl', '/media/tv/ted-lasso')
+        );
+});
+
+it('leaves the show unlinked when no series record backs it', function () {
+    $media = Media::factory()->create([
+        'type' => MediaType::TvEpisode,
+        'title' => 'Episode 1',
+        'series_id' => null,
+        'occurred_at' => '2026-09-04 21:00:00',
+        'meta' => ['show_title' => 'Jet Lag: The Game', 'season' => 19, 'episode' => 1],
+    ]);
+
+    get('/'.entryUrl($media))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('entry.showTitle', 'Jet Lag: The Game')
+            ->where('entry.showUrl', null)
         );
 });
 
