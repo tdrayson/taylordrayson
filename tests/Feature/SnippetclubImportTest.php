@@ -4,6 +4,7 @@ use App\Actions\Snippetclub\ClassifyPreformatted;
 use App\Actions\Snippetclub\ConvertContent;
 use App\Actions\Snippetclub\ImportPost;
 use App\Actions\Snippetclub\RewriteLinks;
+use App\Actions\Snippetclub\TagMap;
 use App\Models\Article;
 use App\Support\Gutenberg\BlockParser;
 
@@ -214,4 +215,19 @@ it('tells an aside apart from a code fragment in a grey box', function (string $
     ['https://domain.com/?pw=password123', null],
     ['FluentForm\App\Modules\Component - line 548', null],
     ['Name = tct_author_meta Arguments = role', null],
+]);
+
+// A snippet site tags by plugin, so two thirds of its tags named a product
+// mentioned in exactly one post.
+it('folds the old site\'s narrow tags into ones worth filtering by', function (array $source, array $expected) {
+    expect(app(TagMap::class)->apply($source))->toEqualCanonicalizing($expected);
+})->with([
+    'a Pro tier is the same subject' => [['GeneratePress', 'GP Premium'], ['GeneratePress']],
+    'one-post plugins become WordPress' => [['SearchWP', 'Kadence', 'Options Page'], ['WordPress']],
+    'a library is the language it is written in' => [['LityJS', 'Flatpickr'], ['JavaScript']],
+    'the broad ones are left alone' => [['PHP', 'CSS', 'Accessibility'], ['PHP', 'CSS', 'Accessibility']],
+    'dead ones are dropped' => [['Demo', 'Cheatsheet'], []],
+    // A tag added to the old site after this map was written should survive
+    // rather than vanish silently.
+    'an unmapped tag is kept' => [['Something New'], ['Something New']],
 ]);

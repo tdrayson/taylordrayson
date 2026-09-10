@@ -24,6 +24,7 @@ final class ImportPost
     public function __construct(
         private readonly ConvertContent $convert,
         private readonly ResolveZightVideo $resolveVideo,
+        private readonly TagMap $tags = new TagMap,
     ) {}
 
     /**
@@ -100,7 +101,7 @@ final class ImportPost
             }
         }
 
-        return array_values(array_unique(array_filter(array_map($this->decoded(...), $names))));
+        return $this->tags->apply(array_filter(array_map($this->decoded(...), $names)));
     }
 
     /**
