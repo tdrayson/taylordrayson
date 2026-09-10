@@ -47,12 +47,18 @@ abstract class DynamicTag
     }
 
     /**
-     * Default rendering when a subclass doesn't override it.
+     * Default rendering when a subclass doesn't override it. A bare `(string)`
+     * cast turns `false` into `''` and `true` into `'1'`, so a boolean is
+     * rendered as a word before it ever reaches that cast.
      *
      * @param  array<string, string>  $options
      */
     public function format(mixed $value, array $options): string
     {
+        if (is_bool($value)) {
+            return $value ? 'Yes' : 'No';
+        }
+
         return is_int($value) ? number_format($value) : (string) $value;
     }
 

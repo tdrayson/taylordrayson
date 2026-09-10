@@ -64,6 +64,19 @@ it('reads the ambient state once per request no matter how many tags are resolve
     expect($stateQueries)->toHaveCount(1);
 });
 
+it('renders a boolean field as a word, not the empty string PHP casts false to', function (bool $charging, string $expected) {
+    State::query()->create([
+        'key' => 'now.battery',
+        'value' => json_encode(['percent' => 50, 'charging' => $charging, 'low_power' => false]),
+        'observed_at' => '2026-09-08 18:12:00',
+    ]);
+
+    expect(app(DynamicTagRegistry::class)->value('ambient.battery.charging', [])['text'])->toBe($expected);
+})->with([
+    'true' => [true, 'Yes'],
+    'false' => [false, 'No'],
+]);
+
 it('derives a ring percentage against its goal', function () {
     State::query()->create([
         'key' => 'now.rings',
