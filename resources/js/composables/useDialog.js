@@ -119,9 +119,15 @@ export function useDialog({ isOpen, onClose, closeOnEsc = true, onKeydown, trapF
         }
     }, { immediate: true });
 
+    // Same guard as the watcher above: a chip mounts a closed Modal, and
+    // unmounting it must not clear the scroll lock a sibling dialog is
+    // genuinely holding.
     onBeforeUnmount(() => {
         document.removeEventListener('keydown', handleKeydown);
-        document.body.style.overflow = '';
+
+        if (hasOpened) {
+            document.body.style.overflow = '';
+        }
     });
 
     return { panelEl };
