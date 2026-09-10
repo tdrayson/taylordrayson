@@ -5,8 +5,9 @@ use App\Models\User;
 use App\Support\PortableText;
 
 it('reparses a tag left as literal text back into a dynamicTag node', function () {
-    // The exact text form toProseMirror.js renders a dynamicTag node as
-    // (tag name, then each option as `key:value`, space separated).
+    // The literal `{tag options}` text form withTags() parses back into a
+    // dynamicTag node: tag name, then each option as `key:value`, space
+    // separated.
     $document = [PortableText::block('Logged {entries.count type:note period:2026}.')];
 
     $children = PortableText::withTags($document)[0]['children'];
