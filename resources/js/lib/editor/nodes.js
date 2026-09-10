@@ -1,6 +1,25 @@
 import { Node, Extension } from '@tiptap/core';
 
 /**
+ * Parses a `data-dynamic-options` attribute value, falling back rather than
+ * throwing when a paste carries malformed JSON.
+ * @param {string|null} raw The raw attribute value.
+ * @param {*} fallback The value to use when `raw` is empty or invalid.
+ * @return {*}
+ */
+export function parseDynamicOptions(raw, fallback = {}) {
+    if (! raw) {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return fallback;
+    }
+}
+
+/**
  * The node types the Portable Text converters produce which StarterKit has no
  * equivalent for, plus the extension that keeps `_key` alive across an edit.
  *
@@ -157,12 +176,26 @@ export const DynamicTagNode = Node.create({
         };
     },
 
+    /**
+     * Tag and options both ride on data attributes rather than the default
+     * same-name lookup, so a chip round-trips through copy and paste instead
+     * of coming back with a null tag.
+     */
     parseHTML() {
-        return [{ tag: 'span[data-dynamic-tag]' }];
+        return [{
+            tag: 'span[data-dynamic-tag]',
+            getAttrs: (element) => ({
+                tag: element.getAttribute('data-dynamic-tag'),
+                options: parseDynamicOptions(element.getAttribute('data-dynamic-options')),
+            }),
+        }];
     },
 
     renderHTML({ HTMLAttributes }) {
-        return ['span', { 'data-dynamic-tag': HTMLAttributes.tag }, HTMLAttributes.tag];
+        return ['span', {
+            'data-dynamic-tag': HTMLAttributes.tag,
+            'data-dynamic-options': JSON.stringify(HTMLAttributes.options ?? {}),
+        }, HTMLAttributes.tag];
     },
 });
 

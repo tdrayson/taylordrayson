@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout, DynamicTagNode } from './nodes.js';
+import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout, DynamicTagNode, parseDynamicOptions } from './nodes.js';
 
 /** The display host for a URL, or null for an internal path. */
 function hostOf(href) {
@@ -67,9 +67,7 @@ const Link = TiptapLink.extend({
                     href: element.getAttribute('data-href'),
                     target: element.getAttribute('data-target'),
                     tag: element.getAttribute('data-dynamic-tag'),
-                    options: element.getAttribute('data-dynamic-options')
-                        ? JSON.parse(element.getAttribute('data-dynamic-options'))
-                        : null,
+                    options: parseDynamicOptions(element.getAttribute('data-dynamic-options'), null),
                 }),
             },
         ];

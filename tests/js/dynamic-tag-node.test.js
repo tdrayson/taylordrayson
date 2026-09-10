@@ -1,7 +1,33 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { getSchema } from '@tiptap/core';
 import { toProseMirror } from '../../resources/js/lib/portable-text/toProseMirror.js';
 import { fromProseMirror, resetKeyCounter } from '../../resources/js/lib/portable-text/fromProseMirror.js';
+import { extensionsFor } from '../../resources/js/lib/editor/profiles.js';
+
+/**
+ * Mimics the one part of a DOM element ProseMirror's parse rules touch, so
+ * this can drive the schema's real parseDOM/toDOM without a browser DOM.
+ */
+function elementFromAttrs(attrs) {
+    return { getAttribute: (name) => (name in attrs ? attrs[name] : null) };
+}
+
+test('a chip survives an HTML render and re-parse, the way copy and paste does it', () => {
+    const schema = getSchema(extensionsFor('inline'));
+    const dynamicTag = schema.nodes.dynamicTag;
+
+    const node = dynamicTag.create({ tag: 'entries.count', options: { type: 'note' } });
+    const [, htmlAttrs] = dynamicTag.spec.toDOM(node);
+
+    assert.equal(htmlAttrs['data-dynamic-tag'], 'entries.count');
+    assert.equal(htmlAttrs['data-dynamic-options'], '{"type":"note"}');
+
+    const reparsed = dynamicTag.spec.parseDOM[0].getAttrs(elementFromAttrs(htmlAttrs));
+
+    assert.equal(reparsed.tag, 'entries.count', 'a pasted chip must keep its tag, not come back null');
+    assert.deepEqual(reparsed.options, { type: 'note' });
+});
 
 test('a stored tag becomes a dynamicTag node, not literal text', () => {
     const doc = toProseMirror([{
