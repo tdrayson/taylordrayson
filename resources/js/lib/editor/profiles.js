@@ -125,9 +125,9 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, dynamicTag?: object, codeBlock?: object}} options
+ * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, dynamicTag?: object, dynamicTagSuggestion?: object, codeBlock?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, dynamicTag = null, codeBlock = null } = {}) {
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, dynamicTag = null, dynamicTagSuggestion = null, codeBlock = null } = {}) {
     // The caller's version replaces the plain node, so the editor can draw it
     // with its node view while the renderer keeps the bare definition.
     const overrides = { callout, image, video, dynamicTag };
@@ -153,6 +153,7 @@ export function extensionsFor(profile, { placeholder = '', mention = null, slash
         }),
         ...(mention ? [mention] : []),
         ...(slash ? [slash] : []),
+        ...(dynamicTagSuggestion ? [dynamicTagSuggestion] : []),
         // Appended rather than swapped in: StarterKit's own code block is off,
         // so there is nothing in the base list to replace.
         ...(codeBlock && profile === 'document' ? [codeBlock] : []),

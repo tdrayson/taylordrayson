@@ -19,6 +19,7 @@ import DynamicTagChip from './DynamicTagChip.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { suggestionExtension } from '../../lib/editor/slashCommands';
+import { useDynamicTags, defaultOptionsFor } from '../../composables/useDynamicTags';
 
 /**
  * The writing surface. Speaks Portable Text on both sides: it takes the stored
@@ -50,6 +51,11 @@ let insert = null;
 // list on a fast "/" after an unfinished "@".
 const blockMenu = reactive({ open: false, items: [], active: 0, rect: null, getRect: null });
 let insertBlock = null;
+
+// Same reasoning as blockMenu: a fast "{" after an unfinished "@" or "/" must
+// not leak another trigger's items into this menu.
+const dynamicTagMenu = reactive({ open: false, items: [], active: 0, rect: null, getRect: null });
+let insertTag = null;
 
 /** Guards against the editor's own update echoing back in as a prop change. */
 const emitting = ref(false);
@@ -189,6 +195,94 @@ const slash = suggestionExtension('blockMenu').configure({
     },
 });
 
+const { tags: dynamicTagList, ensureLoaded: ensureDynamicTagsLoaded } = useDynamicTags();
+
+/**
+ * Rows the "{" menu offers: inline-capable tags whose label or dotted name
+ * matches what has been typed. Filtered against the already-cached list
+ * rather than a fetch per keystroke, since the registry does not change while
+ * the page is open.
+ */
+async function matchDynamicTags(query) {
+    await ensureDynamicTagsLoaded();
+
+    const needle = (query ?? '').toLowerCase();
+
+    return dynamicTagList.value
+        .filter((tag) => tag.supports.includes('inline'))
+        .filter((tag) => tag.label.toLowerCase().includes(needle) || tag.name.toLowerCase().includes(needle))
+        .map((tag) => ({
+            id: tag.name,
+            group: tag.group,
+            label: tag.label,
+            detail: tag.preview !== null ? `${tag.name}, ${tag.preview}` : tag.name,
+            tag,
+        }));
+}
+
+/**
+ * Insert a picked tag, applying its declared defaults for now.
+ *
+ * Seam for the options popup (a later task): a tag with options should still
+ * land here today rather than being blocked on a popup that doesn't exist
+ * yet, but once it does it should collect the author's choices and call
+ * `insertTagNode` directly, bypassing the default-filling in this function.
+ */
+function insertDynamicTag(instance, range, tag) {
+    insertTagNode(instance, range, tag.name, defaultOptionsFor(tag));
+}
+
+/** Replace the suggestion range, including the typed "{", with a tag chip. */
+function insertTagNode(instance, range, name, options) {
+    instance
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: 'dynamicTag', attrs: { tag: name, options } })
+        .run();
+}
+
+function pickDynamicTag(item) {
+    if (! item || ! insertTag) {
+        return;
+    }
+
+    insertTag(item);
+    dynamicTagMenu.open = false;
+}
+
+const dynamicTagKeys = suggestionKeys(dynamicTagMenu, pickDynamicTag);
+
+const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
+    suggestion: {
+        char: '{',
+        command: ({ editor: instance, range, props: row }) => insertDynamicTag(instance, range, row.tag),
+        items: ({ query }) => matchDynamicTags(query),
+        render: () => ({
+            onStart(p) {
+                insertTag = p.command;
+                dynamicTagMenu.items = p.items;
+                dynamicTagMenu.active = 0;
+                dynamicTagMenu.rect = p.clientRect?.() ?? null;
+                dynamicTagMenu.getRect = p.clientRect ?? null;
+                dynamicTagMenu.open = true;
+            },
+            onUpdate(p) {
+                insertTag = p.command;
+                dynamicTagMenu.items = p.items;
+                dynamicTagMenu.active = 0;
+                dynamicTagMenu.rect = p.clientRect?.() ?? null;
+                dynamicTagMenu.getRect = p.clientRect ?? null;
+            },
+            onKeyDown: ({ event }) => dynamicTagKeys(event),
+            onExit() {
+                dynamicTagMenu.open = false;
+                dynamicTagMenu.items = [];
+            },
+        }),
+    },
+});
+
 // The panel is drawn as it will be published, and its label doubles as the
 // control that changes which kind it is.
 const callout = Callout.extend({
@@ -250,6 +344,7 @@ const editor = useEditor({
         image,
         video,
         dynamicTag,
+        dynamicTagSuggestion,
         codeBlock,
     }),
     editorProps: {
@@ -349,6 +444,16 @@ defineExpose({ focus: () => editor.value?.commands.focus() });
             :get-rect="blockMenu.getRect"
             empty-label="No matching block"
             @pick="pickBlock"
+        />
+
+        <SuggestionMenu
+            v-if="dynamicTagMenu.open"
+            :items="dynamicTagMenu.items"
+            :active="dynamicTagMenu.active"
+            :rect="dynamicTagMenu.rect"
+            :get-rect="dynamicTagMenu.getRect"
+            empty-label="No matching tag"
+            @pick="pickDynamicTag"
         />
     </div>
 </template>
