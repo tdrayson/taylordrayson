@@ -1,6 +1,7 @@
 import { youtubeId } from './youtube.js';
 
 const VIMEO = /vimeo\.com\/(?:video\/)?(\d+)/;
+const LOOM = /loom\.com\/(?:share|embed)\/([0-9a-f]{32})/i;
 const FILE = /\.(mp4|m4v|mov|webm|ogv|ogg)(\?.*)?$/i;
 
 const MIME = {
@@ -31,6 +32,11 @@ export function videoSource(url) {
         return { provider: 'vimeo', id: vimeo[1] };
     }
 
+    const loom = String(url).match(LOOM);
+    if (loom) {
+        return { provider: 'loom', id: loom[1] };
+    }
+
     const file = String(url).match(FILE);
     if (file) {
         return { provider: 'html5', src: url, mime: MIME[file[1].toLowerCase()] ?? 'video/mp4' };
@@ -45,10 +51,11 @@ export function videoSource(url) {
 const EMBEDS = {
     youtube: (id, autoplay) => `https://www.youtube-nocookie.com/embed/${id}?rel=0${autoplay ? '&autoplay=1' : ''}`,
     vimeo: (id, autoplay) => `https://player.vimeo.com/video/${id}${autoplay ? '?autoplay=1' : ''}`,
+    loom: (id, autoplay) => `https://www.loom.com/embed/${id}${autoplay ? '?autoplay=1' : ''}`,
 };
 
 /** Display name per provider, for a placeholder that says what it will load. */
-const PROVIDERS = { youtube: 'YouTube', vimeo: 'Vimeo' };
+const PROVIDERS = { youtube: 'YouTube', vimeo: 'Vimeo', loom: 'Loom' };
 
 /**
  * The iframe URL for a video held by a provider. Null for a direct file, which

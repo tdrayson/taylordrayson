@@ -353,13 +353,23 @@ final class ConvertContent
 
         // Only a host the player cannot stream from needs resolving; a YouTube
         // URL is already something VideoEmbed knows how to open.
-        if ($resolveVideo !== null && ! preg_match('#(youtube\.com|youtu\.be|vimeo\.com)#i', $url)) {
+        if ($resolveVideo !== null && ! preg_match('#(youtube\.com|youtu\.be|vimeo\.com|loom\.com)#i', $url)) {
             $resolved = $resolveVideo($url);
 
             if ($resolved === null) {
                 $this->notes[] = 'video could not be resolved and was dropped: '.$url;
 
                 return [];
+            }
+
+            // A GIF is not something the player can open, and does not need it.
+            if (($resolved['isImage'] ?? false) === true) {
+                return [$this->pruned([
+                    '_type' => 'image',
+                    '_key' => PortableText::key(),
+                    'url' => $resolved['url'],
+                    'alt' => null,
+                ])];
             }
 
             $url = $resolved['url'];

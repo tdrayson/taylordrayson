@@ -68,7 +68,10 @@ final class ResolveZightVideo
     private function fetch(string $shareUrl): ?ZightVideo
     {
         try {
-            $response = Http::api()->timeout(self::TIMEOUT)->get($shareUrl);
+            // Without the query: `?embed=true` serves a player page that
+            // carries no Open Graph tags, so the item looks like it has no
+            // video when it has one.
+            $response = Http::api()->timeout(self::TIMEOUT)->get(strtok($shareUrl, '?'));
         } catch (Throwable) {
             return null;
         }
@@ -79,8 +82,17 @@ final class ResolveZightVideo
 
         $html = $response->body();
         $url = $this->meta($html, 'og:video');
+        $poster = $this->meta($html, 'og:image');
 
-        return $url === null ? null : new ZightVideo($url, $this->meta($html, 'og:image'));
+        if ($url !== null) {
+            return new ZightVideo($url, $poster);
+        }
+
+        // A Zight item can be a GIF rather than a video, in which case it
+        // publishes no og:video and the image is the whole thing.
+        return $poster !== null && str_contains(strtolower(parse_url($poster, PHP_URL_PATH) ?? ''), '.gif')
+            ? new ZightVideo($poster, null, isImage: true)
+            : null;
     }
 
     /** The content of the first meta tag carrying the given property. */

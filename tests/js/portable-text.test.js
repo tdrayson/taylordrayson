@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it, beforeEach } from 'node:test';
 import { toProseMirror } from '../../resources/js/lib/portable-text/toProseMirror.js';
 import { fromProseMirror, resetKeyCounter } from '../../resources/js/lib/portable-text/fromProseMirror.js';
+import { videoEmbed, videoProvider } from '../../resources/js/lib/video.js';
 
 /**
  * Span keys are internal identifiers with no meaning outside a document, and
@@ -242,5 +243,14 @@ describe('empty documents', () => {
 
         assert.equal(blocks.length, 1);
         assert.equal(blocks[0]._key, 'b1');
+    });
+});
+
+describe('video providers', () => {
+    it('recognises a Loom share and embed url', () => {
+        const id = '882bb5cb095240fe85d7dee8ddc84604';
+
+        assert.equal(videoProvider(`https://www.loom.com/share/${id}`), 'Loom');
+        assert.equal(videoEmbed(`https://www.loom.com/embed/${id}`), `https://www.loom.com/embed/${id}`);
     });
 });

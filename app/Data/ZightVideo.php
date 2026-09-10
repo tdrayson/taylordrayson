@@ -16,6 +16,8 @@ final readonly class ZightVideo implements Arrayable, JsonSerializable
     public function __construct(
         public string $url,
         public ?string $poster = null,
+        /** A GIF rather than a video, so it belongs in an image node. */
+        public bool $isImage = false,
     ) {}
 
     /**
@@ -26,6 +28,7 @@ final readonly class ZightVideo implements Arrayable, JsonSerializable
         return [
             'url' => $this->url,
             'poster' => $this->poster,
+            'isImage' => $this->isImage,
         ];
     }
 

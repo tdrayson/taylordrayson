@@ -28,7 +28,7 @@ it('resolves a share page to its content link and poster', function () use ($sha
 
     expect($video->url)->toBe($content)
         ->and($video->poster)->toBe($poster)
-        ->and($video->toArray())->toBe(['url' => $content, 'poster' => $poster]);
+        ->and($video->toArray())->toBe(['url' => $content, 'poster' => $poster, 'isImage' => false]);
 });
 
 it('returns null for a share that no longer exists', function () use ($share) {
@@ -72,4 +72,30 @@ it('fetches a share page once however often the import runs', function () use ($
         ->and($video->poster)->toBe($poster);
 
     Http::assertSentCount(1);
+});
+
+// `?embed=true` serves a player page with no Open Graph tags at all, so the
+// item looks like it holds no video when it holds one.
+it('ignores the query on a share url', function () use ($content, $poster) {
+    Http::fake(['share.getcloudapp.com/*' => Http::response(zightSharePage($content, $poster))]);
+
+    $video = app(ResolveZightVideo::class)('https://share.getcloudapp.com/4guly0GJ?embed=true');
+
+    expect($video->url)->toBe($content);
+
+    Http::assertSent(fn ($request) => ! str_contains($request->url(), 'embed=true'));
+});
+
+// Not every Zight item is a video. A GIF publishes no og:video, and the image
+// is the whole thing rather than a still of it.
+it('brings a gif back as an image rather than a video', function () {
+    $gif = 'https://p-MrFmyK.t2.n0.cdn.zight.com/items/bLuZ0lxr/c241a139.gif?source=social';
+
+    Http::fake(['share.getcloudapp.com/*' => Http::response(
+        '<html><head><meta property="og:image" content="'.$gif.'" /></head></html>'
+    )]);
+
+    $video = app(ResolveZightVideo::class)('https://share.getcloudapp.com/bLuZ0lxr');
+
+    expect($video->url)->toBe($gif)->and($video->isImage)->toBeTrue();
 });
