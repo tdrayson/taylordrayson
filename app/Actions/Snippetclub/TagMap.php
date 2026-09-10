@@ -27,7 +27,6 @@ final class TagMap
         'api' => 'API',
         'gutenberg' => 'Gutenberg',
         'acf' => 'ACF',
-        'hooks & filters' => 'Hooks & Filters',
         'fluent forms' => 'Fluent Forms',
         'fluentcrm' => 'FluentCRM',
         'blockstudio' => 'Blockstudio',
@@ -48,7 +47,10 @@ final class TagMap
         'smartcodes' => 'Fluent Forms',
         'conversational form' => 'Fluent Forms',
 
-        // WordPress techniques. None is a filter worth having on its own.
+        // WordPress techniques. None is a filter worth having on its own, and
+        // `hooks & filters` least of all: it sat on 68 of 127 articles, so it
+        // separated nothing, and it says nothing about writing after WordPress.
+        'hooks & filters' => 'WordPress',
         'custom function' => 'WordPress',
         'shortcode' => 'WordPress',
         'conditions' => 'WordPress',

@@ -190,13 +190,14 @@ it('decodes the entities WordPress stores in titles and tags', function () {
         'status' => 'publish',
         'date' => '2022-11-16 19:27:41',
         'content_raw' => '',
-        'tags' => [['name' => 'Hooks &amp; Filters']],
+        'tags' => [['name' => 'Design &amp; Build']],
     ]);
 
     $article = Article::where('slug', 'prefixes')->first();
 
     expect($article->title)->toBe('Removing Prefixes & Suffixes')
-        ->and($article->tagNames())->toContain('Hooks & Filters');
+        // An unmapped tag, so this tests the decoding rather than the tag map.
+        ->and($article->tagNames())->toContain('Design & Build');
 });
 
 // The old site had no callout, so a grey <pre> did both jobs: an aside to the
@@ -224,6 +225,8 @@ it('folds the old site\'s narrow tags into ones worth filtering by', function (a
 })->with([
     'a Pro tier is the same subject' => [['GeneratePress', 'GP Premium'], ['GeneratePress']],
     'one-post plugins become WordPress' => [['SearchWP', 'Kadence', 'Options Page'], ['WordPress']],
+    // 68 of 127 articles carried it, so it separated nothing.
+    'hooks & filters was too broad to filter by' => [['Hooks & Filters'], ['WordPress']],
     'a library is the language it is written in' => [['LityJS', 'Flatpickr'], ['JavaScript']],
     'the broad ones are left alone' => [['PHP', 'CSS', 'Accessibility'], ['PHP', 'CSS', 'Accessibility']],
     'dead ones are dropped' => [['Demo', 'Cheatsheet'], []],
