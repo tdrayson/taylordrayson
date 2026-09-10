@@ -235,3 +235,26 @@ it('folds the old site\'s narrow tags into ones worth filtering by', function (a
     // rather than vanish silently.
     'an unmapped tag is kept' => [['Something New'], ['Something New']],
 ]);
+
+// The importer overwrites content every run, so a fix made by hand would not
+// survive one. Per-article corrections live in code for that reason.
+it('applies a per-article correction, and survives a re-import', function () {
+    $post = [
+        'title' => 'Lightbox any Gutenberg image with Lity',
+        'slug' => 'lightbox-any-gutenberg-image-with-lity',
+        'status' => 'publish',
+        'date' => '2022-09-01 10:00:00',
+        'content_raw' => '<!-- wp:snippetclub/lightbox {"blockstudio":{"attributes":'
+            .'{"target":"https://www.youtube.com/embed/dQw4w9WgXcQ","text":"Click Me"}}} /-->'
+            .'<!-- wp:paragraph --><p>The real content.</p><!-- /wp:paragraph -->',
+    ];
+
+    $import = app(ImportPost::class);
+    $import($post);
+    $import($post);
+
+    $content = Article::where('slug', 'lightbox-any-gutenberg-image-with-lity')->first()->content;
+
+    expect(collect($content)->where('_type', 'video'))->toBeEmpty()
+        ->and($content[0]['children'][0]['text'])->toBe('The real content.');
+});

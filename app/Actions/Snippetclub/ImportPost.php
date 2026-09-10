@@ -25,6 +25,7 @@ final class ImportPost
         private readonly ConvertContent $convert,
         private readonly ResolveZightVideo $resolveVideo,
         private readonly TagMap $tags = new TagMap,
+        private readonly Corrections $corrections = new Corrections,
     ) {}
 
     /**
@@ -37,25 +38,27 @@ final class ImportPost
             fn (string $url): ?array => ($this->resolveVideo)($url)?->toArray(),
         );
 
+        $slug = $this->slug($post);
+        ['nodes' => $nodes, 'applied' => $applied] = ($this->corrections)($slug, $converted->nodes);
+
         $attributes = [
             'title' => $this->decoded($post['title'] ?? ''),
             'excerpt' => ($post['excerpt'] ?? '') !== '' ? $this->decoded($post['excerpt']) : null,
-            'content' => $converted->nodes,
+            'content' => $nodes,
             'published' => ($post['status'] ?? '') === 'publish',
             'occurred_at' => $post['date'] ?? EntryInstant::nowLocal(),
             'timezone' => self::TIMEZONE,
         ];
 
-        $slug = $this->slug($post);
         $tags = $this->tags($post);
 
         if ($dryRun) {
             return new SnippetclubImport(
                 $slug,
                 ! Article::where('slug', $slug)->exists(),
-                count($converted->nodes),
+                count($nodes),
                 $tags,
-                $converted->notes,
+                [...$converted->notes, ...$applied],
             );
         }
 
@@ -65,9 +68,9 @@ final class ImportPost
         return new SnippetclubImport(
             $slug,
             $article->wasRecentlyCreated,
-            count($converted->nodes),
+            count($nodes),
             $tags,
-            $converted->notes,
+            [...$converted->notes, ...$applied],
         );
     }
 
