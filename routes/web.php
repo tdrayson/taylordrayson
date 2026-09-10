@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
+use App\Http\Controllers\DynamicTagsController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
@@ -35,6 +36,7 @@ require __DIR__.'/auth.php';
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+    Route::get('/dynamic-tags', DynamicTagsController::class)->name('dynamic-tags');
 
     // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
     Route::get('/new', [AuthoringController::class, 'new'])->name('new');
