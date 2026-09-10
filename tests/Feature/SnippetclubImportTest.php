@@ -311,3 +311,25 @@ it('strips a heading\'s old numbering and trailing colon', function (string $htm
     ['<h2>2024 in review</h2>', '2024 in review'],
     ['<h2>10 things I learned</h2>', '10 things I learned'],
 ]);
+
+// The old editor had no button for a fourth-level heading, so a section label
+// was written as a paragraph in bold.
+it('reads a fully bold paragraph as the heading it was standing in for', function () {
+    $nodes = (new ConvertContent)(
+        '<!-- wp:heading {"level":3} --><h3>Adding our block markup</h3><!-- /wp:heading -->'
+        .'<!-- wp:paragraph --><p><strong>Transients</strong></p><!-- /wp:paragraph -->'
+    )->nodes;
+
+    // One level below the heading it follows, and no longer doubly bold.
+    expect($nodes[1]['style'])->toBe('h4')
+        ->and($nodes[1]['children'][0]['marks'])->toBe([]);
+});
+
+it('leaves emphatic prose as prose', function () {
+    $nodes = (new ConvertContent)(
+        '<!-- wp:paragraph --><p><strong>The best part.... It relies on 1 line of code!</strong></p><!-- /wp:paragraph -->'
+    )->nodes;
+
+    expect($nodes[0]['style'])->toBe('normal')
+        ->and($nodes[0]['children'][0]['marks'])->toBe(['strong']);
+});

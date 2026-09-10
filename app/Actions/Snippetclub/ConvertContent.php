@@ -49,7 +49,7 @@ final class ConvertContent
 
         $nodes = $this->blocks($this->parser->parse($markup), $resolveVideo, 1);
 
-        return new ConvertedContent(array_values($nodes), $this->notes);
+        return new ConvertedContent(array_values($this->boldLabelsAsHeadings($nodes)), $this->notes);
     }
 
     /**
@@ -148,6 +148,70 @@ final class ConvertContent
 
         // h1 belongs to the page title, so a heading written as one steps down.
         return $this->textBlock($this->plainHeading($block->innerHtml), 'h'.max(2, min(6, (int) $match[1])));
+    }
+
+    /**
+     * A paragraph that is bold from end to end was a heading the old editor had
+     * no button for. It takes the level below whatever heading it follows,
+     * which is where every one of them sits.
+     *
+     * @param  list<array<string, mixed>>  $nodes
+     * @return list<array<string, mixed>>
+     */
+    private function boldLabelsAsHeadings(array $nodes): array
+    {
+        $previous = 2;
+
+        foreach ($nodes as $index => $node) {
+            if (($node['_type'] ?? '') === 'block' && preg_match('/^h([2-6])$/', $node['style'] ?? '', $match)) {
+                $previous = (int) $match[1];
+
+                continue;
+            }
+
+            if (! $this->isBoldLabel($node)) {
+                continue;
+            }
+
+            $nodes[$index]['style'] = 'h'.min(6, $previous + 1);
+            $nodes[$index]['children'] = array_map(function (array $span): array {
+                // A heading is already bold, so the mark would double it.
+                $span['marks'] = array_values(array_diff($span['marks'] ?? [], ['strong']));
+
+                return $span;
+            }, $node['children']);
+
+            $last = count($nodes[$index]['children']) - 1;
+            $nodes[$index]['children'][$last]['text'] = (string) preg_replace('/\s*:\s*$/u', '', $nodes[$index]['children'][$last]['text'] ?? '');
+        }
+
+        return $nodes;
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private function isBoldLabel(array $node): bool
+    {
+        if (($node['_type'] ?? '') !== 'block' || ($node['style'] ?? '') !== 'normal' || isset($node['listItem'])) {
+            return false;
+        }
+
+        $children = $node['children'] ?? [];
+        $text = '';
+
+        foreach ($children as $child) {
+            if (! in_array('strong', $child['marks'] ?? [], true)) {
+                return false;
+            }
+
+            $text .= $child['text'] ?? '';
+        }
+
+        $text = trim($text);
+
+        // A sentence break mid-string means this is emphatic prose, not a label.
+        return $text !== '' && str_word_count($text) <= 12 && preg_match('/[.!?]\s+\S/u', $text) !== 1;
     }
 
     /**
