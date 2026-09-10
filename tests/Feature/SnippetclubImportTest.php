@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Snippetclub\ClassifyPreformatted;
 use App\Actions\Snippetclub\ConvertContent;
 use App\Actions\Snippetclub\ImportPost;
 use App\Actions\Snippetclub\RewriteLinks;
@@ -86,11 +87,21 @@ it('lifts an image out of the paragraph it was written inside', function () {
         ->and($nodes[1])->toMatchArray(['_type' => 'image', 'url' => 'https://example.com/a.png', 'alt' => 'A']);
 });
 
-it('flags a preformatted box for review rather than guessing at it', function () {
-    $result = (new ConvertContent)('<!-- wp:preformatted --><pre>A note.</pre><!-- /wp:preformatted -->');
+it('turns an advisory grey box into a callout, and says it did', function () {
+    $result = (new ConvertContent)(
+        '<!-- wp:preformatted --><pre>Make sure to replace line 3 with your API key.</pre><!-- /wp:preformatted -->'
+    );
+
+    expect($result->nodes[0])->toMatchArray(['_type' => 'callout', 'variant' => 'note'])
+        ->and($result->nodes[0]['children'][0]['text'])->toBe('Make sure to replace line 3 with your API key.')
+        ->and($result->notes)->toHaveCount(1);
+});
+
+it('leaves a short fragment as code, unremarked', function () {
+    $result = (new ConvertContent)('<!-- wp:preformatted --><pre>[my_shortcode]</pre><!-- /wp:preformatted -->');
 
     expect($result->nodes[0]['_type'])->toBe('code')
-        ->and($result->notes)->toHaveCount(1);
+        ->and($result->notes)->toBeEmpty();
 });
 
 it('imports a post, and importing it again changes nothing', function () {
@@ -186,3 +197,21 @@ it('decodes the entities WordPress stores in titles and tags', function () {
     expect($article->title)->toBe('Removing Prefixes & Suffixes')
         ->and($article->tagNames())->toContain('Hooks & Filters');
 });
+
+// The old site had no callout, so a grey <pre> did both jobs: an aside to the
+// reader, and a shortcode or path shown inline.
+it('tells an aside apart from a code fragment in a grey box', function (string $text, ?string $variant) {
+    expect(app(ClassifyPreformatted::class)($text))->toBe($variant);
+})->with([
+    ['Make sure your ACF date field returns in the format Ymd.', 'note'],
+    ['Credit to Luke for the snippet.', 'note'],
+    // Starts with a product name, so an allow-list of openings would miss it.
+    ['OpenWeatherMap has a lenient free API tier that we can use.', 'note'],
+    ['Note: Tooltip tutorial requires GenerateBlocks Pro.', 'important'],
+    ["Note: You shouldn't rely soley on the AI generator for your Alt text.", 'warning'],
+    ['[dynamic_fluentform field="fluent_form"]', null],
+    ['/fluent-crm/app/Hooks/Handlers/ExternalPages.php', null],
+    ['https://domain.com/?pw=password123', null],
+    ['FluentForm\App\Modules\Component - line 548', null],
+    ['Name = tct_author_meta Arguments = role', null],
+]);

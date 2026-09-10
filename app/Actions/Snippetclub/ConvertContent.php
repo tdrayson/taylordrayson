@@ -36,6 +36,7 @@ final class ConvertContent
     public function __construct(
         private readonly BlockParser $parser = new BlockParser,
         private readonly InlineHtml $inline = new InlineHtml,
+        private readonly ClassifyPreformatted $classify = new ClassifyPreformatted,
     ) {}
 
     /**
@@ -223,8 +224,7 @@ final class ConvertContent
 
     /**
      * A grey preformatted box was the old site's only aside, so it holds both
-     * code fragments and notes. Emitted as code and flagged, since which one it
-     * is cannot be read off the markup.
+     * code fragments and notes. Which one it is has to be read off the text.
      *
      * @return list<array<string, mixed>>
      */
@@ -236,16 +236,28 @@ final class ConvertContent
             return [];
         }
 
-        $this->notes[] = 'preformatted block, may want to be a callout: '.mb_strimwidth($text, 0, 80, '...');
+        $variant = ($this->classify)($text);
 
-        return [$this->pruned([
-            '_type' => 'code',
+        if ($variant === null) {
+            return [$this->pruned([
+                '_type' => 'code',
+                '_key' => PortableText::key(),
+                'code' => $text,
+                'language' => null,
+                'filename' => null,
+                'lineNumbers' => false,
+            ])];
+        }
+
+        $this->notes[] = 'was a grey box, now a '.$variant.' callout: '.mb_strimwidth($text, 0, 70, '...');
+
+        return [[
+            '_type' => 'callout',
             '_key' => PortableText::key(),
-            'code' => $text,
-            'language' => null,
-            'filename' => null,
-            'lineNumbers' => false,
-        ])];
+            'variant' => $variant,
+            'markDefs' => [],
+            'children' => $this->inline->convert($text)['children'],
+        ]];
     }
 
     /**
