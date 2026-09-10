@@ -301,7 +301,21 @@ const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
                 dynamicTagMenu.rect = p.clientRect?.() ?? null;
                 dynamicTagMenu.getRect = p.clientRect ?? null;
             },
-            onKeyDown: ({ event }) => dynamicTagKeys(event),
+            /**
+             * Escape is handled here rather than in the shared `dynamicTagKeys`:
+             * unlike `@` or `/`, which are ordinary characters worth keeping as
+             * plain text, `{` exists only to trigger this menu, so leaving
+             * `{query` behind reads as a broken tag rather than a typed word.
+             */
+            onKeyDown({ event, view, range }) {
+                if (event.key === 'Escape' && dynamicTagMenu.open) {
+                    view.dispatch(view.state.tr.delete(range.from, range.to));
+
+                    return true;
+                }
+
+                return dynamicTagKeys(event);
+            },
             onExit() {
                 dynamicTagMenu.open = false;
                 dynamicTagMenu.items = [];
