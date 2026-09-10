@@ -53,7 +53,13 @@ const filename = computed(() => {
         : props.name;
 });
 
-const kind = computed(() => fileKind(filename.value, props.mime));
+// From the file itself, never from the title: a chosen label like "Country to
+// dialling code" has no extension, and one that happens to end in "(7 KB)"
+// reads as an extension that does not exist.
+const kind = computed(() => fileKind(
+    isRelease.value ? props.release?.name ?? props.asset : props.name,
+    props.mime,
+));
 
 const href = computed(() => (isRelease.value
     ? githubDownloadUrl(props.repo, props.asset)
