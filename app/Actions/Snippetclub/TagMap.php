@@ -19,14 +19,15 @@ final class TagMap
      * @var array<string, string|null>
      */
     private const MAP = [
-        // Broad enough already.
+        // Broad enough already. Product names are spelled out, so that the
+        // acronyms left standing are all universal ones rather than brands.
         'php' => 'PHP',
         'javascript' => 'JavaScript',
         'css' => 'CSS',
         'accessibility' => 'Accessibility',
         'api' => 'API',
         'gutenberg' => 'Gutenberg',
-        'acf' => 'ACF',
+        'acf' => 'Advanced Custom Fields',
         'fluent forms' => 'Fluent Forms',
         'fluentcrm' => 'FluentCRM',
         'blockstudio' => 'Blockstudio',
@@ -56,7 +57,7 @@ final class TagMap
         'conditions' => 'WordPress',
         'php return value' => 'PHP',
         'template_redirect' => 'WordPress',
-        'repeater' => 'ACF',
+        'repeater' => 'Advanced Custom Fields',
         'dynamic' => 'WordPress',
         'dynamic data' => 'WordPress',
         'options page' => 'WordPress',

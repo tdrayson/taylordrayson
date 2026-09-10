@@ -224,6 +224,7 @@ it('folds the old site\'s narrow tags into ones worth filtering by', function (a
     expect(app(TagMap::class)->apply($source))->toEqualCanonicalizing($expected);
 })->with([
     'a Pro tier is the same subject' => [['GeneratePress', 'GP Premium'], ['GeneratePress']],
+    'a product acronym is spelled out' => [['ACF', 'Repeater'], ['Advanced Custom Fields']],
     'one-post plugins become WordPress' => [['SearchWP', 'Kadence', 'Options Page'], ['WordPress']],
     // 68 of 127 articles carried it, so it separated nothing.
     'hooks & filters was too broad to filter by' => [['Hooks & Filters'], ['WordPress']],
