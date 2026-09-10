@@ -2,6 +2,9 @@ import { youtubeId } from './youtube.js';
 
 const VIMEO = /vimeo\.com\/(?:video\/)?(\d+)/;
 const LOOM = /loom\.com\/(?:share|embed)\/([0-9a-f]{32})/i;
+// Zight, formerly CloudApp. Both the short code and the item uuid resolve, and
+// both hosts still serve, so old links keep working.
+const ZIGHT = /^https?:\/\/(?:share\.getcloudapp\.com|share\.zight\.com|cl\.ly)\/([A-Za-z0-9-]+)\/?(?:\?|$)/i;
 const FILE = /\.(mp4|m4v|mov|webm|ogv|ogg)(\?.*)?$/i;
 
 const MIME = {
@@ -37,6 +40,11 @@ export function videoSource(url) {
         return { provider: 'loom', id: loom[1] };
     }
 
+    const zight = String(url).match(ZIGHT);
+    if (zight) {
+        return { provider: 'zight', id: zight[1] };
+    }
+
     const file = String(url).match(FILE);
     if (file) {
         return { provider: 'html5', src: url, mime: MIME[file[1].toLowerCase()] ?? 'video/mp4' };
@@ -52,10 +60,13 @@ const EMBEDS = {
     youtube: (id, autoplay) => `https://www.youtube-nocookie.com/embed/${id}?rel=0${autoplay ? '&autoplay=1' : ''}`,
     vimeo: (id, autoplay) => `https://player.vimeo.com/video/${id}${autoplay ? '?autoplay=1' : ''}`,
     loom: (id, autoplay) => `https://www.loom.com/embed/${id}${autoplay ? '?autoplay=1' : ''}`,
+    // Their own player, so a change to how they sign a CDN address cannot rot
+    // the link the way a direct mp4 would.
+    zight: (id, autoplay) => `https://share.getcloudapp.com/${id}?embed=true${autoplay ? '&autoplay=1' : ''}`,
 };
 
 /** Display name per provider, for a placeholder that says what it will load. */
-const PROVIDERS = { youtube: 'YouTube', vimeo: 'Vimeo', loom: 'Loom' };
+const PROVIDERS = { youtube: 'YouTube', vimeo: 'Vimeo', loom: 'Loom', zight: 'Zight' };
 
 /**
  * The iframe URL for a video held by a provider. Null for a direct file, which

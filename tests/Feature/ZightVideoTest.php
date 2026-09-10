@@ -26,9 +26,10 @@ it('resolves a share page to its content link and poster', function () use ($sha
 
     $video = app(ResolveZightVideo::class)($share);
 
-    expect($video->url)->toBe($content)
+    // The share url, not the mp4 behind it: Zight's own player renders it.
+    expect($video->url)->toBe($share)
         ->and($video->poster)->toBe($poster)
-        ->and($video->toArray())->toBe(['url' => $content, 'poster' => $poster, 'isImage' => false]);
+        ->and($video->toArray())->toBe(['url' => $share, 'poster' => $poster, 'isImage' => false]);
 });
 
 it('returns null for a share that no longer exists', function () use ($share) {
@@ -68,7 +69,7 @@ it('fetches a share page once however often the import runs', function () use ($
     app(ResolveZightVideo::class)($share);
     $video = app(ResolveZightVideo::class)($share);
 
-    expect($video->url)->toBe($content)
+    expect($video->url)->toBe($share)
         ->and($video->poster)->toBe($poster);
 
     Http::assertSentCount(1);
@@ -81,7 +82,7 @@ it('ignores the query on a share url', function () use ($content, $poster) {
 
     $video = app(ResolveZightVideo::class)('https://share.getcloudapp.com/4guly0GJ?embed=true');
 
-    expect($video->url)->toBe($content);
+    expect($video->url)->toBe('https://share.getcloudapp.com/4guly0GJ');
 
     Http::assertSent(fn ($request) => ! str_contains($request->url(), 'embed=true'));
 });

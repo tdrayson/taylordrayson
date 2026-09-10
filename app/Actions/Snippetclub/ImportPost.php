@@ -26,6 +26,7 @@ final class ImportPost
         private readonly ResolveZightVideo $resolveVideo,
         private readonly TagMap $tags = new TagMap,
         private readonly Corrections $corrections = new Corrections,
+        private readonly PromoteAsides $promote = new PromoteAsides,
     ) {}
 
     /**
@@ -40,6 +41,8 @@ final class ImportPost
 
         $slug = $this->slug($post);
         ['nodes' => $nodes, 'applied' => $applied] = ($this->corrections)($slug, $converted->nodes);
+        ['nodes' => $nodes, 'promoted' => $promoted] = ($this->promote)($nodes);
+        $applied = [...$applied, ...$promoted];
 
         $attributes = [
             'title' => $this->decoded($post['title'] ?? ''),

@@ -3,6 +3,7 @@
 use App\Actions\Snippetclub\ClassifyPreformatted;
 use App\Actions\Snippetclub\ConvertContent;
 use App\Actions\Snippetclub\ImportPost;
+use App\Actions\Snippetclub\PromoteAsides;
 use App\Actions\Snippetclub\RewriteLinks;
 use App\Actions\Snippetclub\TagMap;
 use App\Models\Article;
@@ -262,3 +263,30 @@ it('applies a per-article correction, and survives a re-import', function () {
     expect(collect($content)->where('_type', 'video'))->toBeEmpty()
         ->and($content[0]['children'][0]['text'])->toBe('The real content.');
 });
+
+// The old site had no callout, so an aside was written as ordinary prose.
+it('lifts an advisory paragraph into a callout, but leaves the walkthrough alone', function (string $text, ?string $variant) {
+    $node = [
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'span', '_key' => 's1', 'text' => $text, 'marks' => []]],
+    ];
+
+    $result = app(PromoteAsides::class)([$node]);
+
+    expect($result['nodes'][0]['_type'])->toBe($variant === null ? 'block' : 'callout');
+
+    if ($variant !== null) {
+        expect($result['nodes'][0]['variant'])->toBe($variant)
+            // The panel's label already says which kind it is.
+            ->and($result['nodes'][0]['children'][0]['children'][0]['text'])->not->toStartWith('Note:');
+    }
+})->with([
+    ['Note: There are certain url params that are protected by WordPress.', 'note'],
+    ['Make sure you set the Return format to Image URL.', 'note'],
+    ['I recommend watching Kyles video for an easy guide.', 'note'],
+    ['Important: this needs the Pro version.', 'important'],
+    ["Note: you shouldn't rely solely on the AI generator.", 'warning'],
+    // A step confirmation reads like an aside but is the walkthrough itself.
+    ['You should now see the Blockstudio editor in your sidebar.', null],
+    ['We next need to convert our polyline to an array of points.', null],
+]);

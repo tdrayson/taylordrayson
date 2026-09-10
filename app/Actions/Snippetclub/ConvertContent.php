@@ -138,10 +138,16 @@ final class ConvertContent
         // left out of the attributes entirely.
         preg_match('/<h([1-6])\b/i', $block->innerHtml, $match);
 
-        $level = (int) ($match[1] ?? $block->attribute('level', 2));
+        // A GenerateBlocks headline is a styling block, not a semantic one, and
+        // half of them rendered as paragraphs. Forcing those to h2 invented
+        // headings the old site never had, and put whole sentences in the
+        // table of contents.
+        if (! isset($match[1])) {
+            return $this->textBlock($block->innerHtml, 'normal');
+        }
 
         // h1 belongs to the page title, so a heading written as one steps down.
-        return $this->textBlock($block->innerHtml, 'h'.max(2, min(6, $level)));
+        return $this->textBlock($block->innerHtml, 'h'.max(2, min(6, (int) $match[1])));
     }
 
     /**
@@ -257,8 +263,21 @@ final class ConvertContent
             '_type' => 'callout',
             '_key' => PortableText::key(),
             'variant' => $variant,
-            'children' => $this->textBlock($block->innerHtml, 'normal'),
+            'children' => $this->textBlock($this->withoutMarker($block->innerHtml), 'normal'),
         ]];
+    }
+
+    /**
+     * Drop a leading `Note:` or `Warning:` from a callout's body. The panel's
+     * own label already says which it is, so the words are said twice.
+     */
+    private function withoutMarker(string $html): string
+    {
+        return (string) preg_replace(
+            '/^((?:\s|<[^>]*>)*)(note|important|warning|caution|tip)s?\s*:\s*/iu',
+            '$1',
+            $html,
+        );
     }
 
     /**

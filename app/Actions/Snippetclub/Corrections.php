@@ -29,26 +29,53 @@ final class Corrections
     ];
 
     /**
+     * Blocks to drop, by article slug and the text they open with. Same idea as
+     * DROPPED, for prose that carries no url to match on.
+     *
+     * @var array<string, array<string, string>>
+     */
+    private const DROPPED_TEXT = [
+        'dynamic-template-tags' => [
+            'I can add support for other custom field plugins' => 'an offer that no longer stands',
+        ],
+    ];
+
+    /**
      * @param  list<array<string, mixed>>  $nodes
      * @return array{nodes: list<array<string, mixed>>, applied: list<string>}
      */
     public function __invoke(string $slug, array $nodes): array
     {
         $drops = self::DROPPED[$slug] ?? [];
+        $text = self::DROPPED_TEXT[$slug] ?? [];
 
-        if ($drops === []) {
+        if ($drops === [] && $text === []) {
             return ['nodes' => $nodes, 'applied' => []];
         }
 
         $applied = [];
 
-        $kept = array_values(array_filter($nodes, function (array $node) use ($drops, &$applied): bool {
+        $kept = array_values(array_filter($nodes, function (array $node) use ($drops, $text, &$applied): bool {
             $url = $node['url'] ?? null;
 
             if (is_string($url) && isset($drops[$url])) {
                 $applied[] = $drops[$url].': '.$url;
 
                 return false;
+            }
+
+            $opening = '';
+
+            foreach ($node['children'] ?? [] as $child) {
+                $opening .= $child['text'] ?? '';
+            }
+
+            foreach ($text as $needle => $why) {
+                if ($opening !== '' && str_starts_with(trim($opening), $needle)) {
+                    $applied[] = $why.': '.mb_strimwidth(trim($opening), 0, 60, '...');
+
+                    return false;
+                }
             }
 
             return true;
