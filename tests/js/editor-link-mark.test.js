@@ -21,4 +21,21 @@ describe('the editor link mark', () => {
             );
         });
     }
+
+    it('degrades a malformed data-dynamic-options to no options rather than throwing', () => {
+        const schema = getSchema(extensionsFor('inline'));
+        const spanRule = schema.marks.link.spec.parseDOM.find((rule) => rule.tag === 'span[data-href]');
+
+        const element = {
+            getAttribute: (name) => ({
+                'data-href': null,
+                'data-target': null,
+                'data-dynamic-tag': 'site.social',
+                'data-dynamic-options': '{not valid json',
+            })[name] ?? null,
+        };
+
+        assert.doesNotThrow(() => spanRule.getAttrs(element));
+        assert.equal(spanRule.getAttrs(element).options, null);
+    });
 });
