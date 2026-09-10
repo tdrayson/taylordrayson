@@ -23,7 +23,7 @@ class RingPercent extends DynamicTag
 
     public function group(): string
     {
-        return 'Ambient';
+        return 'Rings';
     }
 
     /**

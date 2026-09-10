@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import TiptapImage from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -9,6 +9,7 @@ import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
 import SuggestionMenu from './SuggestionMenu.vue';
+import DynamicTagMenu from './DynamicTagMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
 import BlockHandles from './BlockHandles.vue';
 import CalloutBlock from './CalloutBlock.vue';
@@ -54,8 +55,19 @@ const blockMenu = reactive({ open: false, items: [], active: 0, rect: null, getR
 let insertBlock = null;
 
 // Same reasoning as blockMenu: a fast "{" after an unfinished "@" or "/" must
-// not leak another trigger's items into this menu.
-const dynamicTagMenu = reactive({ open: false, items: [], active: 0, rect: null, getRect: null });
+// not leak another trigger's items into this menu. `activeCategory`/`activeField`
+// track the cascading browse shown while `query` is empty; `active` tracks the
+// flat filtered list shown once an author starts typing.
+const dynamicTagMenu = reactive({
+    open: false,
+    query: '',
+    items: [],
+    active: 0,
+    activeCategory: 0,
+    activeField: 0,
+    rect: null,
+    getRect: null,
+});
 let insertTag = null;
 
 /** Guards against the editor's own update echoing back in as a prop change. */
@@ -198,27 +210,51 @@ const slash = suggestionExtension('blockMenu').configure({
 
 const { tags: dynamicTagList, ensureLoaded: ensureDynamicTagsLoaded } = useDynamicTags();
 
+const inlineTags = computed(() => dynamicTagList.value.filter((tag) => tag.supports.includes('inline')));
+
 /**
- * Rows the "{" menu offers: inline-capable tags whose label or dotted name
- * matches what has been typed. Filtered against the already-cached list
- * rather than a fetch per keystroke, since the registry does not change while
- * the page is open.
+ * A tag shaped into what both the cascading and flat views of the "{" menu
+ * render: the dotted name is not shown, since a tag's category already gives
+ * that context and the two would only repeat each other.
+ */
+function tagRow(tag) {
+    return { id: tag.name, group: tag.group, label: tag.label, detail: tag.preview, tag };
+}
+
+/**
+ * Categories for the cascading browse, in first-seen order, built once the
+ * registry is loaded and shared for every "{" the author types.
+ */
+const dynamicTagCategories = computed(() => {
+    const order = [];
+    const byLabel = {};
+
+    for (const tag of inlineTags.value) {
+        if (! byLabel[tag.group]) {
+            byLabel[tag.group] = { label: tag.group, rows: [] };
+            order.push(byLabel[tag.group]);
+        }
+
+        byLabel[tag.group].rows.push(tagRow(tag));
+    }
+
+    return order;
+});
+
+/**
+ * Rows the "{" menu's flat list offers once an author has typed something:
+ * inline-capable tags whose label or dotted name matches. Filtered against
+ * the already-cached list rather than a fetch per keystroke, since the
+ * registry does not change while the page is open.
  */
 async function matchDynamicTags(query) {
     await ensureDynamicTagsLoaded();
 
     const needle = (query ?? '').toLowerCase();
 
-    return dynamicTagList.value
-        .filter((tag) => tag.supports.includes('inline'))
+    return inlineTags.value
         .filter((tag) => tag.label.toLowerCase().includes(needle) || tag.name.toLowerCase().includes(needle))
-        .map((tag) => ({
-            id: tag.name,
-            group: tag.group,
-            label: tag.label,
-            detail: tag.preview !== null ? `${tag.name}, ${tag.preview}` : tag.name,
-            tag,
-        }));
+        .map(tagRow);
 }
 
 /**
@@ -278,7 +314,63 @@ function pickDynamicTag(item) {
     dynamicTagMenu.open = false;
 }
 
-const dynamicTagKeys = suggestionKeys(dynamicTagMenu, pickDynamicTag);
+const flatDynamicTagKeys = suggestionKeys(dynamicTagMenu, pickDynamicTag);
+
+/**
+ * Key handling for the "{" menu. Once a query is typed it is a flat filtered
+ * list and behaves exactly like `@`/`/`; an empty query is the cascading
+ * browse, where up/down move through the active category's tags and
+ * left/right switch which category is open.
+ */
+function dynamicTagKeys(event) {
+    if (! dynamicTagMenu.open) {
+        return false;
+    }
+
+    if (dynamicTagMenu.query) {
+        return flatDynamicTagKeys(event);
+    }
+
+    const categories = dynamicTagCategories.value;
+    const fields = categories[dynamicTagMenu.activeCategory]?.rows ?? [];
+
+    switch (event.key) {
+        case 'ArrowDown':
+            dynamicTagMenu.activeField = fields.length ? (dynamicTagMenu.activeField + 1) % fields.length : 0;
+
+            return true;
+        case 'ArrowUp':
+            dynamicTagMenu.activeField = fields.length ? (dynamicTagMenu.activeField - 1 + fields.length) % fields.length : 0;
+
+            return true;
+        case 'ArrowRight':
+            dynamicTagMenu.activeCategory = categories.length ? (dynamicTagMenu.activeCategory + 1) % categories.length : 0;
+            dynamicTagMenu.activeField = 0;
+
+            return true;
+        case 'ArrowLeft':
+            dynamicTagMenu.activeCategory = categories.length ? (dynamicTagMenu.activeCategory - 1 + categories.length) % categories.length : 0;
+            dynamicTagMenu.activeField = 0;
+
+            return true;
+        case 'Enter':
+        case 'Tab':
+            pickDynamicTag(fields[dynamicTagMenu.activeField]);
+
+            return true;
+        case 'Escape':
+            dynamicTagMenu.open = false;
+
+            return true;
+        default:
+            return false;
+    }
+}
+
+function hoverDynamicTagCategory(index) {
+    dynamicTagMenu.activeCategory = index;
+    dynamicTagMenu.activeField = 0;
+}
 
 const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
     suggestion: {
@@ -290,6 +382,9 @@ const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
                 insertTag = p.command;
                 dynamicTagMenu.items = p.items;
                 dynamicTagMenu.active = 0;
+                dynamicTagMenu.query = p.query ?? '';
+                dynamicTagMenu.activeCategory = 0;
+                dynamicTagMenu.activeField = 0;
                 dynamicTagMenu.rect = p.clientRect?.() ?? null;
                 dynamicTagMenu.getRect = p.clientRect ?? null;
                 dynamicTagMenu.open = true;
@@ -298,6 +393,15 @@ const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
                 insertTag = p.command;
                 dynamicTagMenu.items = p.items;
                 dynamicTagMenu.active = 0;
+                dynamicTagMenu.query = p.query ?? '';
+
+                // Back to an empty query: land on the first category again
+                // rather than wherever browsing left off before typing.
+                if (! dynamicTagMenu.query) {
+                    dynamicTagMenu.activeCategory = 0;
+                    dynamicTagMenu.activeField = 0;
+                }
+
                 dynamicTagMenu.rect = p.clientRect?.() ?? null;
                 dynamicTagMenu.getRect = p.clientRect ?? null;
             },
@@ -487,14 +591,19 @@ defineExpose({ focus: () => editor.value?.commands.focus() });
             @pick="pickBlock"
         />
 
-        <SuggestionMenu
+        <DynamicTagMenu
             v-if="dynamicTagMenu.open"
+            :categories="dynamicTagCategories"
             :items="dynamicTagMenu.items"
+            :query="dynamicTagMenu.query"
             :active="dynamicTagMenu.active"
+            :active-category="dynamicTagMenu.activeCategory"
+            :active-field="dynamicTagMenu.activeField"
             :rect="dynamicTagMenu.rect"
             :get-rect="dynamicTagMenu.getRect"
             empty-label="No matching tag"
             @pick="pickDynamicTag"
+            @hover-category="hoverDynamicTagCategory"
         />
 
         <DynamicTagOptions

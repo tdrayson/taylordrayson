@@ -4,6 +4,7 @@ namespace App\DynamicTags\Ambient;
 
 use App\Data\TagOption;
 use App\DynamicTags\DynamicTag;
+use App\Enums\DateFormat;
 use App\Queries\NowState;
 use App\Support\EntryInstant;
 use Carbon\CarbonImmutable;
@@ -59,14 +60,15 @@ class AmbientTag extends DynamicTag
         return "ambient.{$this->group}.{$field}";
     }
 
+    /** The field alone, humanised: the group already heads this tag's pane. */
     public function label(): string
     {
-        return ucfirst($this->group).' '.$this->field;
+        return $this->humanize($this->field);
     }
 
     public function group(): string
     {
-        return 'Ambient';
+        return ucfirst($this->group);
     }
 
     /**
@@ -77,6 +79,7 @@ class AmbientTag extends DynamicTag
         return match ($this->field) {
             'timezone' => [new TagOption('format', 'Format', ['identifier', 'offset', 'abbreviation', 'long'], 'identifier')],
             'countryCode' => [new TagOption('format', 'Format', ['code', 'name'], 'name')],
+            'updated' => [new TagOption('format', 'Format', array_column(DateFormat::cases(), 'value'), DateFormat::Relative->value)],
             default => [],
         };
     }
@@ -95,12 +98,17 @@ class AmbientTag extends DynamicTag
             return null;
         }
 
-        return $group[$this->field === 'updated' ? 'observedAt' : $this->field] ?? null;
+        if ($this->field === 'updated') {
+            return isset($group['observedAt']) ? CarbonImmutable::parse($group['observedAt']) : null;
+        }
+
+        return $group[$this->field] ?? null;
     }
 
     /**
      * Every field falls through to the default numeric/string rendering
-     * except `timezone` and `countryCode`, which read `$options['format']`.
+     * except `timezone`, `countryCode` and `updated`, which read
+     * `$options['format']`.
      *
      * @param  array<string, string>  $options
      */
@@ -112,6 +120,12 @@ class AmbientTag extends DynamicTag
 
         if ($this->field === 'countryCode' && ($options['format'] ?? 'name') === 'name') {
             return (string) (app(NowState::class)()['location']['country'] ?? $value);
+        }
+
+        if ($this->field === 'updated') {
+            $format = DateFormat::tryFrom($options['format'] ?? '') ?? DateFormat::Relative;
+
+            return $format->apply($value);
         }
 
         return parent::format($value, $options);
@@ -129,5 +143,13 @@ class AmbientTag extends DynamicTag
             'long' => IntlTimeZone::createTimeZone($zone)->getDisplayName($now->isDST(), IntlTimeZone::DISPLAY_LONG, 'en'),
             default => $zone,
         };
+    }
+
+    /** camelCase field name to a lowercase phrase with the first letter capitalised. */
+    private function humanize(string $field): string
+    {
+        $field = $field === 'countryCode' ? 'country' : $field;
+
+        return ucfirst(strtolower(preg_replace('/(?<!^)[A-Z]/', ' $0', $field)));
     }
 }
