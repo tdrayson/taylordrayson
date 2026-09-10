@@ -358,10 +358,6 @@ function dynamicTagKeys(event) {
             pickDynamicTag(fields[dynamicTagMenu.activeField]);
 
             return true;
-        case 'Escape':
-            dynamicTagMenu.open = false;
-
-            return true;
         default:
             return false;
     }

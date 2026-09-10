@@ -9,8 +9,9 @@ it('opens the dynamic tag menu on a brace and narrows it as you type', function 
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', '{');
 
-    // More than one row: the unfiltered menu lists every inline-capable tag.
-    $page->assertScript("document.querySelectorAll('[role=\"option\"]').length > 1", true);
+    // The unfiltered menu is cascading, not a flat list of all 36 inline tags:
+    // an empty query shows only the first category's tags, Entries' three.
+    $page->assertScript("document.querySelectorAll('[role=\"option\"]').length", 3);
 
     $page->typeSlowly('.prose-editor', 'home');
 
