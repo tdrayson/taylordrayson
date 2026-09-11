@@ -72,6 +72,26 @@ class AmbientTag extends DynamicTag
     }
 
     /**
+     * The three ring readings each split into a value and a goal; grouping
+     * them (plus their {@see RingPercent}) under one heading is what turns
+     * Rings' 11 flat tags into three sub-groups of three, matched by name in
+     * {@see RingPercent::subgroup()}.
+     */
+    public function subgroup(): ?string
+    {
+        if ($this->group !== 'rings') {
+            return null;
+        }
+
+        return match (true) {
+            str_starts_with($this->field, 'move') => 'Move',
+            str_starts_with($this->field, 'exercise') => 'Exercise',
+            str_starts_with($this->field, 'stand') => 'Stand',
+            default => null,
+        };
+    }
+
+    /**
      * @return list<TagOption>
      */
     public function options(): array

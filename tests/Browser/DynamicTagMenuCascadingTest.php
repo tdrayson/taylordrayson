@@ -24,6 +24,34 @@ it('browses the cascading menu by category before a query narrows it to a flat l
     $page->assertScript("document.querySelectorAll('[role=\"option\"]').length", 5);
 });
 
+it('nests a ring value under its own goal and percent as a third tier', function () {
+    State::query()->create([
+        'key' => 'now.rings',
+        'value' => json_encode(['move' => 118, 'move_goal' => 250, 'exercise' => 22, 'exercise_goal' => 30, 'stand' => 9, 'stand_goal' => 12, 'steps' => 4213]),
+        'observed_at' => now(),
+    ]);
+
+    $page = visit('/new/note');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '{');
+
+    // Entries, Streaks, Site, Battery, Weather, Location, then Rings.
+    $page->keys('.prose-editor', ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight']);
+
+    // Move/Exercise/Stand each carry their own goal and percent underneath
+    // them, in that order, ahead of the two fields with no subgroup.
+    $page->assertScript(
+        "Array.from(document.querySelectorAll('[role=\"option\"]')).map((el) => el.innerText.split('\\n')[0]).join('|')",
+        'Move|Goal|Percent|Exercise|Goal|Percent|Stand|Goal|Percent|Steps|Updated',
+    );
+
+    // A child's visible "Goal" is ambiguous on its own; the full label survives as its accessible name.
+    $page->assertScript(
+        "document.querySelectorAll('[role=\"option\"]')[1].getAttribute('aria-label')",
+        'Move goal',
+    );
+});
+
 it('picks a tag from a category reached with the arrow keys alone', function () {
     State::query()->create([
         'key' => 'now.battery',

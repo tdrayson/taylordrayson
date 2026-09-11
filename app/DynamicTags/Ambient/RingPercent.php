@@ -26,6 +26,12 @@ class RingPercent extends DynamicTag
         return 'Rings';
     }
 
+    /** Matches {@see AmbientTag::subgroup()} so a ring's percent nests with its value and goal. */
+    public function subgroup(): ?string
+    {
+        return ucfirst($this->ring);
+    }
+
     /**
      * @return list<TagOption>
      */

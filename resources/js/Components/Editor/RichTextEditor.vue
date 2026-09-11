@@ -218,7 +218,54 @@ const inlineTags = computed(() => dynamicTagList.value.filter((tag) => tag.suppo
  * that context and the two would only repeat each other.
  */
 function tagRow(tag) {
-    return { id: tag.name, group: tag.group, label: tag.label, detail: tag.preview, tag };
+    return { id: tag.name, group: tag.group, subgroup: tag.subgroup, label: tag.label, detail: tag.preview, tag };
+}
+
+/**
+ * Nests a subgroup's rows (e.g. Rings' Move/Move goal/Move percent) directly
+ * under the row whose label matches the subgroup name, with the shared prefix
+ * dropped from the children's label since the parent row already carries it.
+ * A category with no subgroups at all comes back untouched, so this is safe
+ * to run over every category rather than special-casing Rings.
+ */
+function nestBySubgroup(rows) {
+    if (! rows.some((row) => row.subgroup)) {
+        return rows;
+    }
+
+    const bucketOrder = [];
+    const buckets = {};
+    const flat = [];
+
+    for (const row of rows) {
+        if (! row.subgroup) {
+            flat.push(row);
+            continue;
+        }
+
+        if (! buckets[row.subgroup]) {
+            buckets[row.subgroup] = { parent: null, children: [] };
+            bucketOrder.push(row.subgroup);
+        }
+
+        if (row.label === row.subgroup) {
+            buckets[row.subgroup].parent = row;
+            continue;
+        }
+
+        const shortLabel = row.label.replace(`${row.subgroup} `, '');
+
+        buckets[row.subgroup].children.push({
+            ...row,
+            label: shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1),
+            ariaLabel: row.label,
+            indent: true,
+        });
+    }
+
+    return bucketOrder
+        .flatMap((name) => [buckets[name].parent, ...buckets[name].children].filter(Boolean))
+        .concat(flat);
 }
 
 /**
@@ -236,6 +283,10 @@ const dynamicTagCategories = computed(() => {
         }
 
         byLabel[tag.group].rows.push(tagRow(tag));
+    }
+
+    for (const category of order) {
+        category.rows = nestBySubgroup(category.rows);
     }
 
     return order;

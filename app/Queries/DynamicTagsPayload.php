@@ -33,6 +33,7 @@ final class DynamicTagsPayload
             'name' => $tag->name(),
             'label' => $tag->label(),
             'group' => $tag->group(),
+            'subgroup' => $tag->subgroup(),
             'supports' => array_map(fn ($placement): string => $placement->value, $tag->supports()),
             'options' => array_map(fn ($option): array => $option->toArray(), $tag->options()),
             // Resolved with defaults, so the menu can show what each tag reads

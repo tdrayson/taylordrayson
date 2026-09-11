@@ -89,3 +89,28 @@ it('derives a ring percentage against its goal', function () {
     expect($registry->value('ambient.rings.move.percent', [])['text'])->toBe('74%')
         ->and($registry->value('ambient.rings.move.goal', [])['text'])->toBe('250');
 });
+
+it('leaves a ring value and its goal bare, they are points not a physical unit', function () {
+    State::query()->create([
+        'key' => 'now.rings',
+        'value' => json_encode(['move' => 118, 'move_goal' => 250, 'steps' => 4213]),
+        'observed_at' => '2026-09-08 18:12:00',
+    ]);
+
+    $registry = app(DynamicTagRegistry::class);
+
+    expect($registry->value('ambient.rings.move', [])['text'])->toBe('118')
+        ->and($registry->value('ambient.rings.move.goal', [])['text'])->toBe('250')
+        ->and($registry->value('ambient.rings.steps', [])['text'])->toBe('4,213');
+});
+
+it('groups a ring value, its goal and its percent under one subgroup', function () {
+    $registry = app(DynamicTagRegistry::class);
+
+    expect($registry->find('ambient.rings.move')->subgroup())->toBe('Move')
+        ->and($registry->find('ambient.rings.move.goal')->subgroup())->toBe('Move')
+        ->and($registry->find('ambient.rings.move.percent')->subgroup())->toBe('Move')
+        ->and($registry->find('ambient.rings.steps')->subgroup())->toBeNull()
+        ->and($registry->find('ambient.rings.updated')->subgroup())->toBeNull()
+        ->and($registry->find('ambient.battery.percent')->subgroup())->toBeNull();
+});

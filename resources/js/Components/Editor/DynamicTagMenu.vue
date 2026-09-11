@@ -85,8 +85,9 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
                     type="button"
                     role="option"
                     :aria-selected="index === activeField"
-                    class="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
-                    :class="index === activeField ? 'bg-neutral-25' : ''"
+                    :aria-label="row.ariaLabel"
+                    class="flex w-full flex-col items-start gap-0.5 py-2 pr-3 text-left transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
+                    :class="[index === activeField ? 'bg-neutral-25' : '', row.indent ? 'pl-6' : 'pl-3']"
                     @mousemove="$emit('hover-field', index)"
                     @mousedown.prevent="$emit('pick', row)"
                 >

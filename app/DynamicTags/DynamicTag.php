@@ -19,6 +19,12 @@ abstract class DynamicTag
     /** The heading the editor groups this tag under. */
     abstract public function group(): string;
 
+    /** A finer heading nested under `group()`, for a category with sub-groups; null when it has none. */
+    public function subgroup(): ?string
+    {
+        return null;
+    }
+
     /**
      * Null means the tag has nothing to report for these options.
      *
