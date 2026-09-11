@@ -78,7 +78,7 @@ function applyOptions(newOptions) {
             class="shrink-0"
         />
         <img v-else-if="icon?.kind === 'favicon'" :src="icon.src" alt="" class="size-3.5 shrink-0 object-contain">
-        <Icon v-else :icon="icon?.icon ?? 'ChartColumnIcon'" class="size-3.5 shrink-0" />{{ display }}
+        <Icon v-else-if="icon?.kind === 'icon'" :icon="icon.icon" class="size-3.5 shrink-0" />{{ display }}
 
         <DynamicTagOptions
             v-if="schema"
