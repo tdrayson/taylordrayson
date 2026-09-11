@@ -51,8 +51,12 @@ final readonly class Period
         return self::preset(StatsPeriod::tryFrom($period) ?? StatsPeriod::AllTime);
     }
 
-    /** An unparseable bound degrades to null, the same open-ended state a lone bound already means. */
-    private static function parse(string $value): ?CarbonImmutable
+    /**
+     * An unparseable bound degrades to null, the same open-ended state a lone
+     * bound already means. Public so the dynamic tag editor's date fields
+     * resolve free text through this exact grammar rather than a second one.
+     */
+    public static function parse(string $value): ?CarbonImmutable
     {
         try {
             return CarbonImmutable::parse($value);

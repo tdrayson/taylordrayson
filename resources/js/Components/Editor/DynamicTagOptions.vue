@@ -6,14 +6,21 @@ import Input from '../Ui/Input.vue';
 import Icon from '../Ui/Icon.vue';
 import Checkbox from '../Ui/Checkbox.vue';
 import StyledSelect from '../Search/StyledSelect.vue';
+import DynamicTagDateField from './DynamicTagDateField.vue';
 import { titleCase } from '../../lib/format.js';
 import { isFourDigitYear } from '../../lib/editor/period.js';
 import { useDynamicTags } from '../../composables/useDynamicTags';
 
+/** `from`/`to` are a date bound, not free text, wherever a tag declares them. */
+function isDateOption(name) {
+    return name === 'from' || name === 'to';
+}
+
 /**
  * The options form for one dynamic tag, generated entirely from its declared
- * schema: a select per option with choices, a text input for one without. A
- * 37th tag needs nothing added here, only a schema on the server.
+ * schema: a select per option with choices, a date field for `from`/`to`, a
+ * text input for anything else. A 37th tag needs nothing added here, only a
+ * schema on the server.
  *
  * Used both to fill in a freshly picked tag's options before it is inserted,
  * and to edit an existing chip's; the caller decides what "apply" means.
@@ -31,7 +38,7 @@ const props = defineProps({
 
 const emit = defineEmits(['apply', 'update:open']);
 
-const { previewFor } = useDynamicTags();
+const { previewFor, homeTimezone } = useDynamicTags();
 
 const PERIOD_YEAR = '__year__';
 
@@ -39,6 +46,7 @@ const PERIOD_YEAR = '__year__';
 // one option that is both a closed set of presets and an open-ended bare year.
 const periodOption = computed(() => props.tag.options.find((option) => option.name === 'period') ?? null);
 const otherOptions = computed(() => props.tag.options.filter((option) => option.name !== 'period'));
+const hasDateRange = computed(() => otherOptions.value.some((option) => isDateOption(option.name)));
 
 const values = reactive({});
 const periodChoice = ref('');
@@ -148,9 +156,18 @@ function apply() {
                         :placeholder="`Any ${option.label.toLowerCase()}`"
                     />
 
+                    <DynamicTagDateField
+                        v-else-if="isDateOption(option.name)"
+                        :id="`dt-${option.name}`"
+                        v-model="values[option.name]"
+                        :label="option.label"
+                    />
+
                     <Input v-else :id="`dt-${option.name}`" v-model="values[option.name]" :placeholder="option.label" />
                 </template>
             </div>
+
+            <p v-if="hasDateRange && homeTimezone" class="-mt-2 text-caption text-neutral-500">{{ homeTimezone }} local time</p>
 
             <div v-if="periodOption">
                 <label for="dt-period" class="mb-1 block text-label uppercase text-neutral-500">{{ periodOption.label }}</label>

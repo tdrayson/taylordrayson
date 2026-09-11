@@ -1,11 +1,14 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     modelValue: { type: String, default: null }, // day: YYYY-MM-DD, month: YYYY-MM, year: YYYY
     mode: { type: String, default: 'day' }, // day | month | year
     placeholder: { type: String, default: null },
+    // Renders the calendar body only, with no trigger button or popover
+    // chrome, for a caller embedding it inside its own popover.
+    inline: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -145,11 +148,22 @@ function onDocumentClick(event) {
 
 onMounted(() => document.addEventListener('click', onDocumentClick));
 onUnmounted(() => document.removeEventListener('click', onDocumentClick));
+
+// An inline instance has no toggle to recentre the grid on open, so it has to
+// follow a value set from outside instead (e.g. a sibling free-text field
+// resolving a new date).
+watch(() => props.modelValue, () => {
+    if (props.inline) {
+        const parts = selected.value ?? currentParts();
+        view.value = { year: parts.year, month: parts.month ?? 0 };
+    }
+});
 </script>
 
 <template>
     <div ref="root" class="relative" @keydown.esc="open = false">
         <button
+            v-if="!inline"
             type="button"
             class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="display ? 'text-neutral-900' : 'text-neutral-500'"
@@ -159,7 +173,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             <span class="flex-1 truncate">{{ display ?? defaultPlaceholder }}</span>
         </button>
 
-        <div v-if="open" class="absolute inset-x-0 z-50 mt-2 rounded-lg border border-neutral-50 bg-neutral-0 p-3 shadow-card sm:right-auto sm:w-64">
+        <div v-if="inline || open" :class="inline ? '' : 'absolute inset-x-0 z-50 mt-2 rounded-lg border border-neutral-50 bg-neutral-0 p-3 shadow-card sm:right-auto sm:w-64'">
             <template v-if="pickerView === 'days'">
                 <div class="flex items-center justify-between">
                     <button type="button" aria-label="Previous month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(-1)">

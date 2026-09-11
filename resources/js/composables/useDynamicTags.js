@@ -8,6 +8,10 @@ import { optionsEqual } from '../lib/editor/optionsEqual';
  * and without this a page with several chips would fire one request per chip.
  */
 const tags = ref([]);
+// The zone `period`/`from`/`to` bounds are interpreted in, carried alongside
+// the registry rather than fetched separately since every consumer already
+// loads the registry first.
+const homeTimezone = ref(null);
 let request = null;
 
 /**
@@ -72,11 +76,38 @@ function ensureLoaded() {
             credentials: 'same-origin',
         })
             .then((response) => (response.ok ? response.json() : { data: [] }))
-            .then((body) => { tags.value = body.data ?? []; })
+            .then((body) => {
+                tags.value = body.data ?? [];
+                homeTimezone.value = body.homeTimezone ?? null;
+            })
             .catch(() => { tags.value = []; });
     }
 
     return request;
+}
+
+/**
+ * Resolves free text like "last tuesday" or "1 march" to an absolute date via
+ * the server, so a tag's `from`/`to` field shares the exact grammar
+ * `Period::parse()` applies at render time rather than a second, client-side
+ * one that could drift from it.
+ *
+ * @param {string} value
+ * @returns {Promise<string|null>} 'YYYY-MM-DD', or null when unparseable.
+ */
+export async function resolveDate(value) {
+    const query = new URLSearchParams({ value });
+
+    try {
+        const response = await fetch(`/dynamic-tags/resolve-date?${query.toString()}`, {
+            headers: { Accept: 'application/json' },
+            credentials: 'same-origin',
+        });
+
+        return response.ok ? ((await response.json()).data?.date ?? null) : null;
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -119,7 +150,7 @@ function resolvedEntry(name, options, placement) {
 /**
  * The fetched tag list, plus the value each one currently reads as.
  *
- * @returns {{tags: import('vue').Ref<Array>, previewFor: (name: string, options?: Object, placement?: 'inline'|'href'|'image') => string|null, iconFor: (name: string, options?: Object) => *, valueFor: (name: string, options?: Object) => *, ensureLoaded: () => Promise<void>}}
+ * @returns {{tags: import('vue').Ref<Array>, homeTimezone: import('vue').Ref<string|null>, previewFor: (name: string, options?: Object, placement?: 'inline'|'href'|'image') => string|null, iconFor: (name: string, options?: Object) => *, valueFor: (name: string, options?: Object) => *, ensureLoaded: () => Promise<void>}}
  */
 export function useDynamicTags() {
     ensureLoaded();
@@ -182,5 +213,5 @@ export function useDynamicTags() {
         return resolvedEntry(name, options, 'inline')?.value ?? null;
     }
 
-    return { tags, previewFor, iconFor, valueFor, ensureLoaded };
+    return { tags, homeTimezone, previewFor, iconFor, valueFor, ensureLoaded };
 }
