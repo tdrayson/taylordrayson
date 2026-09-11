@@ -1,7 +1,10 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3';
+import Icon from '../Ui/Icon.vue';
+import BlockSettings from './BlockSettings.vue';
 import { lowlight } from '../../lib/editor/lowlight';
+import { BLOCK_OPTIONS } from '../../lib/editor/blockOptions';
 
 /**
  * A code block while writing, carrying the same chrome the published page shows:
@@ -13,7 +16,10 @@ import { lowlight } from '../../lib/editor/lowlight';
  */
 const props = defineProps({
     node: { type: Object, required: true },
+    updateAttributes: { type: Function, required: true },
 });
+
+const settingsOpen = ref(false);
 
 const filename = computed(() => props.node.attrs.filename);
 /**
@@ -49,21 +55,28 @@ const lines = computed(() => Math.max(1, props.node.textContent.split('\n').leng
 
 <template>
     <NodeViewWrapper class="not-prose relative my-6 max-w-media">
-        <!-- Where the options panel is put, if this block is the one being
-             configured. Above the block and out of its way, which is placement
-             the block itself knows and a floating panel has to work out. -->
-        <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
-
         <div class="overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25">
+        <!-- Always drawn, unlike the published block's header: it carries the
+             settings button, which a block with no filename or language yet is
+             exactly the one that needs. -->
         <div
-            v-if="filename || language"
             contenteditable="false"
             class="flex items-center justify-between gap-3 border-b border-neutral-50 px-4 py-2 text-caption"
         >
             <span class="min-w-0 truncate text-neutral-700">{{ filename }}</span>
-            <span class="shrink-0 uppercase tracking-wide text-neutral-500">
-                {{ language }}<span v-if="detected" class="normal-case tracking-normal"> (auto)</span>
-            </span>
+
+            <div class="flex shrink-0 items-center gap-2">
+                <span v-if="language" class="uppercase tracking-wide text-neutral-500">
+                    {{ language }}<span v-if="detected" class="normal-case tracking-normal"> (auto)</span>
+                </span>
+
+                <button
+                    type="button"
+                    class="rounded p-1 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Code settings"
+                    @click="settingsOpen = true"
+                ><Icon name="Settings01Icon" class="size-4" /></button>
+            </div>
         </div>
 
         <div class="flex">
@@ -84,5 +97,12 @@ const lines = computed(() => Math.max(1, props.node.textContent.split('\n').leng
             <pre class="code-body min-w-0 flex-1"><NodeViewContent as="code" class="code-highlight" /></pre>
         </div>
         </div>
+
+        <BlockSettings
+            v-model:open="settingsOpen"
+            :definition="BLOCK_OPTIONS.codeBlock"
+            :attributes="node.attrs"
+            @apply="updateAttributes($event)"
+        />
     </NodeViewWrapper>
 </template>

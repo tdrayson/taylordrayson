@@ -37,26 +37,27 @@ it('leaves tab alone outside a code block, so focus still moves', function () {
     $page->assertScript("document.querySelector('.prose-editor p').textContent", 'plain');
 });
 
-it('sets the language, filename and line numbers from the block panel', function () {
+it('sets the filename and line numbers from the block settings', function () {
     $page = visit('/new/article');
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', '/code');
     $page->keys('.prose-editor', ['Enter']);
     $page->typeSlowly('.prose-editor', 'echo 1;');
 
-    // The panel appears because the caret is inside a configurable block, not
-    // because anything is selected.
-    $page->assertScript("document.querySelector('[aria-label=\"Filename\"]') !== null", true);
+    $page->click('[aria-label="Code settings"]');
 
-    $page->type('[aria-label="Filename"]', 'app.php');
+    $page->fill('[aria-label="Filename"]', 'app.php');
 
     // On by default, so the control is for turning them off.
-    $page->assertScript("document.querySelector('[aria-label=\"Line numbers\"]').checked", true);
+    $page->assertScript("document.querySelector('[aria-label=\"Line numbers\"]').getAttribute('aria-checked')", 'true');
 
     $page->click('[aria-label="Line numbers"]');
+    $page->click('button:has-text("Apply")');
 
-    $page->assertScript("document.querySelector('[aria-label=\"Filename\"]').value", 'app.php')
-        ->assertScript("document.querySelector('[aria-label=\"Line numbers\"]').checked", false);
+    // The block, not the form: the form is gone, and what matters is that the
+    // settings reached the block.
+    $page->assertSee('app.php')
+        ->assertScript("document.querySelectorAll('.prose-editor .code-gutter').length", 0);
 });
 
 it('highlights the code once a language is chosen', function () {
@@ -66,7 +67,9 @@ it('highlights the code once a language is chosen', function () {
     $page->keys('.prose-editor', ['Enter']);
     $page->typeSlowly('.prose-editor', 'const x = 1;');
 
+    $page->click('[aria-label="Code settings"]');
     $page->select('[aria-label="Language"]', 'javascript');
+    $page->click('button:has-text("Apply")');
 
     // Real highlight.js token classes, not merely any span: the node view has
     // spans of its own, so a loose assertion would pass without highlighting.
@@ -80,25 +83,30 @@ it('shows the filename and a line-number gutter in the editor', function () {
     $page->keys('.prose-editor', ['Enter']);
     $page->typeSlowly('.prose-editor', 'one');
 
-    $page->type('[aria-label="Filename"]', 'app.js');
+    $page->click('[aria-label="Code settings"]');
+    $page->fill('[aria-label="Filename"]', 'app.js');
+    $page->click('button:has-text("Apply")');
 
     $page->assertSee('app.js')
         ->assertScript("document.querySelectorAll('.prose-editor .code-gutter > span').length", 1);
 });
 
-it('hides the block panel when you click outside the editor', function () {
+it('closes the block settings on escape, leaving the block alone', function () {
     $page = visit('/new/article');
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', '/code');
     $page->keys('.prose-editor', ['Enter']);
 
-    $page->assertScript("document.querySelector('[aria-label=\"Filename\"]') !== null", true);
+    $page->click('[aria-label="Code settings"]');
+    $page->fill('[aria-label="Filename"]', 'abandoned.php');
 
-    // A field further down the form: outside the editor, and far enough from
-    // the panel that it is not sitting over the click target.
-    $page->click('#slug');
+    // Dismissal is useDialog's, shared with every other modal, rather than the
+    // panel's own outside-click rule. Nothing typed is kept: the form stages,
+    // and only Apply writes.
+    $page->keys('[role="dialog"]', 'Escape');
 
-    $page->assertScript("document.querySelector('[aria-label=\"Filename\"]') === null", true);
+    $page->assertScript("document.querySelector('[aria-label=\"Filename\"]') === null", true)
+        ->assertDontSee('abandoned.php');
 });
 
 it('colours the highlighted tokens, not just classes them', function () {
@@ -107,7 +115,10 @@ it('colours the highlighted tokens, not just classes them', function () {
     $page->click('.prose-editor')->typeSlowly('.prose-editor', '/code');
     $page->keys('.prose-editor', ['Enter']);
     $page->typeSlowly('.prose-editor', 'const x = 1;');
+
+    $page->click('[aria-label="Code settings"]');
     $page->select('[aria-label="Language"]', 'javascript');
+    $page->click('button:has-text("Apply")');
 
     // The classes existed all along; what was missing was any rule colouring
     // them, because the theme was scoped inside the published component.
@@ -133,16 +144,26 @@ it('keeps each code line on one row so the gutter stays in step', function () {
         ->assertScript("document.querySelector('.prose-editor pre').scrollWidth > document.querySelector('.prose-editor pre').clientWidth", true);
 });
 
-it('opens the image panel when the image is selected', function () {
+it('sets an image alt text from the block settings', function () {
     $page = visit('/new/article');
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', '/image');
     $page->keys('.prose-editor', ['Enter']);
 
-    // An image is a leaf: it is selected, never entered, so the panel has to
-    // read the node selection rather than walk up from the caret.
-    $page->assertScript("document.querySelector('[aria-label=\"Alt text\"]') !== null", true)
-        ->assertScript("document.querySelector('[aria-label=\"Aspect ratio\"]') !== null", true);
+    // Nothing to configure while the block is still a dropzone: alt text on an
+    // image that does not exist yet is meaningless.
+    $page->assertScript("document.querySelector('[aria-label=\"Image settings\"]') === null", true);
+
+    $page->fill('[placeholder="or paste an image URL"]', 'https://example.com/a.jpg');
+    $page->click('button:has-text("Use")');
+
+    $page->click('[aria-label="Image settings"]');
+    $page->fill('[aria-label="Alt text"]', 'A described image');
+    $page->click('button:has-text("Apply")');
+
+    // An image is a leaf, selected rather than entered, so applying goes
+    // through the node view's own handle on itself and never the selection.
+    $page->assertScript("document.querySelector('.prose-editor figure img').getAttribute('alt')", 'A described image');
 });
 
 it('lines the gutter numbers up with the code lines', function () {

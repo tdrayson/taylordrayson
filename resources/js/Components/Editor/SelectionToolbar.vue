@@ -1,14 +1,10 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
-import BlockOptions from './BlockOptions.vue';
 import DynamicTagOptions from './DynamicTagOptions.vue';
-import { blockOptionsFor } from '../../lib/editor/blockOptions';
-import { useMounted } from '../../composables/useMounted';
 import { defaultOptionsFor, useDynamicTags } from '../../composables/useDynamicTags';
 
-const mounted = useMounted();
 const { tags: dynamicTagList, previewFor } = useDynamicTags();
 
 /** Tags legal as a link target, today just site.social. */
@@ -58,8 +54,8 @@ function toggle(mark) {
  * Over a selection, or with the caret resting inside a link, which is what makes
  * clicking a link open the bar instead of following it.
  *
- * Block options are deliberately not here: they belong to the block, not to
- * where the caret happens to be, so they get their own panel below.
+ * Block settings are deliberately not here: they belong to the block, not to
+ * where the caret happens to be, so each block opens its own settings modal.
  */
 function shouldShow({ editor: instance, from, to }) {
     return from !== to || onLink(instance);
@@ -83,84 +79,6 @@ function onLink(instance) {
 
     return !! type && !! after && type.isInSet(after.marks) !== undefined;
 }
-
-// Tracked rather than computed: the caret moving is an editor event, not a
-// reactive dependency Vue can see on its own.
-const block = ref(null);
-const panel = ref(null);
-
-// Set by a click outside, cleared the moment the editor is used again. A flag
-// rather than a focus check: focus moves into the panel's own fields, and a
-// blur fires before the new element is current, so neither says what is meant.
-let dismissed = false;
-
-/**
- * The configurable block the caret is inside, and the slot inside that block to
- * put its panel in. Every block renders one, so the panel needs no coordinates:
- * it lands where the block already says it should go.
- */
-function trackBlock() {
-    const definition = dismissed ? null : blockOptionsFor(props.editor);
-
-    if (! definition) {
-        block.value = null;
-
-        return;
-    }
-
-    const { selection } = props.editor.state;
-    const { $from } = selection;
-    let position = null;
-
-    // A leaf like an image is selected, never entered, so there is no ancestor
-    // to walk up to: the selection itself is the node.
-    if (selection.node?.type.name === definition.type) {
-        position = $from.pos;
-    } else {
-        for (let depth = $from.depth; depth > 0; depth--) {
-            if ($from.node(depth).type.name === definition.type) {
-                position = $from.before(depth);
-                break;
-            }
-        }
-    }
-
-    const element = position === null ? null : props.editor.view.nodeDOM(position);
-    const anchor = element?.querySelector?.('[data-block-panel]') ?? null;
-
-    block.value = anchor ? { definition, anchor } : null;
-}
-
-/**
- * Anything outside the block and its panel puts it away. The caret leaving is
- * already handled by trackBlock, but clicking elsewhere on the page leaves the
- * selection where it was, so the panel would otherwise stay up over a block
- * nobody is editing.
- */
-function onDocumentPointerDown(event) {
-    const inPanel = panel.value?.contains(event.target);
-    const inEditor = props.editor.view.dom.contains(event.target);
-
-    dismissed = ! inPanel && ! inEditor;
-
-    if (dismissed) {
-        block.value = null;
-    }
-}
-
-onMounted(() => {
-    props.editor.on('selectionUpdate', trackBlock);
-    props.editor.on('transaction', trackBlock);
-
-    document.addEventListener('pointerdown', onDocumentPointerDown, true);
-});
-
-onBeforeUnmount(() => {
-    props.editor.off('selectionUpdate', trackBlock);
-    props.editor.off('transaction', trackBlock);
-
-    document.removeEventListener('pointerdown', onDocumentPointerDown, true);
-});
 
 /** A destination on another site, which is what defaults to a new tab. */
 function isExternal(value) {
@@ -243,7 +161,6 @@ function applyLinkTagOptions(options) {
 </script>
 
 <template>
-    <div>
     <BubbleMenu
         :editor="editor"
         :options="{ placement: 'top' }"
@@ -345,13 +262,4 @@ function applyLinkTagOptions(options) {
         </template>
         </div>
     </BubbleMenu>
-
-    <!-- Rendered into the block itself, so it scrolls and moves with it and
-         sits where the block puts it rather than at a computed offset. -->
-    <Teleport v-if="mounted && block" :to="block.anchor">
-        <div ref="panel">
-            <BlockOptions :editor="editor" :definition="block.definition" />
-        </div>
-    </Teleport>
-    </div>
 </template>

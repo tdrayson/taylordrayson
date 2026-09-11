@@ -3,7 +3,9 @@ import { computed, ref } from 'vue';
 import { NodeViewWrapper } from '@tiptap/vue-3';
 import Icon from '../Ui/Icon.vue';
 import DynamicTagOptions from './DynamicTagOptions.vue';
+import BlockSettings from './BlockSettings.vue';
 import { uploadPending } from '../../lib/editor/uploads';
+import { BLOCK_OPTIONS } from '../../lib/editor/blockOptions';
 import { defaultOptionsFor, useDynamicTags } from '../../composables/useDynamicTags';
 
 /**
@@ -34,6 +36,7 @@ const tagPreviewUrl = computed(() => (tagName.value ? previewFor(tagName.value, 
 const pendingImageTag = ref(null);
 const pendingImageOptions = ref({});
 const imageTagOptionsOpen = ref(false);
+const settingsOpen = ref(false);
 
 async function upload(file) {
     if (! file?.type?.startsWith('image/')) {
@@ -86,9 +89,6 @@ function applyImageTag(options) {
 
 <template>
     <NodeViewWrapper class="not-prose relative my-8 max-w-media">
-        <!-- See CodeBlockView: the block places its own options panel. -->
-        <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
-
         <figure v-if="url || tagName" class="group relative" :data-dynamic-tag="tagName || null">
             <img
                 v-if="tagName ? tagPreviewUrl : url"
@@ -108,13 +108,24 @@ function applyImageTag(options) {
                 class="absolute left-2 top-2 rounded bg-neutral-900/70 px-1.5 py-0.5 text-caption text-neutral-0"
             >Live photo</span>
 
-            <button
-                type="button"
+            <div
                 contenteditable="false"
-                class="absolute right-2 top-2 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
-                aria-label="Remove image"
-                @click="deleteNode()"
-            ><Icon name="Delete02Icon" class="size-4" /></button>
+                class="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+            >
+                <button
+                    type="button"
+                    class="rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 transition-colors hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Image settings"
+                    @click="settingsOpen = true"
+                ><Icon name="Settings01Icon" class="size-4" /></button>
+
+                <button
+                    type="button"
+                    class="rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 transition-colors hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Remove image"
+                    @click="deleteNode()"
+                ><Icon name="Delete02Icon" class="size-4" /></button>
+            </div>
 
             <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-caption text-neutral-500">
                 {{ node.attrs.caption }}
@@ -167,6 +178,13 @@ function applyImageTag(options) {
 
             <p v-if="error" class="mt-2 text-caption text-red-600">{{ error }}</p>
         </div>
+
+        <BlockSettings
+            v-model:open="settingsOpen"
+            :definition="BLOCK_OPTIONS.image"
+            :attributes="node.attrs"
+            @apply="updateAttributes($event)"
+        />
 
         <DynamicTagOptions
             v-if="pendingImageTag"

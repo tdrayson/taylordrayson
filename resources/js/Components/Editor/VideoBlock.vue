@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue';
 import { NodeViewWrapper } from '@tiptap/vue-3';
 import Icon from '../Ui/Icon.vue';
+import BlockSettings from './BlockSettings.vue';
 import { videoSource } from '../../lib/video';
+import { BLOCK_OPTIONS } from '../../lib/editor/blockOptions';
 import VideoEmbed from '../Ui/VideoEmbed.vue';
 
 /**
@@ -17,6 +19,7 @@ const props = defineProps({
 });
 
 const typedUrl = ref('');
+const settingsOpen = ref(false);
 
 const url = computed(() => props.node.attrs.url);
 
@@ -36,9 +39,6 @@ function useTypedUrl() {
 
 <template>
     <NodeViewWrapper class="not-prose relative my-8 max-w-media">
-        <!-- See CodeBlockView: the block places its own options panel. -->
-        <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
-
         <!-- The published component, not a copy of it: the still an author sets
              is then the one they are looking at, and the editor stops loading a
              player for every video in the document. -->
@@ -55,12 +55,21 @@ function useTypedUrl() {
                 <span>Not a YouTube, Vimeo or video-file URL, so this will not play.</span>
             </p>
 
-            <button
-                type="button"
-                class="absolute right-2 top-2 z-10 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
-                aria-label="Remove video"
-                @click="deleteNode()"
-            ><Icon name="Delete02Icon" class="size-4" /></button>
+            <div class="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                <button
+                    type="button"
+                    class="rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 transition-colors hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Video settings"
+                    @click="settingsOpen = true"
+                ><Icon name="Settings01Icon" class="size-4" /></button>
+
+                <button
+                    type="button"
+                    class="rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 transition-colors hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Remove video"
+                    @click="deleteNode()"
+                ><Icon name="Delete02Icon" class="size-4" /></button>
+            </div>
         </div>
 
         <div v-else contenteditable="false" class="rounded-lg border border-dashed border-neutral-100 p-4">
@@ -82,5 +91,12 @@ function useTypedUrl() {
                 >Use</button>
             </div>
         </div>
+
+        <BlockSettings
+            v-model:open="settingsOpen"
+            :definition="BLOCK_OPTIONS.video"
+            :attributes="node.attrs"
+            @apply="updateAttributes($event)"
+        />
     </NodeViewWrapper>
 </template>
