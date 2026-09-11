@@ -49,7 +49,7 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
 
     <div
         v-else
-        class="fixed z-50 flex overflow-hidden rounded-lg border border-neutral-100 bg-neutral-0 shadow-lg"
+        class="fixed z-50 flex items-start overflow-hidden rounded-lg border border-neutral-100 bg-neutral-0 shadow-lg"
         :style="style"
     >
         <ul class="w-1/2 overflow-y-auto border-r border-neutral-50 py-1" aria-label="Tag categories">
@@ -69,7 +69,7 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
         </ul>
 
         <ul
-            class="w-1/2 overflow-y-auto py-1"
+            class="max-h-72 w-1/2 overflow-y-auto py-1"
             role="listbox"
             :aria-label="categories[activeCategory] ? `${categories[activeCategory].label} tags` : 'Tags'"
         >
