@@ -57,7 +57,10 @@ let insertBlock = null;
 // Same reasoning as blockMenu: a fast "{" after an unfinished "@" or "/" must
 // not leak another trigger's items into this menu. `activeCategory`/`activeField`
 // track the cascading browse shown while `query` is empty; `active` tracks the
-// flat filtered list shown once an author starts typing.
+// flat filtered list shown once an author starts typing. `activeChild` and
+// `childFocus` track the third pane a sub-grouped field (e.g. Rings' Move)
+// opens: `childFocus` is which pane up/down and Enter currently act on, not
+// whether the pane is drawn (drawing follows `activeField` alone).
 const dynamicTagMenu = reactive({
     open: false,
     query: '',
@@ -65,6 +68,8 @@ const dynamicTagMenu = reactive({
     active: 0,
     activeCategory: 0,
     activeField: 0,
+    activeChild: 0,
+    childFocus: false,
     rect: null,
     getRect: null,
 });
@@ -230,9 +235,10 @@ function tagRow(tag) {
 }
 
 /**
- * Nests a subgroup's rows (e.g. Rings' Move/Move goal/Move percent) directly
- * under the row whose label matches the subgroup name, with the shared prefix
- * dropped from the children's label since the parent row already carries it.
+ * Turns a subgroup's rows (e.g. Rings' Move/Move goal/Move percent) into one
+ * parent row carrying them as `children`, with the shared prefix dropped from
+ * each child's label since the parent row already carries it (the ring's own
+ * value keeps its full label, e.g. "Move", since nothing precedes it to drop).
  * A category with no subgroups at all comes back untouched, so this is safe
  * to run over every category rather than special-casing Rings.
  */
@@ -252,28 +258,32 @@ function nestBySubgroup(rows) {
         }
 
         if (! buckets[row.subgroup]) {
-            buckets[row.subgroup] = { parent: null, children: [] };
+            buckets[row.subgroup] = [];
             bucketOrder.push(row.subgroup);
         }
 
         if (row.label === row.subgroup) {
-            buckets[row.subgroup].parent = row;
+            buckets[row.subgroup].push(row);
             continue;
         }
 
         const shortLabel = row.label.replace(`${row.subgroup} `, '');
 
-        buckets[row.subgroup].children.push({
+        buckets[row.subgroup].push({
             ...row,
             label: shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1),
             ariaLabel: row.label,
-            indent: true,
         });
     }
 
-    return bucketOrder
-        .flatMap((name) => [buckets[name].parent, ...buckets[name].children].filter(Boolean))
-        .concat(flat);
+    const parents = bucketOrder.map((name) => ({
+        id: `${name}-group`,
+        label: name,
+        isParent: true,
+        children: buckets[name],
+    }));
+
+    return [...parents, ...flat];
 }
 
 /**
@@ -378,8 +388,11 @@ const flatDynamicTagKeys = suggestionKeys(dynamicTagMenu, pickDynamicTag);
 /**
  * Key handling for the "{" menu. Once a query is typed it is a flat filtered
  * list and behaves exactly like `@`/`/`; an empty query is the cascading
- * browse, where up/down move through the active category's tags and
- * left/right switch which category is open.
+ * browse, where up/down move through the active pane's rows and left/right
+ * move between panes: right drills into a parent field's third pane (a
+ * sub-grouped category like Rings), left steps back out of it, and otherwise
+ * right/left switch which category is open, exactly as the two-pane version
+ * always did.
  */
 function dynamicTagKeys(event) {
     if (! dynamicTagMenu.open) {
@@ -392,17 +405,52 @@ function dynamicTagKeys(event) {
 
     const categories = dynamicTagCategories.value;
     const fields = categories[dynamicTagMenu.activeCategory]?.rows ?? [];
+    const activeRow = fields[dynamicTagMenu.activeField];
+    const children = activeRow?.isParent ? activeRow.children : [];
+
+    if (dynamicTagMenu.childFocus) {
+        switch (event.key) {
+            case 'ArrowDown':
+                dynamicTagMenu.activeChild = children.length ? (dynamicTagMenu.activeChild + 1) % children.length : 0;
+
+                return true;
+            case 'ArrowUp':
+                dynamicTagMenu.activeChild = children.length ? (dynamicTagMenu.activeChild - 1 + children.length) % children.length : 0;
+
+                return true;
+            case 'ArrowLeft':
+                dynamicTagMenu.childFocus = false;
+
+                return true;
+            case 'Enter':
+            case 'Tab':
+                pickDynamicTag(children[dynamicTagMenu.activeChild]);
+
+                return true;
+            default:
+                return false;
+        }
+    }
 
     switch (event.key) {
         case 'ArrowDown':
             dynamicTagMenu.activeField = fields.length ? (dynamicTagMenu.activeField + 1) % fields.length : 0;
+            dynamicTagMenu.activeChild = 0;
 
             return true;
         case 'ArrowUp':
             dynamicTagMenu.activeField = fields.length ? (dynamicTagMenu.activeField - 1 + fields.length) % fields.length : 0;
+            dynamicTagMenu.activeChild = 0;
 
             return true;
         case 'ArrowRight':
+            if (activeRow?.isParent) {
+                dynamicTagMenu.childFocus = true;
+                dynamicTagMenu.activeChild = 0;
+
+                return true;
+            }
+
             dynamicTagMenu.activeCategory = categories.length ? (dynamicTagMenu.activeCategory + 1) % categories.length : 0;
             dynamicTagMenu.activeField = 0;
 
@@ -414,7 +462,14 @@ function dynamicTagKeys(event) {
             return true;
         case 'Enter':
         case 'Tab':
-            pickDynamicTag(fields[dynamicTagMenu.activeField]);
+            if (activeRow?.isParent) {
+                dynamicTagMenu.childFocus = true;
+                dynamicTagMenu.activeChild = 0;
+
+                return true;
+            }
+
+            pickDynamicTag(activeRow);
 
             return true;
         default:
@@ -425,11 +480,21 @@ function dynamicTagKeys(event) {
 function hoverDynamicTagCategory(index) {
     dynamicTagMenu.activeCategory = index;
     dynamicTagMenu.activeField = 0;
+    dynamicTagMenu.activeChild = 0;
+    dynamicTagMenu.childFocus = false;
 }
 
 /** Mouse and keyboard share one active field, so only one row is ever armed. */
 function hoverDynamicTagField(index) {
     dynamicTagMenu.activeField = index;
+    dynamicTagMenu.activeChild = 0;
+    dynamicTagMenu.childFocus = false;
+}
+
+/** Hovering a third-pane row arms it the same way hovering a field does. */
+function hoverDynamicTagChild(index) {
+    dynamicTagMenu.activeChild = index;
+    dynamicTagMenu.childFocus = true;
 }
 
 const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
@@ -445,6 +510,8 @@ const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
                 dynamicTagMenu.query = p.query ?? '';
                 dynamicTagMenu.activeCategory = 0;
                 dynamicTagMenu.activeField = 0;
+                dynamicTagMenu.activeChild = 0;
+                dynamicTagMenu.childFocus = false;
                 dynamicTagMenu.rect = p.clientRect?.() ?? null;
                 dynamicTagMenu.getRect = p.clientRect ?? null;
                 dynamicTagMenu.open = true;
@@ -460,6 +527,8 @@ const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
                 if (! dynamicTagMenu.query) {
                     dynamicTagMenu.activeCategory = 0;
                     dynamicTagMenu.activeField = 0;
+                    dynamicTagMenu.activeChild = 0;
+                    dynamicTagMenu.childFocus = false;
                 }
 
                 dynamicTagMenu.rect = p.clientRect?.() ?? null;
@@ -659,12 +728,14 @@ defineExpose({ focus: () => editor.value?.commands.focus() });
             :active="dynamicTagMenu.active"
             :active-category="dynamicTagMenu.activeCategory"
             :active-field="dynamicTagMenu.activeField"
+            :active-child="dynamicTagMenu.activeChild"
             :rect="dynamicTagMenu.rect"
             :get-rect="dynamicTagMenu.getRect"
             empty-label="No matching tag"
             @pick="pickDynamicTag"
             @hover-category="hoverDynamicTagCategory"
             @hover-field="hoverDynamicTagField"
+            @hover-child="hoverDynamicTagChild"
         />
 
         <DynamicTagOptions

@@ -24,7 +24,7 @@ it('browses the cascading menu by category before a query narrows it to a flat l
     $page->assertScript("document.querySelectorAll('[role=\"option\"]').length", 5);
 });
 
-it('nests a ring value under its own goal and percent as a third tier', function () {
+it('opens a real third pane for each ring instead of indenting its goal and percent', function () {
     State::query()->create([
         'key' => 'now.rings',
         'value' => json_encode(['move' => 118, 'move_goal' => 250, 'exercise' => 22, 'exercise_goal' => 30, 'stand' => 9, 'stand_goal' => 12, 'steps' => 4213]),
@@ -38,17 +38,48 @@ it('nests a ring value under its own goal and percent as a third tier', function
     // Entries, Streaks, Site, Battery, Weather, Location, then Rings.
     $page->keys('.prose-editor', ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight']);
 
-    // Move/Exercise/Stand each carry their own goal and percent underneath
-    // them, in that order, ahead of the two fields with no subgroup.
+    // Move/Exercise/Stand are parent rows in the second pane, unselectable,
+    // so only Steps and Updated claim "option" there; landing on Move (the
+    // default first row) already opened its own third pane alongside them.
     $page->assertScript(
         "Array.from(document.querySelectorAll('[role=\"option\"]')).map((el) => el.innerText.split('\\n')[0]).join('|')",
-        'Move|Goal|Percent|Exercise|Goal|Percent|Stand|Goal|Percent|Steps|Updated',
+        'Steps|Updated|Move|Goal|Percent',
+    );
+
+    // Arrowing onto Exercise swaps the third pane to Exercise's own values,
+    // proving it belongs to the active parent rather than being one flat list.
+    $page->keys('.prose-editor', ['ArrowDown']);
+
+    $page->assertScript(
+        "Array.from(document.querySelectorAll('[role=\"option\"]')).map((el) => el.innerText.split('\\n')[0]).join('|')",
+        'Steps|Updated|Exercise|Goal|Percent',
     );
 
     // A child's visible "Goal" is ambiguous on its own; the full label survives as its accessible name.
     $page->assertScript(
-        "document.querySelectorAll('[role=\"option\"]')[1].getAttribute('aria-label')",
-        'Move goal',
+        "document.querySelector('[role=\"option\"][aria-label=\"Exercise goal\"]').innerText.split('\\n')[0]",
+        'Goal',
+    );
+});
+
+it('picks a ring value from its third pane with the keyboard', function () {
+    State::query()->create([
+        'key' => 'now.rings',
+        'value' => json_encode(['move' => 118, 'move_goal' => 250, 'exercise' => 22, 'exercise_goal' => 30, 'stand' => 9, 'stand_goal' => 12, 'steps' => 4213]),
+        'observed_at' => now(),
+    ]);
+
+    $page = visit('/new/note');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', '{');
+
+    // Entries, Streaks, Site, Battery, Weather, Location, then Rings, landing
+    // on Move; right drills into its third pane, Enter picks the first leaf.
+    $page->keys('.prose-editor', ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight', 'Enter']);
+
+    $page->assertScript(
+        "document.querySelector('.prose-editor [aria-label=\"Dynamic tag: ambient.rings.move\"]').innerText.trim()",
+        '118',
     );
 });
 
