@@ -5,7 +5,7 @@ import Button from '../Ui/Button.vue';
 import Input from '../Ui/Input.vue';
 import Icon from '../Ui/Icon.vue';
 import Checkbox from '../Ui/Checkbox.vue';
-import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
+import StyledSelect from '../Search/StyledSelect.vue';
 import { titleCase } from '../../lib/format.js';
 import { isFourDigitYear } from '../../lib/editor/period.js';
 import { useDynamicTags } from '../../composables/useDynamicTags';
@@ -140,15 +140,13 @@ function apply() {
                 <template v-else>
                     <label :for="`dt-${option.name}`" class="mb-1 block text-label uppercase text-neutral-500">{{ option.label }}</label>
 
-                    <select
+                    <StyledSelect
                         v-if="option.choices.length"
                         :id="`dt-${option.name}`"
                         v-model="values[option.name]"
-                        :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"
-                    >
-                        <option value="">Any {{ option.label.toLowerCase() }}</option>
-                        <option v-for="choice in option.choices" :key="choice" :value="choice">{{ titleCase(choice) }}</option>
-                    </select>
+                        :options="option.choices.map((choice) => ({ value: choice, label: titleCase(choice) }))"
+                        :placeholder="`Any ${option.label.toLowerCase()}`"
+                    />
 
                     <Input v-else :id="`dt-${option.name}`" v-model="values[option.name]" :placeholder="option.label" />
                 </template>
@@ -157,10 +155,14 @@ function apply() {
             <div v-if="periodOption">
                 <label for="dt-period" class="mb-1 block text-label uppercase text-neutral-500">{{ periodOption.label }}</label>
 
-                <select id="dt-period" v-model="periodChoice" :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']">
-                    <option v-for="choice in periodOption.choices" :key="choice" :value="choice">{{ titleCase(choice) }}</option>
-                    <option :value="PERIOD_YEAR">Custom year</option>
-                </select>
+                <StyledSelect
+                    id="dt-period"
+                    v-model="periodChoice"
+                    :options="[
+                        ...periodOption.choices.map((choice) => ({ value: choice, label: titleCase(choice) })),
+                        { value: PERIOD_YEAR, label: 'Custom year' },
+                    ]"
+                />
 
                 <template v-if="periodChoice === PERIOD_YEAR">
                     <Input
