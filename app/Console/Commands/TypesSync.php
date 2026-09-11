@@ -35,7 +35,11 @@ class TypesSync extends Command
             return self::FAILURE;
         }
 
-        file_put_contents($path, $expected);
+        if (file_put_contents($path, $expected) === false) {
+            $this->components->error('Could not write '.TypeCatalogue::MODULE.'.');
+
+            return self::FAILURE;
+        }
 
         $this->components->info('Wrote '.TypeCatalogue::MODULE.'.');
 
