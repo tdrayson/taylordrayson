@@ -79,7 +79,7 @@ it('picks a ring value from its third pane with the keyboard', function () {
 
     $page->assertScript(
         "document.querySelector('.prose-editor [aria-label=\"Dynamic tag: ambient.rings.move\"]').innerText.trim()",
-        '118',
+        '118 kcal',
     );
 });
 

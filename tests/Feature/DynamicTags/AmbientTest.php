@@ -87,20 +87,29 @@ it('derives a ring percentage against its goal', function () {
     $registry = app(DynamicTagRegistry::class);
 
     expect($registry->value('ambient.rings.move.percent', [])['text'])->toBe('74%')
-        ->and($registry->value('ambient.rings.move.goal', [])['text'])->toBe('250');
+        ->and($registry->value('ambient.rings.move.goal', [])['text'])->toBe('250 kcal');
 });
 
-it('leaves a ring value and its goal bare, they are points not a physical unit', function () {
+it('carries a ring value and its goal in kcal/min/hrs, but leaves steps bare', function () {
     State::query()->create([
         'key' => 'now.rings',
-        'value' => json_encode(['move' => 118, 'move_goal' => 250, 'steps' => 4213]),
+        'value' => json_encode([
+            'move' => 118, 'move_goal' => 250,
+            'exercise' => 22, 'exercise_goal' => 30,
+            'stand' => 9, 'stand_goal' => 12,
+            'steps' => 4213,
+        ]),
         'observed_at' => '2026-09-08 18:12:00',
     ]);
 
     $registry = app(DynamicTagRegistry::class);
 
-    expect($registry->value('ambient.rings.move', [])['text'])->toBe('118')
-        ->and($registry->value('ambient.rings.move.goal', [])['text'])->toBe('250')
+    expect($registry->value('ambient.rings.move', [])['text'])->toBe('118 kcal')
+        ->and($registry->value('ambient.rings.move.goal', [])['text'])->toBe('250 kcal')
+        ->and($registry->value('ambient.rings.exercise', [])['text'])->toBe('22 min')
+        ->and($registry->value('ambient.rings.exercise.goal', [])['text'])->toBe('30 min')
+        ->and($registry->value('ambient.rings.stand', [])['text'])->toBe('9 hrs')
+        ->and($registry->value('ambient.rings.stand.goal', [])['text'])->toBe('12 hrs')
         ->and($registry->value('ambient.rings.steps', [])['text'])->toBe('4,213');
 });
 

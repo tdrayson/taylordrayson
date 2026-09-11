@@ -184,10 +184,9 @@ class AmbientTag extends DynamicTag
 
     /**
      * The suffix a bare reading needs to read as a real-world quantity rather
-     * than an arbitrary number. Move/exercise/stand and their goals are left
-     * bare: they are ring points (kcal/min/hr on the watch face, but never
-     * labelled as such there either), not a value an author would misread
-     * without one, and `steps` reads fine as a plain count next to its label.
+     * than an arbitrary number. Move/exercise/stand and their goals are the
+     * site's usual ring units (see `ActivityWidget.vue`'s CAL/MIN/HRS). `steps`
+     * is left bare: "4,213 steps" beside a label already saying Steps reads oddly.
      */
     private function unit(): ?string
     {
@@ -196,6 +195,9 @@ class AmbientTag extends DynamicTag
             'temp' => '°C',
             'humidity' => '%',
             'wind' => ' mph',
+            'move', 'moveGoal' => ' kcal',
+            'exercise', 'exerciseGoal' => ' min',
+            'stand', 'standGoal' => ' hrs',
             default => null,
         };
     }
