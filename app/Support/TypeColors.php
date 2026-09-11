@@ -3,9 +3,9 @@
 namespace App\Support;
 
 /**
- * The timeline data-type accent colours, parsed from the `--color-{type}` custom
- * properties in resources/css/theme.css and converted to hex for Mapbox overlays
- * and the OG cards, so there is no second hand-maintained list.
+ * The palette's hsl colours, parsed from the `--color-*` custom properties in
+ * resources/css/theme.css and converted to hex for Mapbox overlays and the OG
+ * cards, so there is no second hand-maintained list.
  *
  * theme.css rather than dark.css, which redefines the same tokens: an OG card
  * and a map overlay are both drawn on a light ground whatever the reader's
@@ -32,10 +32,11 @@ class TypeColors
 
         $css = @file_get_contents(base_path(self::SOURCE)) ?: '';
 
-        // Single-word `--color-{token}: hsl(h s% l%)` declarations only, which is
-        // exactly the data-type accents (neutrals, scales, and stages are dashed).
+        // Every `--color-{token}: hsl(h s% l%)` declaration, which is the 13
+        // data-type accents plus the sleep stages, macros and score bands. The
+        // neutral, accent and heat ramps are hex or `var()` and fall outside it.
         preg_match_all(
-            '/--color-([a-z]+):\s*hsl\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*\)/i',
+            '/--color-([a-z0-9-]+):\s*hsl\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*\)/i',
             $css,
             $matches,
             PREG_SET_ORDER,

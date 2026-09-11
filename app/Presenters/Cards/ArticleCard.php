@@ -23,13 +23,11 @@ final class ArticleCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'file-text',
             title: $this->title($model),
             titleLabel: null,
             subtitle: Text::excerpt(PortableText::plainText($model->content), 240) ?: $model->excerpt,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'article',
             range: null,
             meta: CardMeta::photos(
                 $cover !== null ? [PhotoData::cover($cover['src'], $cover['srcset'], $cover['full'])] : [],

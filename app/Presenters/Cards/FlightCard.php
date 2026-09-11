@@ -36,7 +36,6 @@ final class FlightCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'plane',
             title: $this->title($model),
             titleLabel: null,
             subtitle: $subtitle,
@@ -51,7 +50,6 @@ final class FlightCard
                 ]))
                 : null,
             occurredAt: $model->occurred_at,
-            accent: 'flight',
             range: null,
             meta: CardMeta::route(
                 route: new RouteData(

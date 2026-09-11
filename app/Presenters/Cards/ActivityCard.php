@@ -59,13 +59,11 @@ final class ActivityCard
     {
         return new CardData(
             type: $this->type(),
-            icon: 'footprints',
             title: $this->title($model),
             titleLabel: null,
             subtitle: $this->cardSubtitle($model),
             subtitleTokens: $this->subtitleTokens($model),
             occurredAt: $model->occurred_at,
-            accent: 'activity',
             range: null,
             meta: CardMeta::activity(
                 polyline: data_get($model->meta, 'polyline'),

@@ -30,28 +30,32 @@ use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * The types that can be written by hand, and what to reach for per type. One
  * table rather than a controller full of branches: the form, properties panel,
  * /new, /drafts and validation all read from it. Synced types are absent.
+ *
+ * Labels and icons are not here: they belong to App\Support\TypeCatalogue, which
+ * every other surface draws the same type with.
  */
 final class AuthorableTypes
 {
     /**
-     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, label: string, icon: string, draftable: bool}>
+     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, draftable: bool}>
      */
     private const TYPES = [
-        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'label' => 'Note', 'icon' => 'StickyNote02Icon', 'draftable' => false],
-        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'label' => 'Article', 'icon' => 'File01Icon', 'draftable' => true],
-        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'label' => 'Page', 'icon' => 'File02Icon', 'draftable' => true],
-        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'label' => 'Project', 'icon' => 'RocketIcon', 'draftable' => false],
-        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'label' => 'Event', 'icon' => 'Ticket01Icon', 'draftable' => false],
-        'book' => ['model' => Media::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'label' => 'Book', 'icon' => 'BookOpen01Icon', 'draftable' => false],
-        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class, 'label' => 'Flight', 'icon' => 'AirplaneTakeOff01Icon', 'draftable' => false],
-        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'label' => 'Fuel', 'icon' => 'PetrolPumpIcon', 'draftable' => false],
-        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'label' => 'Appearance', 'icon' => 'Mic01Icon', 'draftable' => false],
+        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'draftable' => false],
+        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'draftable' => true],
+        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'draftable' => true],
+        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'draftable' => false],
+        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'draftable' => false],
+        'book' => ['model' => Media::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'draftable' => false],
+        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class, 'draftable' => false],
+        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'draftable' => false],
+        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'draftable' => false],
     ];
 
     public static function has(string $type): bool
@@ -60,7 +64,7 @@ final class AuthorableTypes
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string, label: string, icon: string, draftable: bool}|null
+     * @return array{model: class-string<Model>, create: class-string, update: class-string, draftable: bool}|null
      */
     public static function get(string $type): ?array
     {
@@ -89,9 +93,9 @@ final class AuthorableTypes
     }
 
     /**
-     * Everything offered on /new, quickest and most frequent first. Icon names
-     * match resources/js/entryTypes.js so a tile and its timeline entry never
-     * show different marks.
+     * Everything offered on /new, quickest and most frequent first. The label and
+     * glyph come from the catalogue, so a tile and its timeline entry cannot show
+     * different marks.
      *
      * @return list<array{type: string, label: string, icon: string}>
      */
@@ -100,8 +104,8 @@ final class AuthorableTypes
         return array_values(array_map(
             fn (string $type): array => [
                 'type' => $type,
-                'label' => self::TYPES[$type]['label'],
-                'icon' => self::TYPES[$type]['icon'],
+                'label' => TypeCatalogue::for($type)->label,
+                'icon' => TypeCatalogue::for($type)->icon,
             ],
             array_keys(self::TYPES),
         ));

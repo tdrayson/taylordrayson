@@ -11,6 +11,7 @@ use App\Fields\FieldRules;
 use App\Presenters\CardPresenter;
 use App\Support\EntryInstant;
 use App\Support\EntryZone;
+use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -154,7 +155,7 @@ class AuthoringController extends Controller
                 ->all();
 
             if ($rows !== []) {
-                $groups[] = ['type' => $type, 'label' => $definition['label'], 'rows' => $rows];
+                $groups[] = ['type' => $type, 'label' => TypeCatalogue::for($type)->plural, 'rows' => $rows];
             }
         }
 
@@ -191,7 +192,7 @@ class AuthoringController extends Controller
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string, label: string, icon: string, draftable: bool}
+     * @return array{model: class-string<Model>, create: class-string, update: class-string, draftable: bool}
      */
     private function definition(string $type): array
     {

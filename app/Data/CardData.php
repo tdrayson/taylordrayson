@@ -15,29 +15,39 @@ use JsonSerializable;
 final readonly class CardData implements Arrayable, JsonSerializable
 {
     /**
+     * The --color-* token key, derived so no presenter can name a different one.
+     * Read by the feed, the entry page and the OG card; deliberately absent from
+     * toArray(), which serves MCP clients that render nothing.
+     */
+    public string $accent;
+
+    /**
      * @param  ?list<SubtitleToken>  $subtitleTokens
      */
     public function __construct(
         public TimelineType $type,
-        public string $icon,
         public string $title,
         public ?string $titleLabel,
         public ?string $subtitle,
         public ?array $subtitleTokens,
         public CarbonInterface $occurredAt,
-        public string $accent,
         public ?RangeData $range,
         public CardMeta $meta,
-    ) {}
+    ) {
+        $this->accent = $type->accent();
+    }
 
     /**
+     * The card as an MCP tool payload, which is the only thing that serialises
+     * one. Presentation-only fields stay off it: a client reading this renders
+     * nothing, and `type` already carries what an accent or glyph would encode.
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
         $data = [
             'type' => $this->type->value,
-            'icon' => $this->icon,
             'title' => $this->title,
         ];
 
@@ -52,7 +62,6 @@ final readonly class CardData implements Arrayable, JsonSerializable
         }
 
         $data['occurred_at'] = $this->occurredAt;
-        $data['accent'] = $this->accent;
 
         if ($this->range !== null) {
             $data['range'] = $this->range->toArray();

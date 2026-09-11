@@ -24,7 +24,7 @@ class StatsController extends Controller
     {
         $typeKey = collect(TypeRegistry::all())->search(fn (array $definition): bool => $definition['slug'] === $type);
 
-        abort_if($typeKey === false || $typeKey !== 'activity', 404);
+        abort_if($typeKey === false || ! TypeRegistry::all()[$typeKey]['stats'], 404);
 
         $label = TypeRegistry::all()[$typeKey]['label'];
 

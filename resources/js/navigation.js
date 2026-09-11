@@ -21,32 +21,15 @@ export const pageCommands = [
 ];
 
 /**
- * Editorial synonyms for the archive *index* pages, so a query lands on the
- * right section when the word never appears as a taxonomy value (those specific
- * values, e.g. a "Run" activity type, are surfaced live by the server instead).
- */
-const archiveKeywords = {
-    activity: 'workout exercise sport',
-    sleep: 'rest bed nap',
-    calorie: 'food eat meal nutrition',
-    media: 'watch movie film tv show book reading',
-    event: 'ticket gig concert',
-    appearance: 'talk speaking interview',
-    podcast: 'podcast tww episode',
-    flight: 'fly travel trip airport',
-    checkin: 'place location visited',
-    fuel: 'petrol gas diesel',
-    project: 'build side product',
-    article: 'blog post writing read',
-    note: 'memo journal thought',
-};
-
-/**
  * One destination per timeline data type (activities, sleep, food, flights, …).
+ *
+ * `keywords` are editorial synonyms carried on the type itself, so a query lands
+ * on the right section when the word never appears as a taxonomy value (those
+ * specific values, e.g. a "Run" activity type, are surfaced live by the server).
  */
-export const archiveCommands = Object.entries(timelineTypes)
-    .filter(([, type]) => type.href)
-    .map(([key, type]) => ({ label: type.label, href: type.href, icon: type.icon, keywords: archiveKeywords[key] }));
+export const archiveCommands = Object.values(timelineTypes)
+    .filter((type) => type.href)
+    .map((type) => ({ label: type.label, href: type.href, icon: type.icon, keywords: type.keywords }));
 
 /**
  * The types offered before anything is typed. The rest of the authorable types
