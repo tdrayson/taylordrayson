@@ -6,10 +6,10 @@ import Input from '../Ui/Input.vue';
 import Icon from '../Ui/Icon.vue';
 import Checkbox from '../Ui/Checkbox.vue';
 import StyledSelect from '../Search/StyledSelect.vue';
-import DynamicTagDateField from './DynamicTagDateField.vue';
+import DateField from './DateField.vue';
 import { titleCase } from '../../lib/format.js';
 import { isFourDigitYear } from '../../lib/editor/period.js';
-import { useDynamicTags } from '../../composables/useDynamicTags';
+import { resolveDate, useDynamicTags } from '../../composables/useDynamicTags';
 
 /** `from`/`to` are a date bound, not free text, wherever a tag declares them. */
 function isDateOption(name) {
@@ -227,8 +227,8 @@ function apply() {
 
                 <template v-else-if="periodChoice === PERIOD_RANGE">
                     <div class="mt-2 grid grid-cols-2 gap-2">
-                        <DynamicTagDateField v-model="rangeFrom" :label="fromLabel" />
-                        <DynamicTagDateField v-model="rangeTo" :label="toLabel" />
+                        <DateField v-model="rangeFrom" :label="fromLabel" :resolve-typed="resolveDate" />
+                        <DateField v-model="rangeTo" :label="toLabel" :resolve-typed="resolveDate" />
                     </div>
                     <p v-if="rangeInvalid" class="mt-1 text-caption text-red-600">Enter a from or to date.</p>
                     <p v-else-if="homeTimezone" class="mt-1 text-caption text-neutral-500">{{ homeTimezone }} local time</p>

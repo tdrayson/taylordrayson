@@ -192,6 +192,8 @@ watch(() => props.modelValue, () => {
                         <button
                             v-if="cell"
                             type="button"
+                            :aria-label="`${cell} ${monthNames[view.month]} ${view.year}`"
+                            :aria-current="isSelectedDay(cell) ? 'date' : null"
                             class="rounded border-2 border-transparent py-1 text-caption tnum transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
                             :class="isSelectedDay(cell) ? 'bg-accent-500 text-neutral-0' : isToday(cell) ? 'font-semibold text-accent-500 hover:border-accent-500' : 'text-neutral-700 hover:border-accent-500'"
                             @click="pickDay(cell)"
