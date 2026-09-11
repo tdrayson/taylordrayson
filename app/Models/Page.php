@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasDynamicContent;
 use App\Observers\LinkFaviconObserver;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -25,7 +26,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(LinkFaviconObserver::class)]
 class Page extends Model implements HasMedia
 {
-    use HasAttachments;
+    use HasAttachments, HasDynamicContent;
 
     /** @use HasFactory<PageFactory> */
     use HasFactory;

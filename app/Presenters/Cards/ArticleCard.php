@@ -26,7 +26,7 @@ final class ArticleCard
             icon: 'file-text',
             title: $this->title($model),
             titleLabel: null,
-            subtitle: Text::excerpt(PortableText::plainText($model->content), 240) ?: $model->excerpt,
+            subtitle: Text::excerpt(PortableText::plainText($model->resolvedContent()), 240) ?: $model->excerpt,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             accent: 'article',

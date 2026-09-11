@@ -34,20 +34,20 @@ final class NoteCard
             accent: 'note',
             range: null,
             meta: CardMeta::note(
-                body: $model->content,
+                body: $model->resolvedContent(),
                 photos: array_map(
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $model->galleryPhotos(),
                 ),
-                previews: app(BuildLinkPreviews::class)($model->content),
-                favicons: (new BuildLinkFavicons)($model->content),
+                previews: app(BuildLinkPreviews::class)($model->resolvedContent()),
+                favicons: (new BuildLinkFavicons)($model->resolvedContent()),
             ),
         );
     }
 
     public function title(Note $model): string
     {
-        return Str::limit(PortableText::plainText($model->content), 80);
+        return Str::limit(PortableText::plainText($model->resolvedContent()), 80);
     }
 
     public function type(): TimelineType

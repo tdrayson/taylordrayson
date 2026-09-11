@@ -14,8 +14,10 @@ class LinkFaviconObserver
 {
     public function saved(Model $model): void
     {
+        // resolvedContent(), not content: a dynamicHref markDef has no host
+        // until its tag resolves.
         $missing = array_values(array_filter(
-            Links::hostsIn($model->content),
+            Links::hostsIn($model->resolvedContent()),
             fn (string $host): bool => Links::faviconUrl($host) === null,
         ));
 

@@ -1,0 +1,69 @@
+<?php
+
+namespace App\DynamicTags;
+
+use App\Data\TagOption;
+use App\Enums\Placement;
+
+/**
+ * One referenceable value. `resolve()` returns the typed value and `format()`
+ * renders it, so a consumer can take either the number or the display string.
+ */
+abstract class DynamicTag
+{
+    /** The dotted path authors write, e.g. `entries.count`. */
+    abstract public function name(): string;
+
+    abstract public function label(): string;
+
+    /** The heading the editor groups this tag under. */
+    abstract public function group(): string;
+
+    /**
+     * Null means the tag has nothing to report for these options.
+     *
+     * @param  array<string, string>  $options
+     */
+    abstract public function resolve(array $options): mixed;
+
+    /**
+     * Every tag defaults to inline-only; override to allow other placements.
+     *
+     * @return list<Placement>
+     */
+    public function supports(): array
+    {
+        return [Placement::Inline];
+    }
+
+    /**
+     * The fields the tag editor renders; empty when the tag takes no options.
+     *
+     * @return list<TagOption>
+     */
+    public function options(): array
+    {
+        return [];
+    }
+
+    /**
+     * Default rendering when a subclass doesn't override it.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function format(mixed $value, array $options): string
+    {
+        return is_int($value) ? number_format($value) : (string) $value;
+    }
+
+    /**
+     * The URL a `dynamicHref` markDef or tagged image resolves to. Defaults to
+     * {@see format()}; override when the link target differs from the display text.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function href(mixed $value, array $options): string
+    {
+        return $this->format($value, $options);
+    }
+}
