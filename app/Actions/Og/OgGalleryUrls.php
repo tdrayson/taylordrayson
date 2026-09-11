@@ -47,33 +47,48 @@ final class OgGalleryUrls
     /**
      * Sample data for each data type, used by the temp gallery and the
      * `/og/preview/{type}` route. `layout` is the standardised template
-     * (media / cover / text); accent and eyebrow give each type its unique
-     * identity.
+     * (media / cover / text); accent and eyebrow come from the type itself, so
+     * only the invented content below is written out per row.
      *
      * @return array<string, array<string, mixed>>
      */
     public function sampleCards(): array
     {
-        return [
-            'activity' => ['layout' => 'media', 'accent' => TypeColors::hex('activity'), 'eyebrow' => 'Activity', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '3.2 mi, 42 min', 'image' => $this->sampleMap('activity')],
-            'flight' => ['layout' => 'media', 'accent' => TypeColors::hex('flight'), 'eyebrow' => 'Flight', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
-            'checkin' => ['layout' => 'media', 'accent' => TypeColors::hex('checkin'), 'eyebrow' => 'Places', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('checkin'))],
-            'media' => ['layout' => 'text', 'accent' => TypeColors::hex('media'), 'eyebrow' => 'Books', 'title' => 'I read Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear'],
-            'appearance' => ['layout' => 'text', 'accent' => TypeColors::hex('appearance'), 'eyebrow' => 'Appearance', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
-            'podcast' => ['layout' => 'text', 'accent' => TypeColors::hex('podcast'), 'eyebrow' => 'This Week With', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
-            'article' => ['layout' => 'text', 'accent' => TypeColors::hex('article'), 'eyebrow' => 'Article', 'title' => 'Why I track absolutely everything', 'date' => 'Mon 12 May 2025', 'meta' => '6 min read'],
-            'note' => ['layout' => 'text', 'accent' => TypeColors::hex('note'), 'eyebrow' => 'Note', 'title' => 'A quick thought on building in public', 'date' => 'Tue 24 Jun 2026', 'meta' => null],
-            'project' => ['layout' => 'text', 'accent' => TypeColors::hex('project'), 'eyebrow' => 'Project', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel, Inertia, Vue'],
-            'event' => ['layout' => 'text', 'accent' => TypeColors::hex('event'), 'eyebrow' => 'Event', 'title' => 'Laracon EU', 'date' => 'Tue 28 Jan 2026', 'meta' => 'Amsterdam'],
-            'sleep' => ['layout' => 'text', 'accent' => TypeColors::hex('sleep'), 'eyebrow' => 'Sleep', 'title' => 'I slept 7h 32m', 'date' => 'Wed 25 Jun 2026', 'stages' => $this->entryOgData->sleepStages([
+        $samples = [
+            'activity' => ['layout' => 'media', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '3.2 mi, 42 min', 'image' => $this->sampleMap('activity')],
+            'flight' => ['layout' => 'media', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
+            'checkin' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('checkin'))],
+            'media' => ['layout' => 'text', 'eyebrow' => 'Books', 'title' => 'I read Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear'],
+            'appearance' => ['layout' => 'text', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
+            'podcast' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
+            'article' => ['layout' => 'text', 'title' => 'Why I track absolutely everything', 'date' => 'Mon 12 May 2025', 'meta' => '6 min read'],
+            'note' => ['layout' => 'text', 'title' => 'A quick thought on building in public', 'date' => 'Tue 24 Jun 2026', 'meta' => null],
+            'project' => ['layout' => 'text', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel, Inertia, Vue'],
+            'event' => ['layout' => 'text', 'title' => 'Laracon EU', 'date' => 'Tue 28 Jan 2026', 'meta' => 'Amsterdam'],
+            'sleep' => ['layout' => 'text', 'title' => 'I slept 7h 32m', 'date' => 'Wed 25 Jun 2026', 'stages' => $this->entryOgData->sleepStages([
                 new SegmentData('Awake', 'awake', 1620),
                 new SegmentData('REM', 'rem', 6480),
                 new SegmentData('Light', 'light', 13320),
                 new SegmentData('Deep', 'deep', 5700),
             ])],
-            'calorie' => ['layout' => 'text', 'accent' => TypeColors::hex('food'), 'eyebrow' => 'Food', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
-            'fuel' => ['layout' => 'text', 'accent' => TypeColors::hex('fuel'), 'eyebrow' => 'Fuel', 'title' => 'I put £62.40 of fuel in', 'date' => 'Sat 14 Jun 2026', 'meta' => null],
+            'calorie' => ['layout' => 'text', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
+            'fuel' => ['layout' => 'text', 'title' => 'I put £62.40 of fuel in', 'date' => 'Sat 14 Jun 2026', 'meta' => null],
         ];
+
+        $cards = [];
+
+        foreach ($samples as $key => $sample) {
+            $type = TimelineType::from($key);
+
+            $cards[$key] = [
+                ...$sample,
+                'accent' => TypeColors::hex($type->accent()),
+                // The media sample is a book, so it keeps its own eyebrow.
+                'eyebrow' => $sample['eyebrow'] ?? TypeCatalogue::forType($type)->eyebrow(),
+            ];
+        }
+
+        return $cards;
     }
 
     /**

@@ -133,7 +133,7 @@ final class TypeCatalogue
 
         foreach ($groups as $name => $types) {
             $rows = array_map(
-                fn (TypeMeta $meta): string => sprintf('    %s: %s,', $meta->key, self::literal($meta->toArray())),
+                fn (TypeMeta $meta): string => sprintf('    %s: %s,', self::property($meta->key), self::literal($meta->toArray())),
                 $types,
             );
 
@@ -152,6 +152,16 @@ final class TypeCatalogue
             // here: `accent` is a --color-* token key, defined in resources/css/theme.css
             // and resources/css/dark.css so a type's hue follows the reader's scheme.
             JS;
+    }
+
+    /**
+     * A key as a JS object property, quoted only when it is not a bare identifier.
+     * Every key today is one, so this changes nothing until a hyphenated type key
+     * appears and would otherwise emit a module that will not parse.
+     */
+    private static function property(string $key): string
+    {
+        return preg_match('/^[A-Za-z_$][A-Za-z0-9_$]*$/', $key) === 1 ? $key : "'".$key."'";
     }
 
     /**
