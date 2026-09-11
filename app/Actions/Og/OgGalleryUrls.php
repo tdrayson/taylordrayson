@@ -3,10 +3,12 @@
 namespace App\Actions\Og;
 
 use App\Data\SegmentData;
+use App\Enums\TimelineType;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
 use App\Support\OgRenderer;
 use App\Support\StaticMap;
+use App\Support\TypeCatalogue;
 use App\Support\TypeColors;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Carbon;
@@ -128,13 +130,12 @@ final class OgGalleryUrls
     {
         $cards = [];
 
-        foreach (array_keys(config('og-phrases.archive', [])) as $type) {
-            $label = BuildEntryOgData::TYPE_EYEBROWS[$type] ?? $type;
-            $accentToken = $type === 'calorie' ? 'food' : $type;
+        foreach (TimelineType::cases() as $type) {
+            $label = TypeCatalogue::forType($type)->eyebrow();
 
             $cards[] = [
                 'label' => $label,
-                'url' => $this->ogUrl(OgMeta::archive($type, $label, $label, $accentToken, false, Str::lower(Str::singular($label)), 0)),
+                'url' => $this->ogUrl(OgMeta::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0)),
             ];
         }
 
@@ -193,8 +194,9 @@ final class OgGalleryUrls
     {
         $cards = [];
 
-        foreach (BuildEntryOgData::TYPE_EYEBROWS as $type => $label) {
-            $model = TypeRegistry::find($type)['model'] ?? null;
+        foreach (TimelineType::cases() as $type) {
+            $label = TypeCatalogue::forType($type)->eyebrow();
+            $model = TypeRegistry::find($type->value)['model'] ?? null;
 
             if ($model === null) {
                 continue;
