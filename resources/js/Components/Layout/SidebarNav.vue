@@ -17,7 +17,7 @@ import SidebarNavItem from './SidebarNavItem.vue';
 const links = [
     { label: 'Timeline', href: '/', icon: Home03Icon },
     { label: 'About', href: '/about', icon: UserIcon },
-    { label: 'Articles', href: entryTypes.article.href, icon: entryTypes.article.icon },
+    { label: entryTypes.article.plural, href: entryTypes.article.href, icon: entryTypes.article.icon },
     { label: 'Stories', href: '/stories', icon: BookOpen01Icon },
     { label: 'Photos', href: '/photos', icon: Image01Icon },
     { label: 'More', href: '/more', icon: GridViewIcon },
