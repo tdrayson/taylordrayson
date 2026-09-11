@@ -111,6 +111,24 @@ it('reopens a lone from bound with no to still filled in', function () {
         ->assertScript("document.querySelector('[aria-label=\"To date\"]').innerText.trim()", 'To');
 });
 
+it('shows the preview icon only once ticked, the same glyph the published chip would show', function () {
+    Note::factory()->create(['occurred_at' => '2019-06-01 12:00:00']);
+
+    $page = visit('/new/note');
+
+    pickEntriesCountTag($page);
+
+    $page->select('#dt-type', 'note');
+
+    // No icon by default: the option is off, and there is never a chart icon.
+    $page->assertScript("document.querySelector('[role=\"dialog\"] .bg-neutral-25 svg') === null", true);
+
+    $page->click('label:has-text("Include icon")');
+    $page->wait(1);
+
+    $page->assertScript("document.querySelector('[role=\"dialog\"] .bg-neutral-25 svg') !== null", true);
+});
+
 it('rejects an empty custom range until at least one bound is set', function () {
     $page = visit('/new/note');
 

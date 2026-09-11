@@ -7,9 +7,11 @@ import Icon from '../Ui/Icon.vue';
 import Checkbox from '../Ui/Checkbox.vue';
 import StyledSelect from '../Search/StyledSelect.vue';
 import DateField from './DateField.vue';
+import BatteryStatus from '../Layout/BatteryStatus.vue';
 import { titleCase } from '../../lib/format.js';
 import { isFourDigitYear } from '../../lib/editor/period.js';
 import { resolveDate, useDynamicTags } from '../../composables/useDynamicTags';
+import { dynamicTagIcon } from '../../lib/dynamicTagIcon';
 
 /** `from`/`to` are a date bound, not free text, wherever a tag declares them. */
 function isDateOption(name) {
@@ -38,7 +40,7 @@ const props = defineProps({
 
 const emit = defineEmits(['apply', 'update:open']);
 
-const { previewFor, homeTimezone } = useDynamicTags();
+const { previewFor, iconFor, valueFor, homeTimezone } = useDynamicTags();
 
 const PERIOD_YEAR = '__year__';
 const PERIOD_RANGE = '__range__';
@@ -154,6 +156,14 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
 
 const previewText = computed(() => previewFor(props.tag.name, debounced.value, props.placement) ?? props.tag.name);
 
+// The exact glyph the published render and the editor chip show, so the
+// popup's preview never claims an icon the reader won't see (or hides one
+// they will). Icons are inline-only: a link's href or an image's src has no
+// separate glyph of its own.
+const previewIcon = computed(() => (props.placement === 'inline'
+    ? dynamicTagIcon(props.tag.name, valueFor(props.tag.name, debounced.value), iconFor(props.tag.name, debounced.value))
+    : null));
+
 function apply() {
     if (periodInvalid.value) {
         return;
@@ -238,7 +248,15 @@ function apply() {
             <div>
                 <p class="mb-1 text-label uppercase text-neutral-500">Preview</p>
                 <span class="inline-flex items-center gap-1 rounded bg-neutral-25 px-1 py-0.5 align-baseline font-medium text-neutral-900">
-                    <Icon name="ChartColumnIcon" class="size-3.5 shrink-0" />{{ previewText }}
+                    <BatteryStatus
+                        v-if="previewIcon?.kind === 'battery'"
+                        :level="previewIcon.level"
+                        :charging="previewIcon.charging"
+                        :low-power="previewIcon.lowPower"
+                        class="shrink-0"
+                    />
+                    <img v-else-if="previewIcon?.kind === 'favicon'" :src="previewIcon.src" alt="" class="size-3.5 shrink-0 object-contain">
+                    <Icon v-else-if="previewIcon?.kind === 'icon'" :icon="previewIcon.icon" class="size-3.5 shrink-0" />{{ previewText }}
                 </span>
             </div>
 
