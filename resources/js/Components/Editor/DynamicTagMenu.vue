@@ -81,13 +81,13 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
         </ul>
 
         <ul
-            class="max-h-72 w-48 shrink-0 overflow-y-auto border-r border-neutral-50 py-1"
+            class="max-h-72 w-48 shrink-0 snap-y snap-mandatory overflow-y-auto border-r border-neutral-50 py-1"
             role="listbox"
             :aria-label="categories[activeCategory] ? `${categories[activeCategory].label} tags` : 'Tags'"
         >
-            <li v-if="! activeRows.length" class="px-3 py-2 text-meta text-neutral-500">{{ emptyLabel }}</li>
+            <li v-if="! activeRows.length" class="snap-start px-3 py-2 text-meta text-neutral-500">{{ emptyLabel }}</li>
 
-            <li v-for="(row, index) in activeRows" :key="row.id">
+            <li v-for="(row, index) in activeRows" :key="row.id" class="snap-start">
                 <!-- A parent row (e.g. Rings' Move) only opens its own third
                      pane; it carries no value of its own to pick. -->
                 <button
@@ -121,11 +121,11 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
 
         <ul
             v-if="thirdPaneRows.length"
-            class="max-h-72 w-48 shrink-0 overflow-y-auto py-1"
+            class="max-h-72 w-48 shrink-0 snap-y snap-mandatory overflow-y-auto py-1"
             role="listbox"
             :aria-label="`${activeRow.label} tags`"
         >
-            <li v-for="(row, index) in thirdPaneRows" :key="row.id">
+            <li v-for="(row, index) in thirdPaneRows" :key="row.id" class="snap-start">
                 <button
                     type="button"
                     role="option"
