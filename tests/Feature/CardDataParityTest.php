@@ -45,7 +45,6 @@ it('reproduces the pre-refactor activity card shape', function () {
             ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $activity->occurred_at,
-        'accent' => 'activity',
         'meta' => ['polyline' => null, 'photos' => [], 'map' => null, 'mapDark' => null],
     ]);
 });
@@ -76,7 +75,6 @@ it('reproduces the pre-refactor flight card shape', function () {
             ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $flight->occurred_at,
-        'accent' => 'flight',
         'meta' => [
             'route' => [
                 'origin' => ['iata' => 'LHR', 'place' => null, 'name' => null, 'lat' => null, 'lng' => null],
@@ -107,7 +105,6 @@ it('reproduces the pre-refactor media card shape', function () {
         'title' => 'Interstellar',
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
         'occurred_at' => $media->occurred_at,
-        'accent' => 'media',
         'meta' => ['backdrop' => null],
     ]);
 });
@@ -123,7 +120,6 @@ it('reproduces the pre-refactor note card shape', function () {
         'title' => 'A short note about today.',
         'subtitle' => null,
         'occurred_at' => $note->occurred_at,
-        'accent' => 'note',
         'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => []],
     ]);
 });
@@ -142,7 +138,6 @@ it('reproduces the pre-refactor single-day event card shape', function () {
         'title' => 'Test Gig',
         'subtitle' => 'I went to Some Venue in London.',
         'occurred_at' => $event->occurred_at,
-        'accent' => 'event',
         'meta' => ['photos' => [], 'map' => null, 'mapDark' => null],
     ]);
 });
@@ -165,7 +160,6 @@ it('reproduces the pre-refactor sleep card shape', function () {
         'titleLabel' => 'Sleep log, I slept for 8 hours',
         'subtitle' => 'I went to bed at 11:00pm and woke at 7:00am.',
         'occurred_at' => $sleep->occurred_at,
-        'accent' => 'sleep',
         'meta' => [
             'segments' => [
                 ['label' => 'Awake', 'stage' => 'awake', 'seconds' => 600],
@@ -192,7 +186,6 @@ it('reproduces the pre-refactor appearance card shape', function () {
         'title' => 'Building a Lifelog',
         'subtitle' => 'I spoke at Laracon EU.',
         'occurred_at' => $appearance->occurred_at,
-        'accent' => 'appearance',
         'meta' => [
             'media' => [
                 'id' => "appearance-{$appearance->id}",

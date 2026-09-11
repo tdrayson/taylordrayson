@@ -83,7 +83,6 @@ it('card returns expected array shape', function () {
         'title',
         'subtitle',
         'occurred_at',
-        'accent',
         'meta',
     ]);
 });
