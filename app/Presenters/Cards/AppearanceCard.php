@@ -18,13 +18,11 @@ final class AppearanceCard
     {
         return new CardData(
             type: $this->type(),
-            icon: 'mic',
             title: $this->title($model),
             titleLabel: null,
             subtitle: $model->show_name ? "I spoke at {$model->show_name}." : null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'appearance',
             range: null,
             meta: CardMeta::media(MediaData::withSrcset(
                 id: "appearance-{$model->id}",

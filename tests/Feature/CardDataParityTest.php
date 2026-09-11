@@ -35,7 +35,6 @@ it('reproduces the pre-refactor activity card shape', function () {
 
     expect(CardPresenter::for($activity)->toArray())->toEqual([
         'type' => 'activity',
-        'icon' => 'footprints',
         'title' => 'Morning Run',
         'subtitle' => 'I ran '.Distance::miles(5000, 1).' mi in 30m and burned 350 kcal.',
         'subtitleTokens' => [
@@ -68,7 +67,6 @@ it('reproduces the pre-refactor flight card shape', function () {
 
     expect(CardPresenter::for($flight)->toArray())->toEqual([
         'type' => 'flight',
-        'icon' => 'plane',
         'title' => 'LHR → JFK',
         'subtitle' => 'I flew from LHR to JFK. It was 1,000 mi in economy.',
         'subtitleTokens' => [
@@ -106,7 +104,6 @@ it('reproduces the pre-refactor media card shape', function () {
 
     expect(CardPresenter::for($media)->toArray())->toEqual([
         'type' => 'media',
-        'icon' => 'film',
         'title' => 'Interstellar',
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
         'occurred_at' => $media->occurred_at,
@@ -123,7 +120,6 @@ it('reproduces the pre-refactor note card shape', function () {
 
     expect(CardPresenter::for($note)->toArray())->toEqual([
         'type' => 'note',
-        'icon' => 'message-circle',
         'title' => 'A short note about today.',
         'subtitle' => null,
         'occurred_at' => $note->occurred_at,
@@ -143,7 +139,6 @@ it('reproduces the pre-refactor single-day event card shape', function () {
 
     expect(CardPresenter::for($event)->toArray())->toEqual([
         'type' => 'event',
-        'icon' => 'music',
         'title' => 'Test Gig',
         'subtitle' => 'I went to Some Venue in London.',
         'occurred_at' => $event->occurred_at,
@@ -166,7 +161,6 @@ it('reproduces the pre-refactor sleep card shape', function () {
 
     expect(CardPresenter::for($sleep)->toArray())->toEqual([
         'type' => 'sleep',
-        'icon' => 'bed',
         'title' => 'I slept for 8h',
         'titleLabel' => 'Sleep log, I slept for 8 hours',
         'subtitle' => 'I went to bed at 11:00pm and woke at 7:00am.',
@@ -195,7 +189,6 @@ it('reproduces the pre-refactor appearance card shape', function () {
 
     expect(CardPresenter::for($appearance)->toArray())->toEqual([
         'type' => 'appearance',
-        'icon' => 'mic',
         'title' => 'Building a Lifelog',
         'subtitle' => 'I spoke at Laracon EU.',
         'occurred_at' => $appearance->occurred_at,

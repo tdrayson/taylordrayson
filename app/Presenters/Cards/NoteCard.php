@@ -25,13 +25,11 @@ final class NoteCard
     {
         return new CardData(
             type: $this->type(),
-            icon: 'message-circle',
             title: $this->title($model),
             titleLabel: null,
             subtitle: null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'note',
             range: null,
             meta: CardMeta::note(
                 body: $model->content,

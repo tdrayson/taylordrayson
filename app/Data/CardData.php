@@ -14,21 +14,24 @@ use JsonSerializable;
  */
 final readonly class CardData implements Arrayable, JsonSerializable
 {
+    /** The --color-* token key, derived so no presenter can name a different one. */
+    public string $accent;
+
     /**
      * @param  ?list<SubtitleToken>  $subtitleTokens
      */
     public function __construct(
         public TimelineType $type,
-        public string $icon,
         public string $title,
         public ?string $titleLabel,
         public ?string $subtitle,
         public ?array $subtitleTokens,
         public CarbonInterface $occurredAt,
-        public string $accent,
         public ?RangeData $range,
         public CardMeta $meta,
-    ) {}
+    ) {
+        $this->accent = $type->accent();
+    }
 
     /**
      * @return array<string, mixed>
@@ -37,7 +40,6 @@ final readonly class CardData implements Arrayable, JsonSerializable
     {
         $data = [
             'type' => $this->type->value,
-            'icon' => $this->icon,
             'title' => $this->title,
         ];
 

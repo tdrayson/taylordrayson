@@ -24,7 +24,6 @@ final class CheckinCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'map-pin',
             title: $title,
             // "Check-in at Cineworld" reads straight through; an event title
             // already names something, so it takes a comma.
@@ -35,7 +34,6 @@ final class CheckinCard
             subtitle: $model->description ?: null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'checkin',
             range: null,
             meta: CardMeta::checkin(
                 photos: array_map(

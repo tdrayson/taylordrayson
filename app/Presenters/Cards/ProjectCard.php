@@ -17,13 +17,11 @@ final class ProjectCard
     {
         return new CardData(
             type: $this->type(),
-            icon: 'rocket',
             title: $this->title($model),
             titleLabel: null,
             subtitle: $model->description,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'project',
             range: null,
             meta: CardMeta::empty(),
         );

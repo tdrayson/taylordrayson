@@ -27,13 +27,11 @@ final class EventCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'music',
             title: $this->title($model),
             titleLabel: null,
             subtitle: $subtitle,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'event',
             range: $model->dateRange(),
             meta: CardMeta::event(
                 photos: array_map(

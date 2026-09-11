@@ -20,13 +20,11 @@ final class FuelCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'fuel',
             title: $title,
             titleLabel: "Fuel stop, {$title}",
             subtitle: $this->sentence($model),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'fuel',
             range: null,
             meta: CardMeta::fuel(
                 map: $model->optimisedUrl('map'),

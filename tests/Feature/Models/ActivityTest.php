@@ -80,7 +80,6 @@ it('card returns expected array shape', function () {
 
     expect($card->toArray())->toHaveKeys([
         'type',
-        'icon',
         'title',
         'subtitle',
         'occurred_at',

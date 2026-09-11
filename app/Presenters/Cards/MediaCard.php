@@ -24,13 +24,11 @@ final class MediaCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'film',
             title: $title,
             titleLabel: null,
             subtitle: $this->sentence($model, $show, $title),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'media',
             range: null,
             meta: CardMeta::backdrop($this->backdrop($model)),
         );
