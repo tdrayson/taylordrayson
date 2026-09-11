@@ -69,6 +69,6 @@ it('picks a tag from a category reached with the arrow keys alone', function () 
 
     $page->assertScript(
         "document.querySelector('.prose-editor [aria-label=\"Dynamic tag: ambient.battery.percent\"]').innerText.trim()",
-        '66',
+        '66%',
     );
 });

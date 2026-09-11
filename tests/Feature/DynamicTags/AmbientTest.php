@@ -114,3 +114,23 @@ it('groups a ring value, its goal and its percent under one subgroup', function 
         ->and($registry->find('ambient.rings.updated')->subgroup())->toBeNull()
         ->and($registry->find('ambient.battery.percent')->subgroup())->toBeNull();
 });
+
+it('suffixes a reading that is meaningless without its unit', function () {
+    State::query()->create([
+        'key' => 'now.battery',
+        'value' => json_encode(['percent' => 72, 'charging' => false, 'low_power' => false]),
+        'observed_at' => '2026-09-08 18:12:00',
+    ]);
+    State::query()->create([
+        'key' => 'now.weather',
+        'value' => json_encode(['condition' => 'clear', 'temp' => 16, 'humidity' => 88, 'wind' => 7]),
+        'observed_at' => '2026-09-08 18:12:00',
+    ]);
+
+    $registry = app(DynamicTagRegistry::class);
+
+    expect($registry->value('ambient.battery.percent', [])['text'])->toBe('72%')
+        ->and($registry->value('ambient.weather.temp', [])['text'])->toBe('16°C')
+        ->and($registry->value('ambient.weather.humidity', [])['text'])->toBe('88%')
+        ->and($registry->value('ambient.weather.wind', [])['text'])->toBe('7 mph');
+});

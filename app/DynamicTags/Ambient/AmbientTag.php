@@ -148,7 +148,27 @@ class AmbientTag extends DynamicTag
             return $format->apply($value);
         }
 
-        return parent::format($value, $options);
+        $unit = $this->unit();
+
+        return $unit === null ? parent::format($value, $options) : parent::format($value, $options).$unit;
+    }
+
+    /**
+     * The suffix a bare reading needs to read as a real-world quantity rather
+     * than an arbitrary number. Move/exercise/stand and their goals are left
+     * bare: they are ring points (kcal/min/hr on the watch face, but never
+     * labelled as such there either), not a value an author would misread
+     * without one, and `steps` reads fine as a plain count next to its label.
+     */
+    private function unit(): ?string
+    {
+        return match ($this->field) {
+            'percent' => '%',
+            'temp' => '°C',
+            'humidity' => '%',
+            'wind' => ' mph',
+            default => null,
+        };
     }
 
     /** An unrecognised stored zone falls back to home before it can throw. */
