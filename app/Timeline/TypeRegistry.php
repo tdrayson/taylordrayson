@@ -38,7 +38,7 @@ class TypeRegistry
     public static function all(): array
     {
         return [
-            TimelineType::Activity->value => self::type(TimelineType::Activity, Activity::class, self::column('type', 'Type', fn (string $label): string => "{$label} activities")),
+            TimelineType::Activity->value => self::type(TimelineType::Activity, Activity::class, self::column('type', 'Type', fn (string $label): string => "{$label} activities"), stats: true),
             TimelineType::Sleep->value => self::type(TimelineType::Sleep, Sleep::class),
             TimelineType::Calorie->value => self::type(TimelineType::Calorie, Calorie::class),
             TimelineType::Media->value => self::type(TimelineType::Media, Media::class, self::media()),
@@ -68,9 +68,10 @@ class TypeRegistry
      *
      * @param  class-string  $model
      * @param  ?string  $noun  Overrides the singular derived from the label.
+     * @param  bool  $stats  Whether /stats/{slug} exists for this type.
      * @return array<string, mixed>
      */
-    private static function type(TimelineType $type, string $model, ?callable $taxonomyFactory = null, ?string $noun = null): array
+    private static function type(TimelineType $type, string $model, ?callable $taxonomyFactory = null, ?string $noun = null, bool $stats = false): array
     {
         $meta = TypeCatalogue::forType($type);
         $slug = $meta->slug();
@@ -81,6 +82,7 @@ class TypeRegistry
             'model' => $model,
             'label' => $label,
             'noun' => $noun ?? Str::lower(Str::singular($label)),
+            'stats' => $stats,
             'taxonomy' => $taxonomyFactory ? $taxonomyFactory($model, $slug) : null,
         ];
     }

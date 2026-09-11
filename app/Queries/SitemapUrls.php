@@ -161,7 +161,10 @@ final class SitemapUrls
 
         foreach (TypeRegistry::all() as $definition) {
             $urls[] = ['loc' => '/'.$definition['slug'], 'lastmod' => null];
-            $urls[] = ['loc' => '/stats/'.$definition['slug'], 'lastmod' => null];
+
+            if ($definition['stats']) {
+                $urls[] = ['loc' => '/stats/'.$definition['slug'], 'lastmod' => null];
+            }
 
             if ($definition['taxonomy'] === null) {
                 continue;
