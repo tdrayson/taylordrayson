@@ -23,11 +23,16 @@ const props = defineProps({
     emptyLabel: { type: String, default: 'No matching tag' },
 });
 
-defineEmits(['pick', 'hover-category']);
+defineEmits(['pick', 'hover-category', 'hover-field']);
 
 const cascading = computed(() => ! props.query);
 
 const activeRows = computed(() => props.categories[props.activeCategory]?.rows ?? []);
+
+// Both panes use `mousemove`, not a CSS `:hover`, to paint the active row: it
+// is what `CommandPalette` and `useListboxNavigation` already do, and it
+// keeps the mouse and the arrow keys sharing one index instead of each
+// painting a row of its own.
 
 // Wide enough for both panes to show a full label and its live value without
 // truncating either.
@@ -58,8 +63,8 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
                     type="button"
                     :aria-current="index === activeCategory"
                     class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-meta transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
-                    :class="index === activeCategory ? 'bg-neutral-25 text-accent-500' : 'text-neutral-700 hover:bg-neutral-25'"
-                    @mouseenter="$emit('hover-category', index)"
+                    :class="index === activeCategory ? 'bg-neutral-25 text-accent-500' : 'text-neutral-700'"
+                    @mousemove="$emit('hover-category', index)"
                     @click="$emit('hover-category', index)"
                 >
                     <span class="min-w-0 truncate">{{ category.label }}</span>
@@ -81,7 +86,8 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
                     role="option"
                     :aria-selected="index === activeField"
                     class="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
-                    :class="index === activeField ? 'bg-neutral-25' : 'hover:bg-neutral-25'"
+                    :class="index === activeField ? 'bg-neutral-25' : ''"
+                    @mousemove="$emit('hover-field', index)"
                     @mousedown.prevent="$emit('pick', row)"
                 >
                     <span class="text-meta" :class="index === activeField ? 'text-accent-500' : 'text-neutral-900'">{{ row.label }}</span>

@@ -368,6 +368,11 @@ function hoverDynamicTagCategory(index) {
     dynamicTagMenu.activeField = 0;
 }
 
+/** Mouse and keyboard share one active field, so only one row is ever armed. */
+function hoverDynamicTagField(index) {
+    dynamicTagMenu.activeField = index;
+}
+
 const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
     suggestion: {
         char: '{',
@@ -600,6 +605,7 @@ defineExpose({ focus: () => editor.value?.commands.focus() });
             empty-label="No matching tag"
             @pick="pickDynamicTag"
             @hover-category="hoverDynamicTagCategory"
+            @hover-field="hoverDynamicTagField"
         />
 
         <DynamicTagOptions
