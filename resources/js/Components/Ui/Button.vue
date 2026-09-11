@@ -5,6 +5,9 @@ import { cn } from '../../lib/cn.js';
 
 const props = defineProps({
     href: { type: String, default: null },
+    // A plain anchor rather than an Inertia visit, for a download or a
+    // destination on another site, neither of which is a page this app renders.
+    external: { type: Boolean, default: false },
     variant: { type: String, default: 'secondary' },
     size: { type: String, default: 'md' },
     pill: { type: Boolean, default: false },
@@ -42,7 +45,13 @@ const classes = computed(() =>
     ),
 );
 
-const tag = computed(() => (props.href ? Link : 'button'));
+const tag = computed(() => {
+    if (! props.href) {
+        return 'button';
+    }
+
+    return props.external ? 'a' : Link;
+});
 </script>
 
 <template>

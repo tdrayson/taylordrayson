@@ -4,7 +4,7 @@ import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import TiptapImage from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from '../../lib/editor/lowlight';
-import { Callout, Video } from '../../lib/editor/nodes';
+import { Callout, Video, FileNode } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
@@ -15,6 +15,7 @@ import CalloutBlock from './CalloutBlock.vue';
 import ImageBlock from './ImageBlock.vue';
 import CodeBlockView from './CodeBlockView.vue';
 import VideoBlock from './VideoBlock.vue';
+import FileBlock from './FileBlock.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { suggestionExtension } from '../../lib/editor/slashCommands';
@@ -231,6 +232,13 @@ const video = Video.extend({
     },
 });
 
+// Drawn as the download card it will become, with its own dropzone while empty.
+const file = FileNode.extend({
+    addNodeView() {
+        return VueNodeViewRenderer(FileBlock);
+    },
+});
+
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
     extensions: extensionsFor(props.profile, {
@@ -240,6 +248,7 @@ const editor = useEditor({
         callout,
         image,
         video,
+        file,
         codeBlock,
     }),
     editorProps: {

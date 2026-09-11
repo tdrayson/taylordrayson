@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Actions\Files\BuildFileReleases;
 use App\Data\TagLink;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
@@ -117,6 +118,9 @@ class EntryController extends Controller
                 : [],
             'linkFavicons' => $model instanceof Article || $model instanceof Note
                 ? (new BuildLinkFavicons)($model->content)
+                : [],
+            'fileReleases' => $model instanceof Article || $model instanceof Note
+                ? app(BuildFileReleases::class)($model->content)
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled

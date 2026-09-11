@@ -90,6 +90,16 @@ export const BLOCKS = [
         // own URL field, and it can show you what you pasted.
         run: (editor, range) => at(editor, range).insertContent({ type: 'video' }).run(),
     },
+    {
+        id: 'file',
+        group: 'Blocks',
+        label: 'File',
+        detail: 'A download, uploaded or from a release',
+        requires: 'file',
+        // Empty like the image and video: the block itself offers the dropzone
+        // and the release fields.
+        run: (editor, range) => at(editor, range).insertContent({ type: 'file' }).run(),
+    },
 ];
 
 /** The blocks this editor's schema can actually hold. */
