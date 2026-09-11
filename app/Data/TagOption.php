@@ -13,6 +13,8 @@ final readonly class TagOption implements Arrayable, JsonSerializable
 {
     /**
      * An empty `$choices` accepts any string; a populated one is a closed set.
+     * `boolean` draws a checkbox instead of a select/text field, for an
+     * on/off option like a tag's `icon` toggle.
      *
      * @param  list<string>  $choices
      */
@@ -21,6 +23,7 @@ final readonly class TagOption implements Arrayable, JsonSerializable
         public string $label,
         public array $choices = [],
         public ?string $default = null,
+        public bool $boolean = false,
     ) {}
 
     /**
@@ -35,6 +38,7 @@ final readonly class TagOption implements Arrayable, JsonSerializable
             'label' => $this->label,
             'choices' => $this->choices,
             'default' => $this->default,
+            'boolean' => $this->boolean,
         ];
     }
 

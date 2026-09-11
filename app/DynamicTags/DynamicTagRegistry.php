@@ -72,4 +72,21 @@ class DynamicTagRegistry
             ? null
             : ['value' => $value, 'text' => $tag->format($value, $options)];
     }
+
+    /**
+     * The icon payload for a resolved value, or null when the tag doesn't
+     * support one or the author left the option off. `true` marks "show the
+     * tag's own icon", for a tag whose {@see DynamicTag::iconPayload()} has
+     * nothing extra to contribute beyond the value already on the span.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function icon(DynamicTag $tag, mixed $value, array $options): mixed
+    {
+        if (! $tag->supportsIcon() || ($options['icon'] ?? null) !== 'on') {
+            return null;
+        }
+
+        return $tag->iconPayload($value, $options) ?? true;
+    }
 }

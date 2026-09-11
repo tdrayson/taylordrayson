@@ -64,6 +64,34 @@ abstract class DynamicTag
     }
 
     /**
+     * Whether this tag can show a supporting icon beside its value. Off by
+     * default; a tag opts in by overriding this to `true` and adding
+     * {@see iconOption()} to its own {@see options()}.
+     */
+    public function supportsIcon(): bool
+    {
+        return false;
+    }
+
+    /** The "Show icon" toggle a supporting tag appends to its own options list. */
+    protected function iconOption(): TagOption
+    {
+        return new TagOption('icon', 'Icon', boolean: true);
+    }
+
+    /**
+     * Extra data an enabled icon needs beyond the resolved `$value` and
+     * `$options`, e.g. battery's charging state. Null means the client can
+     * build the icon from `$value`/`$options` alone.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function iconPayload(mixed $value, array $options): mixed
+    {
+        return null;
+    }
+
+    /**
      * Default rendering when a subclass doesn't override it. A bare `(string)`
      * cast turns `false` into `''` and `true` into `'1'`, so a boolean is
      * rendered as a word before it ever reaches that cast.

@@ -31,14 +31,15 @@ function resolvedKey(name, options, placement) {
 }
 
 /**
- * Resolves a tag against an arbitrary option set via the preview endpoint.
- * Failure degrades to null, the same "nothing to show" state an unresolvable
- * tag already has.
+ * Resolves a tag against an arbitrary option set via the preview endpoint:
+ * its display text, typed value and icon payload (mirroring what a resolved
+ * span carries in production). Failure degrades to null, the same "nothing to
+ * show" state an unresolvable tag already has.
  *
  * @param {string} name
  * @param {Object<string, string>} options
  * @param {'inline'|'href'|'image'} placement
- * @returns {Promise<string|null>}
+ * @returns {Promise<{preview: string|null, value: *, icon: *}|null>}
  */
 async function fetchPreview(name, options, placement) {
     const query = new URLSearchParams({ name, placement });
@@ -53,7 +54,7 @@ async function fetchPreview(name, options, placement) {
             credentials: 'same-origin',
         });
 
-        return response.ok ? ((await response.json()).data?.preview ?? null) : null;
+        return response.ok ? ((await response.json()).data ?? null) : null;
     } catch {
         return null;
     }
@@ -99,9 +100,26 @@ export function defaultOptionsFor(tag) {
 }
 
 /**
+ * Fetches (once per key) and returns the cached preview entry for a non-default
+ * option set, or the still-loading `null` placeholder until it settles.
+ *
+ * @returns {{preview: string|null, value: *, icon: *}|null}
+ */
+function resolvedEntry(name, options, placement) {
+    const key = resolvedKey(name, options, placement);
+
+    if (! (key in resolved)) {
+        resolved[key] = null;
+        fetchPreview(name, options, placement).then((entry) => { resolved[key] = entry; });
+    }
+
+    return resolved[key];
+}
+
+/**
  * The fetched tag list, plus the value each one currently reads as.
  *
- * @returns {{tags: import('vue').Ref<Array>, previewFor: (name: string, options?: Object, placement?: 'inline'|'href'|'image') => string|null, ensureLoaded: () => Promise<void>}}
+ * @returns {{tags: import('vue').Ref<Array>, previewFor: (name: string, options?: Object, placement?: 'inline'|'href'|'image') => string|null, iconFor: (name: string, options?: Object) => *, valueFor: (name: string, options?: Object) => *, ensureLoaded: () => Promise<void>}}
  */
 export function useDynamicTags() {
     ensureLoaded();
@@ -134,15 +152,35 @@ export function useDynamicTags() {
             return tag.preview;
         }
 
-        const key = resolvedKey(name, options, placement);
-
-        if (! (key in resolved)) {
-            resolved[key] = null;
-            fetchPreview(name, options, placement).then((text) => { resolved[key] = text; });
-        }
-
-        return resolved[key];
+        return resolvedEntry(name, options, placement)?.preview ?? null;
     }
 
-    return { tags, previewFor, ensureLoaded };
+    /**
+     * The icon payload for a chip's current options, mirroring what a resolved
+     * span carries. The icon option defaults to off, so the default option set
+     * never needs a request: it can never carry one. Inline only, since a
+     * tag's icon has no meaning as a link href or image source.
+     */
+    function iconFor(name, options = {}) {
+        const tag = tags.value.find((candidate) => candidate.name === name);
+
+        if (! tag || optionsEqual(options, defaultOptionsFor(tag))) {
+            return null;
+        }
+
+        return resolvedEntry(name, options, 'inline')?.icon ?? null;
+    }
+
+    /** The typed value behind a chip's current options, for icon rendering. */
+    function valueFor(name, options = {}) {
+        const tag = tags.value.find((candidate) => candidate.name === name);
+
+        if (! tag || optionsEqual(options, defaultOptionsFor(tag))) {
+            return null;
+        }
+
+        return resolvedEntry(name, options, 'inline')?.value ?? null;
+    }
+
+    return { tags, previewFor, iconFor, valueFor, ensureLoaded };
 }

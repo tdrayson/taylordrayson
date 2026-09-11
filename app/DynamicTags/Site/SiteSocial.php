@@ -44,7 +44,14 @@ class SiteSocial extends DynamicTag
     {
         return [
             new TagOption('network', 'Network', array_keys(config('site.social'))),
+            $this->iconOption(),
         ];
+    }
+
+    /** The client derives the network's favicon straight from the resolved URL. */
+    public function supportsIcon(): bool
+    {
+        return true;
     }
 
     /**

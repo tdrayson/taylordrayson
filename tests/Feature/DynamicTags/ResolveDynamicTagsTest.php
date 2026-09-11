@@ -48,3 +48,28 @@ it('leaves a document with no tags untouched', function () {
 
     expect(app(ResolveDynamicTags::class)($document))->toBe($document);
 });
+
+it('attaches an icon payload when the icon option is on', function () {
+    Note::factory()->count(3)->create();
+
+    $resolved = app(ResolveDynamicTags::class)(contentTagging('entries.count', ['type' => 'note', 'icon' => 'on']));
+
+    expect($resolved[0]['children'][1]['dynamicTag']['icon'])->toBe(['type' => 'note']);
+});
+
+it('leaves the icon off the payload when the option is off', function () {
+    Note::factory()->count(3)->create();
+
+    $resolved = app(ResolveDynamicTags::class)(contentTagging('entries.count', ['type' => 'note']));
+
+    expect($resolved[0]['children'][1]['dynamicTag'])->not->toHaveKey('icon');
+});
+
+it('keeps plain text icon-free, so a feed cannot regress when an icon is on', function () {
+    Note::factory()->count(3)->create();
+
+    $resolved = app(ResolveDynamicTags::class)(contentTagging('entries.count', ['type' => 'note', 'icon' => 'on']));
+
+    expect($resolved[0]['children'][1]['text'])->toBe('3')
+        ->and(PortableText::plainText($resolved))->toBe('I have logged 3 things.');
+});

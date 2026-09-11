@@ -66,7 +66,9 @@ final class Links
 
     /**
      * Every external host a document links to, deduplicated. A link back to this
-     * site is not one, however it was written.
+     * site is not one, however it was written. Also picks up a resolved dynamic
+     * tag whose value is itself an external URL (e.g. `site.social`), so its
+     * icon has a favicon to show without the tag needing to be a real link.
      *
      * @param  array<int, array<string, mixed>>|null  $blocks
      * @return list<string>
@@ -83,19 +85,31 @@ final class Links
                     continue;
                 }
 
-                if (self::internalPath($href) !== null) {
-                    continue;
-                }
+                self::collectHost($href, $hosts);
+            }
 
-                $host = self::host($href);
-
-                if ($host !== null) {
-                    $hosts[$host] = true;
-                }
+            foreach ($block['children'] ?? [] as $child) {
+                self::collectHost($child['dynamicTag']['value'] ?? null, $hosts);
             }
         }
 
         return array_keys($hosts);
+    }
+
+    /**
+     * @param  array<string, true>  $hosts
+     */
+    private static function collectHost(mixed $href, array &$hosts): void
+    {
+        if (! is_string($href) || ! str_starts_with($href, 'http') || self::internalPath($href) !== null) {
+            return;
+        }
+
+        $host = self::host($href);
+
+        if ($host !== null) {
+            $hosts[$host] = true;
+        }
     }
 
     /**

@@ -115,6 +115,37 @@ it('groups a ring value, its goal and its percent under one subgroup', function 
         ->and($registry->find('ambient.battery.percent')->subgroup())->toBeNull();
 });
 
+it('only opts battery percent and weather condition into an icon', function () {
+    $registry = app(DynamicTagRegistry::class);
+
+    expect($registry->find('ambient.battery.percent')->supportsIcon())->toBeTrue()
+        ->and($registry->find('ambient.weather.condition')->supportsIcon())->toBeTrue()
+        ->and($registry->find('ambient.battery.charging')->supportsIcon())->toBeFalse()
+        ->and($registry->find('ambient.weather.humidity')->supportsIcon())->toBeFalse()
+        ->and($registry->find('ambient.rings.move')->supportsIcon())->toBeFalse();
+});
+
+it('carries the live charging and low-power state for a battery icon', function () {
+    State::query()->create([
+        'key' => 'now.battery',
+        'value' => json_encode(['percent' => 18, 'charging' => true, 'low_power' => true]),
+        'observed_at' => '2026-09-08 18:12:00',
+    ]);
+
+    $registry = app(DynamicTagRegistry::class);
+    $tag = $registry->find('ambient.battery.percent');
+
+    expect($registry->icon($tag, 18, ['icon' => 'on']))
+        ->toBe(['charging' => true, 'lowPower' => true]);
+});
+
+it('marks the weather condition icon as "show the tag\'s own icon", nothing extra', function () {
+    $registry = app(DynamicTagRegistry::class);
+    $tag = $registry->find('ambient.weather.condition');
+
+    expect($registry->icon($tag, 'partly-cloudy', ['icon' => 'on']))->toBeTrue();
+});
+
 it('suffixes a reading that is meaningless without its unit', function () {
     State::query()->create([
         'key' => 'now.battery',

@@ -78,6 +78,19 @@ it('collects the external hosts a document links to', function () {
     expect(Links::hostsIn($blocks))->toBe(['example.com', 'other.test']);
 });
 
+it('also collects a resolved dynamic tag whose value is itself an external URL', function () {
+    $blocks = [[
+        '_type' => 'block',
+        'markDefs' => [],
+        'children' => [
+            ['_type' => 'span', '_key' => 's1', 'text' => 'https://social.example/tdrayson', 'marks' => [], 'dynamicTag' => ['tag' => 'site.social', 'value' => 'https://social.example/tdrayson']],
+            ['_type' => 'span', '_key' => 's2', 'text' => 'not a url', 'marks' => []],
+        ],
+    ]];
+
+    expect(Links::hostsIn($blocks))->toBe(['social.example']);
+});
+
 it('maps only the hosts whose favicon has actually been stored', function () {
     $path = Links::faviconPath('stored.test');
     File::ensureDirectoryExists(dirname($path));

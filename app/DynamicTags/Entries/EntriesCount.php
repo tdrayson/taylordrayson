@@ -40,7 +40,24 @@ class EntriesCount extends DynamicTag
             new TagOption('period', 'Period', array_column(StatsPeriod::cases(), 'value'), StatsPeriod::AllTime->value),
             new TagOption('from', 'From'),
             new TagOption('to', 'To'),
+            $this->iconOption(),
         ];
+    }
+
+    public function supportsIcon(): bool
+    {
+        return true;
+    }
+
+    /**
+     * The chosen type, so the client can draw that type's glyph; a count
+     * across every type has no single glyph to show, so its icon is omitted.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function iconPayload(mixed $value, array $options): mixed
+    {
+        return ['type' => $options['type'] ?? null];
     }
 
     /**

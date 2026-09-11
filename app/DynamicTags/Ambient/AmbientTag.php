@@ -96,12 +96,41 @@ class AmbientTag extends DynamicTag
      */
     public function options(): array
     {
-        return match ($this->field) {
+        $options = match ($this->field) {
             'timezone' => [new TagOption('format', 'Format', ['identifier', 'offset', 'abbreviation', 'long'], 'identifier')],
             'countryCode' => [new TagOption('format', 'Format', ['code', 'name'], 'name')],
             'updated' => [new TagOption('format', 'Format', array_column(DateFormat::cases(), 'value'), DateFormat::Relative->value)],
             default => [],
         };
+
+        return $this->supportsIcon() ? [...$options, $this->iconOption()] : $options;
+    }
+
+    /** Only the two ambient readings with a natural glyph: the sky and the charge level. */
+    public function supportsIcon(): bool
+    {
+        return ($this->group === 'weather' && $this->field === 'condition')
+            || ($this->group === 'battery' && $this->field === 'percent');
+    }
+
+    /**
+     * Battery's icon needs the charging/low-power state alongside the level
+     * already carried in `$value`; nothing else here needs more than that.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function iconPayload(mixed $value, array $options): mixed
+    {
+        if ($this->group !== 'battery' || $this->field !== 'percent') {
+            return null;
+        }
+
+        $battery = app(NowState::class)()['battery'] ?? [];
+
+        return [
+            'charging' => (bool) ($battery['charging'] ?? false),
+            'lowPower' => (bool) ($battery['lowPower'] ?? false),
+        ];
     }
 
     /**

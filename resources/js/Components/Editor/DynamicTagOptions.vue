@@ -4,6 +4,7 @@ import Modal from '../Ui/Modal.vue';
 import Button from '../Ui/Button.vue';
 import Input from '../Ui/Input.vue';
 import Icon from '../Ui/Icon.vue';
+import Checkbox from '../Ui/Checkbox.vue';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import { titleCase } from '../../lib/format.js';
 import { isFourDigitYear } from '../../lib/editor/period.js';
@@ -128,19 +129,29 @@ function apply() {
     >
         <form class="space-y-4" @submit.prevent="apply">
             <div v-for="option in otherOptions" :key="option.name">
-                <label :for="`dt-${option.name}`" class="mb-1 block text-label uppercase text-neutral-500">{{ option.label }}</label>
+                <label v-if="option.boolean" class="flex items-center gap-2 text-body text-neutral-900">
+                    <Checkbox
+                        :model-value="values[option.name] === 'on'"
+                        @update:model-value="values[option.name] = $event ? 'on' : ''"
+                    />
+                    {{ option.label }}
+                </label>
 
-                <select
-                    v-if="option.choices.length"
-                    :id="`dt-${option.name}`"
-                    v-model="values[option.name]"
-                    :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"
-                >
-                    <option value="">Any {{ option.label.toLowerCase() }}</option>
-                    <option v-for="choice in option.choices" :key="choice" :value="choice">{{ titleCase(choice) }}</option>
-                </select>
+                <template v-else>
+                    <label :for="`dt-${option.name}`" class="mb-1 block text-label uppercase text-neutral-500">{{ option.label }}</label>
 
-                <Input v-else :id="`dt-${option.name}`" v-model="values[option.name]" :placeholder="option.label" />
+                    <select
+                        v-if="option.choices.length"
+                        :id="`dt-${option.name}`"
+                        v-model="values[option.name]"
+                        :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"
+                    >
+                        <option value="">Any {{ option.label.toLowerCase() }}</option>
+                        <option v-for="choice in option.choices" :key="choice" :value="choice">{{ titleCase(choice) }}</option>
+                    </select>
+
+                    <Input v-else :id="`dt-${option.name}`" v-model="values[option.name]" :placeholder="option.label" />
+                </template>
             </div>
 
             <div v-if="periodOption">

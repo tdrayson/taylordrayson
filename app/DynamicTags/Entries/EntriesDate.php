@@ -34,7 +34,24 @@ abstract class EntriesDate extends DynamicTag
         return [
             new TagOption('type', 'Type', array_column(TimelineType::cases(), 'value')),
             new TagOption('format', 'Format', array_column(DateFormat::cases(), 'value'), DateFormat::Date->value),
+            $this->iconOption(),
         ];
+    }
+
+    public function supportsIcon(): bool
+    {
+        return true;
+    }
+
+    /**
+     * The chosen type, so the client can draw that type's glyph; a date
+     * across every type has no single glyph to show, so its icon is omitted.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function iconPayload(mixed $value, array $options): mixed
+    {
+        return ['type' => $options['type'] ?? null];
     }
 
     /**

@@ -72,6 +72,8 @@ class ResolveDynamicTags
     /**
      * Non-tag children pass through unchanged; a dynamicTag child is rewritten
      * into a span, with `dynamicTag` metadata omitted when it fails to resolve.
+     * `text` never carries the icon: only `dynamicTag.icon` does, so a feed or
+     * search reading plain text is unaffected by it.
      *
      * @param  array<string, mixed>  $child
      * @return array<string, mixed>
@@ -82,7 +84,9 @@ class ResolveDynamicTags
             return $child;
         }
 
-        $resolved = $this->registry->value($child['tag'] ?? '', $child['options'] ?? []);
+        $options = $child['options'] ?? [];
+        $tag = $this->registry->find($child['tag'] ?? '');
+        $resolved = $this->registry->value($child['tag'] ?? '', $options);
 
         $span = [
             '_type' => 'span',
@@ -91,8 +95,14 @@ class ResolveDynamicTags
             'marks' => [],
         ];
 
-        if ($resolved !== null) {
+        if ($resolved !== null && $tag !== null) {
             $span['dynamicTag'] = ['tag' => $child['tag'], 'value' => $resolved['value']];
+
+            $icon = $this->registry->icon($tag, $resolved['value'], $options);
+
+            if ($icon !== null) {
+                $span['dynamicTag']['icon'] = $icon;
+            }
         }
 
         return $span;

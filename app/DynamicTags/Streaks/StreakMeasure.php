@@ -31,7 +31,24 @@ abstract class StreakMeasure extends DynamicTag
         return [
             new TagOption('type', 'Type', array_column(TimelineType::cases(), 'value'), TimelineType::Calorie->value),
             new TagOption('every', 'Every', array_column(Cadence::cases(), 'value'), Cadence::Day->value),
+            $this->iconOption(),
         ];
+    }
+
+    public function supportsIcon(): bool
+    {
+        return true;
+    }
+
+    /**
+     * The chosen type, so the client can draw that type's glyph; a streak
+     * without one falls back to the plain flame {@see StreakBadge} uses.
+     *
+     * @param  array<string, string>  $options
+     */
+    public function iconPayload(mixed $value, array $options): mixed
+    {
+        return ['type' => $options['type'] ?? null];
     }
 
     /**
