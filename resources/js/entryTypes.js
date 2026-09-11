@@ -1,44 +1,33 @@
-/**
- * Visual metadata for each timeline data type, keyed by the card's `type` string.
- * `icon` is an icon-registry name, `href` mirrors the archive slugs in
- * App\Timeline\TypeRegistry, and `accent` is the --color-* token key, which
- * matches the type key except where it diverges server-side (calorie -> food).
- *
- * Kept separate from `linkTypes` below because this is also the list of type
- * archives: anything added here becomes a destination in the command palette.
- */
-export const timelineTypes = {
-    activity: { icon: 'WorkoutRunIcon', label: 'Activity', href: '/activities', accent: 'activity' },
-    sleep: { icon: 'Moon02Icon', label: 'Sleep', href: '/sleep', accent: 'sleep' },
-    calorie: { icon: 'UtensilsIcon', label: 'Food', href: '/food', accent: 'food' },
-    media: { icon: 'Film01Icon', label: 'Media', href: '/media', accent: 'media' },
-    event: { icon: 'Ticket01Icon', label: 'Event', href: '/events', accent: 'event' },
-    appearance: { icon: 'Mic01Icon', label: 'Appearance', href: '/appearances', accent: 'appearance' },
-    podcast: { icon: 'PodcastIcon', label: 'This Week With', href: '/this-week-with', accent: 'podcast' },
-    flight: { icon: 'AirplaneTakeOff01Icon', label: 'Flight', href: '/flights', accent: 'flight' },
-    checkin: { icon: 'Location01Icon', label: 'Place', href: '/places', accent: 'checkin' },
-    fuel: { icon: 'PetrolPumpIcon', label: 'Fuel', href: '/fuel', accent: 'fuel' },
-    project: { icon: 'RocketIcon', label: 'Project', href: '/projects', accent: 'project' },
-    article: { icon: 'File01Icon', label: 'Article', href: '/articles', accent: 'article' },
-    note: { icon: 'StickyNote02Icon', label: 'Note', href: '/notes', accent: 'note' },
-};
+import { authoringTypes, linkTypes, timelineTypes } from './types.generated.js';
 
 /**
- * The other things an internal link can point at, so a link preview has a glyph
- * for each. See App\Links\Resolvers. Their `href` is where a link of that kind
- * goes, not an archive, so they stay out of the palette's Archives list.
+ * Visual metadata for every data type, keyed by the card's `type` string.
+ *
+ * The table itself lives in PHP (App\Support\TypeCatalogue) and reaches here as
+ * types.generated.js, written by `php artisan types:sync`. Edit the catalogue,
+ * not the generated file: a Pest test fails when the two drift apart.
+ *
+ * `icon` is an icon-registry name, `href` is the type's archive, and `accent` is
+ * the --color-* token key, which matches the type key except where it diverges
+ * server-side (calorie -> food).
  */
-const linkTypes = {
-    story: { icon: 'BookOpen01Icon', label: 'Story', href: '/stories', accent: 'article' },
-    page: { icon: 'File02Icon', label: 'Page', accent: 'article' },
-    period: { icon: 'Calendar03Icon', label: 'Archive', href: '/', accent: 'article' },
-    tag: { icon: 'Tag01Icon', label: 'Tag', href: '/tags', accent: 'article' },
-    live: { icon: 'Clock01Icon', label: 'Now', href: '/now', accent: 'activity' },
-};
+
+/**
+ * The timeline data types, which are also the list of type archives: anything
+ * here becomes a destination in the command palette.
+ */
+export { timelineTypes };
 
 /** Every type a card, link preview or icon lookup can be handed. */
-export const entryTypes = { ...timelineTypes, ...linkTypes };
+export const entryTypes = { ...timelineTypes, ...linkTypes, ...authoringTypes };
 
+/**
+ * Metadata for a type key, falling back to a note's glyph for anything unknown
+ * so a new server-side type renders as a plain entry rather than breaking.
+ *
+ * @param {string} type a type key, e.g. 'activity' or 'tag'
+ * @returns {{icon: string, label: string, accent: string, plural?: string, href?: string, keywords?: string}}
+ */
 export function entryType(type) {
     return entryTypes[type] ?? { icon: 'StickyNote02Icon', label: type, accent: 'note' };
 }
