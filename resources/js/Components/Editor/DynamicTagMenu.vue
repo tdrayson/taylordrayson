@@ -92,7 +92,7 @@ const { style } = useSuggestionPosition(computed(() => props.rect), props.getRec
                     @mousedown.prevent="$emit('pick', row)"
                 >
                     <span class="text-meta" :class="index === activeField ? 'text-accent-500' : 'text-neutral-900'">{{ row.label }}</span>
-                    <span v-if="row.detail" class="text-label text-neutral-500">{{ row.detail }}</span>
+                    <span v-if="row.detail" class="text-label" :class="row.detailResolved ? 'text-neutral-500' : 'text-neutral-400'">{{ row.detail }}</span>
                 </button>
             </li>
         </ul>

@@ -11,6 +11,12 @@ use App\DynamicTags\DynamicTagRegistry;
  */
 final class DynamicTagsPayload
 {
+    /** Shown instead of a preview when a tag needs an option that was never chosen. */
+    private const PREVIEW_NOT_SET = 'Not set';
+
+    /** Shown instead of a preview when a tag resolves against empty source data. */
+    private const PREVIEW_NO_DATA = 'No data';
+
     public function __construct(private readonly DynamicTagRegistry $registry) {}
 
     /**
@@ -29,6 +35,10 @@ final class DynamicTagsPayload
      */
     private function shape(DynamicTag $tag): array
     {
+        // Resolved with defaults, so the menu can show what each tag reads
+        // today rather than only its name.
+        $resolved = $this->registry->value($tag->name(), $this->defaults($tag));
+
         return [
             'name' => $tag->name(),
             'label' => $tag->label(),
@@ -36,9 +46,10 @@ final class DynamicTagsPayload
             'subgroup' => $tag->subgroup(),
             'supports' => array_map(fn ($placement): string => $placement->value, $tag->supports()),
             'options' => array_map(fn ($option): array => $option->toArray(), $tag->options()),
-            // Resolved with defaults, so the menu can show what each tag reads
-            // today rather than only its name.
-            'preview' => $this->registry->value($tag->name(), $this->defaults($tag))['text'] ?? null,
+            'preview' => $resolved['text'] ?? ($tag->needsOption() ? self::PREVIEW_NOT_SET : self::PREVIEW_NO_DATA),
+            // Lets the menu style a placeholder preview differently from a
+            // real one without guessing from the text alone.
+            'previewResolved' => $resolved !== null,
         ];
     }
 

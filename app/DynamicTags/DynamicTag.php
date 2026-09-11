@@ -53,6 +53,17 @@ abstract class DynamicTag
     }
 
     /**
+     * Whether this tag can only resolve once an option is chosen, e.g. a
+     * network for `site.social`, as opposed to having nothing to report
+     * because the underlying data is simply absent. Drives the "Not set" vs
+     * "No data" wording the menu shows for a preview that resolved to null.
+     */
+    public function needsOption(): bool
+    {
+        return false;
+    }
+
+    /**
      * Default rendering when a subclass doesn't override it. A bare `(string)`
      * cast turns `false` into `''` and `true` into `'1'`, so a boolean is
      * rendered as a word before it ever reaches that cast.

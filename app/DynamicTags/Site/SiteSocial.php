@@ -57,4 +57,10 @@ class SiteSocial extends DynamicTag
     {
         return isset($options['network']) ? config('site.social.'.$options['network']) : null;
     }
+
+    /** No default network, so a null resolve means one was never chosen, not that data is missing. */
+    public function needsOption(): bool
+    {
+        return true;
+    }
 }

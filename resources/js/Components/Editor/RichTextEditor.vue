@@ -218,7 +218,15 @@ const inlineTags = computed(() => dynamicTagList.value.filter((tag) => tag.suppo
  * that context and the two would only repeat each other.
  */
 function tagRow(tag) {
-    return { id: tag.name, group: tag.group, subgroup: tag.subgroup, label: tag.label, detail: tag.preview, tag };
+    return {
+        id: tag.name,
+        group: tag.group,
+        subgroup: tag.subgroup,
+        label: tag.label,
+        detail: tag.preview,
+        detailResolved: tag.previewResolved,
+        tag,
+    };
 }
 
 /**
