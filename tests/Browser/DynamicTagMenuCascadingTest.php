@@ -94,12 +94,13 @@ it('picks a tag from a category reached with the arrow keys alone', function () 
 
     $page->click('.prose-editor')->typeSlowly('.prose-editor', '{');
 
-    // Entries, Streaks, Site, then Battery: three rights lands on it, and its
-    // first field is "Percent", which takes no options.
-    $page->keys('.prose-editor', ['ArrowRight', 'ArrowRight', 'ArrowRight', 'Enter']);
+    // Entries, Streaks, Site, then Battery: three rights lands on it, one down
+    // reaches "Charging", which takes no options (unlike "Percent", which now
+    // offers an opt-in icon and would open the options popup instead).
+    $page->keys('.prose-editor', ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'Enter']);
 
     $page->assertScript(
-        "document.querySelector('.prose-editor [aria-label=\"Dynamic tag: ambient.battery.percent\"]').innerText.trim()",
-        '66%',
+        "document.querySelector('.prose-editor [aria-label=\"Dynamic tag: ambient.battery.charging\"]').innerText.trim()",
+        'No',
     );
 });
