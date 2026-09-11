@@ -66,6 +66,68 @@ it('reopens an existing chip with its current options and updates the chip on ch
     $page->assertScript("document.querySelector('.prose-editor [aria-label^=\"Edit \"]').innerText.trim()", '1');
 });
 
+it('resolves typed free text to a date and applies it as a lone from bound', function () {
+    Note::factory()->create(['occurred_at' => '2019-06-01 12:00:00']);
+    Note::factory()->create(['occurred_at' => '2023-06-01 12:00:00']);
+
+    $page = visit('/new/note');
+
+    pickEntriesCountTag($page);
+
+    $page->select('#dt-period', '__range__');
+    $page->click('[aria-label="From date"]');
+    $page->fill('[aria-label="From date, typed"]', '1 january 2020');
+    $page->keys('[aria-label="From date, typed"]', 'Enter');
+    $page->wait(1);
+
+    // Resolved through the server into an absolute date, not left as typed text.
+    $page->assertScript("document.querySelector('[aria-label=\"From date\"]').innerText.trim()", '1 Jan 2020');
+
+    $page->click('button:has-text("Apply")');
+
+    // Only the 2023 note is on or after the resolved bound; `to` was never touched.
+    $page->assertScript("document.querySelector('.prose-editor [aria-label^=\"Edit \"]').innerText.trim()", '1');
+});
+
+it('reopens a lone from bound with no to still filled in', function () {
+    Note::factory()->create(['occurred_at' => '2019-06-01 12:00:00']);
+    Note::factory()->create(['occurred_at' => '2023-06-01 12:00:00']);
+
+    $page = visit('/new/note');
+
+    pickEntriesCountTag($page);
+
+    $page->select('#dt-period', '__range__');
+    $page->click('[aria-label="From date"]');
+    $page->fill('[aria-label="From date, typed"]', '1 january 2020');
+    $page->keys('[aria-label="From date, typed"]', 'Enter');
+    $page->wait(1);
+    $page->click('button:has-text("Apply")');
+
+    $page->click('.prose-editor [aria-label^="Edit "]');
+
+    $page->assertScript("document.querySelector('#dt-period').value", '__range__')
+        ->assertScript("document.querySelector('[aria-label=\"From date\"]').innerText.trim()", '1 Jan 2020')
+        ->assertScript("document.querySelector('[aria-label=\"To date\"]').innerText.trim()", 'To');
+});
+
+it('rejects an empty custom range until at least one bound is set', function () {
+    $page = visit('/new/note');
+
+    pickEntriesCountTag($page);
+
+    $page->select('#dt-period', '__range__');
+
+    $page->assertScript("document.querySelector('button[type=\"submit\"]').disabled", true);
+
+    $page->click('[aria-label="From date"]');
+    $page->fill('[aria-label="From date, typed"]', 'yesterday');
+    $page->keys('[aria-label="From date, typed"]', 'Enter');
+    $page->wait(1);
+
+    $page->assertScript("document.querySelector('button[type=\"submit\"]').disabled", false);
+});
+
 it('rejects a malformed custom year until it is exactly four digits', function () {
     $page = visit('/new/note');
 
