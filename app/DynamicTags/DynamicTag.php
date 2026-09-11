@@ -73,10 +73,10 @@ abstract class DynamicTag
         return false;
     }
 
-    /** The "Show icon" toggle a supporting tag appends to its own options list. */
+    /** The "Include icon" toggle a supporting tag appends to its own options list. */
     protected function iconOption(): TagOption
     {
-        return new TagOption('icon', 'Icon', boolean: true);
+        return new TagOption('icon', 'Include icon', boolean: true);
     }
 
     /**
