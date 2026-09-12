@@ -38,7 +38,7 @@ final class PullStravaResponses
             return;
         }
 
-        $url = self::url($activity->source_id);
+        $url = $activity->platform_url;
 
         ($this->reconcile)($activity, Source::Strava, [
             ...array_map(fn (array $athlete): SyndicatedResponseData => new SyndicatedResponseData(
@@ -63,10 +63,5 @@ final class PullStravaResponses
     private static function name(array $athlete): string
     {
         return trim(($athlete['firstname'] ?? '').' '.($athlete['lastname'] ?? '')) ?: 'Someone on Strava';
-    }
-
-    public static function url(string $sourceId): string
-    {
-        return "https://www.strava.com/activities/{$sourceId}";
     }
 }
