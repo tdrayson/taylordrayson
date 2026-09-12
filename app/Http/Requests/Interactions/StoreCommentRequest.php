@@ -62,6 +62,10 @@ class StoreCommentRequest extends FormRequest
             'body' => $this->bodyRules(),
             'parent_id' => ['nullable', 'integer'],
             'nonce' => ['required', 'string', 'uuid'],
+            // Never rejected on shape: an invalid value is sanitised to null
+            // in timezone(), not failed here, so a bad browser reading never
+            // costs somebody their comment.
+            'timezone' => ['nullable', 'string', 'max:40'],
             self::HONEYPOT => ['nullable', 'string'],
         ];
     }
@@ -128,6 +132,30 @@ class StoreCommentRequest extends FormRequest
             honeypotFilled: filled($this->input(self::HONEYPOT)),
             ipHash: VisitorIdentity::reputation($this),
             userAgent: $this->userAgent(),
+            timezone: $this->timezone(),
         );
+    }
+
+    /**
+     * The browser's own timezone, kept only when it is a real IANA name or a
+     * strict fixed offset.
+     *
+     * This is unauthenticated public input, so it is never trusted into a
+     * date function unvalidated: anything else, junk or missing, is dropped
+     * to null and the entry's own timezone takes over at render time.
+     */
+    private function timezone(): ?string
+    {
+        $value = $this->validated('timezone');
+
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        if (in_array($value, timezone_identifiers_list(), strict: true)) {
+            return $value;
+        }
+
+        return preg_match('/^[+-]\d{2}:\d{2}$/', $value) === 1 ? $value : null;
     }
 }

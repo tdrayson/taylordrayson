@@ -77,6 +77,31 @@ onMounted(async () => {
     }
 });
 
+/**
+ * Where the commenter is, so their response can render at the time they saw
+ * it rather than the entry's. An IANA name is daylight-saving correct;
+ * `resolvedOptions` can still come back empty in a stripped-down browser, so a
+ * numeric offset is sent instead. The server re-validates either way.
+ */
+function browserTimezone() {
+    try {
+        const iana = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        if (iana) {
+            return iana;
+        }
+    } catch {
+        // Fall through to the numeric offset below.
+    }
+
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    const hours = String(Math.floor(Math.abs(offsetMinutes) / 60)).padStart(2, '0');
+    const minutes = String(Math.abs(offsetMinutes) % 60).padStart(2, '0');
+
+    return `${sign}${hours}:${minutes}`;
+}
+
 async function submit() {
     if (sending.value) {
         return;
@@ -98,6 +123,7 @@ async function submit() {
                 parent_id: props.parentId,
                 nonce: nonce.value,
                 website: website.value,
+                timezone: browserTimezone(),
             }),
         });
 

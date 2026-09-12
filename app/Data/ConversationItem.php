@@ -48,7 +48,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $sourceUrl,
         /** The emoji actually sent, for a reacji; null for everything else. */
         public ?string $emoji,
-        /** The entry's timezone, so every response in its stream renders on the same clock; null renders as home time. */
+        /** The timezone this response renders in: its own author's when known, else the entry's; null renders as home time. */
         public ?string $timezone,
         /** The service a syndicated response came from; null for everything else. */
         public ?string $source = null,
@@ -71,7 +71,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: $comment->id,
             sourceUrl: null,
             emoji: null,
-            timezone: $timezone,
+            // The commenter's own browser timezone, when one was captured;
+            // otherwise the entry's, same as before.
+            timezone: $comment->timezone ?? $timezone,
         );
     }
 
@@ -98,7 +100,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $mention->source_url,
             emoji: $isReacji ? trim(PortableText::plainText($mention->content ?? [])) : null,
-            timezone: $timezone,
+            // The offset carried by the source's dt-published, when it had
+            // one; otherwise the entry's, same as before.
+            timezone: $mention->timezone ?? $timezone,
         );
     }
 
@@ -125,7 +129,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $response->url,
             emoji: $response->emoji,
-            timezone: $timezone,
+            // Strava and Swarm carry no author timezone, so this stays null
+            // and falls back to the entry's, same as before.
+            timezone: $response->timezone ?? $timezone,
             source: $response->source,
             sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
         );
@@ -165,7 +171,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $source->url(),
             emoji: null,
-            timezone: $timezone,
+            // This is my own entry talking, so it renders in its own
+            // timezone, not the target's; only a source with none falls back.
+            timezone: $sourceTimezone ?? $timezone,
         );
     }
 

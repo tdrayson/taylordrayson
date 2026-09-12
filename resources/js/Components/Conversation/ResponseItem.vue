@@ -164,11 +164,9 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                     <span>on</span>
                 </span>
 
-                <time
-                    class="dt-published text-neutral-500"
-                    :datetime="item.occurredAt.iso"
-                    :title="`${item.occurredAt.label} (UTC${item.occurredAt.offset})`"
-                >{{ item.occurredAt.label }}</time>
+                <time class="dt-published text-neutral-500" :datetime="item.occurredAt.iso">
+                    {{ item.occurredAt.label }} {{ item.occurredAt.offset }}
+                </time>
 
                 <!-- Where it came from, closing the sentence rather than
                      interrupting it. A platform names itself; a webmention names

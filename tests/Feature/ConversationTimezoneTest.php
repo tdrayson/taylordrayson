@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\CommentStatus;
+use App\Enums\Source;
+use App\Enums\WebmentionKind;
 use App\Models\Checkin;
 use App\Models\Note;
 use App\Presenters\Conversation;
@@ -76,4 +78,82 @@ it('never lets a response render as having happened before the entry it responds
     $responseInstant = Carbon::parse($responses[0]['occurredAt']['iso']);
 
     expect($responseInstant->greaterThan($targetInstant))->toBeTrue();
+});
+
+/**
+ * Aaron Parecki's convention: a response with its own known timezone renders
+ * at the time its author saw, not converted into the entry's clock.
+ */
+it('renders a comment in the commenter\'s own timezone, not the entry\'s', function () {
+    // 4:16pm UTC: 5:16pm in London (BST), 12:16pm in New York (EDT).
+    Carbon::setTestNow('2026-09-12 16:16:00');
+
+    $note = Note::factory()->create(['timezone' => 'Europe/London']);
+
+    $note->comments()->create([
+        'author_name' => 'Jo',
+        'body' => PortableText::fromPlainText('Hello from New York.'),
+        'status' => CommentStatus::Approved,
+        'timezone' => 'America/New_York',
+    ]);
+
+    $responses = Conversation::for($note)->toArray()['responses'];
+
+    expect($responses[0]['occurredAt']['offset'])->toBe('-04:00')
+        ->and($responses[0]['occurredAt']['label'])->toBe('Sat 12 Sep 2026, 12:16pm');
+});
+
+it('falls back to the entry\'s timezone when a comment carries none at all', function () {
+    Carbon::setTestNow('2026-09-12 16:16:00');
+
+    $note = Note::factory()->create(['timezone' => 'Europe/London']);
+
+    $note->comments()->create([
+        'author_name' => 'Jo',
+        'body' => PortableText::fromPlainText('No timezone captured.'),
+        'status' => CommentStatus::Approved,
+        'timezone' => null,
+    ]);
+
+    $responses = Conversation::for($note)->toArray()['responses'];
+
+    expect($responses[0]['occurredAt']['offset'])->toBe('+01:00');
+});
+
+it('renders a webmention at the offset its dt-published carried', function () {
+    $note = Note::factory()->create(['timezone' => 'Europe/London']);
+
+    $note->webmentions()->create([
+        'source_url' => 'https://jo.example/post',
+        'target_url' => rtrim(config('app.url'), '/').$note->url(),
+        'kind' => 'mention',
+        'author_name' => 'Jo',
+        'status' => CommentStatus::Approved,
+        'published_at' => '2025-11-11 12:54:00',
+        'timezone' => '+05:30',
+    ]);
+
+    $responses = Conversation::for($note)->toArray()['responses'];
+
+    expect($responses[0]['occurredAt']['offset'])->toBe('+05:30');
+});
+
+it('still renders a Strava kudo in the entry\'s timezone, since no author timezone is available', function () {
+    Carbon::setTestNow('2026-01-15 03:00:00');
+
+    $checkin = Checkin::factory()->create([
+        'occurred_at' => '2026-01-15 09:00:00',
+        'timezone' => 'Australia/Sydney',
+    ]);
+
+    $checkin->syndicatedResponses()->create([
+        'source' => Source::Strava->value,
+        'kind' => WebmentionKind::Like,
+        'author_name' => 'Justin M.',
+        'occurred_at' => now(),
+    ]);
+
+    $responses = Conversation::for($checkin)->toArray()['responses'];
+
+    expect($responses[0]['occurredAt']['offset'])->toBe('+11:00');
 });
