@@ -10,6 +10,7 @@ use App\Models\SyndicatedResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Writes what a source just reported for one entry, in step with what is stored.
@@ -21,26 +22,33 @@ final class ReconcileResponses
 
     /**
      * @param  list<SyndicatedResponseData>  $responses  Everything this source holds for this entry.
+     * @param  list<WebmentionKind>  $skipKinds  Gesture kinds this call can't vouch for and must leave untouched,
+     *                                           rather than reading their absence from $responses as "cleared".
      */
-    public function __invoke(Model $target, Source $source, array $responses): void
+    public function __invoke(Model $target, Source $source, array $responses, array $skipKinds = []): void
     {
         $incoming = collect($responses);
 
-        $this->replaceGestures($target, $source, $incoming);
-        $this->upsertProse($target, $source, $incoming);
+        // Delete-then-rewrite spans a third-party fetch per row (StoreAuthorPhoto),
+        // so a failure partway through must not leave the entry's responses gone.
+        DB::transaction(function () use ($target, $source, $incoming, $skipKinds): void {
+            $this->replaceGestures($target, $source, $incoming, $skipKinds);
+            $this->upsertProse($target, $source, $incoming);
+        });
     }
 
     /**
      * @param  Collection<int, SyndicatedResponseData>  $incoming
+     * @param  list<WebmentionKind>  $skipKinds
      */
-    private function replaceGestures(Model $target, Source $source, Collection $incoming): void
+    private function replaceGestures(Model $target, Source $source, Collection $incoming, array $skipKinds): void
     {
         $gestures = $incoming->reject(fn (SyndicatedResponseData $data): bool => $this->isProse($data));
 
         // Kinds absent from the payload are cleared too: a repost withdrawn
         // leaves no row to compare against, only a missing one.
         foreach (WebmentionKind::cases() as $kind) {
-            if ($this->isProseKind($kind)) {
+            if ($this->isProseKind($kind) || in_array($kind, $skipKinds, true)) {
                 continue;
             }
 
@@ -48,6 +56,10 @@ final class ReconcileResponses
         }
 
         foreach ($gestures as $data) {
+            if (in_array($data->kind, $skipKinds, true)) {
+                continue;
+            }
+
             $this->write($target, $source, $data);
         }
     }
