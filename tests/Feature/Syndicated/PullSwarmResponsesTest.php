@@ -57,3 +57,40 @@ it('clears a like that has been taken back', function () {
 
     expect($checkin->syndicatedResponses()->count())->toBe(0);
 });
+
+it('skips a comment with no id while storing a sibling that has one', function () {
+    Http::fake(['fastly.4sqi.net/*' => Http::response('', 404)]);
+
+    $checkin = Checkin::factory()->create(['source' => Source::Swarm->value, 'source_id' => 'abc']);
+
+    app(PullSwarmResponses::class)($checkin, [
+        'likes' => ['count' => 0],
+        'comments' => ['count' => 2, 'items' => [
+            ['text' => 'This one has no id'],
+            ['id' => 'c2', 'text' => 'This one has an id', 'user' => ['displayName' => 'Bob']],
+        ]],
+    ]);
+
+    $response = $checkin->syndicatedResponses()->sole();
+
+    expect($response->kind)->toBe(WebmentionKind::Reply)
+        ->and($response->source_id)->toBe('c2')
+        ->and($response->author_name)->toBe('Bob');
+});
+
+it('stores likers from multiple groups', function () {
+    Http::fake(['fastly.4sqi.net/*' => Http::response('', 404)]);
+
+    $checkin = Checkin::factory()->create(['source' => Source::Swarm->value, 'source_id' => 'abc']);
+
+    app(PullSwarmResponses::class)($checkin, [
+        'likes' => ['count' => 2, 'groups' => [
+            ['items' => [swarmLike('1', 'Alice')]],
+            ['items' => [swarmLike('2', 'Bob')]],
+        ]],
+        'comments' => ['count' => 0],
+    ]);
+
+    expect($checkin->syndicatedResponses()->count())->toBe(2)
+        ->and($checkin->syndicatedResponses()->pluck('author_name')->sort()->values()->all())->toBe(['Alice', 'Bob']);
+});
