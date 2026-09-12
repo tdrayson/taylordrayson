@@ -56,6 +56,26 @@ class Client
     }
 
     /**
+     * The athletes who gave an activity kudos.
+     *
+     * @return array<int, array<string, mixed>>|null Null on a request failure.
+     */
+    public function kudos(int|string $id): ?array
+    {
+        return $this->json(new KudosRequest($id));
+    }
+
+    /**
+     * The comments left on an activity.
+     *
+     * @return array<int, array<string, mixed>>|null Null on a request failure.
+     */
+    public function comments(int|string $id): ?array
+    {
+        return $this->json(new CommentsRequest($id));
+    }
+
+    /**
      * The requested data streams for an activity, keyed by stream type.
      *
      * @param  array<int, string>  $keys
