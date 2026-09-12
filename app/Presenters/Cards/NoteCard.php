@@ -23,15 +23,17 @@ use Illuminate\Support\Str;
  */
 final class NoteCard
 {
+    private ?ResponseData $response = null;
+
     public function present(Note $model): CardData
     {
-        $response = app(BuildResponseContext::class)($model);
+        $response = $this->response($model);
         $gesture = $response !== null && (bool) $model->responseKind()?->isGesture();
 
         return new CardData(
-            type: TimelineType::Note,
+            type: $this->type(),
             icon: 'message-circle',
-            title: $gesture ? self::gestureTitle($model, $response) : Str::limit(PortableText::plainText($model->content), 80),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: null,
             subtitleTokens: null,
@@ -54,18 +56,36 @@ final class NoteCard
     }
 
     /**
-     * A gesture wrote nothing, so its card says what was done and to what,
-     * where another note would show its opening words.
+     * A gesture wrote nothing, so it is named by what was done and to what,
+     * where another note is named by its opening words. A photo caption reads
+     * this too, which is why the wording lives here and not in present().
      *
      * An RSVP takes its verb from its answer: "I'm going to" says more than
      * "I RSVP'd to", and the answer is the whole point of one.
      */
-    private static function gestureTitle(Note $model, ResponseData $response): string
+    public function title(Note $model): string
     {
+        $response = $this->response($model);
+
+        if ($response === null || ! $model->responseKind()?->isGesture()) {
+            return Str::limit(PortableText::plainText($model->content), 80);
+        }
+
         $sentence = $model->responseKind()?->sentence()
             ?? $model->rsvp_value?->sentence()
             ?? 'I responded to';
 
         return $sentence.' '.$response->fullTitle();
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Note;
+    }
+
+    /** Held between present() and title(), which both want the same one. */
+    private function response(Note $model): ?ResponseData
+    {
+        return $this->response ??= app(BuildResponseContext::class)($model);
     }
 }

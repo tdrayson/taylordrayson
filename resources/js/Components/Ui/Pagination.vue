@@ -34,7 +34,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             :aria-label="`${prevLabel} page`"
             :aria-disabled="prevUrl || hasPrev ? undefined : 'true'"
             class="inline-flex items-center gap-1.5"
-            :class="prevUrl || hasPrev ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'cursor-default text-neutral-500/40'"
+            :class="prevUrl || hasPrev ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'text-neutral-500/40'"
             @click="!prevUrl && hasPrev && emit('navigate', currentPage - 1)"
         >
             <Icon name="ArrowLeft01Icon" class="size-4" />
@@ -54,7 +54,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
             :aria-label="`${nextLabel} page`"
             :aria-disabled="nextUrl || hasNext ? undefined : 'true'"
             class="inline-flex items-center gap-1.5"
-            :class="nextUrl || hasNext ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'cursor-default text-neutral-500/40'"
+            :class="nextUrl || hasNext ? 'text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500' : 'text-neutral-500/40'"
             @click="!nextUrl && hasNext && emit('navigate', currentPage + 1)"
         >
             {{ nextLabel }}

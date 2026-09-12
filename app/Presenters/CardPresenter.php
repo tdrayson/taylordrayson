@@ -42,20 +42,32 @@ final class CardPresenter
 {
     public static function for(Timelineable $model): CardData
     {
+        return self::card($model)->present($model);
+    }
+
+    /**
+     * The per-type presenter for a model, so this match stays the only place
+     * types are registered. Each card exposes present() and title(); a caller
+     * wanting only the heading (PhotoCaption) takes the latter and skips the
+     * cost of the rest. Not typed to an interface: every card narrows its
+     * parameter to its own model, which an interface would have to widen.
+     */
+    public static function card(Timelineable $model): object
+    {
         return match (true) {
-            $model instanceof Activity => (new ActivityCard)->present($model),
-            $model instanceof Sleep => (new SleepCard)->present($model),
-            $model instanceof Calorie => (new CalorieCard)->present($model),
-            $model instanceof Media => (new MediaCard)->present($model),
-            $model instanceof Event => (new EventCard)->present($model),
-            $model instanceof Appearance => (new AppearanceCard)->present($model),
-            $model instanceof Podcast => (new PodcastCard)->present($model),
-            $model instanceof Flight => (new FlightCard)->present($model),
-            $model instanceof Checkin => (new CheckinCard)->present($model),
-            $model instanceof Fuel => (new FuelCard)->present($model),
-            $model instanceof Project => (new ProjectCard)->present($model),
-            $model instanceof Article => (new ArticleCard)->present($model),
-            $model instanceof Note => (new NoteCard)->present($model),
+            $model instanceof Activity => new ActivityCard,
+            $model instanceof Sleep => new SleepCard,
+            $model instanceof Calorie => new CalorieCard,
+            $model instanceof Media => new MediaCard,
+            $model instanceof Event => new EventCard,
+            $model instanceof Appearance => new AppearanceCard,
+            $model instanceof Podcast => new PodcastCard,
+            $model instanceof Flight => new FlightCard,
+            $model instanceof Checkin => new CheckinCard,
+            $model instanceof Fuel => new FuelCard,
+            $model instanceof Project => new ProjectCard,
+            $model instanceof Article => new ArticleCard,
+            $model instanceof Note => new NoteCard,
             default => throw new LogicException('No card presenter registered for '.$model::class),
         };
     }

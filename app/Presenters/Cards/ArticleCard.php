@@ -24,9 +24,9 @@ final class ArticleCard
         $response = app(BuildResponseContext::class)($model);
 
         return new CardData(
-            type: TimelineType::Article,
+            type: $this->type(),
             icon: 'file-text',
-            title: $model->title,
+            title: $this->title($model),
             titleLabel: null,
             subtitle: Text::excerpt(PortableText::plainText($model->content), 240) ?: $model->excerpt,
             subtitleTokens: null,
@@ -38,5 +38,15 @@ final class ArticleCard
                 $response?->toArray(),
             ),
         );
+    }
+
+    public function title(Article $model): string
+    {
+        return $model->title;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Article;
     }
 }

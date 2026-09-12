@@ -48,6 +48,28 @@ final class OutboundLinks
     }
 
     /**
+     * Every entry of mine the entry links to, as site-relative paths.
+     *
+     * The counterpart of for(): the same fields read the same way, split by
+     * whose site the link points at, so an outgoing webmention and an internal
+     * mention are decided from one reading of the entry.
+     *
+     * @return list<string>
+     */
+    public static function internalPathsFor(Model $model): array
+    {
+        $paths = [];
+
+        foreach (self::documents($model) as $document) {
+            foreach (Links::internalPathsIn($document) as $path) {
+                $paths[$path] = true;
+            }
+        }
+
+        return array_keys($paths);
+    }
+
+    /**
      * A fingerprint of what a receiver would re-fetch.
      *
      * The title counts: a receiver parses our `p-name` as well as the body, so

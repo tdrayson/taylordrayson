@@ -5,7 +5,7 @@ import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
 import FilterValue from './FilterValue.vue';
 import FieldPicker from './FieldPicker.vue';
-import StyledSelect from './StyledSelect.vue';
+import Select from '../Ui/Select.vue';
 import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
@@ -225,7 +225,7 @@ function clearFilter() {
                 >
                     <span class="shrink-0 whitespace-nowrap text-label uppercase text-neutral-500">Show me</span>
                     <div class="min-w-0 flex-1 sm:w-56 sm:flex-none">
-                        <StyledSelect
+                        <Select
                             :model-value="group.type"
                             :options="typeOptions"
                             placeholder="Select…"
@@ -248,7 +248,7 @@ function clearFilter() {
                         </div>
 
                         <div class="w-full sm:w-40 sm:shrink-0">
-                            <StyledSelect
+                            <Select
                                 :model-value="condition.operator"
                                 :options="operatorOptions(group.type, condition.field)"
                                 @update:model-value="changeOperator(condition, $event)"

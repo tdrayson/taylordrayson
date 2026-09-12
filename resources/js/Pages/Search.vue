@@ -5,7 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import QueryBuilder from '../Components/Search/QueryBuilder.vue';
 import OptionCard from '../Components/Ui/OptionCard.vue';
-import StyledSelect from '../Components/Search/StyledSelect.vue';
+import Select from '../Components/Ui/Select.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 
@@ -71,7 +71,7 @@ function goToPage(page) {
         <div class="mt-10 flex items-center justify-between gap-4">
             <p class="text-caption text-neutral-500">{{ total }} {{ total === 1 ? 'result' : 'results' }}</p>
             <div v-if="groups.length" class="w-40 shrink-0">
-                <StyledSelect
+                <Select
                     :model-value="order"
                     :options="orderOptions"
                     aria-label="Sort results"

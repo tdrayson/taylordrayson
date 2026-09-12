@@ -122,7 +122,7 @@ function useMyLocation() {
 
             <button
                 type="button"
-                class="flex size-11 shrink-0 items-center justify-center rounded-md border border-neutral-100 text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40"
+                class="flex size-11 shrink-0 items-center justify-center rounded-md border border-neutral-100 text-neutral-700 transition-colors not-disabled:hover:border-accent-500 not-disabled:hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40"
                 :disabled="locating"
                 :aria-label="locating ? 'Finding places near you' : 'Find places near me'"
                 :title="locating ? 'Finding places near you' : 'Find places near me'"

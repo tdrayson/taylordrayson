@@ -262,6 +262,8 @@ it('does not store a zone Strava guessed from the offset', function () {
 });
 
 it('stores a foreign zone when the activity has a route to back it up', function () {
+    fakeMapImages();
+
     $abroad = [
         'id' => 778,
         'timezone' => '(GMT-05:00) America/New_York',

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { router } from '@inertiajs/vue3';
-import StyledSelect from '../Search/StyledSelect.vue';
+import Select from '../Ui/Select.vue';
 
 /**
  * Year shortcut for the timeline's pagination bar. The feed runs to hundreds of
@@ -35,7 +35,7 @@ function go(year) {
     <div v-if="years.length" class="mt-4 flex items-baseline justify-center gap-2">
         <label for="year-jump" class="text-meta text-neutral-500">Jump to</label>
 
-        <StyledSelect
+        <Select
             id="year-jump"
             variant="bare"
             :model-value="current ?? ''"

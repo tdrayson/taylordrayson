@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import { cn } from '../../lib/cn.js';
 import Input from '../Ui/Input.vue';
+import Select from '../Ui/Select.vue';
 import Switch from '../Ui/Switch.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
@@ -156,19 +157,16 @@ function textToTags(value) {
             />
         </div>
 
-        <select
+        <Select
             v-else-if="field.type === 'select'"
             :id="field.name"
-            :value="modelValue ?? ''"
-            :class="[CONTROL, borderClass, modelValue ? 'text-neutral-900' : 'text-neutral-500']"
-            @change="$emit('update:modelValue', $event.target.value)"
-        >
-            <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>
-
-            <option v-for="option in field.options ?? []" :key="option.value" :value="option.value">
-                {{ option.label }}
-            </option>
-        </select>
+            :model-value="modelValue ?? ''"
+            :options="field.options ?? []"
+            :placeholder="`Choose ${field.label.toLowerCase()}`"
+            :invalid="Boolean(error)"
+            :clearable="! field.required"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
 
         <TagsInput
             v-else-if="field.type === 'tags'"
