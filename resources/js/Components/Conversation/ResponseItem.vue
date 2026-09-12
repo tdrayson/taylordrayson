@@ -8,7 +8,7 @@ import Icon from '../Ui/Icon.vue';
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
     // title, body, occurredAt, parentId, commentId, sourceUrl, sourceHost,
-    // emoji }.
+    // emoji, source }.
     item: { type: Object, required: true },
     // Rendered as a reply to somebody, one level deep only.
     nested: { type: Boolean, default: false },
@@ -38,6 +38,19 @@ const KINDS = {
 };
 
 const kind = computed(() => KINDS[props.item.kind] ?? KINDS.mention);
+
+/** What each source calls the gesture, since only the wording differs. */
+const SOURCE_WORDS = {
+    strava: { like: 'gave kudos', reply: 'commented' },
+    swarm: { like: 'liked this', reply: 'commented' },
+};
+
+/**
+ * The verb for this response. A syndicated gesture uses the source's own word
+ * for it (a kudo is not a like), falling back to the generic phrasing for
+ * everything else.
+ */
+const did = computed(() => SOURCE_WORDS[props.item.source]?.[props.item.kind] ?? kind.value.did);
 
 const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
 
@@ -133,7 +146,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                          link to it. A webmention author's name carries their site,
                          so repeating the host says it twice; a syndicated gesture
                          has no profile to link, so the platform is named instead. -->
-                    <span>{{ kind.did }}</span>
+                    <span>{{ did }}</span>
 
                     <!-- "in" and the title share one element so the space
                          between them is real text rather than a flex gap,

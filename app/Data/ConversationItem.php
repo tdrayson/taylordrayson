@@ -5,6 +5,7 @@ namespace App\Data;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Mention;
+use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use App\Support\EntryName;
 use App\Support\LocalTime;
@@ -44,6 +45,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $sourceUrl,
         /** The emoji actually sent, for a reacji; null for everything else. */
         public ?string $emoji,
+        /** The service a syndicated response came from; null for everything else. */
+        public ?string $source = null,
     ) {}
 
     public static function fromComment(Comment $comment): self
@@ -87,6 +90,33 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $mention->source_url,
             emoji: $isReacji ? trim(PortableText::plainText($mention->content ?? [])) : null,
+        );
+    }
+
+    /**
+     * A response left on one of my posts somewhere else.
+     *
+     * Carries no microformats: nothing here linked back, so publishing it as an
+     * h-cite would tell a parser something that is not true.
+     */
+    public static function fromSyndicated(SyndicatedResponse $response): self
+    {
+        return new self(
+            id: 'syndicated-'.$response->id,
+            kind: $response->kind->value,
+            authorName: $response->author_name,
+            authorUrl: null,
+            authorPhoto: $response->author_photo_path === null
+                ? null
+                : '/'.ltrim($response->author_photo_path, '/'),
+            title: null,
+            body: $response->body,
+            occurredAt: $response->occurred_at,
+            parentId: null,
+            commentId: null,
+            sourceUrl: $response->url,
+            emoji: $response->emoji,
+            source: $response->source,
         );
     }
 
@@ -180,6 +210,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'sourceUrl' => $this->sourceUrl,
             'sourceHost' => $this->sourceHost(),
             'emoji' => $this->emoji,
+            'source' => $this->source,
         ];
     }
 
