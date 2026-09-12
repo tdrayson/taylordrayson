@@ -127,3 +127,11 @@ it('has an entry detail component for every dataset', function () {
         expect(file_exists($component))->toBeTrue("{$key} has no ".basename($component).'.');
     }
 });
+
+it('exposes every dataset table to the MCP database tools', function () {
+    foreach (Datasets::all() as $key => $dataset) {
+        $table = (new ($dataset->model()))->getTable();
+
+        expect(in_array($table, config('mcp.tables'), true))->toBeTrue("{$key} stores rows in {$table}, which config/mcp.php does not expose.");
+    }
+});
