@@ -16,4 +16,14 @@ class KudosRequest extends Request
     {
         return "/api/v3/activities/{$this->id}/kudos";
     }
+
+    /**
+     * Strava defaults to 30 with no per_page, silently truncating popular activities.
+     *
+     * @return array<string, mixed>
+     */
+    protected function defaultQuery(): array
+    {
+        return ['per_page' => 200];
+    }
 }

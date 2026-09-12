@@ -27,3 +27,21 @@ it('reads the comments left on an activity', function () {
 
     expect(app(Client::class)->comments(778))->toHaveCount(1);
 });
+
+// Strava defaults to 30 per page with no per_page sent, which silently
+// truncates an activity with more kudos or comments than that.
+it('asks Strava for up to 200 kudos and comments, not the default 30', function () {
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/api/v3/activities/778/kudos' => MockResponse::make([]),
+        '/api/v3/activities/778/comments' => MockResponse::make([]),
+    ]);
+
+    app(Client::class)->kudos(778);
+    app(Client::class)->comments(778);
+
+    Saloon::assertSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/kudos')
+        && $request->query()->get('per_page') === 200);
+    Saloon::assertSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/comments')
+        && $request->query()->get('per_page') === 200);
+});
