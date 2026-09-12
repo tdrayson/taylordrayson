@@ -10,7 +10,6 @@ use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\LinkFaviconObserver;
-use App\Observers\MentionObserver;
 use App\Observers\TimelineEntryObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -18,7 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 
-#[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class, MentionObserver::class])]
+#[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
 #[Fillable([
     'occurred_at',
     'title',
