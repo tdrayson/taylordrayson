@@ -40,6 +40,9 @@ Schedule::command('rovi:sync-steps')->everyFifteenMinutes()->withoutOverlapping(
 // Swarm check-ins, asking only for what postdates the newest stored one.
 Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
 
+// Likes and comments left on check-ins after they were synced.
+Schedule::command('swarm:responses')->hourly()->withoutOverlapping();
+
 // Episodes publish weekly, so once a day is ample. It used to run every half
 // hour, and because the sync re-fetches all 43 pages each time (see #85), that
 // read as scraping to the podcast site's WAF and got this server's IP blocked.
