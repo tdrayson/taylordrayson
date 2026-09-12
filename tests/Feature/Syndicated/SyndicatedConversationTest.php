@@ -20,7 +20,8 @@ it('puts a kudo in the conversation as a like from Strava', function () {
     expect($responses)->toHaveCount(1)
         ->and($responses[0]['kind'])->toBe('like')
         ->and($responses[0]['authorName'])->toBe('Justin M.')
-        ->and($responses[0]['source'])->toBe('strava');
+        ->and($responses[0]['source'])->toBe('strava')
+        ->and($responses[0]['sourceName'])->toBe('Strava');
 });
 
 // The heading total is computed client-side from conversation.responses (no

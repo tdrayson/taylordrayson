@@ -2,6 +2,7 @@
 
 namespace App\Data;
 
+use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Mention;
@@ -47,6 +48,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $emoji,
         /** The service a syndicated response came from; null for everything else. */
         public ?string $source = null,
+        /** The same service, as it is said out loud ("Strava"); null for everything else. */
+        public ?string $sourceName = null,
     ) {}
 
     public static function fromComment(Comment $comment): self
@@ -117,6 +120,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             sourceUrl: $response->url,
             emoji: $response->emoji,
             source: $response->source,
+            sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
         );
     }
 
@@ -211,6 +215,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'sourceHost' => $this->sourceHost(),
             'emoji' => $this->emoji,
             'source' => $this->source,
+            'sourceName' => $this->sourceName,
         ];
     }
 
