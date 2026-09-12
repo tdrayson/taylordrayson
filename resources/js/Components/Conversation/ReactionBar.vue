@@ -310,9 +310,13 @@ function press() {
 
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for
-                 its own count. -->
+                 its own count.
+
+                 Only worth drawing once there is a mix: a single kind is
+                 already named by the button on the left, so the pile would be
+                 the same glyph and the same number said twice. -->
             <ul
-                v-if="chosen.length"
+                v-if="chosen.length > 1"
                 :class="['reaction-pile flex items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500', compact && 'is-static']"
                 :tabindex="compact ? -1 : 0"
                 :aria-label="summaryLabel"
