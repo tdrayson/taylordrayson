@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
+use function Pest\Laravel\get;
 use function Pest\Laravel\postJson;
 
 /**
@@ -208,6 +209,38 @@ it('discards a junk or missing timezone rather than failing the comment', functi
     expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
 
     comment($note->id, ['author_name' => 'Sam'], ip: '198.51.100.7')->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+});
+
+it('never stores an offset that would blow up rendering the entry page', function (string $offset) {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => $offset])->assertCreated();
+
+    get($note->url())->assertOk();
+})->with([
+    'minutes out of range' => ['+99:99'],
+    'hours far past any real zone' => ['+99:00'],
+    'a negative offset past -12:00' => ['-24:00'],
+    'the largest valid-looking offset' => ['+23:59'],
+]);
+
+it('rejects the one offset above that a real DateTimeZone cannot construct', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => '+99:99'])->assertCreated();
+
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+});
+
+it('discards an array or oversized timezone rather than failing the whole comment', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => ['not', 'a', 'string']])->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+
+    comment($note->id, ['author_name' => 'Sam', 'timezone' => str_repeat('a', 500)], ip: '198.51.100.7')
+        ->assertCreated();
     expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
 });
 

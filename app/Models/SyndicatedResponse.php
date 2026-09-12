@@ -27,7 +27,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'body',
     'url',
     'occurred_at',
-    'timezone',
     'status',
 ])]
 class SyndicatedResponse extends Model
