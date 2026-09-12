@@ -8,7 +8,7 @@ import Icon from '../Ui/Icon.vue';
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
     // title, body, occurredAt, parentId, commentId, sourceUrl, sourceHost,
-    // emoji, source }.
+    // emoji, source, sourceName }.
     item: { type: Object, required: true },
     // Rendered as a reply to somebody, one level deep only.
     nested: { type: Boolean, default: false },
@@ -52,7 +52,7 @@ const SOURCE_WORDS = {
  */
 const did = computed(() => SOURCE_WORDS[props.item.source]?.[props.item.kind] ?? kind.value.did);
 
-const via = computed(() => props.item.source ?? props.item.sourceHost ?? null);
+const via = computed(() => props.item.sourceName ?? props.item.sourceHost ?? null);
 
 /**
  * One of my own entries, which is shown here as a convenience and carries no
