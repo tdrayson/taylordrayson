@@ -72,7 +72,7 @@ class SearchCompiler
         }
 
         $method = $isFirstGroup ? 'whereHasMorph' : 'orWhereHasMorph';
-        $outer->{$method}('timelineable', [$type['model']], function (Builder $morph) use ($group, $type): void {
+        $outer->{$method}('entry', [$type['model']], function (Builder $morph) use ($group, $type): void {
             $this->guardPublished($morph, $type['model']);
             $this->applyConditions($morph, $group, $type);
         });
@@ -239,7 +239,7 @@ class SearchCompiler
             ->map(fn (string $key): string => $registry[$key]['model'])
             ->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($registry, $textColumns, $value): void {
+        $query->whereHasMorph('entry', $models, function (Builder $morph, string $modelClass) use ($registry, $textColumns, $value): void {
             $this->guardPublished($morph, $modelClass);
 
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
@@ -320,7 +320,7 @@ class SearchCompiler
     {
         $models = collect(TypeRegistry::all())->pluck('model')->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
+        $query->whereHasMorph('entry', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
             $this->guardPublished($morph, $modelClass);
             $this->mediaClause($morph, $operator, $value);
         });

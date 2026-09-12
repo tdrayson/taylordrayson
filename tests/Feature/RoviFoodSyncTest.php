@@ -71,7 +71,7 @@ function setRoviFailure(int $status = 500): void
 
 function calorieEntryCount(): int
 {
-    return TimelineEntry::where('timelineable_type', Calorie::class)->count();
+    return TimelineEntry::where('dataset', (new Calorie)->getMorphClass())->count();
 }
 
 it('maps diary items to calories and creates one timeline entry per day', function () {

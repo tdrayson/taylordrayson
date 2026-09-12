@@ -37,7 +37,7 @@ class Timeline extends Tool
                 return Response::error("No type called {$input['type']}. Call data_freshness to list them.");
             }
 
-            $query->where('timelineable_type', (new ($dataset->model()))->getMorphClass());
+            $query->where('dataset', (new ($dataset->model()))->getMorphClass());
         }
 
         $entries = $query
@@ -46,10 +46,10 @@ class Timeline extends Tool
             ->get();
 
         $cards = $entries
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->map(fn (TimelineEntry $entry): array => [
-                'url' => $entry->timelineable->url(),
-                ...CardPresenter::for($entry->timelineable)->toArray(),
+                'url' => $entry->entry->url(),
+                ...CardPresenter::for($entry->entry)->toArray(),
             ])
             ->values();
 

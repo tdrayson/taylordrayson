@@ -77,12 +77,12 @@ class TagController extends Controller
             ->where(function (Builder $query) use ($taggables): void {
                 foreach ($taggables->groupBy('taggable_type') as $type => $group) {
                     $query->orWhere(fn (Builder $q): Builder => $q
-                        ->where('timelineable_type', $type)
-                        ->whereIn('timelineable_id', $group->pluck('taggable_id')));
+                        ->where('dataset', $type)
+                        ->whereIn('entry_id', $group->pluck('taggable_id')));
                 }
             })
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null);
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null);
 
         if (Auth::check()) {
             $entries = $entries->concat($this->unpublishedArticlePreviews($taggables));
@@ -101,7 +101,7 @@ class TagController extends Controller
      */
     private function unpublishedArticlePreviews(Collection $taggables): Collection
     {
-        $articleIds = $taggables->where('taggable_type', Article::class)->pluck('taggable_id');
+        $articleIds = $taggables->where('taggable_type', (new Article)->getMorphClass())->pluck('taggable_id');
 
         if ($articleIds->isEmpty()) {
             return collect();
@@ -113,7 +113,7 @@ class TagController extends Controller
             ->get()
             ->map(function (Article $article): TimelineEntry {
                 $entry = new TimelineEntry(['occurred_at' => $article->occurred_at]);
-                $entry->setRelation('timelineable', $article);
+                $entry->setRelation('entry', $article);
 
                 return $entry;
             });

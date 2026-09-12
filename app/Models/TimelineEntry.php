@@ -18,8 +18,8 @@ use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 
 #[Fillable([
-    'timelineable_type',
-    'timelineable_id',
+    'dataset',
+    'entry_id',
     'occurred_at',
     'ends_at',
     'occurred_utc',
@@ -41,13 +41,13 @@ class TimelineEntry extends Model implements Feedable
         ];
     }
 
-    public function timelineable(): MorphTo
+    public function entry(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo('entry', 'dataset', 'entry_id');
     }
 
     /**
-     * Relations each timelineable's card() reads, so feeds can eager-load them
+     * Relations each entry's card() reads, so feeds can eager-load them
      * and avoid N+1 queries (flight endpoints/airline, appearance cover thumbnail).
      *
      * @return array<class-string, array<int, string>>
@@ -71,12 +71,12 @@ class TimelineEntry extends Model implements Feedable
     }
 
     /**
-     * Eager-load the polymorphic timelineable together with every relation its
+     * Eager-load the polymorphic entry together with every relation its
      * card() needs.
      */
     public function scopeWithCardRelations(Builder $query): Builder
     {
-        return $query->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith(self::cardRelations())]);
+        return $query->with(['entry' => fn (MorphTo $morphTo) => $morphTo->morphWith(self::cardRelations())]);
     }
 
     /**
@@ -124,10 +124,10 @@ class TimelineEntry extends Model implements Feedable
 
     public function toFeedItem(): FeedItem
     {
-        $this->timelineable->setRelation('timelineEntry', $this);
+        $this->entry->setRelation('timelineEntry', $this);
 
-        $card = CardPresenter::for($this->timelineable);
-        $link = url($this->timelineable->url());
+        $card = CardPresenter::for($this->entry);
+        $link = url($this->entry->url());
 
         return FeedItem::create([
             'id' => $link,
@@ -135,7 +135,7 @@ class TimelineEntry extends Model implements Feedable
             // The standalone sentence, not the card subtitle: a subtitle is
             // written to sit under its title, and a check-in without a note has
             // none at all.
-            'summary' => EntryDescription::for($this->timelineable, $card),
+            'summary' => EntryDescription::for($this->entry, $card),
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
@@ -152,17 +152,17 @@ class TimelineEntry extends Model implements Feedable
         $models = self::requestedModels();
 
         return self::query()
-            ->when($models !== null, fn (Builder $query) => $query->whereHasMorph('timelineable', $models))
+            ->when($models !== null, fn (Builder $query) => $query->whereHasMorph('entry', $models))
             ->withCardRelations()
             ->orderByDesc('occurred_at')
             ->limit(50)
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
     }
 
     /**
-     * Resolve the requested timelineable models from the feed query string:
+     * Resolve the requested entry models from the feed query string:
      * `?filter=` selects a named preset, `?types=` a comma-separated list of
      * dataset keys or aliases. Unknown presets/types are ignored, and an empty
      * or absent selection returns null so the feed falls back to every type.

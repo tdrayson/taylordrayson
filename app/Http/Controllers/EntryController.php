@@ -49,12 +49,12 @@ class EntryController extends Controller
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
         $entry = TimelineEntry::query()
-            ->with('timelineable')
+            ->with('entry')
             ->whereDate('occurred_at', $date)
             ->where('url_slug', $slug)
             ->first();
 
-        $model = $entry?->timelineable;
+        $model = $entry?->entry;
         $model?->setRelation('timelineEntry', $entry);
 
         // Unpublished articles have no timeline entry (TimelineEntryObserver
@@ -178,7 +178,7 @@ class EntryController extends Controller
         }
 
         // `timeline_entry` is dropped because show() sets that relation and it
-        // carries `timelineable` -- a second, unfiltered copy of this very
+        // carries `entry` -- a second, unfiltered copy of this very
         // model. Serialised, it defeated every exclusion below it: the stream
         // arrays were shipped despite being excluded here and deferred
         // separately, and meta went out whole. Nothing on the client reads it.

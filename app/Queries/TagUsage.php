@@ -27,7 +27,7 @@ final class TagUsage
             ->when(! Auth::check(), fn ($query) => $query->where(function ($inner): void {
                 // Keep every non-article pivot, plus article pivots whose article
                 // is published; drop the draft-only article pivots.
-                $inner->where('taggable_type', '!=', Article::class)
+                $inner->where('taggable_type', '!=', (new Article)->getMorphClass())
                     ->orWhereExists(fn (Builder $sub) => $sub->selectRaw('1')
                         ->from('articles')
                         ->whereColumn('articles.id', 'taggables.taggable_id')

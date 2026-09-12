@@ -49,7 +49,7 @@ it('passes recent sleep nights and last-night stage hours', function () {
 });
 
 it('counts timeline entries from the trailing 30 days', function () {
-    // Each timelineable model spawns a timeline entry dated to occurred_at.
+    // Each Timelineable model spawns a timeline entry dated to occurred_at.
     Sleep::factory()->create(['occurred_at' => now()->subDay()]);
     Podcast::factory()->create(['occurred_at' => now()->subDays(2)]);
 

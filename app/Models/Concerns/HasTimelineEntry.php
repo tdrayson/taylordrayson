@@ -51,7 +51,7 @@ trait HasTimelineEntry
 
     public function timelineEntry(): MorphOne
     {
-        return $this->morphOne(TimelineEntry::class, 'timelineable');
+        return $this->morphOne(TimelineEntry::class, 'entry', 'dataset', 'entry_id');
     }
 
     /**

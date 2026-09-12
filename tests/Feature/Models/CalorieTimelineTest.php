@@ -63,7 +63,7 @@ it('the timeline entry points to the first calorie row (lowest ID)', function ()
 
     $entry = TimelineEntry::first();
 
-    expect($entry->timelineable_id)->toBe($first->id);
+    expect($entry->entry_id)->toBe($first->id);
 });
 
 it('the timeline entry occurred_at is set to noon on that date', function () {
@@ -112,7 +112,7 @@ it('deleting the referenced calorie updates the timeline entry to point to the n
     $entry = TimelineEntry::first();
 
     expect($entry)->not->toBeNull()
-        ->and($entry->timelineable_id)->toBe($second->id);
+        ->and($entry->entry_id)->toBe($second->id);
 });
 
 it('deleting all calories for a date deletes the timeline entry', function () {

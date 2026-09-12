@@ -49,7 +49,7 @@ it('orders by when things happened, not by what the clock said', function () {
     $newYork = Activity::factory()->create(['occurred_at' => '2022-10-13 09:00:00', 'timezone' => 'America/New_York']);
 
     // Same wall clock, five hours apart. Ordering by occurred_at would tie.
-    $order = TimelineEntry::query()->orderByInstant('asc')->pluck('timelineable_id')->all();
+    $order = TimelineEntry::query()->orderByInstant('asc')->pluck('entry_id')->all();
 
     expect($order)->toBe([$london->id, $newYork->id]);
 });

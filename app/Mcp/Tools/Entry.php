@@ -45,14 +45,14 @@ class Entry extends Tool
         [, $year, $month, $day, $slug] = $parts;
 
         $entry = TimelineEntry::query()
-            ->with('timelineable')
+            ->with('entry')
             ->whereDate('occurred_at', "{$year}-{$month}-{$day}")
             ->where('url_slug', $slug)
             ->first();
 
-        $entry?->timelineable?->setRelation('timelineEntry', $entry);
+        $entry?->entry?->setRelation('timelineEntry', $entry);
 
-        return $entry?->timelineable;
+        return $entry?->entry;
     }
 
     private function find(Request $request): ?Model

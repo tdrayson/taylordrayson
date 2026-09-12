@@ -38,7 +38,7 @@ final class BuildMonthCalendar
                 $types = [];
 
                 foreach ($group as $entry) {
-                    $model = $entry->timelineable;
+                    $model = $entry->entry;
 
                     if ($model instanceof Sleep) {
                         $sleep = $model->duration;

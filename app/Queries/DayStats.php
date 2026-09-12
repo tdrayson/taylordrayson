@@ -20,7 +20,7 @@ final class DayStats
      */
     public function __invoke(Collection $entries, Carbon $date): array
     {
-        $models = $entries->map->timelineable;
+        $models = $entries->map->entry;
         $sleep = $models->first(fn ($model): bool => $model instanceof Sleep);
         $activities = $models->filter(fn ($model): bool => $model instanceof Activity);
 

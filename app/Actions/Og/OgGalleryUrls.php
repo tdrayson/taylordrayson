@@ -218,7 +218,7 @@ final class OgGalleryUrls
             }
 
             $entry = TimelineEntry::query()
-                ->where('timelineable_type', $model)
+                ->where('dataset', $type->value)
                 ->latest('occurred_at')
                 ->first();
 

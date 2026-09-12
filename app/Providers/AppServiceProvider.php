@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Datasets\Datasets;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
@@ -13,6 +14,7 @@ use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
 use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -87,6 +89,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Morph columns store dataset keys; an unmapped model throws instead of writing a class path.
+        Relation::enforceMorphMap(Datasets::morphMap());
+
         // Passport ships no consent screen, so the OAuth flow 500s without one.
         // Rendered through Inertia to match the rest of the site; the approve
         // and deny controls inside it are plain forms, because completing the

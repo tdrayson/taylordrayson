@@ -271,8 +271,8 @@ class BackfillTimezones extends Command
     {
         $changed = 0;
 
-        foreach (TimelineEntry::query()->with('timelineable')->lazy() as $entry) {
-            $model = $entry->timelineable;
+        foreach (TimelineEntry::query()->with('entry')->lazy() as $entry) {
+            $model = $entry->entry;
 
             if ($model === null) {
                 continue;

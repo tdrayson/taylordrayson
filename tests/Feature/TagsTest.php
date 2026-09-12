@@ -74,9 +74,9 @@ it('removes taggable pivot rows when a tagged model is deleted', function () {
     $note = Note::factory()->create();
     $note->syncTagNames(['Coffee', 'Recipe']);
 
-    expect(DB::table('taggables')->where('taggable_type', Note::class)->count())->toBe(2);
+    expect(DB::table('taggables')->where('taggable_type', $note->getMorphClass())->count())->toBe(2);
 
     $note->delete();
 
-    expect(DB::table('taggables')->where('taggable_type', Note::class)->count())->toBe(0);
+    expect(DB::table('taggables')->where('taggable_type', $note->getMorphClass())->count())->toBe(0);
 });

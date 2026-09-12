@@ -61,7 +61,7 @@ it('publishes nothing for a type nobody registered', function () {
 it('does not ship the stream arrays in the initial payload', function () {
     // These are excluded from the payload and sent separately as a deferred
     // prop, because they are large. They were being shipped anyway inside the
-    // `timeline_entry.timelineable` copy of the model, which no exclusion
+    // `timeline_entry.entry` copy of the model, which no exclusion
     // above it could reach.
     $activity = Activity::factory()->create([
         'occurred_at' => '2024-05-04 09:00:00',

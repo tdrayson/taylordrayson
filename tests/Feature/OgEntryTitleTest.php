@@ -11,9 +11,9 @@ use App\Models\TimelineEntry;
 function ogTitle(object $model): string
 {
     $entry = TimelineEntry::query()
-        ->where('timelineable_type', $model::class)
-        ->where('timelineable_id', $model->id)
-        ->with('timelineable')
+        ->where('dataset', $model->getMorphClass())
+        ->where('entry_id', $model->id)
+        ->with('entry')
         ->sole();
 
     return app(BuildEntryOgData::class)($entry, fn (): ?string => null)['title'];

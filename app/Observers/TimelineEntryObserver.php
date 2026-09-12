@@ -27,7 +27,7 @@ class TimelineEntryObserver
         }
 
         $entry = $model->timelineEntry()->updateOrCreate(
-            ['timelineable_type' => $model->getMorphClass(), 'timelineable_id' => $model->getKey()],
+            ['dataset' => $model->getMorphClass(), 'entry_id' => $model->getKey()],
             [
                 'occurred_at' => $model->occurred_at,
                 // Recomputed on every save, so it cannot drift from the pair it

@@ -141,7 +141,7 @@ class TimelineController extends Controller
             ->coveringAnniversary($today->format('m-d'))
             ->orderByInstant()
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
 
         $years = $entries->map(fn (TimelineEntry $entry): string => $entry->occurred_at->format('Y'))->unique();
@@ -195,7 +195,7 @@ class TimelineController extends Controller
             ->whereBetween('occurred_at', [$start, $end])
             ->orderByInstant('asc')
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
 
         return Inertia::render('Month', [
@@ -221,14 +221,14 @@ class TimelineController extends Controller
             return [];
         }
 
-        $timelineables = $entries->map(fn (TimelineEntry $entry) => $entry->timelineable);
+        $models = $entries->map(fn (TimelineEntry $entry) => $entry->entry);
 
         /**
          * Batch-load `media` per model class before the photos payload reads it below,
          * so this fires one query per class rather than one per entry; loadMissing()
          * skips the classes cardRelations() already eager-loaded (Appearance, Activity, Article).
          */
-        $timelineables->groupBy(fn ($model): string => $model::class)
+        $models->groupBy(fn ($model): string => $model::class)
             ->each(fn (Collection $group): EloquentCollection => EloquentCollection::make($group->values())->loadMissing('media'));
 
         return [
@@ -237,7 +237,7 @@ class TimelineController extends Controller
             // Same shaped payload as the /photos gallery (masonry dimensions,
             // caption/accent, entry link) so the month strip shares its markup,
             // and the same rule about what counts as a photograph.
-            'photos' => $timelineables
+            'photos' => $models
                 ->filter(fn ($model): bool => GalleryPhotos::contributesPhotos($model))
                 ->flatMap(fn ($model): array => GalleryPhotos::shape($model, $model->getMedia('cover')->merge($model->getMedia('photos'))))
                 ->values()
@@ -256,7 +256,7 @@ class TimelineController extends Controller
             ->coveringDate($date->toDateString())
             ->orderByInstant('asc')
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
 
         return Inertia::render('Day', [

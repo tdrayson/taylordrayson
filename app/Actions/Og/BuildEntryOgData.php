@@ -34,17 +34,17 @@ final class BuildEntryOgData
     /**
      * Build the card view data for a single entry from its real data: type accent,
      * eyebrow, title, date, and a contextual image. Returns null when the entry has
-     * no timelineable model.
+     * no resolved model.
      *
      * $cutout is resolved lazily (only once the entry is known to render a card),
      * matching the original controller's behaviour of skipping the data-uri read
-     * entirely for entries with no timelineable model.
+     * entirely for entries with no resolved model.
      *
      * @return array<string, mixed>|null
      */
     public function __invoke(TimelineEntry $entry, Closure $cutout): ?array
     {
-        $model = $entry->timelineable;
+        $model = $entry->entry;
 
         if (! $model instanceof Timelineable) {
             return null;
@@ -76,13 +76,13 @@ final class BuildEntryOgData
     }
 
     /**
-     * The entry's last-updated timestamp (the timelineable model's, falling back
+     * The entry's last-updated timestamp (the underlying model's, falling back
      * to the entry's), used to key the cache, seed the wording, and bust the
      * card's URL when the entry it describes changes.
      */
     public static function entryTimestamp(TimelineEntry $entry): int
     {
-        return $entry->timelineable?->updated_at?->timestamp ?? $entry->updated_at?->timestamp ?? 0;
+        return $entry->entry?->updated_at?->timestamp ?? $entry->updated_at?->timestamp ?? 0;
     }
 
     /**

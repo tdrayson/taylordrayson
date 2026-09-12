@@ -22,7 +22,7 @@ use App\Presenters\CardPresenter;
  * dispatches to a presenter and returns a CardData, so a model can never
  * silently fall through to the "no presenter registered" branch.
  */
-it('resolves a CardData for every timelineable model', function (Timelineable $model) {
+it('resolves a CardData for every Timelineable model', function (Timelineable $model) {
     expect(CardPresenter::for($model))->toBeInstanceOf(CardData::class);
 })->with([
     'activity' => fn () => Activity::factory()->create(),

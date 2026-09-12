@@ -11,6 +11,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,14 @@ class CheckIntegrity extends Command
     /** Collections HasAttachments defines the `card` conversion for. */
     private const CARD_COLLECTIONS = ['cover', 'photos', 'artwork'];
 
+    /** Every column that stores a dataset alias rather than a PHP class path. */
+    private const MORPH_COLUMNS = [
+        ['timeline_entries', 'dataset'],
+        ['attachments', 'model_type'],
+        ['taggables', 'taggable_type'],
+        ['oauth_clients', 'owner_type'],
+    ];
+
     public function handle(): int
     {
         $findings = [
@@ -41,6 +50,7 @@ class CheckIntegrity extends Command
             'Attachments whose owner is gone' => $this->danglingAttachments(),
             'Attachment files missing from disk' => $this->missingOriginals(),
             'Conversions that were never written' => $this->missingConversions(),
+            'Morph columns still holding class paths' => $this->classPathLeaks(),
         ];
 
         foreach ($findings as $label => $rows) {
@@ -80,36 +90,38 @@ class CheckIntegrity extends Command
     private function danglingEntries(): array
     {
         return $this->dangling()
-            ->groupBy('timelineable_type')
-            ->map(fn (Collection $rows, string $type): string => sprintf(
+            ->groupBy('dataset')
+            ->map(fn (Collection $rows, string $dataset): string => sprintf(
                 '%s: %d (ids %s)',
-                class_basename($type),
+                class_basename(Relation::getMorphedModel($dataset) ?? $dataset),
                 $rows->count(),
-                $rows->pluck('timelineable_id')->take(10)->implode(', '),
+                $rows->pluck('entry_id')->take(10)->implode(', '),
             ))
             ->values()
             ->all();
     }
 
     /**
-     * @return Collection<int, object{id: int, timelineable_type: string, timelineable_id: int}>
+     * @return Collection<int, object{id: int, dataset: string, entry_id: int}>
      */
     private function dangling(): Collection
     {
         $entries = DB::table('timeline_entries')
-            ->select('id', 'timelineable_type', 'timelineable_id')
+            ->select('id', 'dataset', 'entry_id')
             ->get();
 
         return $entries
-            ->groupBy('timelineable_type')
-            ->flatMap(function (Collection $rows, string $type): Collection {
-                if (! class_exists($type)) {
+            ->groupBy('dataset')
+            ->flatMap(function (Collection $rows, string $dataset): Collection {
+                $model = Relation::getMorphedModel($dataset);
+
+                if ($model === null || ! class_exists($model)) {
                     return $rows;
                 }
 
-                $live = $type::query()->whereIn('id', $rows->pluck('timelineable_id'))->pluck('id')->all();
+                $live = $model::query()->whereIn('id', $rows->pluck('entry_id'))->pluck('id')->all();
 
-                return $rows->reject(fn (object $row): bool => in_array($row->timelineable_id, $live, true));
+                return $rows->reject(fn (object $row): bool => in_array($row->entry_id, $live, true));
             });
     }
 
@@ -165,7 +177,7 @@ class CheckIntegrity extends Command
 
         $onSpine = TimelineEntry::query()
             ->toBase()
-            ->where('timelineable_type', Calorie::class)
+            ->where('dataset', (new Calorie)->getMorphClass())
             ->selectRaw('DATE(occurred_at) as date')
             ->distinct()
             ->pluck('date');
@@ -278,7 +290,7 @@ class CheckIntegrity extends Command
             ->groupBy('model_type')
             ->map(fn (Collection $group, string $type): string => sprintf(
                 '%s: %d %s (attachment ids %s)',
-                class_basename($type),
+                class_basename(Relation::getMorphedModel($type) ?? $type),
                 $group->count(),
                 Str::plural($noun, $group->count()),
                 $group->take(10)->pluck('id')->implode(', '),
@@ -296,7 +308,7 @@ class CheckIntegrity extends Command
 
         return $rows->isEmpty() ? [] : $rows
             ->groupBy('model_type')
-            ->map(fn (Collection $group, string $type): string => class_basename($type).': '.$group->count())
+            ->map(fn (Collection $group, string $type): string => class_basename(Relation::getMorphedModel($type) ?? $type).': '.$group->count())
             ->values()
             ->all();
     }
@@ -311,14 +323,35 @@ class CheckIntegrity extends Command
             ->get()
             ->groupBy('model_type')
             ->flatMap(function (Collection $rows, string $type): Collection {
-                if (! class_exists($type)) {
+                $model = Relation::getMorphedModel($type);
+
+                if ($model === null || ! class_exists($model)) {
                     return $rows;
                 }
 
-                $live = $type::query()->whereIn('id', $rows->pluck('model_id'))->pluck('id')->all();
+                $live = $model::query()->whereIn('id', $rows->pluck('model_id'))->pluck('id')->all();
 
                 return $rows->reject(fn (object $row): bool => in_array($row->model_id, $live, true));
             });
+    }
+
+    /**
+     * Morph columns should hold a dataset alias, never the PHP class path it
+     * replaced; a backslash is the tell.
+     *
+     * @return list<string>
+     */
+    private function classPathLeaks(): array
+    {
+        $findings = [];
+
+        foreach (self::MORPH_COLUMNS as [$table, $column]) {
+            if (DB::table($table)->where($column, 'like', '%\\%')->exists()) {
+                $findings[] = "{$table}.{$column} still holds class paths";
+            }
+        }
+
+        return $findings;
     }
 
     /**

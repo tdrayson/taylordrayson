@@ -61,7 +61,7 @@ final class Taxonomies
         $distinct = fn (string $model): Collection => Tag::query()
             ->whereIn('id', fn ($query) => $query->select('tag_id')
                 ->from('taggables')
-                ->where('taggable_type', $model)
+                ->where('taggable_type', (new $model)->getMorphClass())
                 ->when($model === Article::class && ! Auth::check(), fn (QueryBuilder $query) => $query->whereExists(
                     fn (QueryBuilder $exists) => $exists->selectRaw('1')
                         ->from('articles')

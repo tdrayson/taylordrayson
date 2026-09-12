@@ -60,10 +60,12 @@ final class ArchiveTagBridge
         $types = $taggables->pluck('taggable_type')->unique()->values()->all();
 
         // whereHasMorph joins to the related model, so orphaned spine rows drop out
-        // here just as TagController::show discards a null timelineable.
+        // here just as TagController::show discards a null entry.
         $hasSpineEntry = TimelineEntry::query()
-            ->whereHasMorph('timelineable', $types, function (Builder $query, string $type) use ($taggables): void {
-                $query->whereKey($taggables->where('taggable_type', $type)->pluck('taggable_id'));
+            ->whereHasMorph('entry', $types, function (Builder $query, string $type) use ($taggables): void {
+                // whereHasMorph resolves $types back to real classes, but taggable_type
+                // stores the alias, so it has to be translated back to match.
+                $query->whereKey($taggables->where('taggable_type', (new $type)->getMorphClass())->pluck('taggable_id'));
             })
             ->exists();
 
@@ -76,7 +78,7 @@ final class ArchiveTagBridge
         }
 
         return Article::query()
-            ->whereIn('id', $taggables->where('taggable_type', Article::class)->pluck('taggable_id'))
+            ->whereIn('id', $taggables->where('taggable_type', (new Article)->getMorphClass())->pluck('taggable_id'))
             ->where('published', false)
             ->exists();
     }

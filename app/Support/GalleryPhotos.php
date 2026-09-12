@@ -27,18 +27,20 @@ class GalleryPhotos
     public const ENRICHMENT_MODELS = [Appearance::class, MediaEntry::class];
 
     /**
-     * Model types whose photos reach the gallery, for a query that must filter
-     * before it can hydrate. Derived from the timeline registry rather than
-     * listed, so this states the same rule contributesPhotos() applies at
-     * runtime: every timeline type, minus the enrichment art.
+     * Dataset aliases (the morph column value) whose photos reach the gallery,
+     * for a query that must filter before it can hydrate. Derived from the
+     * timeline registry rather than listed, so this states the same rule
+     * contributesPhotos() applies at runtime: every timeline type, minus the
+     * enrichment art.
      *
-     * @return list<class-string>
+     * @return list<string>
      */
     public static function includedModels(): array
     {
         return collect(TypeRegistry::all())
             ->pluck('model')
             ->reject(fn (string $model): bool => in_array($model, self::ENRICHMENT_MODELS, true))
+            ->map(fn (string $model): string => (new $model)->getMorphClass())
             ->values()
             ->all();
     }

@@ -20,10 +20,10 @@ class EntryResolver implements LinkResolver
         }
 
         $model = TimelineEntry::query()
-            ->with('timelineable')
+            ->with('entry')
             ->whereDate('occurred_at', "{$matches[1]}-{$matches[2]}-{$matches[3]}")
             ->where('url_slug', $matches[4])
-            ->first()?->timelineable;
+            ->first()?->entry;
 
         if ($model === null || ($model instanceof Article && ! $model->published)) {
             return null;

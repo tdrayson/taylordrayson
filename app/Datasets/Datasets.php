@@ -3,6 +3,10 @@
 namespace App\Datasets;
 
 use App\Enums\TimelineType;
+use App\Models\Page;
+use App\Models\Series;
+use App\Models\Trip;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -43,6 +47,22 @@ final class Datasets
         }
 
         return self::$all = $all;
+    }
+
+    /**
+     * Every morphable model keyed by the alias stored in morph columns.
+     *
+     * @return array<string, class-string<Model>>
+     */
+    public static function morphMap(): array
+    {
+        return [
+            ...array_map(fn (Dataset $dataset): string => $dataset->model(), self::all()),
+            'page' => Page::class,
+            'series' => Series::class,
+            'user' => User::class,
+            'trip' => Trip::class,
+        ];
     }
 
     public static function for(TimelineType|string $type): ?Dataset

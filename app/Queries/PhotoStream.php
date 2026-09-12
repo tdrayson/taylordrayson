@@ -8,6 +8,7 @@ use App\Support\GalleryPhotos;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
@@ -162,7 +163,8 @@ final class PhotoStream
         return $attachments
             ->pluck('model_type')
             ->unique()
-            ->filter(fn (string $type): bool => class_exists($type))
+            ->map(fn (string $type): ?string => Relation::getMorphedModel($type))
+            ->filter(fn (?string $type): bool => $type !== null && class_exists($type))
             ->mapWithKeys(fn (string $type): array => [
                 $type => is_a($type, Timelineable::class, true)
                     ? ['media', 'timelineEntry']

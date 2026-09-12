@@ -59,7 +59,7 @@ class ArchiveController extends Controller
         }
 
         $page = TimelineEntry::query()
-            ->whereHasMorph('timelineable', [$definition['model']], function (Builder $query) use ($taxonomy, $value) {
+            ->whereHasMorph('entry', [$definition['model']], function (Builder $query) use ($taxonomy, $value) {
                 if ($value !== null) {
                     ($taxonomy['filter'])($query, $value);
                 }

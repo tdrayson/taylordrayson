@@ -32,8 +32,8 @@ class CalorieTimelineObserver
 
         TimelineEntry::updateOrCreate(
             [
-                'timelineable_type' => Calorie::class,
-                'timelineable_id' => $firstCalorie->id,
+                'dataset' => (new Calorie)->getMorphClass(),
+                'entry_id' => $firstCalorie->id,
             ],
             [
                 'occurred_at' => $occurredAt,
@@ -54,16 +54,18 @@ class CalorieTimelineObserver
             ->orderBy('id')
             ->first();
 
+        $dataset = (new Calorie)->getMorphClass();
+
         if (! $remaining) {
-            TimelineEntry::where('timelineable_type', Calorie::class)
-                ->where('timelineable_id', $calorie->id)
+            TimelineEntry::where('dataset', $dataset)
+                ->where('entry_id', $calorie->id)
                 ->delete();
 
             return;
         }
 
-        TimelineEntry::where('timelineable_type', Calorie::class)
-            ->where('timelineable_id', $calorie->id)
-            ->update(['timelineable_id' => $remaining->id]);
+        TimelineEntry::where('dataset', $dataset)
+            ->where('entry_id', $calorie->id)
+            ->update(['entry_id' => $remaining->id]);
     }
 }
