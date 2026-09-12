@@ -3,8 +3,10 @@
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
 use App\Enums\TimelineType;
+use App\Models\Checkin;
 use App\Models\User;
 use App\Presenters\CardPresenter;
+use App\Presenters\Cards\CheckinCard;
 use App\Search\SearchSchema;
 use App\Support\TypeCatalogue;
 use App\Timeline\TypeRegistry;
@@ -26,6 +28,13 @@ it('finds a dataset by model instance and by class name', function () {
 
     expect(Datasets::forModel(User::class))->toBeNull()
         ->and(Datasets::for('nope'))->toBeNull();
+});
+
+it('resolves a subclassed timeline model to its parent dataset', function () {
+    $subclass = new class extends Checkin {};
+
+    expect(Datasets::forModel($subclass)?->type()->value)->toBe('checkin')
+        ->and(CardPresenter::card($subclass))->toBeInstanceOf(CheckinCard::class);
 });
 
 it('matches the catalogue row each type has today', function (Dataset $dataset) {

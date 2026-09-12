@@ -51,6 +51,9 @@ final class Datasets
     }
 
     /**
+     * Matches subclasses too, so a test double or specialised model still
+     * resolves to its parent's dataset.
+     *
      * @param  Model|class-string<Model>  $model
      */
     public static function forModel(Model|string $model): ?Dataset
@@ -58,7 +61,7 @@ final class Datasets
         $class = is_string($model) ? $model : $model::class;
 
         foreach (self::all() as $dataset) {
-            if ($dataset->model() === $class) {
+            if (is_a($class, $dataset->model(), true)) {
                 return $dataset;
             }
         }
