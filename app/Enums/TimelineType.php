@@ -2,6 +2,10 @@
 
 namespace App\Enums;
 
+use App\Datasets\Dataset;
+use App\Datasets\Datasets;
+use LogicException;
+
 /**
  * The single source of truth for the 13 timeline card `type` keys. Backed
  * values are the exact strings the DB, `CardData::toArray()`, and the
@@ -32,5 +36,13 @@ enum TimelineType: string
     public function accent(): string
     {
         return $this === self::Calorie ? 'food' : $this->value;
+    }
+
+    /**
+     * The dataset that describes this type.
+     */
+    public function dataset(): Dataset
+    {
+        return Datasets::for($this) ?? throw new LogicException("No dataset declared for {$this->value}.");
     }
 }
