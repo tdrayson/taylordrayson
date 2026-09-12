@@ -47,3 +47,11 @@ it('ignores a check-in that is not stored here', function () {
 
     expect(SyndicatedResponse::query()->count())->toBe(0);
 });
+
+it('fails gracefully when credentials are missing', function () {
+    config(['services.foursquare.access_token' => null]);
+
+    $this->artisan('swarm:responses')->assertFailed();
+
+    expect(SyndicatedResponse::query()->count())->toBe(0);
+});

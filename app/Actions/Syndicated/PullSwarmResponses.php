@@ -40,10 +40,22 @@ final class PullSwarmResponses
                 sourceId: (string) $comment['id'],
                 body: PortableText::fromPlainText((string) ($comment['text'] ?? '')),
                 authorPhotoUrl: self::photo($comment['user'] ?? []),
-            ), $item['comments']['items'] ?? []),
+            ), self::comments($item)),
         ];
 
         ($this->reconcile)($checkin, Source::Swarm, $responses);
+    }
+
+    /**
+     * Comments without an id cannot be keyed on, so they cannot be kept in
+     * step with the source on future runs. A wrong row is worse than missing.
+     *
+     * @param  array<string, mixed>  $item
+     * @return list<array<string, mixed>>
+     */
+    private static function comments(array $item): array
+    {
+        return array_filter($item['comments']['items'] ?? [], fn (array $comment): bool => isset($comment['id']));
     }
 
     /**
