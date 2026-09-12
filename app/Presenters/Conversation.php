@@ -56,6 +56,7 @@ final class Conversation
             // person the page belongs to, and the source is only ever an entry
             // that is already published.
             ...$target->mentions()->with('source')->get()->map(ConversationItem::fromMention(...))->all(),
+            ...$target->syndicatedResponses()->approved()->get()->map(ConversationItem::fromSyndicated(...))->all(),
         ];
 
         usort($items, fn (ConversationItem $a, ConversationItem $b): int => $b->occurredAt <=> $a->occurredAt);
