@@ -191,6 +191,26 @@ it('spends the nonce it was given', function () {
         ->toBeGreaterThanOrEqual(0);
 });
 
+it('stores a valid browser timezone, whether an IANA name or a fixed offset', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => 'America/New_York'])->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBe('America/New_York');
+
+    comment($note->id, ['author_name' => 'Sam', 'timezone' => '+05:30'], ip: '198.51.100.7')->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBe('+05:30');
+});
+
+it('discards a junk or missing timezone rather than failing the comment', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => 'Not/AZone'])->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+
+    comment($note->id, ['author_name' => 'Sam'], ip: '198.51.100.7')->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+});
+
 it('emails the person a reply answers, even when it skips the queue', function () {
     Notification::fake();
 

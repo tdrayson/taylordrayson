@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'author_photo_url',
     'content',
     'published_at',
+    'timezone',
     'status',
     'verified_at',
     'last_checked_at',

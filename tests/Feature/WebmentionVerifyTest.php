@@ -76,6 +76,42 @@ it('reads the author and the body out of a real reply', function () {
         ->and($mention->target_id)->toBe($note->id);
 });
 
+it('captures the offset a dt-published carries, so the response can render at it', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $html = <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="https://example.com/jo">Jo Bloggs</a>
+        <a class="u-in-reply-to" href="{$target}">re</a>
+        <div class="e-content">Nice one.</div>
+        <time class="dt-published" datetime="2025-11-11T18:24:00+05:30">11 Nov</time>
+    </div></body></html>
+    HTML;
+
+    $mention = verify($note, $html);
+
+    expect($mention->timezone)->toBe('+05:30');
+});
+
+it('leaves the timezone null when dt-published carries no offset at all', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $html = <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="https://example.com/jo">Jo Bloggs</a>
+        <a class="u-in-reply-to" href="{$target}">re</a>
+        <div class="e-content">Nice one.</div>
+        <time class="dt-published" datetime="2026-08-27T10:00:00">27 Aug</time>
+    </div></body></html>
+    HTML;
+
+    $mention = verify($note, $html);
+
+    expect($mention->timezone)->toBeNull();
+});
+
 it('drops a mention whose source does not actually link here', function () {
     $note = Note::factory()->create();
 

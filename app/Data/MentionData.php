@@ -21,6 +21,8 @@ final readonly class MentionData
         /** @var array<int, array<string, mixed>>|null Portable Text. */
         public ?array $content,
         public ?CarbonInterface $publishedAt,
+        /** The offset dt-published carried, captured before parsing discards it; null when it gave none. */
+        public ?string $publishedTimezone = null,
         /**
          * Set when the reply is a reacji: an in-reply-to whose whole content is
          * one emoji. IndieWeb has no property for it, so it is detected here.
