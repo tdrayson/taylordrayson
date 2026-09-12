@@ -346,7 +346,12 @@ class CheckIntegrity extends Command
         $findings = [];
 
         foreach (self::MORPH_COLUMNS as [$table, $column]) {
-            if (DB::table($table)->where($column, 'like', '%\\%')->exists()) {
+            // Not a LIKE: MySQL treats backslash as the default LIKE escape
+            // character, which would make '%\\%' match "ends with %" instead
+            // of "contains a backslash". INSTR has no escape semantics to trip over.
+            $wrapped = DB::table($table)->getGrammar()->wrap($column);
+
+            if (DB::table($table)->whereRaw("INSTR({$wrapped}, ?) > 0", ['\\'])->exists()) {
                 $findings[] = "{$table}.{$column} still holds class paths";
             }
         }

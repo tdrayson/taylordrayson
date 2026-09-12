@@ -3,6 +3,7 @@
 use App\Datasets\Datasets;
 use App\Models\Activity;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\TimelineEntry;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -33,11 +34,12 @@ it('maps every model found in a morph column', function () {
     }
 });
 
-it('names a morph alias for every model that carries attachments or a timeline entry', function () {
+it('names a morph alias for every model that carries attachments, tags, or a timeline entry', function () {
     $models = collect(glob(app_path('Models/*.php')))
         ->map(fn (string $path): string => 'App\\Models\\'.basename($path, '.php'))
         ->filter(fn (string $class): bool => in_array(HasAttachments::class, class_uses_recursive($class), true)
-            || in_array(HasTimelineEntry::class, class_uses_recursive($class), true));
+            || in_array(HasTimelineEntry::class, class_uses_recursive($class), true)
+            || in_array(HasTags::class, class_uses_recursive($class), true));
 
     foreach ($models as $class) {
         expect(array_search($class, Datasets::morphMap(), true))->not->toBeFalse("{$class} can be a morph target but has no alias.");
