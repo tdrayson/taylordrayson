@@ -5,7 +5,6 @@ use App\Mcp\Tools\Timeline;
 use App\Models\Flight;
 use App\Support\OgRenderer;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Mcp\Request;
 
 it('resolves a live key to its dataset', function () {
     expect(array_map(fn ($dataset) => $dataset->type()->value, Datasets::resolve('flight')))->toBe(['flight'])
@@ -18,6 +17,8 @@ it('resolves nothing for an unknown key', function () {
 });
 
 it('points every alias at live keys only', function () {
+    expect(Datasets::ALIASES)->toBeArray();
+
     foreach (Datasets::ALIASES as $alias => $targets) {
         expect(Datasets::for($alias))->toBeNull("{$alias} is both a live key and an alias.");
 
@@ -50,15 +51,10 @@ it('filters the feed to a live key via ?types=', function () {
 it('returns flights for a live key via the mcp timeline tool', function () {
     Flight::factory()->create(['occurred_at' => now()]);
 
-    $response = app(Timeline::class)->handle(new Request([
-        'from' => now()->toDateString(),
-        'type' => 'flight',
-    ]));
+    $result = callTool(Timeline::class, ['from' => now()->toDateString(), 'type' => 'flight']);
 
-    $data = json_decode($response->content()->toArray()['text'], true);
-
-    expect($data['count'])->toBe(1)
-        ->and($data['entries'][0]['type'])->toBe('flight');
+    expect($result['data']['count'])->toBe(1)
+        ->and($result['data']['entries'][0]['type'])->toBe('flight');
 });
 
 it('serves the og preview for a live key', function () {

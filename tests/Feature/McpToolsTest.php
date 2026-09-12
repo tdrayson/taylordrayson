@@ -9,23 +9,11 @@ use App\Mcp\Tools\SearchFields;
 use App\Mcp\Tools\Stats;
 use App\Mcp\Tools\Timeline;
 use App\Models\Sleep;
-use Laravel\Mcp\Request;
 
 /*
  * The purpose-built tools, which exist so that answering an ordinary question
  * does not require writing SQL against a schema the caller has to learn first.
  */
-
-/**
- * @return array{error: bool, data: mixed, text: string}
- */
-function callTool(string $tool, array $arguments = []): array
-{
-    $response = app($tool)->handle(new Request($arguments));
-    $text = $response->content()->toArray()['text'];
-
-    return ['error' => $response->isError(), 'data' => json_decode($text, true), 'text' => $text];
-}
 
 function aNight(string $date = '2026-08-26', array $overrides = []): Sleep
 {
