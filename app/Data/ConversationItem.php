@@ -5,9 +5,11 @@ namespace App\Data;
 use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
+use App\Models\Concerns\Timelineable;
 use App\Models\Mention;
 use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
+use App\Support\EntryInstant;
 use App\Support\EntryName;
 use App\Support\LocalTime;
 use App\Support\PortableText;
@@ -46,13 +48,15 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $sourceUrl,
         /** The emoji actually sent, for a reacji; null for everything else. */
         public ?string $emoji,
+        /** The entry's timezone, so every response in its stream renders on the same clock; null renders as home time. */
+        public ?string $timezone,
         /** The service a syndicated response came from; null for everything else. */
         public ?string $source = null,
         /** The same service, as it is said out loud ("Strava"); null for everything else. */
         public ?string $sourceName = null,
     ) {}
 
-    public static function fromComment(Comment $comment): self
+    public static function fromComment(Comment $comment, ?string $timezone): self
     {
         return new self(
             id: $comment->fragment(),
@@ -67,10 +71,11 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: $comment->id,
             sourceUrl: null,
             emoji: null,
+            timezone: $timezone,
         );
     }
 
-    public static function fromWebmention(Webmention $mention): self
+    public static function fromWebmention(Webmention $mention, ?string $timezone): self
     {
         $kind = $mention->kind()?->value ?? WebmentionKind::Mention->value;
         $isReacji = $kind === WebmentionKind::Reacji->value;
@@ -93,6 +98,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $mention->source_url,
             emoji: $isReacji ? trim(PortableText::plainText($mention->content ?? [])) : null,
+            timezone: $timezone,
         );
     }
 
@@ -102,7 +108,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
      * Carries no microformats: nothing here linked back, so publishing it as an
      * h-cite would tell a parser something that is not true.
      */
-    public static function fromSyndicated(SyndicatedResponse $response): self
+    public static function fromSyndicated(SyndicatedResponse $response, ?string $timezone): self
     {
         return new self(
             id: 'syndicated-'.$response->id,
@@ -119,6 +125,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $response->url,
             emoji: $response->emoji,
+            timezone: $timezone,
             source: $response->source,
             sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
         );
@@ -131,9 +138,17 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
      * publish the same words on two pages and in two feeds; the title and the
      * link are what the reader needs to get to it.
      */
-    public static function fromMention(Mention $mention): self
+    public static function fromMention(Mention $mention, ?string $timezone): self
     {
         $source = $mention->source;
+        $sourceTimezone = $source instanceof Timelineable ? $source->timezone() : null;
+
+        // occurred_at is a wall-clock reading, not an instant: it must be
+        // converted using the source's own timezone, which may differ from
+        // the timezone this item is rendered in.
+        $occurredAt = $source->occurred_at !== null
+            ? EntryInstant::utc($source->occurred_at, $sourceTimezone)
+            : null;
 
         return new self(
             id: 'linked-'.$mention->id,
@@ -145,11 +160,12 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             authorPhoto: (string) config('feed.author_photo'),
             title: self::titleOf($source),
             body: null,
-            occurredAt: $source->occurred_at ?? $source->created_at,
+            occurredAt: $occurredAt ?? $source->created_at,
             parentId: null,
             commentId: null,
             sourceUrl: $source->url(),
             emoji: null,
+            timezone: $timezone,
         );
     }
 
@@ -207,8 +223,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'title' => $this->title,
             'body' => $this->body,
             // The site's timestamp shape, formatted server-side like every
-            // other one: a comment is a real instant, shown in home time.
-            'occurredAt' => LocalTime::for($this->occurredAt, null),
+            // other one: every response here is a real instant, converted
+            // into the entry's own timezone so one stream shares one clock.
+            'occurredAt' => LocalTime::forInstant($this->occurredAt, $this->timezone),
             'parentId' => $this->parentId,
             'commentId' => $this->commentId,
             'sourceUrl' => $this->sourceUrl,

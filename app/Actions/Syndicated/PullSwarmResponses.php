@@ -6,6 +6,7 @@ use App\Data\SyndicatedResponseData;
 use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use App\Models\Checkin;
+use App\Support\EntryInstant;
 use App\Support\PortableText;
 use Carbon\Carbon;
 
@@ -27,11 +28,17 @@ final class PullSwarmResponses
         $likers = self::likers($item);
         $likesAmbiguous = self::likesAmbiguous($item, $likers);
 
+        // occurred_at is a wall-clock reading, not an instant: a like has no
+        // timestamp of its own, so it borrows the check-in's, converted via
+        // the check-in's own timezone. A comment missing its own createdAt
+        // falls back to the same converted instant.
+        $checkinOccurredAt = EntryInstant::utc($checkin->occurred_at, $checkin->timezone()) ?? $checkin->occurred_at;
+
         $responses = [
             ...($likesAmbiguous ? [] : array_map(fn (array $user): SyndicatedResponseData => new SyndicatedResponseData(
                 kind: WebmentionKind::Like,
                 authorName: self::name($user),
-                occurredAt: $checkin->occurred_at,
+                occurredAt: $checkinOccurredAt,
                 sourceId: null,
                 authorPhotoUrl: self::photo($user),
             ), $likers)),
@@ -39,7 +46,9 @@ final class PullSwarmResponses
             ...array_map(fn (array $comment): SyndicatedResponseData => new SyndicatedResponseData(
                 kind: WebmentionKind::Reply,
                 authorName: self::name($comment['user'] ?? []),
-                occurredAt: Carbon::createFromTimestamp($comment['createdAt'] ?? $checkin->occurred_at->timestamp),
+                occurredAt: isset($comment['createdAt'])
+                    ? Carbon::createFromTimestamp($comment['createdAt'])
+                    : $checkinOccurredAt,
                 sourceId: (string) $comment['id'],
                 body: PortableText::fromPlainText((string) ($comment['text'] ?? '')),
                 authorPhotoUrl: self::photo($comment['user'] ?? []),

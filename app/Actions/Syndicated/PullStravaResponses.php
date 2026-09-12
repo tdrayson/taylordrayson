@@ -7,6 +7,7 @@ use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use App\Models\Activity;
 use App\Services\Strava\Client;
+use App\Support\EntryInstant;
 use App\Support\PortableText;
 use Carbon\Carbon;
 
@@ -40,11 +41,16 @@ final class PullStravaResponses
 
         $url = $activity->platform_url;
 
+        // occurred_at is a wall-clock reading, not an instant: a kudo has no
+        // timestamp of its own, so it borrows the activity's, converted via
+        // the activity's own timezone.
+        $kudoOccurredAt = EntryInstant::utc($activity->occurred_at, $activity->timezone()) ?? $activity->occurred_at;
+
         ($this->reconcile)($activity, Source::Strava, [
             ...array_map(fn (array $athlete): SyndicatedResponseData => new SyndicatedResponseData(
                 kind: WebmentionKind::Like,
                 authorName: self::name($athlete),
-                occurredAt: $activity->occurred_at,
+                occurredAt: $kudoOccurredAt,
                 url: $url,
             ), $kudos),
 
