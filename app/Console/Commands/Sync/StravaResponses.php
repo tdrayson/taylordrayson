@@ -55,7 +55,7 @@ class StravaResponses extends Command
         $pulled = 0;
         $stoppedAt = null;
 
-        foreach ($this->summaries($strava, $after) as $summary) {
+        foreach ($this->summaries($strava, $after, $spent) as $summary) {
             $sourceId = (string) $summary['id'];
 
             // Summaries come back newest first, so everything down to the
@@ -89,6 +89,14 @@ class StravaResponses extends Command
             $pulled++;
         }
 
+        // The stream ended without ever meeting the id we were told to resume
+        // past: it's gone, or the walk changed shape. Holding onto it would
+        // stall every future backfill, so it is dropped rather than kept.
+        if ($resumeAfter !== null && $resuming) {
+            $stoppedAt = null;
+            $this->warn('The stored cursor never turned up; found nothing to resume from. Starting from the top next run.');
+        }
+
         $this->rememberCursor($all, $stoppedAt);
 
         if ($stoppedAt !== null) {
@@ -116,9 +124,8 @@ class StravaResponses extends Command
     }
 
     /**
-     * How many likes and replies we already hold per activity, which is what
-     * the summary counts are compared against. Counted rather than stored, so
-     * nothing can drift out of step with the rows themselves.
+     * How many likes and replies we already hold per activity, counted rather
+     * than stored so it can't drift out of step with the rows themselves.
      *
      * @return Collection<int, array{like: int, reply: int}>
      */
@@ -152,14 +159,21 @@ class StravaResponses extends Command
     }
 
     /**
-     * Every summary in the window, newest first.
+     * Every summary in the window, newest first. A page fetch spends from the
+     * same budget as a pull, so a long walk stops paging rather than overrun it.
      *
+     * @param  int  $spent  Passed by reference: incremented per page fetched.
      * @return iterable<array<string, mixed>>
      */
-    private function summaries(Client $strava, ?int $after): iterable
+    private function summaries(Client $strava, ?int $after, int &$spent): iterable
     {
         for ($page = 1; ; $page++) {
+            if ($spent + 1 > self::MAX_REQUESTS) {
+                return;
+            }
+
             $summaries = $strava->activitiesPage($page, self::PER_PAGE, $after);
+            $spent++;
 
             if (blank($summaries)) {
                 return;
