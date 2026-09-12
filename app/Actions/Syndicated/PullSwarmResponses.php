@@ -24,14 +24,17 @@ final class PullSwarmResponses
      */
     public function __invoke(Checkin $checkin, array $item): void
     {
+        $likers = self::likers($item);
+        $likesAmbiguous = self::likesAmbiguous($item, $likers);
+
         $responses = [
-            ...array_map(fn (array $user): SyndicatedResponseData => new SyndicatedResponseData(
+            ...($likesAmbiguous ? [] : array_map(fn (array $user): SyndicatedResponseData => new SyndicatedResponseData(
                 kind: WebmentionKind::Like,
                 authorName: self::name($user),
                 occurredAt: $checkin->occurred_at,
                 sourceId: null,
                 authorPhotoUrl: self::photo($user),
-            ), self::likers($item)),
+            ), $likers)),
 
             ...array_map(fn (array $comment): SyndicatedResponseData => new SyndicatedResponseData(
                 kind: WebmentionKind::Reply,
@@ -43,7 +46,20 @@ final class PullSwarmResponses
             ), self::comments($item)),
         ];
 
-        ($this->reconcile)($checkin, Source::Swarm, $responses);
+        ($this->reconcile)($checkin, Source::Swarm, $responses, $likesAmbiguous ? [WebmentionKind::Like] : []);
+    }
+
+    /**
+     * A positive count with no resolvable liker items means the likers aren't
+     * visible to us, not that nobody liked it. Strava has the same "null means
+     * we don't know" guard for a failed request; this is Swarm's equivalent.
+     *
+     * @param  array<string, mixed>  $item
+     * @param  list<array<string, mixed>>  $likers
+     */
+    private static function likesAmbiguous(array $item, array $likers): bool
+    {
+        return ($item['likes']['count'] ?? 0) > 0 && $likers === [];
     }
 
     /**

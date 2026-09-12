@@ -78,6 +78,21 @@ it('skips a comment with no id while storing a sibling that has one', function (
         ->and($response->author_name)->toBe('Bob');
 });
 
+// Foursquare can report a positive count with no resolvable liker items, e.g.
+// when the likers aren't visible to us. That is "we don't know", not "nobody
+// liked this", and must not wipe the like we already hold.
+it('leaves a stored like untouched when the count is positive but no likers resolve', function () {
+    Http::fake(['fastly.4sqi.net/*' => Http::response('', 404)]);
+
+    $checkin = Checkin::factory()->create(['source' => Source::Swarm->value, 'source_id' => 'abc']);
+    $pull = app(PullSwarmResponses::class);
+
+    $pull($checkin, ['likes' => ['count' => 1, 'groups' => [['items' => [swarmLike('1', 'Luke Allen')]]]]]);
+    $pull($checkin, ['likes' => ['count' => 1, 'groups' => []]]);
+
+    expect($checkin->syndicatedResponses()->sole()->author_name)->toBe('Luke Allen');
+});
+
 it('stores likers from multiple groups', function () {
     Http::fake(['fastly.4sqi.net/*' => Http::response('', 404)]);
 
