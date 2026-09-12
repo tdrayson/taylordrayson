@@ -4,7 +4,11 @@ namespace App\Presenters;
 
 use App\Data\ConversationData;
 use App\Data\ConversationItem;
+use App\Models\Comment;
 use App\Models\Concerns\Timelineable;
+use App\Models\Mention;
+use App\Models\SyndicatedResponse;
+use App\Models\Webmention;
 use App\Queries\ReactionsFor;
 use App\Support\InteractionTarget;
 use Illuminate\Database\Eloquent\Model;
@@ -56,13 +60,13 @@ final class Conversation
     private static function responses(Model $target, ?string $timezone): array
     {
         $items = [
-            ...$target->comments()->approved()->get()->map(fn ($comment) => ConversationItem::fromComment($comment, $timezone))->all(),
-            ...$target->webmentions()->approved()->get()->map(fn ($mention) => ConversationItem::fromWebmention($mention, $timezone))->all(),
+            ...$target->comments()->approved()->get()->map(fn (Comment $comment): ConversationItem => ConversationItem::fromComment($comment, $timezone))->all(),
+            ...$target->webmentions()->approved()->get()->map(fn (Webmention $mention): ConversationItem => ConversationItem::fromWebmention($mention, $timezone))->all(),
             // No moderation state to filter on: these are written by the same
             // person the page belongs to, and the source is only ever an entry
             // that is already published.
-            ...$target->mentions()->with('source')->get()->map(fn ($mention) => ConversationItem::fromMention($mention, $timezone))->all(),
-            ...$target->syndicatedResponses()->approved()->get()->map(fn ($response) => ConversationItem::fromSyndicated($response, $timezone))->all(),
+            ...$target->mentions()->with('source')->get()->map(fn (Mention $mention): ConversationItem => ConversationItem::fromMention($mention, $timezone))->all(),
+            ...$target->syndicatedResponses()->approved()->get()->map(fn (SyndicatedResponse $response): ConversationItem => ConversationItem::fromSyndicated($response, $timezone))->all(),
         ];
 
         usort($items, fn (ConversationItem $a, ConversationItem $b): int => $b->occurredAt <=> $a->occurredAt);

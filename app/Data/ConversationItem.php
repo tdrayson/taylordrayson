@@ -129,9 +129,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $response->url,
             emoji: $response->emoji,
-            // Strava and Swarm carry no author timezone, so this stays null
-            // and falls back to the entry's, same as before.
-            timezone: $response->timezone ?? $timezone,
+            // Strava and Swarm carry no author timezone, so this always falls
+            // back to the entry's, same as before.
+            timezone: $timezone,
             source: $response->source,
             sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
         );

@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Schema;
  *
  * An IANA name or a fixed offset ("+05:30"), Carbon::setTimezone accepts both.
  * Null means no author timezone is known, and rendering falls back to the
- * entry's own timezone as it already does.
+ * entry's own timezone as it already does. Syndicated responses carry no such
+ * column: neither Strava nor Swarm ever reports an author timezone, so there
+ * is nothing for it to hold.
  */
 return new class extends Migration
 {
@@ -24,10 +26,6 @@ return new class extends Migration
         Schema::table('webmentions', function (Blueprint $table): void {
             $table->string('timezone')->nullable()->after('published_at');
         });
-
-        Schema::table('syndicated_responses', function (Blueprint $table): void {
-            $table->string('timezone')->nullable()->after('occurred_at');
-        });
     }
 
     public function down(): void
@@ -37,10 +35,6 @@ return new class extends Migration
         });
 
         Schema::table('webmentions', function (Blueprint $table): void {
-            $table->dropColumn('timezone');
-        });
-
-        Schema::table('syndicated_responses', function (Blueprint $table): void {
             $table->dropColumn('timezone');
         });
     }
