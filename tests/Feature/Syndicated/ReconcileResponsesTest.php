@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Syndicated\ReconcileResponses;
+use App\Actions\Webmentions\StoreAuthorPhoto;
 use App\Data\SyndicatedResponseData;
 use App\Enums\Source;
 use App\Enums\WebmentionKind;
@@ -99,4 +100,31 @@ it('removes every comment when the source reports none at all', function () {
     $reconcile($note, Source::Strava, []);
 
     expect($note->syndicatedResponses()->count())->toBe(0);
+});
+
+// The delete-then-rewrite spans a third-party photo fetch per row, so a
+// failure partway through must not leave the entry with its responses gone.
+it('leaves stored responses untouched when a write fails partway through', function () {
+    $note = Note::factory()->create();
+    SyndicatedResponse::factory()->for($note, 'target')->create([
+        'source' => Source::Strava->value, 'kind' => WebmentionKind::Like, 'author_name' => 'Existing',
+    ]);
+
+    $calls = 0;
+    $photo = Mockery::mock(StoreAuthorPhoto::class);
+    $photo->shouldReceive('__invoke')->andReturnUsing(function () use (&$calls) {
+        $calls++;
+
+        if ($calls === 2) {
+            throw new RuntimeException('boom');
+        }
+
+        return null;
+    });
+    app()->instance(StoreAuthorPhoto::class, $photo);
+
+    expect(fn () => app(ReconcileResponses::class)($note, Source::Strava, [kudo('One'), kudo('Two')]))
+        ->toThrow(RuntimeException::class);
+
+    expect($note->syndicatedResponses()->sole()->author_name)->toBe('Existing');
 });
