@@ -4,6 +4,7 @@ use App\Actions\Syndicated\PullStravaResponses;
 use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use App\Models\Activity;
+use App\Models\SyndicatedResponse;
 use App\Support\PortableText;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -75,4 +76,23 @@ it('does nothing at all for an activity that did not come from Strava', function
 
     expect($activity->syndicatedResponses()->count())->toBe(0);
     Saloon::assertNothingSent();
+});
+
+// Null is a failed request, not an empty list. This is the one branch standing
+// between an API blip and wiping every response already stored on an activity.
+it('leaves stored responses untouched when the kudos request fails', function () {
+    $activity = stravaActivity();
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value, 'kind' => WebmentionKind::Like, 'author_name' => 'Existing',
+    ]);
+
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/api/v3/activities/778/kudos' => MockResponse::make([], 500),
+        '/api/v3/activities/778/comments' => MockResponse::make([]),
+    ]);
+
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->sole()->author_name)->toBe('Existing');
 });
