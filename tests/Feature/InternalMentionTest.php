@@ -4,6 +4,7 @@ use App\Models\Article;
 use App\Models\Checkin;
 use App\Models\Mention;
 use App\Models\Note;
+use App\Models\Project;
 use App\Models\Sleep;
 use App\Support\PortableText;
 
@@ -176,4 +177,24 @@ it('records a mention from a description, not just from a written body', functio
     $checkin->update(['description' => 'Nothing linked here now.']);
 
     expect(Mention::query()->count())->toBe(0);
+});
+
+/**
+ * A project is standing content that describes a thing, so it links to the
+ * posts about that thing more than most types do. It used to record nothing,
+ * because the source was held to the same allowlist as the target.
+ */
+it('records a mention from a project, which links out more than most', function () {
+    $article = Article::factory()->create(['published' => true]);
+
+    // A project's prose is a plain description, which is autolinked on the way
+    // in, so the link has to be written out in full.
+    $project = Project::factory()->create([
+        'description' => 'Written up at '.config('app.url').$article->url(),
+    ]);
+
+    $mention = Mention::query()->sole();
+
+    expect($mention->source_id)->toBe($project->id)
+        ->and($mention->target_type)->toBe($article->getMorphClass());
 });
