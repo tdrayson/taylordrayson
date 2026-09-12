@@ -24,6 +24,10 @@ Schedule::command('strava:sync --days=2')->everyFiveMinutes()->withoutOverlappin
 // activity in the last two days: a handful, and only once an hour.
 Schedule::command('strava:sync --days=2 --refresh')->hourly()->withoutOverlapping();
 
+// Kudos and comments left on an activity after it published. Only the
+// summary counts are checked each run, so a quiet activity costs nothing.
+Schedule::command('strava:responses')->hourly()->withoutOverlapping();
+
 // Keep the recent food diary fresh in near real time, re-checking the last few
 // days so food logged late for an earlier day is picked up.
 Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping();
