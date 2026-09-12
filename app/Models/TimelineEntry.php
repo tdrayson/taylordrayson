@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Datasets\Dataset;
+use App\Datasets\Datasets;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
-use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -163,8 +164,8 @@ class TimelineEntry extends Model implements Feedable
     /**
      * Resolve the requested timelineable models from the feed query string:
      * `?filter=` selects a named preset, `?types=` a comma-separated list of
-     * TypeRegistry keys. Unknown presets/types are ignored, and an empty or
-     * absent selection returns null so the feed falls back to every type.
+     * dataset keys or aliases. Unknown presets/types are ignored, and an empty
+     * or absent selection returns null so the feed falls back to every type.
      *
      * @return array<int, class-string>|null
      */
@@ -176,20 +177,20 @@ class TimelineEntry extends Model implements Feedable
         if (is_string($filter = $request->query('filter'))) {
             $keys = FeedPresets::types($filter);
         } elseif (is_string($types = $request->query('types'))) {
-            $keys = array_filter(
-                explode(',', $types),
-                fn (string $key): bool => TypeRegistry::find(trim($key)) !== null,
-            );
+            $keys = explode(',', $types);
         }
 
         if (empty($keys)) {
             return null;
         }
 
-        return collect($keys)
-            ->map(fn (string $key): string => TypeRegistry::find(trim($key))['model'])
+        $models = collect($keys)
+            ->flatMap(fn (string $key): array => Datasets::resolve(trim($key)))
+            ->map(fn (Dataset $dataset): string => $dataset->model())
             ->unique()
             ->values()
             ->all();
+
+        return $models === [] ? null : $models;
     }
 }

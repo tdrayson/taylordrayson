@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Actions\Og\OgGalleryUrls;
+use App\Datasets\Datasets;
 use App\Models\TimelineEntry;
 use App\Support\OgRenderer;
 use Illuminate\Http\Request;
@@ -102,9 +103,10 @@ class OgImageController extends Controller
      */
     public function preview(string $type): BinaryFileResponse
     {
+        $type = Datasets::resolveOne($type)?->type()->value;
         $cards = $this->galleryUrls->sampleCards();
 
-        abort_unless(isset($cards[$type]), 404);
+        abort_unless($type !== null && isset($cards[$type]), 404);
 
         $disk = Storage::disk('local');
         $directory = 'og/'.OgRenderer::generation().'/preview';

@@ -51,6 +51,42 @@ final class Datasets
     }
 
     /**
+     * Keys that no longer exist but are still accepted from outside, mapped to what replaced them.
+     *
+     * @var array<string, list<string>>
+     */
+    public const ALIASES = [];
+
+    /**
+     * Every dataset a key names: itself when live, its replacements when an alias.
+     *
+     * @return list<Dataset>
+     */
+    public static function resolve(string $key): array
+    {
+        $key = trim($key);
+
+        if (($dataset = self::for($key)) !== null) {
+            return [$dataset];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (string $target): ?Dataset => self::for($target),
+            self::ALIASES[$key] ?? [],
+        )));
+    }
+
+    /**
+     * The single dataset a key names, or null when it names none or several.
+     */
+    public static function resolveOne(string $key): ?Dataset
+    {
+        $datasets = self::resolve($key);
+
+        return count($datasets) === 1 ? $datasets[0] : null;
+    }
+
+    /**
      * Matches subclasses too, so a test double or specialised model still
      * resolves to its parent's dataset.
      *

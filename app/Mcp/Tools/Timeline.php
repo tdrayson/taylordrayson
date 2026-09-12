@@ -2,9 +2,9 @@
 
 namespace App\Mcp\Tools;
 
+use App\Datasets\Datasets;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
-use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -31,13 +31,13 @@ class Timeline extends Tool
             ->whereBetween('occurred_at', [$input['from'].' 00:00:00', $to.' 23:59:59']);
 
         if (isset($input['type'])) {
-            $definition = TypeRegistry::find($input['type']);
+            $dataset = Datasets::resolveOne($input['type']);
 
-            if ($definition === null) {
+            if ($dataset === null) {
                 return Response::error("No type called {$input['type']}. Call data_freshness to list them.");
             }
 
-            $query->where('timelineable_type', (new $definition['model'])->getMorphClass());
+            $query->where('timelineable_type', (new ($dataset->model()))->getMorphClass());
         }
 
         $entries = $query
