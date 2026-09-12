@@ -26,7 +26,7 @@ export const entryTypes = { ...timelineTypes, ...linkTypes, ...authoringTypes };
  * so a new server-side type renders as a plain entry rather than breaking.
  *
  * @param {string} type a type key, e.g. 'activity' or 'tag'
- * @returns {{icon: string, label: string, accent: string, plural?: string, href?: string, keywords?: string}}
+ * @returns {{icon: string, label: string, accent: string, plural?: string, href?: string, keywords?: string, noun?: string, nounPlural?: string, kind?: string}}
  */
 export function entryType(type) {
     return entryTypes[type] ?? { icon: 'StickyNote02Icon', label: type, accent: 'note' };

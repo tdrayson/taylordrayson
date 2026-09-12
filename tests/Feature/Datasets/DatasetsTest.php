@@ -8,6 +8,7 @@ use App\Presenters\CardPresenter;
 use App\Search\SearchSchema;
 use App\Support\TypeCatalogue;
 use App\Timeline\TypeRegistry;
+use Illuminate\Support\Str;
 
 it('declares one dataset per timeline type, in enum order', function () {
     expect(array_keys(Datasets::all()))->toBe(array_column(TimelineType::cases(), 'value'));
@@ -107,4 +108,22 @@ it('groups every type into a kind', function () {
         'article' => 'writing',
         'note' => 'writing',
     ]);
+});
+
+it('publishes count nouns and kind to the frontend module', function () {
+    foreach (Datasets::all() as $key => $dataset) {
+        $row = TypeCatalogue::for($key)->toArray();
+
+        expect($row['noun'])->toBe($dataset->countNouns()[0])
+            ->and($row['nounPlural'])->toBe($dataset->countNouns()[1])
+            ->and($row['kind'])->toBe($dataset->kind()->value);
+    }
+});
+
+it('has an entry detail component for every dataset', function () {
+    foreach (Datasets::all() as $key => $dataset) {
+        $component = base_path('resources/js/Components/Entry/'.Str::studly($key).'Detail.vue');
+
+        expect(file_exists($component))->toBeTrue("{$key} has no ".basename($component).'.');
+    }
 });

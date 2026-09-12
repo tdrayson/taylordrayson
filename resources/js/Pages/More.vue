@@ -5,7 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
-import { entryTypes } from '../entryTypes.js';
+import { entryTypes, timelineTypes } from '../entryTypes.js';
 import { number } from '../lib/format.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -20,26 +20,12 @@ setLayoutProps({
     breadcrumb: [{ label: 'More' }],
 });
 
-// What a count represents, per type: [singular, plural].
-const NOUNS = {
-    activity: ['activity', 'activities'],
-    sleep: ['night', 'nights'],
-    calorie: ['day', 'days'],
-    media: ['logged', 'logged'],
-    event: ['event', 'events'],
-    appearance: ['appearance', 'appearances'],
-    podcast: ['episode', 'episodes'],
-    flight: ['flight', 'flights'],
-    checkin: ['check-in', 'check-ins'],
-    fuel: ['fill-up', 'fill-ups'],
-    project: ['project', 'projects'],
-    article: ['article', 'articles'],
-    note: ['note', 'notes'],
-};
-
-// "1 project" but "16 articles".
+// "1 project" but "16 articles". Nouns come from each dataset via types.generated.js;
+// anything unknown counts as entries rather than breaking the row.
 function countLabel(item) {
-    const [singular, plural] = NOUNS[item.type] ?? ['entry', 'entries'];
+    const type = timelineTypes[item.type];
+    const singular = type?.noun ?? 'entry';
+    const plural = type?.nounPlural ?? 'entries';
 
     return `${number(item.count)} ${item.count === 1 ? singular : plural}`;
 }

@@ -9,19 +9,6 @@ import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import { entryType } from '../entryTypes.js';
 
-import ActivityDetail from '../Components/Entry/ActivityDetail.vue';
-import SleepDetail from '../Components/Entry/SleepDetail.vue';
-import CalorieDetail from '../Components/Entry/CalorieDetail.vue';
-import MediaDetail from '../Components/Entry/MediaDetail.vue';
-import EventDetail from '../Components/Entry/EventDetail.vue';
-import AppearanceDetail from '../Components/Entry/AppearanceDetail.vue';
-import PodcastDetail from '../Components/Entry/PodcastDetail.vue';
-import FlightDetail from '../Components/Entry/FlightDetail.vue';
-import CheckinDetail from '../Components/Entry/CheckinDetail.vue';
-import FuelDetail from '../Components/Entry/FuelDetail.vue';
-import ProjectDetail from '../Components/Entry/ProjectDetail.vue';
-import ArticleDetail from '../Components/Entry/ArticleDetail.vue';
-import NoteDetail from '../Components/Entry/NoteDetail.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { provideLinkContext } from '../lib/linkContext.js';
@@ -73,24 +60,17 @@ const editorValues = computed(() => valuesFor(props.fields, {
     tags: (props.entry.tags ?? []).map((tag) => tag.name),
 }));
 
-const DETAIL_COMPONENTS = {
-    activity: ActivityDetail,
-    sleep: SleepDetail,
-    calorie: CalorieDetail,
-    media: MediaDetail,
-    event: EventDetail,
-    appearance: AppearanceDetail,
-    podcast: PodcastDetail,
-    flight: FlightDetail,
-    checkin: CheckinDetail,
-    fuel: FuelDetail,
-    project: ProjectDetail,
-    article: ArticleDetail,
-    note: NoteDetail,
-};
+// Every *Detail.vue, eagerly bundled as the static imports were. A type's detail is
+// found by convention: 'checkin' renders CheckinDetail, 'this-week-with' ThisWeekWithDetail.
+const detailModules = import.meta.glob('../Components/Entry/*Detail.vue', { eager: true, import: 'default' });
+
+// Turn a type key into its component file name, e.g. 'this-week-with' -> 'ThisWeekWith'.
+function studly(key) {
+    return key.split(/[-_]/).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+}
 
 const meta = computed(() => entryType(props.type));
-const detailComponent = computed(() => DETAIL_COMPONENTS[props.type] ?? null);
+const detailComponent = computed(() => detailModules[`../Components/Entry/${studly(props.type)}Detail.vue`] ?? null);
 const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
 
 // Linkable tags for the shared footer; only taggable types carry the key.
