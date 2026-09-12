@@ -5,9 +5,13 @@ use App\Models\Activity;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
+use App\Models\Note;
 use App\Models\TimelineEntry;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 it('keys every dataset model by its dataset key', function () {
@@ -25,10 +29,33 @@ it('stores the dataset key, not a class path, on a new timeline entry', function
 });
 
 it('maps every model found in a morph column', function () {
+    // One row per morph column, so the assertions below can never run over an
+    // empty table and pass vacuously.
+    Storage::fake('public');
+
+    Activity::factory()->create();
+
+    $note = Note::factory()->create();
+    $note->addMedia(UploadedFile::fake()->image('photo.jpg', 20, 20))->toMediaCollection('photos');
+    $note->syncTagNames(['Coffee']);
+
+    User::factory()->create()->oauthApps()->create([
+        'name' => 'Test Client',
+        'redirect_uris' => ['https://example.com/callback'],
+        'grant_types' => ['authorization_code'],
+        'revoked' => false,
+    ]);
+
+    expect(DB::table('timeline_entries')->value('dataset'))->not->toBeNull();
+
     $columns = ['timeline_entries' => 'dataset', 'attachments' => 'model_type', 'taggables' => 'taggable_type', 'oauth_clients' => 'owner_type'];
 
     foreach ($columns as $table => $column) {
-        foreach (DB::table($table)->whereNotNull($column)->distinct()->pluck($column) as $value) {
+        $values = DB::table($table)->whereNotNull($column)->distinct()->pluck($column);
+
+        expect($values)->not->toBeEmpty("{$table}.{$column} has no rows to check the morph map against.");
+
+        foreach ($values as $value) {
             expect(Relation::getMorphedModel($value))->not->toBeNull("{$table}.{$column} holds {$value}, which the morph map does not know.");
         }
     }
