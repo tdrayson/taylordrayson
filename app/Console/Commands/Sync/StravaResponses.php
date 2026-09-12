@@ -8,6 +8,7 @@ use App\Enums\WebmentionKind;
 use App\Models\Activity;
 use App\Models\SyndicatedResponse;
 use App\Services\Strava\Client;
+use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -26,6 +27,13 @@ class StravaResponses extends Command
 
     private const PER_PAGE = 100;
 
+    /**
+     * Upper bound on the automatic catch-up: if the newest stored response is
+     * older than this, only the most recent window is fetched. A longer gap is
+     * a job for --all, not a cron run.
+     */
+    private const MAX_CATCHUP_DAYS = 90;
+
     public function handle(Client $strava, PullStravaResponses $pull): int
     {
         if (! $strava->token()) {
@@ -35,7 +43,7 @@ class StravaResponses extends Command
         }
 
         $all = (bool) $this->option('all');
-        $after = $all ? null : now()->subDays((int) $this->option('days'))->timestamp;
+        $after = $all ? null : $this->resolveAfterTimestamp();
 
         $stored = Activity::query()
             ->where('source', Source::Strava->value)
@@ -121,6 +129,34 @@ class StravaResponses extends Command
         $stoppedAt === null
             ? Cache::forget(self::CURSOR)
             : Cache::put(self::CURSOR, $stoppedAt, now()->addWeek());
+    }
+
+    /**
+     * The unix timestamp to ask Strava for activities after. Normally --days
+     * back, but the window stretches to the newest response we already hold
+     * when a missed run has opened a longer gap, so a cron outage does not
+     * strand an activity's kudos and comments permanently.
+     */
+    private function resolveAfterTimestamp(): int
+    {
+        $window = now()->subDays(max(0, (int) $this->option('days')));
+
+        /** @var string|null $newest */
+        $newest = SyndicatedResponse::query()->where('source', Source::Strava->value)->max('occurred_at');
+
+        if ($newest === null) {
+            return $window->timestamp;
+        }
+
+        $healFrom = Carbon::parse($newest);
+        $cap = now()->subDays(self::MAX_CATCHUP_DAYS);
+
+        if ($healFrom->lt($cap)) {
+            $this->warn(sprintf('Newest response predates %s; catching up only that far.', $cap->toDateString()));
+            $healFrom = $cap;
+        }
+
+        return $healFrom->min($window)->timestamp;
     }
 
     /**

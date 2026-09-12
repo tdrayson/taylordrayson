@@ -4,11 +4,13 @@ use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use App\Models\Activity;
 use App\Models\SyndicatedResponse;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(fn () => config(['services.strava.refresh_token' => 'test-token']));
+afterEach(fn () => Carbon::setTestNow());
 
 /**
  * One page of summaries, then the empty page that ends pagination.
@@ -150,4 +152,49 @@ it('counts summary page fetches against the same budget as pulls', function () {
     $this->artisan('strava:responses --all')->assertSuccessful();
 
     expect($calls)->toBe(150);
+});
+
+// A missed run should not strand an activity's responses past --days: the
+// window widens to the newest response already held, the way strava:sync
+// widens to the newest stored activity.
+it('widens the window to the newest stored response when a gap is longer than --days', function () {
+    Carbon::setTestNow('2026-01-15 00:00:00');
+
+    $activity = Activity::factory()->create([
+        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subDays(15),
+    ]);
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value, 'kind' => WebmentionKind::Like, 'occurred_at' => now()->subDays(15),
+    ]);
+
+    fakeSummaries([]);
+
+    $this->artisan('strava:responses')->assertSuccessful();
+
+    $expected = now()->subDays(15)->timestamp;
+
+    Saloon::assertSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/athlete/activities')
+        && (int) $request->query()->get('after') === $expected);
+});
+
+it('caps the self-heal at 90 days when the gap is much longer than that', function () {
+    Carbon::setTestNow('2026-01-15 00:00:00');
+
+    $activity = Activity::factory()->create([
+        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subDays(200),
+    ]);
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value, 'kind' => WebmentionKind::Like, 'occurred_at' => now()->subDays(200),
+    ]);
+
+    fakeSummaries([]);
+
+    $this->artisan('strava:responses')
+        ->expectsOutputToContain('catching up only that far')
+        ->assertSuccessful();
+
+    $expected = now()->subDays(90)->timestamp;
+
+    Saloon::assertSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/athlete/activities')
+        && (int) $request->query()->get('after') === $expected);
 });
