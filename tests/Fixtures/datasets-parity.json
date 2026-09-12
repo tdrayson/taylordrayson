@@ -1,0 +1,2363 @@
+{
+    "registry": {
+        "activity": {
+            "slug": "activities",
+            "model": "App\\Models\\Activity",
+            "label": "Activities",
+            "noun": "activity",
+            "stats": true,
+            "taxonomy": {
+                "base": "activities",
+                "param": "type",
+                "label": "Type",
+                "allLabel": null,
+                "title": "Sample activities"
+            }
+        },
+        "sleep": {
+            "slug": "sleep",
+            "model": "App\\Models\\Sleep",
+            "label": "Sleep",
+            "noun": "sleep",
+            "stats": false,
+            "taxonomy": null
+        },
+        "calorie": {
+            "slug": "food",
+            "model": "App\\Models\\Calorie",
+            "label": "Food",
+            "noun": "food",
+            "stats": false,
+            "taxonomy": null
+        },
+        "media": {
+            "slug": "media",
+            "model": "App\\Models\\Media",
+            "label": "Media",
+            "noun": "medium",
+            "stats": false,
+            "taxonomy": {
+                "base": "media",
+                "param": "type",
+                "label": "Type",
+                "allLabel": null,
+                "title": null
+            }
+        },
+        "event": {
+            "slug": "events",
+            "model": "App\\Models\\Event",
+            "label": "Events",
+            "noun": "event",
+            "stats": false,
+            "taxonomy": {
+                "base": "events",
+                "param": "tag",
+                "label": "Tag",
+                "allLabel": null,
+                "title": "Sample events"
+            }
+        },
+        "appearance": {
+            "slug": "appearances",
+            "model": "App\\Models\\Appearance",
+            "label": "Appearances",
+            "noun": "appearance",
+            "stats": false,
+            "taxonomy": {
+                "base": "appearances",
+                "param": "type",
+                "label": "Type",
+                "allLabel": null,
+                "title": "Sample appearances"
+            }
+        },
+        "podcast": {
+            "slug": "this-week-with",
+            "model": "App\\Models\\Podcast",
+            "label": "This Week With",
+            "noun": "episode",
+            "stats": false,
+            "taxonomy": {
+                "base": "this-week-with",
+                "param": "season",
+                "label": "Season",
+                "allLabel": "All Seasons",
+                "title": null
+            }
+        },
+        "flight": {
+            "slug": "flights",
+            "model": "App\\Models\\Flight",
+            "label": "Flights",
+            "noun": "flight",
+            "stats": false,
+            "taxonomy": {
+                "base": "flights",
+                "param": "airline",
+                "label": "Airline",
+                "allLabel": null,
+                "title": "Flights with Sample"
+            }
+        },
+        "checkin": {
+            "slug": "places",
+            "model": "App\\Models\\Checkin",
+            "label": "Places",
+            "noun": "place",
+            "stats": false,
+            "taxonomy": {
+                "base": "places",
+                "param": "category",
+                "label": "Category",
+                "allLabel": null,
+                "title": "Samples"
+            }
+        },
+        "fuel": {
+            "slug": "fuel",
+            "model": "App\\Models\\Fuel",
+            "label": "Fuel",
+            "noun": "fuel",
+            "stats": false,
+            "taxonomy": {
+                "base": "vehicles",
+                "param": "vehicle",
+                "label": "Vehicle",
+                "allLabel": null,
+                "title": "Fuel for Sample"
+            }
+        },
+        "project": {
+            "slug": "projects",
+            "model": "App\\Models\\Project",
+            "label": "Projects",
+            "noun": "project",
+            "stats": false,
+            "taxonomy": {
+                "base": "projects",
+                "param": "tag",
+                "label": "Tag",
+                "allLabel": null,
+                "title": "Projects tagged Sample"
+            }
+        },
+        "article": {
+            "slug": "articles",
+            "model": "App\\Models\\Article",
+            "label": "Articles",
+            "noun": "article",
+            "stats": false,
+            "taxonomy": {
+                "base": "articles",
+                "param": "tag",
+                "label": "Tag",
+                "allLabel": null,
+                "title": "Articles tagged Sample"
+            }
+        },
+        "note": {
+            "slug": "notes",
+            "model": "App\\Models\\Note",
+            "label": "Notes",
+            "noun": "note",
+            "stats": false,
+            "taxonomy": {
+                "base": "notes",
+                "param": "tag",
+                "label": "Tag",
+                "allLabel": null,
+                "title": "Notes tagged Sample"
+            }
+        }
+    },
+    "catalogue": [
+        {
+            "key": "activity",
+            "eyebrow": "Activity",
+            "row": {
+                "icon": "WorkoutRunIcon",
+                "label": "Activity",
+                "plural": "Activities",
+                "href": "/activities",
+                "accent": "activity",
+                "keywords": "workout exercise sport"
+            }
+        },
+        {
+            "key": "sleep",
+            "eyebrow": "Sleep",
+            "row": {
+                "icon": "Moon02Icon",
+                "label": "Sleep",
+                "plural": "Sleep",
+                "href": "/sleep",
+                "accent": "sleep",
+                "keywords": "rest bed nap"
+            }
+        },
+        {
+            "key": "calorie",
+            "eyebrow": "Food",
+            "row": {
+                "icon": "UtensilsIcon",
+                "label": "Food",
+                "plural": "Food",
+                "href": "/food",
+                "accent": "food",
+                "keywords": "food eat meal nutrition"
+            }
+        },
+        {
+            "key": "media",
+            "eyebrow": "Media",
+            "row": {
+                "icon": "Film01Icon",
+                "label": "Media",
+                "plural": "Media",
+                "href": "/media",
+                "accent": "media",
+                "keywords": "watch movie film tv show book reading"
+            }
+        },
+        {
+            "key": "event",
+            "eyebrow": "Event",
+            "row": {
+                "icon": "Ticket01Icon",
+                "label": "Event",
+                "plural": "Events",
+                "href": "/events",
+                "accent": "event",
+                "keywords": "ticket gig concert"
+            }
+        },
+        {
+            "key": "appearance",
+            "eyebrow": "Appearance",
+            "row": {
+                "icon": "Mic01Icon",
+                "label": "Appearance",
+                "plural": "Appearances",
+                "href": "/appearances",
+                "accent": "appearance",
+                "keywords": "talk speaking interview"
+            }
+        },
+        {
+            "key": "podcast",
+            "eyebrow": "This Week With",
+            "row": {
+                "icon": "PodcastIcon",
+                "label": "This Week With",
+                "plural": "This Week With",
+                "href": "/this-week-with",
+                "accent": "podcast",
+                "keywords": "podcast tww episode"
+            }
+        },
+        {
+            "key": "flight",
+            "eyebrow": "Flight",
+            "row": {
+                "icon": "AirplaneTakeOff01Icon",
+                "label": "Flight",
+                "plural": "Flights",
+                "href": "/flights",
+                "accent": "flight",
+                "keywords": "fly travel trip airport"
+            }
+        },
+        {
+            "key": "checkin",
+            "eyebrow": "Places",
+            "row": {
+                "icon": "Location01Icon",
+                "label": "Place",
+                "plural": "Places",
+                "href": "/places",
+                "accent": "checkin",
+                "keywords": "place location visited"
+            }
+        },
+        {
+            "key": "fuel",
+            "eyebrow": "Fuel",
+            "row": {
+                "icon": "PetrolPumpIcon",
+                "label": "Fuel",
+                "plural": "Fuel",
+                "href": "/fuel",
+                "accent": "fuel",
+                "keywords": "petrol gas diesel"
+            }
+        },
+        {
+            "key": "project",
+            "eyebrow": "Project",
+            "row": {
+                "icon": "RocketIcon",
+                "label": "Project",
+                "plural": "Projects",
+                "href": "/projects",
+                "accent": "project",
+                "keywords": "build side product"
+            }
+        },
+        {
+            "key": "article",
+            "eyebrow": "Article",
+            "row": {
+                "icon": "File01Icon",
+                "label": "Article",
+                "plural": "Articles",
+                "href": "/articles",
+                "accent": "article",
+                "keywords": "blog post writing read"
+            }
+        },
+        {
+            "key": "note",
+            "eyebrow": "Note",
+            "row": {
+                "icon": "StickyNote02Icon",
+                "label": "Note",
+                "plural": "Notes",
+                "href": "/notes",
+                "accent": "note",
+                "keywords": "memo journal thought"
+            }
+        }
+    ],
+    "search": {
+        "any": {
+            "label": "Anything",
+            "model": null,
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "text": {
+                    "label": "Text",
+                    "dataType": "text",
+                    "column": null,
+                    "category": "Where",
+                    "operators": [
+                        "contains"
+                    ],
+                    "key": "text"
+                },
+                "photos": {
+                    "label": "Media",
+                    "dataType": "media",
+                    "column": null,
+                    "category": "Where",
+                    "suffix": "photos",
+                    "key": "photos",
+                    "operators": [
+                        "has_any",
+                        "has_none",
+                        "gte",
+                        "gt",
+                        "lt",
+                        "lte",
+                        "eq",
+                        "neq",
+                        "between"
+                    ]
+                }
+            }
+        },
+        "activity": {
+            "label": "Activities",
+            "model": "App\\Models\\Activity",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "name": {
+                    "label": "Name",
+                    "dataType": "text",
+                    "column": "name",
+                    "category": "Activity",
+                    "key": "name",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "kind": {
+                    "label": "Type",
+                    "dataType": "enum",
+                    "column": "type",
+                    "category": "Activity",
+                    "key": "kind",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "distance": {
+                    "label": "Distance",
+                    "dataType": "number",
+                    "column": "distance",
+                    "category": "Metrics",
+                    "measure": "distance",
+                    "store": "m",
+                    "key": "distance",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "duration": {
+                    "label": "Duration",
+                    "dataType": "duration",
+                    "column": "duration",
+                    "category": "Metrics",
+                    "key": "duration",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "calories": {
+                    "label": "Calories",
+                    "dataType": "number",
+                    "column": "calories",
+                    "category": "Metrics",
+                    "suffix": "kcal",
+                    "key": "calories",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "avg_hr": {
+                    "label": "Avg heart rate",
+                    "dataType": "number",
+                    "column": "average_heart_rate",
+                    "category": "Metrics",
+                    "suffix": "bpm",
+                    "key": "avg_hr",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "max_hr": {
+                    "label": "Max heart rate",
+                    "dataType": "number",
+                    "column": "max_heart_rate",
+                    "category": "Metrics",
+                    "suffix": "bpm",
+                    "key": "max_hr",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "photos": {
+                    "label": "Photos",
+                    "dataType": "media",
+                    "column": null,
+                    "category": "Media",
+                    "suffix": "photos",
+                    "key": "photos",
+                    "operators": [
+                        "has_any",
+                        "has_none",
+                        "gte",
+                        "gt",
+                        "lt",
+                        "lte",
+                        "eq",
+                        "neq",
+                        "between"
+                    ]
+                }
+            }
+        },
+        "sleep": {
+            "label": "Sleep",
+            "model": "App\\Models\\Sleep",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "duration": {
+                    "label": "Duration",
+                    "dataType": "duration",
+                    "column": "duration",
+                    "category": "Sleep",
+                    "key": "duration",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "awake": {
+                    "label": "Awake",
+                    "dataType": "duration",
+                    "column": "awake",
+                    "category": "Stages",
+                    "key": "awake",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "rem": {
+                    "label": "REM",
+                    "dataType": "duration",
+                    "column": "rem",
+                    "category": "Stages",
+                    "key": "rem",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "core": {
+                    "label": "Core",
+                    "dataType": "duration",
+                    "column": "core",
+                    "category": "Stages",
+                    "key": "core",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "deep": {
+                    "label": "Deep",
+                    "dataType": "duration",
+                    "column": "deep",
+                    "category": "Stages",
+                    "key": "deep",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "source": {
+                    "label": "Source",
+                    "dataType": "enum",
+                    "column": "source",
+                    "category": "Sleep",
+                    "key": "source",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                }
+            }
+        },
+        "calorie": {
+            "label": "Food",
+            "model": "App\\Models\\Calorie",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "calories": {
+                    "label": "Total calories",
+                    "dataType": "number",
+                    "column": "calories",
+                    "category": "For the day",
+                    "suffix": "kcal",
+                    "scope": "day",
+                    "key": "calories",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "protein": {
+                    "label": "Total protein",
+                    "dataType": "number",
+                    "column": "protein",
+                    "category": "For the day",
+                    "suffix": "g",
+                    "scope": "day",
+                    "key": "protein",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "carbs": {
+                    "label": "Total carbs",
+                    "dataType": "number",
+                    "column": "carbs",
+                    "category": "For the day",
+                    "suffix": "g",
+                    "scope": "day",
+                    "key": "carbs",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "fat": {
+                    "label": "Total fat",
+                    "dataType": "number",
+                    "column": "fat",
+                    "category": "For the day",
+                    "suffix": "g",
+                    "scope": "day",
+                    "key": "fat",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "sugars": {
+                    "label": "Total sugars",
+                    "dataType": "number",
+                    "column": "sugars",
+                    "category": "For the day",
+                    "suffix": "g",
+                    "scope": "day",
+                    "key": "sugars",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "item_name": {
+                    "label": "Name",
+                    "dataType": "text",
+                    "column": "name",
+                    "category": "Any food item",
+                    "scope": "item",
+                    "key": "item_name",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "item_meal": {
+                    "label": "Meal",
+                    "dataType": "enum",
+                    "column": "meal",
+                    "category": "Any food item",
+                    "scope": "item",
+                    "key": "item_meal",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "item_calories": {
+                    "label": "Calories",
+                    "dataType": "number",
+                    "column": "calories",
+                    "category": "Any food item",
+                    "suffix": "kcal",
+                    "scope": "item",
+                    "key": "item_calories",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "item_protein": {
+                    "label": "Protein",
+                    "dataType": "number",
+                    "column": "protein",
+                    "category": "Any food item",
+                    "suffix": "g",
+                    "scope": "item",
+                    "key": "item_protein",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "item_carbs": {
+                    "label": "Carbs",
+                    "dataType": "number",
+                    "column": "carbs",
+                    "category": "Any food item",
+                    "suffix": "g",
+                    "scope": "item",
+                    "key": "item_carbs",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "item_fat": {
+                    "label": "Fat",
+                    "dataType": "number",
+                    "column": "fat",
+                    "category": "Any food item",
+                    "suffix": "g",
+                    "scope": "item",
+                    "key": "item_fat",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "item_sugars": {
+                    "label": "Sugars",
+                    "dataType": "number",
+                    "column": "sugars",
+                    "category": "Any food item",
+                    "suffix": "g",
+                    "scope": "item",
+                    "key": "item_sugars",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                }
+            }
+        },
+        "media": {
+            "label": "Media",
+            "model": "App\\Models\\Media",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "title": {
+                    "label": "Title",
+                    "dataType": "text",
+                    "column": "title",
+                    "category": "Media",
+                    "key": "title",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "kind": {
+                    "label": "Type",
+                    "dataType": "enum",
+                    "column": "type",
+                    "category": "Media",
+                    "key": "kind",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "rating": {
+                    "label": "Rating",
+                    "dataType": "number",
+                    "column": "rating",
+                    "category": "Media",
+                    "key": "rating",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "show": {
+                    "label": "Show",
+                    "dataType": "text",
+                    "relation": "series",
+                    "column": "title",
+                    "category": "Media",
+                    "key": "show",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                }
+            }
+        },
+        "event": {
+            "label": "Events",
+            "model": "App\\Models\\Event",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "name": {
+                    "label": "Name",
+                    "dataType": "text",
+                    "column": "name",
+                    "category": "Event",
+                    "key": "name",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "description": {
+                    "label": "Description",
+                    "dataType": "text",
+                    "column": "description",
+                    "category": "Event",
+                    "key": "description",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "organiser": {
+                    "label": "Organiser",
+                    "dataType": "text",
+                    "column": "organiser",
+                    "category": "Event",
+                    "key": "organiser",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "venue": {
+                    "label": "Venue",
+                    "dataType": "text",
+                    "column": "venue_name",
+                    "category": "Location",
+                    "key": "venue",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "city": {
+                    "label": "City",
+                    "dataType": "text",
+                    "column": "city",
+                    "category": "Location",
+                    "key": "city",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "country": {
+                    "label": "Country",
+                    "dataType": "text",
+                    "column": "country",
+                    "category": "Location",
+                    "key": "country",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "photos": {
+                    "label": "Photos",
+                    "dataType": "media",
+                    "column": null,
+                    "category": "Media",
+                    "suffix": "photos",
+                    "key": "photos",
+                    "operators": [
+                        "has_any",
+                        "has_none",
+                        "gte",
+                        "gt",
+                        "lt",
+                        "lte",
+                        "eq",
+                        "neq",
+                        "between"
+                    ]
+                }
+            }
+        },
+        "appearance": {
+            "label": "Appearances",
+            "model": "App\\Models\\Appearance",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "title": {
+                    "label": "Title",
+                    "dataType": "text",
+                    "column": "title",
+                    "category": "Appearance",
+                    "key": "title",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "show": {
+                    "label": "Show",
+                    "dataType": "text",
+                    "column": "show_name",
+                    "category": "Appearance",
+                    "key": "show",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "kind": {
+                    "label": "Type",
+                    "dataType": "enum",
+                    "column": "type",
+                    "category": "Appearance",
+                    "key": "kind",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "description": {
+                    "label": "Description",
+                    "dataType": "text",
+                    "column": "description",
+                    "category": "Appearance",
+                    "key": "description",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "photos": {
+                    "label": "Photos",
+                    "dataType": "media",
+                    "column": null,
+                    "category": "Media",
+                    "suffix": "photos",
+                    "key": "photos",
+                    "operators": [
+                        "has_any",
+                        "has_none",
+                        "gte",
+                        "gt",
+                        "lt",
+                        "lte",
+                        "eq",
+                        "neq",
+                        "between"
+                    ]
+                }
+            }
+        },
+        "podcast": {
+            "label": "This Week With",
+            "model": "App\\Models\\Podcast",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "topic": {
+                    "label": "Topic",
+                    "dataType": "text",
+                    "column": "topic",
+                    "category": "Episode",
+                    "key": "topic",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "season": {
+                    "label": "Season",
+                    "dataType": "number",
+                    "column": "season_number",
+                    "category": "Episode",
+                    "key": "season",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "episode": {
+                    "label": "Episode",
+                    "dataType": "number",
+                    "column": "episode_number",
+                    "category": "Episode",
+                    "key": "episode",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "duration": {
+                    "label": "Duration",
+                    "dataType": "duration",
+                    "column": "duration",
+                    "category": "Episode",
+                    "key": "duration",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "notes": {
+                    "label": "Show notes",
+                    "dataType": "text",
+                    "column": "show_notes",
+                    "category": "Episode",
+                    "key": "notes",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "transcript": {
+                    "label": "Transcript",
+                    "dataType": "text",
+                    "column": "transcript",
+                    "category": "Episode",
+                    "key": "transcript",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                }
+            }
+        },
+        "flight": {
+            "label": "Flights",
+            "model": "App\\Models\\Flight",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "airline": {
+                    "label": "Airline",
+                    "dataType": "text",
+                    "relation": "airline",
+                    "column": "name",
+                    "category": "Flight",
+                    "key": "airline",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "number": {
+                    "label": "Flight number",
+                    "dataType": "text",
+                    "column": "flight_number",
+                    "category": "Flight",
+                    "key": "number",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "cabin": {
+                    "label": "Cabin class",
+                    "dataType": "enum",
+                    "column": "cabin_class",
+                    "category": "Flight",
+                    "key": "cabin",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "reason": {
+                    "label": "Reason",
+                    "dataType": "text",
+                    "column": "reason",
+                    "category": "Flight",
+                    "key": "reason",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "origin": {
+                    "label": "Origin (IATA)",
+                    "dataType": "text",
+                    "column": "origin_iata",
+                    "category": "Route",
+                    "key": "origin",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "destination": {
+                    "label": "Destination (IATA)",
+                    "dataType": "text",
+                    "column": "destination_iata",
+                    "category": "Route",
+                    "key": "destination",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "distance": {
+                    "label": "Distance",
+                    "dataType": "number",
+                    "column": "distance",
+                    "category": "Route",
+                    "measure": "distance",
+                    "store": "m",
+                    "key": "distance",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "flight_duration": {
+                    "label": "Duration",
+                    "dataType": "duration",
+                    "column": "duration",
+                    "category": "Route",
+                    "key": "flight_duration",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                }
+            }
+        },
+        "checkin": {
+            "label": "Places",
+            "model": "App\\Models\\Checkin",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "venue": {
+                    "label": "Venue",
+                    "dataType": "text",
+                    "column": "venue_name",
+                    "category": "Place",
+                    "key": "venue",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "category": {
+                    "label": "Category",
+                    "dataType": "enum",
+                    "column": "category",
+                    "category": "Place",
+                    "key": "category",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "description": {
+                    "label": "Description",
+                    "dataType": "text",
+                    "column": "description",
+                    "category": "Place",
+                    "key": "description",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "city": {
+                    "label": "City",
+                    "dataType": "text",
+                    "column": "city",
+                    "category": "Location",
+                    "key": "city",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "county": {
+                    "label": "County",
+                    "dataType": "text",
+                    "column": "county",
+                    "category": "Location",
+                    "key": "county",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "country": {
+                    "label": "Country",
+                    "dataType": "enum",
+                    "column": "country",
+                    "category": "Location",
+                    "key": "country",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                }
+            }
+        },
+        "fuel": {
+            "label": "Fuel",
+            "model": "App\\Models\\Fuel",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "station": {
+                    "label": "Station",
+                    "dataType": "text",
+                    "column": "station_name",
+                    "category": "Fuel",
+                    "key": "station",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "city": {
+                    "label": "City",
+                    "dataType": "text",
+                    "column": "city",
+                    "category": "Fuel",
+                    "key": "city",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "litres": {
+                    "label": "Litres",
+                    "dataType": "number",
+                    "column": "litres",
+                    "category": "Cost",
+                    "suffix": "L",
+                    "key": "litres",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "cost": {
+                    "label": "Cost",
+                    "dataType": "number",
+                    "column": "cost",
+                    "category": "Cost",
+                    "prefix": "\u00a3",
+                    "key": "cost",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "price": {
+                    "label": "Price / litre",
+                    "dataType": "number",
+                    "column": "price_per_litre",
+                    "category": "Cost",
+                    "prefix": "\u00a3",
+                    "key": "price",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "odometer": {
+                    "label": "Odometer",
+                    "dataType": "number",
+                    "column": "odometer",
+                    "category": "Cost",
+                    "measure": "distance",
+                    "store": "mi",
+                    "key": "odometer",
+                    "operators": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "not_between"
+                    ]
+                }
+            }
+        },
+        "project": {
+            "label": "Projects",
+            "model": "App\\Models\\Project",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "title": {
+                    "label": "Title",
+                    "dataType": "text",
+                    "column": "title",
+                    "category": "Project",
+                    "key": "title",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "status": {
+                    "label": "Status",
+                    "dataType": "enum",
+                    "column": "status",
+                    "category": "Project",
+                    "key": "status",
+                    "operators": [
+                        "is",
+                        "is_not",
+                        "contains",
+                        "not_contains"
+                    ]
+                },
+                "description": {
+                    "label": "Description",
+                    "dataType": "text",
+                    "column": "description",
+                    "category": "Project",
+                    "key": "description",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "long_description": {
+                    "label": "Long description",
+                    "dataType": "text",
+                    "column": "long_description",
+                    "category": "Project",
+                    "key": "long_description",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "photos": {
+                    "label": "Photos",
+                    "dataType": "media",
+                    "column": null,
+                    "category": "Media",
+                    "suffix": "photos",
+                    "key": "photos",
+                    "operators": [
+                        "has_any",
+                        "has_none",
+                        "gte",
+                        "gt",
+                        "lt",
+                        "lte",
+                        "eq",
+                        "neq",
+                        "between"
+                    ]
+                }
+            }
+        },
+        "article": {
+            "label": "Articles",
+            "model": "App\\Models\\Article",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "title": {
+                    "label": "Title",
+                    "dataType": "text",
+                    "column": "title",
+                    "category": "Article",
+                    "key": "title",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "excerpt": {
+                    "label": "Excerpt",
+                    "dataType": "text",
+                    "column": "excerpt",
+                    "category": "Article",
+                    "key": "excerpt",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                },
+                "content": {
+                    "label": "Content",
+                    "dataType": "text",
+                    "column": "content",
+                    "category": "Article",
+                    "key": "content",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                }
+            }
+        },
+        "note": {
+            "label": "Notes",
+            "model": "App\\Models\\Note",
+            "fields": {
+                "day": {
+                    "label": "Day",
+                    "dataType": "day",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "day",
+                    "operators": [
+                        "on",
+                        "not_on",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "month": {
+                    "label": "Month",
+                    "dataType": "month",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "month",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "year": {
+                    "label": "Year",
+                    "dataType": "year",
+                    "column": "occurred_at",
+                    "category": "When",
+                    "key": "year",
+                    "operators": [
+                        "in",
+                        "not_in",
+                        "before",
+                        "after",
+                        "between",
+                        "not_between"
+                    ]
+                },
+                "content": {
+                    "label": "Content",
+                    "dataType": "text",
+                    "column": "content",
+                    "category": "Note",
+                    "key": "content",
+                    "operators": [
+                        "contains",
+                        "not_contains",
+                        "equals",
+                        "starts_with",
+                        "ends_with"
+                    ]
+                }
+            }
+        }
+    },
+    "textColumns": {
+        "activity": [
+            "name"
+        ],
+        "appearance": [
+            "title",
+            "show_name",
+            "description"
+        ],
+        "article": [
+            "title",
+            "excerpt",
+            "content"
+        ],
+        "calorie": [
+            "name",
+            "meal"
+        ],
+        "checkin": [
+            "venue_name",
+            "category",
+            "city",
+            "description"
+        ],
+        "event": [
+            "name",
+            "venue_name",
+            "city",
+            "country"
+        ],
+        "flight": [
+            "flight_number",
+            "origin_iata",
+            "destination_iata",
+            "reason"
+        ],
+        "fuel": [
+            "station_name",
+            "city"
+        ],
+        "media": [
+            "title"
+        ],
+        "note": [
+            "content"
+        ],
+        "podcast": [
+            "topic",
+            "show_notes"
+        ],
+        "project": [
+            "title",
+            "description",
+            "status"
+        ]
+    },
+    "cards": {
+        "activity": "App\\Presenters\\Cards\\ActivityCard",
+        "sleep": "App\\Presenters\\Cards\\SleepCard",
+        "calorie": "App\\Presenters\\Cards\\CalorieCard",
+        "media": "App\\Presenters\\Cards\\MediaCard",
+        "event": "App\\Presenters\\Cards\\EventCard",
+        "appearance": "App\\Presenters\\Cards\\AppearanceCard",
+        "podcast": "App\\Presenters\\Cards\\PodcastCard",
+        "flight": "App\\Presenters\\Cards\\FlightCard",
+        "checkin": "App\\Presenters\\Cards\\CheckinCard",
+        "fuel": "App\\Presenters\\Cards\\FuelCard",
+        "project": "App\\Presenters\\Cards\\ProjectCard",
+        "article": "App\\Presenters\\Cards\\ArticleCard",
+        "note": "App\\Presenters\\Cards\\NoteCard"
+    }
+}
