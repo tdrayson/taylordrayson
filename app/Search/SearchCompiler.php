@@ -233,7 +233,7 @@ class SearchCompiler
     private function anyText(Builder $query, string $value): void
     {
         $registry = TypeRegistry::all();
-        $models = collect(SearchSchema::TEXT_COLUMNS)
+        $models = collect(SearchSchema::textColumns())
             ->keys()
             ->map(fn (string $key): string => $registry[$key]['model'])
             ->all();
@@ -242,7 +242,7 @@ class SearchCompiler
             $this->guardPublished($morph, $modelClass);
 
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
-            $columns = SearchSchema::TEXT_COLUMNS[$key] ?? [];
+            $columns = SearchSchema::textColumns()[$key] ?? [];
 
             $match = fn (Builder $inner, string $prefix) => $inner->where(function (Builder $any) use ($columns, $value, $prefix): void {
                 foreach ($columns as $column) {

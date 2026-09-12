@@ -2,154 +2,30 @@
 
 namespace App\Search;
 
-use App\Timeline\TypeRegistry;
+use App\Datasets\Dataset;
+use App\Datasets\Datasets;
 
 /**
  * The filterable field catalogue for the advanced search query builder, keyed by
  * timeline type (plus a generic `any` type). Each field carries a category so the
  * builder can present a cascading category → field picker, and drives the backend
- * compiler via its column / dataType / relation.
+ * compiler via its column / dataType / relation. The field specs themselves are
+ * declared on each dataset.
  */
 class SearchSchema
 {
     /**
-     * Field specs per type. Each is [label, dataType, column, category] with an
-     * optional 'relation' for fields on a related model (e.g. flight airline).
-     *
-     * @var array<string, array<string, array<string, mixed>>>
-     */
-    private const FIELDS = [
-        'activity' => [
-            'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Activity'],
-            'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Activity'],
-            'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Metrics', 'measure' => 'distance', 'store' => 'm'],
-            'duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Metrics'],
-            'calories' => ['label' => 'Calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'Metrics', 'suffix' => 'kcal'],
-            'avg_hr' => ['label' => 'Avg heart rate', 'dataType' => 'number', 'column' => 'average_heart_rate', 'category' => 'Metrics', 'suffix' => 'bpm'],
-            'max_hr' => ['label' => 'Max heart rate', 'dataType' => 'number', 'column' => 'max_heart_rate', 'category' => 'Metrics', 'suffix' => 'bpm'],
-            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
-        ],
-        'sleep' => [
-            'duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Sleep'],
-            'awake' => ['label' => 'Awake', 'dataType' => 'duration', 'column' => 'awake', 'category' => 'Stages'],
-            'rem' => ['label' => 'REM', 'dataType' => 'duration', 'column' => 'rem', 'category' => 'Stages'],
-            'core' => ['label' => 'Core', 'dataType' => 'duration', 'column' => 'core', 'category' => 'Stages'],
-            'deep' => ['label' => 'Deep', 'dataType' => 'duration', 'column' => 'deep', 'category' => 'Stages'],
-            'source' => ['label' => 'Source', 'dataType' => 'enum', 'column' => 'source', 'category' => 'Sleep'],
-        ],
-        // Food is the only type whose entry is a whole day rather than a row,
-        // so each field says which it means. `scope` drives the compiler; the
-        // category says the same thing to the person choosing.
-        'calorie' => [
-            'calories' => ['label' => 'Total calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'For the day', 'suffix' => 'kcal', 'scope' => 'day'],
-            'protein' => ['label' => 'Total protein', 'dataType' => 'number', 'column' => 'protein', 'category' => 'For the day', 'suffix' => 'g', 'scope' => 'day'],
-            'carbs' => ['label' => 'Total carbs', 'dataType' => 'number', 'column' => 'carbs', 'category' => 'For the day', 'suffix' => 'g', 'scope' => 'day'],
-            'fat' => ['label' => 'Total fat', 'dataType' => 'number', 'column' => 'fat', 'category' => 'For the day', 'suffix' => 'g', 'scope' => 'day'],
-            'sugars' => ['label' => 'Total sugars', 'dataType' => 'number', 'column' => 'sugars', 'category' => 'For the day', 'suffix' => 'g', 'scope' => 'day'],
-            'item_name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Any food item', 'scope' => 'item'],
-            'item_meal' => ['label' => 'Meal', 'dataType' => 'enum', 'column' => 'meal', 'category' => 'Any food item', 'scope' => 'item'],
-            'item_calories' => ['label' => 'Calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'Any food item', 'suffix' => 'kcal', 'scope' => 'item'],
-            'item_protein' => ['label' => 'Protein', 'dataType' => 'number', 'column' => 'protein', 'category' => 'Any food item', 'suffix' => 'g', 'scope' => 'item'],
-            'item_carbs' => ['label' => 'Carbs', 'dataType' => 'number', 'column' => 'carbs', 'category' => 'Any food item', 'suffix' => 'g', 'scope' => 'item'],
-            'item_fat' => ['label' => 'Fat', 'dataType' => 'number', 'column' => 'fat', 'category' => 'Any food item', 'suffix' => 'g', 'scope' => 'item'],
-            'item_sugars' => ['label' => 'Sugars', 'dataType' => 'number', 'column' => 'sugars', 'category' => 'Any food item', 'suffix' => 'g', 'scope' => 'item'],
-        ],
-        'media' => [
-            'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Media'],
-            'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Media'],
-            'rating' => ['label' => 'Rating', 'dataType' => 'number', 'column' => 'rating', 'category' => 'Media'],
-            // An episode's own title names the episode, so the show it belongs
-            // to is the only way to search a series as a whole.
-            'show' => ['label' => 'Show', 'dataType' => 'text', 'relation' => 'series', 'column' => 'title', 'category' => 'Media'],
-        ],
-        'event' => [
-            'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Event'],
-            'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Event'],
-            'organiser' => ['label' => 'Organiser', 'dataType' => 'text', 'column' => 'organiser', 'category' => 'Event'],
-            'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Location'],
-            'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
-            'country' => ['label' => 'Country', 'dataType' => 'text', 'column' => 'country', 'category' => 'Location'],
-            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
-        ],
-        'appearance' => [
-            'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Appearance'],
-            'show' => ['label' => 'Show', 'dataType' => 'text', 'column' => 'show_name', 'category' => 'Appearance'],
-            'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Appearance'],
-            'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Appearance'],
-            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
-        ],
-        'podcast' => [
-            'topic' => ['label' => 'Topic', 'dataType' => 'text', 'column' => 'topic', 'category' => 'Episode'],
-            'season' => ['label' => 'Season', 'dataType' => 'number', 'column' => 'season_number', 'category' => 'Episode'],
-            'episode' => ['label' => 'Episode', 'dataType' => 'number', 'column' => 'episode_number', 'category' => 'Episode'],
-            'duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Episode'],
-            'notes' => ['label' => 'Show notes', 'dataType' => 'text', 'column' => 'show_notes', 'category' => 'Episode'],
-            'transcript' => ['label' => 'Transcript', 'dataType' => 'text', 'column' => 'transcript', 'category' => 'Episode'],
-        ],
-        'flight' => [
-            'airline' => ['label' => 'Airline', 'dataType' => 'text', 'relation' => 'airline', 'column' => 'name', 'category' => 'Flight'],
-            'number' => ['label' => 'Flight number', 'dataType' => 'text', 'column' => 'flight_number', 'category' => 'Flight'],
-            'cabin' => ['label' => 'Cabin class', 'dataType' => 'enum', 'column' => 'cabin_class', 'category' => 'Flight'],
-            'reason' => ['label' => 'Reason', 'dataType' => 'text', 'column' => 'reason', 'category' => 'Flight'],
-            'origin' => ['label' => 'Origin (IATA)', 'dataType' => 'text', 'column' => 'origin_iata', 'category' => 'Route'],
-            'destination' => ['label' => 'Destination (IATA)', 'dataType' => 'text', 'column' => 'destination_iata', 'category' => 'Route'],
-            'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Route', 'measure' => 'distance', 'store' => 'm'],
-            'flight_duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Route'],
-        ],
-        'checkin' => [
-            'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Place'],
-            'category' => ['label' => 'Category', 'dataType' => 'enum', 'column' => 'category', 'category' => 'Place'],
-            'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Place'],
-            'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
-            'county' => ['label' => 'County', 'dataType' => 'text', 'column' => 'county', 'category' => 'Location'],
-            'country' => ['label' => 'Country', 'dataType' => 'enum', 'column' => 'country', 'category' => 'Location'],
-        ],
-        'fuel' => [
-            // Filter is still typed as `station:`; the column behind it became
-            // station_name when the station moved onto the row.
-            'station' => ['label' => 'Station', 'dataType' => 'text', 'column' => 'station_name', 'category' => 'Fuel'],
-            'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Fuel'],
-            'litres' => ['label' => 'Litres', 'dataType' => 'number', 'column' => 'litres', 'category' => 'Cost', 'suffix' => 'L'],
-            'cost' => ['label' => 'Cost', 'dataType' => 'number', 'column' => 'cost', 'category' => 'Cost', 'prefix' => '£'],
-            'price' => ['label' => 'Price / litre', 'dataType' => 'number', 'column' => 'price_per_litre', 'category' => 'Cost', 'prefix' => '£'],
-            'odometer' => ['label' => 'Odometer', 'dataType' => 'number', 'column' => 'odometer', 'category' => 'Cost', 'measure' => 'distance', 'store' => 'mi'],
-        ],
-        'project' => [
-            'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Project'],
-            'status' => ['label' => 'Status', 'dataType' => 'enum', 'column' => 'status', 'category' => 'Project'],
-            'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Project'],
-            'long_description' => ['label' => 'Long description', 'dataType' => 'text', 'column' => 'long_description', 'category' => 'Project'],
-            'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
-        ],
-        'article' => [
-            'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Article'],
-            'excerpt' => ['label' => 'Excerpt', 'dataType' => 'text', 'column' => 'excerpt', 'category' => 'Article'],
-            'content' => ['label' => 'Content', 'dataType' => 'text', 'column' => 'content', 'category' => 'Article'],
-        ],
-        'note' => [
-            'content' => ['label' => 'Content', 'dataType' => 'text', 'column' => 'content', 'category' => 'Note'],
-        ],
-    ];
-
-    /**
      * Text columns per type used by the generic "Anything" text search.
      *
-     * @var array<string, array<int, string>>
+     * @return array<string, list<string>>
      */
-    public const TEXT_COLUMNS = [
-        'activity' => ['name'],
-        'calorie' => ['name', 'meal'],
-        'media' => ['title'],
-        'event' => ['name', 'venue_name', 'city', 'country'],
-        'appearance' => ['title', 'show_name', 'description'],
-        'podcast' => ['topic', 'show_notes'],
-        'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
-        'checkin' => ['venue_name', 'category', 'city', 'description'],
-        'fuel' => ['station_name', 'city'],
-        'project' => ['title', 'description', 'status'],
-        'note' => ['content'],
-        'article' => ['title', 'excerpt', 'content'],
-    ];
+    public static function textColumns(): array
+    {
+        return array_filter(
+            array_map(fn (Dataset $dataset): array => $dataset->textColumns(), Datasets::all()),
+            fn (array $columns): bool => $columns !== [],
+        );
+    }
 
     /**
      * Allowed operators for a given data type.
@@ -177,7 +53,6 @@ class SearchSchema
      */
     public static function types(): array
     {
-        $registry = TypeRegistry::all();
         $schema = [
             'any' => [
                 'label' => 'Anything',
@@ -189,11 +64,11 @@ class SearchSchema
             ],
         ];
 
-        foreach (self::FIELDS as $type => $fields) {
+        foreach (Datasets::all() as $type => $dataset) {
             $schema[$type] = [
-                'label' => $registry[$type]['label'],
-                'model' => $registry[$type]['model'],
-                'fields' => self::normalise($fields),
+                'label' => $dataset->plural(),
+                'model' => $dataset->model(),
+                'fields' => self::normalise($dataset->searchFields()),
             ];
         }
 

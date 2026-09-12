@@ -70,6 +70,9 @@ final class CalorieDataset extends BaseDataset
      */
     public function searchFields(): array
     {
+        // Food is the only type whose entry is a whole day rather than a row,
+        // so each field says which it means. `scope` drives the compiler; the
+        // category says the same thing to the person choosing.
         return [
             'calories' => ['label' => 'Total calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'For the day', 'suffix' => 'kcal', 'scope' => 'day'],
             'protein' => ['label' => 'Total protein', 'dataType' => 'number', 'column' => 'protein', 'category' => 'For the day', 'suffix' => 'g', 'scope' => 'day'],

@@ -55,12 +55,12 @@ it('matches the registry entry each type has today', function (Dataset $dataset)
     }
 })->with(fn (): array => array_values(Datasets::all()));
 
-it('carries the search fields and text columns each type has today', function (Dataset $dataset) {
-    $fields = (new ReflectionClassConstant(SearchSchema::class, 'FIELDS'))->getValue();
+it('feeds the search schema from each dataset', function (Dataset $dataset) {
     $key = $dataset->type()->value;
 
-    expect($dataset->searchFields())->toBe($fields[$key])
-        ->and($dataset->textColumns())->toBe(SearchSchema::TEXT_COLUMNS[$key] ?? []);
+    // normalise() prepends the 3 shared day/month/year fields to every type.
+    expect(SearchSchema::types()[$key]['fields'])->toHaveCount(count($dataset->searchFields()) + 3)
+        ->and(SearchSchema::textColumns()[$key] ?? [])->toBe($dataset->textColumns());
 })->with(fn (): array => array_values(Datasets::all()));
 
 it('presents with the card class the presenter uses today', function (Dataset $dataset) {
