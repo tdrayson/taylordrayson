@@ -12,14 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 /**
- * Writes what a source just reported for one entry, in step with what is
- * already stored.
- *
- * Two rules, because the sources give two kinds of thing. Prose has an id, so
- * it is matched on that and an edit lands on the row it belongs to. A gesture
- * has no id worth trusting: Strava's kudos list is a list of people, and two of
- * the same name are two humans, so the fetched list replaces the stored set for
- * that kind outright.
+ * Writes what a source just reported for one entry, in step with what is stored.
+ * Prose is matched on its id; a gesture has none, so the list replaces the set.
  */
 final class ReconcileResponses
 {
@@ -69,8 +63,6 @@ final class ReconcileResponses
 
         $stale = $this->rowsFor($target, $source)->where('kind', WebmentionKind::Reply);
 
-        // An empty payload means every stored one has gone, which whereNotIn on
-        // an empty list would not say.
         if ($keptIds !== []) {
             $stale->whereNotIn('source_id', $keptIds);
         }

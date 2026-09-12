@@ -89,3 +89,14 @@ it('removes a comment that has gone from the source', function () {
 
     expect($note->syndicatedResponses()->pluck('source_id')->all())->toBe(['2']);
 });
+
+// An empty payload means every comment stored for this source has gone.
+it('removes every comment when the source reports none at all', function () {
+    $note = Note::factory()->create();
+    $reconcile = app(ReconcileResponses::class);
+
+    $reconcile($note, Source::Strava, [remoteComment('1', 'First'), remoteComment('2', 'Second')]);
+    $reconcile($note, Source::Strava, []);
+
+    expect($note->syndicatedResponses()->count())->toBe(0);
+});
