@@ -57,9 +57,9 @@ it('matches the registry entry each type has today', function (Dataset $dataset)
 
 it('feeds the search schema from each dataset', function (Dataset $dataset) {
     $key = $dataset->type()->value;
+    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year']));
 
-    // normalise() prepends the 3 shared day/month/year fields to every type.
-    expect(SearchSchema::types()[$key]['fields'])->toHaveCount(count($dataset->searchFields()) + 3)
+    expect(array_keys($fields))->toBe(array_keys($dataset->searchFields()))
         ->and(SearchSchema::textColumns()[$key] ?? [])->toBe($dataset->textColumns());
 })->with(fn (): array => array_values(Datasets::all()));
 
