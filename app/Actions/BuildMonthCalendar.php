@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
@@ -24,8 +24,8 @@ final class BuildMonthCalendar
     public function __invoke(Collection $entries, Carbon $start, Carbon $end): array
     {
         // Calories store one row per food item but only one spine entry per day,
-        // so day totals must come straight from the calories table.
-        $calorieTotals = Calorie::query()
+        // so day totals must come straight from the food table.
+        $calorieTotals = Food::query()
             ->toBase()
             ->selectRaw('DATE(occurred_at) as date, SUM(calories) as total')
             ->whereBetween('occurred_at', [$start, $end])
@@ -46,7 +46,7 @@ final class BuildMonthCalendar
                         continue;
                     }
 
-                    if ($model instanceof Calorie) {
+                    if ($model instanceof Food) {
                         continue;
                     }
 

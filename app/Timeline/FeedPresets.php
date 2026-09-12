@@ -44,7 +44,7 @@ class FeedPresets
             'health' => [
                 'label' => 'Life & Health',
                 'description' => "Workouts, sleep, and what I've been eating.",
-                'types' => ['activity', 'sleep', 'calorie'],
+                'types' => ['activity', 'sleep', 'food'],
             ],
         ];
     }

@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\Note;
 use App\Models\Sleep;
 use Illuminate\Support\Facades\Storage;
@@ -37,10 +37,10 @@ it('shows the wake time on sleep cards and entry pages', function () {
 // Rovi gives a date and a meal label and no clock, so a food card has no
 // clock reading to show. The instant behind it is still real.
 it('labels a food card All day rather than inventing a clock time', function () {
-    Calorie::factory()->create(['occurred_at' => now()->startOfDay()]);
+    Food::factory()->create(['occurred_at' => now()->startOfDay()]);
 
     get('/')->assertInertia(fn ($page) => $page
-        ->where('groups.0.items.0.iconKey', 'calorie')
+        ->where('groups.0.items.0.iconKey', 'food')
         ->where('groups.0.items.0.time', 'All day')
         ->where('groups.0.items.0.datetime', fn (string $iso): bool => str_contains($iso, 'T23:59:59')));
 });

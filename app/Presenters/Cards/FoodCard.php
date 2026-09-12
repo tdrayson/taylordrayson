@@ -5,17 +5,17 @@ namespace App\Presenters\Cards;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\TimelineType;
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Queries\DayFoodTotals;
 use App\Support\Text;
 
 /**
- * Builds the timeline card for a Calorie entry: the day's total calories as the
+ * Builds the timeline card for a Food entry: the day's total calories as the
  * title, with the macro breakdown written as a sentence beneath it.
  */
-final class CalorieCard
+final class FoodCard
 {
-    public function present(Calorie $model): CardData
+    public function present(Food $model): CardData
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
         $kcal = number_format($totals['calories']);
@@ -57,7 +57,7 @@ final class CalorieCard
     /**
      * Reads the day's totals, so this is the one card title that costs a query.
      */
-    public function title(Calorie $model): string
+    public function title(Food $model): string
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 
@@ -66,6 +66,6 @@ final class CalorieCard
 
     public function type(): TimelineType
     {
-        return TimelineType::Calorie;
+        return TimelineType::Food;
     }
 }

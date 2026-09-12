@@ -31,7 +31,7 @@ final class Datasets
         foreach ([
             new ActivityDataset,
             new SleepDataset,
-            new CalorieDataset,
+            new FoodDataset,
             new MediaDataset,
             new EventDataset,
             new AppearanceDataset,
@@ -75,7 +75,9 @@ final class Datasets
      *
      * @var array<string, list<string>>
      */
-    public const ALIASES = [];
+    public const ALIASES = [
+        'calorie' => ['food'],
+    ];
 
     /**
      * Every dataset a key names: itself when live, its replacements when an alias.

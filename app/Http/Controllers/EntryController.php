@@ -12,10 +12,10 @@ use App\Fields\FieldRegistry;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
@@ -94,8 +94,8 @@ class EntryController extends Controller
             'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
             'trip' => $this->trip($model),
-            'entry' => $model instanceof Calorie
-                ? $this->calorieDay($model)
+            'entry' => $model instanceof Food
+                ? $this->foodDay($model)
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'source' => $this->source($model),
@@ -295,9 +295,9 @@ class EntryController extends Controller
      *
      * @return array{totals: array<string, float|int>, meals: array<int, array<string, mixed>>}
      */
-    private function calorieDay(Calorie $model): array
+    private function foodDay(Food $model): array
     {
-        $items = Calorie::query()
+        $items = Food::query()
             ->whereDate('occurred_at', $model->occurred_at->toDateString())
             ->orderBy('occurred_at')
             ->get();
@@ -322,7 +322,7 @@ class EntryController extends Controller
                 ->map(fn ($group, string $meal): array => [
                     'meal' => $meal,
                     'calories' => (int) $group->sum('calories'),
-                    'items' => $group->map(fn (Calorie $item): array => [
+                    'items' => $group->map(fn (Food $item): array => [
                         'name' => $item->name,
                         'calories' => (int) $item->calories,
                         'quantity' => (float) $item->quantity,

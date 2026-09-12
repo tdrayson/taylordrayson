@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\TimelineEntry;
 
 it('creating the first calorie for a date creates one timeline entry', function () {
-    Calorie::create([
+    Food::create([
         'occurred_at' => now(),
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -19,7 +19,7 @@ it('creating the first calorie for a date creates one timeline entry', function 
 it('creating a second calorie for the same date does NOT create a second timeline entry', function () {
     $date = now()->startOfDay()->addHours(8);
 
-    Calorie::create([
+    Food::create([
         'occurred_at' => $date,
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -28,7 +28,7 @@ it('creating a second calorie for the same date does NOT create a second timelin
         'calories' => 280,
     ]);
 
-    Calorie::create([
+    Food::create([
         'occurred_at' => $date->copy()->addHours(4),
         'name' => 'Sandwich',
         'meal' => 'lunch',
@@ -43,7 +43,7 @@ it('creating a second calorie for the same date does NOT create a second timelin
 it('the timeline entry points to the first calorie row (lowest ID)', function () {
     $date = now()->startOfDay()->addHours(8);
 
-    $first = Calorie::create([
+    $first = Food::create([
         'occurred_at' => $date,
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -52,7 +52,7 @@ it('the timeline entry points to the first calorie row (lowest ID)', function ()
         'calories' => 280,
     ]);
 
-    Calorie::create([
+    Food::create([
         'occurred_at' => $date->copy()->addHours(4),
         'name' => 'Sandwich',
         'meal' => 'lunch',
@@ -69,7 +69,7 @@ it('the timeline entry points to the first calorie row (lowest ID)', function ()
 it('the timeline entry occurred_at is set to noon on that date', function () {
     $date = now()->startOfDay()->addHours(8);
 
-    Calorie::create([
+    Food::create([
         'occurred_at' => $date,
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -89,7 +89,7 @@ it('the timeline entry occurred_at is set to noon on that date', function () {
 it('deleting the referenced calorie updates the timeline entry to point to the next row', function () {
     $date = now()->startOfDay()->addHours(8);
 
-    $first = Calorie::create([
+    $first = Food::create([
         'occurred_at' => $date,
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -98,7 +98,7 @@ it('deleting the referenced calorie updates the timeline entry to point to the n
         'calories' => 280,
     ]);
 
-    $second = Calorie::create([
+    $second = Food::create([
         'occurred_at' => $date->copy()->addHours(4),
         'name' => 'Sandwich',
         'meal' => 'lunch',
@@ -118,7 +118,7 @@ it('deleting the referenced calorie updates the timeline entry to point to the n
 it('deleting all calories for a date deletes the timeline entry', function () {
     $date = now()->startOfDay()->addHours(8);
 
-    $calorie = Calorie::create([
+    $food = Food::create([
         'occurred_at' => $date,
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -129,13 +129,13 @@ it('deleting all calories for a date deletes the timeline entry', function () {
 
     expect(TimelineEntry::count())->toBe(1);
 
-    $calorie->delete();
+    $food->delete();
 
     expect(TimelineEntry::count())->toBe(0);
 });
 
 it('calories on different dates create separate timeline entries', function () {
-    Calorie::create([
+    Food::create([
         'occurred_at' => now()->startOfDay()->addHours(8),
         'name' => 'Weetabix',
         'meal' => 'breakfast',
@@ -144,7 +144,7 @@ it('calories on different dates create separate timeline entries', function () {
         'calories' => 280,
     ]);
 
-    Calorie::create([
+    Food::create([
         'occurred_at' => now()->addDay()->startOfDay()->addHours(8),
         'name' => 'Porridge',
         'meal' => 'breakfast',

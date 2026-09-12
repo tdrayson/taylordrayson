@@ -4,11 +4,11 @@ use App\Data\CardData;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Concerns\Timelineable;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
@@ -27,7 +27,7 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
 })->with([
     'activity' => fn () => Activity::factory()->create(),
     'sleep' => fn () => Sleep::factory()->create(),
-    'calorie' => fn () => Calorie::factory()->create(),
+    'food' => fn () => Food::factory()->create(),
     'media' => fn () => Media::factory()->create(),
     'event' => fn () => Event::factory()->create(),
     'appearance' => fn () => Appearance::factory()->create(),

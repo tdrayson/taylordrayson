@@ -2,70 +2,70 @@
 
 namespace App\Observers;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Queries\LoggingStreak;
 use App\Support\EntryInstant;
 
-class CalorieTimelineObserver
+class FoodTimelineObserver
 {
-    public function saved(Calorie $calorie): void
+    public function saved(Food $food): void
     {
         // The streak is cached until midnight, so the first log of a new day
         // would otherwise not show up until tomorrow.
         LoggingStreak::forget();
 
-        $date = $calorie->occurred_at->toDateString();
+        $date = $food->occurred_at->toDateString();
 
-        $firstCalorie = Calorie::whereDate('occurred_at', $date)
+        $firstFood = Food::whereDate('occurred_at', $date)
             ->orderBy('id')
             ->first();
 
-        if (! $firstCalorie) {
+        if (! $firstFood) {
             return;
         }
 
         // The end of the day the food belongs to: a daily total is only true
         // once the day is done, and it is the moment the card and its timezone
         // both read from.
-        $occurredAt = $calorie->occurred_at->copy()->endOfDay();
+        $occurredAt = $food->occurred_at->copy()->endOfDay();
 
         TimelineEntry::updateOrCreate(
             [
-                'dataset' => (new Calorie)->getMorphClass(),
-                'entry_id' => $firstCalorie->id,
+                'dataset' => (new Food)->getMorphClass(),
+                'entry_id' => $firstFood->id,
             ],
             [
                 'occurred_at' => $occurredAt,
-                'occurred_utc' => EntryInstant::utc($occurredAt, $firstCalorie->timezone()),
-                'url_slug' => $firstCalorie->slug(),
+                'occurred_utc' => EntryInstant::utc($occurredAt, $firstFood->timezone()),
+                'url_slug' => $firstFood->slug(),
             ],
         );
     }
 
-    public function deleted(Calorie $calorie): void
+    public function deleted(Food $food): void
     {
         LoggingStreak::forget();
 
-        $date = $calorie->occurred_at->toDateString();
+        $date = $food->occurred_at->toDateString();
 
-        $remaining = Calorie::whereDate('occurred_at', $date)
-            ->where('id', '!=', $calorie->id)
+        $remaining = Food::whereDate('occurred_at', $date)
+            ->where('id', '!=', $food->id)
             ->orderBy('id')
             ->first();
 
-        $dataset = (new Calorie)->getMorphClass();
+        $dataset = (new Food)->getMorphClass();
 
         if (! $remaining) {
             TimelineEntry::where('dataset', $dataset)
-                ->where('entry_id', $calorie->id)
+                ->where('entry_id', $food->id)
                 ->delete();
 
             return;
         }
 
         TimelineEntry::where('dataset', $dataset)
-            ->where('entry_id', $calorie->id)
+            ->where('entry_id', $food->id)
             ->update(['entry_id' => $remaining->id]);
     }
 }

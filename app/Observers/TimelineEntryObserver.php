@@ -2,8 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
+use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +12,7 @@ class TimelineEntryObserver
 {
     public function saved(Model $model): void
     {
-        if ($model instanceof Calorie) {
+        if ($model instanceof Food) {
             return;
         }
 
@@ -98,7 +98,7 @@ class TimelineEntryObserver
 
     public function deleted(Model $model): void
     {
-        if ($model instanceof Calorie) {
+        if ($model instanceof Food) {
             return;
         }
 

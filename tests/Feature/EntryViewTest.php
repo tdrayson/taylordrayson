@@ -3,9 +3,9 @@
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Concerns\Timelineable;
+use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Series;
@@ -90,12 +90,12 @@ it('cites a source without a link when the platform has no url', function () {
 });
 
 it('aggregates the whole day for a food entry', function () {
-    Calorie::factory()->create(['meal' => 'breakfast', 'calories' => 320, 'occurred_at' => '2026-03-15 08:00:00']);
-    $lunch = Calorie::factory()->create(['meal' => 'lunch', 'calories' => 450, 'occurred_at' => '2026-03-15 13:00:00']);
+    Food::factory()->create(['meal' => 'breakfast', 'calories' => 320, 'occurred_at' => '2026-03-15 08:00:00']);
+    $lunch = Food::factory()->create(['meal' => 'lunch', 'calories' => 450, 'occurred_at' => '2026-03-15 13:00:00']);
 
     get('/'.entryUrl($lunch))->assertInertia(fn ($page) => $page
         ->component('Entry')
-        ->where('type', 'calorie')
+        ->where('type', 'food')
         ->where('entry.totals.calories', 770)
         ->has('entry.meals', 2)
     );

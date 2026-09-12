@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Queries\DayFoodTotals;
@@ -45,7 +45,7 @@ class BuildTimelineFeed
     private function warmFoodTotals(Collection $entries): void
     {
         $dates = $entries
-            ->filter(fn (TimelineEntry $entry): bool => $entry->entry instanceof Calorie)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry instanceof Food)
             ->map(fn (TimelineEntry $entry): string => $entry->entry->occurred_at->toDateString())
             ->unique()
             ->values()

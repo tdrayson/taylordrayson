@@ -64,7 +64,7 @@ class Timeline extends Tool
         return [
             'from' => $schema->string()->description('Start date, YYYY-MM-DD.')->required(),
             'to' => $schema->string()->description('End date, YYYY-MM-DD. Omit for a single day.'),
-            'type' => $schema->string()->description('Limit to one type, e.g. sleep, activity, calorie, flight.'),
+            'type' => $schema->string()->description('Limit to one type, e.g. sleep, activity, food, flight.'),
             'limit' => $schema->integer()->description('Entries to return, default and maximum '.self::MAX.'.'),
         ];
     }

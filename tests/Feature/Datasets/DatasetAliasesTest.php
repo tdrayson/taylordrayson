@@ -72,3 +72,9 @@ it('runs an advanced search filter for a live key', function () {
     // (flights over 300mi with easyJet)"), which exercises FilterValidator's
     // group type resolution through the same boundary.
 })->skip('covered by tests/Feature/AdvancedSearchTest.php');
+
+it('keeps accepting calorie as food', function () {
+    expect(Datasets::resolveOne('calorie')?->type()->value)->toBe('food');
+
+    $this->get('/feed?types=calorie')->assertOk();
+});

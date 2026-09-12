@@ -37,7 +37,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     ) {}
 
     /**
-     * No meta at all (Calorie, Project).
+     * No meta at all (Food, Project).
      */
     public static function empty(): self
     {

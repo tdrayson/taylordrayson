@@ -50,7 +50,7 @@ return [
     'archive' => [
         'activity' => ["Every move I've made", 'All my questionable cardio', 'Proof that I exercise'],
         'sleep' => ["Every night's sleep", "How I've been sleeping", 'All my nights, logged'],
-        'calorie' => ["Everything I've eaten", 'Every calorie, counted', 'A running tally of my snacking'],
+        'food' => ["Everything I've eaten", 'Every calorie, counted', 'A running tally of my snacking'],
         'media' => ["Everything I've watched and read", 'My watch and read history', 'Where my evenings went'],
         'event' => ["Events I've turned up to", "Everywhere I've shown my face", 'Times I left the house'],
         'appearance' => ['Talks and appearances', 'Times they let me on stage', "Where I've been let loose"],

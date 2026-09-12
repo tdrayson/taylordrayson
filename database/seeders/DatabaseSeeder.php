@@ -7,10 +7,10 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->seedTvSeries();
-        $this->seedOldCalorieStreak();
+        $this->seedOldFoodStreak();
         $this->seedRecentData();
         $this->seedOneOffData();
     }
@@ -81,10 +81,10 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed ~2,145 days of minimal calorie data for the streak widget.
+     * Seed ~2,145 days of minimal food data for the streak widget.
      * Uses withoutEvents so observers don't fire for old data.
      */
-    private function seedOldCalorieStreak(): void
+    private function seedOldFoodStreak(): void
     {
         Model::withoutEvents(function (): void {
             $startDate = now()->subDays(2145 + 180);
@@ -92,7 +92,7 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < 2145; $i++) {
                 $date = $startDate->copy()->addDays($i);
 
-                Calorie::factory()->create([
+                Food::factory()->create([
                     'occurred_at' => $date->setTime(12, 0),
                 ]);
             }
@@ -110,7 +110,7 @@ class DatabaseSeeder extends Seeder
             $date = now()->subDays($dayOffset)->startOfDay();
 
             $this->seedSleep($date);
-            $this->seedCalories($date);
+            $this->seedFood($date);
             $this->seedActivities($date);
             $this->seedCheckins($date);
             $this->seedNotes($date);
@@ -167,11 +167,11 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 
-    private function seedCalories(Carbon $date): void
+    private function seedFood(Carbon $date): void
     {
         $breakfastCount = fake()->numberBetween(1, 2);
         for ($i = 0; $i < $breakfastCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(7, 9), fake()->numberBetween(0, 59)),
                 'meal' => 'breakfast',
             ]);
@@ -179,7 +179,7 @@ class DatabaseSeeder extends Seeder
 
         $lunchCount = fake()->numberBetween(1, 2);
         for ($i = 0; $i < $lunchCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(12, 13), fake()->numberBetween(0, 59)),
                 'meal' => 'lunch',
             ]);
@@ -187,7 +187,7 @@ class DatabaseSeeder extends Seeder
 
         $dinnerCount = fake()->numberBetween(1, 3);
         for ($i = 0; $i < $dinnerCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(18, 20), fake()->numberBetween(0, 59)),
                 'meal' => 'dinner',
             ]);
@@ -195,7 +195,7 @@ class DatabaseSeeder extends Seeder
 
         $snackCount = fake()->numberBetween(0, 2);
         for ($i = 0; $i < $snackCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(10, 16), fake()->numberBetween(0, 59)),
                 'meal' => 'snacks',
             ]);

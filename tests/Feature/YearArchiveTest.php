@@ -3,8 +3,8 @@
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
@@ -49,10 +49,10 @@ it('splits distance by discipline, averages daily food, and adds a year-only sup
     Activity::factory()->create(['type' => 'ride', 'distance' => 32187, 'occurred_at' => '2025-06-08 08:00:00']); // 20 mi
 
     // 6000 kcal across 3 logged days -> 2000 kcal/day.
-    Calorie::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 08:00:00']);
-    Calorie::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 12:00:00']);
-    Calorie::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-02 12:00:00']);
-    Calorie::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-03 12:00:00']);
+    Food::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 08:00:00']);
+    Food::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 12:00:00']);
+    Food::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-02 12:00:00']);
+    Food::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-03 12:00:00']);
 
     get('/2025')->assertInertia(fn ($page) => $page
         ->component('Year')

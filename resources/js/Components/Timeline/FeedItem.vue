@@ -185,7 +185,6 @@ const routeView = computed(() => {
 
 const airline = computed(() => props.route?.airline ?? null);
 
-// The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
 
 // Stored static map for this entry (activity route, flight arc, event/fuel/checkin

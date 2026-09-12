@@ -37,7 +37,7 @@ final class SuggestSearch
      */
     private const SEARCHABLE = [
         'activity' => ['name'],
-        'calorie' => ['name', 'meal'],
+        'food' => ['name', 'meal'],
         'media' => ['title'],
         'event' => ['name', 'venue_name', 'city', 'country'],
         'appearance' => ['title', 'show_name', 'description'],

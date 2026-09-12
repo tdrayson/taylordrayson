@@ -85,7 +85,7 @@ it('counts entries in the nouns the more page uses', function () {
     expect($nouns)->toBe([
         'activity' => ['activity', 'activities'],
         'sleep' => ['night', 'nights'],
-        'calorie' => ['day', 'days'],
+        'food' => ['day', 'days'],
         'media' => ['logged', 'logged'],
         'event' => ['event', 'events'],
         'appearance' => ['appearance', 'appearances'],
@@ -105,7 +105,7 @@ it('groups every type into a kind', function () {
     expect($kinds)->toBe([
         'activity' => 'health',
         'sleep' => 'health',
-        'calorie' => 'health',
+        'food' => 'health',
         'media' => 'watching',
         'event' => 'going-out',
         'appearance' => 'speaking',

@@ -1,10 +1,10 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Sleep;
@@ -153,15 +153,15 @@ it('writes an event subtitle as a sentence naming venue and city', function () {
     expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('I went to The Roundhouse in London.');
 });
 
-it('keeps the calorie subtitle comma-joined with no connectives', function () {
-    $calorie = Calorie::factory()->create([
+it('keeps the food subtitle comma-joined with no connectives', function () {
+    $food = Food::factory()->create([
         'occurred_at' => '2026-07-19 12:00:00',
         'protein' => 30,
         'carbs' => 40,
         'fat' => 10,
     ]);
 
-    $subtitle = CardPresenter::for($calorie)->toArray()['subtitle'];
+    $subtitle = CardPresenter::for($food)->toArray()['subtitle'];
 
     expect($subtitle)->toContain(',')
         ->and($subtitle)->not->toContain(' in ');

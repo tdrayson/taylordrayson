@@ -3,7 +3,7 @@
 namespace App\Search;
 
 use App\Models\Article;
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\Page;
 use App\Support\SqlDate;
 use App\Timeline\TypeRegistry;
@@ -142,16 +142,16 @@ class SearchCompiler
      * A food entry is a whole day but hangs off the first row of that day, so a
      * condition applied to the query directly reads one item out of a dozen.
      *
-     * @param  Builder  $query  A Calorie query for the row the entry hangs off.
+     * @param  Builder  $query  A Food query for the row the entry hangs off.
      * @param  Closure(Builder): void  $constrain  Applies the conditions to the aliased item query.
      */
     private function whereDayHasItem(Builder $query, Closure $constrain): void
     {
-        $items = Calorie::query()->from('calories as items')->selectRaw('1');
+        $items = Food::query()->from('food as items')->selectRaw('1');
 
         $constrain($items);
 
-        $items->whereRaw(SqlDate::date('items.occurred_at').' = '.SqlDate::date('calories.occurred_at'));
+        $items->whereRaw(SqlDate::date('items.occurred_at').' = '.SqlDate::date('food.occurred_at'));
 
         $query->whereExists($items);
     }
@@ -170,8 +170,8 @@ class SearchCompiler
     private function dayTotalClause(Builder $query, array $field, string $operator, mixed $value): void
     {
         // Interpolated, not bound: the column is a schema constant, never input.
-        $total = '(select coalesce(sum(totals.'.$field['column'].'), 0) from calories as totals where '
-            .SqlDate::date('totals.occurred_at').' = '.SqlDate::date('calories.occurred_at').')';
+        $total = '(select coalesce(sum(totals.'.$field['column'].'), 0) from food as totals where '
+            .SqlDate::date('totals.occurred_at').' = '.SqlDate::date('food.occurred_at').')';
 
         if ($operator === 'between' || $operator === 'not_between') {
             $range = $this->numberRange($value);
@@ -253,7 +253,7 @@ class SearchCompiler
 
             // A food day is named by whichever item the entry hangs off, so
             // matching that row alone hides most of what was eaten.
-            if ($modelClass === Calorie::class) {
+            if ($modelClass === Food::class) {
                 $this->whereDayHasItem($morph, fn (Builder $items) => $match($items, 'items.'));
 
                 return;

@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Calorie;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Podcast;
@@ -48,10 +48,10 @@ it('orders entries within a day latest first', function () {
 });
 
 it('exposes the card type for each entry', function () {
-    Calorie::factory()->create(['occurred_at' => now()]);
+    Food::factory()->create(['occurred_at' => now()]);
 
     get('/')->assertInertia(fn ($page) => $page
-        ->where('groups.0.items.0.iconKey', 'calorie')
+        ->where('groups.0.items.0.iconKey', 'food')
         ->where('groups.0.items.0.url', fn ($url) => str_contains($url, '/'))
     );
 });
@@ -82,7 +82,7 @@ it('pages on a date cursor, not an offset', function () {
 
 it('never splits a day across pages', function () {
     // One day carrying more than a page's entry budget on its own. Activity,
-    // not Calorie: a day's food collapses to a single spine row.
+    // not Food: a day's food collapses to a single spine row.
     Activity::factory()->count(60)->create(['occurred_at' => now()->subDay()]);
     Activity::factory()->create(['occurred_at' => now()->subDays(2)]);
 

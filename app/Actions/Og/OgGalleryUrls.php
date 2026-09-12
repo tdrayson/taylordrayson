@@ -71,7 +71,7 @@ final class OgGalleryUrls
                 new SegmentData('Light', 'light', 13320),
                 new SegmentData('Deep', 'deep', 5700),
             ])],
-            'calorie' => ['layout' => 'text', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
+            'food' => ['layout' => 'text', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
             'fuel' => ['layout' => 'text', 'title' => 'I put £62.40 of fuel in', 'date' => 'Sat 14 Jun 2026', 'meta' => null],
         ];
 

@@ -4,22 +4,22 @@ namespace App\Datasets;
 
 use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
-use App\Models\Calorie;
-use App\Presenters\Cards\CalorieCard;
+use App\Models\Food;
+use App\Presenters\Cards\FoodCard;
 
 /**
  * Daily food logging, from MyFitnessPal.
  */
-final class CalorieDataset extends BaseDataset
+final class FoodDataset extends BaseDataset
 {
     public function type(): TimelineType
     {
-        return TimelineType::Calorie;
+        return TimelineType::Food;
     }
 
     public function model(): string
     {
-        return Calorie::class;
+        return Food::class;
     }
 
     public function kind(): DatasetKind
@@ -60,9 +60,9 @@ final class CalorieDataset extends BaseDataset
         return ['day', 'days'];
     }
 
-    public function card(): CalorieCard
+    public function card(): FoodCard
     {
-        return new CalorieCard;
+        return new FoodCard;
     }
 
     /**

@@ -6,9 +6,9 @@ use App\Enums\ActivityDiscipline;
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
@@ -66,10 +66,10 @@ final class PeriodStats
 
         // Averaged over logged days only, so a partial period isn't diluted by
         // untracked ones.
-        $foodDays = (int) $between(Calorie::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
+        $foodDays = (int) $between(Food::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
 
         if ($foodDays > 0) {
-            $avgCalories = (int) round($between(Calorie::query())->sum('calories') / $foodDays);
+            $avgCalories = (int) round($between(Food::query())->sum('calories') / $foodDays);
 
             if ($avgCalories > 0) {
                 $stats[] = ['label' => 'Food', 'value' => number_format($avgCalories), 'unit' => 'kcal/day'];

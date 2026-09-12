@@ -3,8 +3,8 @@
 namespace App\Console\Commands\Db;
 
 use App\Models\Attachment;
-use App\Models\Calorie;
 use App\Models\Concerns\Timelineable;
+use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Timeline\TypeRegistry;
 use Illuminate\Console\Attributes\Description;
@@ -139,7 +139,7 @@ class CheckIntegrity extends Command
         foreach (TypeRegistry::all() as $type) {
             $model = $type['model'];
 
-            if ($model === Calorie::class) {
+            if ($model === Food::class) {
                 continue;
             }
 
@@ -169,7 +169,7 @@ class CheckIntegrity extends Command
      */
     private function missingFoodDays(): array
     {
-        $logged = Calorie::query()
+        $logged = Food::query()
             ->toBase()
             ->selectRaw('DATE(occurred_at) as date')
             ->distinct()
@@ -177,7 +177,7 @@ class CheckIntegrity extends Command
 
         $onSpine = TimelineEntry::query()
             ->toBase()
-            ->where('dataset', (new Calorie)->getMorphClass())
+            ->where('dataset', (new Food)->getMorphClass())
             ->selectRaw('DATE(occurred_at) as date')
             ->distinct()
             ->pluck('date');

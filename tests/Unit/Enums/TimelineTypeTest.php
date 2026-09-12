@@ -6,7 +6,7 @@ it('has exactly the thirteen stored values', function () {
     expect(array_column(TimelineType::cases(), 'value'))->toBe([
         'activity',
         'sleep',
-        'calorie',
+        'food',
         'media',
         'event',
         'appearance',
@@ -25,7 +25,7 @@ it('resolves each case from its stored backed value', function (string $value, T
 })->with([
     ['activity', TimelineType::Activity],
     ['sleep', TimelineType::Sleep],
-    ['calorie', TimelineType::Calorie],
+    ['food', TimelineType::Food],
     ['media', TimelineType::Media],
     ['event', TimelineType::Event],
     ['appearance', TimelineType::Appearance],

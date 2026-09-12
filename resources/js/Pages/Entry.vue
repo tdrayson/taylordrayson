@@ -86,7 +86,7 @@ const fullOccurredLabel = computed(() => `${props.occurredLabel} ${props.occurre
 
 // Aggregate / one-per-day types have a generic slug and a stat-style title, so the
 // type label reads better in the breadcrumb. Everything else uses its title.
-const SINGULAR_TYPES = ['sleep', 'calorie', 'fuel', 'note'];
+const SINGULAR_TYPES = ['sleep', 'food', 'fuel', 'note'];
 const crumbLabel = computed(() => (SINGULAR_TYPES.includes(props.type) ? meta.value.label : props.title));
 
 setLayoutProps({

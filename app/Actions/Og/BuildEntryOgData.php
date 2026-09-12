@@ -123,7 +123,7 @@ final class BuildEntryOgData
     {
         $phrase = match ($card->type) {
             TimelineType::Sleep => OgPhrases::pick('sleep', ['duration' => Units::humanDuration($model->duration)], $seed),
-            TimelineType::Calorie => OgPhrases::pick('food', ['kcal' => number_format(app(DayFoodTotals::class)->for($model->occurred_at->toDateString())['calories'])], $seed),
+            TimelineType::Food => OgPhrases::pick('food', ['kcal' => number_format(app(DayFoodTotals::class)->for($model->occurred_at->toDateString())['calories'])], $seed),
             TimelineType::Fuel => OgPhrases::pick('fuel', ['cost' => number_format((float) $model->cost, 2), 'litres' => $model->litres], $seed),
             TimelineType::Podcast => $model->season_number && $model->episode_number
                 ? OgPhrases::pick('podcast', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)

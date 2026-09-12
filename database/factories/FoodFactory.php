@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Calorie>
+ * @extends Factory<Food>
  */
-class CalorieFactory extends Factory
+class FoodFactory extends Factory
 {
     /**
      * @var array<string, array<string, array{cal: int, fat: int, protein: int, carbs: int}>>

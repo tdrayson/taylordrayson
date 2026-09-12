@@ -7,10 +7,10 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Calorie;
 use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
@@ -65,7 +65,7 @@ final class EntryDescription
             $model instanceof Checkin => self::checkin($model),
             $model instanceof Flight => self::flight($model),
             $model instanceof Media => self::media($model),
-            $model instanceof Calorie => self::calorie($model),
+            $model instanceof Food => self::food($model),
             $model instanceof Fuel => self::fuel($model),
             $model instanceof Event => self::event($model),
             $model instanceof Appearance => self::appearance($model),
@@ -229,7 +229,7 @@ final class EntryDescription
     }
 
     /** The day's total broken into its macros, as its own sentence. */
-    private static function calorie(Calorie $model): string
+    private static function food(Food $model): string
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 

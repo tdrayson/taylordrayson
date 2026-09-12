@@ -5,14 +5,14 @@ namespace App\Models;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
-use App\Observers\CalorieTimelineObserver;
+use App\Observers\FoodTimelineObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 
-#[ObservedBy(CalorieTimelineObserver::class)]
+#[ObservedBy(FoodTimelineObserver::class)]
 #[Fillable([
     'occurred_at',
     'source',
@@ -32,9 +32,11 @@ use Spatie\MediaLibrary\HasMedia;
     'cholesterol',
     'sodium',
 ])]
-class Calorie extends Model implements HasMedia, Timelineable
+class Food extends Model implements HasMedia, Timelineable
 {
     use HasAttachments, HasFactory, HasTimelineEntry;
+
+    protected $table = 'food';
 
     /**
      * @return array<string, string>
@@ -56,9 +58,9 @@ class Calorie extends Model implements HasMedia, Timelineable
      */
     protected static function booted(): void
     {
-        static::saving(function (self $calorie): void {
-            if ($calorie->occurred_at !== null) {
-                $calorie->occurred_at = $calorie->occurred_at->copy()->endOfDay();
+        static::saving(function (self $food): void {
+            if ($food->occurred_at !== null) {
+                $food->occurred_at = $food->occurred_at->copy()->endOfDay();
             }
         });
     }

@@ -16,7 +16,7 @@ enum TimelineType: string
 {
     case Activity = 'activity';
     case Sleep = 'sleep';
-    case Calorie = 'calorie';
+    case Food = 'food';
     case Media = 'media';
     case Event = 'event';
     case Appearance = 'appearance';
@@ -29,13 +29,11 @@ enum TimelineType: string
     case Note = 'note';
 
     /**
-     * The --color-* token key for this type. Matches the case value everywhere
-     * except food, where the type is named for the row and the colour for the
-     * subject.
+     * The --color-* token key for this type. Matches the case value.
      */
     public function accent(): string
     {
-        return $this === self::Calorie ? 'food' : $this->value;
+        return $this->value;
     }
 
     /**

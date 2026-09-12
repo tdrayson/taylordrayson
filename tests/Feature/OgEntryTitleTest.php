@@ -1,7 +1,7 @@
 <?php
 
 use App\Actions\Og\BuildEntryOgData;
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\Media;
 use App\Models\Series;
 use App\Models\Sleep;
@@ -34,12 +34,12 @@ it('builds the sleep headline from the duration, not the card title', function (
 });
 
 it('builds the food headline from the day total, not the card title', function () {
-    $calorie = Calorie::factory()->create([
+    $food = Food::factory()->create([
         'occurred_at' => '2026-08-29 12:00:00',
         'calories' => 2140,
     ]);
 
-    expect(ogTitle($calorie))
+    expect(ogTitle($food))
         ->toContain('2,140')
         ->not->toContain('calories');
 });

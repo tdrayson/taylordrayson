@@ -8,7 +8,7 @@
 export const timelineTypes = {
     activity: { icon: 'WorkoutRunIcon', label: 'Activity', plural: 'Activities', href: '/activities', accent: 'activity', keywords: 'workout exercise sport', noun: 'activity', nounPlural: 'activities', kind: 'health' },
     sleep: { icon: 'Moon02Icon', label: 'Sleep', plural: 'Sleep', href: '/sleep', accent: 'sleep', keywords: 'rest bed nap', noun: 'night', nounPlural: 'nights', kind: 'health' },
-    calorie: { icon: 'UtensilsIcon', label: 'Food', plural: 'Food', href: '/food', accent: 'food', keywords: 'food eat meal nutrition', noun: 'day', nounPlural: 'days', kind: 'health' },
+    food: { icon: 'UtensilsIcon', label: 'Food', plural: 'Food', href: '/food', accent: 'food', keywords: 'food eat meal nutrition', noun: 'day', nounPlural: 'days', kind: 'health' },
     media: { icon: 'Film01Icon', label: 'Media', plural: 'Media', href: '/media', accent: 'media', keywords: 'watch movie film tv show book reading', noun: 'logged', nounPlural: 'logged', kind: 'watching' },
     event: { icon: 'Ticket01Icon', label: 'Event', plural: 'Events', href: '/events', accent: 'event', keywords: 'ticket gig concert', noun: 'event', nounPlural: 'events', kind: 'going-out' },
     appearance: { icon: 'Mic01Icon', label: 'Appearance', plural: 'Appearances', href: '/appearances', accent: 'appearance', keywords: 'talk speaking interview', noun: 'appearance', nounPlural: 'appearances', kind: 'speaking' },
