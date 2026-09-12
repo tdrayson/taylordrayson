@@ -13,6 +13,7 @@ import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import CardMediaCarousel from './CardMediaCarousel.vue';
 import NoteBody from '../Ui/NoteBody.vue';
+import ResponseContext from '../Entry/ResponseContext.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
@@ -47,6 +48,9 @@ const props = defineProps({
     // Wide artwork for a film or episode (an episode borrows its show's). Shown
     // as context, so unlike `photos` it has no lightbox.
     backdrop: { type: String, default: null },
+    // What this post responds to, for a note or article that answers somebody.
+    // The same ResponseData the entry page draws, in its compact form.
+    response: { type: Object, default: null },
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
@@ -244,9 +248,14 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
             </div>
         </div>
+        <!-- Above the words, the same order the entry page reads in. -->
+        <ResponseContext v-if="response" :response="response" class="mt-1.5" />
+
         <NoteBody v-if="hasBody" :document="body" />
-        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
-        <h3 v-else class="mt-1 max-w-md font-display text-item-title">
+        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3
+             heading. A gesture has none, because the line above is the card:
+             its title only restates that line in a display face. -->
+        <h3 v-else-if="! response?.namedInTitle" class="mt-1 max-w-md font-display text-item-title">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji

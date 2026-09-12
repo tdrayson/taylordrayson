@@ -4,7 +4,7 @@ namespace App\Actions\Mentions;
 
 use App\Models\Mention;
 use App\Support\InteractionTarget;
-use App\Support\Links;
+use App\Support\OutboundLinks;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -64,7 +64,7 @@ final class SyncMentions
 
         $targets = [];
 
-        foreach (Links::internalPathsIn($source->content) as $path) {
+        foreach (OutboundLinks::internalPathsFor($source) as $path) {
             $target = ($this->resolve)($path);
 
             // Self-links are dropped rather than stored and filtered later: an

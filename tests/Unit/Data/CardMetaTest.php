@@ -73,14 +73,14 @@ it('serialises checkin meta with photos, map, mapDark, address, category', funct
     ]);
 });
 
-it('serialises article photos meta with only photos', function () {
+it('serialises article photos meta with only photos and what it responds to', function () {
     $photo = PhotoData::cover('src.webp', null, 'full.webp');
     $meta = CardMeta::photos([$photo]);
 
-    expect($meta->toArray())->toBe(['photos' => [$photo->toArray()]]);
+    expect($meta->toArray())->toBe(['photos' => [$photo->toArray()], 'response' => null]);
 });
 
-it('serialises note meta with only body, photos, previews, favicons', function () {
+it('serialises note meta with only body, photos, previews, favicons, response', function () {
     $document = PortableText::fromPlainText('Some note text');
 
     $meta = CardMeta::note($document, []);
@@ -90,5 +90,6 @@ it('serialises note meta with only body, photos, previews, favicons', function (
         'photos' => [],
         'previews' => [],
         'favicons' => [],
+        'response' => null,
     ]);
 });

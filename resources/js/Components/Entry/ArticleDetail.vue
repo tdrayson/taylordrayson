@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import Pill from '../Ui/Pill.vue';
+import ResponseContext from './ResponseContext.vue';
 import BlockContent from '../Ui/BlockContent.vue';
 import TableOfContents from '../Ui/TableOfContents.vue';
 
@@ -39,6 +40,10 @@ const headingCount = computed(() => contentNodes.value.filter(
         <div v-if="!entry.published" class="flex flex-wrap gap-2">
             <Pill label="Draft" variant="accent" />
         </div>
+
+        <!-- Above the words, so the piece reads as an answer to the thing
+             named here rather than the thing being a footnote to it. -->
+        <ResponseContext v-if="entry.response" :response="entry.response" />
 
         <!-- Above the cover, matching a page: the standfirst introduces the
              piece, so it belongs with the headline rather than under the image

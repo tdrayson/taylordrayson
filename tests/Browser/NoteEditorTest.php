@@ -51,3 +51,23 @@ it('drops the block handles in a note', function () {
     // in beside a bordered box.
     $browser->assertScript("document.querySelector('[aria-label=\"Insert a block below\"]') === null", true);
 });
+
+// A response is a claim about somebody else's post, so changing my mind has to
+// be possible: an unclearable select would leave the note published as a reply
+// to whatever was picked first.
+it('lets a response be taken back after it has been chosen', function () {
+    $browser = visit('/new/note');
+
+    $browser->click('.prose-editor')->typeSlowly('.prose-editor', 'Second thoughts.', 20);
+    $browser->select('#response_kind', 'reply');
+    $browser->assertPresent('#response_url');
+
+    $browser->select('#response_kind', '');
+    $browser->assertMissing('#response_url');
+
+    $browser->fill('#slug', 'second-thoughts');
+    $browser->click('button:has-text("Post")');
+    $browser->assertScript("location.pathname !== '/new/note'", true);
+
+    expect(Note::sole()->response_kind)->toBeNull();
+});

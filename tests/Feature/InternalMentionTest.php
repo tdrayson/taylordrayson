@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Article;
+use App\Models\Checkin;
 use App\Models\Mention;
 use App\Models\Note;
+use App\Models\Project;
 use App\Models\Sleep;
 use App\Support\PortableText;
 
@@ -112,14 +114,18 @@ it('records nothing for an entry that links to itself', function () {
     expect(Mention::query()->count())->toBe(0);
 });
 
-// A note's first eighty characters are not a name. Sent as null so the byline
-// can say what the source is instead of quoting the top of it.
-it('sends no title for a mention that came from a note', function () {
+// A note's first eighty characters are not a name, so the byline says what the
+// source is and when, rather than quoting the top of it. Not possessive: the
+// byline already names who wrote it.
+it('names a note source by what it is rather than quoting its first words', function () {
     $sleep = Sleep::factory()->create();
-    Note::factory()->create(['content' => linkedTo($sleep->url())]);
+    Note::factory()->create([
+        'occurred_at' => now()->setDate(now()->year, 3, 14),
+        'content' => linkedTo($sleep->url()),
+    ]);
 
     get($sleep->url())
-        ->assertInertia(fn ($page) => $page->where('conversation.responses.0.title', null));
+        ->assertInertia(fn ($page) => $page->where('conversation.responses.0.title', 'a note from 14 March'));
 });
 
 it('sends the title for a mention that came from an article', function () {
@@ -146,4 +152,49 @@ it('shows the mention in the linked entry\'s conversation', function () {
             // is no "via somewhere-else" to close the byline with.
             ->where('conversation.responses.0.sourceHost', null)
             ->where('conversation.responses.0.body', null));
+});
+
+/**
+ * The types that send webmentions record mentions too, from the same fields.
+ * A check-in's note or a Strava description is as much a link to a post of mine
+ * as one typed into an article, and it used to be the only kind that counted.
+ */
+it('records a mention from a description, not just from a written body', function () {
+    $sleep = Sleep::factory()->create(['occurred_at' => now()->subDay()]);
+
+    $checkin = Checkin::factory()->create([
+        'occurred_at' => now(),
+        'description' => 'Slept badly before this one: '.config('app.url').$sleep->url(),
+    ]);
+
+    $mention = Mention::query()->sole();
+
+    expect($mention->source_id)->toBe($checkin->id)
+        ->and($mention->target_type)->toBe($sleep->getMorphClass())
+        ->and($mention->target_id)->toBe($sleep->id);
+
+    // And it is kept in step from there, the same as a body is.
+    $checkin->update(['description' => 'Nothing linked here now.']);
+
+    expect(Mention::query()->count())->toBe(0);
+});
+
+/**
+ * A project is standing content that describes a thing, so it links to the
+ * posts about that thing more than most types do. It used to record nothing,
+ * because the source was held to the same allowlist as the target.
+ */
+it('records a mention from a project, which links out more than most', function () {
+    $article = Article::factory()->create(['published' => true]);
+
+    // A project's prose is a plain description, which is autolinked on the way
+    // in, so the link has to be written out in full.
+    $project = Project::factory()->create([
+        'description' => 'Written up at '.config('app.url').$article->url(),
+    ]);
+
+    $mention = Mention::query()->sole();
+
+    expect($mention->source_id)->toBe($project->id)
+        ->and($mention->target_type)->toBe($article->getMorphClass());
 });

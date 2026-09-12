@@ -7,7 +7,8 @@ use function Pest\Laravel\get;
 
 /**
  * Which entries end with a place to respond. Every type carries one whether or
- * not anybody has responded; a project is the one that takes none at all.
+ * not anybody has responded, projects included: a project is standing content
+ * like a page, and the likeliest thing here for somebody to link to.
  */
 it('offers a way to respond to a record nobody has responded to', function () {
     $activity = Activity::factory()->create();
@@ -17,10 +18,10 @@ it('offers a way to respond to a record nobody has responded to', function () {
         ->assertInertia(fn ($page) => $page->has('conversation.reactions'));
 });
 
-it('takes no responses on a project', function () {
+it('takes responses on a project, which is what people bookmark', function () {
     $project = Project::factory()->create();
 
     get($project->url())
         ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->where('conversation', null));
+        ->assertInertia(fn ($page) => $page->has('conversation.reactions'));
 });

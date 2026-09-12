@@ -18,7 +18,7 @@ import BlockContent from '../Components/Ui/BlockContent.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
-import StyledSelect from '../Components/Search/StyledSelect.vue';
+import Select from '../Components/Ui/Select.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -259,10 +259,10 @@ function swatchInk(step) {
                 </div>
 
                 <p class="ds-sub pt-3">Select, boxed and bare</p>
-                <StyledSelect v-model="selectYear" :options="yearOptions" />
+                <Select v-model="selectYear" :options="yearOptions" />
                 <p class="text-meta text-neutral-500">
                     Sits inline in a sentence, jump to
-                    <StyledSelect v-model="selectYear" variant="bare" :options="yearOptions" />
+                    <Select v-model="selectYear" variant="bare" :options="yearOptions" />
                 </p>
             </div>
         </section>

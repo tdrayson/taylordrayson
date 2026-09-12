@@ -209,7 +209,7 @@ async function reply(item) {
                 <!-- One stream, every kind. A gesture renders as a single line
                      and a written response as a block, so the weight difference
                      comes from the content rather than from separate lists. -->
-                <ol class="conversation-rail flex flex-col gap-6">
+                <ol :class="['flex flex-col gap-6', thread.length > 1 && 'conversation-rail']">
                     <template v-for="item in thread" :key="item.id">
                         <li class="relative">
                             <ResponseItem :item="item" :nested="item.nested" @reply="reply" />
@@ -262,7 +262,10 @@ async function reply(item) {
 <style scoped>
 /* The same rail the timeline hangs off, run behind the avatars so a thread of
    short gestures reads as one thing rather than as loose lines. The geometry
-   matches FeedRail: a 36px avatar centres on 18px, so a 2px line sits at 17. */
+   matches FeedRail: a 36px avatar centres on 18px, so a 2px line sits at 17.
+
+   Only drawn from two responses up: one response is not a thread, and the cap
+   below has nowhere to sit but on top of the single avatar. */
 .conversation-rail {
     position: relative;
 }

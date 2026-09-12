@@ -4,6 +4,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sending
+    |--------------------------------------------------------------------------
+    |
+    | Whether outgoing webmentions leave the site. Production only, unless you
+    | say otherwise: anywhere else the source URL is a machine nobody can fetch
+    | back, so the mention is unverifiable noise on somebody else's site, and a
+    | local database holding the same posts as the live one would tell every
+    | linked site all over again on the next seed or test run.
+    |
+    */
+
+    'send' => (bool) env('WEBMENTION_SEND', env('APP_ENV') === 'production'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Trusted senders
     |--------------------------------------------------------------------------
     |
