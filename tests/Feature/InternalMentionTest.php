@@ -2,6 +2,7 @@
 
 use App\Enums\EntryStatus;
 use App\Models\Article;
+use App\Models\Checkin;
 use App\Models\Mention;
 use App\Models\Note;
 use App\Models\Sleep;
@@ -153,10 +154,27 @@ it('shows the mention in the linked entry\'s conversation', function () {
             ->where('conversation.responses.0.body', null));
 });
 
-it('records a mention on an unlisted entry', function () {
-    $article = Article::factory()->create(['status' => EntryStatus::Unlisted]);
+/**
+ * The types that send webmentions record mentions too, from the same fields.
+ * A check-in's note or a Strava description is as much a link to a post of mine
+ * as one typed into an article, and it used to be the only kind that counted.
+ */
+it('records a mention from a description, not just from a written body', function () {
+    $sleep = Sleep::factory()->create(['occurred_at' => now()->subDay()]);
 
-    Note::factory()->create(['content' => linkedTo($article->url())]);
+    $checkin = Checkin::factory()->create([
+        'occurred_at' => now(),
+        'description' => 'Slept badly before this one: '.config('app.url').$sleep->url(),
+    ]);
 
-    expect($article->mentions()->count())->toBe(1);
+    $mention = Mention::query()->sole();
+
+    expect($mention->source_id)->toBe($checkin->id)
+        ->and($mention->target_type)->toBe($sleep->getMorphClass())
+        ->and($mention->target_id)->toBe($sleep->id);
+
+    // And it is kept in step from there, the same as a body is.
+    $checkin->update(['description' => 'Nothing linked here now.']);
+
+    expect(Mention::query()->count())->toBe(0);
 });
