@@ -29,6 +29,7 @@ enum FieldType: string
     case Location = 'location';
     case Image = 'image';
     case Gallery = 'gallery';
+    case Citation = 'citation';
 
     public function label(): string
     {
@@ -52,6 +53,7 @@ enum FieldType: string
             self::Location => 'Location',
             self::Image => 'Image',
             self::Gallery => 'Photos',
+            self::Citation => 'Quote',
         };
     }
 

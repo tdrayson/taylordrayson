@@ -28,6 +28,7 @@ final class ArticleFields
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::optional('response_kind', 'Response', FieldType::Select, ResponseKind::options()),
             FieldData::optional('response_url', 'Responding to', FieldType::Url, showWhen: ['response_kind' => []]),
+            FieldData::optional('response_quote', 'Quote', FieldType::Citation, showWhen: ['response_url' => []]),
             FieldData::optional('rsvp_value', 'Answer', FieldType::Select, RsvpValue::options(), showWhen: ['response_kind' => ['rsvp']]),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),

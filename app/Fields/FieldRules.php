@@ -100,6 +100,7 @@ final class FieldRules
             // items themselves are checked by itemRules() below.
             FieldType::Image => ['nullable', 'array', 'max:1'],
             FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
+            FieldType::Citation => ['nullable', 'string', 'max:600'],
         };
     }
 

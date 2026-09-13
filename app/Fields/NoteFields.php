@@ -26,6 +26,7 @@ final class NoteFields
             FieldData::primary('content', 'Note', FieldType::Prose, required: true, max: Note::MAX_LENGTH),
             FieldData::optional('response_kind', 'Response', FieldType::Select, ResponseKind::options()),
             FieldData::optional('response_url', 'Responding to', FieldType::Url, showWhen: ['response_kind' => []]),
+            FieldData::optional('response_quote', 'Quote', FieldType::Citation, showWhen: ['response_url' => []]),
             FieldData::optional('rsvp_value', 'Answer', FieldType::Select, RsvpValue::options(), showWhen: ['response_kind' => ['rsvp']]),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
