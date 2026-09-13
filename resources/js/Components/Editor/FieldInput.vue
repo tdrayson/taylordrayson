@@ -36,6 +36,8 @@ const props = defineProps({
     longitude: { type: [Number, String], default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
+    // The sibling password a status field edits alongside the status itself.
+    password: { type: String, default: '' },
     // Settled and no longer editable, like a slug after the entry's first save.
     readonly: { type: Boolean, default: false },
     // Shown greyed in an empty control: what the value will be if left blank.
@@ -162,6 +164,7 @@ function textToTags(value) {
             v-else-if="field.type === 'status'"
             :id="field.name"
             :model-value="modelValue ?? 'published'"
+            :password="password"
             :options="field.options ?? []"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
@@ -174,7 +177,6 @@ function textToTags(value) {
             :options="field.options ?? []"
             :placeholder="`Choose ${field.label.toLowerCase()}`"
             :invalid="Boolean(error)"
-            class="min-h-11"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

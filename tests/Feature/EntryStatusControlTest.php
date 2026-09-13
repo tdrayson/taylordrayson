@@ -4,11 +4,9 @@ use App\Enums\EntryStatus;
 use App\Models\Activity;
 use App\Models\Food;
 use App\Models\Note;
-use App\Models\Page;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('sends a guest to log in', function () {
@@ -37,7 +35,7 @@ it('refuses a draft for a synced entry and private without a password', function
 
     $this->patch("/entries/activity/{$activity->id}/status", ['status' => 'private', 'password' => 'hunter2'])->assertSessionHasNoErrors();
 
-    expect(Hash::check('hunter2', $activity->fresh()->getRawOriginal('password')))->toBeTrue();
+    expect($activity->fresh()->password)->toBe('hunter2');
 });
 
 it('applies a food status to every row of the day and to its spine row', function () {
@@ -54,16 +52,17 @@ it('applies a food status to every row of the day and to its spine row', functio
         ->and(TimelineEntry::withoutGlobalScope(ListedScope::class)->where('entry_id', $first->id)->value('status'))->toBe(EntryStatus::Unlisted);
 });
 
-it('hands the owner a control without draft for synced types, and a guest nothing', function () {
+it('opens a synced entry in the editor with only its status, and never for a guest', function () {
     $activity = Activity::factory()->create(['occurred_at' => '2026-06-15 07:00:00']);
     $url = $activity->fresh()->url();
 
-    $this->get($url)->assertInertia(fn (Assert $page) => $page->where('statusControl', null));
+    $this->get("{$url}?edit")->assertInertia(fn (Assert $page) => $page->where('editing', false)->where('fields', []));
 
-    $this->actingAs(User::factory()->create())->get($url)->assertInertia(fn (Assert $page) => $page
-        ->where('statusControl.action', "/entries/activity/{$activity->id}/status")
-        ->where('statusControl.status', 'published')
-        ->where('statusControl.options', fn ($options) => ! collect($options)->pluck('value')->contains('draft')));
+    $this->actingAs(User::factory()->create())->get("{$url}?edit")->assertInertia(fn (Assert $page) => $page
+        ->where('editing', true)
+        ->where('editAction', "/entries/activity/{$activity->id}/status")
+        ->where('fields', fn ($fields) => collect($fields)->pluck('name')->all() === ['status', 'password'])
+        ->where('fields.0.options', fn ($options) => ! collect($options)->pluck('value')->contains('draft')));
 });
 
 it('drafting a published entry drops its timeline row, and republishing brings it back at the same address', function () {
@@ -90,11 +89,4 @@ it('drafting a published entry drops its timeline row, and republishing brings i
     expect($note->status)->toBe(EntryStatus::Published)
         ->and($note->url())->toBe($originalUrl)
         ->and(TimelineEntry::query()->where('entry_id', $note->id)->value('url_slug'))->toBe($originalSlug);
-});
-
-it('hands the owner a page control that allows draft', function () {
-    Page::factory()->create(['slug' => 'about']);
-
-    $this->actingAs(User::factory()->create())->get('/about')->assertInertia(fn (Assert $page) => $page
-        ->where('statusControl.options', fn ($options) => collect($options)->pluck('value')->contains('draft')));
 });

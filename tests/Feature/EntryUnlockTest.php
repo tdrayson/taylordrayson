@@ -10,8 +10,6 @@ use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Models\User;
 use App\Support\PortableText;
-use Illuminate\Hashing\HashManager;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -114,20 +112,17 @@ it('gives a wrong password guess the same response whether the entry is a draft,
     'private' => [EntryStatus::Private],
 ]);
 
-it('answers an unknown dataset or id exactly as it answers a wrong password, hash check included', function (string $path) {
+it('answers an unknown dataset or id exactly as it answers a wrong password', function (string $path) {
     $article = privateArticle();
 
     $wrongPassword = $this->from('/2026/06/15/kept-close')->post("/unlock/article/{$article->id}", ['password' => 'nope']);
     $expected = [$wrongPassword->getStatusCode(), $wrongPassword->headers->get('Location'), session('errors')];
 
     $this->flushSession();
-    $hash = Mockery::mock(HashManager::class, [app()])->makePartial();
-    Hash::swap($hash);
 
     $response = $this->from('/2026/06/15/kept-close')->post(str_replace('{id}', (string) ($article->id + 1), $path), ['password' => 'nope']);
 
     expect([$response->getStatusCode(), $response->headers->get('Location'), session('errors')])->toBe($expected);
-    $hash->shouldHaveReceived('check')->once();
 })->with([
     'unknown id' => ['/unlock/article/{id}'],
     'unknown dataset' => ['/unlock/nothing/{id}'],

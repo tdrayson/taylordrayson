@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
-use App\Data\StatusControlData;
 use App\Data\TagLink;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
+use App\Fields\StatusFields;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -114,12 +114,12 @@ class EntryController extends Controller
             'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => $dayUrl,
             'trip' => $this->trip($model),
-            'source' => $this->source($model),
+            // The header stays for context while locked; the source link does not.
+            'source' => $locked ? null : $this->source($model),
             'locked' => $locked,
             'unlockUrl' => $locked
                 ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
                 : null,
-            'statusControl' => Auth::check() ? StatusControlData::for($model) : null,
         ];
 
         $response = Inertia::render('Entry', [
@@ -147,22 +147,30 @@ class EntryController extends Controller
             $model->load('media');
         }
 
+        $authorable = AuthorableTypes::forModel($model);
+
         return [
             'entry' => $model instanceof Food
                 ? $this->foodDay($model)
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
-            // Editing in place, offered only for hand-authored types: a synced
-            // activity has no form, and inventing one would let an edit be
-            // silently overwritten by the next sync.
-            'editing' => Auth::check() && request()->has('edit') && AuthorableTypes::forModel($model) !== null,
-            'editType' => Auth::check() ? AuthorableTypes::forModel($model) : null,
-            'fields' => Auth::check() && AuthorableTypes::forModel($model) !== null
-                ? FieldRegistry::for($model)
-                : [],
+            'editing' => Auth::check() && request()->has('edit'),
+            // A synced type edits its status alone: a field the sync also writes
+            // would be silently overwritten by the next run.
+            'editAction' => match (true) {
+                ! Auth::check() => null,
+                $authorable !== null => "/entries/{$authorable}/{$model->getKey()}",
+                default => route('entries.status', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false),
+            },
+            'fields' => match (true) {
+                ! Auth::check() => [],
+                $authorable !== null => FieldRegistry::for($model),
+                default => StatusFields::for($model),
+            },
+            'password' => Auth::check() ? $model->getAttribute('password') : null,
             // What the media fields already hold, so the editor opens showing
             // the attachments rather than an empty picker.
-            'media' => Auth::check() && AuthorableTypes::forModel($model) !== null
+            'media' => Auth::check() && $authorable !== null
                 ? app(AttachedMediaValues::class)($model, FieldRegistry::for($model))
                 : [],
             'linkPreviews' => $model instanceof Article || $model instanceof Note
@@ -384,6 +392,7 @@ class EntryController extends Controller
         $mealOrder = ['breakfast' => 0, 'lunch' => 1, 'dinner' => 2, 'snacks' => 3];
 
         return [
+            'status' => $model->status->value,
             // True while the day is still today, so the page can flag that more
             // food may yet be logged. Computed server-side to avoid client tz math.
             'inProgress' => $model->occurred_at->isToday(),

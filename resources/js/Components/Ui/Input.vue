@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, useSlots } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { CONTROL } from '../../lib/editor/control.js';
 
@@ -18,7 +18,12 @@ defineEmits(['update:modelValue']);
 
 defineOptions({ inheritAttrs: false });
 
-const hasAffix = computed(() => Boolean(props.prefix || props.suffix));
+const slots = useSlots();
+
+// A prefix or suffix is text via the prop, or anything (an icon, a button) via the slot of the same name.
+const hasPrefix = computed(() => Boolean(props.prefix || slots.prefix));
+const hasSuffix = computed(() => Boolean(props.suffix || slots.suffix));
+const hasAffix = computed(() => hasPrefix.value || hasSuffix.value);
 
 const border = computed(() =>
     props.invalid
@@ -49,7 +54,7 @@ const bareClasses = computed(() =>
 
 <template>
     <div v-if="hasAffix" :class="wrapperClasses">
-        <span v-if="prefix" class="shrink-0 select-none text-neutral-500">{{ prefix }}</span>
+        <span v-if="hasPrefix" class="flex shrink-0 select-none items-center text-neutral-500"><slot name="prefix">{{ prefix }}</slot></span>
 
         <input
             v-bind="$attrs"
@@ -61,7 +66,7 @@ const bareClasses = computed(() =>
             @input="$emit('update:modelValue', $event.target.value)"
         >
 
-        <span v-if="suffix" class="shrink-0 select-none text-neutral-500">{{ suffix }}</span>
+        <span v-if="hasSuffix" class="flex shrink-0 select-none items-center text-neutral-500"><slot name="suffix">{{ suffix }}</slot></span>
     </div>
 
     <input
