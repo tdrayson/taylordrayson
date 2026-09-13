@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 trait RecordsMentions
 {
     /** Only a change here can add or remove a mention, publishing included. */
-    private const MENTION_TRIGGERS = [...OutboundLinks::SOURCES, 'published'];
+    private const MENTION_TRIGGERS = [...OutboundLinks::SOURCES, 'status'];
 
     public static function bootRecordsMentions(): void
     {
