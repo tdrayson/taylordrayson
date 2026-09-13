@@ -1,8 +1,11 @@
 <?php
 
+use App\Actions\Og\BuildEntryOgData;
 use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Models\Page;
+use App\Models\Scopes\ListedScope;
+use App\Models\TimelineEntry;
 use App\Models\User;
 use App\Support\PortableText;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -90,4 +93,34 @@ it('404s a draft page for a guest', function () {
     Page::factory()->draft()->create(['slug' => 'wip']);
 
     $this->get('/wip')->assertNotFound();
+});
+
+it('gives a wrong password guess the same response whether the entry is a draft, published, or private', function (EntryStatus $status) {
+    $article = Article::factory()->create([
+        'status' => $status,
+        'password' => $status === EntryStatus::Private ? 'hunter2' : null,
+    ]);
+
+    $this->post("/unlock/article/{$article->id}", ['password' => 'nope'])
+        ->assertStatus(302)
+        ->assertSessionHasErrors('password');
+})->with([
+    'draft' => [EntryStatus::Draft],
+    'published' => [EntryStatus::Published],
+    'private' => [EntryStatus::Private],
+]);
+
+it('keeps a private entry\'s body out of its own generated OG image data', function () {
+    $article = privateArticle();
+
+    $entry = TimelineEntry::query()
+        ->withoutGlobalScope(ListedScope::class)
+        ->where('dataset', $article->getMorphClass())
+        ->where('entry_id', $article->id)
+        ->with('entry')
+        ->sole();
+
+    $data = app(BuildEntryOgData::class)($entry, fn (): ?string => null);
+
+    expect(json_encode($data))->not->toContain('Private body words');
 });
