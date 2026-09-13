@@ -29,9 +29,8 @@ final class NoteCard
         $gesture = $response !== null && (bool) $model->responseKind()?->isGesture();
 
         return new CardData(
-            type: TimelineType::Note,
-            icon: 'message-circle',
-            title: $gesture ? self::gestureTitle($model, $response) : Str::limit(PortableText::plainText($model->content), 80),
+            type: $this->type(),
+            title: $gesture ? self::gestureTitle($model, $response) : $this->title($model),
             titleLabel: null,
             subtitle: null,
             subtitleTokens: null,
@@ -66,5 +65,15 @@ final class NoteCard
             ?? 'I responded to';
 
         return $sentence.' '.$response->fullTitle();
+    }
+
+    public function title(Note $model): string
+    {
+        return Str::limit(PortableText::plainText($model->content), 80);
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Note;
     }
 }

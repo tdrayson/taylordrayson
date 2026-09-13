@@ -6,6 +6,7 @@ use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasResponse;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -51,7 +52,7 @@ class Note extends Model implements HasMedia, Timelineable
     /** How much of the note the derived slug uses. */
     private const SLUG_WORDS = 6;
 
-    use HasAttachments, HasFactory, HasResponse, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
