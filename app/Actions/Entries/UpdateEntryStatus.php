@@ -39,7 +39,10 @@ final class UpdateEntryStatus
             throw ValidationException::withMessages(['status' => 'Only hand-written entries can be a draft.']);
         }
 
-        if ($status === EntryStatus::Private && blank($password) && blank($model->getRawOriginal('password'))) {
+        // A stored password only carries over while the entry stays private; one left from an earlier spell is not reused.
+        $keepsPassword = $model->status === EntryStatus::Private && filled($model->password);
+
+        if ($status === EntryStatus::Private && blank($password) && ! $keepsPassword) {
             throw ValidationException::withMessages(['status' => 'A private entry needs a password.']);
         }
     }

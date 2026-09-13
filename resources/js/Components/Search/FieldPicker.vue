@@ -73,7 +73,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             type="button"
             aria-haspopup="true"
             :aria-expanded="open"
-            class="flex w-full items-center gap-2 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="toggle"
         >
             <span class="flex-1 truncate">

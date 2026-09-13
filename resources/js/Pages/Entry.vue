@@ -8,7 +8,6 @@ import EntryMap from '../Components/Maps/EntryMap.vue';
 import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
-import StatusControl from '../Components/Entry/StatusControl.vue';
 import { entryType } from '../entryTypes.js';
 
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
@@ -37,14 +36,14 @@ const props = defineProps({
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
     media: { type: Object, default: () => ({}) },
-    // Editing in place: only hand-authored types get a form at all.
+    // Editing in place: a synced type's fields are just its status.
     editing: { type: Boolean, default: false },
-    editType: { type: String, default: null },
+    editAction: { type: String, default: null },
     fields: { type: Array, default: () => [] },
+    // The owner's only, so the editor can show the password it is locked with.
+    password: { type: String, default: null },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
-    // { action, status, options, hasPassword }, null for a guest.
-    statusControl: { type: Object, default: null },
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
@@ -61,6 +60,7 @@ provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: pro
 const editorValues = computed(() => valuesFor(props.fields, {
     ...(props.entry ?? {}),
     ...props.media,
+    password: props.password,
     // The payload carries {name, slug, url} so the footer can link each tag; the
     // form posts names, which is what syncTagNames takes.
     tags: (props.entry?.tags ?? []).map((tag) => tag.name),
@@ -122,7 +122,8 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
         v-if="editing"
         :fields="fields"
         :values="editorValues"
-        :action="`/entries/${editType}/${entry.id}`"
+        :action="editAction"
+        :heading="title ?? meta.label"
     />
 
     <!-- Spans the page and re-establishes the grid, as Page.vue does, so a
@@ -157,6 +158,8 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
             <AuthorRef />
         </header>
 
+        <PasswordPrompt v-if="locked" :action="unlockUrl" class="mt-10" />
+
         <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
         <component
@@ -166,12 +169,7 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
             class="mt-10"
         />
 
-        <PasswordPrompt v-if="locked" :action="unlockUrl" class="mt-10" />
-
-        <div v-if="statusControl || (signedIn && editType)" class="mt-6 flex flex-wrap items-center gap-4">
-            <StatusControl v-if="statusControl" :control="statusControl" />
-            <Link v-if="signedIn && editType" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
-        </div>
+        <Link v-if="signedIn && editAction" :href="`?edit`" class="mt-6 inline-block text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
 
         <EntryFooter :source="source" :tags="tags" class="mt-10" />
     </article>

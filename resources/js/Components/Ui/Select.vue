@@ -32,9 +32,9 @@ const boxedBorder = computed(() => (props.invalid
 // red when invalid, since a border-colour change alone is too subtle at that size.
 const boxedSize = computed(() => (props.size === 'sm'
     ? cn('w-auto rounded-md border py-1 pl-2 pr-7 focus-visible:ring-2', props.invalid ? 'focus-visible:ring-red-500' : 'focus-visible:ring-accent-500')
-    : 'w-full rounded-md border py-2.5 pl-3 pr-9'));
+    : 'w-full min-h-11 rounded-md border py-2.5 pl-3 pr-9'));
 
-// Final class list for the <select>, merged so a caller's class (e.g. min-h-11) can override ours.
+// Final class list for the <select>, merged so a caller's class can override ours.
 const selectClasses = computed(() => cn(
     isBare.value
         ? 'appearance-none bg-transparent pr-5 text-meta font-medium focus:outline-none focus-visible:underline focus-visible:underline-offset-4'

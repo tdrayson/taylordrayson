@@ -68,6 +68,8 @@ import {
     TvMinimalPlayIcon,
     UserIcon,
     UtensilsIcon,
+    ViewIcon,
+    ViewOffSlashIcon,
     WorkoutRunIcon,
     ZoomInAreaIcon,
 } from '@hugeicons-pro/core-stroke-rounded';
@@ -139,6 +141,8 @@ export const icons = {
     TvMinimalPlayIcon,
     UserIcon,
     UtensilsIcon,
+    ViewIcon,
+    ViewOffSlashIcon,
     WorkoutRunIcon,
     ZoomInAreaIcon,
 };

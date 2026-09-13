@@ -12,8 +12,8 @@ final class UpdateEntryStatusController extends Controller
 {
     public function __invoke(UpdateEntryStatusRequest $request, string $dataset, int $id, EntryByDataset $entries, UpdateEntryStatus $update): RedirectResponse
     {
-        $update($entries($dataset, $id), $request->enum('status', EntryStatus::class), $request->validated('password'));
+        $model = $update($entries($dataset, $id), $request->enum('status', EntryStatus::class), $request->validated('password'));
 
-        return back();
+        return redirect($model->url());
     }
 }

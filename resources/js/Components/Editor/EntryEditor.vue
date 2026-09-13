@@ -28,6 +28,8 @@ const props = defineProps({
     // note into an article. Null on every surface where that is not on offer,
     // which includes editing something already posted.
     convertTo: { type: String, default: null },
+    // The entry's own title, drawn when the form has no title or body to show where you are.
+    heading: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -258,6 +260,11 @@ function convert() {
 
 const errorCount = computed(() => Object.keys(form.errors).length);
 
+/** A private entry cannot be saved with the password box empty. */
+const needsPassword = computed(() => statusField.value !== null
+    && form[statusField.value.name] === 'private'
+    && ! form.password);
+
 /** What the saved status means for who can see the entry. */
 const STATUS_NOTES = {
     draft: 'Draft, only you can see this',
@@ -275,6 +282,10 @@ const status = computed(() => {
     // being dirty is not the news when the save button will not fire.
     if (overLimit.value) {
         return `Too long to post, by ${overBy.value.toLocaleString()} ${overBy.value === 1 ? 'character' : 'characters'}`;
+    }
+
+    if (needsPassword.value) {
+        return 'Add a password to make this private';
     }
 
     // Ahead of the dirty check: a rejected save leaves the form dirty, and
@@ -313,7 +324,8 @@ function submit() {
         <!-- The page still needs exactly one h1 for the outline, and the title
              here is an input rather than a heading. Same fallback Entry.vue
              uses for the types that show no headline. -->
-        <h1 class="sr-only">{{ (titleField ? form[titleField.name] : '') || 'Untitled' }}</h1>
+        <h1 v-if="heading && ! titleField && ! bodyField" v-twemoji class="max-w-2xl font-display text-display">{{ heading }}</h1>
+        <h1 v-else class="sr-only">{{ (titleField ? form[titleField.name] : '') || heading || 'Untitled' }}</h1>
 
         <!-- The heading: an input that reads as the title it will become, not a
              form field with a label above it. -->
@@ -362,6 +374,7 @@ function submit() {
                         :field="row.field"
                         :model-value="form[row.field.name]"
                         :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
+                        :password="form.password ?? ''"
                         :latitude="form.latitude ?? null"
                         :longitude="form.longitude ?? null"
                         :error="form.errors[row.field.name]"
@@ -405,7 +418,7 @@ function submit() {
         <div class="sticky bottom-0 z-10 mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4">
             <p class="text-caption text-neutral-500 sm:text-meta">{{ status }}</p>
 
-            <Button variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit" @click="submit">
+            <Button variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit || needsPassword" @click="submit">
                 {{ method === 'post' ? submitLabel : 'Save' }}
             </Button>
         </div>

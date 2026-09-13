@@ -16,7 +16,7 @@ trait HasStatus
 {
     public function initializeHasStatus(): void
     {
-        $this->mergeCasts(['status' => EntryStatus::class, 'password' => 'hashed']);
+        $this->mergeCasts(['status' => EntryStatus::class, 'password' => 'encrypted']);
         $this->makeHidden('password');
         $this->attributes['status'] ??= EntryStatus::Published->value;
     }

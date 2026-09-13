@@ -25,10 +25,11 @@ const VARIANTS = {
     link: 'text-accent-500 underline underline-offset-2 not-disabled:hover:text-accent-700',
 };
 
+// md and lg share the form-control height (CONTROL) so a button lines up beside an input or select.
 const SIZES = {
     sm: 'gap-1.5 px-3 py-1.5 text-label',
-    md: 'gap-1.5 px-4 py-2 text-meta',
-    lg: 'gap-2 px-5 py-2.5 text-meta',
+    md: 'min-h-11 gap-1.5 px-4 py-2 text-meta',
+    lg: 'min-h-11 gap-2 px-5 py-2.5 text-meta',
     icon: 'p-2',
 };
 
