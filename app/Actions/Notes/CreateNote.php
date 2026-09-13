@@ -18,7 +18,7 @@ class CreateNote
      * string from a client that only knows how to send one (Shortcuts,
      * Micropub); a string is wrapped into a single block.
      *
-     * @param  array{content: string|array<int, mixed>, occurred_at?: string|null, slug?: string|null, timezone?: string|null, tags?: list<string>, status?: string, password?: string|null}  $attributes
+     * @param  array{content: string|array<int, mixed>, occurred_at?: string|null, slug?: string|null, timezone?: string|null, tags?: list<string>, response_kind?: string|null, response_url?: string|null, rsvp_value?: string|null, response_quote?: string|null}  $attributes
      */
     public function __invoke(array $attributes): Note
     {
@@ -38,8 +38,10 @@ class CreateNote
             'occurred_at' => $attributes['occurred_at'] ?? null,
             'slug' => $slug,
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
-            'status' => $attributes['status'] ?? EntryStatus::Published,
-            'password' => $attributes['password'] ?? null,
+            'response_kind' => $attributes['response_kind'] ?? null,
+            'response_url' => $attributes['response_url'] ?? null,
+            'rsvp_value' => $attributes['rsvp_value'] ?? null,
+            'response_quote' => $attributes['response_quote'] ?? null,
         ]);
 
         if (array_key_exists('tags', $attributes)) {
