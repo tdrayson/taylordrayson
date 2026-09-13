@@ -21,7 +21,7 @@ const props = defineProps({
     newerUrl: { type: String, default: null },
     // list<{ year, href }>, newest first.
     years: { type: Array, default: () => [] },
-    podcastEpisodes: { type: Number, default: 0 },
+    thisWeekWithEpisodes: { type: Number, default: 0 },
     // Deferred, so this is undefined on first paint. Keyed `type:id`.
     interactions: { type: Object, default: () => ({}) },
 });

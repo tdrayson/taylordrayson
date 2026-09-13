@@ -145,10 +145,11 @@ class BuildTimelineFeed
             'datetime' => $local['iso'],
             'label' => $local['label'],
             'offset' => $local['offset'],
-            'url' => $entry->timelineable->url(),
+            'url' => $entry->entry->url(),
             // The entry's own key, so a card can address the reaction endpoint
             // without the feed having to resolve a model again.
-            'id' => $entry->timelineable->getKey(),
+            'id' => $entry->entry->getKey(),
+            'statusLabel' => $entry->entry->status === EntryStatus::Published ? null : $entry->entry->status?->label(),
         ];
     }
 }

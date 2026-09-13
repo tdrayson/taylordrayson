@@ -86,7 +86,8 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <img :src="cover.full" alt="" class="size-full object-cover">
         </div>
 
-        <BlockContent :document="content" class="mt-8" />
+        <BlockContent v-if="! locked" :document="content" class="mt-8" />
+        <PasswordPrompt v-else :action="unlockUrl" class="mt-8" />
 
         <div v-if="conversation" class="mt-10 space-y-10 border-t border-neutral-50 pt-6">
             <Conversation :conversation="conversation" :og="og" />

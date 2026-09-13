@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthoringController;
+use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
@@ -26,7 +27,10 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\TvShowController;
+use App\Http\Controllers\UnlockEntryController;
 use App\Http\Controllers\UnsubscribeController;
+use App\Http\Controllers\UpdateEntryStatusController;
 use App\Http\Controllers\WebmentionController;
 use Illuminate\Support\Facades\Route;
 

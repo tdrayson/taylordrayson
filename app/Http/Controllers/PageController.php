@@ -35,11 +35,6 @@ class PageController extends Controller
 
         $response = Inertia::render('Page', [
             'id' => $page->id,
-
-            // Same as an entry: server-rendered so it is readable and
-            // parseable without JS. This is also what makes a guestbook page
-            // work, being a page like any other.
-            'conversation' => Conversation::shownFor($page, VisitorIdentity::onTarget(request(), $page)),
             // ?edit opens the editor in place. Only ever honoured for a
             // signed-in visitor; the save route enforces it again server-side.
             'editing' => Auth::check() && request()->has('edit'),
@@ -50,6 +45,10 @@ class PageController extends Controller
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
             ...($locked ? [] : [
+                // Same as an entry: server-rendered so it is readable and
+                // parseable without JS. This is also what makes a guestbook page
+                // work, being a page like any other.
+                'conversation' => Conversation::shownFor($page, VisitorIdentity::onTarget(request(), $page)),
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a
                 // field the editor offers but has no value for saves back as
