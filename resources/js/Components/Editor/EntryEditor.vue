@@ -40,9 +40,7 @@ const page = usePage();
 
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
-const offered = computed(() => props.fields.filter((field) => !field.hidden));
-
-const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished && revealed(field, form)));
+const offered = computed(() => props.fields.filter((field) => !field.hidden && revealed(field, form)));
 
 /**
  * A field that stops being shown gives up its value.
@@ -63,6 +61,9 @@ watch(
         }
     }),
 );
+
+// The status is an ordinary row in the stack; the footer only saves.
+const statusField = computed(() => props.fields.find((field) => field.type === 'status') ?? null);
 
 // Title and body are drawn above the stack, so neither appears in it.
 const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));
