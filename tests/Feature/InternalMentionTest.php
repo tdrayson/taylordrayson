@@ -2,9 +2,9 @@
 
 use App\Enums\EntryStatus;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Mention;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Project;
 use App\Models\Sleep;
 use App\Support\PortableText;
@@ -163,19 +163,19 @@ it('shows the mention in the linked entry\'s conversation', function () {
 it('records a mention from a description, not just from a written body', function () {
     $sleep = Sleep::factory()->create(['occurred_at' => now()->subDay()]);
 
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'occurred_at' => now(),
         'description' => 'Slept badly before this one: '.config('app.url').$sleep->url(),
     ]);
 
     $mention = Mention::query()->sole();
 
-    expect($mention->source_id)->toBe($checkin->id)
+    expect($mention->source_id)->toBe($place->id)
         ->and($mention->target_type)->toBe($sleep->getMorphClass())
         ->and($mention->target_id)->toBe($sleep->id);
 
     // And it is kept in step from there, the same as a body is.
-    $checkin->update(['description' => 'Nothing linked here now.']);
+    $place->update(['description' => 'Nothing linked here now.']);
 
     expect(Mention::query()->count())->toBe(0);
 });
@@ -186,7 +186,7 @@ it('records a mention from a description, not just from a written body', functio
  * because the source was held to the same allowlist as the target.
  */
 it('records a mention from a project, which links out more than most', function () {
-    $article = Article::factory()->create(['published' => true]);
+    $article = Article::factory()->create(['status' => EntryStatus::Published]);
 
     // A project's prose is a plain description, which is autolinked on the way
     // in, so the link has to be written out in full.
