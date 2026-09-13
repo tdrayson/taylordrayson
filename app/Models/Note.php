@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\ResponseKind;
+use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasResponse;
 use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\LinkFaviconObserver;
-use App\Observers\MentionObserver;
 use App\Observers\TimelineEntryObserver;
 use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,10 +21,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
-#[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class, MentionObserver::class])]
+#[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
 #[Fillable([
     'occurred_at',
     'content',
+    'response_kind',
+    'response_url',
+    'response_title',
+    'rsvp_value',
     'slug',
     'timezone',
     'status',
@@ -45,7 +51,7 @@ class Note extends Model implements HasMedia, Timelineable
     /** How much of the note the derived slug uses. */
     private const SLUG_WORDS = 6;
 
-    use HasAttachments, HasFactory, HasStatus, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -54,6 +60,8 @@ class Note extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'response_kind' => ResponseKind::class,
+            'rsvp_value' => RsvpValue::class,
         ];
     }
 

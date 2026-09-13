@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import BlockContent from '../Ui/BlockContent.vue';
+import ResponseContext from './ResponseContext.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 
@@ -17,6 +18,10 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="max-w-prose space-y-4">
+        <!-- Above the words, so the post reads as an answer to the thing named
+             here rather than the thing being a footnote to it. -->
+        <ResponseContext v-if="entry.response" :response="entry.response" />
+
         <!-- Notes have no headline, so the content is the page's primary text. -->
         <BlockContent :document="entry.content" class="e-content text-lg leading-relaxed" />
 

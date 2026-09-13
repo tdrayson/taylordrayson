@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  * (a Strava activity, a check-in note). The plain form is run through
  * PortableText::fromPlainText(), which autolinks bare URLs, so both end up in
  * the same structure and one extractor covers them.
+ *
+ * A response_url is neither: it is a bare URL in a column of its own. It rides
+ * the plain-string path, which autolinks it, so the post a reply answers gets
+ * told about the reply without a second code path.
  */
 final class OutboundLinks
 {
@@ -23,7 +27,7 @@ final class OutboundLinks
      * Public because it doubles as the list of columns a save has to have
      * touched before an outgoing webmention could possibly be needed.
      */
-    public const SOURCES = ['title', 'content', 'description'];
+    public const SOURCES = ['title', 'content', 'description', 'response_url'];
 
     /**
      * Every external URL the entry links to.
@@ -41,6 +45,28 @@ final class OutboundLinks
         }
 
         return array_keys($urls);
+    }
+
+    /**
+     * Every entry of mine the entry links to, as site-relative paths.
+     *
+     * The counterpart of for(): the same fields read the same way, split by
+     * whose site the link points at, so an outgoing webmention and an internal
+     * mention are decided from one reading of the entry.
+     *
+     * @return list<string>
+     */
+    public static function internalPathsFor(Model $model): array
+    {
+        $paths = [];
+
+        foreach (self::documents($model) as $document) {
+            foreach (Links::internalPathsIn($document) as $path) {
+                $paths[$path] = true;
+            }
+        }
+
+        return array_keys($paths);
     }
 
     /**

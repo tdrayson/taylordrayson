@@ -12,7 +12,13 @@ use Saloon\Laravel\Facades\Saloon;
 
 // Publishing a post also fetches favicons for the hosts it links to, which
 // goes out through Saloon and has nothing to do with what these tests assert.
-beforeEach(fn () => Saloon::fake(['*' => MockResponse::make('', 404)]));
+//
+// Sending is off outside production, which is the point of the last test here,
+// so everything above it says out loud that it is testing a site that sends.
+beforeEach(function () {
+    Saloon::fake(['*' => MockResponse::make('', 404)]);
+    config(['webmentions.send' => true]);
+});
 
 const LINKED = 'https://example.com/post';
 
@@ -145,4 +151,16 @@ it('records a site that takes no webmentions and stops probing it', function () 
     expect($send->status)->toBe('unsupported')
         ->and($send->attempts)->toBe(1)
         ->and(sendsFor('https://example.com/bare'))->toBe(0);
+});
+
+// The local database holds the same posts as the live one, so a seed or a test
+// run would tell every linked site again, from a URL none of them can fetch.
+it('sends nothing at all from a site that is not the live one', function () {
+    config(['webmentions.send' => false]);
+    fakeReceiver();
+
+    noteLinking([LINKED]);
+
+    expect(sendsFor(LINKED))->toBe(0)
+        ->and(WebmentionSend::query()->count())->toBe(0);
 });
