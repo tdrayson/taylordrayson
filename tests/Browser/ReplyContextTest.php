@@ -30,6 +30,18 @@ it('names the author outside and quotes their words behind a rule', function () 
         ->assertNoJavascriptErrors();
 });
 
+it('marks the author photo up inside their h-card', function () {
+    $note = replyNote(Citation::factory()->create([
+        'url' => 'https://example.com/post',
+        'author_name' => 'Aaron Parecki',
+        'author_photo_path' => 'avatars/aaron.webp',
+    ]));
+
+    visit($note->url())
+        ->assertPresent('.h-cite .p-author img.u-photo')
+        ->assertScript("document.querySelector('.h-cite .p-author').textContent.trim()", 'Aaron Parecki');
+});
+
 it('shows no avatar at all when the author has no photo', function () {
     $note = replyNote(Citation::factory()->create(['url' => 'https://example.com/post', 'author_photo_path' => null]));
 
