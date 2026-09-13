@@ -71,8 +71,8 @@ final class Conversation
             ...$target->comments()->approved()->get()->map(fn (Comment $comment): ConversationItem => ConversationItem::fromComment($comment, $timezone))->all(),
             ...$target->webmentions()->approved()->get()->map(fn (Webmention $mention): ConversationItem => ConversationItem::fromWebmention($mention, $timezone))->all(),
             // No moderation state to filter on: these are written by the same
-            // person the page belongs to, and the source is only ever an entry
-            // that is already published.
+            // person the page belongs to. A private source is named, as its title
+            // already is publicly, and never quoted.
             ...$target->mentions()->with('source')->get()->map(fn (Mention $mention): ConversationItem => ConversationItem::fromMention($mention, $timezone))->all(),
             ...$target->syndicatedResponses()->approved()->get()->map(fn (SyndicatedResponse $response): ConversationItem => ConversationItem::fromSyndicated($response, $timezone))->all(),
         ];

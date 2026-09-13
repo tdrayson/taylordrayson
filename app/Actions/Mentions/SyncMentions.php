@@ -18,9 +18,19 @@ final class SyncMentions
 {
     public function __construct(private readonly ResolveInternalTarget $resolve) {}
 
+    /**
+     * Sync the mentions a source records. A private source is left exactly as it
+     * stood: the history stays, and nothing new is written while it is locked.
+     *
+     * @param  Model  $source  The entry or page whose links were just saved.
+     */
     public function __invoke(Model $source): void
     {
-        $wanted = $this->targets($source);
+        if (InteractionTarget::keepsMentions($source) && ! InteractionTarget::sendsMentions($source)) {
+            return;
+        }
+
+        $linked = $this->linked($source);
         $existing = Mention::query()
             ->where('source_type', $source->getMorphClass())
             ->where('source_id', $source->getKey())
@@ -29,14 +39,20 @@ final class SyncMentions
         foreach ($existing as $mention) {
             $key = $this->key($mention);
 
-            if (array_key_exists($key, $wanted)) {
-                unset($wanted[$key]);
+            // A target gone private keeps the mention it already had, as long
+            // as the link to it is still there.
+            if (array_key_exists($key, $linked) && InteractionTarget::keepsMentions($linked[$key])) {
+                unset($linked[$key]);
             } else {
                 $mention->delete();
             }
         }
 
-        foreach ($wanted as $target) {
+        foreach ($linked as $target) {
+            if (! InteractionTarget::takesMentions($target)) {
+                continue;
+            }
+
             Mention::query()->create([
                 'source_type' => $source->getMorphClass(),
                 'source_id' => $source->getKey(),
@@ -47,16 +63,16 @@ final class SyncMentions
     }
 
     /**
-     * Every entry this source links to, keyed by the pair the table is unique
-     * on so the diff is two array lookups rather than a nested loop.
+     * Every entry this source links to, whatever its status, keyed by the pair
+     * the table is unique on so the diff is two array lookups rather than a
+     * nested loop.
      *
-     * A source that is not publicly readable has no links anyone can follow, so
-     * it wants no mentions at all: unpublishing or locking removes them,
-     * republishing writes them back.
+     * A draft source has no links anyone can follow, so it wants no mentions
+     * at all: unpublishing removes them, republishing writes them back.
      *
      * @return array<string, Model>
      */
-    private function targets(Model $source): array
+    private function linked(Model $source): array
     {
         if (! InteractionTarget::sendsMentions($source)) {
             return [];
@@ -65,7 +81,7 @@ final class SyncMentions
         $targets = [];
 
         foreach (OutboundLinks::internalPathsFor($source) as $path) {
-            $target = ($this->resolve)($path);
+            $target = $this->resolve->anyStatus($path);
 
             // Self-links are dropped rather than stored and filtered later: an
             // entry is not a mention of itself, and the conversation would

@@ -19,8 +19,8 @@ use Illuminate\Http\Request;
  * (archives, tags, trips, the timeline itself) are deliberately absent: a
  * response to a filtered view has nobody to notify and nothing to thread under.
  *
- * A private entry takes comments and reactions once unlocked, and no mentions
- * in either direction: a link to or from it cites a body behind a password.
+ * A private entry takes comments and reactions once unlocked, and no new
+ * mentions in either direction, keeping the ones it had.
  */
 final class InteractionTarget
 {
@@ -69,6 +69,15 @@ final class InteractionTarget
     public static function sendsMentions(Model $model): bool
     {
         return self::isRespondable($model) && self::isPublic($model);
+    }
+
+    /**
+     * Whether mentions already recorded to or from this model stay. A private
+     * entry keeps them frozen, adding and removing none; a draft loses its own.
+     */
+    public static function keepsMentions(Model $model): bool
+    {
+        return self::isRespondable($model) && ($model->status ?? null) !== EntryStatus::Draft;
     }
 
     /** The public type key for a model, or null when it accepts no interactions. */
