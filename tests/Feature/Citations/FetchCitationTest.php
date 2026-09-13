@@ -175,3 +175,29 @@ it('cites the post itself, never a reply nested under it', function (string $rep
         ->and($citation->authorName)->toBe('Article Author')
         ->and($citation->excerpt)->toBe('The article body.');
 })->with(['as a comment property' => 'p-comment h-entry', 'as a child entry' => 'h-entry']);
+
+// A post that links its author by URL can still carry their photo itself.
+it('keeps the entry\'s own author photo when the author card has none', function (string $homepage, ?string $name) {
+    Http::fake([
+        POST => Http::response(hEntry(
+            '<a class="p-author h-card" href="https://example.com/"><img class="u-photo" src="https://example.com/entry.jpg" alt="">https://example.com/</a>'
+        )),
+        'https://example.com/' => Http::response($homepage),
+    ]);
+
+    $citation = app(FetchCitation::class)(POST);
+
+    expect($citation->authorName)->toBe($name)
+        ->and($citation->authorPhotoUrl)->toBe('https://example.com/entry.jpg');
+})->with([
+    'no card on the homepage' => ['<p>No h-card here.</p>', null],
+    'a card with no photo' => ['<div class="h-card"><a class="u-url p-name" href="https://example.com/">Aaron Parecki</a></div>', 'Aaron Parecki'],
+]);
+
+it('never fetches the homepage for an author already named on the page', function () {
+    Http::fake([POST => Http::response(hEntry('<a class="p-author h-card" href="https://example.com/">Aaron Parecki</a>'))]);
+
+    expect(app(FetchCitation::class)(POST)->authorName)->toBe('Aaron Parecki');
+
+    Http::assertSentCount(1);
+});
