@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\EntryStatus;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\EntryZone;
@@ -58,9 +59,14 @@ trait HasTimelineEntry
 
     /**
      * The URL slug lives on the spine row; a model without one yet falls back to its bare slug.
+     * A draft, dated or not, lives at its own address rather than its would-be dated one.
      */
     public function url(): string
     {
+        if ($this->status === EntryStatus::Draft || $this->occurred_at === null) {
+            return '/drafts/'.$this->getMorphClass().'/'.$this->getKey();
+        }
+
         return '/'.$this->occurred_at->format('Y/m/d').'/'.($this->timelineEntry?->url_slug ?? $this->slug());
     }
 

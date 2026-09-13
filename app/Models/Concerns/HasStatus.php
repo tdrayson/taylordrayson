@@ -3,8 +3,10 @@
 namespace App\Models\Concerns;
 
 use App\Enums\EntryStatus;
+use App\Support\EntryInstant;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
@@ -17,6 +19,16 @@ trait HasStatus
         $this->mergeCasts(['status' => EntryStatus::class, 'password' => 'hashed']);
         $this->makeHidden('password');
         $this->attributes['status'] ??= EntryStatus::Published->value;
+    }
+
+    /** Leaving draft fills an empty date; going back to draft keeps it, so the URL survives a republish. */
+    public static function bootHasStatus(): void
+    {
+        static::saving(function (Model $model): void {
+            if ($model->status !== EntryStatus::Draft && $model->hasCast('occurred_at') && $model->occurred_at === null) {
+                $model->occurred_at = EntryInstant::nowLocal($model->timezone());
+            }
+        });
     }
 
     public function scopeListed(Builder $query): void

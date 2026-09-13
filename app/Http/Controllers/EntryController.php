@@ -36,7 +36,6 @@ use App\Support\LocalTime;
 use App\Support\OgMeta;
 use App\Support\ShowTitle;
 use App\Timeline\TypeRegistry;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -71,6 +70,25 @@ class EntryController extends Controller
             throw new NotFoundHttpException;
         }
 
+        return $this->render($model, $entry, sprintf('/%04d/%02d/%02d', $year, $month, $day));
+    }
+
+    /** An owner's draft at its own address, dated or not. */
+    public function draft(string $dataset, int $id): Response
+    {
+        $definition = Datasets::for($dataset);
+
+        if ($definition === null || ! $definition->draftable()) {
+            throw new NotFoundHttpException;
+        }
+
+        $model = $definition->model()::query()->findOrFail($id);
+
+        return $this->render($model, null, $model->occurred_at?->format('/Y/m/d'));
+    }
+
+    private function render(Model $model, ?TimelineEntry $entry, ?string $dayUrl): Response
+    {
         if ($model instanceof Flight) {
             $model->load('airline', 'origin', 'destination');
         }
@@ -87,9 +105,9 @@ class EntryController extends Controller
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
             'title' => $card->type === TimelineType::Note ? null : $card->title,
-            ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
+            ...$this->occurredFields($model),
             'og' => OgMeta::entry($entry, $model, $card),
-            'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
+            'dayUrl' => $dayUrl,
             'trip' => $this->trip($model),
             'entry' => $model instanceof Food
                 ? $this->foodDay($model)
@@ -165,13 +183,17 @@ class EntryController extends Controller
     }
 
     /**
-     * Local-time display fields for the entry header.
+     * Local-time display fields for the entry header, all null for an undated draft.
      *
-     * @return array{occurredAt: string, occurredLabel: string, occurredOffset: string}
+     * @return array{occurredAt: ?string, occurredLabel: ?string, occurredOffset: ?string}
      */
-    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone): array
+    private function occurredFields(Model $model): array
     {
-        $local = LocalTime::for($occurredAt, $timezone);
+        if ($model->occurred_at === null) {
+            return ['occurredAt' => null, 'occurredLabel' => null, 'occurredOffset' => null];
+        }
+
+        $local = LocalTime::for($model->occurredAtForDisplay(), $model->timezone());
 
         return [
             'occurredAt' => $local['iso'],

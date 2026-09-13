@@ -52,6 +52,8 @@ Route::middleware('auth')->group(function (): void {
 
     // Drafts have no timeline entry, so they appear in no listing without this.
     Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+    Route::get('/drafts/{dataset}/{id}', [EntryController::class, 'draft'])
+        ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('drafts.show');
 
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');

@@ -3,6 +3,7 @@
 namespace App\Datasets;
 
 use App\Enums\DatasetKind;
+use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Book;
 use App\Presenters\Cards\BookCard;
@@ -79,5 +80,10 @@ final class BookDataset extends BaseDataset
     public function draftable(): bool
     {
         return true;
+    }
+
+    public function spanAnchor(): SpanAnchor
+    {
+        return SpanAnchor::End;
     }
 }

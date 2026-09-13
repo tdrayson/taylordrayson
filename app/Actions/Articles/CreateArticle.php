@@ -4,7 +4,6 @@ namespace App\Actions\Articles;
 
 use App\Enums\EntryStatus;
 use App\Models\Article;
-use App\Support\EntryInstant;
 use App\Support\TimelineUrlSlug;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -33,7 +32,7 @@ class CreateArticle
             'content' => $attributes['content'] ?? [],
             'status' => $attributes['status'] ?? EntryStatus::Draft,
             'password' => $attributes['password'] ?? null,
-            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
+            'occurred_at' => $attributes['occurred_at'] ?? null,
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
         ]);
 

@@ -40,8 +40,12 @@ final class FieldRules
             $rules[$field->name] = [
                 // Only the genuinely mandatory fields are required, and only on
                 // create: an update may touch one field and leave the rest
-                // alone. Visibility (primary) is a separate question.
-                $creating && $field->required ? 'required' : 'sometimes',
+                // alone. A date stamped at save is left empty by a draft.
+                match (true) {
+                    ! $creating || ! $field->required => 'sometimes',
+                    $field->defaultsToNow => 'required_unless:status,draft',
+                    default => 'required',
+                },
                 ...self::typeRules($field),
             ];
         }

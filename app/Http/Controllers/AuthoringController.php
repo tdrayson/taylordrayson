@@ -111,6 +111,11 @@ class AuthoringController extends Controller
      */
     private function stampDefaults(Request $request, array $fields): void
     {
+        // A draft stays undated until it leaves draft.
+        if ($request->input('status') === EntryStatus::Draft->value) {
+            return;
+        }
+
         $stamp = null;
 
         foreach ($fields as $field) {

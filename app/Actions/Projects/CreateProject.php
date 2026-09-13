@@ -5,7 +5,6 @@ namespace App\Actions\Projects;
 use App\Enums\EntryStatus;
 use App\Enums\ProjectStage;
 use App\Models\Project;
-use App\Support\EntryInstant;
 use App\Support\TimelineUrlSlug;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -35,7 +34,7 @@ class CreateProject
             'github_url' => $attributes['github_url'] ?? null,
             'stage' => $attributes['stage'] ?? ProjectStage::Active,
             'featured' => $attributes['featured'] ?? false,
-            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
+            'occurred_at' => $attributes['occurred_at'] ?? null,
             'status' => $attributes['status'] ?? EntryStatus::Published,
             'password' => $attributes['password'] ?? null,
         ]);

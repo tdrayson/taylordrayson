@@ -2,6 +2,7 @@
 
 use App\Datasets\Datasets;
 use App\Enums\SpanAnchor;
+use App\Models\Book;
 use App\Models\Concerns\HasSpan;
 use App\Models\Event;
 use App\Models\Sleep;
@@ -36,6 +37,13 @@ it('reads an end-anchored span from started_at to occurred_at', function () {
 
     expect($sleep->spanStart()->toDateTimeString())->toBe('2026-06-19 23:00:00')
         ->and($sleep->spanEnd()->toDateTimeString())->toBe('2026-06-20 07:00:00');
+});
+
+it('spans a book from started_at to the moment it was finished', function () {
+    $book = Book::factory()->make(['started_at' => '2026-05-01 20:00:00', 'occurred_at' => '2026-06-01 21:00:00']);
+
+    expect($book->spanStart()->toDateTimeString())->toBe('2026-05-01 20:00:00')
+        ->and($book->spanEnd()->toDateTimeString())->toBe('2026-06-01 21:00:00');
 });
 
 it('fails loudly when a spanned model has no registered dataset', function () {

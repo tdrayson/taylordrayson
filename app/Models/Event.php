@@ -68,10 +68,13 @@ class Event extends Model implements HasMedia, Timelineable
      */
     public function dateRange(): ?RangeData
     {
-        if ($this->spanEnd() === null || $this->spanEnd()->toDateString() === $this->spanStart()->toDateString()) {
+        $start = $this->spanStart();
+        $end = $this->spanEnd();
+
+        if ($start === null || $end === null || $end->toDateString() === $start->toDateString()) {
             return null;
         }
 
-        return DateRange::for($this->spanStart(), $this->spanEnd());
+        return DateRange::for($start, $end);
     }
 }

@@ -20,8 +20,8 @@ const props = defineProps({
     accent: { type: String, required: true },
     // Null for title-less types (notes): the header shows only the type label and date.
     title: { type: String, default: null },
-    occurredAt: { type: String, required: true },
-    dayUrl: { type: String, required: true },
+    occurredAt: { type: String, default: null },
+    dayUrl: { type: String, default: null },
     // { title, url } when this entry falls inside a trip window, else null.
     trip: { type: Object, default: null },
     entry: { type: Object, required: true },
@@ -76,28 +76,34 @@ const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
 // Linkable tags for the shared footer; only taggable types carry the key.
 const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
 
-const [, year, month, day] = props.dayUrl.split('/');
-const monthName = computed(() => new Date(props.occurredAt).toLocaleDateString('en-GB', { month: 'long' }));
-
 // Title-less entries (notes) render no visible headline, but the page still
 // needs exactly one h1 for the outline: fall back to the type + date, hidden
 // visually (mirrors Timeline.vue's sr-only "Taylor Drayson timeline" h1).
-const fullOccurredLabel = computed(() => `${props.occurredLabel} ${props.occurredOffset}`.trim());
+const fullOccurredLabel = computed(() => [props.occurredLabel, props.occurredOffset].filter(Boolean).join(' '));
 
 // Aggregate / one-per-day types have a generic slug and a stat-style title, so the
 // type label reads better in the breadcrumb. Everything else uses its title.
 const SINGULAR_TYPES = ['sleep', 'food', 'fuel', 'note'];
 const crumbLabel = computed(() => (SINGULAR_TYPES.includes(props.type) ? meta.value.label : props.title));
 
-setLayoutProps({
-    minimal: props.editing,
-    breadcrumb: [
+// Dated entries crumb through their year, month and day; an undated draft leads back to /drafts.
+function breadcrumb() {
+    if (! props.dayUrl) {
+        return [{ label: 'Drafts', href: '/drafts' }, { label: crumbLabel.value ?? meta.value.label }];
+    }
+
+    const [, year, month, day] = props.dayUrl.split('/');
+    const monthName = new Date(props.occurredAt).toLocaleDateString('en-GB', { month: 'long' });
+
+    return [
         { label: year, href: `/${year}` },
-        { label: monthName.value, href: `/${year}/${month}` },
+        { label: monthName, href: `/${year}/${month}` },
         { label: String(Number(day)), href: props.dayUrl },
         { label: crumbLabel.value },
-    ],
-});
+    ];
+}
+
+setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
 </script>
 
 <template>
@@ -131,7 +137,7 @@ setLayoutProps({
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->
                 <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
-                <Link :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
+                <Link v-if="dayUrl" :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                     <time :datetime="occurredAt" class="dt-published">{{ occurredLabel }} {{ occurredOffset }}</time>
                 </Link>
                 <p v-if="trip" class="mt-1 text-meta text-neutral-500">

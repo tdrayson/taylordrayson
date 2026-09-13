@@ -518,7 +518,7 @@ class OgMeta
             default => $card->title,
         };
 
-        $suffix = ' - '.$card->occurredAt->format('j M Y');
+        $suffix = $card->occurredAt === null ? '' : ' - '.$card->occurredAt->format('j M Y');
 
         return Text::excerpt($title, self::TITLE_LIMIT - self::SITE_SUFFIX_LENGTH - mb_strlen($suffix)).$suffix;
     }

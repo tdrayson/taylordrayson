@@ -23,12 +23,13 @@ it('removes the timeline entry when an article is unpublished', function () {
     expect($article->fresh()->timelineEntry)->toBeNull();
 });
 
-it('404s an unpublished article entry page for guests but shows it when authenticated', function () {
-    $article = Article::factory()->create(['status' => 'draft']);
-    $url = $article->url();
+it('404s a dated draft for guests but shows it when authenticated', function () {
+    $article = Article::factory()->create(['status' => 'draft', 'occurred_at' => '2026-03-15 09:00:00']);
+    $dated = '/2026/03/15/'.$article->slug;
 
-    $this->get($url)->assertNotFound();
-    $this->actingAs(User::factory()->create())->get($url)->assertSuccessful();
+    $this->get($dated)->assertNotFound();
+    $this->get($article->url())->assertRedirect(route('login'));
+    $this->actingAs(User::factory()->create())->get($dated)->assertSuccessful();
 });
 
 it('shows a published article entry page to guests', function () {
