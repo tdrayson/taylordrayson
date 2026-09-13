@@ -36,13 +36,13 @@ final class InteractionsForFeed
     {
         $keyed = $targets
             ->filter(fn (Model $model): bool => InteractionTarget::accepts($model))
-            ->keyBy(fn (Model $model): string => $model::class.':'.$model->getKey());
+            ->keyBy(fn (Model $model): string => $model->getMorphClass().':'.$model->getKey());
 
         if ($keyed->isEmpty()) {
             return [];
         }
 
-        $classes = $keyed->map(fn (Model $m): string => $m::class)->unique()->values()->all();
+        $classes = $keyed->map(fn (Model $m): string => $m->getMorphClass())->unique()->values()->all();
         $ids = $keyed->map(fn (Model $m): int|string => $m->getKey())->unique()->values()->all();
 
         // Hashed per target rather than per visitor, so a page needs the whole
