@@ -51,10 +51,32 @@ it('clears the pre-filled quote when the reply url is changed to a different pos
     $page->click('.prose-editor')->typeSlowly('.prose-editor', 'Agreed.', 20);
     $page->select('#response_kind', 'reply');
     $page->fill('#response_url', 'https://example.com/post-a');
+    $page->click('#slug');
 
     $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('#response_quote')?.value), 1500))", 'Excerpt A.');
 
     $page->fill('#response_url', 'https://example.com/post-b');
+    $page->click('#slug');
 
     $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('#response_quote')?.value), 1500))", 'Excerpt B.');
+});
+
+it('leaves an existing reply\'s empty quote empty, showing the excerpt it publishes', function () {
+    Citation::factory()->create(['url' => 'https://example.com/post', 'excerpt' => 'The whole opening paragraph.']);
+    $note = Note::factory()->create(['response_kind' => 'reply', 'response_url' => 'https://example.com/post']);
+
+    $page = visit($note->url().'?edit');
+
+    $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()), 1500))", 'The whole opening paragraph.');
+    $page->assertScript("document.querySelector('#response_quote').value", '');
+    $page->assertScript("document.querySelector('#response_quote').placeholder", 'The whole opening paragraph.');
+});
+
+it('says nothing while the url is not a link yet', function () {
+    $page = visit('/new/note');
+    $page->select('#response_kind', 'reply');
+    $page->fill('#response_url', 'not a link');
+    $page->click('#slug');
+
+    $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview]').textContent.trim()), 1000))", '');
 });
