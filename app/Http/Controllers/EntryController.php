@@ -6,7 +6,6 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\BuildResponseContext;
-use App\Actions\ResolveMentions;
 use App\Data\TagLink;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
@@ -320,7 +319,7 @@ class EntryController extends Controller
             $data['response'] = app(BuildResponseContext::class)($model)?->toArray();
         }
 
-        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Checkin) {
+        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Place) {
             $data['photos'] = $model->galleryPhotos();
         }
 
