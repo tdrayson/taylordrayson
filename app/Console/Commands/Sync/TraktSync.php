@@ -79,9 +79,9 @@ class TraktSync extends Command
 
             $startAt = $this->resolveStartAt();
 
-            // Trakt's id spaces for movie-history and episode-history items are
-            // unrelated, and each table now has its own unique constraint, so
-            // dedupe is checked per table rather than against one shared set.
+            // Movie-history and episode-history share one Trakt history id space,
+            // but films and episodes now live in separate tables, so dedupe is
+            // looked up per table rather than against one shared set.
             $existingFilms = Film::query()->where('source', 'trakt')->pluck('source_id')->flip();
             $existingEpisodes = Episode::query()->where('source', 'trakt')->pluck('source_id')->flip();
 

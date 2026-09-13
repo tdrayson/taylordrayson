@@ -35,7 +35,7 @@ setLayoutProps({
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
-            <h1 class="mt-1 font-display text-display">TV series</h1>
+            <h1 class="font-display text-display">TV series</h1>
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>
     </header>
