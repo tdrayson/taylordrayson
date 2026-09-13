@@ -1,8 +1,9 @@
 <?php
 
-use App\Models\TimelineEntry;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,20 +21,28 @@ return new class extends Migration
 
         $taken = [];
 
-        $entries = TimelineEntry::query()
-            ->with('timelineable')
+        // Reads the raw morph columns via the query builder rather than the
+        // TimelineEntry model: at this point in history `timelineable_type`
+        // still holds the model's class path, not the dataset key the later
+        // `entry()` relation resolves through.
+        $rows = DB::table('timeline_entries')
+            ->select('id', 'occurred_at', 'timelineable_type', 'timelineable_id')
             ->orderBy('occurred_at')
             ->orderBy('id')
             ->cursor();
 
-        foreach ($entries as $entry) {
-            $model = $entry->timelineable;
+        foreach ($rows as $row) {
+            if ($row->timelineable_type === null || $row->timelineable_id === null || ! class_exists($row->timelineable_type)) {
+                continue;
+            }
+
+            $model = $row->timelineable_type::find($row->timelineable_id);
 
             if ($model === null) {
                 continue;
             }
 
-            $day = $entry->occurred_at->toDateString();
+            $day = Carbon::parse($row->occurred_at)->toDateString();
             $base = $model->slug();
 
             $candidate = $base;
@@ -46,7 +55,7 @@ return new class extends Migration
 
             $taken[$day][$candidate] = true;
 
-            TimelineEntry::query()->whereKey($entry->id)->update(['url_slug' => $candidate]);
+            DB::table('timeline_entries')->where('id', $row->id)->update(['url_slug' => $candidate]);
         }
     }
 
