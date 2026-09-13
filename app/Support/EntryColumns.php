@@ -31,6 +31,10 @@ final class EntryColumns
      * The entry's own values, minus what the card already carried and minus the
      * series.
      *
+     * Renamed from `type` to `kind`: the caller spreads this after the card's
+     * own `type` (the dataset key), so a model with its own `type` column (a
+     * place's category, an activity's discipline) would otherwise overwrite it.
+     *
      * @return array<string, mixed>
      */
     public function scalars(Model $model): array
@@ -42,7 +46,8 @@ final class EntryColumns
                 continue;
             }
 
-            $values[$column] = $model->getAttribute($column);
+            $key = $column === 'type' ? 'kind' : $column;
+            $values[$key] = $model->getAttribute($column);
         }
 
         return $values;

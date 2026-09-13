@@ -8,6 +8,8 @@ use App\Mcp\Tools\SearchEntries;
 use App\Mcp\Tools\SearchFields;
 use App\Mcp\Tools\Stats;
 use App\Mcp\Tools\Timeline;
+use App\Models\Activity;
+use App\Models\Place;
 use App\Models\Sleep;
 
 /*
@@ -101,6 +103,27 @@ describe('one entry', function () {
 
     it('refuses a url with no entry behind it', function () {
         expect(callTool(Entry::class, ['url' => '/2026/01/01/nothing'])['error'])->toBeTrue();
+    });
+
+    // A model's own `type` column (a place's category, an activity's
+    // discipline) must never overwrite the dataset key the card already put in
+    // `type`; it is exposed as `kind` instead.
+    it('keeps the dataset key as type and exposes a place\'s own type as kind', function () {
+        $place = Place::factory()->create(['type' => 'Coffee Shop']);
+
+        $entry = callTool(Entry::class, ['url' => $place->url()])['data'];
+
+        expect($entry['type'])->toBe('place')
+            ->and($entry['kind'])->toBe('Coffee Shop');
+    });
+
+    it('keeps the dataset key as type and exposes an activity\'s own type as kind', function () {
+        $activity = Activity::factory()->create(['type' => 'run']);
+
+        $entry = callTool(Entry::class, ['url' => $activity->url()])['data'];
+
+        expect($entry['type'])->toBe('activity')
+            ->and($entry['kind'])->toBe('run');
     });
 });
 
