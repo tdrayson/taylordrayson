@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Models\Mention;
 use App\Models\Note;
@@ -80,7 +81,7 @@ it('removes the mention when the link is taken out again', function () {
 
 // A draft is not a page anyone can read, so a link to it has nowhere to land.
 it('records nothing for a link to an unpublished article', function () {
-    $article = Article::factory()->create(['published' => false]);
+    $article = Article::factory()->draft()->create();
 
     Note::factory()->create(['content' => linkedTo($article->url())]);
 
@@ -91,13 +92,13 @@ it('records nothing for a link to an unpublished article', function () {
 it('removes a source\'s mentions when it stops being published', function () {
     $sleep = Sleep::factory()->create();
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => EntryStatus::Published,
         'content' => linkedTo($sleep->url()),
     ]);
 
     expect($sleep->mentions()->count())->toBe(1);
 
-    $article->update(['published' => false]);
+    $article->update(['status' => EntryStatus::Draft]);
 
     expect($sleep->mentions()->count())->toBe(0);
 });
@@ -105,7 +106,7 @@ it('removes a source\'s mentions when it stops being published', function () {
 // An article, not a note: a note's slug is derived from its content, so
 // rewriting the body moves the URL and the link would miss for the wrong reason.
 it('records nothing for an entry that links to itself', function () {
-    $article = Article::factory()->create(['published' => true]);
+    $article = Article::factory()->create(['status' => EntryStatus::Published]);
 
     $article->update(['content' => linkedTo($article->url())]);
 
@@ -125,7 +126,7 @@ it('sends no title for a mention that came from a note', function () {
 it('sends the title for a mention that came from an article', function () {
     $sleep = Sleep::factory()->create();
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => EntryStatus::Published,
         'content' => linkedTo($sleep->url()),
     ]);
 
@@ -146,4 +147,12 @@ it('shows the mention in the linked entry\'s conversation', function () {
             // is no "via somewhere-else" to close the byline with.
             ->where('conversation.responses.0.sourceHost', null)
             ->where('conversation.responses.0.body', null));
+});
+
+it('records a mention on an unlisted entry', function () {
+    $article = Article::factory()->create(['status' => EntryStatus::Unlisted]);
+
+    Note::factory()->create(['content' => linkedTo($article->url())]);
+
+    expect($article->mentions()->count())->toBe(1);
 });
