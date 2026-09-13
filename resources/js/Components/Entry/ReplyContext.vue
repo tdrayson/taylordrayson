@@ -33,12 +33,16 @@ const property = computed(() => `u-${props.response.property}`);
 </script>
 
 <template>
-    <div :class="['h-cite text-meta', property]">
-        <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-neutral-500">
-            <Icon :name="icon" class="size-3.5 shrink-0" />
-            <data v-if="response.rsvp" class="p-rsvp" :value="response.rsvp">{{ response.label }}</data>
-            <span v-else>{{ response.label }}</span>
+    <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta text-neutral-500">
+        <Icon :name="icon" class="size-3.5 shrink-0" />
+        <data v-if="response.rsvp" class="p-rsvp" :value="response.rsvp">{{ response.label }}</data>
+        <span v-else>{{ response.label }}</span>
 
+        <!-- The target this answers, grouped under one h-cite so a parser reads
+             it (and any quote below) as the cited post, not folded into this
+             entry's own properties like the p-rsvp above. `contents` keeps the
+             grouping invisible as a box: the flex-wrap above still drives layout. -->
+        <div :class="['contents', 'h-cite', property]">
             <!-- One of mine is named exactly as the timeline card names it, and
                  links in-app. -->
             <Link
@@ -57,7 +61,7 @@ const property = computed(() => `u-${props.response.property}`);
                 <span class="p-author h-card font-medium text-neutral-700">{{ cited.authorName }}</span>
             </template>
             <a
-                v-else-if="!response.internal"
+                v-else
                 :href="response.url"
                 class="u-url underline decoration-neutral-100 underline-offset-2 hover:text-accent-700"
             >a post</a>
@@ -69,17 +73,20 @@ const property = computed(() => `u-${props.response.property}`);
                 <span v-if="cited?.authorName">on <a :href="response.url" class="u-url underline decoration-neutral-100 underline-offset-2 hover:text-accent-700">{{ response.host }}</a></span>
                 <span v-else>on {{ response.host }}</span>
             </template>
-        </p>
 
-        <!-- Their words behind the same rule a quote uses, each part only if it exists. -->
-        <div v-if="!response.internal && hasQuote" class="mt-3 border-l-2 border-neutral-100 pl-4">
-            <a v-if="cited.title" :href="response.url" class="u-url block font-semibold text-neutral-900 hover:text-accent-700">
-                <cite class="p-name not-italic">{{ cited.title }}</cite>
-            </a>
-            <p v-if="cited.quote" :class="['p-content line-clamp-3 text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
-            <a v-if="cited.published" :href="response.url" class="u-url mt-2 inline-block text-caption text-neutral-500 hover:text-accent-700">
-                <time class="dt-published" :datetime="cited.published.iso">{{ cited.published.label }} {{ cited.published.offset }}</time>
-            </a>
+            <!-- Their words behind the same rule a quote uses, each part only if
+                 it exists. basis-full breaks it onto its own row; mt-2 plus the
+                 flex row's gap-y-1 reproduces the original mt-3 gap now that this
+                 sits inside the flex-wrap instead of stacked as a block sibling. -->
+            <div v-if="!response.internal && hasQuote" class="basis-full mt-2 border-l-2 border-neutral-100 pl-4">
+                <a v-if="cited.title" :href="response.url" class="u-url block font-semibold text-neutral-900 hover:text-accent-700">
+                    <cite class="p-name not-italic">{{ cited.title }}</cite>
+                </a>
+                <p v-if="cited.quote" :class="['p-content line-clamp-3 text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
+                <a v-if="cited.published" :href="response.url" class="u-url mt-2 inline-block text-caption text-neutral-500 hover:text-accent-700">
+                    <time class="dt-published" :datetime="cited.published.iso">{{ cited.published.label }} {{ cited.published.offset }}</time>
+                </a>
+            </div>
         </div>
     </div>
 </template>

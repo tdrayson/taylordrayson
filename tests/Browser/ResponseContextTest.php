@@ -45,7 +45,10 @@ it('publishes an rsvp answer as a p-rsvp value beside the reply property', funct
 
     visit($note->url())
         ->assertPresent('.h-cite.u-in-reply-to a[href="https://example.com/event"]')
-        ->assertPresent('data.p-rsvp[value="yes"]');
+        ->assertPresent('data.p-rsvp[value="yes"]')
+        // The answer is mine, not the target's: folding it inside h-cite would
+        // have a parser read the RSVP as something the cited post said.
+        ->assertScript("document.querySelector('.p-rsvp').closest('.h-cite') === null");
 });
 
 it('draws no context card on a note that answers nobody', function () {
