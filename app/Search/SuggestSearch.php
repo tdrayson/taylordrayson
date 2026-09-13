@@ -5,7 +5,7 @@ namespace App\Search;
 use App\Enums\EntryStatus;
 use App\Models\Page;
 use App\Models\Tag;
-use App\Models\TvShow;
+use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -234,8 +234,12 @@ final class SuggestSearch
             ->orderByDesc('occurred_at')
             ->limit(self::PER_TYPE);
 
-        if ($type === 'flight') {
-            $query->with(['origin', 'destination', 'airline']);
+        // The same relations a card reads elsewhere (e.g. a reply's citation),
+        // so the palette never lazy-loads one per row on every keystroke.
+        $relations = TimelineEntry::cardRelations()[$model] ?? [];
+
+        if ($relations !== []) {
+            $query->with($relations);
         }
 
         return $query->get()

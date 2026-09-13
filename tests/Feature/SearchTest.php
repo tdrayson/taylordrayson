@@ -1,13 +1,17 @@
 <?php
 
+use App\Enums\ResponseKind;
 use App\Models\Activity;
 use App\Models\Article;
+use App\Models\Checkin;
+use App\Models\Citation;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Place;
 use App\Models\User;
 use App\Search\SearchSchema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 use function Pest\Laravel\get;
@@ -36,6 +40,29 @@ it('searches across multiple types and orders by recency', function () {
         ->where('results.1.type', 'place')
         ->etc()
     );
+});
+
+it('does not add a query per reply note to fetch the citation the card reads', function () {
+    foreach (range(0, 4) as $i) {
+        $citation = Citation::factory()->create(['url' => "https://example.com/cited-{$i}"]);
+
+        Note::factory()->create([
+            'content' => "Distinctivewebmention note {$i}",
+            'response_kind' => ResponseKind::Reply,
+            'response_url' => $citation->url,
+        ]);
+    }
+
+    DB::enableQueryLog();
+    getJson('/search/suggest?q=distinctivewebmention')->assertOk()->assertJson(fn ($json) => $json->has('results', 5)->etc());
+    $citationQueries = collect(DB::getQueryLog())
+        ->filter(fn (array $entry): bool => str_contains($entry['query'], 'citations'))
+        ->count();
+    DB::disableQueryLog();
+
+    // One query for all five citations, eager loaded with the notes: not one
+    // per reply, which is what a lazy-loaded relation would cost here.
+    expect($citationQueries)->toBe(1);
 });
 
 it('ignores queries shorter than two characters', function () {
