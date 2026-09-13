@@ -5,17 +5,18 @@ use App\Models\Page;
 
 use function Pest\Laravel\get;
 
-it('lists every tracked type with its live count on /more', function () {
+it('lists every tracked type with its live count on /more, grouped by kind', function () {
     Flight::factory()->count(2)->create();
 
     get('/more')
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('More')
-            ->has('tracked', 13)
-            ->where('tracked', fn ($tracked) => collect($tracked)->contains(
-                fn ($type) => $type['label'] === 'Flights' && $type['href'] === '/flights' && $type['count'] === 2,
-            )));
+            ->has('tracked', 6)
+            ->where('tracked.0.kind', 'writing')
+            ->where('tracked', fn ($tracked) => collect($tracked)
+                ->flatMap(fn (array $group) => $group['items'])
+                ->contains(fn ($type) => $type['label'] === 'Flights' && $type['href'] === '/flights' && $type['count'] === 2)));
 });
 
 it('404s the removed /pages index', function () {

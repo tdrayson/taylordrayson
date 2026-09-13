@@ -82,7 +82,7 @@ it('renders the subscribe page with every type and preset', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Feeds')
             ->has('types', 13)
-            ->has('presets', 6)
+            ->has('presets', 8)
             ->where('presets.0.key', 'curated')
         );
 });
