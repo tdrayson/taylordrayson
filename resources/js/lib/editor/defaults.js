@@ -117,7 +117,55 @@ const NOTE_SLUG_WORDS = 6;
 export function noteSlug(document, fallback = 'note') {
     const words = plainTextOf(document).trim().split(/\s+/).filter(Boolean);
 
-    return slugify(words.slice(0, NOTE_SLUG_WORDS).join(' ')) || fallback;
+    return slugWords(words.join(' ')) || fallback;
+}
+
+/** A name cut to the words a note slug uses, slugged. */
+function slugWords(text) {
+    return slugify(String(text ?? '').trim().split(/\s+/).slice(0, NOTE_SLUG_WORDS).join(' '));
+}
+
+/** A URL's host without www., slugged, or '' when it does not parse yet. */
+function domainSlug(url) {
+    try {
+        return slugify(new URL(url).hostname.toLowerCase().replace(/^www\./, '').replaceAll('.', ' '));
+    } catch {
+        return '';
+    }
+}
+
+/**
+ * The slug a response note is stored with when none is written, e.g.
+ * `reply-to-sending-your-first-webmention`. Mirrors NameResponseSlug.
+ *
+ * @param {{kind: string, url: string, rsvp?: string, preview?: object|null}} response The
+ *        response fields, plus the context CitationField fetched for the URL, if any.
+ * @returns {string|null} Null for a plain note, or while nothing names the target.
+ */
+export function responseSlug({ kind, url, rsvp = null, preview = null }) {
+    // An RSVP with no answer is not one, the same as PostType::of() on the server.
+    if (! kind || ! url || (kind === 'rsvp' && ! rsvp)) {
+        return null;
+    }
+
+    // A preview still describing the previous URL would name the wrong post.
+    const context = preview?.url === url ? preview : null;
+    const cited = context?.cited ?? null;
+
+    const candidates = {
+        reply: [cited?.title, cited?.authorName],
+        rsvp: [cited?.title],
+    }[kind] ?? [];
+
+    const name = context?.internal
+        ? slugWords(context.title)
+        : candidates.map(slugWords).find(Boolean) ?? domainSlug(url);
+
+    if (! name) {
+        return null;
+    }
+
+    return `${kind === 'reply' ? 'reply-to' : kind}-${name}`;
 }
 
 /**

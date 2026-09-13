@@ -69,8 +69,8 @@ const coordinates = computed(() => {
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
-// what other fields exist.
-defineEmits(['update:modelValue', 'fill']);
+// what other fields exist. `preview` relays the response context a citation loaded.
+defineEmits(['update:modelValue', 'fill', 'preview']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -242,6 +242,7 @@ function textToTags(value) {
             :response-url="responseUrl"
             :response-kind="responseKind"
             @update:model-value="$emit('update:modelValue', $event)"
+            @preview="$emit('preview', $event)"
         />
 
         <Input
