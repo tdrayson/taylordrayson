@@ -26,8 +26,8 @@ const props = defineProps({
     episode: { type: Object, default: null },
     // Real sleep data ({ nights, stageHours }) or null when there is none.
     sleep: { type: Object, default: null },
-    // Per-day timeline entry counts for the trailing 30 days (oldest first).
-    entryCounts: { type: Array, default: () => [] },
+    // Four Mon-Sun weeks of { date, count }, oldest first; future days have a null count.
+    entryDays: { type: Array, default: () => [] },
     // Recent real photos ({ src, srcset, url, caption }) for the "Life lately" deck.
     photos: { type: Array, default: () => [] },
 });
@@ -45,7 +45,7 @@ const LAYOUT_KEY = 'now-layout-v1';
 // Only forward data props to a widget when the backend supplied something, so an
 // empty source falls back to the widget's own placeholder rather than blanking.
 const sleepProps = props.sleep ?? {};
-const entriesProps = props.entryCounts.length ? { counts: props.entryCounts } : {};
+const entriesProps = props.entryDays.length ? { days: props.entryDays } : {};
 const photosProps = props.photos.length ? { photos: props.photos } : {};
 
 // Ambient groups follow the same rule, per widget prop rather than per group:

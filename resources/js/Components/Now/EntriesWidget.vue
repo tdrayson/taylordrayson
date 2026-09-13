@@ -5,18 +5,23 @@ import Tooltip from '../Ui/Tooltip.vue';
 
 const props = defineProps({
     label: { type: String, default: 'entries' },
-    // Per-day entry counts, oldest first, most recent (today) last.
-    counts: {
+    // Four Mon-Sun weeks of { date: 'yyyy-mm-dd', count }, oldest first; days after today have a null count.
+    days: {
         type: Array,
-        default: () => [3, 5, 0, 2, 6, 4, 1, 0, 3, 7, 5, 2, 4, 1, 0, 6, 3, 5, 8, 2, 1, 4, 0, 3, 5, 6, 2, 4, 7, 3],
+        default: () => [3, 5, 0, 2, 6, 4, 1, 0, 3, 7, 5, 2, 4, 1, 0, 6, 3, 5, 8, 2, 1, 4, 0, 3, 5, 6, null, null].map((count, i) => ({
+            date: new Date(Date.UTC(2026, 7, 17 + i)).toISOString().slice(0, 10),
+            count,
+        })),
     },
 });
+
+const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 // Empty + three accent steps.
 const COLORS = ['var(--color-neutral-100)', 'var(--color-accent-200)', 'var(--color-accent-400)', 'var(--color-accent-600)'];
 const level = (c) => (c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3);
 
-const total = computed(() => props.counts.reduce((a, b) => a + b, 0));
+const total = computed(() => props.days.reduce((sum, day) => sum + (day.count ?? 0), 0));
 
 function fmtCount(c) {
     if (c === 0) {
@@ -25,39 +30,41 @@ function fmtCount(c) {
     return c === 1 ? '1 entry' : `${c} entries`;
 }
 
-const cells = computed(() => {
-    const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/London' }));
-    today.setHours(0, 0, 0, 0);
+// The server sends plain dates, so format them in UTC to avoid any local timezone shift.
+const cells = computed(() => props.days.map(({ date, count }) => {
+    if (count === null) {
+        return { key: date, future: true };
+    }
 
-    return props.counts.map((c, i) => {
-        const d = new Date(today);
-        d.setDate(d.getDate() - (props.counts.length - 1 - i));
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const date = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const [year, month, day] = date.split('-');
+    const label = new Date(Date.UTC(year, month - 1, day))
+        .toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
 
-        return {
-            href: `/${year}/${month}/${day}`,
-            color: COLORS[level(c)],
-            title: `${date}, ${fmtCount(c)}`,
-        };
-    });
-});
+    return {
+        key: date,
+        href: `/${year}/${month}/${day}`,
+        color: COLORS[level(count)],
+        title: `${label}, ${fmtCount(count)}`,
+    };
+}));
 </script>
 
 <template>
     <div class="entries rounded-3xl">
         <div class="entries__inner">
             <div class="entries__header">
-                <h2 class="entries__title">Last 30 days</h2>
+                <h2 class="entries__title">Last 4 weeks</h2>
                 <span class="entries__total">{{ total }}</span>
             </div>
 
             <div class="entries__grid">
-                <Tooltip v-for="cell in cells" :key="cell.href" :label="cell.title" placement="top" class="entries__cell-wrap">
-                    <Link :href="cell.href" class="entries__cell" :style="{ background: cell.color }" :aria-label="cell.title" />
-                </Tooltip>
+                <span v-for="(weekday, i) in WEEKDAYS" :key="`weekday-${i}`" class="entries__weekday" aria-hidden="true">{{ weekday }}</span>
+                <template v-for="cell in cells" :key="cell.key">
+                    <span v-if="cell.future" class="entries__cell-wrap entries__cell--future" />
+                    <Tooltip v-else :label="cell.title" placement="top" class="entries__cell-wrap">
+                        <Link :href="cell.href" class="entries__cell" :style="{ background: cell.color }" :aria-label="cell.title" />
+                    </Tooltip>
+                </template>
             </div>
 
             <div class="entries__footer">
@@ -109,20 +116,30 @@ const cells = computed(() => {
 .entries__grid {
     flex: 1;
     min-height: 0;
-    align-self: center;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(5, 1fr);
+    grid-template-columns: repeat(7, 1fr);
+    align-content: center;
     gap: 2.3cqw;
     margin: 5.6cqw 0 5.1cqw;
-    /* Fill the available height, then derive width so the 6×5 cells stay square. */
-    aspect-ratio: 6 / 5;
+}
+
+.entries__weekday {
+    font-size: 3.7cqw;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    color: var(--color-neutral-400);
 }
 
 .entries__cell-wrap {
     display: flex;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 1;
+}
+
+.entries__cell--future {
+    border-radius: 1.85cqw;
+    box-shadow: inset 0 0 0 1px var(--color-neutral-100);
 }
 
 .entries__cell {

@@ -24,7 +24,7 @@ class NowController extends Controller
             'og' => OgMeta::now(),
             'episode' => $this->latestEpisode(),
             'sleep' => $this->recentSleep(),
-            'entryCounts' => $this->entryCounts(),
+            'entryDays' => $this->entryDays(),
             'photos' => $this->recentPhotos(),
         ]);
     }
@@ -120,23 +120,31 @@ class NowController extends Controller
     }
 
     /**
-     * Per-day timeline entry counts for the trailing 30 days, oldest first with
-     * today last, for the "Last 30 days" widget. Days with no entries are zero.
+     * Per-day timeline entry counts for four Monday-to-Sunday weeks ending this
+     * week, oldest first. Days after today carry a null count.
      *
-     * @return array<int, int>
+     * @return array<int, array{date: string, count: int|null}>
      */
-    private function entryCounts(): array
+    private function entryDays(): array
     {
-        $today = Carbon::today();
-        $start = $today->copy()->subDays(29);
+        $today = Carbon::today((string) config('app.home_timezone'));
+        $start = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(3);
 
         $countsByDay = TimelineEntry::query()
             ->where('occurred_at', '>=', $start)
+            ->where('occurred_at', '<', $today->copy()->addDay())
             ->get(['occurred_at'])
             ->countBy(fn (TimelineEntry $entry): string => $entry->occurred_at->toDateString());
 
-        return collect(range(0, 29))
-            ->map(fn (int $offset): int => $countsByDay->get($start->copy()->addDays($offset)->toDateString(), 0))
+        return collect(range(0, 27))
+            ->map(function (int $offset) use ($start, $today, $countsByDay): array {
+                $day = $start->copy()->addDays($offset);
+
+                return [
+                    'date' => $day->toDateString(),
+                    'count' => $day->gt($today) ? null : $countsByDay->get($day->toDateString(), 0),
+                ];
+            })
             ->all();
     }
 

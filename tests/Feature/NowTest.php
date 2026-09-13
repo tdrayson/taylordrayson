@@ -47,14 +47,21 @@ it('passes recent sleep nights and last-night stage hours', function () {
     );
 });
 
-it('counts timeline entries from the trailing 30 days', function () {
+it('counts timeline entries across four Monday-first weeks', function () {
+    // A Wednesday, so the current week has both past and future days.
+    $this->travelTo('2026-09-16 12:00:00');
+
     // Each Timelineable model spawns a timeline entry dated to occurred_at.
-    Sleep::factory()->create(['occurred_at' => now()->subDay()]);
-    ThisWeekWith::factory()->create(['occurred_at' => now()->subDays(2)]);
+    Sleep::factory()->create(['occurred_at' => '2026-09-15 07:00:00']);
+    ThisWeekWith::factory()->create(['occurred_at' => '2026-08-24 18:00:00']);
 
     get('/now')->assertInertia(fn ($page) => $page
-        ->has('entryCounts', 30)
-        ->where('entryCounts', fn ($counts) => collect($counts)->sum() >= 2)
+        ->has('entryDays', 28)
+        ->where('entryDays.0', ['date' => '2026-08-24', 'count' => 1])
+        ->where('entryDays.22.count', 1)
+        ->where('entryDays.23', ['date' => '2026-09-16', 'count' => 0])
+        ->where('entryDays.24', ['date' => '2026-09-17', 'count' => null])
+        ->where('entryDays.27.date', '2026-09-20')
     );
 });
 
