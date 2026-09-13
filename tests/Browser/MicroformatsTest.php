@@ -142,7 +142,7 @@ function jpegBytes(): string
 
 it('names a tag and a cover as properties of the entry', function () {
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => 'published',
         'title' => 'A tagged piece',
         'occurred_at' => '2024-03-07 09:00:00',
         'content' => PortableText::fromPlainText('The body of the piece.'),

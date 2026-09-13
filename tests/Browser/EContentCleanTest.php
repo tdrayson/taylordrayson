@@ -32,7 +32,7 @@ it('publishes a note body with nothing in it but the note', function () use ($no
 
 it('publishes an article body with nothing in it but the article', function () use ($noComments) {
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => 'published',
         'title' => 'A piece',
         'occurred_at' => now()->subDay(),
         'content' => PortableText::fromPlainText('The body of the piece.'),

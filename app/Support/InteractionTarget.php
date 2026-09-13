@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\EntryStatus;
 use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Page;
@@ -76,14 +77,16 @@ final class InteractionTarget
     /**
      * Whether the public can see this right now. A draft must be rejected
      * rather than 404'd on write alone, or a mention could confirm that an
-     * unpublished URL exists.
+     * unpublished URL exists. A private entry is refused too: its body sits
+     * behind a password, so neither a reply nor a mention has anything to cite.
      */
     private static function isVisible(Model $model): bool
     {
-        if ($model instanceof Page) {
-            return (bool) $model->published;
+        if (! in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted], strict: true)) {
+            return false;
         }
 
-        return $model instanceof Timelineable && $model->shouldAppearOnTimeline();
+        return $model instanceof Page
+            || ($model instanceof Timelineable && $model->shouldAppearOnTimeline());
     }
 }
