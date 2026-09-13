@@ -97,10 +97,21 @@ describe('responseSlug', () => {
         assert.equal(responseSlug({ kind: 'rsvp', url, rsvp: 'yes', preview: cited(null, 'Somebody') }), 'rsvp-example-com');
     });
 
-    it('names one of my own entries by the name the preview gives it', () => {
-        const preview = { url, internal: true, title: 'My Great Article', cited: null };
+    it('names one of my own entries after the slug in its url, whatever the kind', () => {
+        const own = 'https://taylordrayson.test/2026/03/14/back-under-the-bar';
+        const preview = { url: own, internal: true, title: 'My Great Article', cited: null };
 
-        assert.equal(responseSlug({ kind: 'like', url, preview }), 'like-my-great-article');
+        assert.equal(responseSlug({ kind: 'reply', url: own, preview }), 'reply-to-back-under-the-bar');
+        assert.equal(responseSlug({ kind: 'like', url: own, preview }), 'like-back-under-the-bar');
+        assert.equal(responseSlug({ kind: 'repost', url: own, preview }), 'repost-back-under-the-bar');
+        assert.equal(responseSlug({ kind: 'rsvp', url: own, rsvp: 'yes', preview }), 'rsvp-back-under-the-bar');
+    });
+
+    it('cuts my own entry\'s slug to the words a note slug uses', () => {
+        const own = 'https://taylordrayson.test/one-two-three-four-five-six-seven-eight';
+        const preview = { url: own, internal: true, title: 'A page', cited: null };
+
+        assert.equal(responseSlug({ kind: 'like', url: own, preview }), 'like-one-two-three-four-five-six');
     });
 
     it('ignores a preview fetched for a different url', () => {
