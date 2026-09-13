@@ -5,6 +5,7 @@ use App\Enums\SpanAnchor;
 use App\Models\Concerns\HasSpan;
 use App\Models\Event;
 use App\Models\Sleep;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 
 it('gives every spanned dataset the trait and the column for its other bound', function () {
@@ -36,3 +37,12 @@ it('reads an end-anchored span from started_at to occurred_at', function () {
     expect($sleep->spanStart()->toDateTimeString())->toBe('2026-06-19 23:00:00')
         ->and($sleep->spanEnd()->toDateTimeString())->toBe('2026-06-20 07:00:00');
 });
+
+it('fails loudly when a spanned model has no registered dataset', function () {
+    $model = new class extends Model
+    {
+        use HasSpan;
+    };
+
+    $model->spanStart();
+})->throws(LogicException::class);
