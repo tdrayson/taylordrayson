@@ -2,10 +2,9 @@
 import { computed, provide, toRef } from 'vue';
 
 const props = defineProps({
-    // 'tinted' washes each segment in its colour, 'icons' keeps the box neutral
-    // and colours only the glyph, 'plain' is one grey throughout, and 'bare'
-    // drops the box altogether for a row with nothing worth framing.
-    variant: { type: String, default: 'tinted' },
+    // 'plain' joins the segments into one grey box, 'bare' drops the box for a
+    // row with nothing worth framing.
+    variant: { type: String, default: 'plain' },
     size: { type: String, default: 'md' },
 });
 

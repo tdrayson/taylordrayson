@@ -136,10 +136,10 @@ const responsesLabel = computed(() => {
 
 /** The optional gesture counts, each one only there when it happened. */
 const gestures = computed(() => [
-    { key: 'repost', icon: 'ArrowReloadHorizontalIcon', colour: 'var(--color-count-reposts)', count: props.repostCount, one: 'repost', many: 'reposts' },
-    { key: 'bookmark', icon: 'Bookmark01Icon', colour: 'var(--color-count-bookmarks)', count: props.bookmarkCount, one: 'bookmark', many: 'bookmarks' },
-    { key: 'rsvp', icon: 'Calendar01Icon', colour: 'var(--color-count-rsvps)', count: props.rsvpCount, one: 'RSVP', many: 'RSVPs' },
-    { key: 'mention', icon: 'Link02Icon', colour: 'var(--color-count-mentions)', count: props.mentionCount, one: 'mention', many: 'mentions' },
+    { key: 'repost', icon: 'ArrowReloadHorizontalIcon', count: props.repostCount, one: 'repost', many: 'reposts' },
+    { key: 'bookmark', icon: 'Bookmark01Icon', count: props.bookmarkCount, one: 'bookmark', many: 'bookmarks' },
+    { key: 'rsvp', icon: 'Calendar01Icon', count: props.rsvpCount, one: 'RSVP', many: 'RSVPs' },
+    { key: 'mention', icon: 'Link02Icon', count: props.mentionCount, one: 'mention', many: 'mentions' },
 ].filter((gesture) => gesture.count > 0));
 
 /**
@@ -216,7 +216,7 @@ function press() {
             <!-- One joined box for the counts once somebody has responded, kept grey:
                  the reaction discs beside it are the only colour the row needs. -->
             <CountGroup :variant="hasResponses ? 'plain' : 'bare'" :size="sizes.group">
-            <CountSegment :padded="false" colour="var(--color-count-reactions)" :muted="total === 0">
+            <CountSegment :padded="false">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
             <div
@@ -299,8 +299,6 @@ function press() {
             <CountSegment
                 :as="compact && url ? Link : 'span'"
                 :href="compact && url ? `${url}#responses` : undefined"
-                colour="var(--color-count-replies)"
-                :muted="replyCount === 0"
                 :aria-label="responsesLabel"
                 :class="[sizes.text, compact && url && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500']"
             >
@@ -313,7 +311,6 @@ function press() {
             <CountSegment
                 v-for="gesture in gestures"
                 :key="gesture.key"
-                :colour="gesture.colour"
                 :aria-label="gestureLabel(gesture)"
                 :class="sizes.text"
             >

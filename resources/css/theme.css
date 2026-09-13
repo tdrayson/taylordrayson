@@ -350,14 +350,6 @@
        be mistaken for like's blue. */
     --color-reaction-glyph: #ffffff;
 
-    /* Interaction counts: one hue per kind of response, borrowed from the
-       reaction palette so the two rows under an entry never clash. */
-    --color-count-reactions: var(--color-reaction-like);
-    --color-count-replies: var(--color-reaction-celebrate);
-    --color-count-reposts: var(--color-reaction-haha);
-    --color-count-bookmarks: var(--color-reaction-wow);
-    --color-count-rsvps: var(--color-reaction-sad);
-    --color-count-mentions: var(--color-reaction-love);
 
     --color-sleep-awake: hsl(0 70% 72%);
     --color-sleep-rem: hsl(210 60% 58%);
