@@ -3,7 +3,9 @@
 namespace App\Models\Concerns;
 
 use App\Enums\ResponseKind;
-use App\Jobs\FetchResponseTitle;
+use App\Jobs\FetchCitationFor;
+use App\Models\Citation;
+use App\Support\Links;
 use App\Support\PostType;
 
 /**
@@ -32,18 +34,30 @@ trait HasResponse
                 $model->rsvp_value = null;
             }
 
-            // A title belongs to the URL it was read from, so pointing the post
-            // somewhere else drops it rather than mislabelling the new target
-            // until the fetch comes back. Unless a title is being written in the
-            // same breath, which is somebody supplying one, not a stale one.
-            if ($model->isDirty('response_url') && ! $model->isDirty('response_title')) {
-                $model->response_title = null;
+            // A citation and a quote belong to the post they were taken from, so
+            // pointing the reply elsewhere drops both, unless a quote is being
+            // written in the same breath.
+            if ($model->isDirty('response_url')) {
+                $model->citation_id = filled($model->response_url)
+                    ? Citation::query()->where('url', $model->response_url)->value('id')
+                    : null;
+
+                if (! $model->isDirty('response_quote')) {
+                    $model->response_quote = null;
+                }
             }
         });
 
         static::saved(function (self $model): void {
-            if ($model->wasChanged('response_url') && filled($model->response_url)) {
-                FetchResponseTitle::dispatch($model);
+            // The editor stores a citation when the URL is pasted, so this only
+            // queues for a reply written through the API or Micropub. A create
+            // never registers in wasChanged() (Eloquent only syncs changes on an
+            // update), so a first-time reply is caught via wasRecentlyCreated.
+            if (($model->wasRecentlyCreated || $model->wasChanged('response_url'))
+                && filled($model->response_url)
+                && $model->citation_id === null
+                && Links::internalPath($model->response_url) === null) {
+                FetchCitationFor::dispatch($model);
             }
         });
     }
