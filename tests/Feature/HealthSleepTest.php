@@ -40,8 +40,8 @@ it('prefers Oura and computes stage seconds per night', function () {
 
     $oura = $records['2026-06-23'];
     expect($oura['source'])->toBe('oura')
-        ->and($oura['bedtime'])->toBe('2026-06-23 01:24:00')
-        ->and($oura['wake_time'])->toBe('2026-06-23 05:00:00')
+        ->and($oura['started_at'])->toBe('2026-06-23 01:24:00')
+        ->and($oura['occurred_at'])->toBe('2026-06-23 05:00:00')
         ->and($oura['core'])->toBe(8760)   // 3600 + 5160
         ->and($oura['deep'])->toBe(1800)
         ->and($oura['rem'])->toBe(1800)
@@ -81,8 +81,8 @@ it('drops a stray evening reading and keeps the real night session', function ()
 
     expect($records)->toHaveCount(1);
     $night = reset($records);
-    expect($night['bedtime'])->toBe('2026-06-20 00:30:00')
-        ->and($night['wake_time'])->toBe('2026-06-20 05:13:00')
+    expect($night['started_at'])->toBe('2026-06-20 00:30:00')
+        ->and($night['occurred_at'])->toBe('2026-06-20 05:13:00')
         ->and($night['duration'])->toBe(16980); // 4h43m, no evening contamination
 });
 
@@ -97,7 +97,7 @@ it('keeps the longer night when a real nap is present the same sleep-day', funct
     $records = app(SleepAggregator::class)->aggregate($segments);
     $night = reset($records);
 
-    expect($night['bedtime'])->toBe('2026-06-19 23:00:00')
+    expect($night['started_at'])->toBe('2026-06-19 23:00:00')
         ->and($night['core'])->toBe(25200); // 7h night only, nap excluded
 });
 
@@ -110,7 +110,7 @@ it('scores every night, oldest first, from what is stored', function () {
 
     foreach ($nights as [$occurredAt, $bedtime, $wakeTime, $duration, $awake, $rem, $core, $deep]) {
         Sleep::factory()->create([
-            'occurred_at' => $occurredAt, 'bedtime' => $bedtime, 'wake_time' => $wakeTime,
+            'occurred_at' => $occurredAt, 'started_at' => $bedtime,
             'duration' => $duration, 'awake' => $awake, 'rem' => $rem, 'core' => $core, 'deep' => $deep,
             'source' => 'oura',
             'stages' => json_encode([
@@ -139,9 +139,9 @@ it('imports nights into the database, replacing an overlapping night', function 
 
     // An existing night the payload also covers, and one it does not touch.
     // Sleeps are matched on the period they cover, so the overlapping one needs
-    // a bedtime and wake time that actually overlap the payload's night.
-    Sleep::factory()->create(['occurred_at' => '2026-06-20 07:00:00', 'bedtime' => '2026-06-19 23:00:00', 'wake_time' => '2026-06-20 07:00:00', 'source' => 'clock', 'duration' => 25200]);
-    Sleep::factory()->create(['occurred_at' => '2026-06-23 04:10:00', 'bedtime' => '2026-06-23 01:20:00', 'wake_time' => '2026-06-23 04:10:00', 'source' => 'clock', 'duration' => 10000]);
+    // a start and wake time that actually overlap the payload's night.
+    Sleep::factory()->create(['occurred_at' => '2026-06-20 07:00:00', 'started_at' => '2026-06-19 23:00:00', 'source' => 'clock', 'duration' => 25200]);
+    Sleep::factory()->create(['occurred_at' => '2026-06-23 04:10:00', 'started_at' => '2026-06-23 01:20:00', 'source' => 'clock', 'duration' => 10000]);
 
     $this->artisan('health:sleep', ['--file' => $jsonPath])->assertSuccessful();
 
@@ -164,15 +164,13 @@ it('imports nights into the database, replacing an overlapping night', function 
 it('keeps a nap and a night that fall on the same day', function () {
     $night = Sleep::factory()->create([
         'occurred_at' => '2026-06-10 07:30:00',
-        'bedtime' => '2026-06-09 23:30:00',
-        'wake_time' => '2026-06-10 07:30:00',
+        'started_at' => '2026-06-09 23:30:00',
         'duration' => 28800,
     ]);
 
     $nap = Sleep::factory()->create([
         'occurred_at' => '2026-06-10 15:10:00',
-        'bedtime' => '2026-06-10 14:00:00',
-        'wake_time' => '2026-06-10 15:10:00',
+        'started_at' => '2026-06-10 14:00:00',
         'duration' => 4200,
     ]);
 
@@ -184,7 +182,7 @@ it('keeps a nap and a night that fall on the same day', function () {
 // The rule needs all three conditions: an early night starts in the same hours
 // as a nap, and a short night is as brief as one.
 it('tells a nap apart from an early night and a short night', function (string $bedtime, string $wake, int $duration, bool $expected) {
-    $sleep = Sleep::factory()->make(['bedtime' => $bedtime, 'wake_time' => $wake, 'duration' => $duration]);
+    $sleep = Sleep::factory()->make(['started_at' => $bedtime, 'occurred_at' => $wake, 'duration' => $duration]);
 
     expect($sleep->isNap())->toBe($expected);
 })->with([
@@ -199,8 +197,7 @@ it('tells a nap apart from an early night and a short night', function (string $
 it('leaves a nap off the timeline while keeping the row', function () {
     $nap = Sleep::factory()->create([
         'occurred_at' => '2026-06-10 15:10:00',
-        'bedtime' => '2026-06-10 14:00:00',
-        'wake_time' => '2026-06-10 15:10:00',
+        'started_at' => '2026-06-10 14:00:00',
         'duration' => 4200,
     ]);
 

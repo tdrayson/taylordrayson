@@ -15,8 +15,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
-    'bedtime',
-    'wake_time',
+    'started_at',
     'duration',
     'awake',
     'rem',
@@ -42,8 +41,7 @@ class Sleep extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'bedtime' => 'datetime',
-            'wake_time' => 'datetime',
+            'started_at' => 'datetime',
             'stages' => 'array',
         ];
     }
@@ -73,14 +71,14 @@ class Sleep extends Model implements HasMedia, Timelineable
      */
     public function isNap(): bool
     {
-        if ($this->bedtime === null || $this->wake_time === null) {
+        if ($this->started_at === null || $this->occurred_at === null) {
             return false;
         }
 
-        return $this->bedtime->hour >= 8
-            && $this->bedtime->hour < self::NAP_LATEST_START
+        return $this->started_at->hour >= 8
+            && $this->started_at->hour < self::NAP_LATEST_START
             && $this->duration < self::NAP_LONGEST
-            && $this->bedtime->isSameDay($this->wake_time);
+            && $this->started_at->isSameDay($this->occurred_at);
     }
 
     /** A nap is not the night's sleep, so the timeline leaves it out. */

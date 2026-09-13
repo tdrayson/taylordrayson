@@ -23,9 +23,8 @@ use function Pest\Laravel\get;
  */
 it('describes a sleep entry with its duration, date and window', function () {
     $sleep = Sleep::factory()->create([
-        'occurred_at' => '2026-08-24 00:00:00',
-        'bedtime' => '2026-08-23 23:30:00',
-        'wake_time' => '2026-08-24 08:51:00',
+        'occurred_at' => '2026-08-24 08:51:00',
+        'started_at' => '2026-08-23 23:30:00',
         'duration' => 33660,
         'score' => 80,
     ]);
