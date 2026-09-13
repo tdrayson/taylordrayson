@@ -36,6 +36,7 @@ class Page extends Model implements HasMedia
     use HasFactory;
 
     use HasInteractions;
+    use HasStatus;
     use SendsWebmentions;
 
     /**
