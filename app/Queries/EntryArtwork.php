@@ -14,7 +14,7 @@ use App\Models\Film;
  * no still for an individual episode, which is why this falls back rather than
  * fetching.
  */
-final class MediaArtwork
+final class EntryArtwork
 {
     /**
      * `logoIsTitle` is false for an episode, whose logo names the show rather

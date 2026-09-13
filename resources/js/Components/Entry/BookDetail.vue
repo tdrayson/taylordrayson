@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import DetailList from '../Ui/DetailList.vue';
 import Icon from '../Ui/Icon.vue';
-import MediaHero from '../Ui/MediaHero.vue';
+import EntryHero from '../Ui/EntryHero.vue';
 import { titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -20,7 +20,7 @@ const rows = computed(() => [
 
 <template>
     <div class="space-y-8">
-        <MediaHero
+        <EntryHero
             v-if="entry.backdrop"
             :backdrop="entry.backdrop"
             :logo="entry.logo"

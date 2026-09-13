@@ -115,7 +115,7 @@ it('drops the price sentence when there is no price per litre', function () {
         ->and($subtitle)->not->toContain('p/L');
 });
 
-it('uses the checkin note as its subtitle when present', function () {
+it('uses the place note as its subtitle when present', function () {
     $place = Place::factory()->create([
         'description' => 'Great coffee here',
         'type' => 'Coffee Shop',
@@ -127,7 +127,7 @@ it('uses the checkin note as its subtitle when present', function () {
 
 // Foursquare's vocabulary includes Road, Platform and Town, so the category is
 // shown as its own label rather than written into a sentence about the place.
-it('leaves a checkin with no note unsubtitled, carrying its category as data', function () {
+it('leaves a place with no note unsubtitled, carrying its category as data', function () {
     $place = Place::factory()->create([
         'description' => null,
         'venue_name' => 'Blue Bottle',

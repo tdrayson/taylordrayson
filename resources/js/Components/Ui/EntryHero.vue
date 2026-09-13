@@ -13,7 +13,7 @@ defineProps({
 <template>
     <div class="relative sm:pb-8">
         <section
-            data-testid="media-hero"
+            data-testid="entry-hero"
             class="relative aspect-video overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 bg-cover bg-center"
             :style="{ backgroundImage: `url(${backdrop})` }"
         >

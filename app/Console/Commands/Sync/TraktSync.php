@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Sync;
 
 use App\Exceptions\TraktException;
-use App\Jobs\EnrichMedia;
+use App\Jobs\EnrichFromTmdb;
 use App\Models\Episode;
 use App\Models\Film;
 use App\Models\Series;
@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 #[Signature('trakt:sync {--days=7 : Days back to fetch} {--full : Backfill entire history} {--skip-ratings : Import watch history only} {--ratings-only : Refresh personal ratings only}')]
-#[Description('Sync Trakt watch history to the media timeline')]
+#[Description('Sync Trakt watch history to the films and episodes timeline')]
 class TraktSync extends Command
 {
     /**
@@ -51,7 +51,7 @@ class TraktSync extends Command
     private array $affectedSeriesIds = [];
 
     /**
-     * Series ids that already had `EnrichMedia` dispatched, capping it at one
+     * Series ids that already had `EnrichFromTmdb` dispatched, capping it at one
      * per series per run rather than one per episode.
      *
      * @var array<int, true>
@@ -253,8 +253,8 @@ class TraktSync extends Command
         }
 
         $query->get()
-            ->each(function (Film|Episode $media) use ($ratings): void {
-                $traktId = $media->meta->ids->trakt;
+            ->each(function (Film|Episode $watched) use ($ratings): void {
+                $traktId = $watched->meta->ids->trakt;
 
                 if ($traktId === null || ! array_key_exists($traktId, $ratings)) {
                     return;
@@ -262,9 +262,9 @@ class TraktSync extends Command
 
                 $rating = $ratings[$traktId];
 
-                if ($media->rating !== $rating) {
-                    $media->rating = $rating;
-                    $media->save();
+                if ($watched->rating !== $rating) {
+                    $watched->rating = $rating;
+                    $watched->save();
                 }
             });
     }
@@ -404,7 +404,7 @@ class TraktSync extends Command
     {
         $movie = $item['movie'];
 
-        $media = Film::create([
+        $film = Film::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $movie['title'],
@@ -421,7 +421,7 @@ class TraktSync extends Command
         $summary = $poster ? null : $trakt->movie($movie['ids']['trakt'] ?? null);
         $posterUrl = $this->posterUrl($movie, $summary);
 
-        EnrichMedia::dispatch($media, 'movie', $movie['ids']['tmdb'] ?? null, $posterUrl);
+        EnrichFromTmdb::dispatch($film, 'movie', $movie['ids']['tmdb'] ?? null, $posterUrl);
     }
 
     /**
@@ -435,7 +435,7 @@ class TraktSync extends Command
 
         [$series, $wasNew] = $this->resolveSeries($show, $summary);
 
-        $media = Episode::create([
+        Episode::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $episode['title'] ?? "Episode {$episode['number']}",
@@ -462,13 +462,13 @@ class TraktSync extends Command
             $this->enrichDispatched[$series->id] = true;
             $posterUrl = $this->posterUrl($show, $summary);
 
-            EnrichMedia::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
+            EnrichFromTmdb::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
         }
     }
 
     /**
      * A series is bare when it's missing either its cover artwork or its
-     * TMDB enrichment metadata, e.g. because `EnrichMedia` never ran or
+     * TMDB enrichment metadata, e.g. because `EnrichFromTmdb` never ran or
      * exhausted its retries after the series was first created.
      */
     private function seriesIsBare(Series $series): bool

@@ -187,7 +187,7 @@ const airline = computed(() => props.route?.airline ?? null);
 
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
 
-// Stored static map for this entry (activity route, flight arc, event/fuel/checkin
+// Stored static map for this entry (activity route, flight arc, event/fuel/place
 // pin), pre-generated server-side. Shown only when there is no cover photo.
 const routeImageUrl = computed(() => props.map ?? null);
 

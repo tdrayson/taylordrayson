@@ -20,7 +20,7 @@ use Spatie\MediaLibrary\HasMedia;
  * throughout: a missing id or a failed metadata fetch degrades gracefully,
  * only a failed image download retries the job.
  */
-class EnrichMedia implements ShouldQueue
+class EnrichFromTmdb implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

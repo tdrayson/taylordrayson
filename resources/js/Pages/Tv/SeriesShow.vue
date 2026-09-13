@@ -9,7 +9,7 @@ import ExternalLink from '../../Components/Ui/ExternalLink.vue';
 import SectionHead from '../../Components/Ui/SectionHead.vue';
 import SeriesStats from '../../Components/Ui/SeriesStats.vue';
 import WatchDateGroup from '../../Components/Ui/WatchDateGroup.vue';
-import MediaHero from '../../Components/Ui/MediaHero.vue';
+import EntryHero from '../../Components/Ui/EntryHero.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -81,7 +81,7 @@ setLayoutProps({
         </div>
     </header>
 
-    <MediaHero
+    <EntryHero
         v-if="series.backdrop"
         :backdrop="series.backdrop"
         :logo="series.logo"

@@ -7,7 +7,7 @@ use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Response;
 
 /**
- * Client for the Hardcover GraphQL API, used to look up books for the media
+ * Client for the Hardcover GraphQL API, used to look up books for the
  * timeline. A failed response or a GraphQL `errors` payload throws rather than
  * returning an empty result set.
  */

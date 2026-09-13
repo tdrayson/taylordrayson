@@ -16,7 +16,7 @@ final readonly class TraktPruneResult implements Arrayable, JsonSerializable
      * @param  int  $requested  Plays/episodes we asked Trakt to remove.
      * @param  int  $deleted  Confirmed gone from the authenticated history afterwards.
      * @param  list<int>  $notFound  Ids still present in history after the attempt.
-     * @param  int  $clearedRows  Local media rows deleted.
+     * @param  int  $clearedRows  Local film/episode rows deleted.
      * @param  int  $clearedSeries  Local series rows deleted for having no episodes left.
      */
     public function __construct(

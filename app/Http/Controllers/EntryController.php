@@ -26,7 +26,7 @@ use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
-use App\Queries\MediaArtwork;
+use App\Queries\EntryArtwork;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
@@ -229,7 +229,7 @@ class EntryController extends Controller
         // the title as dead text. Null for a film, a book, or a show we hold no
         // Series row for.
         if ($model instanceof Film || $model instanceof Episode || $model instanceof Book) {
-            $data = [...$data, ...(new MediaArtwork)($model)];
+            $data = [...$data, ...(new EntryArtwork)($model)];
             $data['showTitle'] = $model instanceof Episode ? ShowTitle::for($model) : null;
             $data['showUrl'] = $data['showTitle'] === null ? null : $model->series?->url();
         }

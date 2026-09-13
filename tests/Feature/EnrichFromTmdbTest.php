@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\EnrichMedia;
+use App\Jobs\EnrichFromTmdb;
 use App\Models\Film;
 use App\Models\Series;
 use App\Services\Tmdb\Client;
@@ -20,7 +20,7 @@ beforeEach(function () {
 });
 
 /**
- * A single fake covering every endpoint EnrichMedia can call: TMDB tv/movie
+ * A single fake covering every endpoint EnrichFromTmdb can call: TMDB tv/movie
  * detail, TMDB images, and the TMDB image CDN (returns the shared pixel
  * fixture). Order matters: `/images` must be checked before the bare detail
  * path since it's a substring match.
@@ -71,7 +71,7 @@ it('enriches a series with tmdb structure and downloaded art', function () {
     fakeEnrichmentApis();
 
     $series = Series::factory()->create();
-    (new EnrichMedia($series, 'tv', 71712, null))->handle(app(Client::class));
+    (new EnrichFromTmdb($series, 'tv', 71712, null))->handle(app(Client::class));
 
     $fresh = $series->fresh();
 
@@ -99,7 +99,7 @@ it('falls back to the trakt poster when tmdb has no poster', function () {
     fakeEnrichmentApis();
 
     $media = Film::factory()->create();
-    (new EnrichMedia($media, 'movie', 438631, 'walter-r2.trakt.tv/posters/dune-2021.jpg'))
+    (new EnrichFromTmdb($media, 'movie', 438631, 'walter-r2.trakt.tv/posters/dune-2021.jpg'))
         ->handle(app(Client::class));
 
     expect($media->fresh()->getFirstMedia('cover'))->not->toBeNull();

@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\EnrichMedia;
+use App\Jobs\EnrichFromTmdb;
 use App\Models\Episode;
 use App\Models\Film;
 use App\Models\Series;
@@ -41,28 +41,28 @@ it('dispatches enrichment only for bare series/films by default, and for everyth
     Episode::factory()->create(['series_id' => $enrichedSeries->id]);
     attachCover($enrichedSeries);
 
-    $this->artisan('media:enrich')->assertSuccessful();
+    $this->artisan('tmdb:enrich')->assertSuccessful();
 
-    Bus::assertDispatched(EnrichMedia::class, 2);
+    Bus::assertDispatched(EnrichFromTmdb::class, 2);
 
     Bus::fake();
-    $this->artisan('media:enrich', ['--force' => true])->assertSuccessful();
+    $this->artisan('tmdb:enrich', ['--force' => true])->assertSuccessful();
 
-    Bus::assertDispatched(EnrichMedia::class, 3);
+    Bus::assertDispatched(EnrichFromTmdb::class, 3);
 });
 
 it('skips series with no episodes even when bare', function () {
     Series::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1]]);
 
-    $this->artisan('media:enrich')->assertSuccessful();
+    $this->artisan('tmdb:enrich')->assertSuccessful();
 
-    Bus::assertNotDispatched(EnrichMedia::class);
+    Bus::assertNotDispatched(EnrichFromTmdb::class);
 });
 
 it('only considers trakt-sourced films, not other media sources', function () {
     Film::factory()->create(['source' => 'manual', 'meta' => []]);
 
-    $this->artisan('media:enrich')->assertSuccessful();
+    $this->artisan('tmdb:enrich')->assertSuccessful();
 
-    Bus::assertNotDispatched(EnrichMedia::class);
+    Bus::assertNotDispatched(EnrichFromTmdb::class);
 });

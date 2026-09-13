@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\EnrichMedia;
+use App\Jobs\EnrichFromTmdb;
 use App\Models\Episode;
 use App\Models\Film;
 use App\Models\Series;
@@ -87,7 +87,7 @@ it('imports films and episodes, groups same-name shows by distinct trakt id, and
     // One poster per new subject: the film (poster embedded in the history
     // item) and both new shows (poster resolved via the /shows/{id} summary
     // fallback, since the inline `show` payload carries no `images`).
-    Bus::assertDispatched(EnrichMedia::class, 3);
+    Bus::assertDispatched(EnrichFromTmdb::class, 3);
 });
 
 it('fails closed and stops importing when a history page request fails mid-pagination', function () {
@@ -405,7 +405,7 @@ it('re-dispatches enrichment for an existing bare series that receives a new epi
 
     // Not a new series, so the old `$wasNew`-only dispatch would have missed
     // this: the series is bare, so it must still re-enrich.
-    Bus::assertDispatched(EnrichMedia::class, 1);
+    Bus::assertDispatched(EnrichFromTmdb::class, 1);
 });
 
 it('dispatches enrichment once for a bare series even when a batch carries several of its episodes', function () {
@@ -437,7 +437,7 @@ it('dispatches enrichment once for a bare series even when a batch carries sever
 
     // Deduped per run: three new episodes of the same bare show still only
     // trigger one enrichment dispatch.
-    Bus::assertDispatched(EnrichMedia::class, 1);
+    Bus::assertDispatched(EnrichFromTmdb::class, 1);
 });
 
 it('sends no start_at when --full is passed, even with prior synced history', function () {

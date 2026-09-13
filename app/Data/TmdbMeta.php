@@ -7,8 +7,8 @@ use Illuminate\Support\Arr;
 use JsonSerializable;
 
 /**
- * The `tmdb` block written by the EnrichMedia job, for both films (on Media)
- * and shows (on Series).
+ * The `tmdb` block written by the EnrichFromTmdb job, for both films and
+ * shows (on Series).
  */
 final readonly class TmdbMeta implements Arrayable, JsonSerializable
 {

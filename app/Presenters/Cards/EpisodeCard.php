@@ -35,7 +35,7 @@ final class EpisodeCard
 
     /**
      * The wide artwork behind the card. An episode has none of its own, so it
-     * reads its show's, which is what MediaArtwork already does for the entry
+     * reads its show's, which is what EntryArtwork already does for the entry
      * page; only the backdrop is wanted here.
      */
     private function backdrop(Episode $model): ?string
