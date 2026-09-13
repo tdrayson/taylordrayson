@@ -112,7 +112,7 @@ final class SuggestSearch
     private function matchTvShows(string $term): array
     {
         return TvShow::query()
-            ->whereHas('episodes')
+            ->whereHas('episodes', fn ($episodes) => $episodes->listed())
             ->where('title', 'like', '%'.$term.'%')
             ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
             ->orderByRaw('LENGTH(title)')

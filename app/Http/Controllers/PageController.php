@@ -52,7 +52,7 @@ class PageController extends Controller
             'content' => $page->content,
             'status' => $page->status->value,
             'statusLabel' => $page->status->label(),
-            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content)),
+            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
             'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
             'linkFavicons' => (new BuildLinkFavicons)($page->content),
         ]);

@@ -21,8 +21,8 @@ final class WatchedTvShowsIndex
     public function __invoke(): array
     {
         $shows = TvShow::query()
-            ->whereHas('episodes')
-            ->withMax('episodes', 'occurred_at')
+            ->whereHas('episodes', fn ($episodes) => $episodes->listed())
+            ->withMax(['episodes' => fn ($episodes) => $episodes->listed()], 'occurred_at')
             ->with('media')
             ->get()
             ->sortByDesc('episodes_max_occurred_at')
@@ -53,6 +53,7 @@ final class WatchedTvShowsIndex
     private function distinctWatchedEpisodeCounts(Collection $tvShowIds): Collection
     {
         return TvEpisode::query()
+            ->listed()
             ->whereIn('tv_show_id', $tvShowIds)
             // toBase() skips Eloquent hydration: this counts two numbers per
             // row across every episode ever watched, and has no use for a

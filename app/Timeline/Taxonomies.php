@@ -24,12 +24,13 @@ final class Taxonomies
      */
     public static function column(string $column, string $label, ?callable $title = null): callable
     {
-        $distinct = fn (string $model): Collection => $model::query()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column);
+        $distinct = fn (string $model): Collection => $model::query()->listed()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column);
 
         // Value counts, most-used first, so the archive filter can lead with the
         // categories actually visited most and collapse the long tail into a
         // searchable "more" popover (e.g. Places has 200 categories).
         $counts = fn (string $model): Collection => $model::query()
+            ->listed()
             ->whereNotNull($column)
             ->selectRaw($column.' as value, count(*) as total')
             ->groupBy($column)
@@ -96,6 +97,7 @@ final class Taxonomies
             'filter' => fn (Builder $query, string $value) => $query->where('season_number', (int) $value),
             'labelFor' => fn (string $value): string => "Season {$value}",
             'values' => fn (): Collection => $model::query()
+                ->listed()
                 ->whereNotNull('season_number')
                 ->selectRaw('season_number as value, count(*) as total')
                 ->groupBy('season_number')
@@ -112,7 +114,7 @@ final class Taxonomies
     public static function airline(): callable
     {
         $airlines = function (string $model): Collection {
-            $icaos = $model::query()->whereNotNull('airline_icao')->distinct()->pluck('airline_icao');
+            $icaos = $model::query()->listed()->whereNotNull('airline_icao')->distinct()->pluck('airline_icao');
 
             return Airline::query()->whereIn('icao_code', $icaos)->orderBy('name')->get();
         };

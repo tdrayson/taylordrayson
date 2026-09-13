@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
+use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Models\Place;
 use App\Models\Project;
@@ -352,9 +353,10 @@ class OgMeta
      * falling back to the site description on every untended page.
      *
      * @param  string|null  $content  The page body as plain text, used only when there is no excerpt.
+     * @param  EntryStatus  $status  The page's publishing status, for noindex.
      * @return OgPayload
      */
-    public static function page(string $title, ?string $excerpt, ?string $content = null): array
+    public static function page(string $title, ?string $excerpt, ?string $content = null, EntryStatus $status = EntryStatus::Published): array
     {
         $description = Text::excerpt($excerpt, 200) ?: Text::excerpt($content, 200);
 
@@ -362,7 +364,8 @@ class OgMeta
             'title' => $title,
             'heading' => $title,
             'description' => $description,
-        ], fn (?string $value): bool => $value !== null && $value !== ''));
+            'noindex' => $status !== EntryStatus::Published,
+        ], fn (mixed $value): bool => $value !== null && $value !== ''));
     }
 
     /**
@@ -463,6 +466,7 @@ class OgMeta
             'description' => EntryDescription::for($model, $card),
             'image' => $entry !== null ? self::entryCardUrl($entry) : null,
             'type' => $model instanceof Article ? 'article' : 'website',
+            'noindex' => $model->status !== EntryStatus::Published,
         ]);
     }
 

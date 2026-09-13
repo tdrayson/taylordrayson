@@ -22,7 +22,7 @@ final class TvShowData
 
     public function __invoke(TvShow $tvShow): TvShowPage
     {
-        $tvShow->load('episodes');
+        $tvShow->load(['episodes' => fn ($episodes) => $episodes->listed()]);
 
         return new TvShowPage(
             show: $this->header($tvShow),
