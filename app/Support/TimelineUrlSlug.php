@@ -12,12 +12,23 @@ use App\Models\TimelineEntry;
  */
 class TimelineUrlSlug
 {
+    /**
+     * Slug => the only dataset key allowed to hold it bare: these words are
+     * also fixed day-URLs (/food, /sleep), so no other entry may borrow them.
+     */
+    private const RESERVED = [
+        'food' => 'food',
+        'sleep' => 'sleep',
+    ];
+
     public static function ensure(TimelineEntry $entry, string $base): void
     {
         $pattern = '/^'.preg_quote($base, '/').'(-\d+)?$/';
+        $reservedForOther = self::reservedForOther($base, $entry->dataset);
 
         if ($entry->url_slug !== null
             && preg_match($pattern, $entry->url_slug) === 1
+            && ! ($reservedForOther && $entry->url_slug === $base)
             && ! self::takenByAnother($entry, $entry->url_slug)) {
             return;
         }
@@ -30,6 +41,10 @@ class TimelineUrlSlug
             ->filter(fn (?string $slug): bool => $slug !== null && preg_match($pattern, $slug) === 1)
             ->all();
 
+        if ($reservedForOther) {
+            $taken[] = $base;
+        }
+
         $candidate = $base;
         $suffix = 1;
 
@@ -40,6 +55,11 @@ class TimelineUrlSlug
 
         $entry->url_slug = $candidate;
         $entry->save();
+    }
+
+    private static function reservedForOther(string $base, ?string $dataset): bool
+    {
+        return isset(self::RESERVED[$base]) && self::RESERVED[$base] !== $dataset;
     }
 
     private static function takenByAnother(TimelineEntry $entry, string $slug): bool
