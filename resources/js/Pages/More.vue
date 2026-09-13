@@ -11,7 +11,7 @@ import { number } from '../lib/format.js';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 defineProps({
-    // [{ kind, label, items: [{ type, label, href, count }] }], one group per DatasetKind.
+    // [{ type, label, href, count }] straight from the TypeRegistry.
     tracked: { type: Array, default: () => [] },
     og: { type: Object, default: () => ({}) },
 });
@@ -47,11 +47,10 @@ const site = [
         </p>
     </header>
 
-    <!-- One section per dataset kind (Writing, Watching, Travel, ...). -->
-    <section v-for="group in tracked" :key="group.kind">
-        <SectionHead :title="group.label" />
+    <section>
+        <SectionHead title="What I track" :meta="`${tracked.length} types`" />
         <ul class="grid gap-x-24 sm:grid-cols-2">
-            <li v-for="item in group.items" :key="item.type">
+            <li v-for="item in tracked" :key="item.type">
                 <Link
                     :href="item.href"
                     class="group flex items-center gap-3 rounded-md py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
