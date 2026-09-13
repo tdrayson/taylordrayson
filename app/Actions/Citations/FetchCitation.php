@@ -186,7 +186,7 @@ final class FetchCitation
 
     private function date(?string $value): ?Carbon
     {
-        return $value === null ? null : rescue(fn (): Carbon => Carbon::parse($value), null, report: false);
+        return $value === null ? null : rescue(fn (): Carbon => Carbon::parse($value)->utc(), null, report: false);
     }
 
     /** The offset written in an ISO date, or null when it had none. */
