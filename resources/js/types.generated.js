@@ -10,7 +10,7 @@ export const timelineTypes = {
     sleep: { icon: 'Moon02Icon', label: 'Sleep', plural: 'Sleep', href: '/sleep', accent: 'sleep', keywords: 'rest bed nap', noun: 'night', nounPlural: 'nights', kind: 'health' },
     food: { icon: 'UtensilsIcon', label: 'Food', plural: 'Food', href: '/food', accent: 'food', keywords: 'food eat meal nutrition calorie calories', noun: 'day', nounPlural: 'days', kind: 'health' },
     film: { icon: 'Film01Icon', label: 'Film', plural: 'Films', href: '/films', accent: 'film', keywords: 'watch movie film media', noun: 'film', nounPlural: 'films', kind: 'watching' },
-    episode: { icon: 'Tv01Icon', label: 'Episode', plural: 'TV', href: '/tv', accent: 'episode', keywords: 'watch tv show episode series media', noun: 'episode', nounPlural: 'episodes', kind: 'watching' },
+    episode: { icon: 'TvMinimalPlayIcon', label: 'Episode', plural: 'TV', href: '/tv', accent: 'episode', keywords: 'watch tv show episode series media', noun: 'episode', nounPlural: 'episodes', kind: 'watching' },
     book: { icon: 'BookOpen01Icon', label: 'Book', plural: 'Books', href: '/books', accent: 'book', keywords: 'read book reading media', noun: 'book', nounPlural: 'books', kind: 'watching' },
     event: { icon: 'Ticket01Icon', label: 'Event', plural: 'Events', href: '/events', accent: 'event', keywords: 'ticket gig concert', noun: 'event', nounPlural: 'events', kind: 'going-out' },
     appearance: { icon: 'Mic01Icon', label: 'Appearance', plural: 'Appearances', href: '/appearances', accent: 'appearance', keywords: 'talk speaking interview', noun: 'appearance', nounPlural: 'appearances', kind: 'speaking' },

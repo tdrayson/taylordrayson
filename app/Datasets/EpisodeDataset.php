@@ -30,7 +30,7 @@ final class EpisodeDataset extends BaseDataset
 
     public function icon(): string
     {
-        return 'Tv01Icon';
+        return 'TvMinimalPlayIcon';
     }
 
     public function label(): string
