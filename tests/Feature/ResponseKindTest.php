@@ -4,14 +4,14 @@ use App\Actions\BuildResponseContext;
 use App\Enums\EntryStatus;
 use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
-use App\Jobs\FetchResponseTitle;
+use App\Jobs\FetchCitationFor;
 use App\Jobs\SendWebmentions;
 use App\Models\Article;
+use App\Models\Citation;
 use App\Models\Note;
 use App\Support\OutboundLinks;
 use App\Support\PortableText;
 use App\Support\PostType;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 /**
@@ -178,72 +178,48 @@ it('sends nothing when the target is one of my own entries', function () {
     expect(OutboundLinks::for($note))->toBe([]);
 });
 
-// What the byline says the target is called, read off the page rather than
-// guessed from its URL.
-it('reads the target name from its h-entry', function () {
-    Http::fake([
-        'example.com/*' => Http::response(
-            '<div class="h-entry"><h1 class="p-name">Sending your First Webmention</h1></div>',
-        ),
-    ]);
+// A reply points at whatever citation is already stored for the url, rather
+// than waiting on a fetch for a copy that is already held.
+it('links to a citation already stored for the url', function () {
+    Queue::fake();
+    $citation = Citation::factory()->create(['url' => 'https://example.com/a-post']);
 
     $note = Note::factory()->create([
         'response_kind' => ResponseKind::Reply,
         'response_url' => 'https://example.com/a-post',
     ]);
 
-    (new FetchResponseTitle($note))->handle();
-
-    expect($note->fresh()->response_title)->toBe('Sending your First Webmention');
+    expect($note->fresh()->citation_id)->toBe($citation->id);
+    Queue::assertNotPushed(FetchCitationFor::class);
 });
 
-// An RSVP target is an event, and a site that marks one up names it there.
-it('reads the target name from its h-event', function () {
-    Http::fake([
-        'example.com/*' => Http::response(
-            '<div class="h-event"><h1 class="p-name">Homebrew Website Club</h1></div>',
-        ),
+// Nothing has read the target yet, so a fetch is queued to go and store one.
+it('queues a fetch for a reply to a post nothing has stored yet', function () {
+    Queue::fake();
+
+    Note::factory()->create([
+        'response_kind' => ResponseKind::Reply,
+        'response_url' => 'https://example.com/a-post',
     ]);
 
-    $note = Note::factory()->create([
-        'response_kind' => ResponseKind::Rsvp,
-        'response_url' => 'https://example.com/an-event',
-        'rsvp_value' => RsvpValue::Yes,
-    ]);
-
-    (new FetchResponseTitle($note))->handle();
-
-    expect($note->fresh()->response_title)->toBe('Homebrew Website Club');
+    Queue::assertPushed(FetchCitationFor::class);
 });
 
-it('falls back to what a page without microformats calls itself', function () {
-    Http::fake([
-        'example.com/*' => Http::response(
-            '<html><head><title>A Plain Old Page</title></head><body><p>Words.</p></body></html>',
-        ),
-    ]);
+// A citation and a quote belong to the post they were taken from.
+it('drops the citation and quote when the post is pointed somewhere else', function () {
+    Queue::fake();
+    Citation::factory()->create(['url' => 'https://example.com/one']);
 
     $note = Note::factory()->create([
-        'response_kind' => ResponseKind::Like,
-        'response_url' => 'https://example.com/plain',
-    ]);
-
-    (new FetchResponseTitle($note))->handle();
-
-    expect($note->fresh()->response_title)->toBe('A Plain Old Page');
-});
-
-// A name belongs to the URL it was read from.
-it('drops the fetched name when the post is pointed somewhere else', function () {
-    $note = Note::factory()->create([
-        'response_kind' => ResponseKind::Like,
+        'response_kind' => ResponseKind::Reply,
         'response_url' => 'https://example.com/one',
-        'response_title' => 'The First One',
+        'response_quote' => 'A passage worth keeping.',
     ]);
 
     $note->update(['response_url' => 'https://example.com/two']);
 
-    expect($note->fresh()->response_title)->toBeNull();
+    expect($note->fresh()->citation_id)->toBeNull()
+        ->and($note->fresh()->response_quote)->toBeNull();
 });
 
 // A note of mine has no name, and its opening words are not one. The date is
