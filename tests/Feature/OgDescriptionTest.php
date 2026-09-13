@@ -102,6 +102,23 @@ it('prefers an article excerpt over its opening prose', function () {
         );
 });
 
+it('keeps a private article description to its title, never its body, even with no excerpt', function () {
+    $article = Article::factory()->create([
+        'title' => 'Kept close',
+        'excerpt' => null,
+        'status' => 'private',
+        'password' => 'hunter2',
+        'occurred_at' => '2026-08-01 10:00:00',
+        'content' => [['_type' => 'block', 'children' => [['text' => 'Only after the password appears anywhere.']]]],
+    ]);
+
+    $response = get('/'.$article->occurred_at->format('Y/m/d').'/'.$article->slug());
+
+    $response->assertOk()
+        ->assertDontSee('Only after the password appears anywhere')
+        ->assertInertia(fn ($page) => $page->where('og.description', 'Kept close'));
+});
+
 it('falls back to a note body for its own description', function () {
     $note = Note::factory()->create([
         'occurred_at' => '2026-08-15 12:00:00',
@@ -162,6 +179,24 @@ it('uses page prose when a page has no excerpt', function () {
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'How this site is built.')
         );
+});
+
+it('keeps a private page description to the generic fallback, never its body, with no excerpt', function () {
+    Page::factory()->create([
+        'title' => 'Vault',
+        'slug' => 'vault',
+        'excerpt' => null,
+        'status' => 'private',
+        'password' => 'hunter2',
+        'content' => [['_type' => 'block', 'children' => [['text' => 'Only after the password appears anywhere.']]]],
+    ]);
+
+    $response = get('/vault');
+
+    $response->assertOk()
+        ->assertDontSee('Only after the password appears anywhere')
+        ->assertInertia(fn ($page) => $page
+            ->where('og.description', fn (string $value): bool => ! str_contains($value, 'Only after the password')));
 });
 
 it('publishes what I wrote on Strava rather than the numbers it could generate', function () {

@@ -358,7 +358,10 @@ class OgMeta
      */
     public static function page(string $title, ?string $excerpt, ?string $content = null, EntryStatus $status = EntryStatus::Published): array
     {
-        $description = Text::excerpt($excerpt, 200) ?: Text::excerpt($content, 200);
+        // A private page's description never derives from its body: crawlers
+        // and link unfurlers see this whether or not the viewer has unlocked it.
+        $description = Text::excerpt($excerpt, 200)
+            ?: ($status === EntryStatus::Private ? null : Text::excerpt($content, 200));
 
         return self::make(array_filter([
             'title' => $title,

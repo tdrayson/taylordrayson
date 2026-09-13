@@ -3,6 +3,7 @@
 namespace App\Presenters;
 
 use App\Data\CardData;
+use App\Enums\EntryStatus;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -308,11 +309,23 @@ final class EntryDescription
         return (string) self::source($model->topic);
     }
 
-    /** The hand-written excerpt where there is one, else the opening prose. */
+    /**
+     * The hand-written excerpt where there is one, else the opening prose.
+     *
+     * A private article never falls back to its content: the OG payload is
+     * what a crawler or an unfurler sees, unlocked or not.
+     */
     private static function articleText(Article $model): string
     {
-        return Text::excerpt($model->excerpt, self::LIMIT)
-            ?: (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
+        $excerpt = Text::excerpt($model->excerpt, self::LIMIT);
+
+        if ($excerpt) {
+            return $excerpt;
+        }
+
+        return $model->status === EntryStatus::Private
+            ? $model->title
+            : (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
     }
 
     private static function note(Note $model): string
