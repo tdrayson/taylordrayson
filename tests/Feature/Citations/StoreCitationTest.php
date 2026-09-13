@@ -105,3 +105,23 @@ it('never queues a fetch for a reply to one of my own entries', function () {
 
     Queue::assertNotPushed(FetchCitationFor::class);
 });
+
+it('links a reply to a citation stored after it, on its next save', function () {
+    Queue::fake();
+    $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => 'https://example.com/later']);
+    $citation = Citation::factory()->create(['url' => 'https://example.com/later']);
+
+    $note = $note->fresh();
+    $note->update(['slug' => 'an-unrelated-change']);
+
+    expect($note->fresh()->citation_id)->toBe($citation->id);
+});
+
+it('queues a fetch on any later save of a reply still without a citation', function () {
+    Queue::fake();
+    $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => 'https://example.com/unreadable']);
+
+    $note->fresh()->update(['slug' => 'an-unrelated-change']);
+
+    Queue::assertPushed(FetchCitationFor::class, 2);
+});
