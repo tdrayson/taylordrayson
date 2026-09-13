@@ -3,10 +3,12 @@
 namespace App\Actions;
 
 use App\Actions\Mentions\ResolveInternalTarget;
+use App\Data\CitedPostData;
 use App\Data\ResponseData;
 use App\Enums\ResponseKind;
 use App\Support\EntryName;
 use App\Support\Links;
+use App\Support\LocalTime;
 use App\Support\PostType;
 use Illuminate\Database\Eloquent\Model;
 
@@ -41,11 +43,32 @@ class BuildResponseContext
             label: $post->rsvp_value?->verb() ?? $kind->label(),
             property: $kind->property(),
             url: $url,
-            title: self::name($kind, $target, $host, $url, $post->response_title),
+            title: self::name($kind, $target, $host, $url, $post->citation?->title),
             rsvp: $post->rsvp_value?->value,
             host: $host,
             favicon: $host === null ? null : Links::faviconUrl($host),
             internal: $target !== null,
+            cited: $target === null ? $this->cited($post) : null,
+        );
+    }
+
+    /** The stored copy to draw under the byline, or null when none was kept. */
+    private function cited(Model $post): ?CitedPostData
+    {
+        $citation = $post->citation;
+
+        if ($citation === null) {
+            return null;
+        }
+
+        return new CitedPostData(
+            title: $citation->title,
+            authorName: $citation->author_name,
+            authorPhoto: $citation->author_photo_path === null ? null : '/'.ltrim($citation->author_photo_path, '/'),
+            quote: filled($post->response_quote) ? $post->response_quote : $citation->excerpt,
+            published: $citation->published_at === null
+                ? null
+                : LocalTime::forInstant($citation->published_at, $citation->published_timezone),
         );
     }
 
@@ -55,8 +78,8 @@ class BuildResponseContext
      * One of mine is named by EntryName, which knows that some of my types
      * have real titles and some only have card copy.
      *
-     * Somebody else's is whatever FetchResponseTitle read off the page. Until
-     * that comes back, or when it finds nothing usable, all we honestly know is
+     * Somebody else's is whatever its citation was fetched with. Until that
+     * comes back, or when it finds nothing usable, all we honestly know is
      * that it is a post, or an event if you are RSVPing to it. The host is not
      * part of the name: it is said after it, and only the name is the p-name.
      */

@@ -239,10 +239,11 @@ it('calls one of my own notes a note from the day it was written', function () {
 });
 
 it('says the site after the name, so only the name is the p-name', function () {
+    Citation::factory()->create(['url' => 'https://example.com/a-post', 'title' => 'A Real Title']);
+
     $note = Note::factory()->create([
         'response_kind' => ResponseKind::Reply,
         'response_url' => 'https://example.com/a-post',
-        'response_title' => 'A Real Title',
     ]);
 
     $context = app(BuildResponseContext::class)($note);
