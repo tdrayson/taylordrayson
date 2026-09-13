@@ -20,6 +20,7 @@ use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\UpdatePage;
 use App\Actions\Projects\CreateProject;
 use App\Actions\Projects\UpdateProject;
+use App\Datasets\Datasets;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
@@ -43,18 +44,18 @@ use Illuminate\Database\Eloquent\Model;
 final class AuthorableTypes
 {
     /**
-     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, draftable: bool}>
+     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string}>
      */
     private const TYPES = [
-        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'draftable' => false],
-        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'draftable' => true],
-        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'draftable' => true],
-        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'draftable' => false],
-        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'draftable' => false],
-        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'draftable' => false],
-        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class, 'draftable' => false],
-        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'draftable' => false],
-        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'draftable' => false],
+        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class],
+        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class],
+        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class],
+        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class],
+        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class],
+        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class],
+        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class],
+        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class],
+        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class],
     ];
 
     public static function has(string $type): bool
@@ -63,7 +64,7 @@ final class AuthorableTypes
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string, draftable: bool}|null
+     * @return array{model: class-string<Model>, create: class-string, update: class-string}|null
      */
     public static function get(string $type): ?array
     {
@@ -104,13 +105,15 @@ final class AuthorableTypes
     }
 
     /**
-     * The types with a publication gate, which are the only ones that can be a
-     * draft and so the only ones /drafts has anything to list.
+     * The types that can be a draft, and so the only ones /drafts lists.
      *
      * @return list<string>
      */
     public static function draftable(): array
     {
-        return array_keys(array_filter(self::TYPES, fn (array $definition): bool => $definition['draftable']));
+        return array_values(array_filter(
+            array_keys(self::TYPES),
+            fn (string $type): bool => $type === 'page' || (Datasets::for($type)?->draftable() ?? false),
+        ));
     }
 }

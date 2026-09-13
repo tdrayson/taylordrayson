@@ -22,7 +22,7 @@ it('lists every tracked type with its live count on /more, in registry order', f
 });
 
 it('404s the removed /pages index', function () {
-    Page::factory()->create(['slug' => 'sleep-score', 'published' => true]);
+    Page::factory()->create(['slug' => 'sleep-score', 'status' => 'published']);
 
     // /pages now falls through to the slug catch-all, so it only resolves if
     // someone authors a page actually called "pages".

@@ -54,7 +54,7 @@ final class SuggestSearch
 
     /**
      * @param  SearchCompiler  $compiler  Only its guardPublished() gate is used here,
-     *                                    so an unpublished article never surfaces in
+     *                                    so a draft article never surfaces in
      *                                    the palette for a guest.
      */
     public function __construct(private readonly SearchCompiler $compiler) {}

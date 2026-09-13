@@ -18,7 +18,7 @@ function coverJpegBytes(): string
 it('exposes the cover on the article entry payload and timeline card', function () {
     Storage::fake('public');
 
-    $article = Article::factory()->create(['published' => true, 'occurred_at' => now()->subHour()]);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => now()->subHour()]);
     $article->addMediaFromString(coverJpegBytes())->usingFileName('cover.jpg')->toMediaCollection('cover');
 
     get($article->fresh()->url())
@@ -33,7 +33,7 @@ it('exposes the cover on the article entry payload and timeline card', function 
 });
 
 it('returns a null cover when the article has none', function () {
-    $article = Article::factory()->create(['published' => true, 'occurred_at' => now()->subHour()]);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => now()->subHour()]);
 
     get($article->fresh()->url())
         ->assertSuccessful()

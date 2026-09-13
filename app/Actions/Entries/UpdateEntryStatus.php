@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Actions\Entries;
+
+use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
+use App\Models\Page;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
+
+final class UpdateEntryStatus
+{
+    /** Set an entry's status, and its password when one is given. */
+    public function __invoke(Model $model, EntryStatus $status, ?string $password = null): Model
+    {
+        self::assertAllowed($model, $status, $password);
+
+        $model->forceFill([
+            'status' => $status,
+            ...(filled($password) ? ['password' => $password] : []),
+        ])->save();
+
+        return $model;
+    }
+
+    /**
+     * @throws ValidationException When the type cannot be a draft, or private has no password to lock with.
+     */
+    public static function assertAllowed(Model $model, EntryStatus $status, ?string $password): void
+    {
+        if ($status === EntryStatus::Draft && ! self::canBeDraft($model)) {
+            throw ValidationException::withMessages(['status' => 'Only hand-written entries can be a draft.']);
+        }
+
+        if ($status === EntryStatus::Private && blank($password) && blank($model->getRawOriginal('password'))) {
+            throw ValidationException::withMessages(['status' => 'A private entry needs a password.']);
+        }
+    }
+
+    public static function canBeDraft(Model $model): bool
+    {
+        return $model instanceof Page || (Datasets::forModel($model)?->draftable() ?? false);
+    }
+}

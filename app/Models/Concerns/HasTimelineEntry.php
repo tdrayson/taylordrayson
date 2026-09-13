@@ -57,9 +57,7 @@ trait HasTimelineEntry
     }
 
     /**
-     * The URL slug lives on the spine row (assigned once at write time);
-     * models without one yet (e.g. unpublished articles) fall back to the
-     * bare slug.
+     * The URL slug lives on the spine row; a model without one yet falls back to its bare slug.
      */
     public function url(): string
     {
@@ -76,8 +74,7 @@ trait HasTimelineEntry
     }
 
     /**
-     * Every Timelineable appears on the spine by default; models with their
-     * own publication gate (e.g. Article) override this.
+     * Whether this model belongs on the spine at all, beyond its status.
      */
     public function shouldAppearOnTimeline(): bool
     {

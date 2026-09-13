@@ -36,7 +36,7 @@ const headingCount = computed(() => contentNodes.value.filter(
     <!-- Re-establishes the content grid so the cover can bleed full width while
          everything else stays in the content column. -->
     <div class="full-width content-grid gap-y-8">
-        <div v-if="!entry.published" class="flex flex-wrap gap-2">
+        <div v-if="entry.status === 'draft'" class="flex flex-wrap gap-2">
             <Pill label="Draft" variant="accent" />
         </div>
 

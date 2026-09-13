@@ -6,7 +6,7 @@ use App\Models\User;
 beforeEach(fn () => $this->actingAs(User::factory()->create()));
 
 it('shows the editor in place of the entry, not above it', function () {
-    $article = Article::factory()->create(['title' => 'How OG images work', 'published' => true]);
+    $article = Article::factory()->create(['title' => 'How OG images work', 'status' => 'published']);
 
     $browser = visit($article->url().'?edit');
 
@@ -18,7 +18,7 @@ it('shows the editor in place of the entry, not above it', function () {
 });
 
 it('still shows the entry when not editing', function () {
-    $article = Article::factory()->create(['title' => 'How OG images work', 'published' => true]);
+    $article = Article::factory()->create(['title' => 'How OG images work', 'status' => 'published']);
 
     visit($article->url())
         ->assertSee('How OG images work')

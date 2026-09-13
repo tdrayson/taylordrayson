@@ -11,8 +11,7 @@ interface Timelineable
     public function timezone(): ?string;
 
     /**
-     * Whether this model's timeline entry should exist on the public spine.
-     * Models with their own publication gate (e.g. Article) override this.
+     * Whether this model belongs on the spine at all, beyond its status.
      */
     public function shouldAppearOnTimeline(): bool;
 

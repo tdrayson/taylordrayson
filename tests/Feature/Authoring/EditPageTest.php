@@ -4,7 +4,7 @@ use App\Models\Page;
 use App\Models\User;
 
 it('offers the editor only to a signed-in visitor', function () {
-    Page::factory()->create(['slug' => 'about', 'title' => 'About', 'published' => true]);
+    Page::factory()->create(['slug' => 'about', 'title' => 'About', 'status' => 'published']);
 
     $this->get('/about?edit')->assertInertia(fn ($page) => $page->where('editing', false));
 
@@ -14,7 +14,7 @@ it('offers the editor only to a signed-in visitor', function () {
 });
 
 it('sends the field definitions only when signed in', function () {
-    Page::factory()->create(['slug' => 'about', 'published' => true]);
+    Page::factory()->create(['slug' => 'about', 'status' => 'published']);
 
     $this->get('/about')->assertInertia(fn ($page) => $page->where('fields', []));
 
@@ -27,7 +27,7 @@ it('sends the field definitions only when signed in', function () {
 });
 
 it('saves an edit made in place', function () {
-    $page = Page::factory()->create(['slug' => 'about', 'title' => 'About', 'published' => true]);
+    $page = Page::factory()->create(['slug' => 'about', 'title' => 'About', 'status' => 'published']);
 
     $this->actingAs(User::factory()->create())
         ->patch("/entries/page/{$page->id}", [
@@ -46,7 +46,7 @@ it('saves an edit made in place', function () {
 });
 
 it('refuses a save from a guest', function () {
-    $page = Page::factory()->create(['slug' => 'about', 'title' => 'About', 'published' => true]);
+    $page = Page::factory()->create(['slug' => 'about', 'title' => 'About', 'status' => 'published']);
 
     $this->patch("/entries/page/{$page->id}", ['title' => 'Hacked'])->assertRedirect('/login');
 

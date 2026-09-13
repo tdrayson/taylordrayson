@@ -89,7 +89,7 @@ it('prefers an article excerpt over its opening prose', function () {
     $article = Article::factory()->create([
         'title' => 'A Title',
         'excerpt' => 'The hand-written summary.',
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => '2026-08-01 10:00:00',
         'content' => [['_type' => 'block', 'children' => [['text' => 'The opening prose instead.']]]],
     ]);
@@ -153,7 +153,7 @@ it('uses page prose when a page has no excerpt', function () {
         'title' => 'Colophon',
         'slug' => 'colophon',
         'excerpt' => null,
-        'published' => true,
+        'status' => 'published',
         'content' => [['_type' => 'block', 'children' => [['text' => 'How this site is built.']]]],
     ]);
 

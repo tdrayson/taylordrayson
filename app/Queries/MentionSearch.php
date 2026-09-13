@@ -16,9 +16,8 @@ use Illuminate\Support\Str;
  * here: things that arrive from a sync (activities, check-ins, sleep) are not
  * what anyone reaches for mid-sentence.
  *
- * Drafts are not offered. A mention of one renders as plain text to everyone but
- * the author, so linking to it would read as finished writing while being a dead
- * end for every visitor.
+ * Only listed entries are offered: a mention points visitors at something they
+ * can find.
  */
 final class MentionSearch
 {
@@ -61,7 +60,7 @@ final class MentionSearch
     private function articles(string $query): array
     {
         return Article::query()
-            ->where('published', true)
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -83,7 +82,7 @@ final class MentionSearch
     private function pages(string $query): array
     {
         return Page::query()
-            ->where('published', true)
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderBy('title')
             ->limit(self::PER_GROUP)
@@ -105,6 +104,7 @@ final class MentionSearch
     private function projects(string $query): array
     {
         return Project::query()
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -126,6 +126,7 @@ final class MentionSearch
     private function events(string $query): array
     {
         return Event::query()
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('name', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -149,6 +150,7 @@ final class MentionSearch
     private function notes(string $query): array
     {
         return Note::query()
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('content', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)

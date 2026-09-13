@@ -160,7 +160,7 @@ it('does not queue anything for an entry with no external links', function () {
 });
 
 it('resolves each kind of internal destination to its own card', function () {
-    Article::factory()->create(['occurred_at' => '2026-05-04 09:00:00', 'published' => true]);
+    Article::factory()->create(['occurred_at' => '2026-05-04 09:00:00', 'status' => 'published']);
 
     $resolve = fn (string $path): ?array => app(LinkResolvers::class)->resolve($path)?->toArray();
 
@@ -190,7 +190,7 @@ it('gives back nothing for a path no resolver owns', function () {
 it('lets a literal route win over the page catch-all', function () {
     // PageResolver matches any single lowercase segment, so a Page whose slug
     // collides with a real route must not shadow it.
-    Page::factory()->create(['slug' => 'now', 'title' => 'Not the Now page', 'published' => true]);
+    Page::factory()->create(['slug' => 'now', 'title' => 'Not the Now page', 'status' => 'published']);
 
     expect(app(LinkResolvers::class)->resolve('/now')->type)->toBe('live');
 });

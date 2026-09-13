@@ -3,18 +3,15 @@
 namespace App\Queries;
 
 use App\Data\TagLink;
-use App\Models\Article;
+use App\Enums\EntryStatus;
 use App\Models\Tag;
 use App\Models\Taggable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 
 /**
- * Every tag that is attached to at least one visible entry, with how many
- * entries carry it. Powers the /tags index. Articles are the only publish-gated
- * type, so a guest never sees (or counts) a tag that lives only on unpublished
- * articles; the owner does, mirroring the archive tag chips.
+ * Every tag attached to at least one listed entry, with how many listed entries
+ * carry it. The owner sees the same counts as a guest.
  */
 final class TagUsage
 {
@@ -24,15 +21,11 @@ final class TagUsage
     public function __invoke(): Collection
     {
         $counts = Taggable::query()
-            ->when(! Auth::check(), fn ($query) => $query->where(function ($inner): void {
-                // Keep every non-article pivot, plus article pivots whose article
-                // is published; drop the draft-only article pivots.
-                $inner->where('taggable_type', '!=', (new Article)->getMorphClass())
-                    ->orWhereExists(fn (Builder $sub) => $sub->selectRaw('1')
-                        ->from('articles')
-                        ->whereColumn('articles.id', 'taggables.taggable_id')
-                        ->where('articles.published', true));
-            }))
+            ->whereExists(fn (Builder $sub) => $sub->selectRaw('1')
+                ->from('timeline_entries')
+                ->whereColumn('timeline_entries.dataset', 'taggables.taggable_type')
+                ->whereColumn('timeline_entries.entry_id', 'taggables.taggable_id')
+                ->where('timeline_entries.status', EntryStatus::Published->value))
             ->selectRaw('tag_id, count(*) as total')
             ->groupBy('tag_id')
             ->pluck('total', 'tag_id');

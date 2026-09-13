@@ -59,7 +59,7 @@ it('suggests taxonomy destination pages drawn live from the registry', function 
 });
 
 it('labels tag destinations as tags, not the owning type', function () {
-    $article = Article::factory()->create(['published' => true, 'occurred_at' => now()]);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => now()]);
     $article->syncTagNames(['Fluent Forms']);
 
     $destinations = getJson('/search/suggest?q=fluent')->assertOk()->json('destinations');
@@ -69,7 +69,7 @@ it('labels tag destinations as tags, not the owning type', function () {
 });
 
 it('suggests standalone pages as destinations', function () {
-    Page::factory()->create(['published' => true, 'title' => 'Sleep score', 'slug' => 'sleep-score']);
+    Page::factory()->create(['status' => 'published', 'title' => 'Sleep score', 'slug' => 'sleep-score']);
 
     $destinations = getJson('/search/suggest?q=Sleep score')->assertOk()->json('destinations');
 
@@ -78,7 +78,7 @@ it('suggests standalone pages as destinations', function () {
 });
 
 it('hides an unpublished page from guests, and shows it to the authenticated user', function () {
-    Page::factory()->create(['published' => false, 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
+    Page::factory()->create(['status' => 'draft', 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
 
     $urls = fn (array $json): array => collect($json)->pluck('url')->all();
 
@@ -94,7 +94,7 @@ it('hides an unpublished page from guests, and shows it to the authenticated use
 });
 
 it('hides unpublished articles from guest search suggestions', function () {
-    Article::factory()->create(['published' => false, 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
+    Article::factory()->create(['status' => 'draft', 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
 
     getJson('/search/suggest?q=Secret draft')
         ->assertOk()
@@ -102,7 +102,7 @@ it('hides unpublished articles from guest search suggestions', function () {
 });
 
 it('shows unpublished articles in suggestions to the authenticated user', function () {
-    Article::factory()->create(['published' => false, 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
+    Article::factory()->create(['status' => 'draft', 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
 
     $this->actingAs(User::factory()->create())
         ->getJson('/search/suggest?q=Secret draft')
@@ -111,7 +111,7 @@ it('shows unpublished articles in suggestions to the authenticated user', functi
 });
 
 it('shows published articles in suggestions to guests', function () {
-    Article::factory()->create(['published' => true, 'title' => 'Public announcement post', 'occurred_at' => now()]);
+    Article::factory()->create(['status' => 'published', 'title' => 'Public announcement post', 'occurred_at' => now()]);
 
     getJson('/search/suggest?q=Public announcement')
         ->assertOk()

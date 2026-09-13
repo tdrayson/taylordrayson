@@ -4,7 +4,6 @@ namespace App\Links\Resolvers;
 
 use App\Data\LinkPreviewData;
 use App\Links\LinkResolver;
-use App\Models\Article;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
@@ -26,7 +25,7 @@ class EntryResolver implements LinkResolver
             ->where('url_slug', $matches[4])
             ->first()?->entry;
 
-        if ($model === null || ($model instanceof Article && ! $model->published)) {
+        if ($model === null || ! $model->isViewableBy(null)) {
             return null;
         }
 

@@ -6,6 +6,7 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Data\TagLink;
+use App\Enums\EntryStatus;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
@@ -60,20 +61,16 @@ class EntryController extends Controller
         $model = $entry?->entry;
         $model?->setRelation('timelineEntry', $entry);
 
-        // Unpublished articles have no timeline entry (TimelineEntryObserver
-        // removes it), so an authenticated preview needs a direct lookup.
+        // Drafts have no spine row, so the owner reaches a dated one directly.
         if ($model === null && Auth::check()) {
             $model = Article::query()
+                ->where('status', EntryStatus::Draft)
                 ->whereDate('occurred_at', $date)
                 ->where('slug', $slug)
                 ->first();
         }
 
-        if ($model === null) {
-            throw new NotFoundHttpException;
-        }
-
-        if ($model instanceof Article && ! $model->published && ! Auth::check()) {
+        if ($model === null || ($model->status === EntryStatus::Draft && ! Auth::check())) {
             throw new NotFoundHttpException;
         }
 

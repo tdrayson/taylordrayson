@@ -22,7 +22,6 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'published',
     'timezone',
     'status',
     'password',
@@ -39,22 +38,12 @@ class Article extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'content' => 'array',
-            'published' => 'boolean',
         ];
     }
 
     public function slug(): string
     {
         return $this->getAttribute('slug');
-    }
-
-    /**
-     * Read from the raw attribute so unsaved models resolve to false rather
-     * than throwing under strict attribute access.
-     */
-    public function shouldAppearOnTimeline(): bool
-    {
-        return (bool) ($this->attributes['published'] ?? false);
     }
 
     /**

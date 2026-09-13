@@ -3,13 +3,11 @@
 namespace App\Queries;
 
 use App\Data\TagLink;
-use App\Models\Article;
 use App\Models\Tag;
 use App\Models\Taggable;
 use App\Models\TimelineEntry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * The "see everything tagged X" bridge from an archive taxonomy page to the /tags
@@ -46,12 +44,8 @@ final class ArchiveTagBridge
     }
 
     /**
-     * Whether this tag's members resolve to at least one entry the current
-     * requester can see. Mirrors TagController::show's own 200/404 condition:
-     * a spine (TimelineEntry) row for any tagged model, plus the authenticated
-     * owner's preview of unpublished tagged articles (which have no spine row of
-     * their own). Kept in lockstep with the tag feed so the bridge never links
-     * to a page that would 404 for the same requester.
+     * Whether this tag's members resolve to at least one listed entry, the same
+     * condition TagController::show 404s on.
      *
      * @param  Collection<int, Taggable>  $taggables
      */
@@ -61,25 +55,12 @@ final class ArchiveTagBridge
 
         // whereHasMorph joins to the related model, so orphaned spine rows drop out
         // here just as TagController::show discards a null entry.
-        $hasSpineEntry = TimelineEntry::query()
+        return TimelineEntry::query()
             ->whereHasMorph('entry', $types, function (Builder $query, string $type) use ($taggables): void {
                 // whereHasMorph resolves $types back to real classes, but taggable_type
                 // stores the alias, so it has to be translated back to match.
                 $query->whereKey($taggables->where('taggable_type', (new $type)->getMorphClass())->pluck('taggable_id'));
             })
-            ->exists();
-
-        if ($hasSpineEntry) {
-            return true;
-        }
-
-        if (! Auth::check()) {
-            return false;
-        }
-
-        return Article::query()
-            ->whereIn('id', $taggables->where('taggable_type', (new Article)->getMorphClass())->pluck('taggable_id'))
-            ->where('published', false)
             ->exists();
     }
 }

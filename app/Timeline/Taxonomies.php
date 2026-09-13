@@ -2,13 +2,12 @@
 
 namespace App\Timeline;
 
+use App\Enums\EntryStatus;
 use App\Models\Airline;
-use App\Models\Article;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 /**
@@ -52,21 +51,20 @@ final class Taxonomies
 
     /**
      * A taxonomy over the relational `tags` table, addressed by tag slug and
-     * scoped to tags attached to at least one record of the model. Guests are
-     * further restricted to published articles, so a draft-only tag stays hidden.
+     * scoped to tags attached to at least one record of the model. Only tags on
+     * listed entries count, for the owner as for a guest.
      */
     public static function tags(?callable $title = null): callable
     {
         $distinct = fn (string $model): Collection => Tag::query()
-            ->whereIn('id', fn ($query) => $query->select('tag_id')
+            ->whereIn('id', fn (QueryBuilder $query) => $query->select('tag_id')
                 ->from('taggables')
                 ->where('taggable_type', (new $model)->getMorphClass())
-                ->when($model === Article::class && ! Auth::check(), fn (QueryBuilder $query) => $query->whereExists(
-                    fn (QueryBuilder $exists) => $exists->selectRaw('1')
-                        ->from('articles')
-                        ->whereColumn('articles.id', 'taggables.taggable_id')
-                        ->where('articles.published', true)
-                )))
+                ->whereExists(fn (QueryBuilder $exists) => $exists->selectRaw('1')
+                    ->from('timeline_entries')
+                    ->whereColumn('timeline_entries.dataset', 'taggables.taggable_type')
+                    ->whereColumn('timeline_entries.entry_id', 'taggables.taggable_id')
+                    ->where('timeline_entries.status', EntryStatus::Published->value)))
             ->orderBy('name')
             ->get(['name', 'slug']);
 

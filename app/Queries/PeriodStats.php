@@ -94,7 +94,7 @@ final class PeriodStats
             $stats[] = ['label' => 'Places', 'value' => number_format($places)];
         }
 
-        $written = $between(Article::query())->where('published', true)->count() + $between(Note::query())->count();
+        $written = $between(Article::query())->listed()->count() + $between(Note::query())->listed()->count();
 
         if ($written > 0) {
             $stats[] = ['label' => 'Written', 'value' => number_format($written)];

@@ -21,7 +21,6 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'published',
     'status',
     'password',
 ])]
@@ -29,6 +28,7 @@ use Spatie\MediaLibrary\HasMedia;
 class Page extends Model implements HasMedia
 {
     use HasAttachments;
+
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
@@ -41,7 +41,6 @@ class Page extends Model implements HasMedia
     {
         return [
             'content' => 'array',
-            'published' => 'boolean',
         ];
     }
 

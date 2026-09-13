@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
 use App\Support\OgMeta;
@@ -17,14 +18,13 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PageController extends Controller
 {
     /**
-     * Render a content page by slug. Unpublished pages are visible only to
-     * authenticated users; anyone else gets a 404.
+     * Render a content page by slug. A draft is visible only to the owner.
      */
     public function show(string $slug): Response
     {
         $page = Page::query()->where('slug', $slug)->first();
 
-        if ($page === null || (! $page->published && ! Auth::check())) {
+        if ($page === null || ($page->status === EntryStatus::Draft && ! Auth::check())) {
             throw new NotFoundHttpException;
         }
 
@@ -43,14 +43,15 @@ class PageController extends Controller
             // Media Library collection rather than a column, so only() cannot
             // see it and the picker opened empty over an attached image.
             'values' => [
-                ...$page->only(array_column($fields, 'name')),
+                ...$page->only(array_diff(array_column($fields, 'name'), ['password'])),
                 ...app(AttachedMediaValues::class)($page, $fields),
             ],
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'cover' => $page->coverPhoto(),
             'content' => $page->content,
-            'published' => $page->published,
+            'status' => $page->status->value,
+            'statusLabel' => $page->status->label(),
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content)),
             'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
             'linkFavicons' => (new BuildLinkFavicons)($page->content),

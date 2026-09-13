@@ -84,9 +84,10 @@ final class FieldRules
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
-            FieldType::Boolean, FieldType::Published => ['boolean'],
+            FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
+            FieldType::Status => ['string', self::in($field)],
             // Both resolve to a name the lookup filled in, which stays
             // editable afterwards, so neither is constrained to what the
             // source returned.

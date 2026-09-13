@@ -14,6 +14,7 @@ import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
 import LengthRing from './LengthRing.vue';
+import StatusInput from './StatusInput.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
 
 /**
@@ -155,6 +156,15 @@ function textToTags(value) {
                 @update:model-value="$emit('update:modelValue', $event)"
             />
         </div>
+
+        <StatusInput
+            v-else-if="field.type === 'status'"
+            :id="field.name"
+            :model-value="modelValue ?? 'published'"
+            :options="field.options ?? []"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @fill="$emit('fill', $event)"
+        />
 
         <select
             v-else-if="field.type === 'select'"

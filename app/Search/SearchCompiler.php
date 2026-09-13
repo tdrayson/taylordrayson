@@ -2,6 +2,7 @@
 
 namespace App\Search;
 
+use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Models\Food;
 use App\Models\Page;
@@ -80,7 +81,7 @@ class SearchCompiler
 
     /**
      * Defence in depth against a stale timeline_entries row (e.g. a mass update
-     * that bypassed model observers): guests never see unpublished writing in
+     * that bypassed model observers): guests never see unlisted writing in
      * search results. Public so other search entry points (e.g. the command
      * palette's free-text suggest endpoint) share this single gate rather than
      * duplicating the guard logic.
@@ -91,7 +92,7 @@ class SearchCompiler
     public function guardPublished(Builder $query, ?string $model): void
     {
         if (in_array($model, [Article::class, Page::class], true) && ! Auth::check()) {
-            $query->where('published', true);
+            $query->where('status', EntryStatus::Published->value);
         }
     }
 

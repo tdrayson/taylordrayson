@@ -5,15 +5,16 @@ use App\Actions\Articles\UpdateArticle;
 use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\UpdatePage;
 use App\Actions\Projects\CreateProject;
+use App\Enums\EntryStatus;
 use App\Enums\ProjectStage;
 use App\Models\Article;
 use App\Models\Page;
 use App\Models\Project;
 
-it('creates a page unpublished, so a half-written /about never goes live by accident', function () {
+it('creates a page as a draft, so a half-written /about never goes live by accident', function () {
     $page = app(CreatePage::class)(['title' => 'About']);
 
-    expect($page->published)->toBeFalse()
+    expect($page->status)->toBe(EntryStatus::Draft)
         ->and($page->slug)->toBe('about');
 
     // Visible to nobody until published.
@@ -28,7 +29,7 @@ it('derives a page slug from the title but keeps an explicit one', function () {
 it('publishes a page, which is what puts it on its URL', function () {
     $page = app(CreatePage::class)(['title' => 'About']);
 
-    app(UpdatePage::class)($page, ['published' => true]);
+    app(UpdatePage::class)($page, ['status' => 'published']);
 
     $this->get('/about')->assertOk();
 });
@@ -39,10 +40,10 @@ it('keeps a draft article off the timeline until it is published', function () {
         'content' => [['_type' => 'block', 'children' => [['text' => 'Draft.']]]],
     ]);
 
-    expect($article->published)->toBeFalse()
+    expect($article->status)->toBe(EntryStatus::Draft)
         ->and($article->timelineEntry)->toBeNull();
 
-    app(UpdateArticle::class)($article, ['published' => true]);
+    app(UpdateArticle::class)($article, ['status' => 'published']);
 
     expect($article->fresh()->timelineEntry)->not->toBeNull();
 });

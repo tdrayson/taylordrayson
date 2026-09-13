@@ -450,7 +450,7 @@ class OgMeta
 
     /**
      * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
-     *                                     the model has no spine row (e.g. an unpublished article
+     *                                     the model has no spine row (e.g. a draft article
      *                                     previewed by its author), in which case the OG image is omitted.
      * @param  Model  $model  The entry's content, which its description is written from.
      * @param  CardData  $card  The built card, for its title, subtitle and date.

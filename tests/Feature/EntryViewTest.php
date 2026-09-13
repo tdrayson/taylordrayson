@@ -101,7 +101,7 @@ it('aggregates the whole day for a food entry', function () {
 });
 
 it('exposes tags as linkable {name, slug, url} objects on an article entry', function () {
-    $article = Article::factory()->create(['published' => true, 'occurred_at' => '2026-03-15 09:00:00']);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => '2026-03-15 09:00:00']);
     $article->syncTagNames(['Laravel', 'PHP']);
 
     get('/'.entryUrl($article))->assertInertia(fn ($page) => $page

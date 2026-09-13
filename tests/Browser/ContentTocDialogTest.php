@@ -56,7 +56,7 @@ it('opens the mobile contents sheet for an article from the pill and closes it o
     $paragraph = fn () => PortableText::block(str_repeat('Lorem ipsum dolor sit amet, consectetur adipiscing elit. ', 6));
 
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => '2024-03-01 09:00:00',
         'content' => [
             PortableText::block('First Section', 'h2'),

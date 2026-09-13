@@ -16,7 +16,7 @@ function category(string $type): string
 
 beforeEach(function () {
     Note::factory()->create(['occurred_at' => now()->subDay()]);
-    Article::factory()->create(['occurred_at' => now()->subDays(2), 'published' => true]);
+    Article::factory()->create(['occurred_at' => now()->subDays(2), 'status' => 'published']);
     Place::factory()->create(['occurred_at' => now()->subDays(3)]);
 });
 
