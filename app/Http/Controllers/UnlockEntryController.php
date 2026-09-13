@@ -11,7 +11,7 @@ final class UnlockEntryController extends Controller
 {
     public function __invoke(UnlockEntryRequest $request, string $dataset, int $id, EntryByDataset $entries, UnlockEntry $unlock): RedirectResponse
     {
-        if (! $unlock($entries($dataset, $id), $request->validated('password'), $request->session())) {
+        if (! $unlock($entries->find($dataset, $id), $request->validated('password'), $request->session())) {
             return back()->withErrors(['password' => 'That password is not right.']);
         }
 

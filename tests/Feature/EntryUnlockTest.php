@@ -8,6 +8,8 @@ use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Models\User;
 use App\Support\PortableText;
+use Illuminate\Hashing\HashManager;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /** An article, not a note: a note's meta description is its body, which the spec lets the head show. */
@@ -108,6 +110,25 @@ it('gives a wrong password guess the same response whether the entry is a draft,
     'draft' => [EntryStatus::Draft],
     'published' => [EntryStatus::Published],
     'private' => [EntryStatus::Private],
+]);
+
+it('answers an unknown dataset or id exactly as it answers a wrong password, hash check included', function (string $path) {
+    $article = privateArticle();
+
+    $wrongPassword = $this->from('/2026/06/15/kept-close')->post("/unlock/article/{$article->id}", ['password' => 'nope']);
+    $expected = [$wrongPassword->getStatusCode(), $wrongPassword->headers->get('Location'), session('errors')];
+
+    $this->flushSession();
+    $hash = Mockery::mock(HashManager::class, [app()])->makePartial();
+    Hash::swap($hash);
+
+    $response = $this->from('/2026/06/15/kept-close')->post(str_replace('{id}', (string) ($article->id + 1), $path), ['password' => 'nope']);
+
+    expect([$response->getStatusCode(), $response->headers->get('Location'), session('errors')])->toBe($expected);
+    $hash->shouldHaveReceived('check')->once();
+})->with([
+    'unknown id' => ['/unlock/article/{id}'],
+    'unknown dataset' => ['/unlock/nothing/{id}'],
 ]);
 
 it('keeps a private entry\'s body out of its own generated OG image data', function () {

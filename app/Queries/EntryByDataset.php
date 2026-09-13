@@ -12,12 +12,18 @@ final class EntryByDataset
     /** The status-carrying model a morph alias and id name, or a 404. */
     public function __invoke(string $dataset, int $id): Model
     {
+        return $this->find($dataset, $id) ?? throw new NotFoundHttpException;
+    }
+
+    /** The status-carrying model a morph alias and id name, or null. */
+    public function find(string $dataset, int $id): ?Model
+    {
         $class = Datasets::morphMap()[$dataset] ?? null;
 
         if ($class === null || ! in_array(HasStatus::class, class_uses_recursive($class), true)) {
-            throw new NotFoundHttpException;
+            return null;
         }
 
-        return $class::query()->findOrFail($id);
+        return $class::query()->find($id);
     }
 }
