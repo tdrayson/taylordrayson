@@ -20,6 +20,8 @@ import { timelineTypes } from '../entryTypes.js';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
 import Select from '../Components/Ui/Select.vue';
+import CountGroup from '../Components/Ui/CountGroup.vue';
+import CountSegment from '../Components/Ui/CountSegment.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -59,6 +61,14 @@ const sparseMonths = MONTH_NAMES.map((label, i) => ({
 }));
 
 // One Portable Text callout per variant, so the set is reviewable in one place.
+// One sample row of counts for the CountGroup demo, with a zero to show muting.
+const countSample = [
+    { key: 'reactions', icon: 'ThumbsUpIcon', count: 26, colour: 'var(--color-count-reactions)' },
+    { key: 'replies', icon: 'Comment01Icon', count: 19, colour: 'var(--color-count-replies)' },
+    { key: 'reposts', icon: 'ArrowReloadHorizontalIcon', count: 7, colour: 'var(--color-count-reposts)' },
+    { key: 'mentions', icon: 'Link02Icon', count: 0, colour: 'var(--color-count-mentions)' },
+];
+
 const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant, i) => ({
     _type: 'callout',
     _key: `ds-callout-${variant}`,
@@ -216,6 +226,19 @@ function swatchInk(step) {
                 <blockquote class="border-l-2 border-accent-200 pl-4 italic text-neutral-500">
                     Track everything, decorate nothing. The data is the ornament.
                 </blockquote>
+            </div>
+        </section>
+
+        <!-- Count groups -->
+        <section class="space-y-4">
+            <h2 class="ds-label">Count groups</h2>
+            <div v-for="variant in ['tinted', 'icons', 'plain']" :key="variant" class="flex flex-wrap items-center gap-3">
+                <CountGroup v-for="size in ['md', 'sm']" :key="size" :variant="variant" :size="size">
+                    <CountSegment v-for="item in countSample" :key="item.key" :colour="item.colour" :muted="item.count === 0" :class="size === 'sm' ? 'text-caption' : 'text-meta'">
+                        <Icon :name="item.icon" :class="size === 'sm' ? 'size-3.5' : 'size-4'" />
+                        <span class="tnum">{{ item.count }}</span>
+                    </CountSegment>
+                </CountGroup>
             </div>
         </section>
 
