@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Books\CreateBook;
+use App\Actions\Flights\CreateFlight;
 use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Fields\AuthorableTypes;
@@ -15,6 +16,7 @@ use App\Models\Note;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
 
 afterEach(fn () => Carbon::setTestNow());
@@ -103,4 +105,19 @@ it('creates a book being read as an undated draft with when it was started', fun
     expect($book->status)->toBe(EntryStatus::Draft)
         ->and($book->occurred_at)->toBeNull()
         ->and($book->started_at->toDateString())->toBe('2026-05-01');
+});
+
+it('creates a flight with no occurred_at as an undated draft', function () {
+    Queue::fake();
+
+    ['flight' => $flight] = app(CreateFlight::class)([
+        'flight_number' => '2718',
+        'airline_icao' => 'BAW',
+        'origin_iata' => 'LGW',
+        'destination_iata' => 'MAD',
+        'status' => 'draft',
+    ]);
+
+    expect($flight->status)->toBe(EntryStatus::Draft)
+        ->and($flight->occurred_at)->toBeNull();
 });
