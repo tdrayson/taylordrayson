@@ -4,6 +4,7 @@ namespace App\Actions\Citations;
 
 use App\Actions\Webmentions\ParseMentionSource;
 use App\Data\CitationData;
+use App\Data\MentionData;
 use App\Support\PortableText;
 use App\Support\SafeFetch;
 use Carbon\Carbon;
@@ -41,7 +42,9 @@ final class FetchCitation
             return null;
         }
 
-        $entry = ($this->parse)($html, $url, $url);
+        $parsed = rescue(fn (): array => Microformats::fromString($html, 'text/html', $url), [], report: false);
+        $item = $this->postIn($parsed['items'] ?? [], $url);
+        $entry = $item === null ? MentionData::bare() : $this->parse->fromEntry($item, $url);
         $meta = $this->metaIn($html);
 
         [$authorName, $authorPhoto] = $this->author($html, $url, $entry->authorName, $entry->authorUrl, $entry->authorPhoto);
@@ -58,6 +61,49 @@ final class FetchCitation
             publishedAt: $entry->publishedAt ?? $this->date($meta['article:published_time'] ?? null),
             publishedTimezone: $entry->publishedTimezone ?? $this->offset($meta['article:published_time'] ?? null),
         );
+    }
+
+    /**
+     * The h-entry whose url is the page's own, else the first one. A response held
+     * in a property such as comment is never a candidate.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return array<string, mixed>|null
+     */
+    private function postIn(array $items, string $pageUrl): ?array
+    {
+        $entries = $this->entries($items);
+
+        foreach ($entries as $entry) {
+            foreach ($entry['properties']['url'] ?? [] as $value) {
+                if (rtrim((string) (is_array($value) ? ($value['value'] ?? '') : $value), '/') === rtrim($pageUrl, '/')) {
+                    return $entry;
+                }
+            }
+        }
+
+        return $entries[0] ?? null;
+    }
+
+    /**
+     * Every h-entry at the top level or among another item's children.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function entries(array $items): array
+    {
+        $found = [];
+
+        foreach ($items as $item) {
+            if (in_array('h-entry', $item['type'] ?? [], true)) {
+                $found[] = $item;
+            }
+
+            $found = [...$found, ...$this->entries($item['children'] ?? [])];
+        }
+
+        return $found;
     }
 
     /**
