@@ -1,9 +1,9 @@
 <?php
 
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\TimelineEntry;
 
 it('creating a Flight creates a timeline entry', function () {
@@ -30,13 +30,13 @@ it('creating a Media creates a timeline entry', function () {
         ->and(TimelineEntry::count())->toBe(1);
 });
 
-it('creating a Checkin creates a timeline entry', function () {
-    $checkin = Checkin::create([
+it('creating a Place creates a timeline entry', function () {
+    $place = Place::create([
         'occurred_at' => now(),
         'venue_name' => 'Starbucks',
     ]);
 
-    expect($checkin->timelineEntry)->not->toBeNull()
+    expect($place->timelineEntry)->not->toBeNull()
         ->and(TimelineEntry::count())->toBe(1);
 });
 

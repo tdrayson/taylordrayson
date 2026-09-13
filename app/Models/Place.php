@@ -18,7 +18,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[Fillable([
     'occurred_at',
     'venue_name',
-    'category',
+    'type',
     'address',
     'postcode',
     'city',
@@ -31,7 +31,7 @@ use Spatie\MediaLibrary\HasMedia;
     'source',
     'source_id',
 ])]
-class Checkin extends Model implements HasMedia, Timelineable
+class Place extends Model implements HasMedia, Timelineable
 {
     use HasAttachments, HasFactory, HasTimelineEntry;
 

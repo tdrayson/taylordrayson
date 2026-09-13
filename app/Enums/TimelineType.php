@@ -22,7 +22,7 @@ enum TimelineType: string
     case Appearance = 'appearance';
     case Podcast = 'podcast';
     case Flight = 'flight';
-    case Checkin = 'checkin';
+    case Place = 'place';
     case Fuel = 'fuel';
     case Project = 'project';
     case Article = 'article';

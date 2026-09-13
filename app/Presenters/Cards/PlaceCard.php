@@ -6,15 +6,15 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Enums\TimelineType;
-use App\Models\Checkin;
+use App\Models\Place;
 
 /**
- * Builds the timeline card for a Checkin: "at Cineworld", the note when there is
+ * Builds the timeline card for a Place: "at Cineworld", the note when there is
  * one, and the generated location map.
  */
-final class CheckinCard
+final class PlaceCard
 {
-    public function present(Checkin $model): CardData
+    public function present(Place $model): CardData
     {
         $address = collect([$model->address, $model->city, $model->county, $model->country])
             ->filter()
@@ -35,7 +35,7 @@ final class CheckinCard
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             range: null,
-            meta: CardMeta::checkin(
+            meta: CardMeta::place(
                 photos: array_map(
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $model->galleryPhotos(),
@@ -43,15 +43,15 @@ final class CheckinCard
                 map: $model->optimisedUrl('map'),
                 mapDark: $model->optimisedUrl('map_dark'),
                 address: $address !== '' ? $address : null,
-                category: $model->category,
+                category: $model->type,
             ),
         );
     }
 
     /**
-     * Display-only: the URL slug still comes from the venue (Checkin::slug()).
+     * Display-only: the URL slug still comes from the venue (Place::slug()).
      */
-    public function title(Checkin $model): string
+    public function title(Place $model): string
     {
         return $model->event_name
             ? "{$model->event_name} at {$model->venue_name}"
@@ -60,6 +60,6 @@ final class CheckinCard
 
     public function type(): TimelineType
     {
-        return TimelineType::Checkin;
+        return TimelineType::Place;
     }
 }

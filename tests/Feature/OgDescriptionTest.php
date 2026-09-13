@@ -4,12 +4,12 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Airport;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
+use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
 
@@ -70,15 +70,15 @@ it('names the show in front of an episode title', function () {
 });
 
 it('describes a check-in with its venue, category and town as a sentence', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'venue_name' => 'Starbucks',
-        'category' => 'Coffee Shop',
+        'type' => 'Coffee Shop',
         'city' => 'Bracknell',
         'description' => null,
         'occurred_at' => '2026-08-24 09:00:00',
     ]);
 
-    get('/'.$checkin->occurred_at->format('Y/m/d').'/'.$checkin->slug())
+    get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'I checked in at Starbucks, a Coffee Shop in Bracknell.')
@@ -127,7 +127,7 @@ it('counts the archive it describes', function () {
 });
 
 it('counts a taxonomy archive it describes', function () {
-    Checkin::factory()->count(2)->create(['category' => 'Coffee Shop']);
+    Place::factory()->count(2)->create(['type' => 'Coffee Shop']);
 
     get('/places/coffee-shop')
         ->assertOk()
@@ -202,14 +202,14 @@ it('describes an activity with no words of its own from its numbers', function (
 // The note is my own sentence, so the place hangs off the end of it rather
 // than being folded into a rewrite.
 it('keeps a check-in note whole and hangs the place off the end', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'venue_name' => 'Cineworld',
         'city' => 'Crawley',
         'description' => 'Watching One Night Only with Gordon',
         'occurred_at' => '2026-09-02 19:00:00',
     ]);
 
-    get('/'.$checkin->occurred_at->format('Y/m/d').'/'.$checkin->slug())
+    get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'Watching One Night Only with Gordon at Cineworld, Crawley.')
@@ -217,14 +217,14 @@ it('keeps a check-in note whole and hangs the place off the end', function () {
 });
 
 it('starts a new sentence when the note it follows already ended one', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'venue_name' => 'Costa',
         'city' => 'Croydon',
         'description' => 'Great flat white.',
         'occurred_at' => '2026-09-01 09:00:00',
     ]);
 
-    get('/'.$checkin->occurred_at->format('Y/m/d').'/'.$checkin->slug())
+    get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'Great flat white. At Costa, Croydon.')

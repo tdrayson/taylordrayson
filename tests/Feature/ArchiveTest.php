@@ -4,11 +4,11 @@ use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\User;
@@ -60,9 +60,9 @@ it('keeps the chips on a taxonomy page and flags the active one', function () {
     );
 });
 
-it('filters checkins by category slug', function () {
-    Checkin::factory()->create(['venue_name' => 'Blue Bottle', 'category' => 'Coffee Shop', 'occurred_at' => now()->subDay()]);
-    Checkin::factory()->create(['venue_name' => 'City Gym', 'category' => 'Gym', 'occurred_at' => now()->subDays(2)]);
+it('filters places by category slug', function () {
+    Place::factory()->create(['venue_name' => 'Blue Bottle', 'type' => 'Coffee Shop', 'occurred_at' => now()->subDay()]);
+    Place::factory()->create(['venue_name' => 'City Gym', 'type' => 'Gym', 'occurred_at' => now()->subDays(2)]);
 
     get('/places/coffee-shop')->assertOk()->assertInertia(fn ($page) => $page
         ->where('groups', fn ($groups) => archiveTitlesContains($groups, 'at Blue Bottle') && ! archiveTitlesContains($groups, 'at City Gym'))

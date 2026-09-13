@@ -12,13 +12,13 @@ use App\Fields\FieldRegistry;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
@@ -218,7 +218,7 @@ class EntryController extends Controller
             $data['cover'] = $model->coverPhoto();
         }
 
-        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Checkin) {
+        if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Place) {
             $data['photos'] = $model->galleryPhotos();
         }
 
@@ -232,10 +232,17 @@ class EntryController extends Controller
             $data['showUrl'] = ShowTitle::for($model) === null ? null : $model->series?->url();
         }
 
-        // The venue's category is already a taxonomy with its own archive, so
-        // the detail page links to it rather than printing it as dead text.
-        if ($model instanceof Checkin && $model->category !== null) {
-            $data['categoryHref'] = '/'.TypeRegistry::find('checkin')['taxonomy']['base'].'/'.Str::slug($model->category);
+        // The frontend calls this attribute "category" regardless of what the
+        // column is named, and the venue's category is already a taxonomy with
+        // its own archive, so the detail page links to it rather than printing
+        // it as dead text.
+        if ($model instanceof Place) {
+            $data['category'] = $data['type'] ?? null;
+            unset($data['type']);
+
+            if ($model->type !== null) {
+                $data['categoryHref'] = '/'.TypeRegistry::find('place')['taxonomy']['base'].'/'.Str::slug($model->type);
+            }
         }
 
         if ($model instanceof Event) {

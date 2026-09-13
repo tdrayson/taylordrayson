@@ -43,7 +43,7 @@ final class SuggestSearch
         'appearance' => ['title', 'show_name', 'description'],
         'podcast' => ['topic', 'show_notes'],
         'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
-        'checkin' => ['venue_name', 'category', 'city', 'description'],
+        'place' => ['venue_name', 'type', 'city', 'description'],
         'fuel' => ['station_name', 'city'],
         'project' => ['title', 'description', 'status'],
         'note' => ['content'],

@@ -51,7 +51,7 @@ class Media extends Model implements HasMedia, Timelineable
     }
 
     /**
-     * Kept because Activity and Checkin expose the same attribute and
+     * Kept because Activity and Place expose the same attribute and
      * EntryController reads it off whichever model it was handed. The URL
      * shapes themselves live in TraktUrl, so the model no longer knows how a
      * Trakt link is spelled.

@@ -7,13 +7,13 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Series;
@@ -112,7 +112,7 @@ class DatabaseSeeder extends Seeder
             $this->seedSleep($date);
             $this->seedFood($date);
             $this->seedActivities($date);
-            $this->seedCheckins($date);
+            $this->seedPlaces($date);
             $this->seedNotes($date);
             $this->seedMediaFilms($date);
             $this->seedMediaTvEpisodes($date);
@@ -228,7 +228,7 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedCheckins(Carbon $date): void
+    private function seedPlaces(Carbon $date): void
     {
         if (! fake()->boolean(60)) {
             return;
@@ -237,16 +237,16 @@ class DatabaseSeeder extends Seeder
         $count = fake()->numberBetween(1, 2);
 
         for ($i = 0; $i < $count; $i++) {
-            $checkin = Checkin::factory()->create([
+            $place = Place::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(9, 21), fake()->numberBetween(0, 59)),
             ]);
 
             if (fake()->boolean(30)) {
-                $this->attachPhotos($checkin, fake()->numberBetween(1, 2));
+                $this->attachPhotos($place, fake()->numberBetween(1, 2));
             }
 
             if (fake()->boolean(50)) {
-                $this->attachMap($checkin);
+                $this->attachMap($place);
             }
         }
     }

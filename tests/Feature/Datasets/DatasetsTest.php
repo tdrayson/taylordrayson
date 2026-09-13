@@ -3,10 +3,10 @@
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
 use App\Enums\TimelineType;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\User;
 use App\Presenters\CardPresenter;
-use App\Presenters\Cards\CheckinCard;
+use App\Presenters\Cards\PlaceCard;
 use App\Search\SearchSchema;
 use App\Support\TypeCatalogue;
 use App\Timeline\TypeRegistry;
@@ -31,10 +31,10 @@ it('finds a dataset by model instance and by class name', function () {
 });
 
 it('resolves a subclassed timeline model to its parent dataset', function () {
-    $subclass = new class extends Checkin {};
+    $subclass = new class extends Place {};
 
-    expect(Datasets::forModel($subclass)?->type()->value)->toBe('checkin')
-        ->and(CardPresenter::card($subclass))->toBeInstanceOf(CheckinCard::class);
+    expect(Datasets::forModel($subclass)?->type()->value)->toBe('place')
+        ->and(CardPresenter::card($subclass))->toBeInstanceOf(PlaceCard::class);
 });
 
 it('matches the catalogue row each type has today', function (Dataset $dataset) {
@@ -91,7 +91,7 @@ it('counts entries in the nouns the more page uses', function () {
         'appearance' => ['appearance', 'appearances'],
         'podcast' => ['episode', 'episodes'],
         'flight' => ['flight', 'flights'],
-        'checkin' => ['check-in', 'check-ins'],
+        'place' => ['check-in', 'check-ins'],
         'fuel' => ['fill-up', 'fill-ups'],
         'project' => ['project', 'projects'],
         'article' => ['article', 'articles'],
@@ -111,7 +111,7 @@ it('groups every type into a kind', function () {
         'appearance' => 'speaking',
         'podcast' => 'speaking',
         'flight' => 'travel',
-        'checkin' => 'travel',
+        'place' => 'travel',
         'fuel' => 'travel',
         'project' => 'writing',
         'article' => 'writing',

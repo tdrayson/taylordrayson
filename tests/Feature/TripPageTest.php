@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\Trip;
 
 use function Pest\Laravel\get;
@@ -21,13 +21,13 @@ it('matches entries by instant rather than wall-clock time', function () {
         'timezone' => 'Europe/London',
     ]);
 
-    Checkin::factory()->create([
+    Place::factory()->create([
         'venue_name' => 'Too Early',
         'occurred_at' => '2026-08-05 15:00:00',
         'timezone' => 'Asia/Tokyo',
     ]);
 
-    Checkin::factory()->create([
+    Place::factory()->create([
         'venue_name' => 'Just Landed',
         'occurred_at' => '2026-08-05 17:00:00',
         'timezone' => 'Asia/Tokyo',
@@ -52,19 +52,19 @@ it('gathers every type inside the window and excludes entries outside it', funct
         'timezone' => 'Europe/London',
     ]);
 
-    Checkin::factory()->create([
+    Place::factory()->create([
         'venue_name' => 'Inside The Window',
         'occurred_at' => '2026-03-04 12:00:00',
         'timezone' => 'America/Los_Angeles',
     ]);
 
-    Checkin::factory()->create([
+    Place::factory()->create([
         'venue_name' => 'Long Before',
         'occurred_at' => '2026-01-04 12:00:00',
         'timezone' => 'Europe/London',
     ]);
 
-    Checkin::factory()->create([
+    Place::factory()->create([
         'venue_name' => 'Long After',
         'occurred_at' => '2026-06-04 12:00:00',
         'timezone' => 'Europe/London',
@@ -89,9 +89,9 @@ it('orders trip entries chronologically', function () {
         'timezone' => 'Europe/London',
     ]);
 
-    Checkin::factory()->create(['venue_name' => 'Third', 'occurred_at' => '2026-04-04 09:00:00', 'timezone' => 'Europe/London']);
-    Checkin::factory()->create(['venue_name' => 'First', 'occurred_at' => '2026-04-01 09:00:00', 'timezone' => 'Europe/London']);
-    Checkin::factory()->create(['venue_name' => 'Second', 'occurred_at' => '2026-04-02 09:00:00', 'timezone' => 'Europe/London']);
+    Place::factory()->create(['venue_name' => 'Third', 'occurred_at' => '2026-04-04 09:00:00', 'timezone' => 'Europe/London']);
+    Place::factory()->create(['venue_name' => 'First', 'occurred_at' => '2026-04-01 09:00:00', 'timezone' => 'Europe/London']);
+    Place::factory()->create(['venue_name' => 'Second', 'occurred_at' => '2026-04-02 09:00:00', 'timezone' => 'Europe/London']);
 
     get($trip->url())->assertOk()->assertInertia(fn ($page) => $page
         ->where('groups', function ($groups) {
@@ -128,13 +128,13 @@ it('links an entry back to the trip its instant falls inside', function () {
         'timezone' => 'Europe/London',
     ]);
 
-    $inside = Checkin::factory()->create([
+    $inside = Place::factory()->create([
         'venue_name' => 'Rijksmuseum',
         'occurred_at' => '2026-05-03 11:00:00',
         'timezone' => 'Europe/Amsterdam',
     ]);
 
-    $outside = Checkin::factory()->create([
+    $outside = Place::factory()->create([
         'venue_name' => 'Home Again',
         'occurred_at' => '2026-05-20 11:00:00',
         'timezone' => 'Europe/London',

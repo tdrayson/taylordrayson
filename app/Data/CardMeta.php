@@ -101,13 +101,13 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Checkin: the check-in's own photos alongside the generated location map,
+     * Place: the check-in's own photos alongside the generated location map,
      * both rather than one-or-other, with the address beneath and Foursquare's
      * category as a label.
      *
      * @param  list<PhotoData>  $photos
      */
-    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address, ?string $category): self
+    public static function place(array $photos, ?string $map, ?string $mapDark, ?string $address, ?string $category): self
     {
         return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address', 'category'], $address, null, $category);
     }

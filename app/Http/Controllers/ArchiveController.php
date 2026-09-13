@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
 use App\Enums\TimelineType;
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Models\Place;
 use App\Models\TimelineEntry;
 use App\Queries\ArchiveTagBridge;
 use App\Support\OgMeta;
@@ -103,7 +103,7 @@ class ArchiveController extends Controller
         return match ($type) {
             'flight' => $this->flightRoutes($taxonomy, $value),
             'fuel' => $this->fuelStations($taxonomy, $value),
-            'checkin' => $this->checkinPlaces($taxonomy, $value),
+            'place' => $this->placeLocations($taxonomy, $value),
             default => [],
         };
     }
@@ -193,9 +193,9 @@ class ArchiveController extends Controller
      * @param  array<string, mixed>|null  $taxonomy
      * @return list<array<string, mixed>>
      */
-    private function checkinPlaces(?array $taxonomy, ?string $value): array
+    private function placeLocations(?array $taxonomy, ?string $value): array
     {
-        $query = Checkin::query()
+        $query = Place::query()
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
 
@@ -206,11 +206,11 @@ class ArchiveController extends Controller
         return $query
             ->orderByDesc('occurred_at')
             ->get(['venue_name', 'city', 'latitude', 'longitude'])
-            ->unique(fn (Checkin $checkin): string => round((float) $checkin->latitude, 4).','.round((float) $checkin->longitude, 4))
-            ->map(fn (Checkin $checkin): array => [
-                'lat' => (float) $checkin->latitude,
-                'lng' => (float) $checkin->longitude,
-                'label' => $checkin->venue_name ?: $checkin->city ?: 'Place',
+            ->unique(fn (Place $place): string => round((float) $place->latitude, 4).','.round((float) $place->longitude, 4))
+            ->map(fn (Place $place): array => [
+                'lat' => (float) $place->latitude,
+                'lng' => (float) $place->longitude,
+                'label' => $place->venue_name ?: $place->city ?: 'Place',
             ])
             ->values()
             ->all();

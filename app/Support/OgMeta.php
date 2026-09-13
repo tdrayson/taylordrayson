@@ -5,8 +5,8 @@ namespace App\Support;
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Media;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\TimelineEntry;
@@ -305,7 +305,7 @@ class OgMeta
     /**
      * @param  string  $label  The type's display label (e.g. "Places"), shown as the eyebrow.
      * @param  string  $title  The page title (the type label, or a taxonomy phrase).
-     * @param  string  $accentToken  The card accent token (e.g. "checkin", "food").
+     * @param  string  $accentToken  The card accent token (e.g. "place", "food").
      * @param  bool  $isTaxonomy  Whether this is a taxonomy sub-page rather than the index.
      * @param  string  $noun  The type's singular noun (e.g. "activity"), pluralised against the total.
      * @param  int  $total  How many entries the archive holds.
@@ -513,7 +513,7 @@ class OgMeta
         // A check-in card reads "at Cineworld", which is a phrase in a feed but
         // not a title. The venue is the name of the thing.
         $title = match (true) {
-            $model instanceof Checkin => trim(collect([$model->event_name, $model->venue_name])->filter()->implode(' at ')),
+            $model instanceof Place => trim(collect([$model->event_name, $model->venue_name])->filter()->implode(' at ')),
             $show !== null => "{$show}: {$card->title}",
             default => $card->title,
         };

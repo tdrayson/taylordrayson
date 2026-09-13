@@ -57,7 +57,7 @@ final class OgGalleryUrls
         $samples = [
             'activity' => ['layout' => 'media', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '3.2 mi, 42 min', 'image' => $this->sampleMap('activity')],
             'flight' => ['layout' => 'media', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
-            'checkin' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('checkin'))],
+            'place' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('place'))],
             'media' => ['layout' => 'text', 'eyebrow' => 'Books', 'title' => 'I read Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear'],
             'appearance' => ['layout' => 'text', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
             'podcast' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],

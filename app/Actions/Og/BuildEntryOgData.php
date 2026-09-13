@@ -204,7 +204,7 @@ final class BuildEntryOgData
             }
         }
 
-        if ($type === TimelineType::Checkin) {
+        if ($type === TimelineType::Place) {
             $latitude = $this->floatOrNull($model->latitude);
             $longitude = $this->floatOrNull($model->longitude);
 

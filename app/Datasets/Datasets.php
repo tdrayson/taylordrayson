@@ -37,7 +37,7 @@ final class Datasets
             new AppearanceDataset,
             new PodcastDataset,
             new FlightDataset,
-            new CheckinDataset,
+            new PlaceDataset,
             new FuelDataset,
             new ProjectDataset,
             new ArticleDataset,
@@ -77,6 +77,7 @@ final class Datasets
      */
     public const ALIASES = [
         'calorie' => ['food'],
+        'checkin' => ['place'],
     ];
 
     /**

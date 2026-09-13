@@ -50,7 +50,7 @@ Schedule::command('strava:streams')->hourly()->withoutOverlapping();
 
 // Static timeline maps for newly located entries of each mappable type.
 Schedule::command('maps:generate flight')->hourly()->withoutOverlapping();
-Schedule::command('maps:generate checkin')->hourly()->withoutOverlapping();
+Schedule::command('maps:generate place')->hourly()->withoutOverlapping();
 Schedule::command('maps:generate fuel')->hourly()->withoutOverlapping();
 Schedule::command('maps:generate activity')->hourly()->withoutOverlapping();
 

@@ -39,7 +39,7 @@ class FeedPresets
             'travel' => [
                 'label' => 'Travel',
                 'description' => "Flights, places I've been, and petrol stops.",
-                'types' => ['flight', 'checkin', 'fuel'],
+                'types' => ['flight', 'place', 'fuel'],
             ],
             'health' => [
                 'label' => 'Life & Health',

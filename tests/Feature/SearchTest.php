@@ -2,10 +2,10 @@
 
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\Page;
+use App\Models\Place;
 use App\Models\User;
 use App\Search\SearchSchema;
 use Illuminate\Support\Facades\Schema;
@@ -27,13 +27,13 @@ it('returns matching entries with a navigable url', function () {
 });
 
 it('searches across multiple types and orders by recency', function () {
-    Checkin::factory()->create(['venue_name' => 'Coffee Lab', 'occurred_at' => '2026-01-10 09:00:00']);
+    Place::factory()->create(['venue_name' => 'Coffee Lab', 'occurred_at' => '2026-01-10 09:00:00']);
     Note::factory()->create(['content' => 'Thinking about coffee roasting', 'occurred_at' => '2026-05-01 09:00:00']);
 
     getJson('/search/suggest?q=coffee')->assertOk()->assertJson(fn ($json) => $json
         ->has('results', 2)
         ->where('results.0.type', 'note')
-        ->where('results.1.type', 'checkin')
+        ->where('results.1.type', 'place')
         ->etc()
     );
 });

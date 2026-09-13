@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Actions\Checkins\ImportCheckin;
+use App\Actions\Places\ImportPlace;
 use App\Enums\Source;
 use App\Jobs\GenerateEntryMap;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Services\Foursquare\Client;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
@@ -30,7 +30,7 @@ class FoursquareSync extends Command
      * that is older than --days, so a missed schedule self-heals; the overlap is
      * free because the action upserts on source_id.
      */
-    public function handle(Client $foursquare, ImportCheckin $importCheckin): int
+    public function handle(Client $foursquare, ImportPlace $importPlace): int
     {
         $after = $this->resolveAfterTimestamp();
 
@@ -40,7 +40,7 @@ class FoursquareSync extends Command
 
         try {
             foreach ($foursquare->checkins($after) as $item) {
-                $result = $importCheckin($item);
+                $result = $importPlace($item);
 
                 $result->created ? $imported++ : $updated++;
                 $photosAdded += $result->photosAdded;
@@ -54,9 +54,9 @@ class FoursquareSync extends Command
                     // maps:generate sweep, so a check-in reaches the timeline
                     // looking finished. Only for new ones: an existing
                     // check-in already has its map.
-                    GenerateEntryMap::dispatch($result->checkin);
+                    GenerateEntryMap::dispatch($result->place);
 
-                    $this->info(sprintf('%s - %s', $result->checkin->venue_name, date('Y-m-d H:i', $item['createdAt'])));
+                    $this->info(sprintf('%s - %s', $result->place->venue_name, date('Y-m-d H:i', $item['createdAt'])));
                 }
             }
         } catch (RuntimeException $exception) {
@@ -79,7 +79,7 @@ class FoursquareSync extends Command
         $window = Carbon::now()->subDays(max(0, (int) $this->option('days')));
 
         /** @var string|null $newest */
-        $newest = Checkin::query()->where('source', Source::Swarm->value)->max('occurred_at');
+        $newest = Place::query()->where('source', Source::Swarm->value)->max('occurred_at');
 
         if ($newest === null) {
             return $window->timestamp;

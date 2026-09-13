@@ -43,7 +43,7 @@ const lightboxIndex = ref(null);
                 :lat="location.lat"
                 :lng="location.lng"
                 :label="entry.venue_name || location.address"
-                color="var(--color-checkin)"
+                color="var(--color-place)"
             />
             <div class="flex flex-col gap-y-2 sm:flex-row sm:items-start sm:justify-between sm:gap-x-4 sm:gap-y-1">
                 <div v-if="entry.venue_name || addressLine" class="min-w-0">

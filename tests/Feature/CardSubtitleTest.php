@@ -1,12 +1,12 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
+use App\Models\Place;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
 
@@ -116,27 +116,27 @@ it('drops the price sentence when there is no price per litre', function () {
 });
 
 it('uses the checkin note as its subtitle when present', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'description' => 'Great coffee here',
-        'category' => 'Coffee Shop',
+        'type' => 'Coffee Shop',
         'city' => 'London',
     ]);
 
-    expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Great coffee here');
+    expect(CardPresenter::for($place)->toArray()['subtitle'])->toBe('Great coffee here');
 });
 
 // Foursquare's vocabulary includes Road, Platform and Town, so the category is
 // shown as its own label rather than written into a sentence about the place.
 it('leaves a checkin with no note unsubtitled, carrying its category as data', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'description' => null,
         'venue_name' => 'Blue Bottle',
-        'category' => 'Coffee Shop',
+        'type' => 'Coffee Shop',
         'city' => 'London',
         'address' => 'High Street',
     ]);
 
-    $card = CardPresenter::for($checkin)->toArray();
+    $card = CardPresenter::for($place)->toArray();
 
     expect($card['title'])->toBe('at Blue Bottle')
         ->and($card['subtitle'])->toBeNull()

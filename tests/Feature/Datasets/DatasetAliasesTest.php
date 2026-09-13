@@ -78,3 +78,9 @@ it('keeps accepting calorie as food', function () {
 
     $this->get('/feed?types=calorie')->assertOk();
 });
+
+it('keeps accepting checkin as place', function () {
+    expect(Datasets::resolveOne('checkin')?->type()->value)->toBe('place');
+
+    $this->get('/feed?types=checkin')->assertOk();
+});

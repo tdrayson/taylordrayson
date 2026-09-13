@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Actions\Checkins;
+namespace App\Actions\Places;
 
-use App\Data\CheckinImport;
+use App\Data\PlaceImport;
 use App\Enums\Source;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Support\VenueTimezone;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
@@ -16,14 +16,14 @@ use Throwable;
  * sync so the two can never drift into storing different shapes for the same
  * payload.
  */
-class ImportCheckin
+class ImportPlace
 {
     public function __construct(private readonly VenueTimezone $timezones) {}
 
     /**
      * @param  array<string, mixed>  $item  A `checkins.items` entry from the Foursquare v2 API.
      */
-    public function __invoke(array $item): CheckinImport
+    public function __invoke(array $item): PlaceImport
     {
         $venue = $item['venue'] ?? [];
         $location = $venue['location'] ?? [];
@@ -33,13 +33,13 @@ class ImportCheckin
         // rather than the one on the wall at the time.
         $timezone = $this->timezones->forCoordinate($location['lat'] ?? null, $location['lng'] ?? null);
 
-        $checkin = Checkin::updateOrCreate(
+        $place = Place::updateOrCreate(
             ['source' => Source::Swarm->value, 'source_id' => $item['id']],
             [
                 'occurred_at' => $this->timezones->localWallClock($item['createdAt'], $timezone),
                 'timezone' => $timezone,
                 'venue_name' => $venue['name'] ?? 'Unknown',
-                'category' => $venue['categories'][0]['name'] ?? null,
+                'type' => $venue['categories'][0]['name'] ?? null,
                 'address' => $location['address'] ?? null,
                 'postcode' => $location['postalCode'] ?? null,
                 'city' => $location['city'] ?? null,
@@ -52,10 +52,10 @@ class ImportCheckin
             ],
         );
 
-        $created = $checkin->wasRecentlyCreated;
-        [$photosAdded, $warnings] = $this->attachPhotos($checkin, $item['photos']['items'] ?? []);
+        $created = $place->wasRecentlyCreated;
+        [$photosAdded, $warnings] = $this->attachPhotos($place, $item['photos']['items'] ?? []);
 
-        return new CheckinImport($checkin, $created, $photosAdded, $warnings);
+        return new PlaceImport($place, $created, $photosAdded, $warnings);
     }
 
     /**
@@ -72,13 +72,13 @@ class ImportCheckin
      * @param  array<int, array{prefix?: string, suffix?: string}>  $photos
      * @return array{0: int, 1: list<string>}
      */
-    private function attachPhotos(Checkin $checkin, array $photos): array
+    private function attachPhotos(Place $place, array $photos): array
     {
         if ($photos === []) {
             return [0, []];
         }
 
-        $stored = $checkin->getMedia('photos')
+        $stored = $place->getMedia('photos')
             ->map(fn (Media $media): string => self::stemOf($media->file_name))
             ->all();
 
@@ -98,11 +98,11 @@ class ImportCheckin
             }
 
             try {
-                $checkin->addMediaFromUrl($prefix.'original'.$suffix)->toMediaCollection('photos');
+                $place->addMediaFromUrl($prefix.'original'.$suffix)->toMediaCollection('photos');
                 $stored[] = self::stemOf($suffix);
                 $added++;
             } catch (Throwable $exception) {
-                $warnings[] = "photo failed for {$checkin->venue_name}: {$exception->getMessage()}";
+                $warnings[] = "photo failed for {$place->venue_name}: {$exception->getMessage()}";
             }
         }
 

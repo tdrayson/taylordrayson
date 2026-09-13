@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Checkin;
+use App\Models\Place;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Checkin>
+ * @extends Factory<Place>
  */
-class CheckinFactory extends Factory
+class PlaceFactory extends Factory
 {
     /**
      * @var array<string, string>
@@ -50,7 +50,7 @@ class CheckinFactory extends Factory
         return [
             'occurred_at' => fake()->dateTimeBetween('-6 months'),
             'venue_name' => $venueName,
-            'category' => $category,
+            'type' => $category,
             'city' => $city,
             'country' => 'United Kingdom',
             'latitude' => $coords['lat'] + fake()->randomFloat(4, -0.05, 0.05),

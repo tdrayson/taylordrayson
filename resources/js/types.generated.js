@@ -14,7 +14,7 @@ export const timelineTypes = {
     appearance: { icon: 'Mic01Icon', label: 'Appearance', plural: 'Appearances', href: '/appearances', accent: 'appearance', keywords: 'talk speaking interview', noun: 'appearance', nounPlural: 'appearances', kind: 'speaking' },
     podcast: { icon: 'PodcastIcon', label: 'This Week With', plural: 'This Week With', href: '/this-week-with', accent: 'podcast', keywords: 'podcast tww episode', noun: 'episode', nounPlural: 'episodes', kind: 'speaking' },
     flight: { icon: 'AirplaneTakeOff01Icon', label: 'Flight', plural: 'Flights', href: '/flights', accent: 'flight', keywords: 'fly travel trip airport', noun: 'flight', nounPlural: 'flights', kind: 'travel' },
-    checkin: { icon: 'Location01Icon', label: 'Place', plural: 'Places', href: '/places', accent: 'checkin', keywords: 'place location visited', noun: 'check-in', nounPlural: 'check-ins', kind: 'travel' },
+    place: { icon: 'Location01Icon', label: 'Place', plural: 'Places', href: '/places', accent: 'place', keywords: 'place location visited', noun: 'check-in', nounPlural: 'check-ins', kind: 'travel' },
     fuel: { icon: 'PetrolPumpIcon', label: 'Fuel', plural: 'Fuel', href: '/fuel', accent: 'fuel', keywords: 'petrol gas diesel', noun: 'fill-up', nounPlural: 'fill-ups', kind: 'travel' },
     project: { icon: 'RocketIcon', label: 'Project', plural: 'Projects', href: '/projects', accent: 'project', keywords: 'build side product', noun: 'project', nounPlural: 'projects', kind: 'writing' },
     article: { icon: 'File01Icon', label: 'Article', plural: 'Articles', href: '/articles', accent: 'article', keywords: 'blog post writing read', noun: 'article', nounPlural: 'articles', kind: 'writing' },

@@ -61,7 +61,7 @@ const editorValues = computed(() => valuesFor(props.fields, {
 }));
 
 // Every *Detail.vue, eagerly bundled as the static imports were. A type's detail is
-// found by convention: 'checkin' renders CheckinDetail, 'this-week-with' ThisWeekWithDetail.
+// found by convention: 'place' renders PlaceDetail, 'this-week-with' ThisWeekWithDetail.
 const detailModules = import.meta.glob('../Components/Entry/*Detail.vue', { eager: true, import: 'default' });
 
 // Turn a type key into its component file name, e.g. 'this-week-with' -> 'ThisWeekWith'.

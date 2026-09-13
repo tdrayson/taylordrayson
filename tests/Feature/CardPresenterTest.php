@@ -4,7 +4,6 @@ use App\Data\CardData;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Concerns\Timelineable;
 use App\Models\Event;
 use App\Models\Flight;
@@ -12,6 +11,7 @@ use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
@@ -33,7 +33,7 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
     'appearance' => fn () => Appearance::factory()->create(),
     'podcast' => fn () => Podcast::factory()->create(),
     'flight' => fn () => Flight::factory()->create(),
-    'checkin' => fn () => Checkin::factory()->create(),
+    'place' => fn () => Place::factory()->create(),
     'fuel' => fn () => Fuel::factory()->create(),
     'project' => fn () => Project::factory()->create(),
     'article' => fn () => Article::factory()->create(),

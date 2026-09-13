@@ -2,8 +2,8 @@
 
 use App\Enums\MediaType;
 use App\Models\Activity;
-use App\Models\Checkin;
 use App\Models\Media;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Sleep;
 use Illuminate\Support\Facades\Storage;
@@ -75,8 +75,8 @@ it('orders the deck newest first and excludes posters, matching /photos', functi
     Storage::fake('public');
 
     // An older personal photo and a newer one, on different entry types.
-    $checkin = Checkin::factory()->create(['occurred_at' => now()->subYears(5)]);
-    $checkin->addMediaFromString(fakeJpeg())->usingFileName('old.jpg')->toMediaCollection('photos');
+    $place = Place::factory()->create(['occurred_at' => now()->subYears(5)]);
+    $place->addMediaFromString(fakeJpeg())->usingFileName('old.jpg')->toMediaCollection('photos');
 
     $activity = Activity::factory()->create(['occurred_at' => now()->subDay()]);
     $activity->addMediaFromString(fakeJpeg())->usingFileName('new.jpg')->toMediaCollection('cover');
@@ -91,6 +91,6 @@ it('orders the deck newest first and excludes posters, matching /photos', functi
         // Newest entry (yesterday's activity) leads, not the recently-imported
         // but five-year-old check-in.
         ->where('photos.0.url', $activity->url())
-        ->where('photos.1.url', $checkin->url())
+        ->where('photos.1.url', $place->url())
     );
 });

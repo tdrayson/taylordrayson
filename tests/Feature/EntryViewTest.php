@@ -3,11 +3,11 @@
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Concerns\Timelineable;
 use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Series;
 use App\Models\Sleep;
 
@@ -178,13 +178,13 @@ it('leaves the show unlinked when no series record backs it', function () {
 });
 
 it('links a check-in category to its archive', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'venue_name' => 'Cineworld',
-        'category' => 'Movie Theater',
+        'type' => 'Movie Theater',
         'occurred_at' => '2026-08-24 19:00:00',
     ]);
 
-    get('/'.entryUrl($checkin))
+    get('/'.entryUrl($place))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('entry.category', 'Movie Theater')

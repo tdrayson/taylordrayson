@@ -7,13 +7,13 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
@@ -62,7 +62,7 @@ final class EntryDescription
         $description = match (true) {
             $model instanceof Sleep => self::sleep($card),
             $model instanceof Activity => self::activity($model, $card),
-            $model instanceof Checkin => self::checkin($model),
+            $model instanceof Place => self::place($model),
             $model instanceof Flight => self::flight($model),
             $model instanceof Media => self::media($model),
             $model instanceof Food => self::food($model),
@@ -104,7 +104,7 @@ final class EntryDescription
      * The note I left, placed at the venue it was left at, because the title
      * carries the venue alone and the town is worth having in a search result.
      */
-    private static function checkin(Checkin $model): string
+    private static function place(Place $model): string
     {
         $place = collect([$model->venue_name, $model->city])->filter()->implode(', ');
         $note = self::source($model->description);
@@ -117,7 +117,7 @@ final class EntryDescription
             return '';
         }
 
-        $category = $model->category ? ", a {$model->category}" : '';
+        $category = $model->type ? ", a {$model->type}" : '';
         $city = $model->city ? " in {$model->city}" : '';
 
         return "I checked in at {$model->venue_name}{$category}{$city}.";

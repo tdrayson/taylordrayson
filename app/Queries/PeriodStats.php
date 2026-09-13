@@ -6,11 +6,11 @@ use App\Enums\ActivityDiscipline;
 use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Sleep;
 use Illuminate\Support\Carbon;
 
@@ -88,7 +88,7 @@ final class PeriodStats
             $stats[] = ['label' => 'Flights', 'value' => number_format($flights)];
         }
 
-        $places = $between(Checkin::query())->count();
+        $places = $between(Place::query())->count();
 
         if ($places > 0) {
             $stats[] = ['label' => 'Places', 'value' => number_format($places)];

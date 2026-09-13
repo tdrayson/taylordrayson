@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Media;
+use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
@@ -64,7 +64,7 @@ describe('timezones:backfill', function () {
     });
 
     it('gives a foreign check-in its venue zone and the clock that was on the wall', function () {
-        $checkin = Checkin::factory()->create([
+        $place = Place::factory()->create([
             // As date() rendered it: the server's clock, not the venue's.
             'occurred_at' => '2022-10-14 01:26:55',
             'country' => 'United States',
@@ -75,16 +75,16 @@ describe('timezones:backfill', function () {
 
         $this->artisan('timezones:backfill')->assertSuccessful();
 
-        $checkin->refresh();
+        $place->refresh();
 
         // 01:26 in London is 20:26 the evening before in New York, so it moves
         // to the day it actually happened on.
-        expect($checkin->timezone)->toBe('America/New_York')
-            ->and($checkin->occurred_at->toDateTimeString())->toBe('2022-10-13 20:26:55');
+        expect($place->timezone)->toBe('America/New_York')
+            ->and($place->occurred_at->toDateTimeString())->toBe('2022-10-13 20:26:55');
     });
 
     it('leaves a check-in at home alone, since empty already means home', function () {
-        $checkin = Checkin::factory()->create([
+        $place = Place::factory()->create([
             'occurred_at' => '2022-10-14 01:26:55',
             'country' => 'United Kingdom',
             'timezone' => null,
@@ -92,8 +92,8 @@ describe('timezones:backfill', function () {
 
         $this->artisan('timezones:backfill')->assertSuccessful();
 
-        expect($checkin->fresh()->timezone)->toBeNull()
-            ->and($checkin->fresh()->occurred_at->toDateTimeString())->toBe('2022-10-14 01:26:55');
+        expect($place->fresh()->timezone)->toBeNull()
+            ->and($place->fresh()->occurred_at->toDateTimeString())->toBe('2022-10-14 01:26:55');
     });
 
     it('stamps entries inside a trip with where the trip was', function () {
@@ -121,7 +121,7 @@ describe('timezones:backfill', function () {
         Flight::factory()->create(['occurred_at' => '2022-10-13 08:00:00', 'arrival_timezone' => 'America/New_York']);
         Flight::factory()->create(['occurred_at' => '2022-10-20 18:00:00', 'arrival_timezone' => 'Europe/London']);
 
-        $gatwick = Checkin::factory()->create([
+        $gatwick = Place::factory()->create([
             'occurred_at' => '2022-10-13 06:00:00',
             'country' => 'United Kingdom',
             'timezone' => null,
@@ -248,7 +248,7 @@ describe('timezones:backfill', function () {
     });
 
     it('changes nothing on a second run', function () {
-        Checkin::factory()->create([
+        Place::factory()->create([
             'occurred_at' => '2022-10-14 01:26:55',
             'country' => 'United States',
             'latitude' => 40.75,

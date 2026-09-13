@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Checkin;
+use App\Models\Place;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -25,15 +25,15 @@ it('imports checkins from the foursquare api', function () {
 
     $this->artisan('foursquare:import')->assertSuccessful();
 
-    $checkin = Checkin::where('source_id', 'abc')->first();
-    expect($checkin)->not->toBeNull();
-    expect($checkin->venue_name)->toBe('Coffee Bar');
-    expect($checkin->category)->toBe('Café');
-    expect($checkin->city)->toBe('London');
+    $place = Place::where('source_id', 'abc')->first();
+    expect($place)->not->toBeNull();
+    expect($place->venue_name)->toBe('Coffee Bar');
+    expect($place->type)->toBe('Café');
+    expect($place->city)->toBe('London');
 });
 
 it('skips checkins that already exist', function () {
-    Checkin::factory()->create(['source' => 'swarm', 'source_id' => 'dupe']);
+    Place::factory()->create(['source' => 'swarm', 'source_id' => 'dupe']);
 
     Saloon::fake([
         MockResponse::make(['response' => ['checkins' => ['items' => [[
@@ -46,7 +46,7 @@ it('skips checkins that already exist', function () {
 
     $this->artisan('foursquare:import')->assertSuccessful();
 
-    expect(Checkin::where('source_id', 'dupe')->count())->toBe(1);
+    expect(Place::where('source_id', 'dupe')->count())->toBe(1);
 });
 
 it('fails when the api errors', function () {

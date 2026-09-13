@@ -4,24 +4,24 @@ namespace App\Datasets;
 
 use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
-use App\Models\Checkin;
-use App\Presenters\Cards\CheckinCard;
+use App\Models\Place;
+use App\Presenters\Cards\PlaceCard;
 use App\Timeline\Taxonomies;
 use Illuminate\Support\Str;
 
 /**
  * Places checked in to, from Swarm.
  */
-final class CheckinDataset extends BaseDataset
+final class PlaceDataset extends BaseDataset
 {
     public function type(): TimelineType
     {
-        return TimelineType::Checkin;
+        return TimelineType::Place;
     }
 
     public function model(): string
     {
-        return Checkin::class;
+        return Place::class;
     }
 
     public function kind(): DatasetKind
@@ -68,9 +68,9 @@ final class CheckinDataset extends BaseDataset
         return ['check-in', 'check-ins'];
     }
 
-    public function card(): CheckinCard
+    public function card(): PlaceCard
     {
-        return new CheckinCard;
+        return new PlaceCard;
     }
 
     /**
@@ -80,7 +80,7 @@ final class CheckinDataset extends BaseDataset
     {
         return [
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Place'],
-            'category' => ['label' => 'Category', 'dataType' => 'enum', 'column' => 'category', 'category' => 'Place'],
+            'category' => ['label' => 'Category', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Place'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Place'],
             'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
             'county' => ['label' => 'County', 'dataType' => 'text', 'column' => 'county', 'category' => 'Location'],
@@ -93,11 +93,11 @@ final class CheckinDataset extends BaseDataset
      */
     public function textColumns(): array
     {
-        return ['venue_name', 'category', 'city', 'description'];
+        return ['venue_name', 'type', 'city', 'description'];
     }
 
     public function taxonomy(): callable
     {
-        return Taxonomies::column('category', 'Category', fn (string $label): string => Str::plural($label));
+        return Taxonomies::column('type', 'Category', fn (string $label): string => Str::plural($label));
     }
 }

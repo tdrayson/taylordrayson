@@ -6,8 +6,8 @@ use App\Actions\GenerateStaticMap;
 use App\Exceptions\MapGenerationFailed;
 use App\Jobs\GenerateEntryMap;
 use App\Models\Activity;
-use App\Models\Checkin;
 use App\Models\Note;
+use App\Models\Place;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,18 +20,18 @@ it('draws the right kind of map for the entry it is given', function () {
     Http::fake(['*api.mapbox.com*' => Http::response(mapPng(), 200)]);
 
     $activity = Activity::factory()->create(['meta' => ['polyline' => '_p~iF~ps|U_ulLnnqC']]);
-    $checkin = Checkin::factory()->create(['latitude' => 51.31, 'longitude' => -0.06]);
+    $place = Place::factory()->create(['latitude' => 51.31, 'longitude' => -0.06]);
 
     (new GenerateEntryMap($activity))->handle(...mapActions());
-    (new GenerateEntryMap($checkin))->handle(...mapActions());
+    (new GenerateEntryMap($place))->handle(...mapActions());
 
     // Re-read: the job's already-mapped guard caches an empty media relation on
     // the instance it was handed, which the generator's writes do not update.
     // A queued job gets a freshly deserialized model, so this only bites here.
     expect($activity->fresh()->getFirstMedia('map'))->not->toBeNull()
         ->and($activity->fresh()->getFirstMedia('map_dark'))->not->toBeNull()
-        ->and($checkin->fresh()->getFirstMedia('map'))->not->toBeNull()
-        ->and($checkin->fresh()->getFirstMedia('map_dark'))->not->toBeNull();
+        ->and($place->fresh()->getFirstMedia('map'))->not->toBeNull()
+        ->and($place->fresh()->getFirstMedia('map_dark'))->not->toBeNull();
 
     Http::assertSent(fn ($request) => str_contains($request->url(), 'path-'));
     Http::assertSent(fn ($request) => str_contains($request->url(), 'pin-l'));

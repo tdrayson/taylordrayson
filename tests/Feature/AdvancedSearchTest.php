@@ -4,8 +4,8 @@ use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\Place;
 use App\Models\User;
 use App\Search\SearchPresets;
 use App\Support\Distance;
@@ -176,7 +176,7 @@ it('searches an expanded field (activity name contains)', function () {
 
 it('filters Anything by a date range across types', function () {
     Activity::factory()->create(['type' => 'run', 'occurred_at' => '2026-03-10 08:00:00']);
-    Checkin::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => '2026-03-12 09:00:00']);
+    Place::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => '2026-03-12 09:00:00']);
     Activity::factory()->create(['type' => 'run', 'occurred_at' => '2026-04-10 08:00:00']);
 
     $url = searchUrl([[
@@ -188,7 +188,7 @@ it('filters Anything by a date range across types', function () {
 });
 
 it('filters Anything by free text across types', function () {
-    Checkin::factory()->create(['venue_name' => 'Zephyr Lounge', 'occurred_at' => now()->subDay()]);
+    Place::factory()->create(['venue_name' => 'Zephyr Lounge', 'occurred_at' => now()->subDay()]);
     Activity::factory()->create(['name' => 'Zephyr ride', 'type' => 'cycle', 'occurred_at' => now()->subDays(2)]);
     Activity::factory()->create(['name' => 'Plain run', 'type' => 'run', 'occurred_at' => now()->subDays(3)]);
 
@@ -311,7 +311,7 @@ it('filters Anything that has photos across types', function () {
     Storage::fake('public');
 
     attachPhotos(Activity::factory()->create(['type' => 'run', 'occurred_at' => now()->subDay()]), 2);
-    Checkin::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => now()->subDays(2)]);
+    Place::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => now()->subDays(2)]);
 
     get(searchUrl([['type' => 'any', 'conditions' => [['field' => 'photos', 'operator' => 'gt', 'value' => 0]]]]))
         ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));

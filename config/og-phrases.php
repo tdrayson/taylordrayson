@@ -56,7 +56,7 @@ return [
         'appearance' => ['Talks and appearances', 'Times they let me on stage', "Where I've been let loose"],
         'podcast' => ['Every episode so far', 'The whole back catalogue', 'Every week, archived'],
         'flight' => ["Everywhere I've flown", 'My carbon footprint, mapped', "Every flight I've taken"],
-        'checkin' => ["Everywhere I've been", "Places I've shown up", 'My questionable travel choices'],
+        'place' => ["Everywhere I've been", "Places I've shown up", 'My questionable travel choices'],
         'fuel' => ['Every fill-up', "Money I've burned on fuel", 'Every trip to the pump'],
         'project' => ["Things I've built", "Stuff I've made", 'My pile of side projects'],
         'article' => ["Things I've written", 'My collected ramblings', "Words I've put online"],

@@ -6,9 +6,9 @@ use App\Actions\GenerateFlightMap;
 use App\Actions\GenerateLocationMap;
 use App\Actions\GenerateStaticMap;
 use App\Models\Activity;
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Models\Place;
 use App\Support\TypeColors;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -54,7 +54,7 @@ class GenerateEntryMap implements ShouldQueue
             $this->entry instanceof Activity => $route($this->entry),
             $this->entry instanceof Flight => $arc($this->entry),
             $this->entry instanceof Fuel => $pin($this->entry, TypeColors::hex('fuel')),
-            $this->entry instanceof Checkin => $pin($this->entry, TypeColors::hex('checkin')),
+            $this->entry instanceof Place => $pin($this->entry, TypeColors::hex('place')),
             default => null,
         };
     }
