@@ -86,9 +86,6 @@ it('drops the old citation and quote when the reply is pointed somewhere else', 
         ->and($note->fresh()->response_quote)->toBeNull();
 });
 
-// wasRecentlyCreated stays true for the rest of the instance's life, so a
-// second save of the same object (as the authoring controller does after
-// rewriting body images) must not read as a second first-time reply.
 it('queues only one fetch when the same instance is saved again', function () {
     Queue::fake();
 
