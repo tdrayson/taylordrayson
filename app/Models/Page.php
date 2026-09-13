@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasInteractions;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\RecordsMentions;
 use App\Models\Concerns\SendsWebmentions;
 use App\Observers\LinkFaviconObserver;
@@ -35,6 +36,7 @@ class Page extends Model implements HasMedia
     use HasFactory;
 
     use HasInteractions;
+    use HasStatus;
     use RecordsMentions;
     use SendsWebmentions;
 

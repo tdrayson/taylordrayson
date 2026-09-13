@@ -199,3 +199,11 @@ it('records a mention from a project, which links out more than most', function 
     expect($mention->source_id)->toBe($project->id)
         ->and($mention->target_type)->toBe($article->getMorphClass());
 });
+
+it('records a mention on an unlisted entry', function () {
+    $article = Article::factory()->create(['status' => EntryStatus::Unlisted]);
+
+    Note::factory()->create(['content' => linkedTo($article->url())]);
+
+    expect($article->mentions()->count())->toBe(1);
+});
