@@ -75,12 +75,16 @@ const property = computed(() => `u-${props.response.property}`);
             </template>
 
             <!-- Their words behind the same rule a quote uses; basis-full breaks it onto its own row. -->
-            <div v-if="!response.internal && hasQuote" class="basis-full mt-2 border-l-2 border-neutral-100 pl-4">
-                <a v-if="cited.title" :href="response.url" class="u-url block font-semibold text-neutral-900 hover:text-accent-700">
+            <!-- The `quote` slot lets the editor swap their words for an input in place. -->
+            <div v-if="!response.internal && (hasQuote || $slots.quote)" class="basis-full mt-2 border-l-2 border-neutral-100 pl-4">
+                <a v-if="cited?.title" :href="response.url" class="u-url block font-semibold text-neutral-900 hover:text-accent-700">
                     <cite class="p-name not-italic">{{ cited.title }}</cite>
                 </a>
-                <p v-if="cited.quote" :class="['p-content text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
-                <a v-if="cited.published" :href="response.url" class="u-url mt-2 inline-block text-caption text-neutral-500 hover:text-accent-700">
+                <div v-if="$slots.quote" :class="cited?.title && 'mt-1'">
+                    <slot name="quote" />
+                </div>
+                <p v-else-if="cited.quote" :class="['p-content text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
+                <a v-if="cited?.published" :href="response.url" class="u-url mt-2 inline-block text-caption text-neutral-500 hover:text-accent-700">
                     <time class="dt-published" :datetime="cited.published.iso">{{ cited.published.label }} {{ cited.published.offset }}</time>
                 </a>
             </div>

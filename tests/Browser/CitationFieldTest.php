@@ -23,7 +23,13 @@ it('previews the stored copy and saves a trimmed quote', function () {
 
     $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-author')?.textContent.trim()), 1500))", 'Aaron Parecki');
 
+    // Shown once, in the preview, until asked to edit it there.
+    $page->assertMissing('#response_quote');
+    $page->click('button:has-text("Edit quote")');
+    $page->assertScript("document.querySelector('[data-testid=citation-preview] #response_quote').value", 'The whole opening paragraph.');
+
     $page->fill('#response_quote', 'Just this bit.');
+    $page->click('button:has-text("Done")');
     $page->assertScript("document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()", 'Just this bit.');
 
     $page->fill('#slug', 'agreed');
@@ -33,7 +39,7 @@ it('previews the stored copy and saves a trimmed quote', function () {
     expect(Note::sole()->response_quote)->toBe('Just this bit.');
 });
 
-it('clears the pre-filled quote when the reply url is changed to a different post', function () {
+it('drops a trimmed quote when the reply url is changed to a different post', function () {
     Citation::factory()->create([
         'url' => 'https://example.com/post-a',
         'title' => 'Post A',
@@ -53,23 +59,30 @@ it('clears the pre-filled quote when the reply url is changed to a different pos
     $page->fill('#response_url', 'https://example.com/post-a');
     $page->click('#slug');
 
-    $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('#response_quote')?.value), 1500))", 'Excerpt A.');
+    $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()), 1500))", 'Excerpt A.');
+
+    $page->click('button:has-text("Edit quote")');
+    $page->fill('#response_quote', 'Only part of A.');
 
     $page->fill('#response_url', 'https://example.com/post-b');
     $page->click('#slug');
 
-    $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('#response_quote')?.value), 1500))", 'Excerpt B.');
+    $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()), 1500))", 'Excerpt B.');
+    $page->assertMissing('#response_quote');
 });
 
-it('leaves an existing reply\'s empty quote empty, showing the excerpt it publishes', function () {
+it('stores an untouched excerpt as an empty quote', function () {
     Citation::factory()->create(['url' => 'https://example.com/post', 'excerpt' => 'The whole opening paragraph.']);
     $note = Note::factory()->create(['response_kind' => 'reply', 'response_url' => 'https://example.com/post']);
 
     $page = visit($note->url().'?edit');
 
     $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()), 1500))", 'The whole opening paragraph.');
-    $page->assertScript("document.querySelector('#response_quote').value", '');
-    $page->assertScript("document.querySelector('#response_quote').placeholder", 'The whole opening paragraph.');
+    $page->click('button:has-text("Edit quote")');
+    $page->click('button:has-text("Done")');
+
+    // Left as the excerpt, it stays empty: nothing to offer "Reset to excerpt" for.
+    $page->assertMissing('button:has-text("Reset to excerpt")');
 });
 
 it('says nothing while the url is not a link yet', function () {

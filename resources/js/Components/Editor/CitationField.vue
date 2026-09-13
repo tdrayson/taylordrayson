@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { csrf } from '../../lib/csrf.js';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import ReplyContext from '../Entry/ReplyContext.vue';
@@ -11,8 +11,6 @@ const props = defineProps({
     // The URL and kind from their own fields, which decide what to preview.
     responseUrl: { type: String, default: null },
     responseKind: { type: String, default: null },
-    // The URL the editor opened with: loading that one never pre-fills the quote.
-    openedResponseUrl: { type: String, default: null },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -23,6 +21,9 @@ const URL_INPUT_ID = 'response_url';
 const preview = ref(null);
 const loading = ref(false);
 const failed = ref(false);
+
+// Whether the quote inside the preview is swapped for its input.
+const editing = ref(false);
 
 // The last URL a load was started for, so a change can be told apart from a repeat.
 const loadedFor = ref(null);
@@ -36,7 +37,7 @@ let latestRequestId = 0;
  * entry page uses. `refresh` refetches even when a copy is already stored.
  *
  * A quote taken from a different post is stale, so it is cleared before the new
- * excerpt arrives. The url and kind are captured up front, since either may move
+ * post arrives. The url and kind are captured up front, since either may move
  * on again while this call is in flight.
  */
 async function load(refresh = false) {
@@ -52,12 +53,12 @@ async function load(refresh = false) {
         return;
     }
 
-    const changedUrl = loadedFor.value !== null && loadedFor.value !== url;
-    loadedFor.value = url;
-
-    if (changedUrl) {
+    if (loadedFor.value !== null && loadedFor.value !== url) {
         emit('update:modelValue', '');
+        editing.value = false;
     }
+
+    loadedFor.value = url;
 
     const requestId = ++latestRequestId;
     loading.value = true;
@@ -81,25 +82,7 @@ async function load(refresh = false) {
             throw new Error(response.status);
         }
 
-        if (! response.ok) {
-            preview.value = null;
-
-            return;
-        }
-
-        preview.value = (await response.json()).data;
-
-        // Pre-fill the quote from the excerpt for a post the editor did not open
-        // with, when it is empty or was just cleared for a new URL. An empty quote
-        // already publishes the excerpt, so an existing reply is left alone.
-        const prefill = kind === 'reply'
-            && preview.value?.cited?.quote
-            && url !== props.openedResponseUrl
-            && (changedUrl || ! props.modelValue);
-
-        if (prefill) {
-            emit('update:modelValue', preview.value.cited.quote);
-        }
+        preview.value = response.ok ? (await response.json()).data : null;
     } catch {
         if (requestId === latestRequestId) {
             failed.value = true;
@@ -151,20 +134,49 @@ onBeforeUnmount(() => {
 watch(() => props.responseKind, (kind) => {
     if (kind !== 'reply') {
         emit('update:modelValue', '');
+        editing.value = false;
     }
 
     load();
 });
 
+// The fetched excerpt: what publishes while the quote is left empty.
+const excerpt = computed(() => preview.value?.cited?.quote ?? '');
+
+const quoteInput = ref(null);
+
+/**
+ * Opens the quote for editing, starting from their words rather than an empty
+ * box when nothing has been trimmed yet.
+ */
+async function editQuote() {
+    if (! props.modelValue) {
+        emit('update:modelValue', excerpt.value);
+    }
+
+    editing.value = true;
+    await nextTick();
+    quoteInput.value?.focus();
+}
+
+/** Closes the input. An untouched excerpt is stored as empty, so a later refresh still updates it. */
+function doneEditing() {
+    if (props.modelValue.trim() === excerpt.value) {
+        emit('update:modelValue', '');
+    }
+
+    editing.value = false;
+}
+
 /** Puts the fetched excerpt back after it has been trimmed or replaced. */
 function reset() {
-    emit('update:modelValue', preview.value?.cited?.quote ?? '');
+    emit('update:modelValue', editing.value ? excerpt.value : '');
 }
 
 /**
  * The preview kept true to what will actually publish: the trimmed quote when
  * there is one, the fetched excerpt otherwise. `preview` itself is left alone,
- * since "Reset to excerpt" and the pre-fill both need the original.
+ * since "Reset to excerpt" needs the original.
  */
 const displayPreview = computed(() => {
     if (! preview.value) {
@@ -180,11 +192,6 @@ const displayPreview = computed(() => {
         cited: { ...preview.value.cited, quote: props.modelValue },
     };
 });
-
-// Shown greyed in an empty quote: what publishes when it is left blank.
-const excerpt = computed(() => preview.value?.cited?.quote ?? '');
-
-const quoteInput = ref(null);
 
 /**
  * Grows the quote box to its text rather than scrolling it. The quote is capped
@@ -202,33 +209,36 @@ function fitQuote() {
     el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
 }
 
-// Refits after every value change, typed, pre-filled or reset, once the DOM holds it.
-watch(() => [props.modelValue, props.responseKind], fitQuote, { flush: 'post' });
-onMounted(fitQuote);
+// Refits after every value change, typed or reset, once the DOM holds it.
+watch(() => [props.modelValue, editing.value], fitQuote, { flush: 'post' });
 </script>
 
 <template>
     <div class="space-y-3">
         <div data-testid="citation-preview" :class="['transition-opacity', loading && 'opacity-50']">
-            <ReplyContext v-if="displayPreview" :response="displayPreview" />
+            <ReplyContext v-if="displayPreview" :response="displayPreview">
+                <!-- A gesture answers with no words of its own, so only a reply edits a quote. -->
+                <template v-if="editing && responseKind === 'reply'" #quote>
+                    <textarea
+                        :id="id"
+                        ref="quoteInput"
+                        :value="modelValue"
+                        rows="3"
+                        maxlength="600"
+                        :class="[CONTROL, CONTROL_BORDER, 'resize-none overflow-hidden text-neutral-900']"
+                        @input="emit('update:modelValue', $event.target.value)"
+                    />
+                </template>
+            </ReplyContext>
             <p v-else-if="failed" class="text-caption text-neutral-500">Could not read that page. It will be tried again when you save.</p>
         </div>
 
-        <!-- A gesture answers with no words of its own, so it has nothing to quote. -->
-        <textarea
-            v-if="responseKind === 'reply'"
-            :id="id"
-            ref="quoteInput"
-            :value="modelValue"
-            :placeholder="excerpt"
-            rows="3"
-            maxlength="600"
-            :class="[CONTROL, CONTROL_BORDER, 'resize-none overflow-hidden text-neutral-900']"
-            @input="emit('update:modelValue', $event.target.value)"
-        />
-
-        <p class="flex gap-4 text-caption text-neutral-500">
-            <button v-if="responseKind === 'reply'" type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="reset">Reset to excerpt</button>
+        <p v-if="preview || failed" class="flex gap-4 text-caption text-neutral-500">
+            <template v-if="responseKind === 'reply'">
+                <button v-if="! editing" type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="editQuote">Edit quote</button>
+                <button v-else type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="doneEditing">Done</button>
+                <button v-if="editing || modelValue" type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="reset">Reset to excerpt</button>
+            </template>
             <button type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="load(true)">Refresh</button>
         </p>
     </div>
