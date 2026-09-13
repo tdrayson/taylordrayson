@@ -1,9 +1,12 @@
 <?php
 
 use App\Actions\Syndicated\PullStravaResponses;
+use App\Actions\Webmentions\ParseMentionSource;
+use App\Enums\CommentStatus;
 use App\Enums\EntryStatus;
 use App\Enums\Source;
 use App\Jobs\SendWebmentions;
+use App\Jobs\VerifyWebmention;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Comment;
@@ -15,6 +18,7 @@ use App\Models\Sleep;
 use App\Models\Webmention;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -22,8 +26,8 @@ use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
 /**
- * A private entry takes comments and reactions from whoever has unlocked it,
- * and has nothing to do with webmentions or internal mentions in either direction.
+ * A private entry takes comments, reactions, webmentions and mentions, shown to
+ * whoever has unlocked it, and sends none of its own.
  */
 beforeEach(function () {
     Queue::fake();
@@ -85,30 +89,46 @@ it('accepts a comment and a reaction once the private entry is unlocked', functi
         ->and(Reaction::count())->toBe(1);
 });
 
-it('shows the conversation without the webmention form once unlocked', function () {
+it('withholds received webmentions and mentions until the private entry is unlocked', function () {
     $note = privateNote();
+    $note->webmentions()->create([
+        'source_url' => 'https://jo.example/post',
+        'target_url' => absoluteUrl($note->url()),
+        'kind' => 'reply',
+        'author_name' => 'Jo Webmentioner',
+        'content' => PortableText::fromPlainText('A reply from elsewhere'),
+        'status' => CommentStatus::Approved,
+        'verified_at' => now(),
+    ]);
+    Article::factory()->create(['title' => 'The Linking Article', 'content' => paragraphLinkingTo($note->url())]);
 
-    $this->get($note->url())->assertInertia(fn (Assert $page) => $page->where('locked', true)->missing('conversation'));
+    $this->get($note->url())
+        ->assertInertia(fn (Assert $page) => $page->where('locked', true)->missing('conversation'))
+        ->assertDontSee('Jo Webmentioner')
+        ->assertDontSee('A reply from elsewhere')
+        ->assertDontSee('The Linking Article');
 
     $this->withSession([$note->unlockKey() => true])
         ->get($note->url())
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('conversation.type', 'note')
-            ->where('conversation.takesWebmentions', false));
-
-    $this->get(Note::factory()->create()->url())
-        ->assertInertia(fn (Assert $page) => $page->where('conversation.takesWebmentions', true));
+        ->assertInertia(fn (Assert $page) => $page->has('conversation.responses', 2));
 });
 
-it('refuses an incoming webmention for a private entry', function () {
+it('accepts and verifies an incoming webmention for a private entry', function () {
     $note = privateNote();
+    $target = absoluteUrl($note->url());
+    $source = 'https://example.com/reply';
 
-    $this->post('/webmention', [
-        'source' => 'https://jo.example/post',
-        'target' => absoluteUrl($note->url()),
-    ])->assertStatus(400);
+    $this->post('/webmention', ['source' => $source, 'target' => $target])->assertStatus(202);
 
-    expect(Webmention::count())->toBe(0);
+    Http::fake([$source => Http::response(
+        "<html><body><div class=\"h-entry\"><a class=\"u-in-reply-to\" href=\"{$target}\">re</a><div class=\"e-content\">Nice.</div></div></body></html>",
+    )]);
+
+    (new VerifyWebmention(Webmention::query()->sole()->id))->handle(app(ParseMentionSource::class));
+
+    expect(Webmention::query()->sole())
+        ->verified_at->not->toBeNull()
+        ->target_id->toBe($note->id);
 });
 
 it('sends nothing and records no mentions from a private entry', function () {
@@ -122,12 +142,12 @@ it('sends nothing and records no mentions from a private entry', function () {
     expect(Mention::count())->toBe(0);
 });
 
-it('records no mention on a private entry linked from a public one', function () {
+it('records a mention on a private entry linked from a public one', function () {
     $article = Article::factory()->create(['status' => EntryStatus::Private, 'password' => 'hunter2']);
 
     Note::factory()->create(['content' => paragraphLinkingTo($article->url())]);
 
-    expect(Mention::count())->toBe(0);
+    expect($article->mentions()->count())->toBe(1);
 });
 
 it('keeps the mentions an entry made and received when it goes private', function () {

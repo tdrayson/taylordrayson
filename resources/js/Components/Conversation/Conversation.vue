@@ -9,7 +9,7 @@ import ResponseItem from './ResponseItem.vue';
 const CommentForm = defineAsyncComponent(() => import('./CommentForm.vue'));
 
 const props = defineProps({
-    // One ConversationData: { type, id, url, reactions, responses, takesWebmentions }.
+    // One ConversationData: { type, id, url, reactions, responses }.
     conversation: { type: Object, required: true },
     // The page's Open Graph payload, shown under "Sharing this?".
     og: { type: Object, default: () => ({}) },
@@ -240,7 +240,7 @@ async function reply(item) {
             <!-- Above the box in every state, because the two ways to answer
                  are not both visible: one is a text field and the other is a
                  panel further down that nobody would think to open. -->
-            <p v-if="conversation.takesWebmentions" class="mb-3 text-body text-neutral-500">
+            <p class="mb-3 text-body text-neutral-500">
                 Add a comment, or
                 <button
                     type="button"
@@ -253,12 +253,7 @@ async function reply(item) {
                  happens inside the thread, against the response it answers. -->
             <CommentForm :type="conversation.type" :id="conversation.id" />
 
-            <ResponseAsides
-                ref="asides"
-                :url="conversation.url"
-                :og="og"
-                :takes-webmentions="conversation.takesWebmentions"
-            />
+            <ResponseAsides ref="asides" :url="conversation.url" :og="og" />
         </div>
 
     </section>

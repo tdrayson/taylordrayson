@@ -7,7 +7,7 @@ use App\Support\PortableText;
 /** Rendered text only, so the Inertia props JSON cannot satisfy it. */
 const WEBMENTION_SECTION = "document.body.innerText.includes('Written about this on your own site?')";
 
-it('leaves the webmention section off an unlocked private entry', function () {
+it('shows the webmention section only once a private entry is unlocked', function () {
     Article::factory()->create([
         'title' => 'Behind the door',
         'content' => PortableText::fromPlainText('Only after the password'),
@@ -17,11 +17,15 @@ it('leaves the webmention section off an unlocked private entry', function () {
         'password' => 'hunter2',
     ]);
 
-    visit('/2026/06/15/behind-the-door')
-        ->fill('#entry-password', 'hunter2')
+    $page = visit('/2026/06/15/behind-the-door')
+        ->assertMissing('#responses')
+        ->assertScript(WEBMENTION_SECTION, false);
+
+    $page->fill('#entry-password', 'hunter2')
         ->click('button:has-text("Unlock")')
         ->assertPresent('#responses')
-        ->assertScript(WEBMENTION_SECTION, false)
+        ->assertScript(WEBMENTION_SECTION, true)
+        ->assertSee('Add a comment, or')
         ->assertNoJavascriptErrors();
 });
 

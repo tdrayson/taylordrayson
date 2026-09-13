@@ -26,7 +26,7 @@ final class SyncMentions
      */
     public function __invoke(Model $source): void
     {
-        if (InteractionTarget::keepsMentions($source) && ! InteractionTarget::sendsMentions($source)) {
+        if (InteractionTarget::takesMentions($source) && ! InteractionTarget::sendsMentions($source)) {
             return;
         }
 
@@ -39,9 +39,7 @@ final class SyncMentions
         foreach ($existing as $mention) {
             $key = $this->key($mention);
 
-            // A target gone private keeps the mention it already had, as long
-            // as the link to it is still there.
-            if (array_key_exists($key, $linked) && InteractionTarget::keepsMentions($linked[$key])) {
+            if (array_key_exists($key, $linked)) {
                 unset($linked[$key]);
             } else {
                 $mention->delete();
@@ -49,10 +47,6 @@ final class SyncMentions
         }
 
         foreach ($linked as $target) {
-            if (! InteractionTarget::takesMentions($target)) {
-                continue;
-            }
-
             Mention::query()->create([
                 'source_type' => $source->getMorphClass(),
                 'source_id' => $source->getKey(),
@@ -63,7 +57,7 @@ final class SyncMentions
     }
 
     /**
-     * Every entry this source links to, whatever its status, keyed by the pair
+     * Every entry this source links to that takes mentions, keyed by the pair
      * the table is unique on so the diff is two array lookups rather than a
      * nested loop.
      *
@@ -81,7 +75,7 @@ final class SyncMentions
         $targets = [];
 
         foreach (OutboundLinks::internalPathsFor($source) as $path) {
-            $target = $this->resolve->anyStatus($path);
+            $target = ($this->resolve)($path);
 
             // Self-links are dropped rather than stored and filtered later: an
             // entry is not a mention of itself, and the conversation would
