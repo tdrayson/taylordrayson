@@ -3,17 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PhotoFilter;
-use App\Models\Attachment;
 use App\Queries\PhotoStream;
-use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GalleryController extends Controller
 {
+    /**
+     * Photos shaped per request. Rather more than a screenful on a wide
+     * display, so the grid is still filling as the next page is fetched.
+     */
+    private const PER_PAGE = 60;
+
     public function __construct(private readonly PhotoStream $photos) {}
 
     /**
@@ -22,41 +27,41 @@ class GalleryController extends Controller
      * ordering live in PhotoStream so this page and the "Life lately" widget
      * on /now stay in lockstep. Signed out, the facet resolves to null and the
      * counts are never computed, so the page renders exactly as it did before.
+     *
+     * A page at a time, deferred, and appended as the visitor scrolls: shaping
+     * all of them took seconds, and nothing could paint until it finished.
      */
     public function index(Request $request): Response
     {
         $signedIn = Auth::check();
         $filter = $signedIn ? PhotoFilter::tryFrom((string) $request->query('filter')) : null;
+        $photos = $this->photos->filtered($filter);
 
         return Inertia::render('Photos', [
             'og' => OgMeta::gallery(),
-            'photos' => ($this->photos)(null, $filter?->value),
+            'total' => $photos->count(),
+            'photos' => Inertia::scroll(
+                fn () => $photos->paginate(self::PER_PAGE, Paginator::resolveCurrentPage()),
+            )->defer(),
             'filter' => $filter?->value,
             'filters' => $signedIn ? $this->filters() : null,
         ]);
     }
 
     /**
-     * Facet counts for the filter bar. A count query per facet, not a run of
-     * PhotoStream per facet: PhotoStream shapes card presentation and URLs for
-     * every photo it returns, which only the photos actually shown need to pay
-     * for.
+     * Facet counts for the filter bar, counted in the database rather than by
+     * shaping a stream per facet.
      *
      * @return array<int, array{value: string|null, label: string, count: int}>
      */
     private function filters(): array
     {
-        $modelTypes = GalleryPhotos::contributingModelTypes();
-        $base = fn () => Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereIn('model_type', $modelTypes);
-
         return [
-            ['value' => null, 'label' => 'Everything', 'count' => $base()->count()],
+            ['value' => null, 'label' => 'Everything', 'count' => $this->photos->count()],
             ...collect(PhotoFilter::cases())->map(fn (PhotoFilter $filter): array => [
                 'value' => $filter->value,
                 'label' => $filter->label(),
-                'count' => $filter->apply($base())->count(),
+                'count' => $this->photos->filtered($filter)->count(),
             ])->all(),
         ];
     }

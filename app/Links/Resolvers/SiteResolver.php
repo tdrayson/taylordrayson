@@ -28,16 +28,16 @@ class SiteResolver implements LinkResolver
      * @var array<string, array{0: string, 1: string}>
      */
     private const PAGES = [
-        '/' => ['timeline', 'page'],
-        '/more' => ['more', 'page'],
-        '/photos' => ['gallery', 'page'],
-        '/search' => ['search', 'page'],
-        '/feeds' => ['feeds', 'page'],
-        '/stories' => ['stories', 'page'],
-        '/tags' => ['tags', 'page'],
-        '/trips' => ['trips', 'page'],
-        '/leaderboard' => ['leaderboard', 'page'],
-        '/design-system' => ['designSystem', 'page'],
+        '/' => ['timeline', 'article'],
+        '/more' => ['more', 'article'],
+        '/photos' => ['gallery', 'article'],
+        '/search' => ['search', 'article'],
+        '/feeds' => ['feeds', 'article'],
+        '/stories' => ['stories', 'article'],
+        '/tags' => ['tags', 'article'],
+        '/trips' => ['trips', 'article'],
+        '/leaderboard' => ['leaderboard', 'article'],
+        '/design-system' => ['designSystem', 'article'],
         '/media/tv' => ['series', 'media'],
         '/flights/map' => ['flightMap', 'flight'],
     ];
@@ -49,7 +49,7 @@ class SiteResolver implements LinkResolver
 
         // Dated, so it cannot be a constant like the rest.
         if ($path === '/on-this-day') {
-            return $this->from($path, OgMeta::onThisDay(Carbon::today()), 'page');
+            return $this->from($path, OgMeta::onThisDay(Carbon::today()), 'article');
         }
 
         if (! isset(self::PAGES[$path])) {

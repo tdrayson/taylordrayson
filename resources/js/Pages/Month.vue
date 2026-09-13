@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { setLayoutProps, Deferred } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
@@ -102,28 +102,17 @@ setLayoutProps({
         </template>
 
         <section v-if="entriesCount" class="mt-12">
-            <Deferred data="groups">
-                <template #fallback>
-                    <div class="space-y-6">
-                        <div v-for="i in 3" :key="i" class="animate-pulse space-y-3">
-                            <div class="h-6 w-48 rounded-md bg-neutral-25" />
-                            <div class="h-24 rounded-lg bg-neutral-25" />
-                        </div>
-                    </div>
-                </template>
-
-                <div class="h-feed flex flex-col gap-14">
-                    <AuthorRef />
-                    <DateGroup
-                        v-for="group in groups"
-                        :key="group.date"
-                        :label="group.label"
-                        :date="group.date"
-                        :href="group.href"
-                        :items="group.items"
-                    />
-                </div>
-            </Deferred>
+            <div class="h-feed flex flex-col gap-14">
+                <AuthorRef />
+                <DateGroup
+                    v-for="group in groups"
+                    :key="group.date"
+                    :label="group.label"
+                    :date="group.date"
+                    :href="group.href"
+                    :items="group.items"
+                />
+            </div>
 
             <Pagination
                 v-if="lastPage > 1"

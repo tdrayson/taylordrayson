@@ -6,6 +6,7 @@ use App\Data\CheckinImport;
 use App\Enums\Source;
 use App\Models\Checkin;
 use App\Support\VenueTimezone;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
 
 /**
@@ -40,6 +41,7 @@ class ImportCheckin
                 'venue_name' => $venue['name'] ?? 'Unknown',
                 'category' => $venue['categories'][0]['name'] ?? null,
                 'address' => $location['address'] ?? null,
+                'postcode' => $location['postalCode'] ?? null,
                 'city' => $location['city'] ?? null,
                 'county' => $location['state'] ?? null,
                 'country' => $location['country'] ?? null,
@@ -57,18 +59,28 @@ class ImportCheckin
     }
 
     /**
-     * Attach a check-in's Swarm photos to its gallery, skipping when it already
-     * has some so re-runs never duplicate. Photo URLs are built from the API's
-     * prefix + size + suffix parts (https://location.foursquare.com/.../{size}).
+     * Attach a check-in's Swarm photos to its gallery, one photo at a time.
+     *
+     * Skipped per photo rather than per check-in: the old guard bailed as soon
+     * as a check-in had any photo at all, so a second one added in Swarm days
+     * later could never arrive. Identity is the filename Foursquare gives each
+     * photo, which survives the conversion to webp that the stored name shows.
+     *
+     * Photo URLs are built from the API's prefix + size + suffix parts
+     * (https://location.foursquare.com/.../{size}).
      *
      * @param  array<int, array{prefix?: string, suffix?: string}>  $photos
      * @return array{0: int, 1: list<string>}
      */
     private function attachPhotos(Checkin $checkin, array $photos): array
     {
-        if ($photos === [] || $checkin->getMedia('photos')->isNotEmpty()) {
+        if ($photos === []) {
             return [0, []];
         }
+
+        $stored = $checkin->getMedia('photos')
+            ->map(fn (Media $media): string => self::stemOf($media->file_name))
+            ->all();
 
         $added = 0;
         $warnings = [];
@@ -81,8 +93,13 @@ class ImportCheckin
                 continue;
             }
 
+            if (in_array(self::stemOf($suffix), $stored, true)) {
+                continue;
+            }
+
             try {
                 $checkin->addMediaFromUrl($prefix.'original'.$suffix)->toMediaCollection('photos');
+                $stored[] = self::stemOf($suffix);
                 $added++;
             } catch (Throwable $exception) {
                 $warnings[] = "photo failed for {$checkin->venue_name}: {$exception->getMessage()}";
@@ -90,5 +107,11 @@ class ImportCheckin
         }
 
         return [$added, $warnings];
+    }
+
+    /** A photo's name without its path or extension, which the format change loses. */
+    private static function stemOf(string $path): string
+    {
+        return pathinfo($path, PATHINFO_FILENAME);
     }
 }

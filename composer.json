@@ -15,6 +15,9 @@
         "laravel/passport": "^13.0",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "saloonphp/laravel-plugin": "^4.3",
+        "saloonphp/pagination-plugin": "^2.3",
+        "saloonphp/saloon": "^4.0",
         "spatie/browsershot": "^5.4",
         "spatie/laravel-backup": "^10.3",
         "spatie/laravel-feed": "^4.5",
@@ -52,6 +55,7 @@
             "@php artisan key:generate",
             "@php artisan migrate --force",
             "npm install",
+            "@php artisan types:sync",
             "npm run build"
         ],
         "dev": [

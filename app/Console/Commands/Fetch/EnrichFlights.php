@@ -4,7 +4,7 @@ namespace App\Console\Commands\Fetch;
 
 use App\Models\Airport;
 use App\Models\Flight;
-use App\Services\LogoStream;
+use App\Services\LogoStream\Client;
 use App\Support\Distance;
 use App\Support\VenueTimezone;
 use Illuminate\Console\Attributes\Description;
@@ -23,7 +23,7 @@ class EnrichFlights extends Command
     private array $routeCache = [];
 
     public function __construct(
-        private readonly LogoStream $logoStream,
+        private readonly Client $logoStream,
         private readonly VenueTimezone $timezones,
     ) {
         parent::__construct();

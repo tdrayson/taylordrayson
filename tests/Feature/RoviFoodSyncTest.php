@@ -3,25 +3,26 @@
 use App\Models\Calorie;
 use App\Models\TimelineEntry;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.rovi.key' => 'test-key', 'services.rovi.base_url' => 'https://rovi.test/personalApi']);
     Carbon::setTestNow('2026-06-30 10:00:00');
 
     // Register the Rovi food stub once; each test drives the response through
-    // these globals. Re-calling Http::fake() would merge stubs (first match
+    // these globals. Re-calling Saloon::fake(['' => MockResponse::make('', 200)]) would merge stubs (first match
     // wins), so a single closure that reads mutable state is the reliable way
     // to return different responses across successive command runs.
     $GLOBALS['__rovi_food'] = [];
     $GLOBALS['__rovi_status'] = 200;
 
-    Http::fake(['*/v1/me/food*' => function () {
+    Saloon::fake(['/v1/me/food*' => function () {
         if (($GLOBALS['__rovi_status'] ?? 200) !== 200) {
-            return Http::response('upstream error', $GLOBALS['__rovi_status']);
+            return MockResponse::make('upstream error', $GLOBALS['__rovi_status']);
         }
 
-        return Http::response([
+        return MockResponse::make([
             'data' => $GLOBALS['__rovi_food'] ?? [],
             'paging' => ['nextCursor' => null, 'hasMore' => false],
             'meta' => ['uid' => 'u1', 'endpoint' => '/v1/me/food', 'generatedAt' => '2026-06-30T10:00:00Z'],
@@ -212,7 +213,7 @@ it('self-heals a gap by extending the window back to the last synced day', funct
     $this->artisan('rovi:sync-food')->assertSuccessful();
 
     // The window reached back to the last synced day, not just --days=7.
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'from=2026-06-20'));
+    Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->query()->get('from') === '2026-06-20');
 
     // The stranded gap day is now backfilled.
     expect(Calorie::where('source_id', 'gap')->first()?->occurred_at->toDateString())->toBe('2026-06-22');

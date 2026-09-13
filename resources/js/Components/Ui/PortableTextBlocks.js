@@ -336,7 +336,7 @@ function renderImage(node, onImageClick) {
             // img margins must not apply inside the zoom button wrapper. For
             // portraits the button shrink-wraps so the zoom overlay anchors to
             // the image corner, not the column edge.
-            class: `group/zoom not-prose relative block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
+            class: `group/zoom not-prose relative block cursor-zoom-in rounded-lg transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
             onClick: () => onImageClick(node.url),
         }, [
             h('img', {
@@ -344,8 +344,10 @@ function renderImage(node, onImageClick) {
                 alt: node.alt ?? node.caption ?? '',
                 width: node.width || undefined,
                 height: node.height || undefined,
+                // A portrait is ratio-true rather than cropped, so it misses the
+                // base img.object-cover loading tint and carries its own.
                 class: portrait
-                    ? 'max-h-media w-auto rounded-lg border border-neutral-50'
+                    ? 'max-h-media w-auto rounded-lg border border-neutral-50 bg-neutral-25'
                     : 'max-h-media w-full rounded-lg border border-neutral-50 object-cover',
             }),
             h('span', {

@@ -2,7 +2,6 @@
 
 namespace App\Exceptions;
 
-use App\Services\Trakt;
 use RuntimeException;
 
 /**

@@ -5,7 +5,7 @@ namespace App\Actions\Trakt;
 use App\Data\TraktPruneResult;
 use App\Models\Media;
 use App\Models\Series;
-use App\Services\Trakt;
+use App\Services\Trakt\Client;
 
 /**
  * Remove plays from Trakt history and clear the local rows mirroring them. A local
@@ -14,7 +14,7 @@ use App\Services\Trakt;
  */
 final class RemovePlays
 {
-    public function __construct(private readonly Trakt $trakt) {}
+    public function __construct(private readonly Client $trakt) {}
 
     /**
      * @param  array<int, int|string>  $playIds  Trakt history ids, NOT episode ids.

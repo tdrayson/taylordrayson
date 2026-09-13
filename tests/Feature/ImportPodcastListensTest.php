@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\PocketCasts;
+use App\Services\PocketCasts\Client;
 
 use function Pest\Laravel\mock;
 
@@ -26,7 +26,7 @@ it('builds a listens csv from the export, enriching via the Pocket Casts API', f
         'x',
     ])."\n");
 
-    $mock = mock(PocketCasts::class);
+    $mock = mock(Client::class);
     $mock->shouldReceive('history')->andReturn(['episodes' => [
         ['uuid' => 'ep-played', 'title' => 'Played Ep', 'podcastTitle' => 'Show A', 'author' => 'Auth A', 'published' => '2025-06-01T00:00:00Z', 'duration' => 1800, 'url' => 'http://a', 'podcastUuid' => 'pod-a'],
     ]]);

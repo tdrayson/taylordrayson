@@ -3,7 +3,6 @@
 namespace App\Queries;
 
 use App\Enums\PhotoFilter;
-use App\Models\Activity;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Support\GalleryPhotos;
@@ -11,6 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -22,29 +23,105 @@ use Illuminate\Support\Collection;
 final class PhotoStream
 {
     /**
+     * @var Collection<int, array{model: Model&Timelineable, media: EloquentCollection<int, Attachment>}>|null
+     */
+    private ?Collection $groups = null;
+
+    private ?PhotoFilter $filter = null;
+
+    /**
+     * A copy of the stream narrowed to a work-queue facet, or unnarrowed for null.
+     *
+     * @param  PhotoFilter|null  $filter  The facet to narrow to; null is every photo.
+     */
+    public function filtered(?PhotoFilter $filter): self
+    {
+        $stream = clone $this;
+        $stream->filter = $filter;
+        $stream->groups = null;
+
+        return $stream;
+    }
+
+    /**
      * @param  int|null  $limit  Stop once this many photos are shaped; null shapes every photo.
-     * @param  string|null  $filter  A PhotoFilter value, or null for every photo. An unrecognised
-     *                               value is treated as null rather than erroring.
+     * @param  int  $offset  Photos to skip before shaping starts.
      * @return list<array<string, mixed>>
      */
-    public function __invoke(?int $limit = null, ?string $filter = null): array
+    public function __invoke(?int $limit = null, int $offset = 0): array
     {
-        $photos = [];
-        $facet = $filter !== null ? PhotoFilter::tryFrom($filter) : null;
+        if ($limit !== null && $limit < 1) {
+            return [];
+        }
 
-        // Ordered up front so only the photos actually wanted pay for card
-        // presentation and URL generation.
-        foreach ($this->orderedGroups($facet) as $group) {
-            foreach (GalleryPhotos::shape($group['model'], $group['media']) as $photo) {
+        $offset = max(0, $offset);
+        $photos = [];
+        $seen = 0;
+
+        // Ordered up front so only the photos actually wanted pay for caption
+        // presentation and URL generation. Skipped groups are counted, not
+        // shaped, so paging deeper costs a count rather than a page of work.
+        foreach ($this->orderedGroups() as $group) {
+            $size = $group['media']->count();
+
+            if ($seen + $size <= $offset) {
+                $seen += $size;
+
+                continue;
+            }
+
+            foreach (GalleryPhotos::shape($group['model'], $group['media']) as $index => $photo) {
+                if ($seen + $index < $offset) {
+                    continue;
+                }
+
                 $photos[] = $photo;
 
                 if ($limit !== null && count($photos) >= $limit) {
                     return $photos;
                 }
             }
+
+            $seen += $size;
         }
 
         return $photos;
+    }
+
+    /**
+     * A page of the stream, ready for Inertia::scroll(). Only the requested
+     * page is shaped; the total is counted in the database rather than by
+     * hydrating every photo to measure it.
+     *
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function paginate(int $perPage, int $page): LengthAwarePaginator
+    {
+        $total = $this->count();
+
+        // Clamped, so ?page=999 returns the last page rather than an empty grid
+        // under a heading that promises hundreds of photos.
+        $page = max(1, min($page, (int) max(1, ceil($total / max(1, $perPage)))));
+
+        return new LengthAwarePaginator(
+            $this($perPage, ($page - 1) * $perPage),
+            $total,
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath()],
+        );
+    }
+
+    /**
+     * How many photos the gallery holds, counted in the database rather than by
+     * hydrating the stream.
+     *
+     * Non-timeline owners (a Series poster, a Page cover) are excluded by the
+     * same rule contributesPhotos() applies, expressed here as model types.
+     */
+    public function count(): int
+    {
+        return $this->attachments()->count();
     }
 
     /**
@@ -55,14 +132,16 @@ final class PhotoStream
      *
      * @return Collection<int, array{model: Model&Timelineable, media: EloquentCollection<int, Attachment>}>
      */
-    private function orderedGroups(?PhotoFilter $facet): Collection
+    private function orderedGroups(): Collection
     {
-        return Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereNotIn('model_type', GalleryPhotos::ENRICHMENT_MODELS)
-            ->when($facet, fn (Builder $query, PhotoFilter $facet): Builder => $facet->apply($query))
-            ->with(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith([Activity::class => ['media']])])
-            ->get()
+        if ($this->groups !== null) {
+            return $this->groups;
+        }
+
+        $attachments = $this->attachments()->get();
+
+        return $this->groups = $attachments
+            ->load(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith($this->captionRelations($attachments))])
             ->filter(fn (Attachment $attachment): bool => GalleryPhotos::contributesPhotos($attachment->model))
             ->groupBy(fn (Attachment $attachment): string => $attachment->model_type.':'.$attachment->model_id)
             ->map(fn (EloquentCollection $group): array => [
@@ -75,5 +154,45 @@ final class PhotoStream
                 $group['model']->getKey(),
             ))
             ->values();
+    }
+
+    /**
+     * The gallery's attachments, narrowed to the facet if one is set.
+     *
+     * @return Builder<Attachment>
+     */
+    private function attachments(): Builder
+    {
+        return Attachment::query()
+            ->whereIn('collection_name', ['cover', 'photos'])
+            ->whereIn('model_type', GalleryPhotos::includedModels())
+            ->when($this->filter, fn (Builder $query, PhotoFilter $filter): Builder => $filter->apply($query));
+    }
+
+    /**
+     * Eager-load `media` and `timelineEntry` on every morph type actually
+     * present, rather than a hardcoded list a new photo-owning type could fall
+     * off. A caption reads the permalink off the timeline entry, and the few
+     * types still routed through a card presenter read their own attachments;
+     * left lazy that is two queries per entry.
+     *
+     * Types the gallery then filters out (a Series poster, a Page cover) reach
+     * here too, and only Timelineable models have a timeline entry to load.
+     *
+     * @param  EloquentCollection<int, Attachment>  $attachments
+     * @return array<class-string, list<string>>
+     */
+    private function captionRelations(EloquentCollection $attachments): array
+    {
+        return $attachments
+            ->pluck('model_type')
+            ->unique()
+            ->filter(fn (string $type): bool => class_exists($type))
+            ->mapWithKeys(fn (string $type): array => [
+                $type => is_a($type, Timelineable::class, true)
+                    ? ['media', 'timelineEntry']
+                    : ['media'],
+            ])
+            ->all();
     }
 }

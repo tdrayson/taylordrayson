@@ -8,7 +8,7 @@ use App\Actions\Workouts\RecordSetgraphWorkout;
 use App\Enums\Source;
 use App\Jobs\GenerateEntryMap;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use App\Support\EntryInstant;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
@@ -18,7 +18,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 #[Signature('strava:sync {--days=7 : How many days back to check for new activities} {--refresh : Re-fetch every activity in the window, not only those whose summary changed}')]
-#[Description('Sync new Strava activities to the database, and pick up edits to the ones already stored')]
+#[Description('Sync new Client activities to the database, and pick up edits to the ones already stored')]
 class StravaSync extends Command
 {
     /**
@@ -60,7 +60,7 @@ class StravaSync extends Command
         'Pilates' => 'workout',
     ];
 
-    public function handle(Strava $strava): int
+    public function handle(Client $strava): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -125,7 +125,7 @@ class StravaSync extends Command
      * @param  Collection<string, Activity>  $stored  Those activities, keyed by source id.
      * @return int The number re-fetched.
      */
-    private function refreshExisting(Strava $strava, array $summaries, Collection $stored): int
+    private function refreshExisting(Client $strava, array $summaries, Collection $stored): int
     {
         $force = (bool) $this->option('refresh');
         $refreshed = 0;
@@ -243,7 +243,7 @@ class StravaSync extends Command
     /**
      * @return array<int, array<string, mixed>>|null
      */
-    private function fetchActivities(Strava $strava, int $after): ?array
+    private function fetchActivities(Client $strava, int $after): ?array
     {
         $activities = [];
         $page = 1;
@@ -394,7 +394,7 @@ class StravaSync extends Command
     /**
      * @param  array<string, mixed>  $data
      */
-    private function downloadPhotos(Strava $strava, array $data, Activity $activity): void
+    private function downloadPhotos(Client $strava, array $data, Activity $activity): void
     {
         if (($data['total_photo_count'] ?? 0) === 0) {
             return;

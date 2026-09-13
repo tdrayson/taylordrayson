@@ -7,11 +7,16 @@ use App\Models\Activity;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Saloon\Laravel\Facades\Saloon;
+
+// Photo bytes are fetched with Http::get(), not through a connector, so they
+// need Laravel's own fake alongside Saloon's.
+beforeEach(fn () => Http::fake(['*' => Http::response(fakeJpeg())]));
 
 beforeEach(function () {
     config(['queue.default' => 'sync']);
     Storage::fake('public');
-    Http::fake(['*dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg())]);
+    Http::fake(['dgtzuqphqg23d.cloudfront.net*' => Http::response(fakeJpeg())]);
 });
 
 function syncStreams(): array

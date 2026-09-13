@@ -3,7 +3,7 @@
 namespace App\Queries\Lookups;
 
 use App\Models\Fuel;
-use App\Services\PetrolPrices;
+use App\Services\PetrolPrices\Client;
 use App\Services\PetrolPrices\FuelStationResult;
 
 /**
@@ -13,7 +13,7 @@ use App\Services\PetrolPrices\FuelStationResult;
  */
 final class StationLookup
 {
-    public function __construct(private PetrolPrices $stations) {}
+    public function __construct(private Client $stations) {}
 
     /**
      * @return list<array{value: string, label: string, detail: string|null, fill: array<string, mixed>}>

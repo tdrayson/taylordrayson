@@ -22,18 +22,26 @@ final class ArticleCard
         $cover = $model->coverPhoto();
 
         return new CardData(
-            type: TimelineType::Article,
-            icon: 'file-text',
-            title: $model->title,
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: Text::excerpt(PortableText::plainText($model->content), 240) ?: $model->excerpt,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'article',
             range: null,
             meta: CardMeta::photos(
                 $cover !== null ? [PhotoData::cover($cover['id'], $cover['src'], $cover['srcset'], $cover['full'], $cover['alt'], $cover['caption'])] : [],
             ),
         );
+    }
+
+    public function title(Article $model): string
+    {
+        return $model->title;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Article;
     }
 }

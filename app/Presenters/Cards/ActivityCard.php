@@ -34,17 +34,36 @@ final class ActivityCard
         'workout' => 'worked out',
     ];
 
+    /**
+     * Types that are played rather than covered. Their verb takes the sport as
+     * its object ("I played padel for 45m"), where the verbs above take the
+     * distance ("I walked 3 mi"), so the two cannot share a map.
+     *
+     * Strava files most racket sessions as `workout`, which names no sport and
+     * so still reads "I worked out for 45m".
+     *
+     * @var list<string>
+     */
+    private const PLAYED = [
+        'padel',
+        'table-tennis',
+        'tennis',
+        'badminton',
+        'squash',
+        'football',
+        'golf',
+        'basketball',
+    ];
+
     public function present(Activity $model): CardData
     {
         return new CardData(
-            type: TimelineType::Activity,
-            icon: 'footprints',
-            title: $model->name ?? ucfirst($model->type),
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $this->cardSubtitle($model),
             subtitleTokens: $this->subtitleTokens($model),
             occurredAt: $model->occurred_at,
-            accent: 'activity',
             range: null,
             meta: CardMeta::activity(
                 polyline: data_get($model->meta, 'polyline'),
@@ -151,6 +170,10 @@ final class ActivityCard
      */
     private function openingTokens(Activity $model, ?string $duration): array
     {
+        if (in_array($model->type, self::PLAYED, true)) {
+            return $this->playedTokens($model, $duration);
+        }
+
         $verb = self::VERBS[$model->type] ?? null;
 
         if ($model->distance) {
@@ -168,6 +191,26 @@ final class ActivityCard
         return $verb !== null
             ? [SubtitleToken::text("I {$verb} for {$duration}")]
             : [SubtitleToken::text(sprintf('I did %s of %s', $duration, str_replace('-', ' ', $model->type)))];
+    }
+
+    /**
+     * A played sport leads with the sport, so any distance it also recorded
+     * trails as its own clause rather than becoming the verb's object.
+     *
+     * @return list<SubtitleToken>
+     */
+    private function playedTokens(Activity $model, ?string $duration): array
+    {
+        $sport = str_replace('-', ' ', $model->type);
+
+        $tokens = [SubtitleToken::text($duration !== null ? "I played {$sport} for {$duration}" : "I played {$sport}")];
+
+        if ($model->distance) {
+            $tokens[] = SubtitleToken::text('covering', ', ');
+            $tokens[] = SubtitleToken::dist((int) $model->distance, 1, ' ');
+        }
+
+        return $tokens;
     }
 
     /**
@@ -197,5 +240,15 @@ final class ActivityCard
         $tokens[] = SubtitleToken::text('.', '');
 
         return $tokens;
+    }
+
+    public function title(Activity $model): string
+    {
+        return $model->name ?? ucfirst($model->type);
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Activity;
     }
 }

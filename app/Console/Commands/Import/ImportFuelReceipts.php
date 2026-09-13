@@ -4,7 +4,7 @@ namespace App\Console\Commands\Import;
 
 use App\Actions\Fuel\ExtractReceiptLocation;
 use App\Models\Fuel;
-use App\Services\PetrolPrices;
+use App\Services\PetrolPrices\Client;
 use App\Services\PetrolPrices\FuelStationResult;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -21,7 +21,7 @@ class ImportFuelReceipts extends Command
         'city', 'station_lat', 'station_lng', 'distance_km', 'alt1_name', 'alt2_name', 'flag',
     ];
 
-    public function handle(PetrolPrices $petrolPrices, ExtractReceiptLocation $extract): int
+    public function handle(Client $petrolPrices, ExtractReceiptLocation $extract): int
     {
         $reviewPath = $this->option('review') ?: storage_path('app/fuel/receipt-review.csv');
 
@@ -30,7 +30,7 @@ class ImportFuelReceipts extends Command
             : $this->dryRun($petrolPrices, $extract, $reviewPath);
     }
 
-    private function dryRun(PetrolPrices $petrolPrices, ExtractReceiptLocation $extract, string $reviewPath): int
+    private function dryRun(Client $petrolPrices, ExtractReceiptLocation $extract, string $reviewPath): int
     {
         $folder = $this->argument('folder');
 

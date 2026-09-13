@@ -1,40 +1,41 @@
 <?php
 
-use App\Services\LogoStream;
+use App\Services\LogoStream\Client;
 use App\Support\Distance;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.logostream.key' => 'test-key']);
 });
 
 it('returns saved with bytes for a real airline logo', function () {
-    Http::fake([
-        '*/iata/BA*' => Http::response('PNG-BYTES', 200, ['Content-Type' => 'image/png', 'x-asset' => 'BA_logo']),
+    Saloon::fake([
+        '/iata/BA*' => MockResponse::make('PNG-BYTES', 200, ['Content-Type' => 'image/png', 'x-asset' => 'BA_logo']),
     ]);
 
-    expect(app(LogoStream::class)->airlineLogo('BA', 'logo-transparent'))
+    expect(app(Client::class)->airlineLogo('BA', 'logo-transparent'))
         ->toBe(['status' => 'saved', 'body' => 'PNG-BYTES']);
 });
 
 it('reports a placeholder asset as unavailable', function () {
-    Http::fake([
-        '*/iata/ZZ*' => Http::response('<svg/>', 200, ['Content-Type' => 'image/svg+xml', 'x-asset' => '-']),
+    Saloon::fake([
+        '/iata/ZZ*' => MockResponse::make('<svg/>', 200, ['Content-Type' => 'image/svg+xml', 'x-asset' => '-']),
     ]);
 
-    expect(app(LogoStream::class)->airlineLogo('ZZ', 'logo-transparent')['status'])->toBe('unavailable');
+    expect(app(Client::class)->airlineLogo('ZZ', 'logo-transparent')['status'])->toBe('unavailable');
 });
 
 it('reports a failed request as an error', function () {
-    Http::fake(['*/iata/XX*' => Http::response('boom', 500)]);
+    Saloon::fake(['/iata/XX*' => MockResponse::make('boom', 500)]);
 
-    expect(app(LogoStream::class)->airlineLogo('XX', 'logo-transparent'))
+    expect(app(Client::class)->airlineLogo('XX', 'logo-transparent'))
         ->toBe(['status' => 'error', 'body' => null]);
 });
 
 it('maps an aviation route into duration, timezones and miles', function () {
-    Http::fake([
-        '*aviation-api*' => Http::response(['data' => [[
+    Saloon::fake([
+        'aviation-api*' => MockResponse::make(['data' => [[
             'duration_min' => 90,
             'departure_timezone' => 'Europe/London',
             'arrival_timezone' => 'Europe/Berlin',
@@ -42,7 +43,7 @@ it('maps an aviation route into duration, timezones and miles', function () {
         ]]]),
     ]);
 
-    $result = app(LogoStream::class)->route('LHR', 'BER');
+    $result = app(Client::class)->route('LHR', 'BER');
 
     expect($result['duration'])->toBe(5400)
         ->and($result['departure_timezone'])->toBe('Europe/London')
@@ -51,7 +52,7 @@ it('maps an aviation route into duration, timezones and miles', function () {
 });
 
 it('returns null when the aviation api has no route', function () {
-    Http::fake(['*aviation-api*' => Http::response(['data' => []])]);
+    Saloon::fake(['aviation-api*' => MockResponse::make(['data' => []])]);
 
-    expect(app(LogoStream::class)->route('AAA', 'BBB'))->toBeNull();
+    expect(app(Client::class)->route('AAA', 'BBB'))->toBeNull();
 });

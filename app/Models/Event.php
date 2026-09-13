@@ -25,6 +25,8 @@ use Spatie\MediaLibrary\HasMedia;
     'name',
     'organiser',
     'venue_name',
+    'address',
+    'postcode',
     'city',
     'country',
     'latitude',

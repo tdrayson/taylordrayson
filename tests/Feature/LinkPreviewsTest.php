@@ -1,8 +1,13 @@
 <?php
 
 use App\Models\Article;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 use function Pest\Laravel\get;
+
+// Content carrying a link queues a favicon fetch; keep it off the network.
+beforeEach(fn () => Saloon::fake(['*' => MockResponse::make('', 404)]));
 
 it('exposes previews only for internal, previewable content links', function () {
     // Target article the link points to. Content is left empty so the card's

@@ -2,7 +2,8 @@
 
 use App\Models\Activity;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config([
@@ -16,13 +17,13 @@ beforeEach(function () {
 /** Fake the OAuth token plus a detail response per activity id. */
 function fakeStravaDetails(array $descriptionsById): void
 {
-    $responses = ['*/oauth/token*' => Http::response(['access_token' => 'token'])];
+    $responses = ['/oauth/token*' => MockResponse::make(['access_token' => 'token'])];
 
     foreach ($descriptionsById as $id => $description) {
-        $responses["*/activities/{$id}*"] = Http::response(['id' => $id, 'description' => $description]);
+        $responses["*/activities/{$id}*"] = MockResponse::make(['id' => $id, 'description' => $description]);
     }
 
-    Http::fake($responses);
+    Saloon::fake($responses);
 }
 
 it('backfills descriptions and leaves blank ones null', function () {
@@ -80,9 +81,9 @@ it('stops after consecutive failures without advancing the cursor past them', fu
     }
 
     // Token succeeds, every detail call fails (simulating a 429 storm).
-    Http::fake([
-        '*/oauth/token*' => Http::response(['access_token' => 'token']),
-        '*/activities/*' => Http::response([], 429),
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token']),
+        '/activities/*' => MockResponse::make([], 429),
     ]);
 
     $this->artisan('strava:backfill-descriptions')->assertSuccessful();

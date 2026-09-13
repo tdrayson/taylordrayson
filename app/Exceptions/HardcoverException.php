@@ -2,7 +2,6 @@
 
 namespace App\Exceptions;
 
-use App\Services\Hardcover;
 use RuntimeException;
 
 /**

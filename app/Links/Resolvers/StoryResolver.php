@@ -3,6 +3,7 @@
 namespace App\Links\Resolvers;
 
 use App\Data\LinkPreviewData;
+use App\Enums\TimelineType;
 use App\Links\LinkResolver;
 use App\Stories\StoryRegistry;
 
@@ -28,6 +29,10 @@ class StoryResolver implements LinkResolver
 
         $card = $story->card();
 
-        return LinkPreviewData::story($path, $card['title'], $card['description'], $card['accent']);
+        // The card's own `accent` is a hex, which is what the /stories listing
+        // paints with. A preview wants the token, so take it from the type.
+        $accent = TimelineType::tryFrom($card['type'])?->accent() ?? 'article';
+
+        return LinkPreviewData::story($path, $card['title'], $card['description'], $accent);
     }
 }

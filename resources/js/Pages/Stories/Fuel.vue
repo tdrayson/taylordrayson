@@ -11,6 +11,7 @@ import Blockquote from '../../Components/Ui/Blockquote.vue';
 import Chart from '../../Components/Ui/Chart.vue';
 import StoryAuthor from '../../Components/Story/StoryAuthor.vue';
 import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue';
+import { pencePerLitre } from '../../lib/format.js';
 import TableOfContents from '../../Components/Ui/TableOfContents.vue';
 import DateLink from '../../Components/Ui/DateLink.vue';
 import { PALETTE, baseOptions } from '../../lib/chart.js';
@@ -52,13 +53,6 @@ const gbp = (value) => `£${n(value)}`;
  * @returns {string}
  */
 const money = (value) => `£${Number(value).toFixed(2)}`;
-
-/**
- * Format a price per litre to two decimals (1.07 becomes "£1.07").
- * @param {number} value The price per litre.
- * @returns {string}
- */
-const price = (value) => `£${Number(value).toFixed(2)}`;
 
 /**
  * Turn a YYYY-MM-DD date into a short "Mon YYYY" axis label.
@@ -107,10 +101,10 @@ const priceChart = computed(() => ({
 }));
 
 const priceOptions = baseOptions({
-    plugins: { tooltip: { callbacks: { label: (ctx) => `£${ctx.raw.toFixed(3)} / litre` } } },
+    plugins: { tooltip: { callbacks: { label: (ctx) => `${pencePerLitre(ctx.raw)} / litre` } } },
     scales: {
         x: { ticks: { maxTicksLimit: 8, maxRotation: 0, autoSkip: true } },
-        y: { ticks: { callback: (v) => `£${v.toFixed(2)}` } },
+        y: { ticks: { callback: (v) => `${Math.round(v * 100)}p` } },
     },
 });
 
@@ -292,27 +286,27 @@ const savingsOptions = baseOptions({
     </StoryChapter>
 
     <StoryChapter number="02" kicker="The price of petrol">
-        <template #title>From {{ price(story.price.low.value) }} to {{ price(story.price.high.value) }} a litre.</template>
+        <template #title>From {{ pencePerLitre(story.price.low.value) }} to {{ pencePerLitre(story.price.high.value) }} a litre.</template>
         <p>
             The price per litre has been on a proper rollercoaster. The cheapest I ever paid was
-            <strong>{{ price(story.price.low.value) }} in <DateLink :date="story.price.low.date" :label="story.price.low.when" month /></strong>,
+            <strong>{{ pencePerLitre(story.price.low.value) }} in <DateLink :date="story.price.low.date" :label="story.price.low.when" month /></strong>,
             right in the depths of the pandemic when nobody was going anywhere. The dearest was
-            <strong>{{ price(story.price.high.value) }} in <DateLink :date="story.price.high.date" :label="story.price.high.when" month /></strong>,
+            <strong>{{ pencePerLitre(story.price.high.value) }} in <DateLink :date="story.price.high.date" :label="story.price.high.when" month /></strong>,
             when the energy crisis after Russia invaded Ukraine sent everything haywire. That's a <strong>{{ story.price.swingPct }}% jump</strong> between the two, for the same car at the
             same sort of garage.
         </p>
         <Chart
             type="line"
             label="Price per litre, every fill"
-            :summary="`Price per litre over time, from ${price(story.price.low.value)} to ${price(story.price.high.value)}`"
+            :summary="`Price per litre over time, from ${pencePerLitre(story.price.low.value)} to ${pencePerLitre(story.price.high.value)}`"
             :data="priceChart"
             :options="priceOptions"
         />
         <StatCards :stats="[
-            { value: price(story.price.low.value), label: `Cheapest, ${story.price.low.when}` },
-            { value: price(story.price.high.value), label: `Dearest, ${story.price.high.when}`, tone: 'fuel' },
+            { value: pencePerLitre(story.price.low.value), label: `Cheapest, ${story.price.low.when}` },
+            { value: pencePerLitre(story.price.high.value), label: `Dearest, ${story.price.high.when}`, tone: 'fuel' },
             { value: `${story.price.swingPct}%`, label: 'Peak-to-trough swing' },
-            { value: price(story.kpis.avgPrice), label: 'All-time average' },
+            { value: pencePerLitre(story.kpis.avgPrice), label: 'All-time average' },
         ]" />
         <Note label="Note">
             Things have calmed right down since mid-2023. Nowhere near the madness of 2022, but they've never really

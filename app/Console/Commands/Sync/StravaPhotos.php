@@ -6,7 +6,7 @@ use App\Actions\FetchStravaActivitySummaries;
 use App\Actions\SyncStravaPhotos;
 use App\Enums\Source;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Attributes\Description;
@@ -22,7 +22,7 @@ class StravaPhotos extends Command
 
     private const RATE_WINDOW = 900;
 
-    public function handle(Strava $strava, SyncStravaPhotos $sync, FetchStravaActivitySummaries $summaries): int
+    public function handle(Client $strava, SyncStravaPhotos $sync, FetchStravaActivitySummaries $summaries): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -141,7 +141,7 @@ class StravaPhotos extends Command
      *
      * @param  Collection<int, array{activity: Activity, start: ?CarbonImmutable}>  $targets
      */
-    private function fetchPhotos(Strava $strava, SyncStravaPhotos $sync, Collection $targets): int
+    private function fetchPhotos(Client $strava, SyncStravaPhotos $sync, Collection $targets): int
     {
         $stored = 0;
         $requestsInWindow = 0;
@@ -178,7 +178,10 @@ class StravaPhotos extends Command
                 $this->warn("Failed to fetch streams for {$activity->source_id}, storing photos without map positions.");
             }
 
-            $count = $sync($activity, $photos, $streams, $target['start']);
+            // Rebuilt rather than topped up: this command exists to repair
+            // media, including legacy photos stored before the current sync
+            // wrote coordinates and capture times onto them.
+            $count = $sync($activity, $photos, $streams, $target['start'], replace: true);
             $stored += $count;
 
             $this->info("[{$stored}] {$activity->name} - {$count} photo(s)");

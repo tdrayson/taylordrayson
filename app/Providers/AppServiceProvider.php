@@ -67,7 +67,9 @@ class AppServiceProvider extends ServiceProvider
                 Route::get($definition['slug'], [ArchiveController::class, 'index'])
                     ->defaults('type', $type)->name("archive.{$definition['slug']}");
 
-                Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
+                if ($definition['stats']) {
+                    Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
+                }
 
                 if ($taxonomy = $definition['taxonomy']) {
                     // Its own name prefix: a taxonomy base usually matches the

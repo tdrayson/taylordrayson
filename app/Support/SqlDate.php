@@ -44,6 +44,16 @@ final class SqlDate
     }
 
     /**
+     * The month as an integer, 1-12.
+     */
+    public static function month(string $expression): string
+    {
+        return self::isMysql()
+            ? "MONTH({$expression})"
+            : "CAST(strftime('%m', {$expression}) AS INTEGER)";
+    }
+
+    /**
      * The four-digit year as an integer.
      */
     public static function year(string $expression): string

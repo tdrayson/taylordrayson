@@ -3,7 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use App\Support\Downsample;
 use Carbon\CarbonImmutable;
 
@@ -17,7 +17,7 @@ class StoreActivityStreams
      * Fetch, downsample, and store the activity's Strava streams. Returns true
      * when at least one series was stored.
      */
-    public function __invoke(Activity $activity, Strava $strava): bool
+    public function __invoke(Activity $activity, Client $strava): bool
     {
         $streams = $strava->activityStreams($activity->source_id, self::KEYS);
 

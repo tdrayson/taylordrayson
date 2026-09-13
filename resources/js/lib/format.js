@@ -181,13 +181,27 @@ export function number(value, fractionDigits = 0) {
 /**
  * GBP money, always to two decimal places: 45.6 becomes "£45.60", 45 becomes
  * "£45.00". Returns null for blank values so callers can drop empty stats.
- * (Per-litre fuel price is the one deliberate exception - it stays at three
- * decimals via number(value, 3), matching how pumps price fuel.)
+ * (Per-litre fuel price is the one deliberate exception - it is priced in
+ * tenths of a penny, so it goes through pencePerLitre() instead.)
  */
 export function money(value) {
     const formatted = number(value, 2);
 
     return formatted === null ? null : `£${formatted}`;
+}
+
+/**
+ * A fuel price in pence, the way a forecourt board shows it: 1.619 becomes
+ * "161.9p". Always to a tenth of a penny, the unit fuel is sold in.
+ * @param {number|string|null} value Price per litre, in pounds.
+ * @returns {string|null} The board's own figure, or null when blank.
+ */
+export function pencePerLitre(value) {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
+    return `${number(Number(value) * 100, 1)}p`;
 }
 
 // Kilograms to pounds. Returns the unrounded value; the formatter applies

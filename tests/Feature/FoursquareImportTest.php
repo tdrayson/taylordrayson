@@ -1,26 +1,26 @@
 <?php
 
 use App\Models\Checkin;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.foursquare.access_token' => 'test-token']);
 });
 
 it('imports checkins from the foursquare api', function () {
-    Http::fake([
-        '*users/self/checkins*' => Http::sequence()
-            ->push(['response' => ['checkins' => ['items' => [[
-                'id' => 'abc',
-                'createdAt' => 1700000000,
-                'shout' => 'Great coffee',
-                'venue' => [
-                    'name' => 'Coffee Bar',
-                    'categories' => [['name' => 'Café']],
-                    'location' => ['address' => '1 High St', 'city' => 'London', 'state' => 'England', 'country' => 'UK', 'lat' => 51.5, 'lng' => -0.1],
-                ],
-            ]]]]])
-            ->push(['response' => ['checkins' => ['items' => []]]]),
+    Saloon::fake([
+        MockResponse::make(['response' => ['checkins' => ['items' => [[
+            'id' => 'abc',
+            'createdAt' => 1700000000,
+            'shout' => 'Great coffee',
+            'venue' => [
+                'name' => 'Coffee Bar',
+                'categories' => [['name' => 'Café']],
+                'location' => ['address' => '1 High St', 'city' => 'London', 'state' => 'England', 'country' => 'UK', 'lat' => 51.5, 'lng' => -0.1],
+            ],
+        ]]]]]),
+        MockResponse::make(['response' => ['checkins' => ['items' => []]]]),
     ]);
 
     $this->artisan('foursquare:import')->assertSuccessful();
@@ -35,14 +35,13 @@ it('imports checkins from the foursquare api', function () {
 it('skips checkins that already exist', function () {
     Checkin::factory()->create(['source' => 'swarm', 'source_id' => 'dupe']);
 
-    Http::fake([
-        '*users/self/checkins*' => Http::sequence()
-            ->push(['response' => ['checkins' => ['items' => [[
-                'id' => 'dupe',
-                'createdAt' => 1700000000,
-                'venue' => ['name' => 'Seen Before'],
-            ]]]]])
-            ->push(['response' => ['checkins' => ['items' => []]]]),
+    Saloon::fake([
+        MockResponse::make(['response' => ['checkins' => ['items' => [[
+            'id' => 'dupe',
+            'createdAt' => 1700000000,
+            'venue' => ['name' => 'Seen Before'],
+        ]]]]]),
+        MockResponse::make(['response' => ['checkins' => ['items' => []]]]),
     ]);
 
     $this->artisan('foursquare:import')->assertSuccessful();
@@ -51,7 +50,7 @@ it('skips checkins that already exist', function () {
 });
 
 it('fails when the api errors', function () {
-    Http::fake(['*users/self/checkins*' => Http::response('boom', 500)]);
+    Saloon::fake(['users/self/checkins*' => MockResponse::make('boom', 500)]);
 
     $this->artisan('foursquare:import')->assertFailed();
 });

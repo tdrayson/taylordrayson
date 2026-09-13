@@ -1,16 +1,17 @@
 <?php
 
 use App\Exceptions\HardcoverException;
-use App\Services\Hardcover;
-use Illuminate\Support\Facades\Http;
+use App\Services\Hardcover\Client;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config()->set('services.hardcover.key', 'test-hardcover-key');
 });
 
 it('posts a GraphQL search with the bearer token', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'data' => [
                 'search' => [
                     'error' => null,
@@ -36,25 +37,25 @@ it('posts a GraphQL search with the bearer token', function () {
         ]),
     ]);
 
-    $search = app(Hardcover::class)->search('atomic habits');
+    $search = app(Client::class)->search('atomic habits');
 
     expect($search['query'])->toBe('atomic habits')
         ->and($search['query_type'])->toBe('Book')
         ->and($search['results']['hits'][0]['document']['title'])->toBe('Atomic Habits');
 
-    Http::assertSent(function ($request) {
-        $body = $request->data();
+    Saloon::assertSent(function ($request, $response) {
+        $body = $request->body()->all();
 
-        return $request->url() === 'https://api.hardcover.app/v1/graphql'
-            && $request->hasHeader('Authorization', 'Bearer test-hardcover-key')
+        return $response->getPendingRequest()->getUrl() === 'https://api.hardcover.app/v1/graphql'
+            && $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer test-hardcover-key'
             && str_contains($body['query'], 'search(query: $query)')
             && $body['variables']['query'] === 'atomic habits';
     });
 });
 
 it('flattens search hits into book documents', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'data' => [
                 'search' => [
                     'error' => null,
@@ -73,7 +74,7 @@ it('flattens search hits into book documents', function () {
         ]),
     ]);
 
-    $documents = app(Hardcover::class)->searchDocuments('atomic habits');
+    $documents = app(Client::class)->searchDocuments('atomic habits');
 
     expect($documents)->toHaveCount(2)
         ->and($documents[0]['title'])->toBe('Atomic Habits')
@@ -83,51 +84,53 @@ it('flattens search hits into book documents', function () {
 it('strips a leading Bearer prefix from the configured key', function () {
     config()->set('services.hardcover.key', 'Bearer already-prefixed');
 
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'data' => ['search' => ['error' => null, 'results' => ['hits' => []]]],
         ]),
     ]);
 
-    app(Hardcover::class)->search('test');
+    app(Client::class)->search('test');
 
-    Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer already-prefixed'));
+    Saloon::assertSent(fn ($request, $response) => $response->getPendingRequest()->headers()->get('Authorization') === 'Bearer already-prefixed');
 });
 
 it('throws when the API key is missing', function () {
     config()->set('services.hardcover.key', null);
 
-    expect(fn () => app(Hardcover::class)->search('atomic habits'))
+    expect(fn () => app(Client::class)->search('atomic habits'))
         ->toThrow(HardcoverException::class, 'HARDCOVER_API_KEY is not configured.');
 });
 
 it('throws when the HTTP request fails', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response('nope', 500),
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make('nope', 500),
     ]);
 
-    expect(fn () => app(Hardcover::class)->search('atomic habits'))
+    expect(fn () => app(Client::class)->search('atomic habits'))
         ->toThrow(HardcoverException::class, 'failed with status 500');
 });
 
 it('throws when GraphQL returns an errors payload', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::response([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => MockResponse::make([
             'errors' => [
                 ['message' => 'Unable to verify token'],
             ],
         ]),
     ]);
 
-    expect(fn () => app(Hardcover::class)->query('{ me { username } }'))
+    expect(fn () => app(Client::class)->query('{ me { username } }'))
         ->toThrow(HardcoverException::class, 'Unable to verify token');
 });
 
 it('retries a 429 response and resolves to the eventual body', function () {
-    Http::fake([
-        'api.hardcover.app/v1/graphql' => Http::sequence()
-            ->push('rate limited', 429)
-            ->push([
+    Saloon::fake([
+        'api.hardcover.app/v1/graphql' => mockSequence([
+
+            MockResponse::make('rate limited', 429),
+
+            MockResponse::make([
                 'data' => [
                     'search' => [
                         'error' => null,
@@ -136,12 +139,14 @@ it('retries a 429 response and resolves to the eventual body', function () {
                     ],
                 ],
             ], 200),
+
+        ]),
     ]);
 
-    $documents = app(Hardcover::class)->searchDocuments('dune');
+    $documents = app(Client::class)->searchDocuments('dune');
 
     expect($documents)->toHaveCount(1)
         ->and($documents[0]['title'])->toBe('Dune');
 
-    Http::assertSentCount(2);
+    Saloon::assertSentCount(2);
 });

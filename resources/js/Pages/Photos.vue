@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue';
-import { setLayoutProps, Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { setLayoutProps, InfiniteScroll, Link } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
+import PhotoGridSkeleton from '../Components/Ui/PhotoGridSkeleton.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
 import { cn } from '../lib/cn.js';
 
@@ -11,7 +12,10 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
-    photos: { type: Array, default: () => [] },
+    total: { type: Number, default: 0 },
+    // A paginator: photos land in `data` and grow as pages are appended. Absent
+    // until the deferred first page arrives.
+    photos: { type: Object, default: null },
     // Only present signed in; the bar renders from this, not from `filter`
     // (which is also null on "Everything"), so it can't render disabled for a
     // signed-out visitor.
@@ -22,6 +26,8 @@ const props = defineProps({
 setLayoutProps({
     breadcrumb: [{ label: 'Photos' }],
 });
+
+const photos = computed(() => props.photos?.data ?? []);
 
 const lightboxIndex = ref(null);
 
@@ -41,7 +47,7 @@ function facetClasses(active) {
     <header>
         <h1 class="font-display text-display">Photos</h1>
         <p class="mt-2 text-meta text-neutral-500">
-            {{ photos.length }} photos from everything I've logged, newest first.
+            {{ total }} photos from everything I've logged, newest first.
         </p>
     </header>
 
@@ -56,9 +62,21 @@ function facetClasses(active) {
         </Link>
     </div>
 
-    <PhotoGrid v-if="photos.length" :photos="photos" review class="mt-8" @open="lightboxIndex = $event" />
-    <p v-else-if="filter" class="mt-8 text-meta text-neutral-500">Nothing needs this right now.</p>
-    <p v-else class="mt-8 text-meta text-neutral-500">No photos yet.</p>
+    <div class="mt-8">
+        <!-- The first page is deferred, so the heading paints while it loads. -->
+        <PhotoGridSkeleton v-if="!props.photos" />
+
+        <InfiniteScroll v-else-if="total" data="photos" only-next>
+            <PhotoGrid :photos="photos" review @open="lightboxIndex = $event" />
+
+            <template #loading>
+                <PhotoGridSkeleton :count="4" class="mt-3" />
+            </template>
+        </InfiniteScroll>
+
+        <p v-else-if="filter" class="text-meta text-neutral-500">Nothing needs this right now.</p>
+        <p v-else class="text-meta text-neutral-500">No photos yet.</p>
+    </div>
 
     <Lightbox v-model:index="lightboxIndex" :photos="photos" tags />
 </template>

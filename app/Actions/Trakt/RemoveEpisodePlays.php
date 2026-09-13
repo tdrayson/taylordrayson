@@ -5,7 +5,7 @@ namespace App\Actions\Trakt;
 use App\Data\TraktPruneResult;
 use App\Models\Media;
 use App\Models\Series;
-use App\Services\Trakt;
+use App\Services\Trakt\Client;
 use Illuminate\Support\Collection;
 
 /**
@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
  */
 final class RemoveEpisodePlays
 {
-    public function __construct(private readonly Trakt $trakt) {}
+    public function __construct(private readonly Client $trakt) {}
 
     /**
      * @param  array<int, int>  $episodeTraktIds  Episode trakt ids (meta.ids.trakt), NOT history ids.

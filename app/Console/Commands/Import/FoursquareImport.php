@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Import;
 
 use App\Actions\Checkins\ImportCheckin;
-use App\Services\Foursquare;
+use App\Services\Foursquare\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -18,7 +18,7 @@ class FoursquareImport extends Command
      * asks the API only for check-ins newer than the last one stored rather
      * than paging the entire history on every run.
      */
-    public function handle(Foursquare $foursquare, ImportCheckin $importCheckin): int
+    public function handle(Client $foursquare, ImportCheckin $importCheckin): int
     {
         $limit = (int) $this->option('limit');
         $imported = 0;

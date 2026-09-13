@@ -37,6 +37,11 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="LOGODEV_TOKEN" value=""/>
+        <!-- Blanked so a failure alert cannot reach a real phone. Pushover is
+             the one client that fires on an unhappy path, and its send() bails
+             before making a request when it has no credentials. -->
+        <env name="PUSHOVER_TOKEN" value=""/>
+        <env name="PUSHOVER_USER" value=""/>
         <!-- Tests assert the Inertia page object or the hydrated DOM, never the
              server-rendered HTML, so dispatching each one to the SSR server
              would only make a Node process a prerequisite for running the

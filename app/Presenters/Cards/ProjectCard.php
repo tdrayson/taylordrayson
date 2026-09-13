@@ -16,16 +16,24 @@ final class ProjectCard
     public function present(Project $model): CardData
     {
         return new CardData(
-            type: TimelineType::Project,
-            icon: 'rocket',
-            title: $model->title,
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $model->description,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'project',
             range: null,
             meta: CardMeta::empty(),
         );
+    }
+
+    public function title(Project $model): string
+    {
+        return $model->title;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Project;
     }
 }

@@ -30,7 +30,7 @@ final class MentionedSubjects
 
     /**
      * Every `{_type: 'mention', kind: 'subject'}` node's id, callouts included
-     * since they nest their own blocks. Mirrors {@see ResolveMentions::references()}.
+     * since they nest their own blocks.
      *
      * @param  array<int, array<string, mixed>>  $blocks
      * @return list<int>

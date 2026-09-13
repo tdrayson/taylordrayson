@@ -2,22 +2,23 @@
 
 use App\Actions\StoreActivityStreams;
 use App\Models\Activity;
-use App\Services\Strava;
-use Illuminate\Support\Facades\Http;
+use App\Services\Strava\Client;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.strava.client_id' => 'x', 'services.strava.client_secret' => 'y', 'services.strava.refresh_token' => 'z']);
 });
 
 it('stores aligned absolute-time streams on the activity', function () {
-    // Http::fake() re-encodes array bodies via a plain json_encode(), which
+    // Saloon::fake(['' => MockResponse::make('', 200)]) re-encodes array bodies via a plain json_encode(), which
     // drops the trailing zero on whole-number floats (10.0 -> "10"), unlike
     // Strava's real JSON responses. Pass a pre-encoded string body (with
     // JSON_PRESERVE_ZERO_FRACTION) so the fake round-trips floats the same
     // way the live API does.
-    Http::fake([
-        '*oauth/token*' => Http::response(['access_token' => 'tok', 'expires_in' => 3600]),
-        '*/streams*' => Http::response(json_encode([
+    Saloon::fake([
+        'oauth/token*' => MockResponse::make(['access_token' => 'tok', 'expires_in' => 3600]),
+        '/streams*' => MockResponse::make(json_encode([
             'time' => ['data' => [0, 1, 2]],
             'altitude' => ['data' => [10.0, 11.0, 12.0]],
             'velocity_smooth' => ['data' => [2.0, 2.5, 3.0]],
@@ -27,7 +28,7 @@ it('stores aligned absolute-time streams on the activity', function () {
     ]);
     $activity = Activity::factory()->create(['source_id' => '999', 'occurred_at' => '2024-01-01 08:00:00']);
 
-    $stored = app(StoreActivityStreams::class)($activity->fresh(), app(Strava::class));
+    $stored = app(StoreActivityStreams::class)($activity->fresh(), app(Client::class));
 
     expect($stored)->toBeTrue();
     $activity->refresh();
@@ -43,12 +44,12 @@ it('stores aligned absolute-time streams on the activity', function () {
 });
 
 it('returns false and stores nothing when Strava has no streams', function () {
-    Http::fake([
-        '*oauth/token*' => Http::response(['access_token' => 'tok', 'expires_in' => 3600]),
-        '*/streams*' => Http::response([]),
+    Saloon::fake([
+        'oauth/token*' => MockResponse::make(['access_token' => 'tok', 'expires_in' => 3600]),
+        '/streams*' => MockResponse::make([]),
     ]);
     $activity = Activity::factory()->create(['source_id' => '998']);
 
-    expect(app(StoreActivityStreams::class)($activity, app(Strava::class)))->toBeFalse();
+    expect(app(StoreActivityStreams::class)($activity, app(Client::class)))->toBeFalse();
     expect($activity->fresh()->altitude)->toBeNull();
 });

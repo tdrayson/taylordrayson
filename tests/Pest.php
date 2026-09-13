@@ -2,8 +2,12 @@
 
 use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
+use Saloon\Config as SaloonConfig;
+use Saloon\Http\Faking\MockClient;
+use Saloon\Http\Faking\MockResponse;
 use Tests\TestCase;
 
 /*
@@ -24,7 +28,22 @@ pest()->extend(TestCase::class)
 // The HTTP client retries a rate limit or a 5xx with a backoff (see ApiHttp).
 // Tests that fake those responses would otherwise sit through the real wait,
 // which cost the suite about 26 seconds.
-uses()->beforeEach(fn () => Sleep::fake())->in('Feature', 'Unit', 'Browser');
+// Sleep::fake() keeps retry backoff from actually waiting. preventStrayRequests
+// makes a missing Saloon mock fail loudly: without it an unmocked request goes
+// to the real internet and the test hangs on the retry policy rather than failing.
+uses()->beforeEach(function (): void {
+    Sleep::fake();
+    MockClient::destroyGlobal();
+    SaloonConfig::preventStrayRequests();
+})->in('Feature', 'Unit', 'Browser');
+
+// The same guard for the plain client, which the jobs use. The queue runs sync
+// under test, so storing an entry draws its map there and then: without this a
+// test spends real Mapbox credit on the live token.
+// Unit tests are left out because they run without the framework booted.
+uses()->beforeEach(function (): void {
+    Http::preventStrayRequests();
+})->in('Feature', 'Browser');
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +74,20 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Answer Mapbox's static image API with a stub image.
+ *
+ * The queue runs sync under test, so storing an entry that has a location draws
+ * its map there and then. Any test that does so needs this, or the request goes
+ * to the real API on the real token.
+ */
+function fakeMapImages(): void
+{
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+
+    Http::fake(['api.mapbox.com/*' => Http::response($png, 200, ['Content-Type' => 'image/png'])]);
 }
 
 /**
@@ -183,4 +216,28 @@ function mapPng(int $tint = 200): string
     imagedestroy($image);
 
     return $bytes;
+}
+
+/**
+ * Hand back the given responses in order for one mock key.
+ *
+ * Saloon takes a single response per request-class or URL key, so a sequence
+ * scoped to one endpoint has to be a closure over its own cursor. An unkeyed
+ * array is already a sequence and needs none of this.
+ *
+ * @param  list<MockResponse>  $responses
+ */
+function mockSequence(array $responses): Closure
+{
+    $sent = 0;
+
+    return function () use ($responses, &$sent) {
+        // Throw rather than repeat the last response: a pager that stops on an
+        // empty page would otherwise loop for ever on a sequence that ran out.
+        if (! isset($responses[$sent])) {
+            throw new OutOfBoundsException('Mock sequence is empty, but a request was made.');
+        }
+
+        return $responses[$sent++];
+    };
 }

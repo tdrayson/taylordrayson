@@ -3,7 +3,8 @@
 use App\Models\Airport;
 use App\Models\Flight;
 use App\Support\Distance;
-use Illuminate\Support\Facades\Http;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 beforeEach(function () {
     config(['services.logostream.key' => 'test-key']);
@@ -24,8 +25,8 @@ it('enriches a flight from the aviation api', function () {
         'arrival_timezone' => null,
     ]);
 
-    Http::fake([
-        '*aviation-api*' => Http::response([
+    Saloon::fake([
+        'aviation-api*' => MockResponse::make([
             'data' => [[
                 'duration_min' => 120,
                 'departure_timezone' => 'Europe/London',
@@ -59,7 +60,7 @@ it('falls back to the timezone api when the route is unknown', function () {
         'departure_timezone' => null,
     ]);
 
-    Http::fake(['*aviation-api*' => Http::response(['data' => []])]);
+    Saloon::fake(['aviation-api*' => MockResponse::make(['data' => []])]);
 
     $this->artisan('flights:enrich')->assertExitCode(0);
 

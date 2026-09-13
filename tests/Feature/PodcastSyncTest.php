@@ -2,8 +2,9 @@
 
 use App\Jobs\StorePodcastMedia;
 use App\Models\Podcast;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Saloon\Http\Faking\MockResponse;
+use Saloon\Laravel\Facades\Saloon;
 
 /**
  * The queue is faked because StorePodcastMedia would otherwise run inline and
@@ -38,13 +39,14 @@ function podcastEpisode(int $number, string $date = '2026-07-24T13:00:00+01:00')
  */
 function fakePodcastPages(array $pages): void
 {
-    $sequence = Http::sequence();
+    $responses = [];
 
     foreach ($pages as $episodes) {
-        $sequence->push(['episodes' => $episodes, 'total_pages' => count($pages)]);
+        $responses[] = MockResponse::make(['episodes' => $episodes, 'total_pages' => count($pages)]);
     }
 
-    Http::fake(['*wp-json/podcast/v1/episodes*' => $sequence]);
+    // An unkeyed array is a sequence: one response per page, in order.
+    Saloon::fake($responses);
 }
 
 it('stores newly published episodes', function () {
@@ -69,7 +71,7 @@ it('stops paging once it reaches episodes it already has', function () {
 
     $this->artisan('podcast:sync')->assertSuccessful();
 
-    Http::assertSentCount(1);
+    Saloon::assertSentCount(1);
     expect(Podcast::count())->toBe(5);
 });
 
@@ -122,7 +124,7 @@ it('walks the whole feed with --full', function () {
 
     $this->artisan('podcast:sync --full')->assertSuccessful();
 
-    Http::assertSentCount(2);
+    Saloon::assertSentCount(2);
     expect(Podcast::where('episode_number', 249)->exists())->toBeTrue();
 });
 

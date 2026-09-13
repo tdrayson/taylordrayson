@@ -4,7 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Enums\Source;
 use App\Models\Activity;
-use App\Services\Strava;
+use App\Services\Strava\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -35,7 +35,7 @@ class BackfillStravaDescriptions extends Command
      * Walk existing Strava activities oldest-first and store each description.
      * Resumes from a cached cursor on the activity id; --restart clears it.
      */
-    public function handle(Strava $strava): int
+    public function handle(Client $strava): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
