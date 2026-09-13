@@ -3,10 +3,8 @@
 namespace App\Queries;
 
 use App\Data\TagLink;
-use App\Enums\EntryStatus;
 use App\Models\Tag;
 use App\Models\Taggable;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -21,11 +19,7 @@ final class TagUsage
     public function __invoke(): Collection
     {
         $counts = Taggable::query()
-            ->whereExists(fn (Builder $sub) => $sub->selectRaw('1')
-                ->from('timeline_entries')
-                ->whereColumn('timeline_entries.dataset', 'taggables.taggable_type')
-                ->whereColumn('timeline_entries.entry_id', 'taggables.taggable_id')
-                ->where('timeline_entries.status', EntryStatus::Published->value))
+            ->listed()
             ->selectRaw('tag_id, count(*) as total')
             ->groupBy('tag_id')
             ->pluck('total', 'tag_id');

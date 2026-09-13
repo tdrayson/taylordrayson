@@ -194,3 +194,14 @@ it('lets a literal route win over the page catch-all', function () {
 
     expect(app(LinkResolvers::class)->resolve('/now')->type)->toBe('live');
 });
+
+it('counts only listed entries in a tag preview, and previews nothing for a tag with none', function () {
+    Note::factory()->create(['status' => 'published'])->syncTagNames(['coffee']);
+    Note::factory()->create(['status' => 'unlisted'])->syncTagNames(['coffee']);
+    Note::factory()->create(['status' => 'private', 'password' => 'hunter2'])->syncTagNames(['coffee', 'secret']);
+
+    $resolve = fn (string $path): ?array => app(LinkResolvers::class)->resolve($path)?->toArray();
+
+    expect($resolve('/tags/coffee')['excerpt'])->toBe('1 entry')
+        ->and($resolve('/tags/secret'))->toBeNull();
+});
