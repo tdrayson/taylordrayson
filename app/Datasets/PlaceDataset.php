@@ -51,7 +51,7 @@ final class PlaceDataset extends BaseDataset
 
     public function keywords(): string
     {
-        return 'place location visited';
+        return 'place location visited checkin check-in';
     }
 
     // The only type whose OG eyebrow is its plural: a place card leads with its section.

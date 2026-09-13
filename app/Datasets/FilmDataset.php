@@ -49,7 +49,7 @@ final class FilmDataset extends BaseDataset
 
     public function keywords(): string
     {
-        return 'watch movie film';
+        return 'watch movie film media';
     }
 
     public function card(): FilmCard

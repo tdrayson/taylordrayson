@@ -49,7 +49,7 @@ final class BookDataset extends BaseDataset
 
     public function keywords(): string
     {
-        return 'read book reading';
+        return 'read book reading media';
     }
 
     public function card(): BookCard

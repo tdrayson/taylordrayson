@@ -59,7 +59,7 @@ final class EpisodeDataset extends BaseDataset
 
     public function keywords(): string
     {
-        return 'watch tv show episode series';
+        return 'watch tv show episode series media';
     }
 
     public function card(): EpisodeCard
