@@ -29,7 +29,7 @@ final class FilmDataset extends BaseDataset
 
     public function icon(): string
     {
-        return 'ClapperboardIcon';
+        return 'FlimSlateIcon';
     }
 
     public function label(): string
