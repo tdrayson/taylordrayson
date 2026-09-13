@@ -3,7 +3,7 @@
 namespace App\Actions\Trakt;
 
 use App\Data\TraktPruneResult;
-use App\Models\Media;
+use App\Models\Episode;
 use App\Models\Series;
 use App\Services\Trakt\Client;
 use Illuminate\Support\Collection;
@@ -61,7 +61,7 @@ final class RemoveEpisodePlays
      * in PHP rather than by JSON path, which is not portable across drivers.
      *
      * @param  array<int, int>  $episodeTraktIds
-     * @return Collection<int, Media>
+     * @return Collection<int, Episode>
      */
     private function localRowsFor(array $episodeTraktIds): Collection
     {
@@ -71,11 +71,10 @@ final class RemoveEpisodePlays
 
         $wanted = array_flip($episodeTraktIds);
 
-        return Media::query()
+        return Episode::query()
             ->where('source', 'trakt')
-            ->where('type', 'episode')
             ->get()
-            ->filter(fn (Media $row): bool => isset($wanted[(int) data_get($row->meta, 'ids.trakt')]));
+            ->filter(fn (Episode $row): bool => isset($wanted[(int) data_get($row->meta, 'ids.trakt')]));
     }
 
     /**

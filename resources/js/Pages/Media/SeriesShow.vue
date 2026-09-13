@@ -23,9 +23,9 @@ const props = defineProps({
     seasonList: { type: Array, default: () => [] },
 });
 
-// The site's per-type accent colour (media = pink), matching the eyebrow
+// The site's per-type accent colour (episode = green), matching the eyebrow
 // styling on Archive.vue/Entry.vue for other timeline types.
-const accentStyle = { color: 'var(--color-media)' };
+const accentStyle = { color: 'var(--color-episode)' };
 
 // The hero's logo names the series, so the heading stays for the outline but
 // steps out of the way rather than printing the title twice.
@@ -59,7 +59,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="{ title: series.title, heading: series.title, eyebrow: 'TV series', accent: 'media', image: series.backdrop || series.poster }" />
+    <AppHead :og="{ title: series.title, heading: series.title, eyebrow: 'TV series', accent: 'episode', image: series.backdrop || series.poster }" />
 
     <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
         <!-- Without a backdrop there is no hero to carry the poster, so it sits

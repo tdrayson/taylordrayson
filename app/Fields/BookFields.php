@@ -6,9 +6,9 @@ use App\Data\FieldData;
 use App\Enums\FieldType;
 
 /**
- * A book read. Books are Media rows with type = book; unlike films and episodes
- * they have no Trakt equivalent, so they are entered by hand and their details
- * live in the meta column rather than in columns of their own.
+ * A book read. Unlike films and episodes, books have no Trakt equivalent, so
+ * they are entered by hand and their details live in the meta column rather
+ * than in columns of their own.
  *
  * Dotted names address meta keys, which the action merges rather than
  * overwriting, so a field added later does not wipe the ones already there.

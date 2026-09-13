@@ -3,7 +3,7 @@
 namespace App\Queries;
 
 use App\Data\SeriesStats;
-use App\Models\Media;
+use App\Models\Episode;
 use App\Models\Series;
 use Carbon\CarbonInterface;
 
@@ -53,7 +53,7 @@ final class SeriesWatchStats
     private function distinctEpisodesWatched(Series $series): int
     {
         return $series->episodes
-            ->map(fn (Media $episode): string => ($episode->meta->season ?? '?').'x'.($episode->meta->episode ?? '?'))
+            ->map(fn (Episode $episode): string => ($episode->meta->season ?? '?').'x'.($episode->meta->episode ?? '?'))
             ->unique()
             ->count();
     }
@@ -61,7 +61,7 @@ final class SeriesWatchStats
     /** Every watch counts here, rewatches included: it is time actually spent. */
     private function totalRuntimeMinutes(Series $series): int
     {
-        return (int) $series->episodes->sum(fn (Media $episode): int => $episode->meta->runtime ?? 0);
+        return (int) $series->episodes->sum(fn (Episode $episode): int => $episode->meta->runtime ?? 0);
     }
 
     /** Human span between first and last watch, e.g. "8 months". */

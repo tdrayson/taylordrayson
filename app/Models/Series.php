@@ -29,7 +29,7 @@ class Series extends Model implements HasMedia
 
     public function episodes(): HasMany
     {
-        return $this->hasMany(Media::class)->orderBy('occurred_at');
+        return $this->hasMany(Episode::class)->orderBy('occurred_at');
     }
 
     /**

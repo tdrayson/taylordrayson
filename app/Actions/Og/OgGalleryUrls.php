@@ -58,7 +58,9 @@ final class OgGalleryUrls
             'activity' => ['layout' => 'media', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '3.2 mi, 42 min', 'image' => $this->sampleMap('activity')],
             'flight' => ['layout' => 'media', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
             'place' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('place'))],
-            'media' => ['layout' => 'text', 'eyebrow' => 'Books', 'title' => 'I read Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear'],
+            'film' => ['layout' => 'text', 'title' => 'I watched Dune', 'date' => 'Fri 3 Jan 2025', 'meta' => 'this 2021 sci-fi film'],
+            'episode' => ['layout' => 'text', 'title' => 'I watched season 1 episode 3 of Severance', 'date' => 'Sat 4 Jan 2025', 'meta' => null],
+            'book' => ['layout' => 'text', 'title' => 'I read Atomic Habits', 'date' => 'Sun 5 Jan 2025', 'meta' => 'James Clear'],
             'appearance' => ['layout' => 'text', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
             'this-week-with' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
             'article' => ['layout' => 'text', 'title' => 'Why I track absolutely everything', 'date' => 'Mon 12 May 2025', 'meta' => '6 min read'],
@@ -83,7 +85,6 @@ final class OgGalleryUrls
             $cards[$key] = [
                 ...$sample,
                 'accent' => TypeColors::hex($type->accent()),
-                // The media sample is a book, so it keeps its own eyebrow.
                 'eyebrow' => $sample['eyebrow'] ?? TypeCatalogue::forType($type)->eyebrow(),
             ];
         }

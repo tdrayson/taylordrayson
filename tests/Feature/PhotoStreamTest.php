@@ -1,8 +1,7 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
-use App\Models\Media;
+use App\Models\Film;
 use App\Models\Place;
 use App\Models\Series;
 use App\Presenters\CardPresenter;
@@ -22,7 +21,7 @@ it('returns real photos newest first, and the limited call is a prefix of the fu
     $newest->addMediaFromString(fakeJpeg())->usingFileName('new.jpg')->toMediaCollection('cover');
 
     // Enrichment art that /photos excludes must never enter the stream.
-    Media::factory()->create(['type' => MediaType::Film])
+    Film::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('poster.jpg')->toMediaCollection('cover');
     Series::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('series.jpg')->toMediaCollection('cover');

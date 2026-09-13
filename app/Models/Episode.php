@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use App\Data\MediaMeta;
-use App\Enums\MediaType;
+use App\Data\EpisodeMeta;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -18,18 +17,8 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
-#[Fillable([
-    'occurred_at',
-    'type',
-    'title',
-    'rating',
-    'series_id',
-    'timezone',
-    'source',
-    'source_id',
-    'meta',
-])]
-class Media extends Model implements HasMedia, Timelineable
+#[Fillable(['occurred_at', 'title', 'rating', 'series_id', 'timezone', 'source', 'source_id', 'meta'])]
+final class Episode extends Model implements HasMedia, Timelineable
 {
     use HasAttachments, HasFactory, HasTimelineEntry;
 
@@ -40,8 +29,7 @@ class Media extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'type' => MediaType::class,
-            'meta' => MediaMeta::class,
+            'meta' => EpisodeMeta::class,
         ];
     }
 
@@ -58,7 +46,7 @@ class Media extends Model implements HasMedia, Timelineable
      */
     public function getPlatformUrlAttribute(): ?string
     {
-        return TraktUrl::forMedia($this);
+        return TraktUrl::forEpisode($this);
     }
 
     public function slug(): string

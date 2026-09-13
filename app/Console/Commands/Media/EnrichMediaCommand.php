@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Media;
 
 use App\Jobs\EnrichMedia;
-use App\Models\Media;
+use App\Models\Film;
 use App\Models\Series;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -50,13 +50,13 @@ class EnrichMediaCommand extends Command
     {
         $dispatched = 0;
 
-        Media::query()->where('source', 'trakt')->where('type', 'film')->get()
-            ->each(function (Media $media) use ($force, &$dispatched): void {
-                if (! $force && ! $this->mediaIsBare($media)) {
+        Film::query()->where('source', 'trakt')->get()
+            ->each(function (Film $film) use ($force, &$dispatched): void {
+                if (! $force && ! $this->mediaIsBare($film)) {
                     return;
                 }
 
-                EnrichMedia::dispatch($media, 'movie', $media->meta->ids->tmdb, null);
+                EnrichMedia::dispatch($film, 'movie', $film->meta->ids->tmdb, null);
                 $dispatched++;
             });
 
@@ -72,8 +72,8 @@ class EnrichMediaCommand extends Command
         return ! $series->hasMedia('cover') || $series->meta->tmdb->isEmpty();
     }
 
-    private function mediaIsBare(Media $media): bool
+    private function mediaIsBare(Film $film): bool
     {
-        return ! $media->hasMedia('cover') || $media->meta->tmdb->isEmpty();
+        return ! $film->hasMedia('cover') || $film->meta->tmdb->isEmpty();
     }
 }

@@ -1,8 +1,10 @@
 <?php
 
 use App\Actions\Og\BuildEntryOgData;
+use App\Models\Book;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Food;
-use App\Models\Media;
 use App\Models\Series;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
@@ -45,15 +47,13 @@ it('builds the food headline from the day total, not the card title', function (
 });
 
 it('says what was watched or read rather than naming it alone', function () {
-    $film = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Karate Kid',
         'occurred_at' => '2026-08-29 20:00:00',
         'meta' => ['year' => 2010],
     ]);
 
-    $book = Media::factory()->create([
-        'type' => 'book',
+    $book = Book::factory()->create([
         'title' => 'Piranesi',
         'occurred_at' => '2026-08-28 20:00:00',
         'meta' => ['author' => 'Susanna Clarke'],
@@ -66,9 +66,8 @@ it('says what was watched or read rather than naming it alone', function () {
 it('names the show and the place in it, so a binge is not four identical cards', function () {
     $series = Series::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
 
-    $episode = Media::factory()->create([
+    $episode = Episode::factory()->create([
         'series_id' => $series->id,
-        'type' => 'episode',
         'title' => 'Good News About Hell',
         'occurred_at' => '2026-08-29 21:00:00',
         'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance'],

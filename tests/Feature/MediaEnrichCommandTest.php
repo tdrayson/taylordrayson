@@ -1,7 +1,8 @@
 <?php
 
 use App\Jobs\EnrichMedia;
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Series;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,7 @@ beforeEach(function () {
  * Attaches a real single-file `cover` media item so a subject is genuinely
  * non-bare by the `hasMedia('cover')` half of the bare check.
  */
-function attachCover(Media|Series $subject): void
+function attachCover(Film|Series $subject): void
 {
     Storage::fake(config('media-library.disk_name'));
 
@@ -26,11 +27,10 @@ it('dispatches enrichment only for bare series/films by default, and for everyth
     // (a) Bare series: has an episode (so it's picked up by whereHas), no
     // cover media, no meta.tmdb.
     $bareSeries = Series::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1]]);
-    Media::factory()->create(['type' => 'episode', 'series_id' => $bareSeries->id]);
+    Episode::factory()->create(['series_id' => $bareSeries->id]);
 
     // (b) Bare trakt film: no cover media, no meta.tmdb.
-    $bareFilm = Media::factory()->create([
-        'type' => 'film',
+    $bareFilm = Film::factory()->create([
         'source' => 'trakt',
         'meta' => ['ids' => ['trakt' => 9, 'tmdb' => 438631]],
     ]);
@@ -38,7 +38,7 @@ it('dispatches enrichment only for bare series/films by default, and for everyth
     // (c) Already-enriched series: has BOTH a cover and meta.tmdb, so it's
     // non-bare (bare = missing cover OR missing tmdb).
     $enrichedSeries = Series::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1, 'tmdb' => ['id' => 1]]]);
-    Media::factory()->create(['type' => 'episode', 'series_id' => $enrichedSeries->id]);
+    Episode::factory()->create(['series_id' => $enrichedSeries->id]);
     attachCover($enrichedSeries);
 
     $this->artisan('media:enrich')->assertSuccessful();
@@ -60,7 +60,7 @@ it('skips series with no episodes even when bare', function () {
 });
 
 it('only considers trakt-sourced films, not other media sources', function () {
-    Media::factory()->create(['type' => 'film', 'source' => 'manual', 'meta' => []]);
+    Film::factory()->create(['source' => 'manual', 'meta' => []]);
 
     $this->artisan('media:enrich')->assertSuccessful();
 

@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use App\Models\Appearance;
+use App\Models\Book;
 use App\Models\Concerns\Timelineable;
-use App\Models\Media as MediaEntry;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Presenters\PhotoCaption;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
@@ -24,7 +26,7 @@ class GalleryPhotos
      *
      * @var list<class-string>
      */
-    public const ENRICHMENT_MODELS = [Appearance::class, MediaEntry::class];
+    public const ENRICHMENT_MODELS = [Appearance::class, Film::class, Episode::class, Book::class];
 
     /**
      * Dataset aliases (the morph column value) whose photos reach the gallery,

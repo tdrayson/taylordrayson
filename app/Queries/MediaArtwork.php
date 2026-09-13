@@ -2,10 +2,13 @@
 
 namespace App\Queries;
 
-use App\Models\Media;
+use App\Models\Book;
+use App\Models\Episode;
+use App\Models\Film;
 
 /**
- * The hero artwork for a media entry: backdrop, title logo and poster.
+ * The hero artwork for a film, episode or book entry: backdrop, title logo and
+ * poster.
  *
  * An episode carries no artwork of its own, so it reads its show's. TMDB has
  * no still for an individual episode, which is why this falls back rather than
@@ -19,11 +22,10 @@ final class MediaArtwork
      *
      * @return array{backdrop: ?string, logo: ?string, poster: ?string, logoIsTitle: bool}
      */
-    public function __invoke(Media $media): array
+    public function __invoke(Film|Episode|Book $media): array
     {
-        $source = $media->optimisedUrl('backdrop') === null
-            ? $media->series ?? $media
-            : $media;
+        $fallback = $media instanceof Episode ? $media->series : null;
+        $source = $media->optimisedUrl('backdrop') === null ? ($fallback ?? $media) : $media;
 
         return [
             'backdrop' => $source->optimisedUrl('backdrop'),

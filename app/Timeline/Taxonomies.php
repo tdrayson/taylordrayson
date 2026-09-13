@@ -2,7 +2,6 @@
 
 namespace App\Timeline;
 
-use App\Enums\MediaType;
 use App\Models\Airline;
 use App\Models\Article;
 use App\Models\Tag;
@@ -80,25 +79,6 @@ final class Taxonomies
             'labelFor' => fn (string $value): string => $distinct($model)->firstWhere('slug', $value)?->name ?? Str::headline($value),
             'values' => fn (): Collection => $distinct($model)
                 ->map(fn (Tag $tag): array => ['value' => $tag->slug, 'label' => $tag->name]),
-        ];
-    }
-
-    public static function media(): callable
-    {
-        $map = [
-            'films' => [MediaType::Film->value],
-            'tv' => [MediaType::TvEpisode->value],
-            'books' => [MediaType::Book->value],
-        ];
-        $labels = ['films' => 'Films', 'tv' => 'TV series', 'books' => 'Books'];
-
-        return fn (string $model, string $slug): array => [
-            'base' => $slug,
-            'param' => 'type',
-            'label' => 'Type',
-            'filter' => fn (Builder $query, string $value) => $query->whereIn('type', $map[$value] ?? ['__none__']),
-            'labelFor' => fn (string $value): string => $labels[$value] ?? Str::headline($value),
-            'values' => fn (): Collection => collect($map)->keys()->map(fn ($value): array => ['value' => $value, 'label' => $labels[$value]]),
         ];
     }
 

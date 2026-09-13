@@ -1,13 +1,14 @@
 <?php
 
 use App\Enums\FieldType;
-use App\Enums\MediaType;
 use App\Fields\FieldRegistry;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
+use App\Models\Episode;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
@@ -24,9 +25,9 @@ it('refuses a type nobody authors by hand', function () {
 })->throws(LogicException::class);
 
 it('authors books but not the Trakt-sourced media types', function () {
-    $book = Media::factory()->make(['type' => MediaType::Book]);
-    $film = Media::factory()->make(['type' => MediaType::Film]);
-    $episode = Media::factory()->make(['type' => MediaType::TvEpisode]);
+    $book = Book::factory()->make();
+    $film = Film::factory()->make();
+    $episode = Episode::factory()->make();
 
     expect(FieldRegistry::has($book))->toBeTrue()
         ->and(FieldRegistry::has($film))->toBeFalse()
@@ -71,7 +72,7 @@ it('names only fields the model can actually be filled with', function (string $
 
         expect($fillable)->toContain($column);
     }
-})->with([Note::class, Page::class, Article::class, Project::class, Event::class, Fuel::class, Appearance::class, Media::class]);
+})->with([Note::class, Page::class, Article::class, Project::class, Event::class, Fuel::class, Appearance::class, Book::class]);
 
 it('marks the fields that hide behind Add field', function () {
     $fields = collect(FieldRegistry::for(new Page))->keyBy('name');

@@ -2,9 +2,9 @@
 
 namespace App\Queries;
 
-use App\Data\MediaMeta;
+use App\Data\EpisodeMeta;
 use App\Data\SeriesSummary;
-use App\Models\Media;
+use App\Models\Episode;
 use App\Models\Series;
 use Illuminate\Support\Collection;
 
@@ -52,18 +52,18 @@ final class WatchedSeriesIndex
      */
     private function distinctWatchedEpisodeCounts(Collection $seriesIds): Collection
     {
-        return Media::query()
+        return Episode::query()
             ->whereIn('series_id', $seriesIds)
             // toBase() skips Eloquent hydration: this counts two numbers per
             // row across every episode ever watched, and has no use for a
-            // model. MediaMeta still names the fields, so the season/episode
+            // model. EpisodeMeta still names the fields, so the season/episode
             // keys are spelled in one place rather than inline here.
             ->toBase()
             ->get(['series_id', 'meta'])
             ->groupBy('series_id')
             ->map(fn (Collection $episodes): int => $episodes
                 ->map(function (object $episode): string {
-                    $meta = MediaMeta::from(json_decode((string) $episode->meta, true));
+                    $meta = EpisodeMeta::from(json_decode((string) $episode->meta, true));
 
                     return ($meta->season ?? '?').'x'.($meta->episode ?? '?');
                 })

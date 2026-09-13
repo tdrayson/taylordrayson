@@ -1,12 +1,13 @@
 <?php
 
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Series;
 use Illuminate\Support\Facades\Storage;
 
 it('links episodes to a series', function () {
     $series = Series::factory()->create(['title' => 'The Good Doctor']);
-    $episode = Media::factory()->create(['type' => 'episode', 'series_id' => $series->id]);
+    $episode = Episode::factory()->create(['series_id' => $series->id]);
 
     expect($series->episodes)->toHaveCount(1)
         ->and($episode->series->is($series))->toBeTrue();
@@ -62,28 +63,28 @@ it('stores a single-file logo image on a series', function () {
         ->and($series->getMedia('logo'))->toHaveCount(1);
 });
 
-it('stores a single-file backdrop image on a film media entry', function () {
+it('stores a single-file backdrop image on a film', function () {
     Storage::fake(config('media-library.disk_name'));
 
-    $media = Media::factory()->create();
+    $film = Film::factory()->create();
     $bytes = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
 
-    $media->addMediaFromString($bytes)->usingFileName('a.webp')->toMediaCollection('backdrop');
-    $media->addMediaFromString($bytes)->usingFileName('b.webp')->toMediaCollection('backdrop');
+    $film->addMediaFromString($bytes)->usingFileName('a.webp')->toMediaCollection('backdrop');
+    $film->addMediaFromString($bytes)->usingFileName('b.webp')->toMediaCollection('backdrop');
 
-    expect($media->getFirstMedia('backdrop'))->not->toBeNull()
-        ->and($media->getMedia('backdrop'))->toHaveCount(1);
+    expect($film->getFirstMedia('backdrop'))->not->toBeNull()
+        ->and($film->getMedia('backdrop'))->toHaveCount(1);
 });
 
-it('stores a single-file logo image on a film media entry', function () {
+it('stores a single-file logo image on a film', function () {
     Storage::fake(config('media-library.disk_name'));
 
-    $media = Media::factory()->create();
+    $film = Film::factory()->create();
     $bytes = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
 
-    $media->addMediaFromString($bytes)->usingFileName('a.webp')->toMediaCollection('logo');
-    $media->addMediaFromString($bytes)->usingFileName('b.webp')->toMediaCollection('logo');
+    $film->addMediaFromString($bytes)->usingFileName('a.webp')->toMediaCollection('logo');
+    $film->addMediaFromString($bytes)->usingFileName('b.webp')->toMediaCollection('logo');
 
-    expect($media->getFirstMedia('logo'))->not->toBeNull()
-        ->and($media->getMedia('logo'))->toHaveCount(1);
+    expect($film->getFirstMedia('logo'))->not->toBeNull()
+        ->and($film->getMedia('logo'))->toHaveCount(1);
 });

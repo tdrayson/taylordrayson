@@ -32,7 +32,9 @@ final class Datasets
             new ActivityDataset,
             new SleepDataset,
             new FoodDataset,
-            new MediaDataset,
+            new FilmDataset,
+            new EpisodeDataset,
+            new BookDataset,
             new EventDataset,
             new AppearanceDataset,
             new ThisWeekWithDataset,
@@ -79,6 +81,7 @@ final class Datasets
         'calorie' => ['food'],
         'checkin' => ['place'],
         'podcast' => ['this-week-with'],
+        'media' => ['film', 'episode', 'book'],
     ];
 
     /**

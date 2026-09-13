@@ -20,13 +20,12 @@ use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\UpdatePage;
 use App\Actions\Projects\CreateProject;
 use App\Actions\Projects\UpdateProject;
-use App\Enums\MediaType;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
@@ -52,7 +51,7 @@ final class AuthorableTypes
         'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'draftable' => true],
         'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'draftable' => false],
         'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'draftable' => false],
-        'book' => ['model' => Media::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'draftable' => false],
+        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'draftable' => false],
         'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class, 'draftable' => false],
         'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'draftable' => false],
         'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'draftable' => false],
@@ -77,16 +76,9 @@ final class AuthorableTypes
     public static function forModel(Model $model): ?string
     {
         foreach (self::TYPES as $type => $definition) {
-            if (! $model instanceof $definition['model']) {
-                continue;
+            if ($model instanceof $definition['model']) {
+                return $type;
             }
-
-            // Media covers films and episodes too, and only books are authored.
-            if ($model instanceof Media) {
-                return $model->getAttribute('type') === MediaType::Book ? 'book' : null;
-            }
-
-            return $type;
         }
 
         return null;

@@ -1,8 +1,7 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
-use App\Models\Media;
+use App\Models\Film;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\ThisWeekWith;
@@ -81,8 +80,8 @@ it('orders the deck newest first and excludes posters, matching /photos', functi
     $activity = Activity::factory()->create(['occurred_at' => now()->subDay()]);
     $activity->addMediaFromString(fakeJpeg())->usingFileName('new.jpg')->toMediaCollection('cover');
 
-    // A film poster (Media cover) is enrichment art, not a photo taken.
-    Media::factory()->create(['type' => MediaType::Film])
+    // A film poster (cover) is enrichment art, not a photo taken.
+    Film::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('poster.jpg')->toMediaCollection('cover');
 
     get('/now')->assertInertia(fn (Assert $page) => $page

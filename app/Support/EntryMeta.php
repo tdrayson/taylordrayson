@@ -3,9 +3,11 @@
 namespace App\Support;
 
 use App\Models\Activity;
+use App\Models\Book;
+use App\Models\Episode;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -44,9 +46,15 @@ final class EntryMeta
         // separately by the controller; `order_no` and `price` are not shown.
         Event::class => ['seat'],
 
-        // MediaDetail.vue. `tmdb` is public film metadata from TMDB, carried
+        // FilmDetail.vue. `tmdb` is public film metadata from TMDB, carried
         // whole because the genres list is read from inside it.
-        Media::class => ['year', 'runtime', 'season', 'episode', 'show_title', 'author', 'isbn', 'genres', 'tmdb'],
+        Film::class => ['year', 'runtime', 'genres', 'tmdb'],
+
+        // EpisodeDetail.vue.
+        Episode::class => ['season', 'episode', 'show_title', 'runtime', 'tmdb'],
+
+        // BookDetail.vue.
+        Book::class => ['author', 'isbn'],
     ];
 
     /**

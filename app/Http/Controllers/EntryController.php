@@ -12,11 +12,13 @@ use App\Fields\FieldRegistry;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
+use App\Models\Episode;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Tag;
@@ -226,10 +228,10 @@ class EntryController extends Controller
         // watched episode, so the detail row links to it rather than printing
         // the title as dead text. Null for a film, a book, or a show we hold no
         // Series row for.
-        if ($model instanceof Media) {
+        if ($model instanceof Film || $model instanceof Episode || $model instanceof Book) {
             $data = [...$data, ...(new MediaArtwork)($model)];
-            $data['showTitle'] = ShowTitle::for($model);
-            $data['showUrl'] = ShowTitle::for($model) === null ? null : $model->series?->url();
+            $data['showTitle'] = $model instanceof Episode ? ShowTitle::for($model) : null;
+            $data['showUrl'] = $data['showTitle'] === null ? null : $model->series?->url();
         }
 
         // The frontend calls this attribute "category" regardless of what the

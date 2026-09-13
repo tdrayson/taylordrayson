@@ -38,7 +38,9 @@ final class SuggestSearch
     private const SEARCHABLE = [
         'activity' => ['name'],
         'food' => ['name', 'meal'],
-        'media' => ['title'],
+        'film' => ['title'],
+        'episode' => ['title'],
+        'book' => ['title'],
         'event' => ['name', 'venue_name', 'city', 'country'],
         'appearance' => ['title', 'show_name', 'description'],
         'this-week-with' => ['topic', 'show_notes'],
@@ -119,7 +121,7 @@ final class SuggestSearch
             ->map(fn (Series $series): array => [
                 'label' => $series->title,
                 'section' => 'TV',
-                'type' => 'media',
+                'type' => 'episode',
                 'tag' => false,
                 'url' => $series->url(),
             ])

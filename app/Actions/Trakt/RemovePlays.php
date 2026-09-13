@@ -3,7 +3,8 @@
 namespace App\Actions\Trakt;
 
 use App\Data\TraktPruneResult;
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Series;
 use App\Services\Trakt\Client;
 
@@ -41,19 +42,19 @@ final class RemovePlays
 
         // localOnly plays are known-absent from Trakt already (never sent to
         // the remove endpoint), so they clear without a history check.
-        $clearable = array_merge($confirmedGone, array_map('intval', $localOnlyPlayIds));
+        $clearable = array_map('strval', array_merge($confirmedGone, array_map('intval', $localOnlyPlayIds)));
 
-        $touchedSeries = Media::query()
+        // A history id could name either a film or an episode play; both
+        // tables are checked, since the caller has no way to know which.
+        $touchedSeries = Episode::query()
             ->where('source', 'trakt')
-            ->whereIn('source_id', array_map('strval', $clearable))
+            ->whereIn('source_id', $clearable)
             ->pluck('series_id')
             ->filter()
             ->unique();
 
-        $clearedRows = Media::query()
-            ->where('source', 'trakt')
-            ->whereIn('source_id', array_map('strval', $clearable))
-            ->delete();
+        $clearedRows = Film::query()->where('source', 'trakt')->whereIn('source_id', $clearable)->delete()
+            + Episode::query()->where('source', 'trakt')->whereIn('source_id', $clearable)->delete();
 
         return new TraktPruneResult(
             requested: count($playIds),

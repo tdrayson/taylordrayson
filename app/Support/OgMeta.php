@@ -5,7 +5,7 @@ namespace App\Support;
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
 use App\Models\Article;
-use App\Models\Media;
+use App\Models\Episode;
 use App\Models\Place;
 use App\Models\Project;
 use App\Models\ThisWeekWith;
@@ -201,7 +201,7 @@ class OgMeta
             'eyebrow' => 'TV',
             'heading' => 'Every series I have watched',
             'description' => 'Television by show rather than by episode, with what I have finished and what I am partway through.',
-            'accent' => 'media',
+            'accent' => 'episode',
         ]);
     }
 
@@ -383,7 +383,7 @@ class OgMeta
             'title' => $title,
             'eyebrow' => 'TV',
             'heading' => $title,
-            'accent' => TypeColors::hex('media'),
+            'accent' => TypeColors::hex('episode'),
             'description' => sprintf(
                 "I've watched %s %s of %s%s%s.",
                 number_format($episodes),
@@ -505,7 +505,7 @@ class OgMeta
         // A podcast has the same problem for the same reason: on the timeline
         // its show is the type eyebrow, which does not travel with the title.
         $show = match (true) {
-            $model instanceof Media => ShowTitle::for($model),
+            $model instanceof Episode => ShowTitle::for($model),
             $model instanceof ThisWeekWith => 'This Week With',
             default => null,
         };

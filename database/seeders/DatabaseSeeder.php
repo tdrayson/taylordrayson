@@ -3,15 +3,16 @@
 namespace Database\Seeders;
 
 use App\Enums\ActivityDiscipline;
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
+use App\Models\Episode;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Project;
@@ -272,9 +273,8 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $film = Media::factory()->create([
+        $film = Film::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => MediaType::Film,
             'meta' => [
                 'year' => fake()->numberBetween(1990, 2026),
                 'runtime' => fake()->numberBetween(80, 200),
@@ -311,9 +311,8 @@ class DatabaseSeeder extends Seeder
         $series = $this->tvSeries[$showTitle];
 
         for ($i = 0; $i < $episodeCount; $i++) {
-            $episode = Media::factory()->create([
+            $episode = Episode::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 23), fake()->numberBetween(0, 59)),
-                'type' => MediaType::TvEpisode,
                 'title' => fake()->words(fake()->numberBetween(2, 4), true),
                 'series_id' => $series->id,
                 'meta' => [
@@ -410,9 +409,8 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $book = Media::factory()->create([
+        $book = Book::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => MediaType::Book,
             'meta' => [
                 'author' => fake()->name(),
                 'isbn' => fake()->isbn13(),

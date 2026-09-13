@@ -1,12 +1,11 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Airport;
 use App\Models\Article;
+use App\Models\Episode;
 use App\Models\Flight;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Place;
@@ -54,9 +53,11 @@ it('dates a log entry title so repeated names stay distinct', function () {
 });
 
 it('names the show in front of an episode title', function () {
-    $episode = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+    // series_id null: the series relation would otherwise win over
+    // meta.show_title, which is what this asserts on.
+    $episode = Episode::factory()->create([
         'title' => 'Netherlands (Race)',
+        'series_id' => null,
         'occurred_at' => '2026-08-23 20:00:00',
         'meta' => ['show_title' => 'Formula 1', 'season' => 2026, 'episode' => 69],
     ]);

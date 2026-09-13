@@ -11,7 +11,7 @@ const props = defineProps({
     title: { type: String, required: true },
     occurredAt: { type: String, required: true },
     rating: { type: [Number, String], default: null },
-    // Standard entry URL (`Media::url()`), so an episode row goes to its
+    // Standard entry URL (`Episode::url()`), so an episode row goes to its
     // normal date-anchored entry page like every other timeline entry.
     url: { type: String, required: true },
 });

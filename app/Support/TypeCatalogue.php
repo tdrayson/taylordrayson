@@ -69,16 +69,15 @@ final class TypeCatalogue
     }
 
     /**
-     * Types that exist only as something to write. A book is a Media row
-     * narrowed to MediaType::Book, so it takes the media hue.
+     * Types that exist only as something to write. Book is a real timeline
+     * type now, so there is nothing left here; kept as an extension point for
+     * the next hand-authored type with no dataset of its own.
      *
      * @return list<TypeMeta>
      */
     public static function authoring(): array
     {
-        return [
-            new TypeMeta(key: 'book', icon: 'BookOpen01Icon', label: 'Book', accent: 'media'),
-        ];
+        return [];
     }
 
     /**

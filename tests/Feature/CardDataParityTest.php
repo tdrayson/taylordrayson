@@ -1,11 +1,10 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
@@ -91,20 +90,19 @@ it('reproduces the pre-refactor flight card shape', function () {
     ]);
 });
 
-it('reproduces the pre-refactor media card shape', function () {
-    $media = Media::factory()->create([
+it('reproduces the pre-refactor film card shape', function () {
+    $film = Film::factory()->create([
         'occurred_at' => '2026-01-01 20:00:00',
-        'type' => MediaType::Film,
         'title' => 'Interstellar',
         'rating' => 9,
         'meta' => ['year' => 2014],
     ]);
 
-    expect(CardPresenter::for($media)->toArray())->toEqual([
-        'type' => 'media',
+    expect(CardPresenter::for($film)->toArray())->toEqual([
+        'type' => 'film',
         'title' => 'Interstellar',
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
-        'occurred_at' => $media->occurred_at,
+        'occurred_at' => $film->occurred_at,
         'meta' => ['backdrop' => null],
     ]);
 });

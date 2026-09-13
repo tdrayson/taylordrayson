@@ -1,7 +1,7 @@
 <?php
 
 use App\Jobs\EnrichMedia;
-use App\Models\Media;
+use App\Models\Film;
 use App\Models\Series;
 use App\Services\Tmdb\Client;
 use Illuminate\Support\Facades\Http;
@@ -98,7 +98,7 @@ it('enriches a series with tmdb structure and downloaded art', function () {
 it('falls back to the trakt poster when tmdb has no poster', function () {
     fakeEnrichmentApis();
 
-    $media = Media::factory()->create(['type' => 'film']);
+    $media = Film::factory()->create();
     (new EnrichMedia($media, 'movie', 438631, 'walter-r2.trakt.tv/posters/dune-2021.jpg'))
         ->handle(app(Client::class));
 

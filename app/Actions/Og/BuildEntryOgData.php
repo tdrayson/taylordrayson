@@ -4,11 +4,10 @@ namespace App\Actions\Og;
 
 use App\Data\CardData;
 use App\Data\SegmentData;
-use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
+use App\Models\Episode;
 use App\Models\Flight;
-use App\Models\Media;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Queries\DayFoodTotals;
@@ -128,32 +127,17 @@ final class BuildEntryOgData
             TimelineType::ThisWeekWith => $model->season_number && $model->episode_number
                 ? OgPhrases::pick('this-week-with', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
                 : null,
-            TimelineType::Media => $this->mediaTitle($model),
+            TimelineType::Film => "I watched {$model->title}",
+            TimelineType::Episode => 'I watched '.$this->episodeSubject($model),
+            TimelineType::Book => "I read {$model->title}",
             default => null,
         };
 
         return Str::limit($phrase ?? trim($card->title), 160, '');
     }
 
-    /**
-     * What was watched or read, said the way the card says it. The card title is
-     * the work's own name, which on its own reads as a caption rather than as
-     * something I did.
-     *
-     * An episode names its show and where in it, so a day of one programme does
-     * not share four identical cards.
-     */
-    private function mediaTitle(Media $model): string
-    {
-        $verb = $model->type === MediaType::Book ? 'read' : 'watched';
-
-        return "I {$verb} ".($model->type === MediaType::TvEpisode
-            ? $this->episodeSubject($model)
-            : $model->title);
-    }
-
     /** "season 4 episode 4 of Ted Lasso", falling back to whatever is known. */
-    private function episodeSubject(Media $model): string
+    private function episodeSubject(Episode $model): string
     {
         $show = ShowTitle::for($model);
         $where = $model->meta->season !== null && $model->meta->episode !== null

@@ -81,7 +81,7 @@ it('renders the subscribe page with every type and preset', function () {
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Feeds')
-            ->has('types', 13)
+            ->has('types', 15)
             ->has('presets', 8)
             ->where('presets.0.key', 'curated')
         );

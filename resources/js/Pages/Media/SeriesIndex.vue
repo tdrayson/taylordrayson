@@ -15,9 +15,9 @@ const props = defineProps({
     series: { type: Array, default: () => [] },
 });
 
-// Reuse the media type's icon + accent so /media/tv's header matches /media.
-const meta = entryType('media');
-const accentStyle = { color: 'var(--color-media)' };
+// Reuse the episode type's icon + accent so /media/tv's header matches /media.
+const meta = entryType('episode');
+const accentStyle = { color: 'var(--color-episode)' };
 
 const subtitle = computed(() => `${props.series.length} ${props.series.length === 1 ? 'show' : 'shows'} watched`);
 
@@ -27,7 +27,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="{ title: 'TV series', heading: 'TV series', accent: 'media' }" />
+    <AppHead :og="{ title: 'TV series', heading: 'TV series', accent: 'episode' }" />
 
     <header class="relative">
         <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:-left-16 lg:flex" :style="accentStyle">

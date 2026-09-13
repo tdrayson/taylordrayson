@@ -2,15 +2,15 @@
 
 namespace App\Support;
 
-use App\Enums\MediaType;
 use App\Enums\Source;
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 
 /**
  * Builds links back to Trakt.
  *
  * One place rather than three: the show URL was assembled inline in
- * SeriesShowData while the film and episode URLs lived on the Media model as
+ * SeriesShowData while the film and episode URLs lived on their models as
  * presentation logic, so the same host and path shapes were written out twice
  * and could drift apart.
  */
@@ -18,25 +18,24 @@ final class TraktUrl
 {
     private const BASE = 'https://trakt.tv';
 
-    /**
-     * The Trakt page for a watch, or null when it did not come from Trakt or
-     * carries no slug to link to.
-     */
-    public static function forMedia(Media $media): ?string
+    /** The Trakt page for a watched film, or null when it did not come from Trakt or carries no slug to link to. */
+    public static function forFilm(Film $film): ?string
     {
-        if ($media->source !== Source::Trakt->value) {
+        if ($film->source !== Source::Trakt->value) {
             return null;
         }
 
-        return match ($media->type) {
-            MediaType::Film => self::film($media->meta->ids->slug),
-            MediaType::TvEpisode => self::episode(
-                $media->meta->showSlug,
-                $media->meta->season,
-                $media->meta->episode,
-            ),
-            default => null,
-        };
+        return self::film($film->meta->ids->slug);
+    }
+
+    /** The Trakt page for a watched episode, or null when it did not come from Trakt or carries no slug to link to. */
+    public static function forEpisode(Episode $episode): ?string
+    {
+        if ($episode->source !== Source::Trakt->value) {
+            return null;
+        }
+
+        return self::episode($episode->meta->showSlug, $episode->meta->season, $episode->meta->episode);
     }
 
     public static function film(?string $slug): ?string

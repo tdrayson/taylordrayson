@@ -1,7 +1,8 @@
 <?php
 
 use App\Jobs\EnrichMedia;
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Series;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Bus;
@@ -74,14 +75,14 @@ it('imports films and episodes, groups same-name shows by distinct trakt id, and
     // show (2001, trakt id 800) is resolved second and finds it taken, so it
     // gets year-disambiguated to "the-office-2001". Neither slug carries a
     // Trakt id, which is the whole point: URLs stay service-independent.
-    expect(Media::where('type', 'film')->count())->toBe(1)
-        ->and(Media::where('type', 'episode')->count())->toBe(2)
+    expect(Film::count())->toBe(1)
+        ->and(Episode::count())->toBe(2)
         ->and(Series::count())->toBe(2) // two distinct shows despite identical title
         ->and(Series::pluck('slug')->sort()->values()->all())->toEqual(['the-office', 'the-office-2001']);
 
     // Re-run creates nothing new.
     $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
-    expect(Media::count())->toBe(3);
+    expect(Film::count() + Episode::count())->toBe(3);
 
     // One poster per new subject: the film (poster embedded in the history
     // item) and both new shows (poster resolved via the /shows/{id} summary
@@ -110,8 +111,8 @@ it('fails closed and stops importing when a history page request fails mid-pagin
     // The movies page succeeded and was imported before the episodes page
     // failed; the command still reports failure rather than silently
     // truncating the episode history.
-    expect(Media::where('type', 'film')->count())->toBe(1)
-        ->and(Media::where('type', 'episode')->count())->toBe(0);
+    expect(Film::count())->toBe(1)
+        ->and(Episode::count())->toBe(0);
 });
 
 it('imports personal star ratings onto films, episodes, and series, staying idempotent on re-run', function () {
@@ -144,8 +145,8 @@ it('imports personal star ratings onto films, episodes, and series, staying idem
 
     $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
 
-    $film = Media::where('type', 'film')->firstOrFail();
-    $episode = Media::where('type', 'episode')->firstOrFail();
+    $film = Film::firstOrFail();
+    $episode = Episode::firstOrFail();
     $series = Series::where('trakt_id', 700)->firstOrFail();
 
     expect($film->rating)->toBe(9)
@@ -177,27 +178,24 @@ it('nudges episodes that share an exact watched_at into season/episode order, id
 
     // Real Trakt data: bulk-marking watched gives S1E6 and S1E7 the exact
     // same second, seeded here already out of order (E7 row created first).
-    $e7 = Media::create([
+    $e7 = Episode::create([
         'occurred_at' => '2026-01-02 07:32:00',
-        'type' => 'episode',
         'title' => 'Seven',
         'series_id' => $series->id,
         'source' => 'trakt',
         'source_id' => 'e7',
         'meta' => ['season' => 1, 'episode' => 7],
     ]);
-    $e6 = Media::create([
+    $e6 = Episode::create([
         'occurred_at' => '2026-01-02 07:32:00',
-        'type' => 'episode',
         'title' => 'Six',
         'series_id' => $series->id,
         'source' => 'trakt',
         'source_id' => 'e6',
         'meta' => ['season' => 1, 'episode' => 6],
     ]);
-    $e1 = Media::create([
+    $e1 = Episode::create([
         'occurred_at' => '2026-01-01 20:00:00',
-        'type' => 'episode',
         'title' => 'One',
         'series_id' => $series->id,
         'source' => 'trakt',
@@ -243,30 +241,27 @@ it('clamps a tied group nudged near midnight so it stays inside the same local c
     // All three share the exact same second, one second before midnight, and
     // are seeded out of (season, episode) order so the sort itself is exercised
     // too. Naively assigning base+rank would push E3 to 2026-01-03 00:00:01.
-    $e3 = Media::create([
+    $e3 = Episode::create([
         'occurred_at' => '2026-01-02 23:59:59',
         'timezone' => 'Europe/London',
-        'type' => 'episode',
         'title' => 'Three',
         'series_id' => $series->id,
         'source' => 'trakt',
         'source_id' => 'e3',
         'meta' => ['season' => 1, 'episode' => 3],
     ]);
-    $e1 = Media::create([
+    $e1 = Episode::create([
         'occurred_at' => '2026-01-02 23:59:59',
         'timezone' => 'Europe/London',
-        'type' => 'episode',
         'title' => 'One',
         'series_id' => $series->id,
         'source' => 'trakt',
         'source_id' => 'e1',
         'meta' => ['season' => 1, 'episode' => 1],
     ]);
-    $e2 = Media::create([
+    $e2 = Episode::create([
         'occurred_at' => '2026-01-02 23:59:59',
         'timezone' => 'Europe/London',
-        'type' => 'episode',
         'title' => 'Two',
         'series_id' => $series->id,
         'source' => 'trakt',
@@ -299,18 +294,16 @@ it('scopes normalization to series synced this run, leaving another series tied 
 
     // Series A already carries a tied group from a previous run; it receives
     // no new episode this run, so it must NOT be touched by normalize.
-    $a1 = Media::create([
+    $a1 = Episode::create([
         'occurred_at' => '2026-01-02 07:32:00',
-        'type' => 'episode',
         'title' => 'A One',
         'series_id' => $seriesA->id,
         'source' => 'trakt',
         'source_id' => 'a1',
         'meta' => ['season' => 1, 'episode' => 1],
     ]);
-    $a2 = Media::create([
+    $a2 = Episode::create([
         'occurred_at' => '2026-01-02 07:32:00',
-        'type' => 'episode',
         'title' => 'A Two',
         'series_id' => $seriesA->id,
         'source' => 'trakt',
@@ -338,10 +331,9 @@ it('self-heals the sync window to the last synced watch when it is older than th
 
     // Last synced watch is 30 days ago; default --days=7 would otherwise
     // miss the gap between day 7 and day 30 if a scheduled run was skipped.
-    Media::create([
+    Episode::create([
         'occurred_at' => now()->subDays(30)->format('Y-m-d H:i:s'),
         'timezone' => 'Europe/London',
-        'type' => 'episode',
         'title' => 'Old Episode',
         'source' => 'trakt',
         'source_id' => 'old-1',
@@ -367,10 +359,9 @@ it('caps the self-healed sync window at MAX_CATCHUP_DAYS when the last synced wa
     // Last synced watch is 200 days ago (e.g. sync was broken for months);
     // the window must be capped at MAX_CATCHUP_DAYS (90) rather than
     // requesting a huge, unbounded backfill.
-    Media::create([
+    Episode::create([
         'occurred_at' => now()->subDays(200)->format('Y-m-d H:i:s'),
         'timezone' => 'Europe/London',
-        'type' => 'episode',
         'title' => 'Very Old Episode',
         'source' => 'trakt',
         'source_id' => 'old-2',
@@ -395,9 +386,8 @@ it('re-dispatches enrichment for an existing bare series that receives a new epi
     // key. One episode already exists so the series is genuinely pre-existing,
     // not created by this run.
     $series = Series::factory()->create(['trakt_id' => 700]);
-    Media::create([
+    Episode::create([
         'occurred_at' => '2024-01-01 20:00:00',
-        'type' => 'episode',
         'title' => 'Existing',
         'series_id' => $series->id,
         'source' => 'trakt',
@@ -420,9 +410,8 @@ it('re-dispatches enrichment for an existing bare series that receives a new epi
 
 it('dispatches enrichment once for a bare series even when a batch carries several of its episodes', function () {
     $series = Series::factory()->create(['trakt_id' => 700]);
-    Media::create([
+    Episode::create([
         'occurred_at' => '2024-01-01 20:00:00',
-        'type' => 'episode',
         'title' => 'Existing',
         'series_id' => $series->id,
         'source' => 'trakt',
@@ -444,7 +433,7 @@ it('dispatches enrichment once for a bare series even when a batch carries sever
 
     $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
 
-    expect(Media::where('type', 'episode')->count())->toBe(4); // 1 pre-existing + 3 new
+    expect(Episode::count())->toBe(4); // 1 pre-existing + 3 new
 
     // Deduped per run: three new episodes of the same bare show still only
     // trigger one enrichment dispatch.
@@ -454,10 +443,9 @@ it('dispatches enrichment once for a bare series even when a batch carries sever
 it('sends no start_at when --full is passed, even with prior synced history', function () {
     fakeTraktHistory([], []);
 
-    Media::create([
+    Episode::create([
         'occurred_at' => now()->subDays(30)->format('Y-m-d H:i:s'),
         'timezone' => 'Europe/London',
-        'type' => 'episode',
         'title' => 'Old Episode',
         'source' => 'trakt',
         'source_id' => 'old-3',

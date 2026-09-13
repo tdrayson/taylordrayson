@@ -1,11 +1,10 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Concerns\Timelineable;
+use App\Models\Episode;
 use App\Models\Food;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Series;
@@ -123,19 +122,18 @@ it('returns 404 for an unknown entry slug', function () {
     get('/2026/03/15/does-not-exist')->assertNotFound();
 });
 
-it('renders a media entry via Inertia', function () {
-    $media = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+it('renders an episode entry via Inertia', function () {
+    $episode = Episode::factory()->create([
         'title' => 'Episode 1',
         'occurred_at' => '2026-03-15 21:00:00',
         'meta' => ['show_title' => 'Jet Lag: The Game', 'season' => 19, 'episode' => 1],
     ]);
 
-    get('/'.entryUrl($media))
+    get('/'.entryUrl($episode))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Entry')
-            ->where('type', 'media')
+            ->where('type', 'episode')
             ->where('title', 'Episode 1')
             ->where('entry.meta.show_title', 'Jet Lag: The Game')
         );
@@ -144,15 +142,14 @@ it('renders a media entry via Inertia', function () {
 it('links an episode to its show page', function () {
     $series = Series::factory()->create(['title' => 'Ted Lasso', 'slug' => 'ted-lasso']);
 
-    $media = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+    $episode = Episode::factory()->create([
         'title' => 'Riches of Embarrassment',
         'series_id' => $series->id,
         'occurred_at' => '2026-09-03 21:00:00',
         'meta' => ['show_title' => 'Ted Lasso', 'season' => 4, 'episode' => 4],
     ]);
 
-    get('/'.entryUrl($media))
+    get('/'.entryUrl($episode))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('entry.showTitle', 'Ted Lasso')
@@ -161,15 +158,14 @@ it('links an episode to its show page', function () {
 });
 
 it('leaves the show unlinked when no series record backs it', function () {
-    $media = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+    $episode = Episode::factory()->create([
         'title' => 'Episode 1',
         'series_id' => null,
         'occurred_at' => '2026-09-04 21:00:00',
         'meta' => ['show_title' => 'Jet Lag: The Game', 'season' => 19, 'episode' => 1],
     ]);
 
-    get('/'.entryUrl($media))
+    get('/'.entryUrl($episode))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('entry.showTitle', 'Jet Lag: The Game')

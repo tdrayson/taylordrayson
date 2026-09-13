@@ -3,15 +3,16 @@
 namespace App\Presenters;
 
 use App\Data\CardData;
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
+use App\Models\Episode;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Project;
@@ -42,7 +43,7 @@ use Illuminate\Database\Eloquent\Model;
  * result printing it twice wastes the only two lines there are.
  *
  * Kept as one class rather than one per type, the way the cards are split: a
- * description is a single sentence, so thirteen files would each hold about
+ * description is a single sentence, so fifteen files would each hold about
  * four lines.
  */
 final class EntryDescription
@@ -64,7 +65,9 @@ final class EntryDescription
             $model instanceof Activity => self::activity($model, $card),
             $model instanceof Place => self::place($model),
             $model instanceof Flight => self::flight($model),
-            $model instanceof Media => self::media($model),
+            $model instanceof Film => self::film($model),
+            $model instanceof Episode => self::episode($model),
+            $model instanceof Book => self::book($model),
             $model instanceof Food => self::food($model),
             $model instanceof Fuel => self::fuel($model),
             $model instanceof Event => self::event($model),
@@ -162,26 +165,28 @@ final class EntryDescription
         return $airport?->name ?? $airport?->city;
     }
 
-    /**
-     * What was watched or read, said the way it would be said aloud, with what
-     * the title could not hold: a film's runtime and genre, an episode's place
-     * in its run, a book's author.
-     */
-    private static function media(Media $model): string
+    /** What was watched, said the way it would be said aloud, with the runtime and genre the title could not hold. */
+    private static function film(Film $model): string
     {
         $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
 
-        $sentence = match ($model->type) {
-            MediaType::Film => sprintf('I watched %s%s', $model->title, self::filmShape($model)),
-            MediaType::TvEpisode => self::episodeSentence($model),
-            MediaType::Book => sprintf(
-                'I read %s%s.',
-                $model->title,
-                $model->meta->author ? " by {$model->meta->author}" : '',
-            ),
-        };
+        return trim(sprintf('I watched %s%s', $model->title, self::filmShape($model)).$rating);
+    }
 
-        return trim($sentence.$rating);
+    /** What was watched, said the way it would be said aloud: the episode's place in its run. */
+    private static function episode(Episode $model): string
+    {
+        $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
+
+        return trim(self::episodeSentence($model).$rating);
+    }
+
+    /** What was read, said the way it would be said aloud, with the author the title could not hold. */
+    private static function book(Book $model): string
+    {
+        $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
+
+        return trim(sprintf('I read %s%s.', $model->title, $model->meta->author ? " by {$model->meta->author}" : '').$rating);
     }
 
     /**
@@ -193,7 +198,7 @@ final class EntryDescription
      * minutes comedy romance" is not a thing anyone says. Left exact, because
      * every other number on the site is.
      */
-    private static function filmShape(Media $model): string
+    private static function filmShape(Film $model): string
     {
         $genres = array_slice((array) data_get($model->meta->tmdb, 'genres', []), 0, 2);
         $noun = $genres === [] ? 'film' : mb_strtolower(implode(' ', $genres));
@@ -211,7 +216,7 @@ final class EntryDescription
      * The episode said as it would be said out loud: "season 2, episode 17 of
      * Georgie & Mandy's First Marriage". "S02E17" is shorthand for a filename.
      */
-    private static function episodeSentence(Media $model): string
+    private static function episodeSentence(Episode $model): string
     {
         $show = ShowTitle::for($model);
         $where = $model->meta->season !== null && $model->meta->episode !== null

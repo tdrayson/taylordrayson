@@ -1,15 +1,16 @@
 <?php
 
 use App\Actions\BuildTimelineFeed;
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Series;
 use App\Models\TimelineEntry;
 use Illuminate\Support\Facades\Storage;
 
 it('gives every same-show same-day episode its own card linking to its own entry', function () {
     $series = Series::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
-    collect([1, 2, 3])->each(fn ($n) => Media::factory()->create([
-        'series_id' => $series->id, 'type' => 'episode',
+    collect([1, 2, 3])->each(fn ($n) => Episode::factory()->create([
+        'series_id' => $series->id,
         'occurred_at' => "2024-03-01 2{$n}:00:00",
         'meta' => ['season' => 1, 'episode' => $n, 'show_title' => 'Severance'],
     ]));
@@ -27,10 +28,10 @@ it('gives every same-show same-day episode its own card linking to its own entry
 it('preserves the caller order (ascending is not reversed)', function () {
     // The year/month pages feed entries oldest-first via groupsForDates(ascending: true).
     $series = Series::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
-    Media::factory()->create(['type' => 'film', 'title' => 'Morning Film', 'occurred_at' => '2024-05-01 08:00:00', 'meta' => ['year' => 2020]]);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-05-01 10:00:00', 'meta' => ['season' => 1, 'episode' => 1, 'show_title' => 'Severance']]);
-    Media::factory()->create(['series_id' => $series->id, 'type' => 'episode', 'occurred_at' => '2024-05-01 11:00:00', 'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance']]);
-    Media::factory()->create(['type' => 'film', 'title' => 'Night Film', 'occurred_at' => '2024-05-01 20:00:00', 'meta' => ['year' => 2021]]);
+    Film::factory()->create(['title' => 'Morning Film', 'occurred_at' => '2024-05-01 08:00:00', 'meta' => ['year' => 2020]]);
+    Episode::factory()->create(['series_id' => $series->id, 'occurred_at' => '2024-05-01 10:00:00', 'meta' => ['season' => 1, 'episode' => 1, 'show_title' => 'Severance']]);
+    Episode::factory()->create(['series_id' => $series->id, 'occurred_at' => '2024-05-01 11:00:00', 'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance']]);
+    Film::factory()->create(['title' => 'Night Film', 'occurred_at' => '2024-05-01 20:00:00', 'meta' => ['year' => 2021]]);
 
     $entries = TimelineEntry::query()->orderBy('occurred_at')->with('entry')->get();
     $day = app(BuildTimelineFeed::class)->groupByDay($entries)[0];
@@ -48,8 +49,8 @@ it('renders a show backdrop once a day, on the first episode of the run', functi
         ->usingFileName('backdrop.webp')
         ->toMediaCollection('backdrop');
 
-    collect([1, 2, 3, 4])->each(fn ($n) => Media::factory()->create([
-        'series_id' => $series->id, 'type' => 'episode',
+    collect([1, 2, 3, 4])->each(fn ($n) => Episode::factory()->create([
+        'series_id' => $series->id,
         'occurred_at' => "2024-03-01 1{$n}:00:00",
         'meta' => ['season' => 1, 'episode' => $n, 'show_title' => 'Severance'],
     ]));
@@ -73,8 +74,8 @@ it('keeps a backdrop for each show watched on the same day', function () {
             $series = Series::factory()->create(['slug' => $slug, 'title' => $title]);
             $series->addMediaFromString($bytes)->usingFileName("{$slug}.webp")->toMediaCollection('backdrop');
 
-            Media::factory()->create([
-                'series_id' => $series->id, 'type' => 'episode',
+            Episode::factory()->create([
+                'series_id' => $series->id,
                 'occurred_at' => '2024-03-01 20:00:00',
                 'meta' => ['season' => 1, 'episode' => 1, 'show_title' => $title],
             ]);

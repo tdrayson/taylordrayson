@@ -4,13 +4,15 @@ namespace App\Console\Commands\Sync;
 
 use App\Exceptions\TraktException;
 use App\Jobs\EnrichMedia;
-use App\Models\Media;
+use App\Models\Episode;
+use App\Models\Film;
 use App\Models\Series;
 use App\Services\Trakt\Client;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 #[Signature('trakt:sync {--days=7 : Days back to fetch} {--full : Backfill entire history} {--skip-ratings : Import watch history only} {--ratings-only : Refresh personal ratings only}')]
@@ -77,10 +79,14 @@ class TraktSync extends Command
 
             $startAt = $this->resolveStartAt();
 
-            $existing = Media::query()->where('source', 'trakt')->pluck('source_id')->flip();
+            // Trakt's id spaces for movie-history and episode-history items are
+            // unrelated, and each table now has its own unique constraint, so
+            // dedupe is checked per table rather than against one shared set.
+            $existingFilms = Film::query()->where('source', 'trakt')->pluck('source_id')->flip();
+            $existingEpisodes = Episode::query()->where('source', 'trakt')->pluck('source_id')->flip();
 
-            $filmsCreated = $this->importMovies($trakt, $startAt, $existing);
-            $episodesCreated = $this->importEpisodes($trakt, $startAt, $existing);
+            $filmsCreated = $this->importMovies($trakt, $startAt, $existingFilms);
+            $episodesCreated = $this->importEpisodes($trakt, $startAt, $existingEpisodes);
 
             $this->normalizeEpisodeOrder();
 
@@ -111,8 +117,11 @@ class TraktSync extends Command
 
         $default = now()->subDays((int) $this->option('days'));
 
-        /** @var string|null $newest Europe/London wall-clock string, or null with no prior Trakt data. */
-        $newest = Media::query()->where('source', 'trakt')->max('occurred_at');
+        /** @var string|null $newestFilm Europe/London wall-clock string, or null with no prior Trakt films. */
+        $newestFilm = Film::query()->where('source', 'trakt')->max('occurred_at');
+        /** @var string|null $newestEpisode Europe/London wall-clock string, or null with no prior Trakt episodes. */
+        $newestEpisode = Episode::query()->where('source', 'trakt')->max('occurred_at');
+        $newest = collect([$newestFilm, $newestEpisode])->filter()->max();
 
         if ($newest === null) {
             return $default->toIso8601ZuluString();
@@ -137,16 +146,15 @@ class TraktSync extends Command
             return;
         }
 
-        Media::query()
+        Episode::query()
             ->where('source', 'trakt')
-            ->where('type', 'episode')
             ->whereNotNull('series_id')
             ->whereIn('series_id', array_keys($this->affectedSeriesIds))
             ->get()
             ->groupBy('series_id')
             ->each(function (Collection $seriesEpisodes): void {
                 $seriesEpisodes
-                    ->groupBy(fn (Media $media): string => $media->occurred_at->format('Y-m-d H:i:s'))
+                    ->groupBy(fn (Episode $episode): string => $episode->occurred_at->format('Y-m-d H:i:s'))
                     ->each(fn (Collection $group) => $this->nudgeTiedGroup($group));
             });
     }
@@ -156,7 +164,7 @@ class TraktSync extends Command
      * keeps the base time, the rest get base + rank in seconds. The base is
      * captured before any reassignment so offsets never compound.
      *
-     * @param  Collection<int, Media>  $group  Episodes sharing one exact `occurred_at`.
+     * @param  Collection<int, Episode>  $group  Episodes sharing one exact `occurred_at`.
      */
     private function nudgeTiedGroup(Collection $group): void
     {
@@ -179,7 +187,7 @@ class TraktSync extends Command
         }
 
         $group
-            ->sort(function (Media $a, Media $b): int {
+            ->sort(function (Episode $a, Episode $b): int {
                 $seasonA = $a->meta->season ?? 0;
                 $seasonB = $b->meta->season ?? 0;
 
@@ -200,18 +208,18 @@ class TraktSync extends Command
                 return $a->id <=> $b->id;
             })
             ->values()
-            ->each(function (Media $media, int $rank) use ($base): void {
+            ->each(function (Episode $episode, int $rank) use ($base): void {
                 $target = $base->copy()->addSeconds($rank);
 
-                if (! $media->occurred_at->equalTo($target)) {
-                    $media->occurred_at = $target;
-                    $media->save();
+                if (! $episode->occurred_at->equalTo($target)) {
+                    $episode->occurred_at = $target;
+                    $episode->save();
                 }
             });
     }
 
     /**
-     * Pull personal star ratings (1-10) and apply them onto matching Media/Series
+     * Pull personal star ratings (1-10) and apply them onto matching Film/Episode/Series
      * rows by `meta.ids.trakt` or `Series.trakt_id`.
      */
     private function syncRatings(Client $trakt): void
@@ -225,26 +233,27 @@ class TraktSync extends Command
         $episodeRatings = $this->fetchAllRatingPages($trakt, 'episodes');
         $showRatings = $this->fetchAllRatingPages($trakt, 'shows');
 
-        $this->applyMediaRatings('film', $movieRatings);
-        $this->applyMediaRatings('episode', $episodeRatings);
+        $this->applyRatings(Film::query()->where('source', 'trakt'), $movieRatings);
+        $this->applyRatings(Episode::query()->where('source', 'trakt'), $episodeRatings);
         $this->applySeriesRatings($showRatings);
     }
 
     /**
-     * Apply ratings onto every Media row whose `meta.ids.trakt` matches. Matched
-     * in PHP rather than by JSON path because production is not SQLite, and every
-     * matching row is updated since a rewatch has several.
+     * Apply ratings onto every row a query returns whose `meta.ids.trakt`
+     * matches. Matched in PHP rather than by JSON path because production is
+     * not SQLite, and every matching row is updated since a rewatch has several.
      *
+     * @param  Builder<Film>|Builder<Episode>  $query
      * @param  array<int|string, int>  $ratings  Trakt id => rating.
      */
-    private function applyMediaRatings(string $mediaType, array $ratings): void
+    private function applyRatings(Builder $query, array $ratings): void
     {
         if ($ratings === []) {
             return;
         }
 
-        Media::query()->where('source', 'trakt')->where('type', $mediaType)->get()
-            ->each(function (Media $media) use ($ratings): void {
+        $query->get()
+            ->each(function (Film|Episode $media) use ($ratings): void {
                 $traktId = $media->meta->ids->trakt;
 
                 if ($traktId === null || ! array_key_exists($traktId, $ratings)) {
@@ -395,10 +404,9 @@ class TraktSync extends Command
     {
         $movie = $item['movie'];
 
-        $media = Media::create([
+        $media = Film::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
-            'type' => 'film',
             'title' => $movie['title'],
             'source' => 'trakt',
             'source_id' => (string) $item['id'],
@@ -427,10 +435,9 @@ class TraktSync extends Command
 
         [$series, $wasNew] = $this->resolveSeries($show, $summary);
 
-        $media = Media::create([
+        $media = Episode::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
-            'type' => 'episode',
             'title' => $episode['title'] ?? "Episode {$episode['number']}",
             'series_id' => $series->id,
             'source' => 'trakt',

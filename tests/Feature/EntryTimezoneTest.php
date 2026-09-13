@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
@@ -167,8 +167,8 @@ describe('timezones:backfill', function () {
         Flight::factory()->create(['occurred_at' => '2022-10-13 08:00:00', 'arrival_timezone' => 'America/New_York']);
         Flight::factory()->create(['occurred_at' => '2022-10-25 18:00:00', 'arrival_timezone' => 'Europe/London']);
 
-        $abroad = Media::factory()->create(['occurred_at' => '2022-10-18 20:00:00', 'timezone' => 'Europe/London']);
-        $atHome = Media::factory()->create(['occurred_at' => '2022-12-18 20:00:00', 'timezone' => 'Europe/London']);
+        $abroad = Film::factory()->create(['occurred_at' => '2022-10-18 20:00:00', 'timezone' => 'Europe/London']);
+        $atHome = Film::factory()->create(['occurred_at' => '2022-12-18 20:00:00', 'timezone' => 'Europe/London']);
 
         $this->artisan('timezones:backfill')->assertSuccessful();
 
@@ -223,9 +223,9 @@ describe('timezones:backfill', function () {
         Flight::factory()->create(['occurred_at' => '2025-06-03 08:16:00', 'arrival_timezone' => 'Europe/Paris']);
         Flight::factory()->create(['occurred_at' => '2025-06-08 22:21:00', 'arrival_timezone' => 'Europe/London']);
 
-        $beforeTakeoff = Media::factory()->create(['occurred_at' => '2025-06-03 06:41:00', 'timezone' => null]);
-        $afterLanding = Media::factory()->create(['occurred_at' => '2025-06-08 23:50:00', 'timezone' => null]);
-        $abroad = Media::factory()->create(['occurred_at' => '2025-06-05 20:00:00', 'timezone' => null]);
+        $beforeTakeoff = Film::factory()->create(['occurred_at' => '2025-06-03 06:41:00', 'timezone' => null]);
+        $afterLanding = Film::factory()->create(['occurred_at' => '2025-06-08 23:50:00', 'timezone' => null]);
+        $abroad = Film::factory()->create(['occurred_at' => '2025-06-05 20:00:00', 'timezone' => null]);
 
         $this->artisan('timezones:backfill')->assertSuccessful();
 
@@ -240,7 +240,7 @@ describe('timezones:backfill', function () {
         Flight::factory()->create(['occurred_at' => '2025-06-03 08:16:00', 'arrival_timezone' => 'Europe/Paris']);
         Flight::factory()->create(['occurred_at' => '2025-06-08 22:21:00', 'arrival_timezone' => 'Europe/London']);
 
-        $mistake = Media::factory()->create(['occurred_at' => '2025-06-03 06:41:00', 'timezone' => 'Europe/Paris']);
+        $mistake = Film::factory()->create(['occurred_at' => '2025-06-03 06:41:00', 'timezone' => 'Europe/Paris']);
 
         $this->artisan('timezones:backfill')->assertSuccessful();
 

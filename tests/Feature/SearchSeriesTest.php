@@ -1,7 +1,6 @@
 <?php
 
-use App\Enums\MediaType;
-use App\Models\Media;
+use App\Models\Episode;
 use App\Models\Series;
 use App\Search\SuggestSearch;
 
@@ -11,8 +10,7 @@ function watchedSeries(string $title, string $slug): Series
 {
     $series = Series::create(['trakt_id' => crc32($slug), 'title' => $title, 'slug' => $slug]);
 
-    Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+    Episode::factory()->create([
         'title' => 'An episode',
         'series_id' => $series->id,
         'occurred_at' => '2026-08-01 20:00:00',
@@ -46,17 +44,17 @@ it('ranks a show above a category matching the same word', function () {
     expect($sections[0])->toBe('TV');
 });
 
-it('filters media by the show an episode belongs to', function () {
+it('filters episodes by the show they belong to', function () {
     $severance = watchedSeries('Severance', 'severance');
     watchedSeries('Breaking Bad', 'breaking-bad');
 
     $response = postJson('/search', [
-        'type' => 'media',
+        'type' => 'episode',
         'match' => 'all',
         'conditions' => [['field' => 'show', 'operator' => 'contains', 'value' => 'Severance']],
     ]);
 
     $response->assertOk();
 
-    expect(Media::where('series_id', $severance->id)->count())->toBe(1);
+    expect(Episode::where('series_id', $severance->id)->count())->toBe(1);
 });

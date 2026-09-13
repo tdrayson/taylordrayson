@@ -2,10 +2,10 @@
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
@@ -168,8 +168,7 @@ it('keeps the food subtitle comma-joined with no connectives', function () {
 });
 
 it('names a film by its leading genre and how long it ran', function () {
-    $media = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Exit 8',
         'rating' => null,
         'meta' => [
@@ -180,19 +179,18 @@ it('names a film by its leading genre and how long it ran', function () {
         ],
     ]);
 
-    expect(CardPresenter::for($media)->toArray()['subtitle'])
+    expect(CardPresenter::for($film)->toArray()['subtitle'])
         ->toBe('I watched this 2026 horror film. It was 95 minutes long.');
 });
 
 it('falls back to "film" when TMDB gave no genre', function () {
-    $media = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Unknown',
         'rating' => null,
         'meta' => ['year' => 2026],
     ]);
 
-    expect(CardPresenter::for($media)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
+    expect(CardPresenter::for($film)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
 });
 
 // "9h 21m" is read out a letter at a time, so the link's accessible name spells
