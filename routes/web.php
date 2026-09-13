@@ -26,6 +26,7 @@ use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TvShowController;
 use App\Http\Controllers\UnlockEntryController;
+use App\Http\Controllers\UpdateEntryStatusController;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -44,6 +45,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
+
+    // Owner-only status change, valid for every dataset with HasStatus (synced types included).
+    Route::patch('/entries/{dataset}/{id}/status', UpdateEntryStatusController::class)
+        ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('entries.status');
 
     // Autocomplete for the fields that cannot be a plain text box.
     // Hyphens included: `fuel-brand` is a source name and 404s without them.

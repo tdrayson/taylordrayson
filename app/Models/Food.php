@@ -66,6 +66,19 @@ class Food extends Model implements HasMedia, Timelineable
                 $food->occurred_at = $food->occurred_at->copy()->endOfDay();
             }
         });
+
+        // A food day is one entry, so a newly synced row (no status of its
+        // own) joins the status the day already has rather than the model
+        // default, or a sync could republish a day the owner unlisted.
+        static::creating(function (self $food): void {
+            $sibling = $food->occurred_at === null
+                ? null
+                : static::whereDate('occurred_at', $food->occurred_at->toDateString())->first();
+
+            if ($sibling !== null) {
+                $food->status = $sibling->status;
+            }
+        });
     }
 
     /**

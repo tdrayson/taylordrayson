@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Data\StatusControlData;
 use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
@@ -40,10 +41,10 @@ class PageController extends Controller
             'excerpt' => $page->excerpt,
             'cover' => $page->coverPhoto(),
             'status' => $page->status->value,
-            'statusLabel' => $page->status->label(),
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
+            'statusControl' => Auth::check() ? StatusControlData::for($page) : null,
             ...($locked ? [] : [
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a

@@ -8,6 +8,7 @@ import EntryMap from '../Components/Maps/EntryMap.vue';
 import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
+import StatusControl from '../Components/Entry/StatusControl.vue';
 import { entryType } from '../entryTypes.js';
 
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
@@ -42,6 +43,8 @@ const props = defineProps({
     fields: { type: Array, default: () => [] },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
+    // { action, status, options, hasPassword }, null for a guest.
+    statusControl: { type: Object, default: null },
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
@@ -165,9 +168,10 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
 
         <PasswordPrompt v-if="locked" :action="unlockUrl" class="mt-10" />
 
-        <p v-if="signedIn && editType" class="mt-6">
-            <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
-        </p>
+        <div v-if="statusControl || (signedIn && editType)" class="mt-6 flex flex-wrap items-center gap-4">
+            <StatusControl v-if="statusControl" :control="statusControl" />
+            <Link v-if="signedIn && editType" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
+        </div>
 
         <EntryFooter :source="source" :tags="tags" class="mt-10" />
     </article>

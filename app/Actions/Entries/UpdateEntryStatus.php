@@ -4,6 +4,7 @@ namespace App\Actions\Entries;
 
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
+use App\Models\Food;
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
@@ -15,12 +16,16 @@ final class UpdateEntryStatus
     {
         self::assertAllowed($model, $status, $password);
 
-        $model->forceFill([
-            'status' => $status,
-            ...(filled($password) ? ['password' => $password] : []),
-        ])->save();
+        $values = ['status' => $status, ...(filled($password) ? ['password' => $password] : [])];
 
-        return $model;
+        // A food day is one entry across many rows, so the whole day changes together.
+        $rows = $model instanceof Food
+            ? Food::query()->whereDate('occurred_at', $model->occurred_at->toDateString())->orderBy('id')->get()
+            : collect([$model]);
+
+        $rows->each(fn (Model $row) => $row->forceFill($values)->save());
+
+        return $model->refresh();
     }
 
     /**

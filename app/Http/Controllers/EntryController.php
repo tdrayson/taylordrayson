@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Data\StatusControlData;
 use App\Data\TagLink;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
@@ -118,6 +119,7 @@ class EntryController extends Controller
             'unlockUrl' => $locked
                 ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
                 : null,
+            'statusControl' => Auth::check() ? StatusControlData::for($model) : null,
         ];
 
         $response = Inertia::render('Entry', [

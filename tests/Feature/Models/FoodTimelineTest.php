@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EntryStatus;
 use App\Models\Food;
 use App\Models\TimelineEntry;
 
@@ -132,6 +133,34 @@ it('deleting all food items for a date deletes the timeline entry', function () 
     $food->delete();
 
     expect(TimelineEntry::count())->toBe(0);
+});
+
+it('a new food row for a date inherits that date\'s existing status', function () {
+    $date = now()->startOfDay()->addHours(8);
+
+    $first = Food::create([
+        'occurred_at' => $date,
+        'name' => 'Weetabix',
+        'meal' => 'breakfast',
+        'quantity' => 2,
+        'units' => 'serving',
+        'calories' => 280,
+        'status' => 'unlisted',
+    ]);
+
+    // A later sync (e.g. Rovi) sends no status, so it must not fall back to
+    // the model default and republish a day the owner already unlisted.
+    $second = Food::create([
+        'occurred_at' => $date->copy()->addHours(4),
+        'name' => 'Sandwich',
+        'meal' => 'lunch',
+        'quantity' => 1,
+        'units' => 'serving',
+        'calories' => 450,
+    ]);
+
+    expect($first->fresh()->status)->toBe(EntryStatus::Unlisted)
+        ->and($second->status)->toBe(EntryStatus::Unlisted);
 });
 
 it('food items on different dates create separate timeline entries', function () {

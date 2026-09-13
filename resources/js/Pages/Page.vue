@@ -5,10 +5,10 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
 import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
+import StatusControl from '../Components/Entry/StatusControl.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { provideLinkContext } from '../lib/linkContext.js';
-import Pill from '../Components/Ui/Pill.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -20,7 +20,8 @@ const props = defineProps({
     cover: { type: Object, default: null },
     content: { type: [Object, Array, String], default: null },
     status: { type: String, default: 'published' },
-    statusLabel: { type: String, default: null },
+    // { action, status, options, hasPassword }, null for a guest.
+    statusControl: { type: Object, default: null },
     editing: { type: Boolean, default: false },
     // Field definitions from FieldRegistry, driving the properties panel.
     fields: { type: Array, default: () => [] },
@@ -71,8 +72,8 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
 
             <!-- Owner-only, so it sits below the page rather than interrupting the title. -->
-            <div v-if="signedIn" class="mt-3 flex items-center gap-3">
-                <Pill v-if="status !== 'published'" :label="statusLabel" variant="accent" />
+            <div v-if="signedIn" class="mt-3 flex flex-wrap items-center gap-3">
+                <StatusControl v-if="statusControl" :control="statusControl" />
 
                 <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
                     Edit this page
