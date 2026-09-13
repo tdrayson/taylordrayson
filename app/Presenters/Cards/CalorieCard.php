@@ -22,13 +22,11 @@ final class CalorieCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'utensils',
             title: $this->title($model),
             titleLabel: "Food log, I ate {$kcal} calories",
             subtitle: $this->sentence($totals),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'food',
             range: null,
             meta: CardMeta::empty(),
         );

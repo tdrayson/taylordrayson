@@ -18,13 +18,11 @@ final class PodcastCard
     {
         return new CardData(
             type: $this->type(),
-            icon: 'headphones',
             title: $this->title($model),
             titleLabel: null,
             subtitle: $model->topic,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'podcast',
             range: null,
             meta: CardMeta::media(MediaData::withoutSrcset(
                 id: $model->id,

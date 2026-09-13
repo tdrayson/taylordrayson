@@ -2,8 +2,16 @@
 
 use App\Models\Activity;
 
-/** A short polyline near Manchester, long enough to have a line to draw. */
-const REPLAY_POLYLINE = 'ohreIzatO}@}A_@k@';
+/**
+ * A meandering route near Manchester, 60 points.
+ *
+ * Deliberately not a three-point line: the draw runs at a steady on-screen
+ * speed with a 2.2s floor, so a short route replays in the minimum and the
+ * window in which the control reads "Pause" is 2.2s wide. Under a loaded suite
+ * the assertions landed after the draw had finished and the label had flipped
+ * back. A longer line draws for nearer the 5.5s ceiling.
+ */
+const REPLAY_POLYLINE = '_xleIbrtL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL_IcL_IcL~CcL~CcL';
 
 it('replays the route draw from the map control, and pauses it', function () {
     $activity = Activity::factory()->create([

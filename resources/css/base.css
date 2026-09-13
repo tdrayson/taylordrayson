@@ -65,6 +65,14 @@
         vertical-align: -0.1em;
     }
 
+    /* A photo that covers its box is opaque once decoded, so a tint behind it
+       marks the space as loading and then disappears under the image. Keyed on
+       `object-cover` deliberately: `object-contain` images are logos on a
+       transparent ground, where the tint would never go away. */
+    img.object-cover {
+        background-color: var(--color-neutral-25);
+    }
+
     /* Abbreviations with a title are tooltips, not links: a dotted underline (vs
        the solid underline used for links) and a help cursor signal "hover me". */
     abbr[title] {

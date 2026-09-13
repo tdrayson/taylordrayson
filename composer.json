@@ -55,6 +55,7 @@
             "@php artisan key:generate",
             "@php artisan migrate --force",
             "npm install",
+            "@php artisan types:sync",
             "npm run build"
         ],
         "dev": [

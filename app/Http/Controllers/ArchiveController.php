@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
+use App\Enums\TimelineType;
 use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
@@ -69,7 +70,7 @@ class ArchiveController extends Controller
 
         $noun = $definition['noun'];
         $taxonomyLabel = $value !== null ? ($taxonomy['labelFor'])($value) : null;
-        $accentToken = $type === 'calorie' ? 'food' : $type;
+        $accentToken = TimelineType::from($type)->accent();
         $title = $this->title($definition, $taxonomy, $taxonomyLabel);
         $subtitle = $page->total().' '.Str::plural($noun, $page->total());
 

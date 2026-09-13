@@ -19,6 +19,7 @@ use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
 use App\Models\Tag;
+use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
@@ -37,19 +38,19 @@ class TypeRegistry
     public static function all(): array
     {
         return [
-            TimelineType::Activity->value => self::type(Activity::class, 'activities', 'Activities', self::column('type', 'Type', fn (string $label): string => "{$label} activities")),
-            TimelineType::Sleep->value => self::type(Sleep::class, 'sleep', 'Sleep'),
-            TimelineType::Calorie->value => self::type(Calorie::class, 'food', 'Food'),
-            TimelineType::Media->value => self::type(Media::class, 'media', 'Media', self::media()),
-            TimelineType::Event->value => self::type(Event::class, 'events', 'Events', self::tags(fn (string $label): string => "{$label} events")),
-            TimelineType::Appearance->value => self::type(Appearance::class, 'appearances', 'Appearances', self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
-            TimelineType::Podcast->value => self::type(Podcast::class, 'this-week-with', 'This Week With', self::podcastSeason(), 'episode'),
-            TimelineType::Flight->value => self::type(Flight::class, 'flights', 'Flights', self::airline()),
-            TimelineType::Checkin->value => self::type(Checkin::class, 'places', 'Places', self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
-            TimelineType::Fuel->value => self::type(Fuel::class, 'fuel', 'Fuel', self::vehicle()),
-            TimelineType::Project->value => self::type(Project::class, 'projects', 'Projects', self::tags(fn (string $label): string => "Projects tagged {$label}")),
-            TimelineType::Article->value => self::type(Article::class, 'articles', 'Articles', self::tags(fn (string $label): string => "Articles tagged {$label}")),
-            TimelineType::Note->value => self::type(Note::class, 'notes', 'Notes', self::tags(fn (string $label): string => "Notes tagged {$label}")),
+            TimelineType::Activity->value => self::type(TimelineType::Activity, Activity::class, self::column('type', 'Type', fn (string $label): string => "{$label} activities"), stats: true),
+            TimelineType::Sleep->value => self::type(TimelineType::Sleep, Sleep::class),
+            TimelineType::Calorie->value => self::type(TimelineType::Calorie, Calorie::class),
+            TimelineType::Media->value => self::type(TimelineType::Media, Media::class, self::media()),
+            TimelineType::Event->value => self::type(TimelineType::Event, Event::class, self::tags(fn (string $label): string => "{$label} events")),
+            TimelineType::Appearance->value => self::type(TimelineType::Appearance, Appearance::class, self::column('type', 'Type', fn (string $label): string => "{$label} appearances")),
+            TimelineType::Podcast->value => self::type(TimelineType::Podcast, Podcast::class, self::podcastSeason(), 'episode'),
+            TimelineType::Flight->value => self::type(TimelineType::Flight, Flight::class, self::airline()),
+            TimelineType::Checkin->value => self::type(TimelineType::Checkin, Checkin::class, self::column('category', 'Category', fn (string $label): string => Str::plural($label))),
+            TimelineType::Fuel->value => self::type(TimelineType::Fuel, Fuel::class, self::vehicle()),
+            TimelineType::Project->value => self::type(TimelineType::Project, Project::class, self::tags(fn (string $label): string => "Projects tagged {$label}")),
+            TimelineType::Article->value => self::type(TimelineType::Article, Article::class, self::tags(fn (string $label): string => "Articles tagged {$label}")),
+            TimelineType::Note->value => self::type(TimelineType::Note, Note::class, self::tags(fn (string $label): string => "Notes tagged {$label}")),
         ];
     }
 
@@ -62,16 +63,26 @@ class TypeRegistry
     }
 
     /**
+     * Slug and label come from the catalogue, so an archive URL and the href the
+     * frontend links to it by cannot drift apart.
+     *
      * @param  class-string  $model
+     * @param  ?string  $noun  Overrides the singular derived from the label.
+     * @param  bool  $stats  Whether /stats/{slug} exists for this type.
      * @return array<string, mixed>
      */
-    private static function type(string $model, string $slug, string $label, ?callable $taxonomyFactory = null, ?string $noun = null): array
+    private static function type(TimelineType $type, string $model, ?callable $taxonomyFactory = null, ?string $noun = null, bool $stats = false): array
     {
+        $meta = TypeCatalogue::forType($type);
+        $slug = $meta->slug();
+        $label = $meta->plural;
+
         return [
             'slug' => $slug,
             'model' => $model,
             'label' => $label,
             'noun' => $noun ?? Str::lower(Str::singular($label)),
+            'stats' => $stats,
             'taxonomy' => $taxonomyFactory ? $taxonomyFactory($model, $slug) : null,
         ];
     }

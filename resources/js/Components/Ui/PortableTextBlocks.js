@@ -344,8 +344,10 @@ function renderImage(node, onImageClick) {
                 alt: node.caption || '',
                 width: node.width || undefined,
                 height: node.height || undefined,
+                // A portrait is ratio-true rather than cropped, so it misses the
+                // base img.object-cover loading tint and carries its own.
                 class: portrait
-                    ? 'max-h-media w-auto rounded-lg border border-neutral-50'
+                    ? 'max-h-media w-auto rounded-lg border border-neutral-50 bg-neutral-25'
                     : 'max-h-media w-full rounded-lg border border-neutral-50 object-cover',
             }),
             h('span', {
