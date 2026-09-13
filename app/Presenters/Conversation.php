@@ -11,7 +11,9 @@ use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use App\Queries\ReactionsFor;
 use App\Support\InteractionTarget;
+use App\Support\VisitorIdentity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 /**
  * Builds the response payload for one entry, merging the tables the frontend
@@ -22,13 +24,17 @@ use Illuminate\Database\Eloquent\Model;
 final class Conversation
 {
     /**
-     * The conversation to put on the page, or null for a target that takes no
-     * interactions at all. Everything else carries one whether or not anybody
-     * has responded: a page with no way to react is a page nobody can start.
+     * The conversation to show this request, or null for a target it may not
+     * respond to. Carried whether or not anybody has responded yet.
+     *
+     * @param  Model  $target  The entry or page the conversation belongs to.
+     * @param  Request  $request  The visitor, whose unlock and reactions shape it.
      */
-    public static function shownFor(Model $target, ?string $identity = null): ?ConversationData
+    public static function shownFor(Model $target, Request $request): ?ConversationData
     {
-        return InteractionTarget::accepts($target) ? self::for($target, $identity) : null;
+        return InteractionTarget::takesCommentsAndReactionsFrom($target, $request)
+            ? self::for($target, VisitorIdentity::onTarget($request, $target))
+            : null;
     }
 
     public static function for(Model $target, ?string $identity = null): ConversationData
@@ -47,6 +53,8 @@ final class Conversation
             reactions: app(ReactionsFor::class)($target, $identity),
 
             responses: self::responses($target, $timezone),
+
+            takesWebmentions: InteractionTarget::takesMentions($target),
         );
     }
 

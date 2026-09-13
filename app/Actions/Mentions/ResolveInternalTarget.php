@@ -22,11 +22,9 @@ final class ResolveInternalTarget
     {
         $model = $this->entry($path) ?? $this->page($path);
 
-        // Visibility is the interaction allowlist's job, so a draft and a type
-        // that takes no responses are refused by the same rule the webmention
-        // endpoint uses. Recording a mention on either would put a response on
-        // a page that cannot show one.
-        return $model !== null && InteractionTarget::accepts($model) ? $model : null;
+        // Refused by the same rule the webmention endpoint uses, so a draft, a
+        // private entry and a type that takes no responses all record nothing.
+        return $model !== null && InteractionTarget::takesMentions($model) ? $model : null;
     }
 
     /** An entry permalink, /YYYY/MM/DD/slug. */

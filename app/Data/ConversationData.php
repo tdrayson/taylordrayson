@@ -22,6 +22,8 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
         public string $url,
         public array $reactions,
         public array $responses,
+        /** False for a private entry, which neither receives nor sends mentions. */
+        public bool $takesWebmentions,
     ) {}
 
     /** Whether nobody has said, sent or clicked anything at all. */
@@ -42,6 +44,7 @@ final readonly class ConversationData implements Arrayable, JsonSerializable
             'url' => $this->url,
             'reactions' => array_map(fn (ReactionBucket $b): array => $b->toArray(), $this->reactions),
             'responses' => array_map(fn (ConversationItem $i): array => $i->toArray(), $this->responses),
+            'takesWebmentions' => $this->takesWebmentions,
         ];
     }
 

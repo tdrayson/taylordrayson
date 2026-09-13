@@ -36,7 +36,7 @@ final class InteractionsForFeed
     public function __invoke(Collection $targets, ?Request $request = null): array
     {
         $keyed = $targets
-            ->filter(fn (Model $model): bool => InteractionTarget::accepts($model))
+            ->filter(fn (Model $model): bool => InteractionTarget::takesCommentsAndReactionsFrom($model, $request))
             ->keyBy(fn (Model $model): string => $model->getMorphClass().':'.$model->getKey());
 
         if ($keyed->isEmpty()) {
