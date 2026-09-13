@@ -2,10 +2,10 @@
 
 namespace App\Support;
 
-use App\Models\Calorie;
-use App\Models\Checkin;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Sleep;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
@@ -37,8 +37,8 @@ final class EntryName
     private const NOUNS = [
         Note::class => 'note',
         Sleep::class => 'sleep',
-        Calorie::class => 'food log',
-        Checkin::class => 'check-in',
+        Food::class => 'food log',
+        Place::class => 'check-in',
         Fuel::class => 'fill-up',
     ];
 

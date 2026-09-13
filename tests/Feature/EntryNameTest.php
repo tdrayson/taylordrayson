@@ -1,12 +1,12 @@
 <?php
 
 use App\Models\Article;
-use App\Models\Calorie;
-use App\Models\Checkin;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
 use App\Support\EntryName;
@@ -24,10 +24,10 @@ it('keeps a real title, which is already a name', function () {
 // "Replied to at Starbucks" is not a sentence. These types are called by what
 // they are and when they happened instead.
 it('names a type whose title is a phrase by what it is and when', function () {
-    $checkin = Checkin::factory()->create(['occurred_at' => now()->setDate(now()->year, 3, 14)]);
+    $place = Place::factory()->create(['occurred_at' => now()->setDate(now()->year, 3, 14)]);
 
-    expect(EntryName::for($checkin))->toBe('a check-in from 14 March')
-        ->and(EntryName::for($checkin, possessive: true))->toBe('my check-in from 14 March');
+    expect(EntryName::for($place))->toBe('a check-in from 14 March')
+        ->and(EntryName::for($place, possessive: true))->toBe('my check-in from 14 March');
 });
 
 // A year only earns its place once it is no longer this one.
@@ -55,7 +55,7 @@ it('covers every type whose card says its title needs context', function () {
     }
 
     $unnamed = array_filter(
-        [Sleep::class, Calorie::class, Checkin::class, Fuel::class],
+        [Sleep::class, Food::class, Place::class, Fuel::class],
         fn (string $class): bool => in_array($class, $needContext, true),
     );
 
