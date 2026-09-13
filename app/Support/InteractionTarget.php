@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\EntryStatus;
 use App\Models\Concerns\Timelineable;
 use App\Models\Page;
 use App\Timeline\TypeRegistry;

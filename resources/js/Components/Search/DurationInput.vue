@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
+import Input from '../Ui/Input.vue';
 import Select from '../Ui/Select.vue';
 
 const props = defineProps({
