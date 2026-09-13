@@ -9,6 +9,7 @@ use App\Models\Article;
 use App\Models\Comment;
 use App\Models\Mention;
 use App\Models\Note;
+use App\Models\Page;
 use App\Models\Reaction;
 use App\Models\Sleep;
 use App\Models\Webmention;
@@ -51,14 +52,14 @@ function absoluteUrl(string $path): string
     return rtrim(config('app.url'), '/').$path;
 }
 
-function paragraphLinkingTo(string $href): array
+function paragraphLinkingTo(string $href, string $label = 'this'): array
 {
     return [[
         '_type' => 'block',
         '_key' => 'block-1',
         'style' => 'normal',
         'markDefs' => [['_key' => 'link-1', '_type' => 'link', 'href' => $href]],
-        'children' => [PortableText::span('See '), PortableText::span('this', ['link-1'])],
+        'children' => [PortableText::span('See '), PortableText::span($label, ['link-1'])],
     ]];
 }
 
@@ -129,19 +130,34 @@ it('records no mention on a private entry linked from a public one', function ()
     expect(Mention::count())->toBe(0);
 });
 
-it('drops the mentions an entry made and received when it goes private', function () {
+it('keeps the mentions an entry made and received when it goes private', function () {
     $sleep = Sleep::factory()->create();
     $article = Article::factory()->create([
         'status' => EntryStatus::Published,
         'content' => paragraphLinkingTo($sleep->url()),
     ]);
-    Note::factory()->create(['content' => paragraphLinkingTo($article->url())]);
-
-    expect(Mention::count())->toBe(2);
+    $note = Note::factory()->create(['content' => paragraphLinkingTo($article->url())]);
 
     $article->update(['status' => EntryStatus::Private, 'password' => 'hunter2']);
+    $note->update(['content' => paragraphLinkingTo($article->url(), 'still this')]);
 
-    expect(Mention::count())->toBe(0);
+    expect($sleep->mentions()->count())->toBe(1)
+        ->and($article->mentions()->count())->toBe(1);
+});
+
+it('records nothing new when a private entry adds a link, and removes nothing', function () {
+    $sleep = Sleep::factory()->create();
+    $page = Page::factory()->create();
+    $article = Article::factory()->create([
+        'status' => EntryStatus::Published,
+        'content' => paragraphLinkingTo($sleep->url()),
+    ]);
+
+    $article->update(['status' => EntryStatus::Private, 'password' => 'hunter2']);
+    $article->update(['content' => paragraphLinkingTo('/'.$page->slug)]);
+
+    expect($sleep->mentions()->count())->toBe(1)
+        ->and($page->mentions()->count())->toBe(0);
 });
 
 it('treats an unlisted entry exactly like a published one', function () {

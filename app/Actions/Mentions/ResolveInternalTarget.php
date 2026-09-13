@@ -18,13 +18,26 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class ResolveInternalTarget
 {
+    /**
+     * The entry or page at a path, only when it takes new mentions.
+     *
+     * @param  string  $path  A site-relative path.
+     */
     public function __invoke(string $path): ?Model
     {
-        $model = $this->entry($path) ?? $this->page($path);
+        $model = $this->anyStatus($path);
 
-        // Refused by the same rule the webmention endpoint uses, so a draft, a
-        // private entry and a type that takes no responses all record nothing.
         return $model !== null && InteractionTarget::takesMentions($model) ? $model : null;
+    }
+
+    /**
+     * The entry or page at a path, whatever its status or whether it takes mentions.
+     *
+     * @param  string  $path  A site-relative path.
+     */
+    public function anyStatus(string $path): ?Model
+    {
+        return $this->entry($path) ?? $this->page($path);
     }
 
     /** An entry permalink, /YYYY/MM/DD/slug. */

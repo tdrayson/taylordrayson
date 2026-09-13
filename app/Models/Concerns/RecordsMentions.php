@@ -4,7 +4,6 @@ namespace App\Models\Concerns;
 
 use App\Actions\Mentions\SyncMentions;
 use App\Models\Mention;
-use App\Support\InteractionTarget;
 use App\Support\OutboundLinks;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,12 +35,6 @@ trait RecordsMentions
         static::updated(function (Model $model): void {
             if ($model->wasChanged(self::MENTION_TRIGGERS)) {
                 self::syncMentions($model);
-            }
-
-            // Links to it are not rewritten on a republish; they come back when
-            // the entry holding them is next saved.
-            if ($model->wasChanged('status') && ! InteractionTarget::takesMentions($model)) {
-                $model->mentions()->delete();
             }
         });
 
