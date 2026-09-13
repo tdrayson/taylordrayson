@@ -160,6 +160,22 @@ function customToNode(node) {
                 },
                 content: (node.code ?? '') === '' ? [] : [{ type: 'text', text: node.code }],
             };
+        case 'file':
+            return {
+                type: 'file',
+                attrs: {
+                    _key: node._key,
+                    source: node.source ?? 'upload',
+                    url: node.url ?? null,
+                    name: node.name ?? null,
+                    title: node.title ?? null,
+                    mime: node.mime ?? null,
+                    size: node.size ?? null,
+                    repo: node.repo ?? null,
+                    asset: node.asset ?? null,
+                    poster: node.poster ?? null,
+                },
+            };
         case 'divider':
             return { type: 'horizontalRule', attrs: { _key: node._key } };
         case 'callout': {

@@ -35,6 +35,31 @@ class PrepareImage
     private const UNTOUCHED = ['svg', 'gif'];
 
     /**
+     * The same formats by mime, for callers deciding whether to run this at all.
+     *
+     * @var list<string>
+     */
+    private const UNTOUCHED_TYPES = ['image/svg+xml', 'image/gif'];
+
+    /**
+     * Whether a file is one this action would rewrite. Gated on mime rather
+     * than extension: `addMediaFromString` writes to a `tempnam()` file with no
+     * extension at all, so the check below cannot see an SVG coming.
+     */
+    public static function handles(string $path): bool
+    {
+        if (! is_file($path)) {
+            return false;
+        }
+
+        $mime = @mime_content_type($path);
+
+        return is_string($mime)
+            && str_starts_with($mime, 'image/')
+            && ! in_array($mime, self::UNTOUCHED_TYPES, true);
+    }
+
+    /**
      * Rewrite the file in place where it is worth it, returning the path to use.
      * The original path comes back unchanged when the image is already small
      * enough, is a format left alone, or could not be read.

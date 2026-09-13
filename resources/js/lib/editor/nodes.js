@@ -29,6 +29,7 @@ export const PreserveKeys = Extension.create({
                 'image',
                 'video',
                 'callout',
+                'file',
             ],
             attributes: {
                 _key: { default: null, rendered: false },
@@ -126,6 +127,46 @@ export const Video = Node.create({
 
     renderHTML({ HTMLAttributes }) {
         return ['div', { 'data-video': '', ...HTMLAttributes }];
+    },
+});
+
+/**
+ * A downloadable file, drawn as a card.
+ *
+ * `source` decides which half of the attributes is authoritative. An `upload`
+ * holds its own name, mime and size, stamped when the server attached it. A
+ * `github` holds only the repository and asset name, because the version and
+ * size of the newest release are not facts this document can keep current.
+ */
+export const FileNode = Node.create({
+    name: 'file',
+    group: 'block',
+    atom: true,
+    draggable: true,
+
+    addAttributes() {
+        return {
+            source: { default: 'upload' },
+            url: { default: null },
+            name: { default: null },
+            // The name shown, when the file's own reads badly.
+            title: { default: null },
+            mime: { default: null },
+            size: { default: null },
+            repo: { default: null },
+            asset: { default: null },
+            // A preview image where the format has one to show, a PDF's first
+            // page being the case worth having.
+            poster: { default: null },
+        };
+    },
+
+    parseHTML() {
+        return [{ tag: 'div[data-file]' }];
+    },
+
+    renderHTML({ HTMLAttributes }) {
+        return ['div', { 'data-file': '', ...HTMLAttributes }];
     },
 });
 

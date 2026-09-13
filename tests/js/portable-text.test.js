@@ -114,6 +114,16 @@ describe('portable text round trip', () => {
         { _type: 'video', _key: 'v1', url: 'https://example.com/v.mp4', caption: null, poster: null, width: 1920, height: 1080 },
     ]);
 
+    survives('an uploaded file', [
+        { _type: 'file', _key: 'f1', source: 'upload', url: '/storage/3/a.zip', name: 'a.zip', mime: 'application/zip', size: 55296, title: 'The bundle', poster: null },
+    ]);
+
+    // The two sources keep different halves of the attributes, so a release
+    // must not come back carrying an upload's empty url, name, mime and size.
+    survives('a GitHub release file', [
+        { _type: 'file', _key: 'f2', source: 'github', repo: 'tdrayson/a-plugin', asset: 'a-plugin.zip', title: null, poster: null },
+    ]);
+
     survives('a code block', [
         { _type: 'code', _key: 'c1', code: "echo 'hi';", language: 'php', filename: 'a.php', lineNumbers: true },
     ]);

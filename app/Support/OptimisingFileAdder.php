@@ -16,15 +16,6 @@ use Spatie\MediaLibrary\MediaCollections\FileAdder;
 class OptimisingFileAdder extends FileAdder
 {
     /**
-     * Gated on mime rather than extension: `addMediaFromString` writes to a
-     * `tempnam()` file with no extension at all, so PrepareImage's own check
-     * cannot see an SVG coming and would rasterise it.
-     *
-     * @var list<string>
-     */
-    private const NOT_CONVERTED = ['image/svg+xml', 'image/gif'];
-
-    /**
      * Extension each stored image format is named with, so a name can be checked
      * against the bytes it actually points at.
      *
@@ -43,7 +34,7 @@ class OptimisingFileAdder extends FileAdder
 
     public function setFile($file): self
     {
-        if (is_string($file) && $this->isImage($file)) {
+        if (is_string($file) && PrepareImage::handles($file)) {
             $file = app(PrepareImage::class)($file);
         }
 
@@ -80,18 +71,5 @@ class OptimisingFileAdder extends FileAdder
         $mime = @mime_content_type($this->storedPath);
 
         return is_string($mime) ? $mime : null;
-    }
-
-    private function isImage(string $path): bool
-    {
-        if (! is_file($path)) {
-            return false;
-        }
-
-        $mime = @mime_content_type($path);
-
-        return is_string($mime)
-            && str_starts_with($mime, 'image/')
-            && ! in_array($mime, self::NOT_CONVERTED, true);
     }
 }

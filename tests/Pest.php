@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
@@ -131,6 +132,22 @@ function cookieValue(string $name): string
 function clearCookies(): string
 {
     return "document.cookie.split(';').forEach((c) => { document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;path=/;max-age=0'); })";
+}
+
+/**
+ * A real zip upload, so validation reads the bytes a browser would have sent
+ * rather than a declared type a test made up.
+ */
+function zipUpload(string $name = 'bundle.zip'): UploadedFile
+{
+    $path = sys_get_temp_dir().'/zip-'.uniqid().'.zip';
+
+    $archive = new ZipArchive;
+    $archive->open($path, ZipArchive::CREATE);
+    $archive->addFromString('styles.css', 'body { color: red }');
+    $archive->close();
+
+    return new UploadedFile($path, $name, 'application/zip', null, true);
 }
 
 /** A real JPEG of the given size, so the media library can process it. */

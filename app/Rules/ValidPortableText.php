@@ -24,6 +24,8 @@ class ValidPortableText implements ValidationRule
 
     private const CALLOUT_VARIANTS = ['note', 'tip', 'important', 'warning', 'caution'];
 
+    private const FILE_SOURCES = ['upload', 'github'];
+
     /**
      * Run the validation rule.
      *
@@ -64,6 +66,7 @@ class ValidPortableText implements ValidationRule
             'code' => $this->codeError($node),
             'callout' => $this->calloutError($node),
             'video' => $this->videoError($node),
+            'file' => $this->fileError($node),
             'divider' => null,
             default => 'unknown node _type',
         };
@@ -86,6 +89,44 @@ class ValidPortableText implements ValidationRule
             if (array_key_exists($dimension, $node) && (! is_int($node[$dimension]) || $node[$dimension] < 1)) {
                 return "image {$dimension} must be a positive integer when present";
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * A file is one of two shapes. An upload carries the URL it was attached
+     * at; a release carries the repository and asset it is looked up by, and
+     * has no URL of its own because the newest one is not known here.
+     */
+    private function fileError(array $node): ?string
+    {
+        $source = $node['source'] ?? 'upload';
+
+        if (! in_array($source, self::FILE_SOURCES, true)) {
+            return 'file source must be one of: '.implode(', ', self::FILE_SOURCES);
+        }
+
+        if ($source === 'github') {
+            // owner/name, the only form the download URL can be built from.
+            if (! $this->nonEmptyString($node['repo'] ?? null) || preg_match('#^[^/\s]+/[^/\s]+$#', $node['repo']) !== 1) {
+                return 'file repo must be owner/name';
+            }
+
+            return $this->nonEmptyString($node['asset'] ?? null) ? null : 'file requires an asset';
+        }
+
+        $url = $node['url'] ?? null;
+
+        $validUrl = $this->nonEmptyString($url)
+            && (filter_var($url, FILTER_VALIDATE_URL) !== false || preg_match('#^/[^/]#', $url) === 1);
+
+        if (! $validUrl) {
+            return 'file requires a valid url';
+        }
+
+        if (array_key_exists('size', $node) && $node['size'] !== null && (! is_int($node['size']) || $node['size'] < 0)) {
+            return 'file size must be a non-negative integer when present';
         }
 
         return null;

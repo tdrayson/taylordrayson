@@ -158,6 +158,27 @@ function customToBlock(node) {
                 filename: node.attrs?.filename ?? null,
                 lineNumbers: node.attrs?.lineNumbers ?? null,
             };
+        case 'file': {
+            const source = node.attrs?.source ?? 'upload';
+
+            return {
+                _type: 'file',
+                _key: key,
+                source,
+                // Each source keeps only what is true of it: an upload's own
+                // metadata, or the reference a release is looked up by.
+                ...(source === 'github'
+                    ? { repo: node.attrs?.repo ?? null, asset: node.attrs?.asset ?? null }
+                    : {
+                        url: node.attrs?.url ?? null,
+                        name: node.attrs?.name ?? null,
+                        mime: node.attrs?.mime ?? null,
+                        size: node.attrs?.size ?? null,
+                    }),
+                title: node.attrs?.title ?? null,
+                poster: node.attrs?.poster ?? null,
+            };
+        }
         case 'horizontalRule':
             return { _type: 'divider', _key: key };
         case 'callout':

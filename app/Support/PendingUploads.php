@@ -40,7 +40,9 @@ final class PendingUploads
         File::ensureDirectoryExists($path);
         $moved = $file->move($path, $file->getClientOriginalName());
 
-        app(PrepareImage::class)($moved->getPathname());
+        if (PrepareImage::handles($moved->getPathname())) {
+            app(PrepareImage::class)($moved->getPathname());
+        }
 
         return $token;
     }

@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes.js';
+import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout, FileNode } from './nodes.js';
 
 /** The display host for a URL, or null for an internal path. */
 function hostOf(href) {
@@ -109,6 +109,7 @@ const DOCUMENT = [
     Image,
     Video,
     Callout,
+    FileNode,
     CodeBlockMeta,
     ImageMeta,
 ];
@@ -117,12 +118,12 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, codeBlock?: object}} options
+ * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, file?: object, codeBlock?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, codeBlock = null } = {}) {
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, file = null, codeBlock = null } = {}) {
     // The caller's callout replaces the plain node, so the editor can draw it
     // with its picker while the renderer keeps the bare definition.
-    const overrides = { callout, image, video };
+    const overrides = { callout, image, video, file };
 
     const base = (profile === 'document' ? DOCUMENT : PROSE)
         .map((extension) => overrides[extension.name] ?? extension);

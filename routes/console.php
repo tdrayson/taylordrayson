@@ -54,6 +54,11 @@ Schedule::command('maps:generate checkin')->hourly()->withoutOverlapping();
 Schedule::command('maps:generate fuel')->hourly()->withoutOverlapping();
 Schedule::command('maps:generate activity')->hourly()->withoutOverlapping();
 
+// The version and size shown beside a GitHub release download. Pages serve
+// whatever is cached and refresh in the background, so this only keeps a repo
+// nobody has visited from going stale; a missed run costs a version number.
+Schedule::command('releases:warm')->hourly()->withoutOverlapping();
+
 // Housekeeping: storage the app has stopped referencing but never removes on its
 // own. Both only delete, so a missed run costs disk rather than data.
 
