@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Observers\LinkFaviconObserver;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -21,14 +22,17 @@ use Spatie\MediaLibrary\HasMedia;
     'excerpt',
     'content',
     'published',
+    'status',
+    'password',
 ])]
 #[ObservedBy(LinkFaviconObserver::class)]
 class Page extends Model implements HasMedia
 {
     use HasAttachments;
-
     /** @use HasFactory<PageFactory> */
     use HasFactory;
+
+    use HasStatus;
 
     /**
      * @return array<string, string>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Og\BuildEntryOgData;
 use App\Actions\Og\OgGalleryUrls;
 use App\Datasets\Datasets;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\OgRenderer;
 use Illuminate\Http\Request;
@@ -78,8 +79,10 @@ class OgImageController extends Controller
      * Cached by entry id plus the model's last-updated stamp, so the same URL is
      * reused until the entry changes.
      */
-    public function entry(TimelineEntry $entry): BinaryFileResponse
+    public function entry(int $entry): BinaryFileResponse
     {
+        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)->findOrFail($entry);
+
         $card = ($this->entryOgData)($entry, fn (): string => $this->galleryUrls->dataUri('taylor-cutout.png', 'image/png'));
 
         abort_if($card === null, 404);

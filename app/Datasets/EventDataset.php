@@ -92,4 +92,9 @@ final class EventDataset extends BaseDataset
     {
         return SpanAnchor::Start;
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }

@@ -52,4 +52,9 @@ abstract class BaseDataset implements Dataset
     {
         return null;
     }
+
+    public function draftable(): bool
+    {
+        return false;
+    }
 }

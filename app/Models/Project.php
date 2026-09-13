@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ProjectStage;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -26,10 +27,12 @@ use Spatie\MediaLibrary\HasMedia;
     'github_url',
     'stage',
     'featured',
+    'status',
+    'password',
 ])]
 class Project extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>

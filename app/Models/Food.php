@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\FoodTimelineObserver;
@@ -31,10 +32,12 @@ use Spatie\MediaLibrary\HasMedia;
     'fibre',
     'cholesterol',
     'sodium',
+    'status',
+    'password',
 ])]
 class Food extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasTimelineEntry;
 
     protected $table = 'food';
 

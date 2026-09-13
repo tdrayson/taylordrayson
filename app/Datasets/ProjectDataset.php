@@ -84,4 +84,9 @@ final class ProjectDataset extends BaseDataset
     {
         return Taxonomies::tags(fn (string $label): string => "Projects tagged {$label}");
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }

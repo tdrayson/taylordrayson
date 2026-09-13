@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -23,10 +24,12 @@ use Spatie\MediaLibrary\HasMedia;
     'content',
     'published',
     'timezone',
+    'status',
+    'password',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>

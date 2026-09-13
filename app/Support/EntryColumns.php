@@ -25,7 +25,7 @@ final class EntryColumns
     private const LARGE = 4096;
 
     /** Already on the card, or meaningless outside the database. */
-    private const HIDDEN = ['id', 'occurred_at', 'created_at', 'updated_at', 'source_id'];
+    private const HIDDEN = ['id', 'occurred_at', 'created_at', 'updated_at', 'source_id', 'password'];
 
     /**
      * The entry's own values, minus what the card already carried and minus the

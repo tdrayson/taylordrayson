@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Food;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use Illuminate\Http\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -16,7 +17,7 @@ class CaloriesRedirectController extends Controller
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
-        $entry = TimelineEntry::query()
+        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->with('entry')
             ->where('dataset', (new Food)->getMorphClass())
             ->whereDate('occurred_at', $date)

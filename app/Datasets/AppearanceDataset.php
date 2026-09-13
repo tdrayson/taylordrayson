@@ -84,4 +84,9 @@ final class AppearanceDataset extends BaseDataset
     {
         return Taxonomies::column('type', 'Type', fn (string $label): string => "{$label} appearances");
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Activity;
 use App\Models\Place;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
 use App\Support\VenueTimezone;
@@ -271,7 +272,7 @@ class BackfillTimezones extends Command
     {
         $changed = 0;
 
-        foreach (TimelineEntry::query()->with('entry')->lazy() as $entry) {
+        foreach (TimelineEntry::query()->withoutGlobalScope(ListedScope::class)->with('entry')->lazy() as $entry) {
             $model = $entry->entry;
 
             if ($model === null) {

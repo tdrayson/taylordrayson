@@ -20,6 +20,7 @@ use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Place;
+use App\Models\Scopes\ListedScope;
 use App\Models\Tag;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
@@ -50,7 +51,7 @@ class EntryController extends Controller
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
-        $entry = TimelineEntry::query()
+        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->with('entry')
             ->whereDate('occurred_at', $date)
             ->where('url_slug', $slug)

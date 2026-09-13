@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\EntryStatus;
 use App\Models\Concerns\Timelineable;
 use App\Models\Food;
 use App\Support\EntryInstant;
@@ -16,11 +17,7 @@ class TimelineEntryObserver
             return;
         }
 
-        if ($model->occurred_at === null) {
-            return;
-        }
-
-        if ($model instanceof Timelineable && ! $model->shouldAppearOnTimeline()) {
+        if (! $this->belongsOnTimeline($model)) {
             $model->timelineEntry()->delete();
 
             return;
@@ -34,10 +31,19 @@ class TimelineEntryObserver
                 // is derived from.
                 'occurred_utc' => EntryInstant::utc($model->occurred_at, $this->timezoneOf($model)),
                 'ends_at' => $model->getAttribute('ends_at'),
+                'status' => $model->status,
             ],
         );
 
         TimelineUrlSlug::ensure($entry, $model->slug());
+    }
+
+    /** A spine row exists only for a dated entry that is not a draft and that its model wants on the timeline. */
+    private function belongsOnTimeline(Model $model): bool
+    {
+        return $model->occurred_at !== null
+            && $model->status !== EntryStatus::Draft
+            && (! $model instanceof Timelineable || $model->shouldAppearOnTimeline());
     }
 
     /**

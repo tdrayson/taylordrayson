@@ -3,6 +3,7 @@
 namespace App\Search;
 
 use App\Actions\BuildTimelineFeed;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 
 /**
@@ -36,7 +37,7 @@ final class RunSearch
             return ['groups' => [], 'total' => 0, 'currentPage' => 1, 'lastPage' => 1];
         }
 
-        $query = TimelineEntry::query()
+        $query = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->withCardRelations();
 
         $this->compiler->apply($query, $groups);

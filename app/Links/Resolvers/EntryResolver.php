@@ -5,6 +5,7 @@ namespace App\Links\Resolvers;
 use App\Data\LinkPreviewData;
 use App\Links\LinkResolver;
 use App\Models\Article;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 
@@ -19,7 +20,7 @@ class EntryResolver implements LinkResolver
             return null;
         }
 
-        $model = TimelineEntry::query()
+        $model = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->with('entry')
             ->whereDate('occurred_at', "{$matches[1]}-{$matches[2]}-{$matches[3]}")
             ->where('url_slug', $matches[4])

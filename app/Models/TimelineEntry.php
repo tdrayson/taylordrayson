@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
+use App\Models\Scopes\ListedScope;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 
+#[ScopedBy([ListedScope::class])]
 #[Fillable([
     'dataset',
     'entry_id',
@@ -24,6 +28,7 @@ use Spatie\Feed\FeedItem;
     'ends_at',
     'occurred_utc',
     'url_slug',
+    'status',
 ])]
 class TimelineEntry extends Model implements Feedable
 {
@@ -38,6 +43,7 @@ class TimelineEntry extends Model implements Feedable
             'occurred_at' => 'datetime',
             'occurred_utc' => 'datetime',
             'ends_at' => 'datetime',
+            'status' => EntryStatus::class,
         ];
     }
 

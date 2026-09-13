@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\EntryZone;
 use Carbon\CarbonInterface;
@@ -51,7 +52,8 @@ trait HasTimelineEntry
 
     public function timelineEntry(): MorphOne
     {
-        return $this->morphOne(TimelineEntry::class, 'entry', 'dataset', 'entry_id');
+        return $this->morphOne(TimelineEntry::class, 'entry', 'dataset', 'entry_id')
+            ->withoutGlobalScope(ListedScope::class);
     }
 
     /**

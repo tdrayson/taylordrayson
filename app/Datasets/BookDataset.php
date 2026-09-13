@@ -75,4 +75,9 @@ final class BookDataset extends BaseDataset
     {
         return ['title'];
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }
