@@ -4,6 +4,7 @@ import { setLayoutProps, usePage, Link } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
+import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { provideLinkContext } from '../lib/linkContext.js';
@@ -29,6 +30,8 @@ const props = defineProps({
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
+    locked: { type: Boolean, default: false },
+    unlockUrl: { type: String, default: null },
 });
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
@@ -85,6 +88,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <img :src="cover.full" alt="" class="size-full object-cover">
         </div>
 
-        <BlockContent :document="content" class="mt-8" />
+        <BlockContent v-if="! locked" :document="content" class="mt-8" />
+        <PasswordPrompt v-else :action="unlockUrl" class="mt-8" />
     </article>
 </template>

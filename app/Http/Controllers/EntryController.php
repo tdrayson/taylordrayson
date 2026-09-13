@@ -41,14 +41,14 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
     public function __construct(private readonly TripForEntry $tripForEntry) {}
 
-    public function show(int $year, int $month, int $day, string $slug): Response
+    public function show(int $year, int $month, int $day, string $slug): SymfonyResponse
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
@@ -66,7 +66,7 @@ class EntryController extends Controller
             $model = $this->draftAt($date, $slug);
         }
 
-        if ($model === null || ($model->status === EntryStatus::Draft && ! Auth::check())) {
+        if ($model === null) {
             throw new NotFoundHttpException;
         }
 
@@ -74,7 +74,7 @@ class EntryController extends Controller
     }
 
     /** An owner's draft at its own address, dated or not. */
-    public function draft(string $dataset, int $id): Response
+    public function draft(string $dataset, int $id): SymfonyResponse
     {
         $definition = Datasets::for($dataset);
 
@@ -87,19 +87,23 @@ class EntryController extends Controller
         return $this->render($model, null, $model->occurred_at?->format('/Y/m/d'));
     }
 
-    private function render(Model $model, ?TimelineEntry $entry, ?string $dayUrl): Response
+    private function render(Model $model, ?TimelineEntry $entry, ?string $dayUrl): SymfonyResponse
     {
+        if (! $model->isViewableBy(Auth::user())) {
+            throw new NotFoundHttpException;
+        }
+
+        $locked = ! $model->isUnlockedFor(request());
+
+        // Loaded here, ahead of the card and OG description below, because
+        // those must render in full even while the rest of the body is locked.
         if ($model instanceof Flight) {
             $model->load('airline', 'origin', 'destination');
         }
 
-        if ($model instanceof Appearance || $model instanceof Activity || $model instanceof Note) {
-            $model->load('media');
-        }
-
         $card = CardPresenter::for($model);
 
-        return Inertia::render('Entry', [
+        $props = [
             'type' => $card->type->value,
             'accent' => $card->accent,
             // Notes are title-less by definition; their card title is just
@@ -109,11 +113,43 @@ class EntryController extends Controller
             'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => $dayUrl,
             'trip' => $this->trip($model),
+            'source' => $this->source($model),
+            'locked' => $locked,
+            'unlockUrl' => $locked
+                ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
+                : null,
+        ];
+
+        $response = Inertia::render('Entry', [
+            ...$props,
+            ...($locked ? ['entry' => null] : $this->bodyProps($model)),
+        ])->toResponse(request());
+
+        // A private page differs per session, so no shared cache may keep it.
+        if ($model->status === EntryStatus::Private) {
+            $response->headers->set('Cache-Control', 'private, no-store');
+        }
+
+        return $response;
+    }
+
+    /**
+     * The body of an entry page: the record itself plus every editing and
+     * media prop, held back entirely while the entry is locked.
+     *
+     * @return array<string, mixed>
+     */
+    private function bodyProps(Model $model): array
+    {
+        if ($model instanceof Appearance || $model instanceof Activity || $model instanceof Note) {
+            $model->load('media');
+        }
+
+        return [
             'entry' => $model instanceof Food
                 ? $this->foodDay($model)
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
-            'source' => $this->source($model),
             // Editing in place, offered only for hand-authored types: a synced
             // activity has no form, and inventing one would let an edit be
             // silently overwritten by the next sync.
@@ -144,7 +180,7 @@ class EntryController extends Controller
                     'track' => $model->track,
                 ])
                 : null,
-        ]);
+        ];
     }
 
     /** The owner's draft at a dated address; drafts have no spine row, so each draftable type is checked by date and slug. */

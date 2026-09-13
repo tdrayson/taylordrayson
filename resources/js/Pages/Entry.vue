@@ -7,6 +7,7 @@ import Icon from '../Components/Ui/Icon.vue';
 import EntryMap from '../Components/Maps/EntryMap.vue';
 import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
+import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
 import { entryType } from '../entryTypes.js';
 
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
@@ -24,7 +25,7 @@ const props = defineProps({
     dayUrl: { type: String, default: null },
     // { title, url } when this entry falls inside a trip window, else null.
     trip: { type: Object, default: null },
-    entry: { type: Object, required: true },
+    entry: { type: Object, default: null },
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
     og: { type: Object, default: () => ({}) },
@@ -39,6 +40,8 @@ const props = defineProps({
     editing: { type: Boolean, default: false },
     editType: { type: String, default: null },
     fields: { type: Array, default: () => [] },
+    locked: { type: Boolean, default: false },
+    unlockUrl: { type: String, default: null },
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
@@ -53,11 +56,11 @@ provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: pro
 // Media lives in collections, not columns, so it arrives beside the entry
 // rather than on it.
 const editorValues = computed(() => valuesFor(props.fields, {
-    ...props.entry,
+    ...(props.entry ?? {}),
     ...props.media,
     // The payload carries {name, slug, url} so the footer can link each tag; the
     // form posts names, which is what syncTagNames takes.
-    tags: (props.entry.tags ?? []).map((tag) => tag.name),
+    tags: (props.entry?.tags ?? []).map((tag) => tag.name),
 }));
 
 // Every *Detail.vue, eagerly bundled as the static imports were. A type's detail is
@@ -74,7 +77,7 @@ const detailComponent = computed(() => detailModules[`../Components/Entry/${stud
 const accentStyle = computed(() => ({ color: `var(--color-${props.accent})` }));
 
 // Linkable tags for the shared footer; only taggable types carry the key.
-const tags = computed(() => (Array.isArray(props.entry.tags) ? props.entry.tags : []));
+const tags = computed(() => (Array.isArray(props.entry?.tags) ? props.entry.tags : []));
 
 // Title-less entries (notes) render no visible headline, but the page still
 // needs exactly one h1 for the outline: fall back to the type + date, hidden
@@ -154,11 +157,13 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
         <EntryMap v-if="polyline && type !== 'activity'" :polyline="polyline" :color="`var(--color-${accent})`" class="mt-8" />
 
         <component
-            v-if="detailComponent"
+            v-if="detailComponent && entry"
             :is="detailComponent"
             :entry="entry"
             class="mt-10"
         />
+
+        <PasswordPrompt v-if="locked" :action="unlockUrl" class="mt-10" />
 
         <p v-if="signedIn && editType" class="mt-6">
             <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
