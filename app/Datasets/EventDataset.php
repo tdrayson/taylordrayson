@@ -3,6 +3,7 @@
 namespace App\Datasets;
 
 use App\Enums\DatasetKind;
+use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Event;
 use App\Presenters\Cards\EventCard;
@@ -85,5 +86,10 @@ final class EventDataset extends BaseDataset
     public function taxonomy(): callable
     {
         return Taxonomies::tags(fn (string $label): string => "{$label} events");
+    }
+
+    public function spanAnchor(): SpanAnchor
+    {
+        return SpanAnchor::Start;
     }
 }

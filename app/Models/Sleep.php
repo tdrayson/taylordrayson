@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasSpan;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -30,7 +31,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Sleep extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasTimelineEntry;
 
     protected $table = 'sleep';
 
@@ -71,14 +72,17 @@ class Sleep extends Model implements HasMedia, Timelineable
      */
     public function isNap(): bool
     {
-        if ($this->started_at === null || $this->occurred_at === null) {
+        $start = $this->spanStart();
+        $end = $this->spanEnd();
+
+        if ($start === null || $end === null) {
             return false;
         }
 
-        return $this->started_at->hour >= 8
-            && $this->started_at->hour < self::NAP_LATEST_START
+        return $start->hour >= 8
+            && $start->hour < self::NAP_LATEST_START
             && $this->duration < self::NAP_LONGEST
-            && $this->started_at->isSameDay($this->occurred_at);
+            && $start->isSameDay($end);
     }
 
     /** A nap is not the night's sleep, so the timeline leaves it out. */
