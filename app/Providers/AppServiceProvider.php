@@ -71,11 +71,7 @@ class AppServiceProvider extends ServiceProvider
      * Registers one type's archive index, stats redirect and taxonomy route,
      * skipping a definition that opts out entirely.
      *
-     * Order inside is load-bearing: the /stats redirect is registered before
-     * the taxonomy route, so "stats" is not matched as a taxonomy value.
-     *
-     * Public because Route::macro() rebinds the closure's scope to the router,
-     * which loses access to a private method on this class.
+     * Public because Route::macro() rebinds the closure's scope to the router, losing access to a private method.
      *
      * @param  array<string, mixed>  $definition
      */

@@ -405,11 +405,8 @@ it('gates the tag bridge on visibility for guests', function () {
 });
 
 it('skips registering an archive route for a definition without one', function () {
-    // Route::archives() delegates each definition to this method; calling it directly
-    // with a synthetic definition exercises the real skip without needing a dataset
-    // that opts out, which does not exist yet in the live registry. Checked against
-    // the raw route list, not Route::has(), because its name lookup is only rebuilt
-    // when route files load and would go stale for a route added mid-test.
+    // No dataset opts out yet, so this calls the macro's per-item method directly.
+    // Checked against the raw route list: Route::has()'s name lookup only rebuilds when route files load.
     $registeredArchiveFlagTest = fn (): bool => collect(Route::getRoutes())
         ->contains(fn ($route) => $route->uri() === 'archive-flag-test');
 
