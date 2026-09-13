@@ -6,6 +6,7 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Data\TagLink;
+use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
@@ -63,11 +64,7 @@ class EntryController extends Controller
 
         // Drafts have no spine row, so the owner reaches a dated one directly.
         if ($model === null && Auth::check()) {
-            $model = Article::query()
-                ->where('status', EntryStatus::Draft)
-                ->whereDate('occurred_at', $date)
-                ->where('slug', $slug)
-                ->first();
+            $model = $this->draftAt($date, $slug);
         }
 
         if ($model === null || ($model->status === EntryStatus::Draft && ! Auth::check())) {
@@ -130,6 +127,28 @@ class EntryController extends Controller
                 ])
                 : null,
         ]);
+    }
+
+    /** The owner's draft at a dated address; drafts have no spine row, so each draftable type is checked by date and slug. */
+    private function draftAt(string $date, string $slug): ?Model
+    {
+        foreach (Datasets::all() as $dataset) {
+            if (! $dataset->draftable()) {
+                continue;
+            }
+
+            $draft = $dataset->model()::query()
+                ->where('status', EntryStatus::Draft)
+                ->whereDate('occurred_at', $date)
+                ->get()
+                ->first(fn (Model $model): bool => $model->slug() === $slug);
+
+            if ($draft !== null) {
+                return $draft;
+            }
+        }
+
+        return null;
     }
 
     /**

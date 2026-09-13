@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
 /**
@@ -28,6 +29,8 @@ final class BookFields
             FieldData::optional('rating', 'Rating', FieldType::Number),
             FieldData::optional('meta.year', 'Published', FieldType::Number),
             FieldData::optional('meta.isbn', 'ISBN', FieldType::Text),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

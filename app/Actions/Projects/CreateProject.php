@@ -2,6 +2,7 @@
 
 namespace App\Actions\Projects;
 
+use App\Enums\EntryStatus;
 use App\Enums\ProjectStage;
 use App\Models\Project;
 use App\Support\EntryInstant;
@@ -14,7 +15,7 @@ class CreateProject
     /**
      * `stage` is the project's lifecycle (active, maintained, on hold, archived).
      *
-     * @param  array{title: string, slug?: string|null, description?: string|null, long_description?: array<int, mixed>|null, url?: string|null, github_url?: string|null, stage?: string, featured?: bool, occurred_at?: string|null, tags?: list<string>}  $attributes
+     * @param  array{title: string, slug?: string|null, description?: string|null, long_description?: array<int, mixed>|null, url?: string|null, github_url?: string|null, stage?: string, featured?: bool, occurred_at?: string|null, tags?: list<string>, status?: string, password?: string|null}  $attributes
      */
     public function __invoke(array $attributes): Project
     {
@@ -35,6 +36,8 @@ class CreateProject
             'stage' => $attributes['stage'] ?? ProjectStage::Active,
             'featured' => $attributes['featured'] ?? false,
             'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
+            'status' => $attributes['status'] ?? EntryStatus::Published,
+            'password' => $attributes['password'] ?? null,
         ]);
 
         if (array_key_exists('tags', $attributes)) {

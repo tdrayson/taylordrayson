@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Enums\ProjectStage;
 
@@ -30,6 +31,8 @@ final class ProjectFields
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('slug', 'Slug', FieldType::Slug, checksReservedSlug: true),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }
