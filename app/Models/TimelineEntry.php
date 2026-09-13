@@ -64,12 +64,12 @@ class TimelineEntry extends Model implements Feedable
             Flight::class => ['origin', 'destination', 'airline', 'media'],
             Appearance::class => ['media'],
             Activity::class => ['media'],
-            Article::class => ['media'],
+            Article::class => ['media', 'citation'],
             Event::class => ['media'],
             Fuel::class => ['media'],
-            Place::class => ['media'],
-            Film::class => ['media'],
-            // `tvShow` names the show on an episode card, and carries the
+            Checkin::class => ['media'],
+            Note::class => ['citation'],
+            // `series` names the show on an episode card, and carries the
             // backdrop an episode has none of its own. Without these every
             // episode in the feed resolves its show, and both their
             // attachments, one query at a time.
