@@ -51,7 +51,7 @@ final class FetchCitation
 
         $excerpt = $entry->content !== null ? trim(PortableText::plainText($entry->content)) : null;
 
-        return new CitationData(
+        $citation = new CitationData(
             url: $url,
             site: Str::chopStart((string) parse_url($url, PHP_URL_HOST), 'www.'),
             title: $this->clean($entry->title ?? $meta['og:title'] ?? $meta['title'] ?? null, self::MAX_TITLE),
@@ -61,6 +61,12 @@ final class FetchCitation
             publishedAt: $entry->publishedAt ?? $this->date($meta['article:published_time'] ?? null),
             publishedTimezone: $entry->publishedTimezone ?? $this->offset($meta['article:published_time'] ?? null),
         );
+
+        // Found nothing to cite reads as a failed fetch, so no empty copy is stored and a later save retries.
+        $foundAnything = $citation->title !== null || $citation->authorName !== null
+            || $citation->excerpt !== null || $citation->publishedAt !== null;
+
+        return $foundAnything ? $citation : null;
     }
 
     /**

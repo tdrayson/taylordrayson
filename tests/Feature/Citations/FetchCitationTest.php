@@ -131,6 +131,15 @@ it('returns nothing for a page it could not read', function () {
     expect(app(FetchCitation::class)(POST))->toBeNull();
 });
 
+it('returns nothing for a page that gives nothing to cite, so no empty copy is stored', function (string $body) {
+    Http::fake([POST => Http::response($body)]);
+
+    expect(app(FetchCitation::class)(POST))->toBeNull();
+})->with([
+    'an empty body' => [''],
+    'a page with no title, author or text' => ['<html><head></head><body><div id="app"></div></body></html>'],
+]);
+
 it('caps the excerpt at 600 characters', function () {
     Http::fake([POST => Http::response(
         '<article class="h-entry"><div class="e-content"><p>'.str_repeat('word ', 400).'</p></div></article>'
