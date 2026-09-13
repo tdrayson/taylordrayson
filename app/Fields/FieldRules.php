@@ -5,8 +5,10 @@ namespace App\Fields;
 use App\Data\FieldData;
 use App\Enums\FieldType;
 use App\Rules\NotReservedSlug;
+use App\Rules\RequiredUnless;
 use App\Rules\TextOrDocument;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Validation derived from the field definitions.
@@ -22,9 +24,10 @@ final class FieldRules
 
     /**
      * @param  list<FieldData>  $fields
-     * @return array<string, array<int, string>>
+     * @param  Model|null  $stored  The row an update applies to, read for any condition the request leaves out.
+     * @return array<string, array<int, string|ValidationRule>>
      */
-    public static function for(array $fields, bool $creating): array
+    public static function for(array $fields, bool $creating, ?Model $stored = null): array
     {
         $rules = [];
 
@@ -38,7 +41,7 @@ final class FieldRules
             }
 
             $rules[$field->name] = [
-                ...self::presenceRules($field, $creating),
+                ...self::presenceRules($field, $creating, $stored),
                 ...self::typeRules($field),
             ];
         }
@@ -54,19 +57,15 @@ final class FieldRules
      * save is left empty by a draft. A conditionally required field is also held
      * to its condition on update whenever it is sent, so an edit cannot blank it.
      *
-     * @return list<string>
+     * @return list<string|ValidationRule>
      */
-    private static function presenceRules(FieldData $field, bool $creating): array
+    private static function presenceRules(FieldData $field, bool $creating, ?Model $stored): array
     {
         if (! $field->required) {
             return ['sometimes'];
         }
 
-        $unless = array_map(
-            fn (string $name, array $values): string => 'required_unless:'.implode(',', [$name, ...$values]),
-            array_keys($field->requiredUnless ?? []),
-            $field->requiredUnless ?? [],
-        );
+        $unless = $field->requiredUnless === null ? [] : [new RequiredUnless($field->requiredUnless, $stored)];
 
         return match (true) {
             ! $creating => ['sometimes', ...$unless],

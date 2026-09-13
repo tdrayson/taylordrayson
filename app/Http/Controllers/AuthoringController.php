@@ -68,7 +68,7 @@ class AuthoringController extends Controller
         $model = $definition['model']::query()->findOrFail($id);
         $fields = FieldRegistry::for($model);
 
-        $attributes = $request->validate(FieldRules::for($fields, creating: false), [], FieldRules::labels($fields));
+        $attributes = $request->validate(FieldRules::for($fields, creating: false, stored: $model), [], FieldRules::labels($fields));
         $attributes = $this->statusRules($model, $attributes);
 
         app($definition['update'])($model, $this->expand($attributes, $fields));
