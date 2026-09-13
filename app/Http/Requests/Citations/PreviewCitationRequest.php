@@ -8,11 +8,6 @@ use Illuminate\Validation\Rule;
 
 class PreviewCitationRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return $this->user() !== null;
-    }
-
     /**
      * @return array<string, mixed>
      */
