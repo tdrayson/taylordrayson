@@ -151,3 +151,27 @@ it('renders the published time at the author\'s own clock', function () {
         ->and($published['label'])->toContain('8:35pm')
         ->and($published['offset'])->toBe('-07:00');
 });
+
+it('cites the post itself, never a reply nested under it', function (string $replyClass) {
+    $post = POST;
+
+    Http::fake([POST => Http::response(<<<HTML
+        <article class="h-entry">
+            <a class="u-url" href="{$post}"></a>
+            <h1 class="p-name">The article</h1>
+            <span class="p-author h-card">Article Author</span>
+            <div class="e-content"><p>The article body.</p></div>
+            <div class="{$replyClass}">
+                <a class="u-in-reply-to" href="{$post}"></a>
+                <span class="p-author h-card">Commenter</span>
+                <div class="e-content">Nice post!</div>
+            </div>
+        </article>
+        HTML)]);
+
+    $citation = app(FetchCitation::class)(POST);
+
+    expect($citation->title)->toBe('The article')
+        ->and($citation->authorName)->toBe('Article Author')
+        ->and($citation->excerpt)->toBe('The article body.');
+})->with(['as a comment property' => 'p-comment h-entry', 'as a child entry' => 'h-entry']);
