@@ -108,6 +108,7 @@ final class FieldRules
             // `url:` items; the items themselves are checked by itemRules() below.
             FieldType::Image, FieldType::BookCover => ['nullable', 'array', 'max:1'],
             FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
+            FieldType::Citation => ['nullable', 'string', 'max:600'],
         };
     }
 

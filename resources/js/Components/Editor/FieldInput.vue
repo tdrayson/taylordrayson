@@ -16,7 +16,7 @@ import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
 import BookCoverField from './BookCoverField.vue';
 import LengthRing from './LengthRing.vue';
-import StatusInput from './StatusInput.vue';
+import CitationField from './CitationField.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
 
 /**
@@ -35,6 +35,9 @@ const props = defineProps({
     // way to check them.
     latitude: { type: [Number, String], default: null },
     longitude: { type: [Number, String], default: null },
+    // The response URL and kind, which a citation field previews from.
+    responseUrl: { type: String, default: null },
+    responseKind: { type: String, default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
     // The sibling password a status field edits alongside the status itself.
@@ -99,7 +102,9 @@ function textToTags(value) {
 
 <template>
     <div>
-        <div v-if="! hideLabel && field.type !== 'boolean'" class="mb-1 flex items-center justify-between gap-3">
+        <!-- A citation field with nothing but a preview to show (a like, repost
+             or RSVP has no quote of its own) draws no label above it. -->
+        <div v-if="! hideLabel && field.type !== 'boolean' && (field.type !== 'citation' || responseKind === 'reply')" class="mb-1 flex items-center justify-between gap-3">
             <label :for="field.name" class="block text-label uppercase text-neutral-500">{{ field.label }}</label>
 
             <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
@@ -251,6 +256,15 @@ function textToTags(value) {
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
+        />
+
+        <CitationField
+            v-else-if="field.type === 'citation'"
+            :id="field.name"
+            :model-value="modelValue ?? ''"
+            :response-url="responseUrl"
+            :response-kind="responseKind"
+            @update:model-value="$emit('update:modelValue', $event)"
         />
 
         <Input

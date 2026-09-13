@@ -401,6 +401,8 @@ function submit() {
                         :password="form.password ?? ''"
                         :latitude="form.latitude ?? null"
                         :longitude="form.longitude ?? null"
+                        :response-url="form.response_url ?? null"
+                        :response-kind="form.response_kind ?? null"
                         :error="form.errors[row.field.name]"
                         :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
