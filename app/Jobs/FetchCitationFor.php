@@ -16,6 +16,8 @@ class FetchCitationFor implements ShouldQueue
 
     public int $tries = 2;
 
+    public bool $deleteWhenMissingModels = true;
+
     public function __construct(private readonly Model $reply) {}
 
     public function handle(FetchCitation $fetch, StoreCitation $store): void
