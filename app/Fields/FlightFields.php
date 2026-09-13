@@ -4,6 +4,7 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\CabinClass;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Enums\FlightReason;
 
@@ -40,6 +41,8 @@ final class FlightFields
             FieldData::optional('duration', 'Duration', FieldType::Duration),
             FieldData::optional('distance', 'Distance', FieldType::Distance),
             FieldData::optional('arrival_timezone', 'Arrival timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

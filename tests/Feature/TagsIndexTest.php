@@ -32,24 +32,22 @@ it('lists visible tags with per-tag usage counts', function () {
     );
 });
 
-it('counts only the visible attachments for a tag shared by a published and an unpublished article', function () {
-    $published = Article::factory()->create(['published' => true, 'occurred_at' => now()->subDay()]);
-    $draft = Article::factory()->create(['published' => false, 'occurred_at' => now()->subDays(2)]);
+it('counts only the listed attachments for a tag shared by a published and a draft article', function () {
+    $published = Article::factory()->create(['status' => 'published', 'occurred_at' => now()->subDay()]);
+    $draft = Article::factory()->create(['status' => 'draft', 'occurred_at' => now()->subDays(2)]);
     $published->syncTagNames(['Mixed']);
     $draft->syncTagNames(['Mixed']);
 
-    // Guest counts only the published attachment.
     get('/tags')->assertInertia(fn (Assert $page) => $page
         ->where('tags', fn ($tags) => collect($tags)->firstWhere('slug', 'mixed')['count'] === 1));
 
-    // The owner counts both.
     actingAs(User::factory()->create());
     get('/tags')->assertInertia(fn (Assert $page) => $page
-        ->where('tags', fn ($tags) => collect($tags)->firstWhere('slug', 'mixed')['count'] === 2));
+        ->where('tags', fn ($tags) => collect($tags)->firstWhere('slug', 'mixed')['count'] === 1));
 });
 
-it('hides a tag that lives only on an unpublished article from guests, but shows it to the owner', function () {
-    $draft = Article::factory()->create(['published' => false, 'occurred_at' => now()]);
+it('hides a tag that lives only on a draft article, from the owner too', function () {
+    $draft = Article::factory()->create(['status' => 'draft', 'occurred_at' => now()]);
     $draft->syncTagNames(['Secret Launch']);
 
     get('/tags')->assertInertia(fn (Assert $page) => $page
@@ -58,5 +56,5 @@ it('hides a tag that lives only on an unpublished article from guests, but shows
     actingAs(User::factory()->create());
 
     get('/tags')->assertInertia(fn (Assert $page) => $page
-        ->where('tags', fn ($tags) => collect($tags)->pluck('slug')->contains('secret-launch')));
+        ->where('tags', fn ($tags) => ! collect($tags)->pluck('slug')->contains('secret-launch')));
 });

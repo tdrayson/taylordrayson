@@ -2,6 +2,7 @@
 
 namespace App\Search;
 
+use App\Enums\EntryStatus;
 use App\Models\Page;
 use App\Models\Tag;
 use App\Models\TvShow;
@@ -47,15 +48,13 @@ final class SuggestSearch
         'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
         'place' => ['venue_name', 'type', 'city', 'description'],
         'fuel' => ['station_name', 'city'],
-        'project' => ['title', 'description', 'status'],
+        'project' => ['title', 'description', 'stage'],
         'note' => ['content'],
         'article' => ['title', 'excerpt', 'content'],
     ];
 
     /**
-     * @param  SearchCompiler  $compiler  Only its guardPublished() gate is used here,
-     *                                    so an unpublished article never surfaces in
-     *                                    the palette for a guest.
+     * @param  SearchCompiler  $compiler  Only its guardStatus() gate is used here.
      */
     public function __construct(private readonly SearchCompiler $compiler) {}
 
@@ -63,7 +62,7 @@ final class SuggestSearch
      * Match the term against the palette's free-text hits and taxonomy destinations.
      *
      * @param  string  $term  The free-text query (already length-checked by the caller).
-     * @return array{results: array<int, array{title: string, subtitle: ?string, type: string, url: string, date: string}>, destinations: array<int, array{label: string, section: string, type: string, tag: bool, url: string}>}
+     * @return array{results: array<int, array{title: string, subtitle: ?string, type: string, url: string, date: string, statusLabel: ?string}>, destinations: array<int, array{label: string, section: string, type: string, tag: bool, url: string}>}
      */
     public function __invoke(string $term): array
     {
@@ -84,6 +83,7 @@ final class SuggestSearch
                 'type' => $result['type'],
                 'url' => $result['url'],
                 'date' => $result['occurred_at']->format('j M Y'),
+                'statusLabel' => $result['statusLabel'],
             ])
             ->values()
             ->all();
@@ -112,7 +112,7 @@ final class SuggestSearch
     private function matchTvShows(string $term): array
     {
         return TvShow::query()
-            ->whereHas('episodes')
+            ->whereHas('episodes', fn ($episodes) => $episodes->listed())
             ->where('title', 'like', '%'.$term.'%')
             ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
             ->orderByRaw('LENGTH(title)')
@@ -143,7 +143,7 @@ final class SuggestSearch
     {
         $query = Page::query();
 
-        $this->compiler->guardPublished($query, Page::class);
+        $this->compiler->guardStatus($query);
 
         return $query
             ->where('title', 'like', '%'.$term.'%')
@@ -218,13 +218,13 @@ final class SuggestSearch
      *
      * @param  class-string  $model
      * @param  array<int, string>  $columns
-     * @return array<int, array{title: string, subtitle: ?string, type: string, url: string, occurred_at: Carbon}>
+     * @return array<int, array{title: string, subtitle: ?string, type: string, url: string, occurred_at: Carbon, statusLabel: ?string}>
      */
     private function searchType(string $model, string $type, array $columns, string $term): array
     {
         $query = $model::query();
 
-        $this->compiler->guardPublished($query, $model);
+        $this->compiler->guardStatus($query);
 
         $query->where(function (Builder $builder) use ($columns, $term): void {
             foreach ($columns as $column) {
@@ -248,6 +248,7 @@ final class SuggestSearch
                     'type' => $card->type->value,
                     'url' => $entry->url(),
                     'occurred_at' => $entry->occurred_at,
+                    'statusLabel' => $entry->status === EntryStatus::Published ? null : $entry->status->label(),
                 ];
             })
             ->all();

@@ -135,7 +135,7 @@ class ArchiveController extends Controller
      */
     private function flightRoutes(?array $taxonomy, ?string $value): array
     {
-        $query = Flight::query()->with(['origin', 'destination']);
+        $query = Flight::query()->listed()->with(['origin', 'destination']);
 
         if ($value !== null && $taxonomy !== null) {
             ($taxonomy['filter'])($query, $value);
@@ -162,6 +162,7 @@ class ArchiveController extends Controller
     private function fuelStations(?array $taxonomy, ?string $value): array
     {
         $query = Fuel::query()
+            ->listed()
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
 
@@ -196,6 +197,7 @@ class ArchiveController extends Controller
     private function placeLocations(?array $taxonomy, ?string $value): array
     {
         $query = Place::query()
+            ->listed()
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
 

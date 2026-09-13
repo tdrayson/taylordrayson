@@ -11,6 +11,7 @@ use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
 use App\Models\TvEpisode;
+use App\Support\OgMeta;
 
 use function Pest\Laravel\get;
 
@@ -89,7 +90,7 @@ it('prefers an article excerpt over its opening prose', function () {
     $article = Article::factory()->create([
         'title' => 'A Title',
         'excerpt' => 'The hand-written summary.',
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => '2026-08-01 10:00:00',
         'content' => [['_type' => 'block', 'children' => [['text' => 'The opening prose instead.']]]],
     ]);
@@ -100,6 +101,23 @@ it('prefers an article excerpt over its opening prose', function () {
             ->where('og.title', 'A Title')
             ->where('og.description', 'The hand-written summary.')
         );
+});
+
+it('gives a private article with no excerpt the site description, never its body', function () {
+    $article = Article::factory()->create([
+        'title' => 'Kept close',
+        'excerpt' => null,
+        'status' => 'private',
+        'password' => 'hunter2',
+        'occurred_at' => '2026-08-01 10:00:00',
+        'content' => [['_type' => 'block', 'children' => [['text' => 'Only after the password appears anywhere.']]]],
+    ]);
+
+    $response = get('/'.$article->occurred_at->format('Y/m/d').'/'.$article->slug());
+
+    $response->assertOk()
+        ->assertDontSee('Only after the password appears anywhere')
+        ->assertInertia(fn ($page) => $page->where('og.description', OgMeta::page('Any page', null)['description']));
 });
 
 it('falls back to a note body for its own description', function () {
@@ -153,7 +171,7 @@ it('uses page prose when a page has no excerpt', function () {
         'title' => 'Colophon',
         'slug' => 'colophon',
         'excerpt' => null,
-        'published' => true,
+        'status' => 'published',
         'content' => [['_type' => 'block', 'children' => [['text' => 'How this site is built.']]]],
     ]);
 
@@ -162,6 +180,24 @@ it('uses page prose when a page has no excerpt', function () {
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'How this site is built.')
         );
+});
+
+it('keeps a private page description to the generic fallback, never its body, with no excerpt', function () {
+    Page::factory()->create([
+        'title' => 'Vault',
+        'slug' => 'vault',
+        'excerpt' => null,
+        'status' => 'private',
+        'password' => 'hunter2',
+        'content' => [['_type' => 'block', 'children' => [['text' => 'Only after the password appears anywhere.']]]],
+    ]);
+
+    $response = get('/vault');
+
+    $response->assertOk()
+        ->assertDontSee('Only after the password appears anywhere')
+        ->assertInertia(fn ($page) => $page
+            ->where('og.description', fn (string $value): bool => ! str_contains($value, 'Only after the password')));
 });
 
 it('publishes what I wrote on Strava rather than the numbers it could generate', function () {

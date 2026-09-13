@@ -27,7 +27,7 @@ final class PeriodStats
      */
     public function __invoke(Carbon $start, Carbon $end, bool $withSuperlative = false): array
     {
-        $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
+        $between = fn ($query) => $query->listed()->whereBetween('occurred_at', [$start, $end]);
 
         $stats = [];
 
@@ -94,7 +94,7 @@ final class PeriodStats
             $stats[] = ['label' => 'Places', 'value' => number_format($places)];
         }
 
-        $written = $between(Article::query())->where('published', true)->count() + $between(Note::query())->count();
+        $written = $between(Article::query())->count() + $between(Note::query())->count();
 
         if ($written > 0) {
             $stats[] = ['label' => 'Written', 'value' => number_format($written)];

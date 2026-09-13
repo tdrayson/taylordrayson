@@ -71,7 +71,7 @@ it('slugifies the title as it is typed, until the slug is written by hand', func
 it('keeps a draft slug tracking its title however often it is saved', function () {
     $this->actingAs(User::factory()->create());
 
-    $article = Article::factory()->create(['title' => 'Before', 'slug' => 'before', 'published' => false]);
+    $article = Article::factory()->create(['title' => 'Before', 'slug' => 'before', 'status' => 'draft']);
 
     visit($article->url().'?edit')
         ->assertMissing('#slug[readonly]')
@@ -84,7 +84,7 @@ it('settles the slug at publish, and stops it being edited', function () {
     $this->actingAs(User::factory()->create());
 
     // Published means linkable, so the URL stops moving under whoever has it.
-    $article = Article::factory()->create(['title' => 'Before', 'slug' => 'before', 'published' => true]);
+    $article = Article::factory()->create(['title' => 'Before', 'slug' => 'before', 'status' => 'published']);
 
     visit($article->url().'?edit')
         ->assertPresent('#slug[readonly]')

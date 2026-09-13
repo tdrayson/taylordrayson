@@ -28,6 +28,10 @@ final class FuelEconomy
      */
     private function rangeAndMpg(Fuel $fuel): array
     {
+        if ($fuel->occurred_at === null) {
+            return ['miles' => null, 'mpg' => null];
+        }
+
         $next = Fuel::query()
             ->where('vehicle_id', $fuel->vehicle_id)
             ->where('occurred_at', '>', $fuel->occurred_at)

@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
 /**
@@ -19,7 +20,8 @@ final class PageFields
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('content', 'Content', FieldType::RichText),
-            FieldData::primary('published', 'Published', FieldType::Published),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options(draftFirst: true)),
+            FieldData::hidden('password', 'Password', FieldType::Text),
             FieldData::optional('excerpt', 'Summary', FieldType::Textarea),
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::primary('slug', 'Slug', FieldType::Slug),

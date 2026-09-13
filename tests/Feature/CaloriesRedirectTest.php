@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EntryStatus;
 use App\Models\Activity;
 use App\Models\Food;
 
@@ -24,3 +25,17 @@ it('leaves an unrelated same-day entry resolving at its own url', function () {
     get($activity->url())->assertSuccessful();
     get('/2026/03/15/calories')->assertMovedPermanently()->assertRedirect('/2026/03/15/food');
 });
+
+it('404s the old calories url when the food day is not published', function (EntryStatus $status) {
+    Food::factory()->create([
+        'occurred_at' => '2026-03-15 12:00:00',
+        'status' => $status,
+        'password' => $status === EntryStatus::Private ? 'hunter2' : null,
+    ]);
+
+    get('/2026/03/15/calories')->assertNotFound();
+})->with([
+    'draft' => [EntryStatus::Draft],
+    'unlisted' => [EntryStatus::Unlisted],
+    'private' => [EntryStatus::Private],
+]);

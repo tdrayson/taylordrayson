@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
 /**
@@ -24,10 +25,13 @@ final class BookFields
             FieldData::primary('title', 'Title', FieldType::Lookup, required: true, source: 'book'),
             FieldData::primary('meta.author', 'Author', FieldType::Text, required: true),
             FieldData::primary('occurred_at', 'Finished', FieldType::DateTime, required: true, defaultsToNow: true),
+            FieldData::optional('started_at', 'Started', FieldType::DateTime),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('rating', 'Rating', FieldType::Number),
             FieldData::optional('meta.year', 'Published', FieldType::Number),
             FieldData::optional('meta.isbn', 'ISBN', FieldType::Text),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

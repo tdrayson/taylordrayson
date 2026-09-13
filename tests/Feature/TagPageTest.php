@@ -9,7 +9,7 @@ use App\Support\PortableText;
 use function Pest\Laravel\get;
 
 it('shows a cross-type feed of every article, note, and project carrying the tag', function () {
-    $article = Article::factory()->create(['title' => 'Tagged Article', 'published' => true]);
+    $article = Article::factory()->create(['title' => 'Tagged Article', 'status' => 'published']);
     $note = Note::factory()->create(['content' => 'Tagged note content']);
     $project = Project::factory()->create(['title' => 'Tagged Project']);
 
@@ -37,23 +37,17 @@ it('returns 404 for an unknown tag slug', function () {
     get('/tags/no-such-tag')->assertNotFound();
 });
 
-it('404s for a guest when the tag only exists on an unpublished article, but renders for an authenticated user', function () {
-    $article = Article::factory()->create(['published' => false]);
+it('404s a tag that only lives on a draft, for the owner as much as a guest', function () {
+    $article = Article::factory()->draft()->create();
     $article->syncTagNames(['Draft Only']);
 
     get('/tags/draft-only')->assertNotFound();
 
-    $this->actingAs(User::factory()->create())
-        ->get('/tags/draft-only')
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('Tag')
-            ->where('name', 'Draft Only')
-        );
+    $this->actingAs(User::factory()->create())->get('/tags/draft-only')->assertNotFound();
 });
 
 it('carries tags as linkable {name, slug, url} objects on an article entry payload', function () {
-    $article = Article::factory()->create(['published' => true]);
+    $article = Article::factory()->create(['status' => 'published']);
     $article->syncTagNames(['Laravel']);
 
     get('/'.$article->occurred_at->format('Y/m/d').'/'.$article->slug())

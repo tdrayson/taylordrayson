@@ -95,4 +95,9 @@ final class FuelDataset extends BaseDataset
     {
         return Taxonomies::vehicle();
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }

@@ -82,13 +82,13 @@ it('marks the fields that hide behind Add field', function () {
 });
 
 it('serialises a field for the client', function () {
-    $status = collect(FieldRegistry::for(new Project))->firstWhere('name', 'status');
+    $stage = collect(FieldRegistry::for(new Project))->firstWhere('name', 'stage');
 
-    expect($status->toArray())->toMatchArray([
-        'name' => 'status',
-        'label' => 'Status',
+    expect($stage->toArray())->toMatchArray([
+        'name' => 'stage',
+        'label' => 'Stage',
         'type' => FieldType::Select->value,
         'primary' => true,
         'isBody' => false,
-    ])->and($status->toArray()['options'])->toHaveCount(4);
+    ])->and($stage->toArray()['options'])->toHaveCount(4);
 });

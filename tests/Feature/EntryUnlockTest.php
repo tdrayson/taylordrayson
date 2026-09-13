@@ -1,0 +1,187 @@
+<?php
+
+use App\Actions\Og\BuildEntryOgData;
+use App\Enums\EntryStatus;
+use App\Models\Article;
+use App\Models\Note;
+use App\Models\Page;
+use App\Models\Place;
+use App\Models\Scopes\ListedScope;
+use App\Models\TimelineEntry;
+use App\Models\User;
+use App\Support\PortableText;
+use Illuminate\Hashing\HashManager;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
+
+function privateArticle(): Article
+{
+    return Article::factory()->create([
+        'title' => 'Kept close',
+        'excerpt' => 'A public teaser',
+        'content' => PortableText::fromPlainText('Private body words'),
+        'slug' => 'kept-close',
+        'occurred_at' => '2026-06-15 09:00:00',
+        'status' => EntryStatus::Private,
+        'password' => 'hunter2',
+    ]);
+}
+
+it('shows a guest the prompt with no body in props or HTML, and no caching', function () {
+    privateArticle();
+
+    $response = $this->get('/2026/06/15/kept-close');
+
+    $response->assertOk()
+        ->assertHeader('Cache-Control', 'no-store, private')
+        ->assertDontSee('Private body words')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('locked', true)
+            ->where('entry', null)
+            ->missing('fields')
+            ->missing('media')
+            ->has('og.title'));
+});
+
+it('refuses a wrong password and unlocks on the right one for the rest of the session', function () {
+    $article = privateArticle();
+    $unlock = "/unlock/article/{$article->id}";
+
+    $this->from('/2026/06/15/kept-close')->post($unlock, ['password' => 'nope'])
+        ->assertRedirect('/2026/06/15/kept-close')
+        ->assertSessionHasErrors('password');
+
+    $this->from('/2026/06/15/kept-close')->post($unlock, ['password' => 'hunter2'])->assertSessionHasNoErrors();
+
+    $this->get('/2026/06/15/kept-close')->assertInertia(fn (Assert $page) => $page->where('locked', false)->has('entry.content'));
+    $this->get('/2026/06/15/kept-close')->assertInertia(fn (Assert $page) => $page->where('locked', false));
+});
+
+it('throttles password guesses', function () {
+    $article = privateArticle();
+
+    foreach (range(1, 5) as $attempt) {
+        $this->post("/unlock/article/{$article->id}", ['password' => 'nope']);
+    }
+
+    $this->post("/unlock/article/{$article->id}", ['password' => 'hunter2'])->assertTooManyRequests();
+});
+
+it('opens a private entry for the owner without a prompt', function () {
+    privateArticle();
+
+    $this->actingAs(User::factory()->create())
+        ->get('/2026/06/15/kept-close')
+        ->assertInertia(fn (Assert $page) => $page->where('locked', false)->has('entry'));
+});
+
+it('locks a private page the same way', function () {
+    $page = Page::factory()->create([
+        'slug' => 'vault',
+        'excerpt' => 'A page teaser',
+        'content' => PortableText::fromPlainText('Page secret words'),
+        'status' => EntryStatus::Private,
+        'password' => 'hunter2',
+    ]);
+
+    $this->get('/vault')->assertOk()->assertDontSee('Page secret words')
+        ->assertInertia(fn (Assert $inertia) => $inertia->where('locked', true)->missing('content'));
+
+    $this->post("/unlock/page/{$page->id}", ['password' => 'hunter2']);
+
+    $this->get('/vault')->assertInertia(fn (Assert $inertia) => $inertia->where('locked', false)->has('content'));
+});
+
+it('404s a draft page for a guest', function () {
+    Page::factory()->draft()->create(['slug' => 'wip']);
+
+    $this->get('/wip')->assertNotFound();
+});
+
+it('gives a wrong password guess the same response whether the entry is a draft, published, or private', function (EntryStatus $status) {
+    $article = Article::factory()->create([
+        'status' => $status,
+        'password' => $status === EntryStatus::Private ? 'hunter2' : null,
+    ]);
+
+    $this->post("/unlock/article/{$article->id}", ['password' => 'nope'])
+        ->assertStatus(302)
+        ->assertSessionHasErrors('password');
+})->with([
+    'draft' => [EntryStatus::Draft],
+    'published' => [EntryStatus::Published],
+    'private' => [EntryStatus::Private],
+]);
+
+it('answers an unknown dataset or id exactly as it answers a wrong password, hash check included', function (string $path) {
+    $article = privateArticle();
+
+    $wrongPassword = $this->from('/2026/06/15/kept-close')->post("/unlock/article/{$article->id}", ['password' => 'nope']);
+    $expected = [$wrongPassword->getStatusCode(), $wrongPassword->headers->get('Location'), session('errors')];
+
+    $this->flushSession();
+    $hash = Mockery::mock(HashManager::class, [app()])->makePartial();
+    Hash::swap($hash);
+
+    $response = $this->from('/2026/06/15/kept-close')->post(str_replace('{id}', (string) ($article->id + 1), $path), ['password' => 'nope']);
+
+    expect([$response->getStatusCode(), $response->headers->get('Location'), session('errors')])->toBe($expected);
+    $hash->shouldHaveReceived('check')->once();
+})->with([
+    'unknown id' => ['/unlock/article/{id}'],
+    'unknown dataset' => ['/unlock/nothing/{id}'],
+]);
+
+it('keeps a private entry\'s body out of its own generated OG image data', function () {
+    $article = privateArticle();
+
+    $entry = TimelineEntry::query()
+        ->withoutGlobalScope(ListedScope::class)
+        ->where('dataset', $article->getMorphClass())
+        ->where('entry_id', $article->id)
+        ->with('entry')
+        ->sole();
+
+    $data = app(BuildEntryOgData::class)($entry, fn (): ?string => null);
+
+    expect(json_encode($data))->not->toContain('Private body words');
+});
+
+it('keeps a private note\'s body out of everything a guest receives, while the owner still reads it', function () {
+    Storage::fake('local');
+
+    $note = Note::factory()->create([
+        'content' => PortableText::fromPlainText('Zanzibar marmalade confession'),
+        'slug' => 'private-thought',
+        'occurred_at' => '2026-06-15 09:00:00',
+        'status' => EntryStatus::Private,
+        'password' => 'hunter2',
+    ]);
+
+    $response = $this->get('/2026/06/15/private-thought');
+
+    $response->assertOk()
+        ->assertDontSee('Zanzibar')
+        ->assertInertia(fn (Assert $page) => $page->where('og.title', 'Note - 15 Jun 2026'));
+
+    $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('entry_id', $note->id)->with('entry')->sole();
+
+    expect(json_encode(app(BuildEntryOgData::class)($entry, fn (): ?string => null)))->not->toContain('Zanzibar');
+
+    $this->actingAs(User::factory()->create())->get('/2026/06/15/private-thought')->assertSee('Zanzibar');
+});
+
+it('describes a private entry by its written excerpt alone', function () {
+    $place = Place::factory()->create([
+        'description' => 'Met the landlord about the flat',
+        'status' => EntryStatus::Private,
+        'password' => 'hunter2',
+    ]);
+
+    $this->get($place->url())->assertOk()->assertDontSee('landlord');
+
+    privateArticle();
+
+    $this->get('/2026/06/15/kept-close')->assertInertia(fn (Assert $page) => $page->where('og.description', 'A public teaser'));
+});

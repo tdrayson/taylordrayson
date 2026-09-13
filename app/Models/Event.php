@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\RangeData;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasSpan;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -35,10 +36,12 @@ use Spatie\MediaLibrary\HasMedia;
     'description',
     'timezone',
     'meta',
+    'status',
+    'password',
 ])]
 class Event extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSpan, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -65,10 +68,13 @@ class Event extends Model implements HasMedia, Timelineable
      */
     public function dateRange(): ?RangeData
     {
-        if ($this->spanEnd() === null || $this->spanEnd()->toDateString() === $this->spanStart()->toDateString()) {
+        $start = $this->spanStart();
+        $end = $this->spanEnd();
+
+        if ($start === null || $end === null || $end->toDateString() === $start->toDateString()) {
             return null;
         }
 
-        return DateRange::for($this->spanStart(), $this->spanEnd());
+        return DateRange::for($start, $end);
     }
 }

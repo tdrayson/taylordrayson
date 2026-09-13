@@ -36,7 +36,7 @@ class NowController extends Controller
      */
     private function latestEpisode(): ?array
     {
-        $episode = ThisWeekWith::query()->latest('occurred_at')->first();
+        $episode = ThisWeekWith::query()->listed()->latest('occurred_at')->first();
 
         if ($episode === null) {
             return null;
@@ -82,6 +82,7 @@ class NowController extends Controller
         $start = $today->copy()->subDays(6);
 
         $byDate = Sleep::query()
+            ->listed()
             ->where('occurred_at', '>=', $start)
             ->get()
             ->keyBy(fn (Sleep $night): string => $night->occurred_at->toDateString());

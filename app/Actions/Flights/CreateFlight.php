@@ -18,6 +18,7 @@ class CreateFlight
      */
     public function __invoke(array $attributes): array
     {
+        $attributes['occurred_at'] ??= null;
         $attributes['departure_timezone'] ??= config('app.home_timezone');
         $attributes['arrival_timezone'] ??= config('app.home_timezone');
 

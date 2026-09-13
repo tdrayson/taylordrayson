@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -21,12 +22,13 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'published',
     'timezone',
+    'status',
+    'password',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -36,22 +38,12 @@ class Article extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'content' => 'array',
-            'published' => 'boolean',
         ];
     }
 
     public function slug(): string
     {
         return $this->getAttribute('slug');
-    }
-
-    /**
-     * Read from the raw attribute so unsaved models resolve to false rather
-     * than throwing under strict attribute access.
-     */
-    public function shouldAppearOnTimeline(): bool
-    {
-        return (bool) ($this->attributes['published'] ?? false);
     }
 
     /**

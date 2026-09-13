@@ -3,6 +3,7 @@
 namespace App\Presenters;
 
 use App\Data\CardData;
+use App\Enums\EntryStatus;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -56,10 +57,15 @@ final class EntryDescription
 
     /**
      * A one-sentence description of an entry, falling back to the card's own
-     * title and subtitle for a type with nothing better to say.
+     * title and subtitle for a type with nothing better to say. A private
+     * entry gets its written excerpt or null, never anything read from its fields.
      */
-    public static function for(Model $model, CardData $card): string
+    public static function for(Model $model, CardData $card): ?string
     {
+        if ($model->status === EntryStatus::Private) {
+            return $model instanceof Article ? Text::excerpt($model->excerpt, self::LIMIT) : null;
+        }
+
         $description = match (true) {
             $model instanceof Sleep => self::sleep($card),
             $model instanceof Activity => self::activity($model, $card),

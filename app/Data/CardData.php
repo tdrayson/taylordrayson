@@ -30,7 +30,7 @@ final readonly class CardData implements Arrayable, JsonSerializable
         public ?string $titleLabel,
         public ?string $subtitle,
         public ?array $subtitleTokens,
-        public CarbonInterface $occurredAt,
+        public ?CarbonInterface $occurredAt,
         public ?RangeData $range,
         public CardMeta $meta,
     ) {

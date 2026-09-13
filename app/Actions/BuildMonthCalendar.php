@@ -26,6 +26,7 @@ final class BuildMonthCalendar
         // Calories store one row per food item but only one spine entry per day,
         // so day totals must come straight from the food table.
         $calorieTotals = Food::query()
+            ->listed()
             ->toBase()
             ->selectRaw('DATE(occurred_at) as date, SUM(calories) as total')
             ->whereBetween('occurred_at', [$start, $end])

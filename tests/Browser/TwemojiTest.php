@@ -37,7 +37,7 @@ it('renders emoji in a page excerpt', function () {
         'slug' => 'about-emoji',
         'title' => 'About',
         'excerpt' => 'Hello from the excerpt 👍',
-        'published' => true,
+        'status' => 'published',
     ]);
 
     assertTwemojiLoaded(visit('/about-emoji'));
@@ -49,7 +49,7 @@ it('renders emoji in an article excerpt', function () {
         'excerpt' => 'A short summary with 👍',
         // Keep body free of emoji so a pass must come from the excerpt.
         'content' => [['_type' => 'block', 'children' => [['_type' => 'span', 'text' => 'Plain body.']]]],
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => now()->subDay(),
     ]);
 

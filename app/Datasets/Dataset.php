@@ -69,4 +69,7 @@ interface Dataset
 
     /** Which end of a span occurred_at marks, or null when entries are moments. */
     public function spanAnchor(): ?SpanAnchor;
+
+    /** Whether an entry of this type can be a draft: hand-written types only. */
+    public function draftable(): bool;
 }

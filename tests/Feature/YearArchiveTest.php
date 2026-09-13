@@ -28,7 +28,7 @@ it('serves real year numbers, entry count and heatmap', function () {
     Activity::factory()->create(['occurred_at' => '2025-03-10 18:00:00', 'distance' => 7000]);
     Sleep::factory()->create(['occurred_at' => '2025-03-11 00:00:00', 'duration' => 8 * 3600]);
     Flight::factory()->create(['occurred_at' => '2025-06-01 10:00:00']);
-    Article::factory()->create(['occurred_at' => '2025-07-01 12:00:00', 'published' => true]);
+    Article::factory()->create(['occurred_at' => '2025-07-01 12:00:00', 'status' => 'published']);
     Note::factory()->create(['occurred_at' => '2025-07-02 12:00:00']);
 
     get('/2025')

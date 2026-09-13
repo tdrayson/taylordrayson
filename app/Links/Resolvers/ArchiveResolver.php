@@ -65,6 +65,7 @@ class ArchiveResolver implements LinkResolver
         $model = $definition['model'];
 
         $count = $model::query()
+            ->listed()
             ->tap(fn ($query) => ($taxonomy['filter'])($query, $value))
             ->count();
 
