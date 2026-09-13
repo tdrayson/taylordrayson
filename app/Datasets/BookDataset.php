@@ -52,14 +52,6 @@ final class BookDataset extends BaseDataset
         return 'read book reading';
     }
 
-    /**
-     * @return array{0: string, 1: string}
-     */
-    public function countNouns(): array
-    {
-        return ['read', 'read'];
-    }
-
     public function card(): BookCard
     {
         return new BookCard;

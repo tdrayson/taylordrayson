@@ -62,14 +62,6 @@ final class EpisodeDataset extends BaseDataset
         return 'watch tv show episode series';
     }
 
-    /**
-     * @return array{0: string, 1: string}
-     */
-    public function countNouns(): array
-    {
-        return ['watched', 'watched'];
-    }
-
     public function card(): EpisodeCard
     {
         return new EpisodeCard;

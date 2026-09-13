@@ -27,6 +27,7 @@ it('offers a watched show as a palette destination', function () {
     expect($destinations)->toHaveCount(1)
         ->and($destinations[0]['label'])->toBe('Severance')
         ->and($destinations[0]['section'])->toBe('TV')
+        ->and($destinations[0]['type'])->toBe('episode')
         ->and($destinations[0]['url'])->toBe('/media/tv/severance');
 });
 

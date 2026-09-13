@@ -52,14 +52,6 @@ final class FilmDataset extends BaseDataset
         return 'watch movie film';
     }
 
-    /**
-     * @return array{0: string, 1: string}
-     */
-    public function countNouns(): array
-    {
-        return ['watched', 'watched'];
-    }
-
     public function card(): FilmCard
     {
         return new FilmCard;
