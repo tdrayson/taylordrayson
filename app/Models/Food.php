@@ -76,6 +76,6 @@ class Food extends Model implements HasMedia, Timelineable
 
     public function slug(): string
     {
-        return 'calories';
+        return 'food';
     }
 }
