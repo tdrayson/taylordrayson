@@ -48,18 +48,32 @@ trait HasResponse
             }
         });
 
-        static::saved(function (self $model): void {
-            // The editor stores a citation when the URL is pasted, so this only
-            // queues for a reply written through the API or Micropub. A create
-            // never registers in wasChanged() (Eloquent only syncs changes on an
-            // update), so a first-time reply is caught via wasRecentlyCreated.
-            if (($model->wasRecentlyCreated || $model->wasChanged('response_url'))
-                && filled($model->response_url)
-                && $model->citation_id === null
-                && Links::internalPath($model->response_url) === null) {
+        // Two events rather than one `saved`, because `wasRecentlyCreated`
+        // stays true for the rest of the instance's life: a later save on the
+        // same object (AuthoringController re-saves after rewriting body
+        // images) would read as a fresh reply and queue a second fetch.
+        static::created(function (self $model): void {
+            if (self::needsCitationFetch($model)) {
                 FetchCitationFor::dispatch($model);
             }
         });
+
+        static::updated(function (self $model): void {
+            if ($model->wasChanged('response_url') && self::needsCitationFetch($model)) {
+                FetchCitationFor::dispatch($model);
+            }
+        });
+    }
+
+    /**
+     * The editor stores a citation when the url is pasted, so this is only
+     * true for a reply written through the API or Micropub.
+     */
+    private static function needsCitationFetch(self $model): bool
+    {
+        return filled($model->response_url)
+            && $model->citation_id === null
+            && Links::internalPath($model->response_url) === null;
     }
 
     /** What a parser will call this post, or null for a plain one. */
