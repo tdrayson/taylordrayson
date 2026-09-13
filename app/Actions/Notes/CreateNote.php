@@ -18,13 +18,13 @@ class CreateNote
      * string from a client that only knows how to send one (Shortcuts,
      * Micropub); a string is wrapped into a single block.
      *
-     * @param  array{content: string|array<int, mixed>, occurred_at?: string|null, slug?: string|null, timezone?: string|null, tags?: list<string>, response_kind?: string|null, response_url?: string|null, rsvp_value?: string|null, response_quote?: string|null}  $attributes
+     * @param  array{content?: string|array<int, mixed>|null, occurred_at?: string|null, slug?: string|null, timezone?: string|null, tags?: list<string>, response_kind?: string|null, response_url?: string|null, rsvp_value?: string|null, response_quote?: string|null, status?: string, password?: string|null}  $attributes
      */
     public function __invoke(array $attributes): Note
     {
-        $content = is_string($attributes['content'])
+        $content = is_string($attributes['content'] ?? null)
             ? PortableText::fromPlainText($attributes['content'])
-            : $attributes['content'];
+            : ($attributes['content'] ?? []);
 
         $slug = $attributes['slug'] ?? null;
         $candidate = $slug !== null && $slug !== '' ? $slug : Note::slugFrom($content);
