@@ -21,6 +21,7 @@ final class FlightMapData
     public function __invoke(): array
     {
         $flights = Flight::query()
+            ->listed()
             ->with(['origin', 'destination', 'airline'])
             ->orderByDesc('occurred_at')
             ->get()

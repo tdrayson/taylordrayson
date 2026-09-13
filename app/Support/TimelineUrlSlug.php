@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 
 /**
@@ -51,7 +52,7 @@ class TimelineUrlSlug
             return;
         }
 
-        $taken = TimelineEntry::query()
+        $taken = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->whereKeyNot($entry->getKey())
             ->whereDate('occurred_at', $entry->occurred_at->toDateString())
             ->where(fn ($query) => $query->where('url_slug', $base)->orWhere('url_slug', 'like', "{$base}-%"))
@@ -82,7 +83,7 @@ class TimelineUrlSlug
 
     private static function takenByAnother(TimelineEntry $entry, string $slug): bool
     {
-        return TimelineEntry::query()
+        return TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->whereKeyNot($entry->getKey())
             ->whereDate('occurred_at', $entry->occurred_at->toDateString())
             ->where('url_slug', $slug)

@@ -2,9 +2,8 @@
 
 namespace App\Search;
 
-use App\Models\Article;
+use App\Enums\EntryStatus;
 use App\Models\Food;
-use App\Models\Page;
 use App\Support\SqlDate;
 use App\Timeline\TypeRegistry;
 use Closure;
@@ -35,6 +34,11 @@ class SearchCompiler
     public function apply(EloquentBuilder $query, array $groups): EloquentBuilder
     {
         $schema = SearchSchema::types();
+
+        // The spine row carries the same status, so a guest never gets a hidden row whichever group matched it.
+        if (! Auth::check()) {
+            $query->where('timeline_entries.status', EntryStatus::Published->value);
+        }
 
         $query->where(function (EloquentBuilder $outer) use ($groups, $schema): void {
             $isFirstGroup = true;
@@ -73,25 +77,28 @@ class SearchCompiler
 
         $method = $isFirstGroup ? 'whereHasMorph' : 'orWhereHasMorph';
         $outer->{$method}('entry', [$type['model']], function (Builder $morph) use ($group, $type): void {
-            $this->guardPublished($morph, $type['model']);
+            $this->guardStatus($morph, collect($group['conditions'])->contains('field', 'status'));
             $this->applyConditions($morph, $group, $type);
         });
     }
 
     /**
-     * Defence in depth against a stale timeline_entries row (e.g. a mass update
-     * that bypassed model observers): guests never see unpublished writing in
-     * search results. Public so other search entry points (e.g. the command
-     * palette's free-text suggest endpoint) share this single gate rather than
-     * duplicating the guard logic.
+     * Guests find published entries only. The owner finds everything but drafts,
+     * unless the group asks for a status itself. Public so the palette shares it.
      *
      * @param  Builder  $query  The (possibly morphed) model query to constrain.
-     * @param  class-string|null  $model  The model class this query targets.
+     * @param  bool  $hasStatusCondition  Whether the group already names a status.
      */
-    public function guardPublished(Builder $query, ?string $model): void
+    public function guardStatus(Builder $query, bool $hasStatusCondition = false): void
     {
-        if (in_array($model, [Article::class, Page::class], true) && ! Auth::check()) {
-            $query->where('published', true);
+        if (! Auth::check()) {
+            $query->where('status', EntryStatus::Published->value);
+
+            return;
+        }
+
+        if (! $hasStatusCondition) {
+            $query->where('status', '!=', EntryStatus::Draft->value);
         }
     }
 
@@ -240,7 +247,7 @@ class SearchCompiler
             ->all();
 
         $query->whereHasMorph('entry', $models, function (Builder $morph, string $modelClass) use ($registry, $textColumns, $value): void {
-            $this->guardPublished($morph, $modelClass);
+            $this->guardStatus($morph);
 
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
             $columns = $textColumns[$key] ?? [];
@@ -320,8 +327,8 @@ class SearchCompiler
     {
         $models = collect(TypeRegistry::all())->pluck('model')->all();
 
-        $query->whereHasMorph('entry', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
-            $this->guardPublished($morph, $modelClass);
+        $query->whereHasMorph('entry', $models, function (Builder $morph) use ($operator, $value): void {
+            $this->guardStatus($morph);
             $this->mediaClause($morph, $operator, $value);
         });
     }

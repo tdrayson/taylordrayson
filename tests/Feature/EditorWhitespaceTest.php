@@ -25,14 +25,14 @@ function paragraphAroundLink(): array
 }
 
 it('keeps the spaces either side of a link when a page is saved', function () {
-    $page = Page::factory()->create(['slug' => 'about-us', 'title' => 'About us', 'published' => true]);
+    $page = Page::factory()->create(['slug' => 'about-us', 'title' => 'About us', 'status' => 'published']);
 
     $this->actingAs(User::factory()->create())
         ->patch("/entries/page/{$page->id}", [
             'title' => $page->title,
             'slug' => $page->slug,
             'content' => paragraphAroundLink(),
-            'published' => true,
+            'status' => 'published',
         ])
         ->assertRedirect();
 

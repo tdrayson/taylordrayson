@@ -352,14 +352,14 @@ it('orders results newest or oldest first', function () {
     );
 });
 
-it('never surfaces a stale unpublished article to a guest via the advanced search filter', function () {
-    $article = Article::factory()->create(['published' => true, 'title' => 'Now hidden post', 'occurred_at' => now()]);
+it('never surfaces a stale unlisted article to a guest via the advanced search filter', function () {
+    $article = Article::factory()->create(['status' => 'published', 'title' => 'Now hidden post', 'occurred_at' => now()]);
 
     // A mass update via the query builder bypasses the TimelineEntryObserver,
     // so the timeline_entries row is left behind stale (not deleted) even
-    // though the article is now unpublished. guardPublished() is the only
+    // though the article is now unlisted. guardStatus() is the only
     // thing standing between this stale row and a guest search result.
-    Article::query()->where('id', $article->id)->update(['published' => false]);
+    Article::query()->where('id', $article->id)->update(['status' => 'unlisted']);
 
     $url = searchUrl([[
         'type' => 'article',

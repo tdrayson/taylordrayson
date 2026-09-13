@@ -21,8 +21,7 @@ function aNight(string $date = '2026-08-26', array $overrides = []): Sleep
 {
     return Sleep::factory()->create([
         'occurred_at' => $date.' 07:00:00',
-        'bedtime' => $date.' 00:00:00',
-        'wake_time' => $date.' 07:00:00',
+        'started_at' => $date.' 00:00:00',
         'duration' => 25200,
         'awake' => 600,
         'score' => 88,

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Data\FilmMeta;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -16,10 +17,10 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
-#[Fillable(['occurred_at', 'title', 'rating', 'timezone', 'source', 'source_id', 'meta'])]
+#[Fillable(['occurred_at', 'title', 'rating', 'timezone', 'source', 'source_id', 'meta', 'status', 'password'])]
 final class Film extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasTimelineEntry;
 
     /**
      * @return array<string, string>

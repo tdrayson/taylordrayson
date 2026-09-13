@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\EntryStatus;
 use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
@@ -145,6 +146,7 @@ class BuildTimelineFeed
             'label' => $local['label'],
             'offset' => $local['offset'],
             'url' => $entry->entry->url(),
+            'statusLabel' => $entry->entry->status === EntryStatus::Published ? null : $entry->entry->status?->label(),
         ];
     }
 }

@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 class UpdateArticle
 {
     /**
-     * @param  array{title?: string, slug?: string, excerpt?: string|null, content?: array<int, mixed>, published?: bool, occurred_at?: string, timezone?: string|null, tags?: list<string>}  $attributes
+     * @param  array{title?: string, slug?: string, excerpt?: string|null, content?: array<int, mixed>, status?: string, password?: string, occurred_at?: string, timezone?: string|null, tags?: list<string>}  $attributes
      */
     public function __invoke(Article $article, array $attributes): Article
     {

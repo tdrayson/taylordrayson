@@ -142,9 +142,8 @@ it('reproduces the pre-refactor single-day event card shape', function () {
 
 it('reproduces the pre-refactor sleep card shape', function () {
     $sleep = Sleep::factory()->create([
-        'occurred_at' => '2026-01-01 00:00:00',
-        'bedtime' => '2025-12-31 23:00:00',
-        'wake_time' => '2026-01-01 07:00:00',
+        'occurred_at' => '2026-01-01 07:00:00',
+        'started_at' => '2025-12-31 23:00:00',
         'duration' => 28800,
         'awake' => 600,
         'rem' => 6000,

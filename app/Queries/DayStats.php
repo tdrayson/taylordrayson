@@ -42,7 +42,7 @@ final class DayStats
 
         // Calories are stored one row per food item, so total the whole day directly
         // rather than the single representative row carried on the timeline entry.
-        $calories = (int) Food::query()->whereDate('occurred_at', $date->toDateString())->sum('calories');
+        $calories = (int) Food::query()->listed()->whereDate('occurred_at', $date->toDateString())->sum('calories');
 
         if ($calories > 0) {
             $stats[] = ['label' => 'Food', 'value' => number_format($calories), 'unit' => 'kcal'];

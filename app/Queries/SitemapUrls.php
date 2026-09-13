@@ -193,7 +193,7 @@ final class SitemapUrls
     }
 
     /**
-     * Tags, trips, shows and published CMS pages.
+     * Tags, trips, shows and listed pages.
      *
      * @return list<SitemapUrl>
      */
@@ -208,7 +208,7 @@ final class SitemapUrls
         $tvShows = TvShow::query()->orderBy('slug')->get(['slug'])
             ->map(fn (TvShow $show): array => ['loc' => $show->url(), 'lastmod' => null]);
 
-        $pages = Page::query()->where('published', true)->orderBy('slug')
+        $pages = Page::query()->listed()->orderBy('slug')
             ->get(['slug', 'updated_at'])
             ->map(fn (Page $page): array => [
                 'loc' => $page->url(),

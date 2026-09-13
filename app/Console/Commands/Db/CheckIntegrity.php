@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands\Db;
 
+use App\Enums\EntryStatus;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Models\Food;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Timeline\TypeRegistry;
 use Illuminate\Console\Attributes\Description;
@@ -144,6 +146,8 @@ class CheckIntegrity extends Command
             }
 
             $missing = $model::query()
+                ->where('status', '!=', EntryStatus::Draft->value)
+                ->whereNotNull('occurred_at')
                 ->doesntHave('timelineEntry')
                 ->get()
                 ->filter(fn (Model $row): bool => $row instanceof Timelineable && $row->shouldAppearOnTimeline());
@@ -175,7 +179,7 @@ class CheckIntegrity extends Command
             ->distinct()
             ->pluck('date');
 
-        $onSpine = TimelineEntry::query()
+        $onSpine = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->toBase()
             ->where('dataset', (new Food)->getMorphClass())
             ->selectRaw('DATE(occurred_at) as date')
@@ -370,7 +374,7 @@ class CheckIntegrity extends Command
         $attachments = $this->danglingAttachmentRows();
 
         if ($entries->isNotEmpty()) {
-            TimelineEntry::query()->whereIn('id', $entries->pluck('id'))->delete();
+            TimelineEntry::query()->withoutGlobalScope(ListedScope::class)->whereIn('id', $entries->pluck('id'))->delete();
         }
 
         // One at a time, so each fires the model events that remove the stored

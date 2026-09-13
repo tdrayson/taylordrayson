@@ -3,7 +3,6 @@
 namespace App\Actions\Fuel;
 
 use App\Models\Fuel;
-use App\Support\EntryInstant;
 
 class CreateFuel
 {
@@ -20,7 +19,7 @@ class CreateFuel
 
         return Fuel::create([
             ...$attributes,
-            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
+            'occurred_at' => $attributes['occurred_at'] ?? null,
             'vehicle_id' => $attributes['vehicle_id'] ?? self::defaultVehicleId(),
             // NOT NULL, and nothing is derivable from a zero cost and price.
             'litres' => $attributes['litres'] ?? 0.0,

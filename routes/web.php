@@ -25,6 +25,8 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TvShowController;
+use App\Http\Controllers\UnlockEntryController;
+use App\Http\Controllers\UpdateEntryStatusController;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -44,6 +46,10 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
 
+    // Owner-only status change, valid for every dataset with HasStatus (synced types included).
+    Route::patch('/entries/{dataset}/{id}/status', UpdateEntryStatusController::class)
+        ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('entries.status');
+
     // Autocomplete for the fields that cannot be a plain text box.
     // Hyphens included: `fuel-brand` is a source name and 404s without them.
     Route::get('/lookup/{source}', LookupController::class)
@@ -52,6 +58,8 @@ Route::middleware('auth')->group(function (): void {
 
     // Drafts have no timeline entry, so they appear in no listing without this.
     Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+    Route::get('/drafts/{dataset}/{id}', [EntryController::class, 'draft'])
+        ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('drafts.show');
 
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
@@ -89,6 +97,10 @@ Route::get('/og/preview/{type}.png', [OgImageController::class, 'preview'])
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
+
+// Unlocking a private entry or page. Tight throttle: this is a password guess.
+Route::post('/unlock/{dataset}/{id}', UnlockEntryController::class)
+    ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->middleware('throttle:5,1')->name('unlock');
 
 // Photos
 Route::get('/photos', [GalleryController::class, 'index'])->name('photos');

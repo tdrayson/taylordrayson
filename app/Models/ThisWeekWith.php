@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -25,11 +26,14 @@ use Spatie\MediaLibrary\HasMedia;
     'video_url',
     'thumbnail',
     'cover_image',
+    'status',
+    'password',
 ])]
 class ThisWeekWith extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
+    use HasStatus;
     use HasTimelineEntry;
 
     protected $table = 'this_week_with';

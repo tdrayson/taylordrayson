@@ -20,7 +20,7 @@ it('lists tags alphabetically with their usage counts', function () {
 
 it('keeps tags a picker still needs: unused ones, and those only on drafts', function () {
     Tag::create(['name' => 'Orphan', 'slug' => 'orphan']);
-    Article::factory()->create(['published' => false])->syncTagNames(['Draft Only']);
+    Article::factory()->create(['status' => 'draft'])->syncTagNames(['Draft Only']);
 
     $this->withToken('test-token')->getJson('/api/v1/tags')
         ->assertOk()

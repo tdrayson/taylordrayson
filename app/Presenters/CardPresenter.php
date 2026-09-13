@@ -4,7 +4,9 @@ namespace App\Presenters;
 
 use App\Data\CardData;
 use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
 use App\Models\Concerns\Timelineable;
+use App\Models\Note;
 use LogicException;
 
 /**
@@ -18,6 +20,14 @@ final class CardPresenter
     public static function for(Timelineable $model): CardData
     {
         return self::card($model)->present($model);
+    }
+
+    /** The card title, or the type label for a private note, whose title is written from the body its password holds back. */
+    public static function publicTitle(Timelineable $model, CardData $card): string
+    {
+        return $model instanceof Note && $model->status === EntryStatus::Private
+            ? Datasets::forModel($model)->label()
+            : $card->title;
     }
 
     /**

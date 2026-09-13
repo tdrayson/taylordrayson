@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
-import StyledSelect from './StyledSelect.vue';
+import Select from '../Ui/Select.vue';
 
 const props = defineProps({
     modelValue: { type: [String, Number], default: '' }, // canonical: seconds
@@ -82,7 +82,7 @@ watch(
             @input="onAmount($event.target.value)"
         >
         <div class="flex-1">
-            <StyledSelect :model-value="unit" :options="unitOptions" aria-label="Duration unit" @update:model-value="onUnit" />
+            <Select :model-value="unit" :options="unitOptions" aria-label="Duration unit" @update:model-value="onUnit" />
         </div>
     </div>
 </template>

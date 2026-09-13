@@ -15,7 +15,7 @@ it('reserves the bare sleep slug so a same-day activity never holds it', functio
 
     expect($activity->fresh()->url())->toBe('/2026/03/15/sleep-2');
 
-    $sleep = Sleep::factory()->create(['occurred_at' => '2026-03-15 23:00:00', 'bedtime' => '2026-03-14 23:00:00', 'wake_time' => '2026-03-15 07:00:00']);
+    $sleep = Sleep::factory()->create(['occurred_at' => '2026-03-15 07:00:00', 'started_at' => '2026-03-14 23:00:00']);
 
     expect($activity->fresh()->url())->toBe('/2026/03/15/sleep-2')
         ->and($sleep->fresh()->url())->toBe('/2026/03/15/sleep');
@@ -39,7 +39,7 @@ it('rejects a typed slug that collides with a reserved word', function () {
     $this->post('/entries/article', ['title' => 'An article', 'slug' => 'food'])
         ->assertSessionHasErrors('slug');
 
-    $this->post('/entries/project', ['title' => 'A project', 'status' => 'active', 'slug' => 'food'])
+    $this->post('/entries/project', ['title' => 'A project', 'stage' => 'active', 'slug' => 'food'])
         ->assertSessionHasErrors('slug');
 
     expect(Note::count())->toBe(0);

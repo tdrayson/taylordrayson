@@ -5,10 +5,11 @@ namespace App\Links\Resolvers;
 use App\Data\LinkPreviewData;
 use App\Links\LinkResolver;
 use App\Models\Tag;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /**
- * A cross-type tag page, /tags/{slug}.
+ * A cross-type tag page, /tags/{slug}, counted by its listed entries.
  */
 class TagResolver implements LinkResolver
 {
@@ -18,9 +19,13 @@ class TagResolver implements LinkResolver
             return null;
         }
 
-        $tag = Tag::query()->withCount('taggables')->where('slug', $matches[1])->first();
+        $tag = Tag::query()
+            ->withCount(['taggables' => fn (Builder $query) => $query->listed()])
+            ->where('slug', $matches[1])
+            ->first();
 
-        if ($tag === null) {
+        // TagController 404s a tag with no listed entries, so there is no page to preview.
+        if ($tag === null || $tag->taggables_count === 0) {
             return null;
         }
 

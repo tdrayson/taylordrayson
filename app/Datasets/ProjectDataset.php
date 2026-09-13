@@ -65,7 +65,7 @@ final class ProjectDataset extends BaseDataset
     {
         return [
             'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Project'],
-            'status' => ['label' => 'Status', 'dataType' => 'enum', 'column' => 'status', 'category' => 'Project'],
+            'stage' => ['label' => 'Stage', 'dataType' => 'enum', 'column' => 'stage', 'category' => 'Project'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Project'],
             'long_description' => ['label' => 'Long description', 'dataType' => 'text', 'column' => 'long_description', 'category' => 'Project'],
             'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],
@@ -77,11 +77,16 @@ final class ProjectDataset extends BaseDataset
      */
     public function textColumns(): array
     {
-        return ['title', 'description', 'status'];
+        return ['title', 'description', 'stage'];
     }
 
     public function taxonomy(): callable
     {
         return Taxonomies::tags(fn (string $label): string => "Projects tagged {$label}");
+    }
+
+    public function draftable(): bool
+    {
+        return true;
     }
 }

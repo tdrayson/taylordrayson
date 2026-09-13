@@ -5,6 +5,7 @@ namespace App\Queries;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Support\GalleryPhotos;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -101,13 +102,24 @@ final class PhotoStream
      *
      * Non-timeline owners (a TvShow poster, a Page cover) are excluded by the
      * same rule contributesPhotos() applies, expressed here as model types.
+     * Only listed owners count.
      */
     public function count(): int
     {
+        return $this->attachments()->count();
+    }
+
+    /** Cover and photo attachments whose owning entry is listed, so a draft cover or an unlisted entry's photos never reach the gallery. */
+    private function attachments(): Builder
+    {
+        $owners = array_map(
+            fn (string $alias): string => Relation::getMorphedModel($alias) ?? $alias,
+            GalleryPhotos::includedModels(),
+        );
+
         return Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereIn('model_type', GalleryPhotos::includedModels())
-            ->count();
+            ->whereHasMorph('model', $owners, fn (Builder $owner) => $owner->listed());
     }
 
     /**
@@ -124,10 +136,7 @@ final class PhotoStream
             return $this->groups;
         }
 
-        $attachments = Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereIn('model_type', GalleryPhotos::includedModels())
-            ->get();
+        $attachments = $this->attachments()->get();
 
         return $this->groups = $attachments
             ->load(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith($this->captionRelations($attachments))])

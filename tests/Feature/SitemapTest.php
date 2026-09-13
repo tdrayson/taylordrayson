@@ -48,8 +48,8 @@ it('404s a year with nothing in it', function () {
 });
 
 it('lists archives and published pages but not drafts', function () {
-    Page::factory()->create(['slug' => 'about', 'published' => true]);
-    Page::factory()->create(['slug' => 'secret-draft', 'published' => false]);
+    Page::factory()->create(['slug' => 'about', 'status' => 'published']);
+    Page::factory()->create(['slug' => 'secret-draft', 'status' => 'draft']);
 
     $body = get('/sitemap/pages.xml')->assertOk()->getContent();
 

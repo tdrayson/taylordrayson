@@ -12,7 +12,7 @@ defineProps({
 <template>
     <div class="space-y-8">
         <div class="flex flex-wrap items-center gap-2">
-            <Pill v-if="entry.status" :label="titleCase(entry.status)" :variant="entry.status === 'active' ? 'accent' : 'default'" />
+            <Pill v-if="entry.stage" :label="titleCase(entry.stage)" :variant="entry.stage === 'active' ? 'accent' : 'default'" />
             <Pill v-if="entry.featured" label="Featured" />
         </div>
 

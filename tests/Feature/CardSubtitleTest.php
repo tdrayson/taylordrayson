@@ -198,8 +198,8 @@ it('falls back to "film" when TMDB gave no genre', function () {
 it('spells the duration in the sleep card\'s accessible name', function () {
     $sleep = Sleep::factory()->create([
         'duration' => 33660, // 9h 21m
-        'bedtime' => '2026-08-24 23:30:00',
-        'wake_time' => '2026-08-25 08:51:00',
+        'occurred_at' => '2026-08-25 08:51:00',
+        'started_at' => '2026-08-24 23:30:00',
         'score' => 80,
     ]);
 
