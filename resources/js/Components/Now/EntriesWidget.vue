@@ -6,13 +6,7 @@ import Tooltip from '../Ui/Tooltip.vue';
 const props = defineProps({
     label: { type: String, default: 'entries' },
     // Four Mon-Sun weeks of { date: 'yyyy-mm-dd', count }, oldest first; days after today have a null count.
-    days: {
-        type: Array,
-        default: () => [3, 5, 0, 2, 6, 4, 1, 0, 3, 7, 5, 2, 4, 1, 0, 6, 3, 5, 8, 2, 1, 4, 0, 3, 5, 6, null, null].map((count, i) => ({
-            date: new Date(Date.UTC(2026, 7, 17 + i)).toISOString().slice(0, 10),
-            count,
-        })),
-    },
+    days: { type: Array, required: true },
 });
 
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
