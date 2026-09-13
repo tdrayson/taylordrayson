@@ -13,5 +13,6 @@ it('renders the more page grouped by kind headings', function () {
         ->assertSeeIn('h2.font-display', 'Life & health')
         ->assertSeeIn('h2.font-display', 'Going out')
         ->assertSeeIn('h2.font-display', 'Speaking')
+        ->assertDontSeeIn('div:has(> h2.font-display)', 'types')
         ->screenshot(true, 'more-kind-groups');
 });
