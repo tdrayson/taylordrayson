@@ -17,14 +17,12 @@ final class AppearanceCard
     public function present(Appearance $model): CardData
     {
         return new CardData(
-            type: TimelineType::Appearance,
-            icon: 'mic',
-            title: $model->title,
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $model->show_name ? "I spoke at {$model->show_name}." : null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'appearance',
             range: null,
             meta: CardMeta::media(MediaData::withSrcset(
                 id: "appearance-{$model->id}",
@@ -37,5 +35,15 @@ final class AppearanceCard
                 url: $model->url(),
             )),
         );
+    }
+
+    public function title(Appearance $model): string
+    {
+        return $model->title;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Appearance;
     }
 }

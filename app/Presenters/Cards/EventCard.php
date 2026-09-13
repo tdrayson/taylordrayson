@@ -26,14 +26,12 @@ final class EventCard
         $photos = $model->galleryPhotos();
 
         return new CardData(
-            type: TimelineType::Event,
-            icon: 'music',
-            title: $model->name,
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $subtitle,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'event',
             range: $model->dateRange(),
             meta: CardMeta::event(
                 photos: array_map(
@@ -45,5 +43,15 @@ final class EventCard
                 mapDark: $model->optimisedUrl('map_dark'),
             ),
         );
+    }
+
+    public function title(Event $model): string
+    {
+        return $model->name;
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Event;
     }
 }

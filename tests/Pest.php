@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use MensBeam\Microformats;
 use Saloon\Config as SaloonConfig;
@@ -36,6 +37,14 @@ uses()->beforeEach(function (): void {
     SaloonConfig::preventStrayRequests();
 })->in('Feature', 'Unit', 'Browser');
 
+// The same guard for the plain client, which the jobs use. The queue runs sync
+// under test, so storing an entry draws its map there and then: without this a
+// test spends real Mapbox credit on the live token.
+// Unit tests are left out because they run without the framework booted.
+uses()->beforeEach(function (): void {
+    Http::preventStrayRequests();
+})->in('Feature', 'Browser');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
@@ -65,6 +74,20 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Answer Mapbox's static image API with a stub image.
+ *
+ * The queue runs sync under test, so storing an entry that has a location draws
+ * its map there and then. Any test that does so needs this, or the request goes
+ * to the real API on the real token.
+ */
+function fakeMapImages(): void
+{
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+
+    Http::fake(['api.mapbox.com/*' => Http::response($png, 200, ['Content-Type' => 'image/png'])]);
 }
 
 /**

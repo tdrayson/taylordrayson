@@ -2,13 +2,12 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
-import { player } from '../../lib/player.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import { entryType } from '../../entryTypes.js';
 
 /**
- * A floating shortcut to the things worth logging in the moment, for a signed-in
- * browser only.
+ * A shortcut to the things worth logging in the moment, for a signed-in browser
+ * only. FloatingActions places it in the bottom-right corner.
  *
  * It exists for the iOS home-screen app, which has no address bar: without it
  * the only route to a form is remembering to navigate to /new. The three types
@@ -18,9 +17,6 @@ const { isOpen: open, root, close, toggle } = useDismissable();
 
 const page = usePage();
 const signedIn = computed(() => page.props.signedIn === true);
-
-// Clears the audio bar, which is fixed along the bottom on the same edge.
-const playing = computed(() => player.mode === 'audio' && Boolean(player.track));
 
 // Labelled and iconed from the shared type map, so these rows cannot drift
 // from how the same types are drawn everywhere else.
@@ -35,12 +31,7 @@ const shortcuts = [
 </script>
 
 <template>
-    <div
-        v-if="signedIn"
-        ref="root"
-        class="fixed right-5 z-40 print:hidden"
-        :class="playing ? 'bottom-28' : 'bottom-6'"
-    >
+    <div v-if="signedIn" ref="root" class="relative">
         <ul
             v-if="open"
             class="absolute bottom-full right-0 mb-3 w-48 animate-fade-in rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-card"

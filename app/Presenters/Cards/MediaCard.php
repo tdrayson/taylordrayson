@@ -20,20 +20,15 @@ final class MediaCard
     public function present(Media $model): CardData
     {
         $show = ShowTitle::for($model);
-
-        // Falls back to the show when the episode itself is unnamed, so the card
-        // is never headed by nothing.
-        $title = $model->title !== '' ? $model->title : ($show ?? '');
+        $title = $this->title($model);
 
         return new CardData(
-            type: TimelineType::Media,
-            icon: 'film',
+            type: $this->type(),
             title: $title,
             titleLabel: null,
             subtitle: $this->sentence($model, $show, $title),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'media',
             range: null,
             meta: CardMeta::backdrop($this->backdrop($model)),
         );
@@ -117,5 +112,19 @@ final class MediaCard
             $where !== null => $where,
             default => null,
         };
+    }
+
+    /**
+     * Falls back to the show when the episode itself is unnamed, so the card is
+     * never headed by nothing.
+     */
+    public function title(Media $model): string
+    {
+        return $model->title !== '' ? $model->title : (ShowTitle::for($model) ?? '');
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Media;
     }
 }

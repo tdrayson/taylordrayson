@@ -178,7 +178,10 @@ class StravaPhotos extends Command
                 $this->warn("Failed to fetch streams for {$activity->source_id}, storing photos without map positions.");
             }
 
-            $count = $sync($activity, $photos, $streams, $target['start']);
+            // Rebuilt rather than topped up: this command exists to repair
+            // media, including legacy photos stored before the current sync
+            // wrote coordinates and capture times onto them.
+            $count = $sync($activity, $photos, $streams, $target['start'], replace: true);
             $stored += $count;
 
             $this->info("[{$stored}] {$activity->name} - {$count} photo(s)");

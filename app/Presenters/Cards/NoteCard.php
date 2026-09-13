@@ -24,14 +24,12 @@ final class NoteCard
     public function present(Note $model): CardData
     {
         return new CardData(
-            type: TimelineType::Note,
-            icon: 'message-circle',
-            title: Str::limit(PortableText::plainText($model->content), 80),
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'note',
             range: null,
             meta: CardMeta::note(
                 body: $model->content,
@@ -43,5 +41,15 @@ final class NoteCard
                 favicons: (new BuildLinkFavicons)($model->content),
             ),
         );
+    }
+
+    public function title(Note $model): string
+    {
+        return Str::limit(PortableText::plainText($model->content), 80);
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Note;
     }
 }

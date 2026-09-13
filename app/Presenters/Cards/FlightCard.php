@@ -35,9 +35,8 @@ final class FlightCard
             );
 
         return new CardData(
-            type: TimelineType::Flight,
-            icon: 'plane',
-            title: $this->routeTitle($model),
+            type: $this->type(),
+            title: $this->title($model),
             titleLabel: null,
             subtitle: $subtitle,
             // Raw metres, not Distance::miles, so FeedItem.vue can convert through
@@ -51,7 +50,6 @@ final class FlightCard
                 ]))
                 : null,
             occurredAt: $model->occurred_at,
-            accent: 'flight',
             range: null,
             meta: CardMeta::route(
                 route: new RouteData(
@@ -106,11 +104,16 @@ final class FlightCard
      * Route title using city names when the airport relations are loaded
      * (the entry page), falling back to IATA codes otherwise (the feed).
      */
-    private function routeTitle(Flight $model): string
+    public function title(Flight $model): string
     {
         $origin = ($model->relationLoaded('origin') ? $model->origin?->place : null) ?? $model->origin_iata;
         $destination = ($model->relationLoaded('destination') ? $model->destination?->place : null) ?? $model->destination_iata;
 
         return "{$origin} → {$destination}";
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Flight;
     }
 }

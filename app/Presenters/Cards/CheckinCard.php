@@ -20,14 +20,10 @@ final class CheckinCard
             ->filter()
             ->implode(', ');
 
-        // Display-only: the URL slug still comes from the venue (Checkin::slug()).
-        $title = $model->event_name
-            ? "{$model->event_name} at {$model->venue_name}"
-            : "at {$model->venue_name}";
+        $title = $this->title($model);
 
         return new CardData(
-            type: TimelineType::Checkin,
-            icon: 'map-pin',
+            type: $this->type(),
             title: $title,
             // "Check-in at Cineworld" reads straight through; an event title
             // already names something, so it takes a comma.
@@ -38,7 +34,6 @@ final class CheckinCard
             subtitle: $model->description ?: null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'checkin',
             range: null,
             meta: CardMeta::checkin(
                 photos: array_map(
@@ -51,5 +46,20 @@ final class CheckinCard
                 category: $model->category,
             ),
         );
+    }
+
+    /**
+     * Display-only: the URL slug still comes from the venue (Checkin::slug()).
+     */
+    public function title(Checkin $model): string
+    {
+        return $model->event_name
+            ? "{$model->event_name} at {$model->venue_name}"
+            : "at {$model->venue_name}";
+    }
+
+    public function type(): TimelineType
+    {
+        return TimelineType::Checkin;
     }
 }

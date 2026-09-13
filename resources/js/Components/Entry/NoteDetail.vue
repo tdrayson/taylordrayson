@@ -25,7 +25,7 @@ const lightboxIndex = ref(null);
                 <button
                     type="button"
                     :aria-label="`View photo ${index + 1}`"
-                    class="group/zoom relative block w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="group/zoom relative block w-full cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                     :class="photos.length > 1 ? 'aspect-square' : ''"
                     @click="lightboxIndex = index"
                 >

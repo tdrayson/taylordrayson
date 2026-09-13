@@ -1,9 +1,10 @@
 <script setup>
 import { computed } from 'vue';
-import { setLayoutProps, Deferred } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import ViewHeader from '../Components/Layout/ViewHeader.vue';
+import MonthStrip from '../Components/Timeline/MonthStrip.vue';
 import StatGrid from '../Components/Stats/StatGrid.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
 import Heatmap from '../Components/Stats/Heatmap.vue';
@@ -23,6 +24,8 @@ const props = defineProps({
     groups: { type: Array, default: null }, // deferred
     currentPage: { type: Number, default: 1 },
     lastPage: { type: Number, default: 1 },
+    // list<{ month, label, href, total }>, January first, every month present.
+    months: { type: Array, default: () => [] },
 });
 
 const isFuture = computed(() => props.year > new Date().getFullYear());
@@ -49,6 +52,10 @@ setLayoutProps({
             :next="{ label: String(year + 1), href: `/${year + 1}` }"
         />
 
+        <!-- On every page: the heatmap below is the only other way into a
+             month, and it only renders on the first. -->
+        <MonthStrip :year="year" :months="months" class="mt-6" />
+
         <!-- Both summarise the whole year, so later pages of the feed omit them
              (the server sends neither past page 1). -->
         <template v-if="currentPage === 1">
@@ -61,29 +68,17 @@ setLayoutProps({
         </template>
 
         <section v-if="entriesCount" class="mt-12">
-            <Deferred data="groups">
-                <template #fallback>
-                    <!-- Pulsing skeleton while the tail loads. -->
-                    <div class="space-y-6">
-                        <div v-for="i in 3" :key="i" class="animate-pulse space-y-3">
-                            <div class="h-6 w-48 rounded-md bg-neutral-25" />
-                            <div class="h-24 rounded-lg bg-neutral-25" />
-                        </div>
-                    </div>
-                </template>
-
-                <div class="h-feed flex flex-col gap-14">
-                    <AuthorRef />
-                    <DateGroup
-                        v-for="group in groups"
-                        :key="group.date"
-                        :label="group.label"
-                        :date="group.date"
-                        :href="group.href"
-                        :items="group.items"
-                    />
-                </div>
-            </Deferred>
+            <div class="h-feed flex flex-col gap-14">
+                <AuthorRef />
+                <DateGroup
+                    v-for="group in groups"
+                    :key="group.date"
+                    :label="group.label"
+                    :date="group.date"
+                    :href="group.href"
+                    :items="group.items"
+                />
+            </div>
 
             <Pagination
                 v-if="lastPage > 1"

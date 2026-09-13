@@ -290,7 +290,7 @@ onMounted(() => {
                             class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-2 text-base text-neutral-900 outline-none ring-accent-500/40 focus:ring-2 sm:flex-1"
                         />
                         <div class="flex gap-2">
-                            <button type="submit" :disabled="!canRename" class="rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white hover:bg-accent-700 disabled:opacity-50">Save</button>
+                            <button type="submit" :disabled="!canRename" class="rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white not-disabled:hover:bg-accent-700 disabled:opacity-50">Save</button>
                             <button type="button" class="rounded-md bg-neutral-25 px-4 py-2 text-base text-neutral-500 hover:text-neutral-900" @click="renameOpen = false">Cancel</button>
                         </div>
                     </form>
@@ -315,7 +315,7 @@ onMounted(() => {
                             <button
                                 type="submit"
                                 :disabled="!canSubmit"
-                                class="w-full rounded-md bg-accent-500 px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-700 disabled:opacity-50 sm:w-auto"
+                                class="w-full rounded-md bg-accent-500 px-4 py-3 text-base font-semibold text-white transition-colors not-disabled:hover:bg-accent-700 disabled:opacity-50 sm:w-auto"
                             >
                                 Add
                             </button>
@@ -335,7 +335,7 @@ onMounted(() => {
 
                 <div v-else-if="showRetry" class="mt-6">
                     <p class="text-meta text-accent-500">{{ errorMessage }}</p>
-                    <button type="button" :disabled="scoreHttp.processing" class="mt-2 rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white hover:bg-accent-700 disabled:opacity-50" @click="submitScore">
+                    <button type="button" :disabled="scoreHttp.processing" class="mt-2 rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white not-disabled:hover:bg-accent-700 disabled:opacity-50" @click="submitScore">
                         Try again
                     </button>
                 </div>

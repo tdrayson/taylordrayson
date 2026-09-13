@@ -26,6 +26,17 @@ class Connector extends ApiConnector implements HasPagination
     }
 
     /**
+     * The host's IPv6 edge answers 401 where its IPv4 edge serves the API, so a
+     * dual-stack server picks the failing leg. Pinned to v4 until they fix it.
+     *
+     * @return array<string, array<int, int>>
+     */
+    protected function defaultConfig(): array
+    {
+        return ['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]];
+    }
+
+    /**
      * The endpoint is `page`/`per_page` with a `total_pages` count, which is
      * exactly what PagedPaginator applies, so only the stopping condition and
      * the item key are ours to define.

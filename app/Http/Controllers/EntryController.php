@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
-use App\Actions\ResolveMentions;
 use App\Data\TagLink;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
@@ -30,6 +29,7 @@ use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
+use App\Support\ShowTitle;
 use App\Timeline\TypeRegistry;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -117,11 +117,6 @@ class EntryController extends Controller
                 : [],
             'linkFavicons' => $model instanceof Article || $model instanceof Note
                 ? (new BuildLinkFavicons)($model->content)
-                : [],
-            // Mentions store {kind, id}, so their titles and hrefs are resolved
-            // per request rather than baked into the content at save time.
-            'mentions' => $model instanceof Article || $model instanceof Note
-                ? (new ResolveMentions)($model->content)
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled
@@ -227,8 +222,14 @@ class EntryController extends Controller
             $data['photos'] = $model->galleryPhotos();
         }
 
+        // The show a TV episode belongs to has its own page gathering every
+        // watched episode, so the detail row links to it rather than printing
+        // the title as dead text. Null for a film, a book, or a show we hold no
+        // Series row for.
         if ($model instanceof Media) {
             $data = [...$data, ...(new MediaArtwork)($model)];
+            $data['showTitle'] = ShowTitle::for($model);
+            $data['showUrl'] = ShowTitle::for($model) === null ? null : $model->series?->url();
         }
 
         // The venue's category is already a taxonomy with its own archive, so

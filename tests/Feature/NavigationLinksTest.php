@@ -1,6 +1,8 @@
 <?php
 
+use App\Data\TypeMeta;
 use App\Models\Page;
+use App\Support\TypeCatalogue;
 
 use function Pest\Laravel\get;
 
@@ -40,16 +42,16 @@ it('offers no page destination that 404s', function () {
 });
 
 it('offers no archive destination that 404s', function () {
-    $source = file_get_contents(resource_path('js/entryTypes.js'));
-
-    preg_match_all("/href: '([^']+)'/", $source, $matches);
-
-    $hrefs = array_values(array_unique($matches[1]));
+    // Straight from the catalogue rather than the module it generates: the sync
+    // test already proves the two agree, and an href is a route either way.
+    $hrefs = array_values(array_unique(array_filter(
+        array_map(fn (TypeMeta $meta): ?string => $meta->href, TypeCatalogue::all()),
+    )));
 
     expect($hrefs)->not->toBeEmpty();
 
     foreach ($hrefs as $href) {
         expect(get($href)->getStatusCode())
-            ->toBeLessThan(400, "Command palette links to {$href}, which does not resolve");
+            ->toBeLessThan(400, "The type catalogue links to {$href}, which does not resolve");
     }
 });

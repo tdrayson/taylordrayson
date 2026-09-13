@@ -103,7 +103,7 @@ function onLeave(event) {
 <template>
     <div
         ref="container"
-        class="relative h-40 w-full touch-none select-none"
+        class="relative h-40 w-full cursor-crosshair touch-none select-none"
         @pointerdown="onDown"
         @pointermove="onMove"
         @pointerleave="onLeave"

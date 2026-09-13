@@ -75,7 +75,7 @@ it('stores the first photo as cover and the rest in the gallery', function () {
     expect($activity->getMedia('photos'))->toHaveCount(2);
 });
 
-it('clears existing photos so re-running is idempotent', function () {
+it('fetches nothing it already holds, so re-running costs no downloads', function () {
     Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
 
     $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '1']);
@@ -86,10 +86,33 @@ it('clears existing photos so re-running is idempotent', function () {
     ];
 
     app(SyncStravaPhotos::class)($activity, $photos);
-    app(SyncStravaPhotos::class)($activity, $photos);
+    $second = app(SyncStravaPhotos::class)($activity, $photos);
 
-    expect($activity->getMedia('cover'))->toHaveCount(1);
-    expect($activity->getMedia('photos'))->toHaveCount(1);
+    // The second run stores nothing, where it used to clear the collection and
+    // download both again on every scheduled sync.
+    expect($second)->toBe(0)
+        ->and($activity->getMedia('cover'))->toHaveCount(1)
+        ->and($activity->getMedia('photos'))->toHaveCount(1);
+});
+
+it('picks up a photo added to an activity that already had one', function () {
+    Http::fake(['https://cdn.example/*' => Http::response(fakeJpeg(), 200)]);
+
+    $activity = Activity::factory()->create(['source' => 'strava', 'source_id' => '1']);
+
+    app(SyncStravaPhotos::class)($activity, [
+        ['unique_id' => 'a', 'urls' => ['2048' => 'https://cdn.example/a.jpg']],
+    ]);
+
+    // Added on Strava after the fact. The cover it already has stays the cover.
+    $added = app(SyncStravaPhotos::class)($activity, [
+        ['unique_id' => 'a', 'urls' => ['2048' => 'https://cdn.example/a.jpg']],
+        ['unique_id' => 'b', 'urls' => ['2048' => 'https://cdn.example/b.jpg']],
+    ]);
+
+    expect($added)->toBe(1)
+        ->and($activity->getMedia('cover'))->toHaveCount(1)
+        ->and($activity->getMedia('photos')->pluck('file_name')->all())->toBe(['b.webp']);
 });
 
 it('backfills photos only for activities that have them on strava', function () {

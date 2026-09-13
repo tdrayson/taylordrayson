@@ -237,7 +237,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                 @pointercancel="onPointerCancel"
             >
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
-                <div class="absolute inset-0 bg-black/90" @click="closeUnlessDrag" />
+                <div class="absolute inset-0 cursor-zoom-out bg-black/90" @click="closeUnlessDrag" />
 
                 <div class="relative flex shrink-0 items-center justify-between gap-3">
                     <Link
@@ -265,7 +265,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                      empty area around the image closes. -->
                 <div
                     class="relative flex min-h-0 flex-1 touch-none overflow-hidden"
-                    :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'items-center justify-center'"
+                    :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-out items-center justify-center'"
                     @click.self="closeUnlessDrag"
                 >
                     <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">

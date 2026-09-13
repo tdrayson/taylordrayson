@@ -60,7 +60,7 @@ function useTypedUrl() {
             <img
                 :src="url"
                 :alt="node.attrs.alt ?? ''"
-                class="w-full rounded-lg"
+                class="w-full rounded-lg bg-neutral-25"
                 :class="node.attrs.ratio && node.attrs.ratio !== 'original' ? 'object-cover' : ''"
                 :style="node.attrs.ratio && node.attrs.ratio !== 'original' ? { aspectRatio: node.attrs.ratio } : null"
             >

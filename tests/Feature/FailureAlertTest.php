@@ -1,6 +1,7 @@
 <?php
 
 use App\Listeners\AlertOnFailedJob;
+use App\Services\Pushover\Client as PushoverClient;
 use App\Support\FailureAlert;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
@@ -76,4 +77,17 @@ it('does nothing when no credentials are configured', function () {
 it('registers both listeners', function () {
     expect(Event::hasListeners(ScheduledTaskFailed::class))->toBeTrue()
         ->and(Event::hasListeners(JobFailed::class))->toBeTrue();
+});
+
+/**
+ * The one client that fires on an unhappy path, so a test that trips an alert
+ * without faking anything must not reach a real phone. phpunit.xml blanks the
+ * credentials; send() returns before making a request when it has none.
+ */
+it('cannot notify a real device when the suite has no credentials', function () {
+    config(['services.pushover.token' => env('PUSHOVER_TOKEN'), 'services.pushover.user' => env('PUSHOVER_USER')]);
+
+    expect(config('services.pushover.token'))->toBeEmpty()
+        ->and(config('services.pushover.user'))->toBeEmpty()
+        ->and(app(PushoverClient::class)->send('Scheduled command failed', 'podcast:sync'))->toBeFalse();
 });

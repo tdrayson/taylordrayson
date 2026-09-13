@@ -107,9 +107,9 @@ it('lists drafts grouped by type, newest edited first', function () {
         ->component('Drafts')
         ->where('groups', function ($groups) {
             $labels = collect($groups)->pluck('label')->all();
-            $articles = collect($groups)->firstWhere('label', 'Article');
+            $articles = collect($groups)->firstWhere('label', 'Articles');
 
-            return $labels === ['Article', 'Page']
+            return $labels === ['Articles', 'Pages']
                 && count($articles['rows']) === 1
                 && $articles['rows'][0]['title'] === 'Draft article';
         }));

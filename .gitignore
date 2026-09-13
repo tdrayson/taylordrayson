@@ -60,3 +60,6 @@ storage/backups/
 /public/avatars/
 /public/favicons/
 /public/logos/
+
+# Bloom's workspace identifier, written into the checkout by the local tooling.
+/.bloom-site

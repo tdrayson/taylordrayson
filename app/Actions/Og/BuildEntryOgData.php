@@ -15,6 +15,7 @@ use App\Queries\DayFoodTotals;
 use App\Support\OgPhrases;
 use App\Support\ShowTitle;
 use App\Support\StaticMap;
+use App\Support\TypeCatalogue;
 use App\Support\TypeColors;
 use App\Support\Units;
 use Closure;
@@ -29,40 +30,6 @@ use Illuminate\Support\Str;
 final class BuildEntryOgData
 {
     public const ACCENT_DEFAULT = '3858e9';
-
-    /**
-     * Card type to the eyebrow label shown on its OG card.
-     *
-     * @var array<string, string>
-     */
-    public const TYPE_EYEBROWS = [
-        'activity' => 'Activity',
-        'flight' => 'Flight',
-        'checkin' => 'Places',
-        'media' => 'Media',
-        'sleep' => 'Sleep',
-        'calorie' => 'Food',
-        'fuel' => 'Fuel',
-        'note' => 'Note',
-        'article' => 'Article',
-        'project' => 'Project',
-        'event' => 'Event',
-        'appearance' => 'Appearance',
-        'podcast' => 'This Week With',
-    ];
-
-    /**
-     * Sleep stage bar colours, mirroring the --color-sleep-* tokens in
-     * resources/css/app.css (hsl converted to hex for the server-rendered card).
-     *
-     * @var array<string, string>
-     */
-    private const SLEEP_STAGE_COLORS = [
-        'awake' => '#ea8686',
-        'rem' => '#5494d4',
-        'light' => '#9fbfdf',
-        'deep' => '#5247c2',
-    ];
 
     /**
      * Build the card view data for a single entry from its real data: type accent,
@@ -98,7 +65,7 @@ final class BuildEntryOgData
         return [
             'layout' => $layout,
             'accent' => $accent,
-            'eyebrow' => self::TYPE_EYEBROWS[$card->type->value] ?? null,
+            'eyebrow' => TypeCatalogue::forType($card->type)->eyebrow(),
             'title' => $this->entryTitle($model, $card, $seed),
             'date' => $entry->occurred_at->format('D j M Y'),
             'subtitle' => null,
@@ -137,7 +104,7 @@ final class BuildEntryOgData
 
         return array_map(fn (SegmentData $segment): array => [
             'label' => $segment->label,
-            'color' => self::SLEEP_STAGE_COLORS[$segment->stage] ?? '#'.self::ACCENT_DEFAULT,
+            'color' => '#'.TypeColors::hex('sleep-'.$segment->stage, self::ACCENT_DEFAULT),
             'percent' => round($segment->seconds / $total * 100, 2),
         ], $segments);
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Checkins\ImportCheckin;
 use App\Jobs\GenerateEntryMap;
 use App\Models\Checkin;
 use Illuminate\Support\Facades\Queue;
@@ -94,6 +95,7 @@ it('caps the catch-up so a long gap does not refetch all history', function () {
 });
 
 it('stores a newly returned check-in', function () {
+    fakeMapImages();
     fakeSwarmRuns([[swarmItem('fresh', 'Flat white')]]);
 
     $this->artisan('foursquare:sync')->assertSuccessful();
@@ -127,6 +129,7 @@ it('queues the pin for a new check-in, but not for one seen again', function () 
 });
 
 it('updates rather than duplicates a check-in seen again in the overlap window', function () {
+    fakeMapImages();
     fakeSwarmRuns([
         [swarmItem('same')],
         [swarmItem('same', 'Added later')],
@@ -137,4 +140,34 @@ it('updates rather than duplicates a check-in seen again in the overlap window',
 
     expect(Checkin::where('source_id', 'same')->count())->toBe(1)
         ->and(Checkin::where('source_id', 'same')->first()->description)->toBe('Added later');
+});
+
+it('tries the photo added to a check-in that already had one, and only that photo', function () {
+    $checkin = Checkin::factory()->create([
+        'source' => 'swarm',
+        'source_id' => 'ally-pally',
+        'occurred_at' => now()->subDay(),
+        'venue_name' => 'Alexandra Palace Theatre',
+    ]);
+
+    $checkin->addMediaFromString(fakeJpeg())->usingFileName('first.jpg')->toMediaCollection('photos');
+
+    // The check-in comes back with the photo it already has and a second added
+    // in Swarm after the fact. Bailing on "has any photo at all" meant the new
+    // one could never arrive, however many times the sync ran.
+    $result = app(ImportCheckin::class)([
+        'id' => 'ally-pally',
+        'createdAt' => now()->subDay()->timestamp,
+        'venue' => ['name' => 'Alexandra Palace Theatre', 'location' => ['lat' => 51.594, 'lng' => -0.13]],
+        'photos' => ['items' => [
+            ['prefix' => 'https://fastly.4sqi.net/img/general/', 'suffix' => '/first.jpg'],
+            ['prefix' => 'https://fastly.4sqi.net/img/general/', 'suffix' => '/second.jpg'],
+        ]],
+    ]);
+
+    // Exactly one attempt: the stored photo is recognised by its name, which
+    // survives the conversion to webp, and the new one is fetched. Counted as
+    // attempts rather than successes so the assertion does not depend on
+    // whether a real download can happen here.
+    expect($result->photosAdded + count($result->warnings))->toBe(1);
 });

@@ -5,7 +5,7 @@ import LocationMap from '../Maps/LocationMap.vue';
 import DetailList from '../Ui/DetailList.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 import Icon from '../Ui/Icon.vue';
-import { number, money } from '../../lib/format.js';
+import { number, money, pencePerLitre } from '../../lib/format.js';
 import { milesToMetres } from '../../lib/distance.js';
 import { useFormat } from '../../composables/useFormat';
 
@@ -35,7 +35,7 @@ const addressLine = computed(() =>
 const stats = computed(() => [
     { label: 'Volume', value: number(props.entry.litres, 1), unit: 'L' },
     { label: 'Cost', value: money(props.entry.cost) },
-    { label: 'Per litre', value: props.entry.price_per_litre ? `£${number(props.entry.price_per_litre, 3)}` : null },
+    { label: 'Per litre', value: pencePerLitre(props.entry.price_per_litre) },
     {
         label: 'Odometer',
         distanceM: props.entry.odometer != null ? milesToMetres(props.entry.odometer) : null,
