@@ -46,4 +46,9 @@ abstract class BaseDataset implements Dataset
     {
         return false;
     }
+
+    public function archive(): bool
+    {
+        return true;
+    }
 }

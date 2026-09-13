@@ -65,4 +65,7 @@ interface Dataset
 
     /** Whether /stats/{slug} exists for this type. */
     public function stats(): bool;
+
+    /** Whether Route::archives() registers an index page at slug(). */
+    public function archive(): bool;
 }

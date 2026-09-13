@@ -23,6 +23,7 @@ class TypeRegistry
             'noun' => $dataset->noun(),
             'stats' => $dataset->stats(),
             'taxonomy' => ($factory = $dataset->taxonomy()) !== null ? $factory($dataset->model(), $dataset->slug()) : null,
+            'archive' => $dataset->archive(),
         ], Datasets::all());
     }
 
