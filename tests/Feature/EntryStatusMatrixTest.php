@@ -3,6 +3,7 @@
 use App\Actions\Og\BuildEntryOgData;
 use App\Enums\EntryStatus;
 use App\Mcp\Tools\Timeline;
+use App\Models\Activity;
 use App\Models\Note;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
@@ -19,6 +20,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
     Storage::fake('local');
+    Storage::fake('public');
 
     foreach (EntryStatus::cases() as $status) {
         $note = Note::factory()->create([
@@ -31,6 +33,23 @@ beforeEach(function (): void {
         $note->syncTagNames(['Matrix']);
         // Published first, then moved, so the draft keeps its date and dated URL.
         $note->update(['status' => $status]);
+        $note->addMediaFromString(fakeJpeg())->usingFileName("matrix-{$status->value}.jpg")->toMediaCollection('photos');
+    }
+
+    // A stats-bearing type alongside the notes: /photos reads any timeline
+    // model's photos, but /stats/{type} only exists for a handful of types,
+    // and Note is not one of them.
+    foreach ([EntryStatus::Published, EntryStatus::Unlisted, EntryStatus::Private] as $index => $status) {
+        Activity::factory()->cardio('run')->create([
+            // Not "Matrix ..." so its own slug doesn't join the note slugs the
+            // listing assertions above filter on.
+            'name' => "Probe {$status->value} run",
+            'occurred_at' => '2026-06-15 09:00:00',
+            'distance' => 5000 + $index * 1000,
+            'duration' => 600,
+            'status' => $status,
+            'password' => $status === EntryStatus::Private ? 'hunter2' : null,
+        ]);
     }
 });
 
@@ -77,7 +96,9 @@ it('shows each status only where it belongs', function (bool $owner) {
         ->and(matrixSlugsInText($this->get('/feed')->getContent()))->toBe($listed);
 
     $timeline = collect(callTool(Timeline::class, ['from' => '2026-06-15'])['data']['entries'])
-        ->map(fn (array $entry): string => basename($entry['url']))->sort()->values()->all();
+        ->map(fn (array $entry): string => basename($entry['url']))
+        ->filter(fn (string $slug): bool => str_starts_with($slug, 'matrix-'))
+        ->sort()->values()->all();
 
     expect($timeline)->toBe($listed);
 
@@ -87,6 +108,18 @@ it('shows each status only where it belongs', function (bool $owner) {
     ])]);
 
     expect(matrixSlugsIn($this->get($search)->inertiaProps('groups')))->toBe($searchable);
+
+    // Photos and stats: model-direct listings, published only for both viewers.
+    $this->get('/photos')->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('total', 1)
+        ->loadDeferredProps(fn (Assert $page) => $page
+            ->has('photos.data', 1)
+            ->where('photos.data.0.caption', 'Matrix published body')));
+
+    $this->get('/stats/activities?from=2026-06-15&to=2026-06-15')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('metrics.0.value', '1')
+            ->where('metrics.3.distanceM', 5000));
 
     // OG image: every status with a spine row renders, whoever asks; a draft has none.
     foreach (['published', 'unlisted', 'private'] as $status) {
