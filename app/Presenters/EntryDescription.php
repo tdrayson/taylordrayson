@@ -57,10 +57,15 @@ final class EntryDescription
 
     /**
      * A one-sentence description of an entry, falling back to the card's own
-     * title and subtitle for a type with nothing better to say.
+     * title and subtitle for a type with nothing better to say. A private
+     * entry gets its written excerpt or null, never anything read from its fields.
      */
-    public static function for(Model $model, CardData $card): string
+    public static function for(Model $model, CardData $card): ?string
     {
+        if ($model->status === EntryStatus::Private) {
+            return $model instanceof Article ? Text::excerpt($model->excerpt, self::LIMIT) : null;
+        }
+
         $description = match (true) {
             $model instanceof Sleep => self::sleep($card),
             $model instanceof Activity => self::activity($model, $card),
@@ -309,23 +314,11 @@ final class EntryDescription
         return (string) self::source($model->topic);
     }
 
-    /**
-     * The hand-written excerpt where there is one, else the opening prose.
-     *
-     * A private article never falls back to its content: the OG payload is
-     * what a crawler or an unfurler sees, unlocked or not.
-     */
+    /** The hand-written excerpt where there is one, else the opening prose. */
     private static function articleText(Article $model): string
     {
-        $excerpt = Text::excerpt($model->excerpt, self::LIMIT);
-
-        if ($excerpt) {
-            return $excerpt;
-        }
-
-        return $model->status === EntryStatus::Private
-            ? $model->title
-            : (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
+        return Text::excerpt($model->excerpt, self::LIMIT)
+            ?: (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
     }
 
     private static function note(Note $model): string

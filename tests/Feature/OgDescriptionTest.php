@@ -11,6 +11,7 @@ use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
 use App\Models\TvEpisode;
+use App\Support\OgMeta;
 
 use function Pest\Laravel\get;
 
@@ -102,7 +103,7 @@ it('prefers an article excerpt over its opening prose', function () {
         );
 });
 
-it('keeps a private article description to its title, never its body, even with no excerpt', function () {
+it('gives a private article with no excerpt the site description, never its body', function () {
     $article = Article::factory()->create([
         'title' => 'Kept close',
         'excerpt' => null,
@@ -116,7 +117,7 @@ it('keeps a private article description to its title, never its body, even with 
 
     $response->assertOk()
         ->assertDontSee('Only after the password appears anywhere')
-        ->assertInertia(fn ($page) => $page->where('og.description', 'Kept close'));
+        ->assertInertia(fn ($page) => $page->where('og.description', OgMeta::page('Any page', null)['description']));
 });
 
 it('falls back to a note body for its own description', function () {

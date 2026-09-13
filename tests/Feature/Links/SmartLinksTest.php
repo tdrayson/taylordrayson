@@ -205,3 +205,28 @@ it('counts only listed entries in a tag preview, and previews nothing for a tag 
     expect($resolve('/tags/coffee')['excerpt'])->toBe('1 entry')
         ->and($resolve('/tags/secret'))->toBeNull();
 });
+
+it('previews a private entry by its title and written excerpt, never its body', function () {
+    Note::factory()->create([
+        'content' => PortableText::fromPlainText('Zanzibar marmalade confession'),
+        'slug' => 'private-thought',
+        'occurred_at' => '2026-06-15 09:00:00',
+        'status' => 'private',
+        'password' => 'hunter2',
+    ]);
+    Article::factory()->create([
+        'title' => 'Kept close',
+        'excerpt' => 'A public teaser',
+        'content' => PortableText::fromPlainText('Private body words'),
+        'slug' => 'kept-close',
+        'occurred_at' => '2026-06-15 10:00:00',
+        'status' => 'private',
+        'password' => 'hunter2',
+    ]);
+
+    $resolve = fn (string $path): ?array => app(LinkResolvers::class)->resolve($path)?->toArray();
+
+    expect(json_encode($resolve('/2026/06/15/private-thought')))->not->toContain('Zanzibar')
+        ->and($resolve('/2026/06/15/private-thought')['title'])->toBe('Note')
+        ->and($resolve('/2026/06/15/kept-close'))->title->toBe('Kept close')->excerpt->toBe('A public teaser');
+});

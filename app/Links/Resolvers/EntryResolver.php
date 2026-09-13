@@ -3,10 +3,12 @@
 namespace App\Links\Resolvers;
 
 use App\Data\LinkPreviewData;
+use App\Enums\EntryStatus;
 use App\Links\LinkResolver;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
+use App\Presenters\EntryDescription;
 
 /**
  * An entry permalink, /YYYY/MM/DD/slug.
@@ -36,8 +38,8 @@ class EntryResolver implements LinkResolver
 
         return LinkPreviewData::entry(
             url: $path,
-            title: $card->title,
-            excerpt: $card->subtitle,
+            title: CardPresenter::publicTitle($model, $card),
+            excerpt: $model->status === EntryStatus::Private ? EntryDescription::for($model, $card) : $card->subtitle,
             type: $card->type->value,
             accent: $card->accent,
             date: $model->occurredAtForDisplay()?->toDateString(),

@@ -3,16 +3,18 @@
 use App\Actions\Og\BuildEntryOgData;
 use App\Enums\EntryStatus;
 use App\Models\Article;
+use App\Models\Note;
 use App\Models\Page;
+use App\Models\Place;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Models\User;
 use App\Support\PortableText;
 use Illuminate\Hashing\HashManager;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
-/** An article, not a note: a note's meta description is its body, which the spec lets the head show. */
 function privateArticle(): Article
 {
     return Article::factory()->create([
@@ -144,4 +146,42 @@ it('keeps a private entry\'s body out of its own generated OG image data', funct
     $data = app(BuildEntryOgData::class)($entry, fn (): ?string => null);
 
     expect(json_encode($data))->not->toContain('Private body words');
+});
+
+it('keeps a private note\'s body out of everything a guest receives, while the owner still reads it', function () {
+    Storage::fake('local');
+
+    $note = Note::factory()->create([
+        'content' => PortableText::fromPlainText('Zanzibar marmalade confession'),
+        'slug' => 'private-thought',
+        'occurred_at' => '2026-06-15 09:00:00',
+        'status' => EntryStatus::Private,
+        'password' => 'hunter2',
+    ]);
+
+    $response = $this->get('/2026/06/15/private-thought');
+
+    $response->assertOk()
+        ->assertDontSee('Zanzibar')
+        ->assertInertia(fn (Assert $page) => $page->where('og.title', 'Note - 15 Jun 2026'));
+
+    $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('entry_id', $note->id)->with('entry')->sole();
+
+    expect(json_encode(app(BuildEntryOgData::class)($entry, fn (): ?string => null)))->not->toContain('Zanzibar');
+
+    $this->actingAs(User::factory()->create())->get('/2026/06/15/private-thought')->assertSee('Zanzibar');
+});
+
+it('describes a private entry by its written excerpt alone', function () {
+    $place = Place::factory()->create([
+        'description' => 'Met the landlord about the flat',
+        'status' => EntryStatus::Private,
+        'password' => 'hunter2',
+    ]);
+
+    $this->get($place->url())->assertOk()->assertDontSee('landlord');
+
+    privateArticle();
+
+    $this->get('/2026/06/15/kept-close')->assertInertia(fn (Assert $page) => $page->where('og.description', 'A public teaser'));
 });

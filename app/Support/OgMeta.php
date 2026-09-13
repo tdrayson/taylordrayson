@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Models\TvEpisode;
+use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -467,7 +468,7 @@ class OgMeta
     {
         return self::make([
             'title' => self::entryTitle($model, $card),
-            'description' => EntryDescription::for($model, $card),
+            'description' => EntryDescription::for($model, $card) ?? self::SITE_DESCRIPTION,
             'image' => $entry !== null ? self::entryCardUrl($entry) : null,
             'type' => $model instanceof Article ? 'article' : 'website',
             'noindex' => $model->status !== EntryStatus::Published,
@@ -512,8 +513,10 @@ class OgMeta
      */
     private static function entryTitle(Model $model, CardData $card): string
     {
+        $cardTitle = CardPresenter::publicTitle($model, $card);
+
         if ($model instanceof Article || $model instanceof Project) {
-            return $card->title;
+            return $cardTitle;
         }
 
         // An episode's card title is the episode's alone, which off the show's
@@ -530,8 +533,8 @@ class OgMeta
         // not a title. The venue is the name of the thing.
         $title = match (true) {
             $model instanceof Place => trim(collect([$model->event_name, $model->venue_name])->filter()->implode(' at ')),
-            $show !== null => "{$show}: {$card->title}",
-            default => $card->title,
+            $show !== null => "{$show}: {$cardTitle}",
+            default => $cardTitle,
         };
 
         $suffix = $card->occurredAt === null ? '' : ' - '.$card->occurredAt->format('j M Y');

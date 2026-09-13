@@ -133,7 +133,7 @@ final class BuildEntryOgData
             default => null,
         };
 
-        return Str::limit($phrase ?? trim($card->title), 160, '');
+        return Str::limit($phrase ?? trim(CardPresenter::publicTitle($model, $card)), 160, '');
     }
 
     /** "season 4 episode 4 of Ted Lasso", falling back to whatever is known. */

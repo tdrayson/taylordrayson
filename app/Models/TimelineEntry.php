@@ -143,7 +143,7 @@ class TimelineEntry extends Model implements Feedable
             // The standalone sentence, not the card subtitle: a subtitle is
             // written to sit under its title, and a check-in without a note has
             // none at all.
-            'summary' => EntryDescription::for($this->entry, $card),
+            'summary' => EntryDescription::for($this->entry, $card) ?? '',
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
