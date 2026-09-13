@@ -21,6 +21,10 @@ class ArchiveResolver implements LinkResolver
         $slug = trim($path, '/');
 
         foreach (TypeRegistry::all() as $type => $definition) {
+            if (! $definition['archive']) {
+                continue;
+            }
+
             if ($definition['slug'] === $slug) {
                 $count = TimelineEntry::query()->where('dataset', (new $definition['model'])->getMorphClass())->count();
 

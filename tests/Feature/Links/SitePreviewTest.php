@@ -1,6 +1,7 @@
 <?php
 
 use App\Links\LinkResolvers;
+use App\Links\Resolvers\ArchiveResolver;
 use App\Models\Activity;
 
 /** The preview a path resolves to, or null. */
@@ -38,4 +39,9 @@ it('previews a taxonomy value with how much is behind it', function () {
 
 it('gives nothing for a taxonomy value that does not exist', function () {
     expect(previewFor('/activities/not-a-real-type'))->toBeNull();
+});
+
+it('skips non-archive datasets so the episode dataset never previews /tv itself', function () {
+    expect(app(ArchiveResolver::class)->resolve('/tv'))->toBeNull()
+        ->and(previewFor('/tv')['title'])->toBe('Every series I have watched');
 });

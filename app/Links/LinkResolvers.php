@@ -28,8 +28,7 @@ class LinkResolvers
         LiveResolver::class,
         PeriodResolver::class,
         // Above the archive: /flights/map is a literal route shaped like a
-        // taxonomy value, and /tv collides with the episode dataset's own
-        // registry slug even though it has no archive route of its own.
+        // taxonomy value.
         SiteResolver::class,
         ArchiveResolver::class,
         PageResolver::class,
