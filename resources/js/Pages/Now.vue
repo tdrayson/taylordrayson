@@ -26,8 +26,8 @@ const props = defineProps({
     episode: { type: Object, default: null },
     // Real sleep data ({ nights, stageHours }) or null when there is none.
     sleep: { type: Object, default: null },
-    // Per-day timeline entry counts for the trailing 30 days (oldest first).
-    entryCounts: { type: Array, default: () => [] },
+    // Four Mon-Sun weeks of { date, count }, oldest first; future days have a null count.
+    entryDays: { type: Array, default: () => [] },
     // Recent real photos ({ src, srcset, url, caption }) for the "Life lately" deck.
     photos: { type: Array, default: () => [] },
 });
@@ -45,7 +45,6 @@ const LAYOUT_KEY = 'now-layout-v1';
 // Only forward data props to a widget when the backend supplied something, so an
 // empty source falls back to the widget's own placeholder rather than blanking.
 const sleepProps = props.sleep ?? {};
-const entriesProps = props.entryCounts.length ? { counts: props.entryCounts } : {};
 const photosProps = props.photos.length ? { photos: props.photos } : {};
 
 // Ambient groups follow the same rule, per widget prop rather than per group:
@@ -84,7 +83,7 @@ const defaultWidgets = [
     { id: 'photos', component: markRaw(PhotosWidget), x: 2, y: 1, w: 2, h: 2, props: { ...photosProps } },
     { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: { ...sleepProps } },
     { id: 'this-week-with', component: markRaw(ThisWeekWithWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
-    { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { ...entriesProps } },
+    { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { days: props.entryDays } },
     { id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: { fill: true } },
 ];
 
