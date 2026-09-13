@@ -39,7 +39,7 @@ it('rejects a typed slug that collides with a reserved word', function () {
     $this->post('/entries/article', ['title' => 'An article', 'slug' => 'food'])
         ->assertSessionHasErrors('slug');
 
-    $this->post('/entries/project', ['title' => 'A project', 'status' => 'active', 'slug' => 'food'])
+    $this->post('/entries/project', ['title' => 'A project', 'stage' => 'active', 'slug' => 'food'])
         ->assertSessionHasErrors('slug');
 
     expect(Note::count())->toBe(0);

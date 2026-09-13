@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\ActivityDiscipline;
+use App\Enums\ProjectStage;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -136,11 +137,11 @@ class DatabaseSeeder extends Seeder
      */
     private function seedOneOffData(): void
     {
-        $statuses = ['active', 'active', 'maintained', 'archived', 'on_hold'];
+        $stages = [ProjectStage::Active, ProjectStage::Active, ProjectStage::Maintained, ProjectStage::Archived, ProjectStage::OnHold];
 
-        foreach ($statuses as $index => $status) {
+        foreach ($stages as $index => $stage) {
             $project = Project::factory()->create([
-                'status' => $status,
+                'stage' => $stage,
                 'occurred_at' => now()->subDays(fake()->numberBetween(10, 170)),
             ]);
 

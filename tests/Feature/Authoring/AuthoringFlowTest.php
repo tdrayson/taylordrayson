@@ -47,8 +47,8 @@ it('validates against the field definitions', function () {
     $this->post('/entries/article', [])->assertSessionHasErrors('title');
 
     // And a select only takes one of its declared options.
-    $this->post('/entries/project', ['title' => 'A project', 'status' => 'nonsense'])
-        ->assertSessionHasErrors('status');
+    $this->post('/entries/project', ['title' => 'A project', 'stage' => 'nonsense'])
+        ->assertSessionHasErrors('stage');
 
     // A tag is a name. Posting the {name, slug} shape the entry payload uses
     // for its links is a validation failure, not a TypeError inside the sync.

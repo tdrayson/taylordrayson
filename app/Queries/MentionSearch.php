@@ -115,7 +115,7 @@ final class MentionSearch
                 'id' => $project->id,
                 'url' => $project->url(),
                 'label' => $project->title,
-                'detail' => $project->status,
+                'detail' => $project->stage?->label(),
             ])
             ->all();
     }

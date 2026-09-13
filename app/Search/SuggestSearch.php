@@ -47,7 +47,7 @@ final class SuggestSearch
         'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
         'place' => ['venue_name', 'type', 'city', 'description'],
         'fuel' => ['station_name', 'city'],
-        'project' => ['title', 'description', 'status'],
+        'project' => ['title', 'description', 'stage'],
         'note' => ['content'],
         'article' => ['title', 'excerpt', 'content'],
     ];

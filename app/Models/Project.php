@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectStage;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -23,7 +24,7 @@ use Spatie\MediaLibrary\HasMedia;
     'long_description',
     'url',
     'github_url',
-    'status',
+    'stage',
     'featured',
 ])]
 class Project extends Model implements HasMedia, Timelineable
@@ -38,6 +39,7 @@ class Project extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'featured' => 'boolean',
+            'stage' => ProjectStage::class,
         ];
     }
 

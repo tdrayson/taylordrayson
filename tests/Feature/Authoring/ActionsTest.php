@@ -5,6 +5,7 @@ use App\Actions\Articles\UpdateArticle;
 use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\UpdatePage;
 use App\Actions\Projects\CreateProject;
+use App\Enums\ProjectStage;
 use App\Models\Article;
 use App\Models\Page;
 use App\Models\Project;
@@ -66,7 +67,7 @@ it('replaces tags on update rather than appending', function () {
 it('creates a project as active, since projects have no draft state', function () {
     $project = app(CreateProject::class)(['title' => 'Taylor Drayson dot com']);
 
-    expect($project->status)->toBe('active')
+    expect($project->stage)->toBe(ProjectStage::Active)
         ->and($project->slug)->toBe('taylor-drayson-dot-com')
         // No publish gate, so it is on the timeline immediately.
         ->and($project->timelineEntry)->not->toBeNull();
