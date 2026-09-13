@@ -5,7 +5,7 @@ import { withMediaIds } from '../../lib/editor/media.js';
 import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
 import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
-import { hiddenNames, revealed } from '../../lib/editor/visibility.js';
+import { hiddenNames, required, revealed } from '../../lib/editor/visibility.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import FieldGroup from './FieldGroup.vue';
@@ -407,6 +407,7 @@ function submit() {
                         :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
                         :hint="row.field.type === 'slug' ? slugPreview : null"
+                        :excused="row.field.required && ! required(row.field, form)"
                         @update:model-value="onFieldInput(row.field, $event)"
                         @fill="applyFill"
                     />

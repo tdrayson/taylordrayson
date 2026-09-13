@@ -45,19 +45,42 @@ final class FieldRules
             }
 
             $rules[$field->name] = [
-                // Only the genuinely mandatory fields are required, and only on
-                // create: an update may touch one field and leave the rest
-                // alone. A date stamped at save is left empty by a draft.
-                match (true) {
-                    ! $creating || ! $field->required => 'sometimes',
-                    $field->defaultsToNow => 'required_unless:status,draft',
-                    default => 'required',
-                },
+                ...self::presenceRules($field, $creating),
                 ...self::typeRules($field),
             ];
         }
 
         return $rules;
+    }
+
+    /**
+     * Whether a field must be filled.
+     *
+     * Only the genuinely mandatory fields are required, and only on create: an
+     * update may touch one field and leave the rest alone. A date stamped at
+     * save is left empty by a draft. A conditionally required field is also held
+     * to its condition on update whenever it is sent, so an edit cannot blank it.
+     *
+     * @return list<string>
+     */
+    private static function presenceRules(FieldData $field, bool $creating): array
+    {
+        if (! $field->required) {
+            return ['sometimes'];
+        }
+
+        $unless = array_map(
+            fn (string $name, array $values): string => 'required_unless:'.implode(',', [$name, ...$values]),
+            array_keys($field->requiredUnless ?? []),
+            $field->requiredUnless ?? [],
+        );
+
+        return match (true) {
+            ! $creating => ['sometimes', ...$unless],
+            $field->defaultsToNow => ['required_unless:status,draft'],
+            $unless !== [] => $unless,
+            default => ['required'],
+        };
     }
 
     /**

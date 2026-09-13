@@ -48,6 +48,8 @@ const props = defineProps({
     placeholder: { type: String, default: '' },
     // A line under the control, e.g. the URL a slug is going to produce.
     hint: { type: String, default: null },
+    // A required field its condition has excused, e.g. the body of a like.
+    excused: { type: Boolean, default: false },
 });
 
 // How much of a capped field's budget the current value spends. Measured on
@@ -131,8 +133,8 @@ function textToTags(value) {
                 ref="prose"
                 profile="prose"
                 :model-value="Array.isArray(modelValue) ? modelValue : []"
-                :placeholder="`Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
-                placeholder-short="Write something."
+                :placeholder="excused ? `Add a ${field.label.toLowerCase()}, or leave it blank.` : `Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
+                :placeholder-short="excused ? 'Optional.' : 'Write something.'"
                 @update:model-value="$emit('update:modelValue', $event)"
             />
         </div>

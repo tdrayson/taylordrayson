@@ -41,3 +41,19 @@ export function hiddenNames(fields, values) {
         .filter((field) => field.showWhen && ! revealed(field, values))
         .map((field) => field.name);
 }
+
+/**
+ * Whether a field must be filled before saving, given the form as it stands.
+ * Mirrors FieldRules: `requiredUnless` is shaped like `showWhen`, and a match excuses it.
+ *
+ * @param {object} field One serialised FieldData.
+ * @param {object} values The form's current values, keyed by field name.
+ * @returns {boolean}
+ */
+export function required(field, values) {
+    if (! field.required) {
+        return false;
+    }
+
+    return ! (field.requiredUnless && revealed({ showWhen: field.requiredUnless }, values));
+}
