@@ -21,10 +21,8 @@ return new class extends Migration
 
         $taken = [];
 
-        // Reads the raw morph columns via the query builder rather than the
-        // TimelineEntry model: at this point in history `timelineable_type`
-        // still holds the model's class path, not the dataset key the later
-        // `entry()` relation resolves through.
+        // Raw query builder, not the TimelineEntry model: at this point in history
+        // `timelineable_type` still holds the model's class path, not a dataset key.
         $rows = DB::table('timeline_entries')
             ->select('id', 'occurred_at', 'timelineable_type', 'timelineable_id')
             ->orderBy('occurred_at')
