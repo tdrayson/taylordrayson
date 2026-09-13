@@ -125,10 +125,12 @@ it('accepts a published page, which is what makes a guestbook work', function ()
 
 it('rejects a target that is not publicly visible', function () {
     $draftPage = Page::factory()->draft()->create();
-    $draftArticle = Article::factory()->create(['published' => false]);
+    $draftArticle = Article::factory()->draft()->create();
+    $privateArticle = Article::factory()->create(['status' => 'private', 'password' => 'secret']);
 
     react('page', $draftPage->id)->assertNotFound();
     react('article', $draftArticle->id)->assertNotFound();
+    react('article', $privateArticle->id)->assertNotFound();
 
     expect(Reaction::count())->toBe(0);
 });
