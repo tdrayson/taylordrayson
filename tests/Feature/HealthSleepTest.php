@@ -103,14 +103,14 @@ it('keeps the longer night when a real nap is present the same sleep-day', funct
 
 it('scores every night, oldest first, from what is stored', function () {
     $nights = [
-        ['2026-07-01', '2026-07-01 23:00:00', '2026-07-02 07:00:00', 28800, 300, 5400, 10800, 5400],
-        ['2026-07-02', '2026-07-02 23:10:00', '2026-07-03 07:00:00', 27000, 600, 5000, 12000, 4000],
-        ['2026-07-03', '2026-07-03 02:30:00', '2026-07-03 06:30:00', 14400, 1800, 1200, 9000, 1200], // short, late, broken
+        ['2026-07-01 23:00:00', '2026-07-02 07:00:00', 28800, 300, 5400, 10800, 5400],
+        ['2026-07-02 23:10:00', '2026-07-03 07:00:00', 27000, 600, 5000, 12000, 4000],
+        ['2026-07-03 02:30:00', '2026-07-03 06:30:00', 14400, 1800, 1200, 9000, 1200], // short, late, broken
     ];
 
-    foreach ($nights as [$occurredAt, $bedtime, $wakeTime, $duration, $awake, $rem, $core, $deep]) {
+    foreach ($nights as [$bedtime, $wakeTime, $duration, $awake, $rem, $core, $deep]) {
         Sleep::factory()->create([
-            'occurred_at' => $occurredAt, 'started_at' => $bedtime,
+            'occurred_at' => $wakeTime, 'started_at' => $bedtime,
             'duration' => $duration, 'awake' => $awake, 'rem' => $rem, 'core' => $core, 'deep' => $deep,
             'source' => 'oura',
             'stages' => json_encode([
@@ -122,8 +122,10 @@ it('scores every night, oldest first, from what is stored', function () {
 
     $this->artisan('health:sleep', ['--score' => true])->assertSuccessful();
 
-    $good = Sleep::query()->whereDate('occurred_at', '2026-07-01')->first();
-    $bad = Sleep::query()->whereDate('occurred_at', '2026-07-03')->first();
+    // Keyed on the real wake instant now stored in occurred_at: 3 Jul's two
+    // wake dates collide on whereDate, so both lookups match on the exact moment.
+    $good = Sleep::query()->where('occurred_at', '2026-07-02 07:00:00')->first();
+    $bad = Sleep::query()->where('occurred_at', '2026-07-03 06:30:00')->first();
 
     expect($good->score)->toBeGreaterThanOrEqual(0)->toBeLessThanOrEqual(100)
         ->and($good->score)->toBeGreaterThan($bad->score)
