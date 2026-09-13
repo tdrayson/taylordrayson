@@ -8,6 +8,8 @@ const props = defineProps({
     url: { type: String, required: true },
     // The page's Open Graph payload: { title, description, image }.
     og: { type: Object, default: () => ({}) },
+    // False on a private entry, which neither receives nor sends mentions.
+    takesWebmentions: { type: Boolean, default: true },
 });
 
 // Only the handful of readers who open this panel need the form's chunk.
@@ -52,7 +54,7 @@ async function copy() {
     <!-- Three side doors, all at the same weight, so none of them competes
          with the comment box above or with the entry itself. -->
     <div class="mt-10">
-        <Accordion ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
+        <Accordion v-if="takesWebmentions" ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
             <template #default="{ expanded }">
                 <p class="mb-3 text-meta text-neutral-500">
                     Send me the link and your
