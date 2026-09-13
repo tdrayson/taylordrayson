@@ -48,8 +48,8 @@ final class TvEpisodeDataset extends BaseDataset
     }
 
     /**
-     * The base default would derive "tv-episode" from the plural label,
-     * producing "1384 tv-episodes" in archive previews and OG.
+     * Entries count as episodes; the base default would derive "tv episode"
+     * from the plural label.
      */
     public function noun(): string
     {
