@@ -72,6 +72,25 @@ it('refuses to roll back the media split once an id collides across films, episo
         ->and(DB::table('episodes')->where('id', 1)->exists())->toBeTrue();
 });
 
+it('refuses to split media while a morph reference points at a missing id', function () {
+    $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
+
+    $migration->down();
+
+    DB::table('timeline_entries')->insert([
+        'dataset' => 'media',
+        'entry_id' => 999999,
+        'url_slug' => 'missing',
+        'occurred_at' => '2024-01-01 20:00:00',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(fn () => $migration->up())->toThrow(RuntimeException::class);
+
+    expect(Schema::hasTable('films'))->toBeFalse();
+});
+
 it('splits a legacy media table into films, episodes and books via the migration, preserving ids', function () {
     $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
 

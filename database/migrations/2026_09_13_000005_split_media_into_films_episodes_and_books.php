@@ -23,6 +23,8 @@ return new class extends Migration
             throw new RuntimeException("media has {$unknown} row(s) with a type outside film/episode/book; refusing to split.");
         }
 
+        $this->assertNoOrphanedMorphRows();
+
         foreach (self::TABLES as $type => $table) {
             Schema::create($table, function (Blueprint $blueprint) use ($type): void {
                 $blueprint->id();
@@ -98,6 +100,24 @@ return new class extends Migration
 
         foreach (self::TABLES as $table) {
             Schema::drop($table);
+        }
+    }
+
+    /**
+     * A morph row keyed `media` whose id no longer exists in `media` would be left
+     * pointing at a key the morph map doesn't know once the split renames it.
+     */
+    private function assertNoOrphanedMorphRows(): void
+    {
+        foreach (self::MORPH_COLUMNS as [$morphTable, $typeColumn, $idColumn]) {
+            $orphaned = DB::table($morphTable)
+                ->where($typeColumn, 'media')
+                ->whereNotIn($idColumn, DB::table('media')->select('id'))
+                ->count();
+
+            if ($orphaned > 0) {
+                throw new RuntimeException("{$morphTable} has {$orphaned} row(s) keyed media with an id missing from media; refusing to split.");
+            }
         }
     }
 
