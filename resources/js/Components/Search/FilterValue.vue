@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import DatePicker from '../Overlays/DatePicker.vue';
-import UnitInput from './UnitInput.vue';
+import Input from '../Ui/Input.vue';
 import DurationInput from './DurationInput.vue';
 import MultiSelect from './MultiSelect.vue';
 
@@ -15,9 +15,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
-
-const inputClass =
-    'w-full rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-meta text-neutral-900 transition-colors placeholder:text-neutral-500 focus:border-accent-500 focus:outline-none';
 
 const isWhen = computed(() => ['day', 'month', 'year'].includes(props.dataType));
 const isBetween = computed(() => props.operator === 'between' || props.operator === 'not_between');
@@ -48,6 +45,10 @@ const secondValue = computed({
     get: () => (Array.isArray(props.modelValue) ? props.modelValue[1] ?? '' : ''),
     set: (value) => setPair(1, value),
 });
+/** Reads the unit with the value, e.g. "£ Min" or "Max miles". */
+function unitLabel(placeholder) {
+    return [props.prefix, placeholder, props.suffix].filter(Boolean).join(' ');
+}
 </script>
 
 <template>
@@ -69,16 +70,16 @@ const secondValue = computed({
 
     <template v-else-if="dataType === 'number' || dataType === 'media'">
         <div v-if="isBetween" class="flex items-center gap-2">
-            <UnitInput v-model="firstValue" :prefix="prefix" :suffix="suffix" placeholder="Min" class="flex-1" />
-            <UnitInput v-model="secondValue" :prefix="prefix" :suffix="suffix" placeholder="Max" class="flex-1" />
+            <Input v-model="firstValue" type="number" :prefix="prefix" :suffix="suffix" placeholder="Min" :aria-label="unitLabel('Min')" class="flex-1" />
+            <Input v-model="secondValue" type="number" :prefix="prefix" :suffix="suffix" placeholder="Max" :aria-label="unitLabel('Max')" class="flex-1" />
         </div>
-        <UnitInput v-else v-model="single" :prefix="prefix" :suffix="suffix" />
+        <Input v-else v-model="single" type="number" :prefix="prefix" :suffix="suffix" placeholder="Value" :aria-label="unitLabel('Value')" />
     </template>
 
     <template v-else-if="dataType === 'enum'">
         <MultiSelect v-if="isList" v-model="listValue" :options="options ?? []" />
-        <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
+        <Input v-else v-model="single" placeholder="Filter value" aria-label="Filter value" />
     </template>
 
-    <input v-else v-model="single" type="text" placeholder="Filter value" aria-label="Filter value" :class="inputClass">
+    <Input v-else v-model="single" placeholder="Filter value" aria-label="Filter value" />
 </template>
