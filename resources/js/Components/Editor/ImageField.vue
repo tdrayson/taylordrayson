@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { CONTROL_BORDER } from '../../lib/editor/control.js';
+import { csrf } from '../../lib/csrf.js';
 
 /**
  * Upload for an entry's images. Handles both a single cover and a gallery: the
@@ -28,16 +29,6 @@ const error = ref(null);
 
 const items = computed(() => (Array.isArray(props.modelValue) ? props.modelValue : []));
 const full = computed(() => ! props.multiple && items.value.length >= 1);
-
-/**
- * Laravel ships the token as the XSRF-TOKEN cookie rather than a meta tag here,
- * and expects it back URL-decoded in X-XSRF-TOKEN.
- */
-function csrf() {
-    const cookie = document.cookie.split('; ').find((part) => part.startsWith('XSRF-TOKEN='));
-
-    return cookie ? decodeURIComponent(cookie.slice('XSRF-TOKEN='.length)) : '';
-}
 
 // The long edge the server also caps at, so a file that is already small
 // enough here is not re-encoded twice.

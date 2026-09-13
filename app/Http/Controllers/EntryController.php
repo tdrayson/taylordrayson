@@ -29,6 +29,7 @@ use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
+use App\Presenters\Conversation;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\EntryArtwork;
 use App\Queries\TripForEntry;
@@ -36,6 +37,7 @@ use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use App\Support\ShowTitle;
+use App\Support\VisitorIdentity;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -153,6 +155,11 @@ class EntryController extends Controller
             'entry' => $model instanceof Food
                 ? $this->foodDay($model)
                 : $this->entryPayload($model),
+            // Server-rendered, not fetched: the replies and mentions carry
+            // h-cite markup that other IndieWeb sites parse, and a reader with
+            // no JS should still see what people said. Only the reply *form*
+            // is loaded on demand.
+            'conversation' => Conversation::shownFor($model, VisitorIdentity::onTarget(request(), $model)),
             'polyline' => data_get($model, 'meta.polyline'),
             'editing' => Auth::check() && request()->has('edit'),
             // A synced type edits its status alone: a field the sync also writes
