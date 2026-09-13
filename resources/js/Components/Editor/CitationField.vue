@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { csrf } from '../../lib/csrf.js';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import ReplyContext from '../Entry/ReplyContext.vue';
@@ -11,16 +11,20 @@ const props = defineProps({
     // The URL and kind from their own fields, which decide what to preview.
     responseUrl: { type: String, default: null },
     responseKind: { type: String, default: null },
+    // The URL the editor opened with: loading that one never pre-fills the quote.
+    openedResponseUrl: { type: String, default: null },
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+// The input this previews from, owned by its own field.
+const URL_INPUT_ID = 'response_url';
 
 const preview = ref(null);
 const loading = ref(false);
 const failed = ref(false);
 
-// The URL our last successful load resolved for, so a change can be told apart
-// from the page's own first load of an existing reply.
+// The last URL a load was started for, so a change can be told apart from a repeat.
 const loadedFor = ref(null);
 
 // Tags each load() call so a slower, older request cannot land after a newer
@@ -31,11 +35,9 @@ let latestRequestId = 0;
  * Asks the server what the context will look like, through the same builder the
  * entry page uses. `refresh` refetches even when a copy is already stored.
  *
- * Changing the URL to a different post makes a quote taken from the old one
- * stale, so it is cleared here before the new excerpt arrives rather than left
- * to be saved against the wrong post. The url and kind are captured up front
- * and used throughout, rather than re-read off props after the await, since
- * either may have moved on again while this call was in flight.
+ * A quote taken from a different post is stale, so it is cleared before the new
+ * excerpt arrives. The url and kind are captured up front, since either may move
+ * on again while this call is in flight.
  */
 async function load(refresh = false) {
     const url = props.responseUrl;
@@ -43,6 +45,7 @@ async function load(refresh = false) {
 
     if (! url || ! kind) {
         preview.value = null;
+        failed.value = false;
         loadedFor.value = null;
         latestRequestId += 1;
 
@@ -50,6 +53,7 @@ async function load(refresh = false) {
     }
 
     const changedUrl = loadedFor.value !== null && loadedFor.value !== url;
+    loadedFor.value = url;
 
     if (changedUrl) {
         emit('update:modelValue', '');
@@ -71,17 +75,29 @@ async function load(refresh = false) {
             return;
         }
 
-        if (! response.ok) {
+        // Only an unreachable server is worth a message: anything else, such as a
+        // half-typed URL failing validation, just has nothing to preview.
+        if (response.status >= 500) {
             throw new Error(response.status);
         }
 
-        preview.value = (await response.json()).data;
-        loadedFor.value = url;
+        if (! response.ok) {
+            preview.value = null;
 
-        // Pre-fill the quote from the excerpt: the first time for this field, or
-        // whenever the url just changed and the old quote was cleared above. A
-        // gesture has nothing to pre-fill, whatever the excerpt says.
-        if (kind === 'reply' && preview.value?.cited?.quote && (changedUrl || ! props.modelValue)) {
+            return;
+        }
+
+        preview.value = (await response.json()).data;
+
+        // Pre-fill the quote from the excerpt for a post the editor did not open
+        // with, when it is empty or was just cleared for a new URL. An empty quote
+        // already publishes the excerpt, so an existing reply is left alone.
+        const prefill = kind === 'reply'
+            && preview.value?.cited?.quote
+            && url !== props.openedResponseUrl
+            && (changedUrl || ! props.modelValue);
+
+        if (prefill) {
             emit('update:modelValue', preview.value.cited.quote);
         }
     } catch {
@@ -95,19 +111,49 @@ async function load(refresh = false) {
     }
 }
 
-// Debounced, so typing a URL character by character does not fetch each prefix.
-let timer = null;
-watch(() => [props.responseUrl, props.responseKind], () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => load(), 400);
-}, { immediate: true });
+/** Loads only when the URL field holds something new since the last load. */
+function loadIfChanged() {
+    if ((props.responseUrl || null) !== loadedFor.value) {
+        load();
+    }
+}
 
-// Switching away from a reply drops the quote client-side too, so the value
-// held here (and about to be submitted) agrees with what a gesture publishes.
+/** A paste lands in the input after the event, so the load waits a tick for it. */
+function onPaste(event) {
+    if (event.target?.id === URL_INPUT_ID) {
+        setTimeout(loadIfChanged, 0);
+    }
+}
+
+/** Leaving the URL input is when a typed URL is taken as finished. */
+function onFocusOut(event) {
+    if (event.target?.id === URL_INPUT_ID) {
+        loadIfChanged();
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('paste', onPaste);
+    document.addEventListener('focusout', onFocusOut);
+
+    if (props.responseUrl) {
+        load();
+    }
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('paste', onPaste);
+    document.removeEventListener('focusout', onFocusOut);
+});
+
+// A new kind can change what the preview says. Switching away from a reply also
+// drops the quote client-side, so the value submitted agrees with what a gesture publishes.
 watch(() => props.responseKind, (kind) => {
     if (kind !== 'reply') {
         emit('update:modelValue', '');
     }
+
+    load();
 });
 
 /** Puts the fetched excerpt back after it has been trimmed or replaced. */
@@ -116,11 +162,9 @@ function reset() {
 }
 
 /**
- * The preview kept true to what will actually publish: BuildResponseContext
- * quotes the trimmed response_quote when there is one, the fetched excerpt
- * otherwise, so this mirrors that rule rather than always showing the
- * excerpt untouched. `preview` itself is left alone, since "Reset to excerpt"
- * and the pre-fill above both need the original.
+ * The preview kept true to what will actually publish: the trimmed quote when
+ * there is one, the fetched excerpt otherwise. `preview` itself is left alone,
+ * since "Reset to excerpt" and the pre-fill both need the original.
  */
 const displayPreview = computed(() => {
     if (! preview.value) {
@@ -136,6 +180,9 @@ const displayPreview = computed(() => {
         cited: { ...preview.value.cited, quote: props.modelValue },
     };
 });
+
+// Shown greyed in an empty quote: what publishes when it is left blank.
+const excerpt = computed(() => preview.value?.cited?.quote ?? '');
 </script>
 
 <template>
@@ -150,6 +197,7 @@ const displayPreview = computed(() => {
             v-if="responseKind === 'reply'"
             :id="id"
             :value="modelValue"
+            :placeholder="excerpt"
             rows="3"
             maxlength="600"
             :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"

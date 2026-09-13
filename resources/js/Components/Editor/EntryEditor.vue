@@ -400,6 +400,7 @@ function submit() {
                         :longitude="form.longitude ?? null"
                         :response-url="form.response_url ?? null"
                         :response-kind="form.response_kind ?? null"
+                        :opened-response-url="values.response_url ?? null"
                         :error="form.errors[row.field.name]"
                         :readonly="row.field.type === 'slug' && slugLocked"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
