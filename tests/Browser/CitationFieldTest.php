@@ -24,6 +24,8 @@ it('previews the stored copy and saves a trimmed quote', function () {
     $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-author')?.textContent.trim()), 1500))", 'Aaron Parecki');
 
     $page->fill('#response_quote', 'Just this bit.');
+    $page->assertScript("document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()", 'Just this bit.');
+
     $page->fill('#slug', 'agreed');
     $page->click('button:has-text("Post")');
     $page->assertScript("location.pathname !== '/new/note'", true);
