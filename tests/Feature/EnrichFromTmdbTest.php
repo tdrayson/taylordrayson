@@ -104,3 +104,13 @@ it('falls back to the trakt poster when tmdb has no poster', function () {
 
     expect($media->fresh()->getFirstMedia('cover'))->not->toBeNull();
 });
+
+it('falls back to the trakt fanart when tmdb no longer knows the show', function () {
+    fakeEnrichmentApis();
+
+    $tvShow = TvShow::factory()->create();
+    (new EnrichFromTmdb($tvShow, 'tv', 327805, 'media.trakt.tv/posters/f1.webp', 'media.trakt.tv/fanarts/f1.webp'))
+        ->handle(app(Client::class));
+
+    expect($tvShow->fresh()->getFirstMedia('backdrop'))->not->toBeNull();
+});

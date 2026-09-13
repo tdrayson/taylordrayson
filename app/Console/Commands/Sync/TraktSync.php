@@ -421,7 +421,7 @@ class TraktSync extends Command
         $summary = $poster ? null : $trakt->movie($movie['ids']['trakt'] ?? null);
         $posterUrl = $this->posterUrl($movie, $summary);
 
-        EnrichFromTmdb::dispatch($film, 'movie', $movie['ids']['tmdb'] ?? null, $posterUrl);
+        EnrichFromTmdb::dispatch($film, 'movie', $movie['ids']['tmdb'] ?? null, $posterUrl, $this->fanartUrl($movie, $summary));
     }
 
     /**
@@ -462,18 +462,17 @@ class TraktSync extends Command
             $this->enrichDispatched[$tvShow->id] = true;
             $posterUrl = $this->posterUrl($show, $summary);
 
-            EnrichFromTmdb::dispatch($tvShow, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
+            EnrichFromTmdb::dispatch($tvShow, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl, $this->fanartUrl($show, $summary));
         }
     }
 
     /**
-     * A show is bare when it's missing either its cover artwork or its
-     * TMDB enrichment metadata, e.g. because `EnrichFromTmdb` never ran or
-     * exhausted its retries after the show was first created.
+     * A show is bare when it's missing its cover or backdrop, e.g. because
+     * `EnrichFromTmdb` never ran or exhausted its retries.
      */
     private function tvShowIsBare(TvShow $tvShow): bool
     {
-        return ! $tvShow->hasMedia('cover') || $tvShow->meta->tmdb->isEmpty();
+        return ! $tvShow->hasMedia('cover') || ! $tvShow->hasMedia('backdrop');
     }
 
     /**
@@ -542,6 +541,17 @@ class TraktSync extends Command
     private function posterUrl(array $subject, ?array $summary): ?string
     {
         return $subject['images']['poster'][0] ?? $summary['images']['poster'][0] ?? null;
+    }
+
+    /**
+     * The wide fanart, resolved the same way as the poster.
+     *
+     * @param  array<string, mixed>  $subject  The `movie` or `show` payload from the history item.
+     * @param  array<string, mixed>|null  $summary  The movie/show summary response, if one is available.
+     */
+    private function fanartUrl(array $subject, ?array $summary): ?string
+    {
+        return $subject['images']['fanart'][0] ?? $summary['images']['fanart'][0] ?? null;
     }
 
     /**

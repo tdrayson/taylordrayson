@@ -16,7 +16,7 @@ use Spatie\MediaLibrary\HasMedia;
 /**
  * Enriches a newly synced Trakt series or film with TMDB structure (seasons,
  * genres, tagline) and upgrades its artwork from TMDB's poster/backdrop/logo
- * to R2 (Trakt's poster remains the fallback when TMDB has none). Best-effort
+ * to R2 (Trakt's poster and fanart remain the fallback when TMDB has none). Best-effort
  * throughout: a missing id or a failed metadata fetch degrades gracefully,
  * only a failed image download retries the job.
  */
@@ -31,6 +31,7 @@ class EnrichFromTmdb implements ShouldQueue
         private string $kind,
         private ?int $tmdbId,
         private ?string $fallbackPosterUrl,
+        private ?string $fallbackBackdropUrl = null,
     ) {}
 
     /**
@@ -44,14 +45,18 @@ class EnrichFromTmdb implements ShouldQueue
     public function handle(Client $tmdb): void
     {
         $meta = $this->subject->meta->toArray();
-        $posterDownloaded = false;
+        $downloaded = [];
 
         if ($this->tmdbId !== null) {
-            [$meta, $posterDownloaded] = $this->applyTmdb($tmdb, $meta);
+            [$meta, $downloaded] = $this->applyTmdb($tmdb, $meta);
         }
 
-        if (! $posterDownloaded && $this->fallbackPosterUrl !== null) {
+        if (! in_array('cover', $downloaded, true) && $this->fallbackPosterUrl !== null) {
             $this->downloadImage('cover', $this->fallbackPosterUrl);
+        }
+
+        if (! in_array('backdrop', $downloaded, true) && $this->fallbackBackdropUrl !== null) {
+            $this->downloadImage('backdrop', $this->fallbackBackdropUrl);
         }
 
         $this->subject->meta = $meta;
@@ -69,14 +74,14 @@ class EnrichFromTmdb implements ShouldQueue
      * branches (this used to happen for tv only).
      *
      * @param  array<string, mixed>  $meta
-     * @return array{0: array<string, mixed>, 1: bool} The updated meta, and whether a poster was downloaded.
+     * @return array{0: array<string, mixed>, 1: list<string>} The updated meta, and the collections downloaded.
      */
     private function applyTmdb(Client $tmdb, array $meta): array
     {
         $detail = $this->kind === 'tv' ? $tmdb->tv($this->tmdbId) : $tmdb->movie($this->tmdbId);
 
         if ($detail === null) {
-            return [$meta, false];
+            return [$meta, []];
         }
 
         $meta['tmdb'] = array_filter([
@@ -102,13 +107,15 @@ class EnrichFromTmdb implements ShouldQueue
 
         }
 
-        $posterDownloaded = $this->downloadTmdbImage('cover', $tmdb->imageUrl($detail['poster_path'] ?? null, 'w780'));
-        $this->downloadTmdbImage('backdrop', $tmdb->imageUrl($detail['backdrop_path'] ?? null, 'w1280'));
-
         $logoPath = $this->bestLogoPath($tmdb->images($this->kind, $this->tmdbId));
-        $this->downloadTmdbImage('logo', $tmdb->imageUrl($logoPath, 'w500'));
 
-        return [$meta, $posterDownloaded];
+        $downloaded = array_keys(array_filter([
+            'cover' => $this->downloadTmdbImage('cover', $tmdb->imageUrl($detail['poster_path'] ?? null, 'w780')),
+            'backdrop' => $this->downloadTmdbImage('backdrop', $tmdb->imageUrl($detail['backdrop_path'] ?? null, 'w1280')),
+            'logo' => $this->downloadTmdbImage('logo', $tmdb->imageUrl($logoPath, 'w500')),
+        ]));
+
+        return [$meta, $downloaded];
     }
 
     /**
