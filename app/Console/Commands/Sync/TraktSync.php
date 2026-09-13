@@ -467,13 +467,12 @@ class TraktSync extends Command
     }
 
     /**
-     * A show is bare when it's missing either its cover artwork or its
-     * TMDB enrichment metadata, e.g. because `EnrichFromTmdb` never ran or
-     * exhausted its retries after the show was first created.
+     * A show is bare when it's missing its cover or backdrop, e.g. because
+     * `EnrichFromTmdb` never ran or exhausted its retries.
      */
     private function tvShowIsBare(TvShow $tvShow): bool
     {
-        return ! $tvShow->hasMedia('cover') || $tvShow->meta->tmdb->isEmpty();
+        return ! $tvShow->hasMedia('cover') || ! $tvShow->hasMedia('backdrop');
     }
 
     /**

@@ -12,15 +12,18 @@ beforeEach(function () {
 });
 
 /**
- * Attaches a real single-file `cover` media item so a subject is genuinely
- * non-bare by the `hasMedia('cover')` half of the bare check.
+ * Attaches a real single-file media item to each collection so a subject is
+ * genuinely non-bare.
  */
-function attachCover(Film|TvShow $subject): void
+function attachArtwork(Film|TvShow $subject, string ...$collections): void
 {
     Storage::fake(config('media-library.disk_name'));
 
     $bytes = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
-    $subject->addMediaFromString($bytes)->usingFileName('cover.webp')->toMediaCollection('cover');
+
+    foreach ($collections as $collection) {
+        $subject->addMediaFromString($bytes)->usingFileName("{$collection}.webp")->toMediaCollection($collection);
+    }
 }
 
 it('dispatches enrichment only for bare tv shows/films by default, and for everything with --force', function () {
@@ -35,11 +38,11 @@ it('dispatches enrichment only for bare tv shows/films by default, and for every
         'meta' => ['ids' => ['trakt' => 9, 'tmdb' => 438631]],
     ]);
 
-    // (c) Already-enriched tv show: has BOTH a cover and meta.tmdb, so it's
-    // non-bare (bare = missing cover OR missing tmdb).
+    // (c) Already-enriched tv show: has BOTH a cover and a backdrop, so it's
+    // non-bare (bare = missing cover OR missing backdrop).
     $enrichedTvShow = TvShow::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1, 'tmdb' => ['id' => 1]]]);
     TvEpisode::factory()->create(['tv_show_id' => $enrichedTvShow->id]);
-    attachCover($enrichedTvShow);
+    attachArtwork($enrichedTvShow, 'cover', 'backdrop');
 
     $this->artisan('tmdb:enrich')->assertSuccessful();
 

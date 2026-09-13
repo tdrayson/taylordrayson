@@ -6,6 +6,7 @@ use App\Models\TvEpisode;
 use App\Models\TvShow;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Storage;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -381,9 +382,8 @@ it('caps the self-healed sync window at MAX_CATCHUP_DAYS when the last synced wa
 });
 
 it('re-dispatches enrichment for an existing bare tv show that receives a new episode this run', function () {
-    // Bare: no cover media, and the factory's default meta carries no `tmdb`
-    // key. One episode already exists so the show is genuinely pre-existing,
-    // not created by this run.
+    // Bare: no cover or backdrop. One episode already exists so the show is
+    // genuinely pre-existing, not created by this run.
     $tvShow = TvShow::factory()->create(['trakt_id' => 700]);
     TvEpisode::create([
         'occurred_at' => '2024-01-01 20:00:00',
@@ -405,6 +405,25 @@ it('re-dispatches enrichment for an existing bare tv show that receives a new ep
     // Not a new show, so the old `$wasNew`-only dispatch would have missed
     // this: the show is bare, so it must still re-enrich.
     Bus::assertDispatched(EnrichFromTmdb::class, 1);
+});
+
+it('does not re-enrich a show that already has its artwork, even without tmdb meta', function () {
+    Storage::fake(config('media-library.disk_name'));
+
+    $tvShow = TvShow::factory()->create(['trakt_id' => 700]);
+    $pixel = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
+    $tvShow->addMediaFromString($pixel)->usingFileName('cover.webp')->toMediaCollection('cover');
+    $tvShow->addMediaFromString($pixel)->usingFileName('backdrop.webp')->toMediaCollection('backdrop');
+
+    fakeTraktHistory(movies: [], episodes: [
+        ['id' => 601, 'watched_at' => '2024-02-01T20:00:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 1, 'number' => 2, 'title' => 'New Ep', 'runtime' => 50, 'ids' => ['trakt' => 111]],
+            'show' => ['title' => 'Formula 1', 'year' => 1950, 'ids' => ['trakt' => 700, 'slug' => 'formula-1', 'tmdb' => 327805]]],
+    ]);
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    Bus::assertNotDispatched(EnrichFromTmdb::class);
 });
 
 it('dispatches enrichment once for a bare tv show even when a batch carries several of its episodes', function () {

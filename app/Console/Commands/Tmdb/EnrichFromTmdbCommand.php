@@ -63,13 +63,10 @@ class EnrichFromTmdbCommand extends Command
         return $dispatched;
     }
 
-    /**
-     * Mirrors `TraktSync::tvShowIsBare()`: missing either the cover artwork
-     * or the TMDB enrichment metadata block.
-     */
+    /** Mirrors `TraktSync::tvShowIsBare()`: missing its cover or backdrop. */
     private function tvShowIsBare(TvShow $tvShow): bool
     {
-        return ! $tvShow->hasMedia('cover') || $tvShow->meta->tmdb->isEmpty();
+        return ! $tvShow->hasMedia('cover') || ! $tvShow->hasMedia('backdrop');
     }
 
     private function filmIsBare(Film $film): bool
