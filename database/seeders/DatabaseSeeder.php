@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Create one Series row per demo show so seeded episodes can be linked
-     * via series_id (needed for /media/tv and the timeline binge-collapse).
+     * via series_id (needed for /tv and the timeline binge-collapse).
      */
     private function seedTvSeries(): void
     {
