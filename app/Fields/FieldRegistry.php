@@ -13,6 +13,7 @@ use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Models\Subject;
 use App\Presenters\CardPresenter;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
@@ -47,6 +48,7 @@ final class FieldRegistry
             $model instanceof Flight => FlightFields::fields(),
             $model instanceof Fuel => FuelFields::fields(),
             $model instanceof Appearance => AppearanceFields::fields(),
+            $model instanceof Subject => SubjectFields::fields($model->kind),
             $model instanceof Media && self::isBook($model) => BookFields::fields(),
             default => throw new LogicException('No fields registered for '.$model::class),
         };
@@ -66,6 +68,7 @@ final class FieldRegistry
             || $model instanceof Flight
             || $model instanceof Fuel
             || $model instanceof Appearance
+            || $model instanceof Subject
             || ($model instanceof Media && self::isBook($model));
     }
 

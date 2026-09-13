@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntrySubjectController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LifeController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
@@ -14,6 +17,8 @@ use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PhotoReviewController;
+use App\Http\Controllers\PhotoSubjectController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
@@ -21,6 +26,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
@@ -43,6 +49,11 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
 
+    // Tags any entry with subjects, synced ones included, bypassing the
+    // authoring fields those have none of.
+    Route::post('/entries/{type}/{id}/subjects', EntrySubjectController::class)
+        ->where('id', '[0-9]+')->name('entries.subjects');
+
     // Autocomplete for the fields that cannot be a plain text box.
     // Hyphens included: `fuel-brand` is a source name and 404s without them.
     Route::get('/lookup/{source}', LookupController::class)
@@ -55,6 +66,21 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
 
+    Route::patch('/attachments/{attachment}', AttachmentController::class)->name('attachments.update');
+
+    // Places or removes a subject tag (a point) or camera credit (none) on a photograph.
+    Route::post('/attachments/{attachment}/subjects', [PhotoSubjectController::class, 'store'])->name('attachments.subjects.store');
+    Route::delete('/attachments/{attachment}/subjects', [PhotoSubjectController::class, 'destroy'])->name('attachments.subjects.destroy');
+
+    // Marks a photograph reviewed for a dimension, or puts it back.
+    Route::post('/attachments/{attachment}/review', [PhotoReviewController::class, 'store'])->name('attachments.review.store');
+    Route::delete('/attachments/{attachment}/review', [PhotoReviewController::class, 'destroy'])->name('attachments.review.destroy');
+
+    // Subjects have no admin surface: every write is posted to from the
+    // /life/{kind}/{slug} page the reader is already on.
+    Route::post('/subjects', [SubjectController::class, 'store'])->name('subjects.store');
+    Route::patch('/subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+    Route::delete('/subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
 });
 
 // Feeds
@@ -153,6 +179,14 @@ Route::get('/tags/{slug}', [TagController::class, 'show'])->name('tags.show');
 // Registered above the page catch-all for the same reason as /tags.
 Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
 Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show');
+
+// Life: the people, pets, spots and things that show up across the site.
+// Registered above the page catch-all for the same reason as /tags.
+Route::get('/life', [LifeController::class, 'index'])->name('life');
+Route::get('/life/{kind}', [LifeController::class, 'kind'])
+    ->where('kind', 'people|pets|spots|things')->name('life.kind');
+Route::get('/life/{kind}/{slug}', [SubjectController::class, 'show'])
+    ->where('kind', 'people|pets|spots|things')->name('life.subject');
 
 // Old site URLs, exact-match only so a live sub-route is never shadowed.
 foreach (config('redirects') as $from => $to) {

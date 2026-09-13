@@ -28,6 +28,9 @@
     --text-body: 0.9375rem;
     --text-body--line-height: 1.55;
 
+    --text-lead: 1.125rem;
+    --text-lead--line-height: 1.6;
+
     --text-section: 1.125rem;
     --text-section--line-height: 1.2;
     --text-section--font-weight: 700;

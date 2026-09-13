@@ -34,6 +34,7 @@ export function defaultValueFor(field) {
         case 'tags':
         case 'image':
         case 'gallery':
+        case 'facts':
             return [];
         case 'boolean':
         case 'published':

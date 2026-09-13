@@ -2,14 +2,16 @@
 
 namespace App\Support;
 
+use App\Data\PhotoTagData;
+use App\Enums\ReviewKind;
 use App\Models\Appearance;
+use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Models\Media as MediaEntry;
 use App\Presenters\PhotoCaption;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Shapes a Timelineable model's photos, cover first, into the payload shared by
@@ -55,7 +57,7 @@ class GalleryPhotos
     }
 
     /**
-     * @param  Collection<int, Media>  $media  Cover + photos media, in display order.
+     * @param  Collection<int, Attachment>  $media  Cover + photos media, in display order.
      * @return array<int, array<string, mixed>>
      */
     public static function shape(Model&Timelineable $model, Collection $media): array
@@ -63,18 +65,27 @@ class GalleryPhotos
         // Resolved once per entry, not once per photo: every photo an entry
         // owns shares its caption, date, accent and permalink.
         $caption = PhotoCaption::for($model);
+        $media->loadMissing('subjects');
 
-        return $media->map(function (Media $item) use ($caption): array {
+        return $media->map(function (Attachment $item) use ($caption): array {
             // Built once and reused: getSrcset() re-derives every conversion
             // URL, and the tile's dimensions are parsed back out of it.
             $srcset = $item->getSrcset('card');
 
             return [
+                'id' => $item->id,
                 ...self::dimensions($srcset),
                 'src' => $item->getUrl('card'),
                 'srcset' => $srcset ?: null,
                 'full' => $item->getUrl(),
+                'alt' => $item->getCustomProperty('alt'),
+                // Deliberately the entry's title, not the photo's own caption:
+                // across a wall of photos the useful label is where each came from.
                 ...$caption,
+                'tags' => $item->subjects->map(PhotoTagData::fromSubject(...))->all(),
+                'reviewed' => collect(ReviewKind::cases())
+                    ->mapWithKeys(fn (ReviewKind $kind): array => [$kind->value => $item->getCustomProperty($kind->property()) !== null])
+                    ->all(),
             ];
         })->values()->all();
     }

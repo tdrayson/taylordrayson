@@ -2,10 +2,11 @@
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 
+// No eyebrow: the eyebrow above a title is reserved for the data-type pages,
+// which pair it with their type icon. This header has no icon.
 defineProps({
     title: { type: String, required: true },
     subtitle: { type: String, default: '' },
-    eyebrow: { type: String, default: '' },
     prev: { type: Object, default: null },
     next: { type: Object, default: null },
 });
@@ -14,7 +15,6 @@ defineProps({
 <template>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <div v-if="eyebrow" class="text-eyebrow uppercase text-neutral-500">{{ eyebrow }}</div>
             <h1 class="font-display text-display" v-html="title" />
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>

@@ -3,9 +3,13 @@
    margins. See https://docs.automaticcss.com/3.0/grids/content-grid */
 .content-grid {
     --content-max-width: 56rem;
+    /* One step past the reading column, for a figure that wants a little more
+       room without becoming a banner. */
+    --wide-max-width: 64rem;
     --breakout-max-width: 75rem;
     --padding-inline: 1.25rem;
-    --breakout-size: calc((var(--breakout-max-width) - var(--content-max-width)) / 2);
+    --wide-size: calc((var(--wide-max-width) - var(--content-max-width)) / 2);
+    --breakout-size: calc((var(--breakout-max-width) - var(--wide-max-width)) / 2);
 
     display: grid;
     /* The edge gutter is its own fixed track, so `inset` is a real column
@@ -15,7 +19,9 @@
         [full-width-start] var(--padding-inline)
         [inset-start] minmax(0, 1fr)
         [breakout-start] minmax(0, var(--breakout-size))
+        [wide-start] minmax(0, var(--wide-size))
         [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-width)) [content-end]
+        minmax(0, var(--wide-size)) [wide-end]
         minmax(0, var(--breakout-size)) [breakout-end]
         minmax(0, 1fr) [inset-end]
         var(--padding-inline) [full-width-end];
@@ -48,6 +54,12 @@
 
 @utility content-width {
     grid-column: content;
+}
+
+/* Just past the reading column (64rem against content's 56rem), where
+   `breakout` (75rem) is too much. */
+@utility wide {
+    grid-column: wide;
 }
 
 @utility breakout {

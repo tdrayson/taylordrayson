@@ -9,7 +9,12 @@ import { useLinkContext } from '../../lib/linkContext.js';
 // array (content is cast to an array server-side) or a raw JSON string.
 const props = defineProps({
     document: { type: [Array, String], default: null },
+    // 'lead' sets the whole document a step up, for a short standfirst that
+    // would otherwise read as an orphaned caption in a wide column.
+    size: { type: String, default: 'body' },
 });
+
+const sizeClass = computed(() => (props.size === 'lead' ? 'text-lead' : 'text-body'));
 
 // href -> preview data for internal links, host -> favicon for external ones.
 // Empty when no page provided it, as on the design-system page.
@@ -50,7 +55,7 @@ const contentEl = ref(null);
 <template>
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
-    <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-body text-neutral-900">
+    <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-neutral-900" :class="sizeClass">
         <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" @image-click="openImage" />
 
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />

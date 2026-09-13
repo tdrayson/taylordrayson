@@ -2,11 +2,13 @@
 
 namespace App\Queries;
 
+use App\Enums\SubjectKind;
 use App\Models\Article;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Models\Subject;
 use Illuminate\Support\Str;
 
 /**
@@ -50,6 +52,10 @@ final class MentionSearch
             ...$this->projects($query),
             ...$this->events($query),
             ...$this->notes($query),
+            ...$this->subjects($query, SubjectKind::Person),
+            ...$this->subjects($query, SubjectKind::Pet),
+            ...$this->subjects($query, SubjectKind::Spot),
+            ...$this->subjects($query, SubjectKind::Thing),
         ];
 
         return array_slice($results, 0, self::LIMIT);
@@ -160,6 +166,32 @@ final class MentionSearch
                 'url' => $note->url(),
                 'label' => Str::limit(strip_tags((string) $note->content), 60),
                 'detail' => $note->occurred_at?->format('j M Y'),
+            ])
+            ->all();
+    }
+
+    /**
+     * People, pets, spots and things each get their own heading, but store as
+     * the single mention kind `subject`: a subject id is already unique across
+     * kinds, so the kind column need not repeat it.
+     *
+     * @return list<array{kind: string, group: string, id: int, url: string, label: string, detail: string|null}>
+     */
+    private function subjects(string $query, SubjectKind $kind): array
+    {
+        return Subject::query()
+            ->where('kind', $kind)
+            ->when($query !== '', fn ($builder) => $builder->where('name', 'like', "%{$query}%"))
+            ->orderBy('name')
+            ->limit(self::PER_GROUP)
+            ->get()
+            ->map(fn (Subject $subject): array => [
+                'kind' => 'subject',
+                'group' => $kind->plural(),
+                'id' => $subject->id,
+                'url' => $subject->url(),
+                'label' => $subject->name,
+                'detail' => null,
             ])
             ->all();
     }

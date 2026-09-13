@@ -60,7 +60,7 @@ const lightboxIndex = ref(null);
             :photos="photos"
             @open="lightboxIndex = $event"
         />
-        <Lightbox v-model:index="lightboxIndex" :photos="photos" />
+        <Lightbox v-model:index="lightboxIndex" :photos="photos" tags />
 
         <StatGrid v-if="facts.length" :stats="facts" />
 

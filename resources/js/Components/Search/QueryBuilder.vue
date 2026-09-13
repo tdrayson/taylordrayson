@@ -24,6 +24,7 @@ const OPERATOR_LABELS = {
     eq: 'equals', neq: 'does not equal', gt: 'greater than', gte: 'greater than or equal', lt: 'less than', lte: 'less than or equal',
     between: 'between', not_between: 'not between',
     has_any: 'has any', has_none: 'has none',
+    includes: 'includes', includes_all: 'includes all', excludes: 'excludes',
     on: 'on', not_on: 'not on', in: 'is', not_in: 'is not', before: 'before', after: 'after',
 };
 
@@ -54,7 +55,7 @@ function valueShape(operator) {
         return 'pair';
     }
 
-    if (operator === 'is' || operator === 'is_not') {
+    if (operator === 'is' || operator === 'is_not' || operator === 'includes' || operator === 'includes_all' || operator === 'excludes') {
         return 'list';
     }
 

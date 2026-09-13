@@ -2,9 +2,11 @@
 
 namespace App\Queries;
 
+use App\Enums\PhotoFilter;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Support\GalleryPhotos;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -24,6 +26,22 @@ final class PhotoStream
      * @var Collection<int, array{model: Model&Timelineable, media: EloquentCollection<int, Attachment>}>|null
      */
     private ?Collection $groups = null;
+
+    private ?PhotoFilter $filter = null;
+
+    /**
+     * A copy of the stream narrowed to a work-queue facet, or unnarrowed for null.
+     *
+     * @param  PhotoFilter|null  $filter  The facet to narrow to; null is every photo.
+     */
+    public function filtered(?PhotoFilter $filter): self
+    {
+        $stream = clone $this;
+        $stream->filter = $filter;
+        $stream->groups = null;
+
+        return $stream;
+    }
 
     /**
      * @param  int|null  $limit  Stop once this many photos are shaped; null shapes every photo.
@@ -103,10 +121,7 @@ final class PhotoStream
      */
     public function count(): int
     {
-        return Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereIn('model_type', GalleryPhotos::includedModels())
-            ->count();
+        return $this->attachments()->count();
     }
 
     /**
@@ -123,10 +138,7 @@ final class PhotoStream
             return $this->groups;
         }
 
-        $attachments = Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereIn('model_type', GalleryPhotos::includedModels())
-            ->get();
+        $attachments = $this->attachments()->get();
 
         return $this->groups = $attachments
             ->load(['model' => fn (MorphTo $morphTo) => $morphTo->morphWith($this->captionRelations($attachments))])
@@ -142,6 +154,19 @@ final class PhotoStream
                 $group['model']->getKey(),
             ))
             ->values();
+    }
+
+    /**
+     * The gallery's attachments, narrowed to the facet if one is set.
+     *
+     * @return Builder<Attachment>
+     */
+    private function attachments(): Builder
+    {
+        return Attachment::query()
+            ->whereIn('collection_name', ['cover', 'photos'])
+            ->whereIn('model_type', GalleryPhotos::includedModels())
+            ->when($this->filter, fn (Builder $query, PhotoFilter $filter): Builder => $filter->apply($query));
     }
 
     /**
