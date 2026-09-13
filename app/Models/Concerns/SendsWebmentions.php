@@ -40,7 +40,7 @@ trait SendsWebmentions
 
     private static function queueWebmentions(Model $model): void
     {
-        if (InteractionTarget::accepts($model)) {
+        if (InteractionTarget::sendsMentions($model)) {
             SendWebmentions::dispatch($model);
         }
     }

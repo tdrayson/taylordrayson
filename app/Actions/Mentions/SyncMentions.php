@@ -50,15 +50,15 @@ final class SyncMentions
      * Every entry this source links to, keyed by the pair the table is unique
      * on so the diff is two array lookups rather than a nested loop.
      *
-     * A source that is not publicly visible has no links anyone can follow, so
-     * it wants no mentions at all: unpublishing removes them, republishing
-     * writes them back.
+     * A source that is not publicly readable has no links anyone can follow, so
+     * it wants no mentions at all: unpublishing or locking removes them,
+     * republishing writes them back.
      *
      * @return array<string, Model>
      */
     private function targets(Model $source): array
     {
-        if (! InteractionTarget::accepts($source)) {
+        if (! InteractionTarget::sendsMentions($source)) {
             return [];
         }
 
