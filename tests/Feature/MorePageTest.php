@@ -2,20 +2,22 @@
 
 use App\Models\Flight;
 use App\Models\Page;
+use App\Timeline\TypeRegistry;
 
 use function Pest\Laravel\get;
 
-it('lists every tracked type with its live count on /more, grouped by kind', function () {
+it('lists every tracked type with its live count on /more, in registry order', function () {
     Flight::factory()->count(2)->create();
+
+    $keys = array_keys(TypeRegistry::all());
 
     get('/more')
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('More')
-            ->has('tracked', 6)
-            ->where('tracked.0.kind', 'writing')
+            ->has('tracked', count($keys))
+            ->where('tracked', fn ($tracked) => collect($tracked)->pluck('type')->all() === $keys)
             ->where('tracked', fn ($tracked) => collect($tracked)
-                ->flatMap(fn (array $group) => $group['items'])
                 ->contains(fn ($type) => $type['label'] === 'Flights' && $type['href'] === '/flights' && $type['count'] === 2)));
 });
 

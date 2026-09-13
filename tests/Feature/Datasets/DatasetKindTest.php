@@ -14,10 +14,3 @@ it('offers one feed preset per kind holding exactly that kind', function () {
 
     expect(array_slice(array_keys(FeedPresets::all()), 0, 2))->toBe(['curated', 'everything']);
 });
-
-it('groups the more page by kind', function () {
-    $this->get('/more')->assertInertia(fn ($page) => $page
-        ->where('tracked.0.kind', 'writing')
-        ->where('tracked.0.items.0.type', 'project')
-    );
-});
