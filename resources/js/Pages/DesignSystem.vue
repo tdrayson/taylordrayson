@@ -231,8 +231,8 @@ function swatchInk(step) {
         <!-- Count groups -->
         <section class="space-y-4">
             <h2 class="ds-label">Count groups</h2>
-            <div v-for="variant in ['plain', 'bare']" :key="variant" class="flex flex-wrap items-center gap-3">
-                <CountGroup v-for="size in ['md', 'sm']" :key="size" :variant="variant" :size="size">
+            <div class="flex flex-wrap items-center gap-3">
+                <CountGroup v-for="size in ['md', 'sm']" :key="size" :size="size">
                     <CountSegment v-for="item in countSample" :key="item.key" :class="size === 'sm' ? 'text-caption' : 'text-meta'">
                         <Icon :name="item.icon" :class="size === 'sm' ? 'size-3.5' : 'size-4'" />
                         <span class="tnum">{{ item.count }}</span>

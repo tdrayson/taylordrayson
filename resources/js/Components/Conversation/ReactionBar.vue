@@ -142,13 +142,6 @@ const gestures = computed(() => [
     { key: 'mention', icon: 'Link02Icon', count: props.mentionCount, one: 'mention', many: 'mentions' },
 ].filter((gesture) => gesture.count > 0));
 
-/**
- * Whether anybody has responded at all. The box only frames a row that has
- * something in it; an unanswered entry keeps the light row, so a timeline of
- * mostly quiet entries is not a column of boxed zeroes.
- */
-const hasResponses = computed(() => total.value > 0 || props.replyCount > 0 || gestures.value.length > 0);
-
 const gestureLabel = (gesture) => `${gesture.count} ${gesture.count === 1 ? gesture.one : gesture.many}`;
 
 /** What the summary reads out, since a row of emoji says nothing on its own. */
@@ -213,9 +206,9 @@ function press() {
 <template>
     <div data-testid="reaction-bar">
         <div :class="['flex items-center', sizes.row]">
-            <!-- One joined box for the counts once somebody has responded, kept grey:
-                 the reaction discs beside it are the only colour the row needs. -->
-            <CountGroup :variant="hasResponses ? 'plain' : 'bare'" :size="sizes.group">
+            <!-- One joined grey box for the counts, answered or not, so the row keeps
+                 its shape when the first response arrives. -->
+            <CountGroup :size="sizes.group">
             <CountSegment :padded="false">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
@@ -236,7 +229,7 @@ function press() {
                     :aria-label="mine ? `You reacted ${mine.label}` : 'React to this'"
                     :class="cn(
                         'inline-flex items-center',
-                        hasResponses ? sizes.segment : cn('py-1', sizes.gap),
+                        sizes.segment,
                         sizes.text,
                         // Inset, so the ring stays inside the segment rather than
                         // spilling over its neighbour's edge. The ink comes from
