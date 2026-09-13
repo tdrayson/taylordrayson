@@ -46,6 +46,32 @@ it('registers no archive route for the episode dataset', function () {
         ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex'));
 });
 
+it('refuses to roll back the media split once an id collides across films, episodes and books', function () {
+    $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
+
+    DB::table('films')->insert([
+        'id' => 1,
+        'occurred_at' => '2024-01-01 20:00:00',
+        'title' => 'Dune',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    DB::table('episodes')->insert([
+        'id' => 1,
+        'occurred_at' => '2024-02-01 20:00:00',
+        'title' => 'Good News About Hell',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(fn () => $migration->down())->toThrow(RuntimeException::class);
+
+    expect(Schema::hasTable('media'))->toBeFalse()
+        ->and(DB::table('films')->where('id', 1)->exists())->toBeTrue()
+        ->and(DB::table('episodes')->where('id', 1)->exists())->toBeTrue();
+});
+
 it('splits a legacy media table into films, episodes and books via the migration, preserving ids', function () {
     $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
 

@@ -63,9 +63,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        $this->assertNoCollisions();
+
         Schema::create('media', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('series_id')->nullable()->after('id')->constrained('series')->nullOnDelete();
+            $table->foreignId('series_id')->nullable()->constrained('series')->nullOnDelete();
             $table->timestamp('occurred_at');
             $table->index('occurred_at');
             $table->string('type');
@@ -96,6 +98,43 @@ return new class extends Migration
 
         foreach (self::TABLES as $table) {
             Schema::drop($table);
+        }
+    }
+
+    /**
+     * Films, episodes and books auto-increment independently once split, so ids
+     * (and the unique source/source_id pair) that were safely distinct under one
+     * table can collide across the three by the time a rollback runs.
+     */
+    private function assertNoCollisions(): void
+    {
+        $idsSeenIn = [];
+        $sourceKeysSeenIn = [];
+
+        foreach (self::TABLES as $table) {
+            foreach (DB::table($table)->pluck('id') as $id) {
+                $idsSeenIn[$id][] = $table;
+            }
+
+            foreach (DB::table($table)->whereNotNull('source')->whereNotNull('source_id')->get(['source', 'source_id']) as $row) {
+                $sourceKeysSeenIn["{$row->source}:{$row->source_id}"][] = $table;
+            }
+        }
+
+        foreach ($idsSeenIn as $id => $tables) {
+            $tables = array_unique($tables);
+
+            if (count($tables) > 1) {
+                throw new RuntimeException('Rollback is only safe before new film, episode or book rows collide: '.implode(' and ', $tables)." both contain id {$id}.");
+            }
+        }
+
+        foreach ($sourceKeysSeenIn as $key => $tables) {
+            $tables = array_unique($tables);
+
+            if (count($tables) > 1) {
+                throw new RuntimeException('Rollback is only safe before new film, episode or book rows collide: '.implode(' and ', $tables)." both contain source/source_id {$key}.");
+            }
         }
     }
 };
