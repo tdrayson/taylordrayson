@@ -17,6 +17,7 @@ import ImageField from './ImageField.vue';
 import BookCoverField from './BookCoverField.vue';
 import LengthRing from './LengthRing.vue';
 import CitationField from './CitationField.vue';
+import StatusInput from './StatusInput.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
 
 /**

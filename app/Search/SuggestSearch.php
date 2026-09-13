@@ -6,6 +6,7 @@ use App\Enums\EntryStatus;
 use App\Models\Page;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
+use App\Models\TvShow;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;

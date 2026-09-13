@@ -14,7 +14,7 @@ class CreateArticle
      * Articles start as drafts unless a status is given, so writing one never
      * lists it by accident.
      *
-     * @param  array{title: string, slug?: string|null, excerpt?: string|null, content?: array<int, mixed>|null, published?: bool, occurred_at?: string|null, timezone?: string|null, tags?: list<string>, response_kind?: string|null, response_url?: string|null, rsvp_value?: string|null, response_quote?: string|null}  $attributes
+     * @param  array{title: string, slug?: string|null, excerpt?: string|null, content?: array<int, mixed>|null, status?: string, password?: string|null, occurred_at?: string|null, timezone?: string|null, tags?: list<string>, response_kind?: string|null, response_url?: string|null, rsvp_value?: string|null, response_quote?: string|null}  $attributes
      */
     public function __invoke(array $attributes): Article
     {

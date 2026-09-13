@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthoringController;
+use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\CitationPreviewController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;

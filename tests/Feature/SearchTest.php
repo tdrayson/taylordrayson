@@ -3,7 +3,6 @@
 use App\Enums\ResponseKind;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Citation;
 use App\Models\Event;
 use App\Models\Note;

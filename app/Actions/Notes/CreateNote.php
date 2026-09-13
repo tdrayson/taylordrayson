@@ -42,6 +42,8 @@ class CreateNote
             'response_url' => $attributes['response_url'] ?? null,
             'rsvp_value' => $attributes['rsvp_value'] ?? null,
             'response_quote' => $attributes['response_quote'] ?? null,
+            'status' => $attributes['status'] ?? EntryStatus::Published,
+            'password' => $attributes['password'] ?? null,
         ]);
 
         if (array_key_exists('tags', $attributes)) {
