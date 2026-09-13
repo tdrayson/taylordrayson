@@ -28,10 +28,10 @@ const boxedBorder = computed(() => (props.invalid
     ? 'border-red-500 focus:border-red-500'
     : 'border-neutral-100 focus:border-accent-500'));
 
-// Boxed sizing: 'sm' is compact for toolbars and keeps a focus ring since its
-// border-colour change alone is too subtle at that size.
+// Boxed sizing: 'sm' sizes to its content for toolbars and keeps a focus ring,
+// red when invalid, since a border-colour change alone is too subtle at that size.
 const boxedSize = computed(() => (props.size === 'sm'
-    ? 'rounded-md border py-1 pl-2 pr-7 focus-visible:ring-2 focus-visible:ring-accent-500'
+    ? cn('w-auto rounded-md border py-1 pl-2 pr-7 focus-visible:ring-2', props.invalid ? 'focus-visible:ring-red-500' : 'focus-visible:ring-accent-500')
     : 'w-full rounded-md border py-2.5 pl-3 pr-9'));
 
 // Final class list for the <select>, merged so a caller's class (e.g. min-h-11) can override ours.
@@ -39,7 +39,7 @@ const selectClasses = computed(() => cn(
     isBare.value
         ? 'appearance-none bg-transparent pr-5 text-meta font-medium focus:outline-none focus-visible:underline focus-visible:underline-offset-4'
         : cn('w-full appearance-none bg-neutral-0 text-meta transition-colors focus:outline-none', boxedBorder.value, boxedSize.value),
-    props.modelValue === '' ? 'text-neutral-500' : 'text-neutral-900',
+    props.placeholder && props.modelValue === '' ? 'text-neutral-500' : 'text-neutral-900',
     isBare.value && 'cursor-pointer transition-colors hover:text-accent-500',
     props.class,
 ));

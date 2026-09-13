@@ -49,7 +49,7 @@ function update(name, value) {
                 v-else-if="field.type === 'select'"
                 size="sm"
                 :model-value="attributes[field.name] ?? ''"
-                :options="[{ value: '', label: field.empty ?? field.label }, ...field.options]"
+                :options="[{ value: '', label: field.empty ?? field.label }, ...(field.options ?? [])]"
                 :aria-label="field.label"
                 @update:model-value="update(field.name, $event || null)"
             />
