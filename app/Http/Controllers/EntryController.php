@@ -19,8 +19,8 @@ use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Tag;
+use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
@@ -208,7 +208,7 @@ class EntryController extends Controller
         // three columns directly, so pointing them at the mirrored copy here
         // means every consumer prefers local storage without the page having to
         // know a mirror exists.
-        if ($model instanceof Podcast) {
+        if ($model instanceof ThisWeekWith) {
             $data['audio_url'] = $model->audio_url;
             $data['cover_image'] = $model->wideArtworkSrc();
             $data['thumbnail'] = $model->squareArtworkSrc();

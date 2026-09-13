@@ -5,7 +5,7 @@ use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Media;
 use App\Models\Note;
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 use App\Support\PortableText;
 
 use function Pest\Laravel\get;
@@ -19,7 +19,7 @@ it('renders the timeline page via Inertia', function () {
 });
 
 it('shares the real This Week With episode count', function () {
-    Podcast::factory()->count(3)->create();
+    ThisWeekWith::factory()->count(3)->create();
 
     get('/')->assertInertia(fn ($page) => $page->where('podcastEpisodes', 3));
 });

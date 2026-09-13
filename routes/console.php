@@ -39,7 +39,7 @@ Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
 // Episodes publish weekly, so once a day is ample. It used to run every half
 // hour, and because the sync re-fetches all 43 pages each time (see #85), that
 // read as scraping to the podcast site's WAF and got this server's IP blocked.
-Schedule::command('podcast:sync')->dailyAt('05:20')->withoutOverlapping();
+Schedule::command('this-week-with:sync')->dailyAt('05:20')->withoutOverlapping();
 
 // Enrichment: derived work for rows capture has already stored. All skip what is
 // done, so they are cheap when idle and double as a repair pass.

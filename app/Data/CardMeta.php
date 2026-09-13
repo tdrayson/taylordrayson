@@ -85,7 +85,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Appearance/Podcast: media.
+     * Appearance/This Week With: media.
      */
     public static function media(MediaData $media): self
     {

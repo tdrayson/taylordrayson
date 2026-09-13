@@ -27,7 +27,7 @@ class AlertOnScheduledTaskFailure
 
     /**
      * The artisan command out of the scheduler's full shell string, which reads
-     * `'/usr/bin/php8.4' 'artisan' podcast:sync > '/dev/null' 2>&1`.
+     * `'/usr/bin/php8.4' 'artisan' this-week-with:sync > '/dev/null' 2>&1`.
      */
     private function name(string $command): string
     {

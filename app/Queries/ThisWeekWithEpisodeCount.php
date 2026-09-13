@@ -2,7 +2,7 @@
 
 namespace App\Queries;
 
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Cache;
  * arrive on a weekly cron, so a figure in a sentence can be a day behind
  * without anyone being misled.
  */
-final class PodcastEpisodeCount
+final class ThisWeekWithEpisodeCount
 {
     private const KEY = 'count.podcast-episodes';
 
     public function __invoke(): int
     {
-        return Cache::remember(self::KEY, now()->endOfDay(), fn (): int => Podcast::query()->count());
+        return Cache::remember(self::KEY, now()->endOfDay(), fn (): int => ThisWeekWith::query()->count());
     }
 
     /** Drop the cached count, so the next read recomputes it. */

@@ -14,10 +14,10 @@ use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Series;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -104,7 +104,7 @@ class DatabaseSeeder extends Seeder
      */
     private function seedRecentData(): void
     {
-        $podcastEpisode = 1;
+        $episodeNumber = 1;
 
         for ($dayOffset = 179; $dayOffset >= 0; $dayOffset--) {
             $date = now()->subDays($dayOffset)->startOfDay();
@@ -116,7 +116,7 @@ class DatabaseSeeder extends Seeder
             $this->seedNotes($date);
             $this->seedMediaFilms($date);
             $this->seedMediaTvEpisodes($date);
-            $podcastEpisode = $this->seedPodcasts($date, $podcastEpisode);
+            $episodeNumber = $this->seedThisWeekWith($date, $episodeNumber);
             $this->seedArticles($date);
             $this->seedFlights($date);
             $this->seedFuel($date);
@@ -331,7 +331,7 @@ class DatabaseSeeder extends Seeder
     /**
      * @return int The next episode number to use.
      */
-    private function seedPodcasts(Carbon $date, int $currentEpisode): int
+    private function seedThisWeekWith(Carbon $date, int $currentEpisode): int
     {
         if (! fake()->boolean(15)) {
             return $currentEpisode;
@@ -339,13 +339,13 @@ class DatabaseSeeder extends Seeder
 
         $seasonNumber = (int) ceil($currentEpisode / 10);
 
-        $podcast = Podcast::factory()->create([
+        $episode = ThisWeekWith::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(8, 18), fake()->numberBetween(0, 59)),
             'season_number' => $seasonNumber,
             'episode_number' => $currentEpisode,
         ]);
 
-        $this->attachCover($podcast);
+        $this->attachCover($episode);
 
         return $currentEpisode + 1;
     }

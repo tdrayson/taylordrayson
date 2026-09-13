@@ -1,7 +1,7 @@
 <?php
 
-use App\Jobs\StorePodcastMedia;
-use App\Models\Podcast;
+use App\Jobs\StoreThisWeekWithMedia;
+use App\Models\ThisWeekWith;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -25,9 +25,9 @@ function podcastJpeg(): string
     return $bytes;
 }
 
-function mirroredEpisode(): Podcast
+function mirroredEpisode(): ThisWeekWith
 {
-    return Podcast::factory()->create([
+    return ThisWeekWith::factory()->create([
         'season_number' => 7,
         'episode_number' => 255,
         'audio_url' => 'https://media.example.test/episode-255.mp3',
@@ -48,7 +48,7 @@ it('mirrors both artwork sizes into local storage', function () {
     fakePodcastFiles();
     $episode = mirroredEpisode();
 
-    (new StorePodcastMedia($episode))->handle();
+    (new StoreThisWeekWithMedia($episode))->handle();
 
     $episode->refresh();
 
@@ -66,7 +66,7 @@ it('does not mirror the audio', function () {
     fakePodcastFiles();
     $episode = mirroredEpisode();
 
-    (new StorePodcastMedia($episode))->handle();
+    (new StoreThisWeekWithMedia($episode))->handle();
 
     expect($episode->refresh()->getMedia('audio'))->toBeEmpty()
         ->and($episode->audio_url)->toBe('https://media.example.test/episode-255.mp3');
@@ -82,7 +82,7 @@ it('serves the local artwork once mirrored and the publisher url before that', f
     expect($episode->squareArtworkSrc())->toBe('https://example.test/square.jpg');
 
     fakePodcastFiles();
-    (new StorePodcastMedia($episode))->handle();
+    (new StoreThisWeekWithMedia($episode))->handle();
     $episode->refresh();
 
     expect($episode->squareArtworkSrc())->not->toContain('example.test');
@@ -93,13 +93,13 @@ it('leaves an already mirrored episode alone unless forced', function () {
     fakePodcastFiles();
     $episode = mirroredEpisode();
 
-    (new StorePodcastMedia($episode))->handle();
+    (new StoreThisWeekWithMedia($episode))->handle();
     $firstId = $episode->refresh()->getFirstMedia('artwork')->id;
 
-    (new StorePodcastMedia($episode->refresh()))->handle();
+    (new StoreThisWeekWithMedia($episode->refresh()))->handle();
     expect($episode->refresh()->getFirstMedia('artwork')->id)->toBe($firstId);
 
-    (new StorePodcastMedia($episode->refresh(), force: true))->handle();
+    (new StoreThisWeekWithMedia($episode->refresh(), force: true))->handle();
     expect($episode->refresh()->getFirstMedia('artwork')->id)->not->toBe($firstId);
 });
 
@@ -107,7 +107,7 @@ it('retries rather than storing a partial file when the publisher fails', functi
     Http::fake(['*' => Http::response('nope', 500)]);
     $episode = mirroredEpisode();
 
-    expect(fn () => (new StorePodcastMedia($episode))->handle())
+    expect(fn () => (new StoreThisWeekWithMedia($episode))->handle())
         ->toThrow(RuntimeException::class);
 
     expect($episode->refresh()->getFirstMedia('artwork'))->toBeNull();
@@ -116,12 +116,12 @@ it('retries rather than storing a partial file when the publisher fails', functi
 it('queues only the episodes that are missing a copy', function () {
     fakePodcastFiles();
     $stored = mirroredEpisode();
-    (new StorePodcastMedia($stored))->handle();
+    (new StoreThisWeekWithMedia($stored))->handle();
 
-    Podcast::factory()->create(['season_number' => 7, 'episode_number' => 256]);
+    ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => 256]);
 
     Queue::fake();
-    $this->artisan('podcast:media')->assertSuccessful();
+    $this->artisan('this-week-with:media')->assertSuccessful();
 
-    Queue::assertPushed(StorePodcastMedia::class, 1);
+    Queue::assertPushed(StoreThisWeekWithMedia::class, 1);
 });

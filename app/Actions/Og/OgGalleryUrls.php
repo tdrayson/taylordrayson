@@ -60,7 +60,7 @@ final class OgGalleryUrls
             'place' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('place'))],
             'media' => ['layout' => 'text', 'eyebrow' => 'Books', 'title' => 'I read Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear'],
             'appearance' => ['layout' => 'text', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
-            'podcast' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
+            'this-week-with' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
             'article' => ['layout' => 'text', 'title' => 'Why I track absolutely everything', 'date' => 'Mon 12 May 2025', 'meta' => '6 min read'],
             'note' => ['layout' => 'text', 'title' => 'A quick thought on building in public', 'date' => 'Tue 24 Jun 2026', 'meta' => null],
             'project' => ['layout' => 'text', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel, Inertia, Vue'],

@@ -41,7 +41,7 @@ final class SuggestSearch
         'media' => ['title'],
         'event' => ['name', 'venue_name', 'city', 'country'],
         'appearance' => ['title', 'show_name', 'description'],
-        'podcast' => ['topic', 'show_notes'],
+        'this-week-with' => ['topic', 'show_notes'],
         'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
         'place' => ['venue_name', 'type', 'city', 'description'],
         'fuel' => ['station_name', 'city'],

@@ -12,9 +12,9 @@ use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
 use App\Presenters\CardPresenter;
 
 /**
@@ -31,7 +31,7 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
     'media' => fn () => Media::factory()->create(),
     'event' => fn () => Event::factory()->create(),
     'appearance' => fn () => Appearance::factory()->create(),
-    'podcast' => fn () => Podcast::factory()->create(),
+    'this-week-with' => fn () => ThisWeekWith::factory()->create(),
     'flight' => fn () => Flight::factory()->create(),
     'place' => fn () => Place::factory()->create(),
     'fuel' => fn () => Fuel::factory()->create(),

@@ -84,3 +84,9 @@ it('keeps accepting checkin as place', function () {
 
     $this->get('/feed?types=checkin')->assertOk();
 });
+
+it('keeps accepting podcast as this-week-with', function () {
+    expect(Datasets::resolveOne('podcast')?->type()->value)->toBe('this-week-with');
+
+    $this->get('/feed?types=podcast')->assertOk();
+});

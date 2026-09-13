@@ -35,7 +35,7 @@ final class Datasets
             new MediaDataset,
             new EventDataset,
             new AppearanceDataset,
-            new PodcastDataset,
+            new ThisWeekWithDataset,
             new FlightDataset,
             new PlaceDataset,
             new FuelDataset,
@@ -78,6 +78,7 @@ final class Datasets
     public const ALIASES = [
         'calorie' => ['food'],
         'checkin' => ['place'],
+        'podcast' => ['this-week-with'],
     ];
 
     /**

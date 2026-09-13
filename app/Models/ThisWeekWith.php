@@ -26,11 +26,13 @@ use Spatie\MediaLibrary\HasMedia;
     'thumbnail',
     'cover_image',
 ])]
-class Podcast extends Model implements HasMedia, Timelineable
+class ThisWeekWith extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
     use HasTimelineEntry;
+
+    protected $table = 'this_week_with';
 
     /**
      * @return array<string, string>

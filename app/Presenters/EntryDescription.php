@@ -14,9 +14,9 @@ use App\Models\Fuel;
 use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Project;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
 use App\Queries\DayFoodTotals;
 use App\Support\Distance;
 use App\Support\PortableText;
@@ -69,7 +69,7 @@ final class EntryDescription
             $model instanceof Fuel => self::fuel($model),
             $model instanceof Event => self::event($model),
             $model instanceof Appearance => self::appearance($model),
-            $model instanceof Podcast => self::podcast($model),
+            $model instanceof ThisWeekWith => self::thisWeekWith($model),
             $model instanceof Article => self::articleText($model),
             $model instanceof Note => self::note($model),
             $model instanceof Project => self::project($model),
@@ -298,7 +298,7 @@ final class EntryDescription
     }
 
     /** The episode's own topic line, which is the best summary anyone wrote. */
-    private static function podcast(Podcast $model): string
+    private static function thisWeekWith(ThisWeekWith $model): string
     {
         return (string) self::source($model->topic);
     }

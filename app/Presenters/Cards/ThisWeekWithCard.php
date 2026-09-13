@@ -6,15 +6,15 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\MediaData;
 use App\Enums\TimelineType;
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 
 /**
- * Builds the timeline card for a Podcast episode: topic as the subtitle and
+ * Builds the timeline card for a This Week With episode: topic as the subtitle and
  * the audio/video/thumbnail media payload for the inline player.
  */
-final class PodcastCard
+final class ThisWeekWithCard
 {
-    public function present(Podcast $model): CardData
+    public function present(ThisWeekWith $model): CardData
     {
         return new CardData(
             type: $this->type(),
@@ -38,13 +38,13 @@ final class PodcastCard
         );
     }
 
-    public function title(Podcast $model): string
+    public function title(ThisWeekWith $model): string
     {
         return $model->title;
     }
 
     public function type(): TimelineType
     {
-        return TimelineType::Podcast;
+        return TimelineType::ThisWeekWith;
     }
 }

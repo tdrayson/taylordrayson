@@ -7,8 +7,8 @@ use App\Data\CardData;
 use App\Models\Article;
 use App\Models\Media;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Project;
+use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Presenters\EntryDescription;
 use Illuminate\Database\Eloquent\Model;
@@ -506,7 +506,7 @@ class OgMeta
         // its show is the type eyebrow, which does not travel with the title.
         $show = match (true) {
             $model instanceof Media => ShowTitle::for($model),
-            $model instanceof Podcast => 'This Week With',
+            $model instanceof ThisWeekWith => 'This Week With',
             default => null,
         };
 

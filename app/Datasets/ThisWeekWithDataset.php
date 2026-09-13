@@ -4,23 +4,23 @@ namespace App\Datasets;
 
 use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
-use App\Models\Podcast;
-use App\Presenters\Cards\PodcastCard;
+use App\Models\ThisWeekWith;
+use App\Presenters\Cards\ThisWeekWithCard;
 use App\Timeline\Taxonomies;
 
 /**
  * Episodes of This Week With, the personal podcast.
  */
-final class PodcastDataset extends BaseDataset
+final class ThisWeekWithDataset extends BaseDataset
 {
     public function type(): TimelineType
     {
-        return TimelineType::Podcast;
+        return TimelineType::ThisWeekWith;
     }
 
     public function model(): string
     {
-        return Podcast::class;
+        return ThisWeekWith::class;
     }
 
     public function kind(): DatasetKind
@@ -58,9 +58,9 @@ final class PodcastDataset extends BaseDataset
         return 'episode';
     }
 
-    public function card(): PodcastCard
+    public function card(): ThisWeekWithCard
     {
-        return new PodcastCard;
+        return new ThisWeekWithCard;
     }
 
     /**
@@ -88,6 +88,6 @@ final class PodcastDataset extends BaseDataset
 
     public function taxonomy(): callable
     {
-        return Taxonomies::podcastSeason();
+        return Taxonomies::thisWeekWithSeason();
     }
 }

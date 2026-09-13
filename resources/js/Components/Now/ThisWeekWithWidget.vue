@@ -244,8 +244,8 @@ const onImageError = (event) => {
     padding: 0;
     border: none;
     border-radius: 50%;
-    background: var(--color-podcast);
-    box-shadow: 0 2.68cqw 6.25cqw color-mix(in srgb, var(--color-podcast) 40%, transparent);
+    background: var(--color-this-week-with);
+    box-shadow: 0 2.68cqw 6.25cqw color-mix(in srgb, var(--color-this-week-with) 40%, transparent);
     cursor: pointer;
     appearance: none;
     transition: transform 0.15s ease;

@@ -18,7 +18,7 @@ it('walks every page and returns the raw episodes', function () {
 });
 
 /**
- * The laziness is the point: it is what lets `podcast:sync` stop at the
+ * The laziness is the point: it is what lets `this-week-with:sync` stop at the
  * episodes it already has instead of paging the whole back catalogue.
  */
 it('does not request later pages when the caller stops early', function () {

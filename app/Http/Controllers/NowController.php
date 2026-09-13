@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Podcast;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Queries\PhotoStream;
 use App\Support\OgMeta;
@@ -36,7 +36,7 @@ class NowController extends Controller
      */
     private function latestEpisode(): ?array
     {
-        $episode = Podcast::query()->latest('occurred_at')->first();
+        $episode = ThisWeekWith::query()->latest('occurred_at')->first();
 
         if ($episode === null) {
             return null;

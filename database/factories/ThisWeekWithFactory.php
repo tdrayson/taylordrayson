@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Podcast>
+ * @extends Factory<ThisWeekWith>
  */
-class PodcastFactory extends Factory
+class ThisWeekWithFactory extends Factory
 {
     /**
      * @var array<int, string>

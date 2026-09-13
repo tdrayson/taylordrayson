@@ -9,7 +9,7 @@ use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
 use App\Queries\MonthsInYear;
 use App\Queries\PeriodStats;
-use App\Queries\PodcastEpisodeCount;
+use App\Queries\ThisWeekWithEpisodeCount;
 use App\Queries\TimelineWindow;
 use App\Queries\TimelineYears;
 use App\Support\DayBudget;
@@ -33,7 +33,7 @@ class TimelineController extends Controller
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
         private readonly MonthsInYear $months,
-        private readonly PodcastEpisodeCount $podcastEpisodes,
+        private readonly ThisWeekWithEpisodeCount $podcastEpisodes,
         private readonly TimelineWindow $window,
         private readonly TimelineYears $years,
     ) {}

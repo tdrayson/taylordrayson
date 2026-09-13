@@ -4,8 +4,8 @@ use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Media;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -18,7 +18,7 @@ it('renders the now page via Inertia', function () {
 });
 
 it('passes the latest podcast episode to the widget', function () {
-    Podcast::factory()->create(['occurred_at' => now()->subDay()]);
+    ThisWeekWith::factory()->create(['occurred_at' => now()->subDay()]);
 
     get('/now')->assertInertia(fn ($page) => $page
         ->has('episode.season')
@@ -51,7 +51,7 @@ it('passes recent sleep nights and last-night stage hours', function () {
 it('counts timeline entries from the trailing 30 days', function () {
     // Each Timelineable model spawns a timeline entry dated to occurred_at.
     Sleep::factory()->create(['occurred_at' => now()->subDay()]);
-    Podcast::factory()->create(['occurred_at' => now()->subDays(2)]);
+    ThisWeekWith::factory()->create(['occurred_at' => now()->subDays(2)]);
 
     get('/now')->assertInertia(fn ($page) => $page
         ->has('entryCounts', 30)

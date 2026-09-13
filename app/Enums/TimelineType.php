@@ -20,7 +20,7 @@ enum TimelineType: string
     case Media = 'media';
     case Event = 'event';
     case Appearance = 'appearance';
-    case Podcast = 'podcast';
+    case ThisWeekWith = 'this-week-with';
     case Flight = 'flight';
     case Place = 'place';
     case Fuel = 'fuel';

@@ -106,7 +106,7 @@ final class Taxonomies
      * A taxonomy over the podcast's season number, addressed by the bare number
      * (/this-week-with/3). Ordered by season rather than the usual most-used-first.
      */
-    public static function podcastSeason(): callable
+    public static function thisWeekWithSeason(): callable
     {
         return fn (string $model, string $slug): array => [
             'base' => $slug,

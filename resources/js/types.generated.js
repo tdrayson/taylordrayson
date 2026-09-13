@@ -12,7 +12,7 @@ export const timelineTypes = {
     media: { icon: 'Film01Icon', label: 'Media', plural: 'Media', href: '/media', accent: 'media', keywords: 'watch movie film tv show book reading', noun: 'logged', nounPlural: 'logged', kind: 'watching' },
     event: { icon: 'Ticket01Icon', label: 'Event', plural: 'Events', href: '/events', accent: 'event', keywords: 'ticket gig concert', noun: 'event', nounPlural: 'events', kind: 'going-out' },
     appearance: { icon: 'Mic01Icon', label: 'Appearance', plural: 'Appearances', href: '/appearances', accent: 'appearance', keywords: 'talk speaking interview', noun: 'appearance', nounPlural: 'appearances', kind: 'speaking' },
-    podcast: { icon: 'PodcastIcon', label: 'This Week With', plural: 'This Week With', href: '/this-week-with', accent: 'podcast', keywords: 'podcast tww episode', noun: 'episode', nounPlural: 'episodes', kind: 'speaking' },
+    'this-week-with': { icon: 'PodcastIcon', label: 'This Week With', plural: 'This Week With', href: '/this-week-with', accent: 'this-week-with', keywords: 'podcast tww episode', noun: 'episode', nounPlural: 'episodes', kind: 'speaking' },
     flight: { icon: 'AirplaneTakeOff01Icon', label: 'Flight', plural: 'Flights', href: '/flights', accent: 'flight', keywords: 'fly travel trip airport', noun: 'flight', nounPlural: 'flights', kind: 'travel' },
     place: { icon: 'Location01Icon', label: 'Place', plural: 'Places', href: '/places', accent: 'place', keywords: 'place location visited', noun: 'check-in', nounPlural: 'check-ins', kind: 'travel' },
     fuel: { icon: 'PetrolPumpIcon', label: 'Fuel', plural: 'Fuel', href: '/fuel', accent: 'fuel', keywords: 'petrol gas diesel', noun: 'fill-up', nounPlural: 'fill-ups', kind: 'travel' },

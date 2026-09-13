@@ -42,7 +42,7 @@ return [
         '£:cost lighter at the pump',
     ],
 
-    'podcast' => [
+    'this-week-with' => [
         'Season :season, Episode :episode',
     ],
 
@@ -54,7 +54,7 @@ return [
         'media' => ["Everything I've watched and read", 'My watch and read history', 'Where my evenings went'],
         'event' => ["Events I've turned up to", "Everywhere I've shown my face", 'Times I left the house'],
         'appearance' => ['Talks and appearances', 'Times they let me on stage', "Where I've been let loose"],
-        'podcast' => ['Every episode so far', 'The whole back catalogue', 'Every week, archived'],
+        'this-week-with' => ['Every episode so far', 'The whole back catalogue', 'Every week, archived'],
         'flight' => ["Everywhere I've flown", 'My carbon footprint, mapped', "Every flight I've taken"],
         'place' => ["Everywhere I've been", "Places I've shown up", 'My questionable travel choices'],
         'fuel' => ['Every fill-up', "Money I've burned on fuel", 'Every trip to the pump'],

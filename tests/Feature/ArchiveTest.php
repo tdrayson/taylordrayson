@@ -9,8 +9,8 @@ use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Podcast;
 use App\Models\Project;
+use App\Models\ThisWeekWith;
 use App\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -70,12 +70,12 @@ it('filters places by category slug', function () {
 });
 
 it('filters This Week With by season, with season-ordered chips', function () {
-    Podcast::factory()->create(['season_number' => 3, 'episode_number' => 1, 'occurred_at' => now()->subDay()]);
-    Podcast::factory()->create(['season_number' => 3, 'episode_number' => 2, 'occurred_at' => now()->subDays(2)]);
-    Podcast::factory()->create(['season_number' => 5, 'episode_number' => 1, 'occurred_at' => now()->subDays(3)]);
+    ThisWeekWith::factory()->create(['season_number' => 3, 'episode_number' => 1, 'occurred_at' => now()->subDay()]);
+    ThisWeekWith::factory()->create(['season_number' => 3, 'episode_number' => 2, 'occurred_at' => now()->subDays(2)]);
+    ThisWeekWith::factory()->create(['season_number' => 5, 'episode_number' => 1, 'occurred_at' => now()->subDays(3)]);
 
     get('/this-week-with')->assertOk()->assertInertia(fn ($page) => $page
-        ->where('type', 'podcast')
+        ->where('type', 'this-week-with')
         // The leading "all" chip reads "All Seasons", not "All This Week With".
         ->where('chips', fn ($chips) => collect($chips)->firstWhere('all', true)['label'] === 'All Seasons'
             && collect($chips)->firstWhere('href', '/this-week-with/3')['label'] === 'Season 3'

@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Jobs\StorePodcastMedia;
-use App\Models\Podcast;
-use App\Queries\PodcastEpisodeCount;
+use App\Jobs\StoreThisWeekWithMedia;
+use App\Models\ThisWeekWith as ThisWeekWithEpisode;
+use App\Queries\ThisWeekWithEpisodeCount;
 use App\Services\ThisWeekWith\Client;
 use App\Support\HtmlSanitizer;
 use Carbon\Carbon;
@@ -13,9 +13,9 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use RuntimeException;
 
-#[Signature('podcast:sync {--per-page=50 : Episodes to request per page} {--full : Re-fetch and re-map every episode}')]
+#[Signature('this-week-with:sync {--per-page=50 : Episodes to request per page} {--full : Re-fetch and re-map every episode}')]
 #[Description('Sync This Week With episodes from the website API')]
-class PodcastSync extends Command
+class ThisWeekWithSync extends Command
 {
     /**
      * How many already-stored episodes in a row end an incremental run. More than
@@ -52,7 +52,7 @@ class PodcastSync extends Command
                     // so a new episode stops depending on the publisher as soon
                     // as it appears. Only for new episodes: a --full re-map
                     // walks all 255 and would re-queue the whole archive.
-                    StorePodcastMedia::dispatch($podcast);
+                    StoreThisWeekWithMedia::dispatch($podcast);
 
                     continue;
                 }
@@ -79,7 +79,7 @@ class PodcastSync extends Command
         // Only when something actually moved: at this cadence most runs change
         // nothing, and the timeline's episode figure is cached until midnight.
         if ($changed) {
-            PodcastEpisodeCount::forget();
+            ThisWeekWithEpisodeCount::forget();
         }
 
         $this->info("Synced {$created} new episode(s), {$seen} already stored.");
@@ -138,9 +138,9 @@ class PodcastSync extends Command
     /**
      * @param  array<string, mixed>  $row
      */
-    private function store(array $row): Podcast
+    private function store(array $row): ThisWeekWithEpisode
     {
-        return Podcast::updateOrCreate(
+        return ThisWeekWithEpisode::updateOrCreate(
             ['season_number' => $row['season_number'], 'episode_number' => $row['episode_number']],
             $row,
         );

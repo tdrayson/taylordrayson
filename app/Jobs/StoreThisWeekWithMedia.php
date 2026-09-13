@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,7 +20,7 @@ use RuntimeException;
  * Audio is deliberately not mirrored: it is served from the publisher's URL,
  * which is our own, so a second ~10GB copy would buy nothing.
  */
-class StorePodcastMedia implements ShouldQueue
+class StoreThisWeekWithMedia implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -28,7 +28,7 @@ class StorePodcastMedia implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct(private Podcast $podcast, private bool $force = false) {}
+    public function __construct(private ThisWeekWith $podcast, private bool $force = false) {}
 
     /**
      * Never two runs for the same episode at once, so a job released back onto

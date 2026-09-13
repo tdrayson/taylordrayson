@@ -19,7 +19,7 @@ class FeedPresets
             'curated' => [
                 'label' => 'Curated',
                 'description' => 'My highlights. The good stuff, minus the 3am sleep logs.',
-                'types' => ['note', 'article', 'project', 'media', 'podcast', 'appearance'],
+                'types' => ['note', 'article', 'project', 'media', 'this-week-with', 'appearance'],
             ],
             'everything' => [
                 'label' => 'Everything',
@@ -34,7 +34,7 @@ class FeedPresets
             'watching' => [
                 'label' => 'Watching & Listening',
                 'description' => 'Films, telly, books, and the podcast.',
-                'types' => ['media', 'podcast'],
+                'types' => ['media', 'this-week-with'],
             ],
             'travel' => [
                 'label' => 'Travel',

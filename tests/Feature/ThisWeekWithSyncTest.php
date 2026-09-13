@@ -1,13 +1,13 @@
 <?php
 
-use App\Jobs\StorePodcastMedia;
-use App\Models\Podcast;
+use App\Jobs\StoreThisWeekWithMedia;
+use App\Models\ThisWeekWith;
 use Illuminate\Support\Facades\Queue;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
 /**
- * The queue is faked because StorePodcastMedia would otherwise run inline and
+ * The queue is faked because StoreThisWeekWithMedia would otherwise run inline and
  * consume the faked responses meant for the next page.
  */
 beforeEach(function () {
@@ -52,16 +52,16 @@ function fakePodcastPages(array $pages): void
 it('stores newly published episodes', function () {
     fakePodcastPages([[podcastEpisode(254), podcastEpisode(253)]]);
 
-    $this->artisan('podcast:sync')->assertSuccessful();
+    $this->artisan('this-week-with:sync')->assertSuccessful();
 
-    expect(Podcast::count())->toBe(2)
-        ->and(Podcast::where('episode_number', 254)->first()->topic)->toBe('Topic 254');
+    expect(ThisWeekWith::count())->toBe(2)
+        ->and(ThisWeekWith::where('episode_number', 254)->first()->topic)->toBe('Topic 254');
 });
 
 it('stops paging once it reaches episodes it already has', function () {
     // Five known episodes end the run, so the second page is never requested.
     foreach ([254, 253, 252, 251, 250] as $number) {
-        Podcast::factory()->create(['season_number' => 7, 'episode_number' => $number]);
+        ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => $number]);
     }
 
     fakePodcastPages([
@@ -69,23 +69,23 @@ it('stops paging once it reaches episodes it already has', function () {
         [podcastEpisode(249)],
     ]);
 
-    $this->artisan('podcast:sync')->assertSuccessful();
+    $this->artisan('this-week-with:sync')->assertSuccessful();
 
     Saloon::assertSentCount(1);
-    expect(Podcast::count())->toBe(5);
+    expect(ThisWeekWith::count())->toBe(5);
 });
 
 it('keeps going past a hole left by a half-finished run', function () {
     // 254 and 253 stored, 252 missing: a stop-at-the-first-known rule would
     // strand it forever.
-    Podcast::factory()->create(['season_number' => 7, 'episode_number' => 254]);
-    Podcast::factory()->create(['season_number' => 7, 'episode_number' => 253]);
+    ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => 254]);
+    ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => 253]);
 
     fakePodcastPages([[podcastEpisode(254), podcastEpisode(253), podcastEpisode(252)]]);
 
-    $this->artisan('podcast:sync')->assertSuccessful();
+    $this->artisan('this-week-with:sync')->assertSuccessful();
 
-    expect(Podcast::where('episode_number', 252)->exists())->toBeTrue();
+    expect(ThisWeekWith::where('episode_number', 252)->exists())->toBeTrue();
 });
 
 /**
@@ -93,28 +93,28 @@ it('keeps going past a hole left by a half-finished run', function () {
  * re-map of episodes already stored must not re-queue the whole 10GB archive.
  */
 it('queues a mirror for new episodes only', function () {
-    Podcast::factory()->create(['season_number' => 7, 'episode_number' => 254]);
+    ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => 254]);
 
     fakePodcastPages([[podcastEpisode(255), podcastEpisode(254)]]);
 
-    $this->artisan('podcast:sync')->assertSuccessful();
+    $this->artisan('this-week-with:sync')->assertSuccessful();
 
-    Queue::assertPushed(StorePodcastMedia::class, 1);
+    Queue::assertPushed(StoreThisWeekWithMedia::class, 1);
 });
 
 it('re-maps the newest episodes so notes added after publication are picked up', function () {
-    Podcast::factory()->create(['season_number' => 7, 'episode_number' => 254, 'topic' => 'Placeholder']);
+    ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => 254, 'topic' => 'Placeholder']);
 
     fakePodcastPages([[podcastEpisode(254)]]);
 
-    $this->artisan('podcast:sync')->assertSuccessful();
+    $this->artisan('this-week-with:sync')->assertSuccessful();
 
-    expect(Podcast::where('episode_number', 254)->first()->topic)->toBe('Topic 254');
+    expect(ThisWeekWith::where('episode_number', 254)->first()->topic)->toBe('Topic 254');
 });
 
 it('walks the whole feed with --full', function () {
     foreach ([254, 253, 252, 251, 250] as $number) {
-        Podcast::factory()->create(['season_number' => 7, 'episode_number' => $number]);
+        ThisWeekWith::factory()->create(['season_number' => 7, 'episode_number' => $number]);
     }
 
     fakePodcastPages([
@@ -122,14 +122,14 @@ it('walks the whole feed with --full', function () {
         [podcastEpisode(249)],
     ]);
 
-    $this->artisan('podcast:sync --full')->assertSuccessful();
+    $this->artisan('this-week-with:sync --full')->assertSuccessful();
 
     Saloon::assertSentCount(2);
-    expect(Podcast::where('episode_number', 249)->exists())->toBeTrue();
+    expect(ThisWeekWith::where('episode_number', 249)->exists())->toBeTrue();
 });
 
 it('fails when the api returns nothing', function () {
     fakePodcastPages([[]]);
 
-    $this->artisan('podcast:sync')->assertFailed();
+    $this->artisan('this-week-with:sync')->assertFailed();
 });
