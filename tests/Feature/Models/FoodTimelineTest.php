@@ -3,7 +3,7 @@
 use App\Models\Food;
 use App\Models\TimelineEntry;
 
-it('creating the first calorie for a date creates one timeline entry', function () {
+it('creating the first food item for a date creates one timeline entry', function () {
     Food::create([
         'occurred_at' => now(),
         'name' => 'Weetabix',
@@ -16,7 +16,7 @@ it('creating the first calorie for a date creates one timeline entry', function 
     expect(TimelineEntry::count())->toBe(1);
 });
 
-it('creating a second calorie for the same date does NOT create a second timeline entry', function () {
+it('creating a second food item for the same date does NOT create a second timeline entry', function () {
     $date = now()->startOfDay()->addHours(8);
 
     Food::create([
@@ -40,7 +40,7 @@ it('creating a second calorie for the same date does NOT create a second timelin
     expect(TimelineEntry::count())->toBe(1);
 });
 
-it('the timeline entry points to the first calorie row (lowest ID)', function () {
+it('the timeline entry points to the first food row (lowest ID)', function () {
     $date = now()->startOfDay()->addHours(8);
 
     $first = Food::create([
@@ -86,7 +86,7 @@ it('the timeline entry occurred_at is set to noon on that date', function () {
         ->and($entry->occurred_at->toDateString())->toBe($date->toDateString());
 });
 
-it('deleting the referenced calorie updates the timeline entry to point to the next row', function () {
+it('deleting the referenced food item updates the timeline entry to point to the next row', function () {
     $date = now()->startOfDay()->addHours(8);
 
     $first = Food::create([
@@ -115,7 +115,7 @@ it('deleting the referenced calorie updates the timeline entry to point to the n
         ->and($entry->entry_id)->toBe($second->id);
 });
 
-it('deleting all calories for a date deletes the timeline entry', function () {
+it('deleting all food items for a date deletes the timeline entry', function () {
     $date = now()->startOfDay()->addHours(8);
 
     $food = Food::create([
@@ -134,7 +134,7 @@ it('deleting all calories for a date deletes the timeline entry', function () {
     expect(TimelineEntry::count())->toBe(0);
 });
 
-it('calories on different dates create separate timeline entries', function () {
+it('food items on different dates create separate timeline entries', function () {
     Food::create([
         'occurred_at' => now()->startOfDay()->addHours(8),
         'name' => 'Weetabix',

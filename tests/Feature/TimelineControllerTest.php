@@ -21,7 +21,7 @@ it('renders the timeline page via Inertia', function () {
 it('shares the real This Week With episode count', function () {
     ThisWeekWith::factory()->count(3)->create();
 
-    get('/')->assertInertia(fn ($page) => $page->where('podcastEpisodes', 3));
+    get('/')->assertInertia(fn ($page) => $page->where('thisWeekWithEpisodes', 3));
 });
 
 it('groups timeline entries by day, newest day first', function () {

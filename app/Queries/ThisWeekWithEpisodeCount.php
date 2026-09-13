@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Cache;
  */
 final class ThisWeekWithEpisodeCount
 {
-    private const KEY = 'count.podcast-episodes';
+    private const KEY = 'count.this-week-with-episodes';
 
     public function __invoke(): int
     {

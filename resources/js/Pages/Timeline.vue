@@ -20,7 +20,7 @@ const props = defineProps({
     newerUrl: { type: String, default: null },
     // list<{ year, href }>, newest first.
     years: { type: Array, default: () => [] },
-    podcastEpisodes: { type: Number, default: 0 },
+    thisWeekWithEpisodes: { type: Number, default: 0 },
 });
 
 setLayoutProps({
@@ -70,7 +70,7 @@ const currentYear = computed(() => {
 <template>
     <AppHead :og="og" />
 
-    <IntroBlock v-if="isFront" :podcast-episodes="podcastEpisodes" class="mb-14" />
+    <IntroBlock v-if="isFront" :this-week-with-episodes="thisWeekWithEpisodes" class="mb-14" />
 
     <div v-if="groups.length" class="h-feed flex flex-col gap-14">
         <h1 class="p-name sr-only">Taylor Drayson timeline</h1>

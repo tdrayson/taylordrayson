@@ -33,7 +33,7 @@ class TimelineController extends Controller
         private readonly HeatmapDays $heatmapDays,
         private readonly DayStats $dayStats,
         private readonly MonthsInYear $months,
-        private readonly ThisWeekWithEpisodeCount $podcastEpisodes,
+        private readonly ThisWeekWithEpisodeCount $thisWeekWithEpisodes,
         private readonly TimelineWindow $window,
         private readonly TimelineYears $years,
     ) {}
@@ -59,7 +59,7 @@ class TimelineController extends Controller
             // The newest page is the bare URL, so the feed has one canonical front.
             'newerUrl' => $window['newerThan'] === null ? null : '/?after='.$window['newerThan'],
             'years' => ($this->years)(),
-            'podcastEpisodes' => ($this->podcastEpisodes)(),
+            'thisWeekWithEpisodes' => ($this->thisWeekWithEpisodes)(),
         ]);
     }
 

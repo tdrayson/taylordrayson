@@ -13,8 +13,8 @@ const props = defineProps({
 
 // The two hosts are constant for this show; bubble gradients distinguish them.
 const hosts = [
-    { initial: 'G', name: 'Gordon', modifier: 'podcast__host--gordon', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/gordon-drayson-optimised-1024x1024-1.png' },
-    { initial: 'T', name: 'Taylor', modifier: 'podcast__host--taylor', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/Taylor-headshot.png' },
+    { initial: 'G', name: 'Gordon', modifier: 'this-week-with__host--gordon', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/gordon-drayson-optimised-1024x1024-1.png' },
+    { initial: 'T', name: 'Taylor', modifier: 'this-week-with__host--taylor', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/Taylor-headshot.png' },
 ];
 
 const seasonEpisode = computed(() => {
@@ -70,35 +70,35 @@ const onImageError = (event) => {
 </script>
 
 <template>
-    <div class="podcast rounded-3xl">
-        <div class="podcast__top">
-            <Link v-if="seasonEpisode" :href="episode.url" class="podcast__episode">{{ seasonEpisode }}</Link>
-            <span v-else class="podcast__episode podcast__episode--empty">No episodes yet</span>
-            <Link :href="archiveHref" class="podcast__show">{{ show }}</Link>
-            <div v-if="metaLine" class="podcast__meta">{{ metaLine }}</div>
+    <div class="this-week-with rounded-3xl">
+        <div class="this-week-with__top">
+            <Link v-if="seasonEpisode" :href="episode.url" class="this-week-with__episode">{{ seasonEpisode }}</Link>
+            <span v-else class="this-week-with__episode this-week-with__episode--empty">No episodes yet</span>
+            <Link :href="archiveHref" class="this-week-with__show">{{ show }}</Link>
+            <div v-if="metaLine" class="this-week-with__meta">{{ metaLine }}</div>
         </div>
 
-        <div class="podcast__hosts">
-            <div v-for="host in hosts" :key="host.initial" class="podcast__host" :class="host.modifier">
-                <span class="podcast__host-bubble" />
-                <span class="podcast__host-initial">{{ host.initial }}</span>
-                <img class="podcast__host-image" :src="host.image" :alt="host.name" referrerpolicy="no-referrer" @error="onImageError" />
+        <div class="this-week-with__hosts">
+            <div v-for="host in hosts" :key="host.initial" class="this-week-with__host" :class="host.modifier">
+                <span class="this-week-with__host-bubble" />
+                <span class="this-week-with__host-initial">{{ host.initial }}</span>
+                <img class="this-week-with__host-image" :src="host.image" :alt="host.name" referrerpolicy="no-referrer" @error="onImageError" />
             </div>
         </div>
 
         <button
             v-if="hasAudio"
             type="button"
-            class="podcast__play"
-            :class="{ 'podcast__play--active': isPlaying }"
+            class="this-week-with__play"
+            :class="{ 'this-week-with__play--active': isPlaying }"
             :aria-label="isPlaying ? 'Pause latest episode' : 'Play latest episode'"
             @click="listen"
         >
-            <svg v-if="isPlaying" class="podcast__play-icon podcast__play-icon--pause" width="12" height="15" viewBox="0 0 12 15" fill="none" aria-hidden="true">
+            <svg v-if="isPlaying" class="this-week-with__play-icon this-week-with__play-icon--pause" width="12" height="15" viewBox="0 0 12 15" fill="none" aria-hidden="true">
                 <rect x="1" y="1" width="3.4" height="13" rx="1" fill="#fff" />
                 <rect x="7.6" y="1" width="3.4" height="13" rx="1" fill="#fff" />
             </svg>
-            <svg v-else class="podcast__play-icon" width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true">
+            <svg v-else class="this-week-with__play-icon" width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true">
                 <path d="M1 1.3v12.4a1 1 0 0 0 1.5.87l10.2-6.2a1 1 0 0 0 0-1.74L2.5.43A1 1 0 0 0 1 1.3Z" fill="#fff" />
             </svg>
         </button>
@@ -108,7 +108,7 @@ const onImageError = (event) => {
 <style scoped>
 /* The card is the query container; everything sizes in cqw (1cqw ≈ reference
    px ÷ 2.24) so the composition scales with the grid cell. */
-.podcast {
+.this-week-with {
     container-type: inline-size;
     position: relative;
     overflow: hidden;
@@ -118,7 +118,7 @@ const onImageError = (event) => {
     color: var(--color-neutral-900);
 }
 
-.podcast__top {
+.this-week-with__top {
     position: absolute;
     left: 8.04cqw;
     top: 8.04cqw;
@@ -126,7 +126,7 @@ const onImageError = (event) => {
     z-index: 3;
 }
 
-.podcast__episode {
+.this-week-with__episode {
     display: inline-block;
     font-size: 14.29cqw;
     font-weight: 800;
@@ -135,17 +135,17 @@ const onImageError = (event) => {
     color: var(--color-neutral-900);
 }
 
-.podcast__episode--empty {
+.this-week-with__episode--empty {
     font-size: 8cqw;
     color: var(--color-neutral-500);
 }
 
-.podcast__episode:focus-visible {
+.this-week-with__episode:focus-visible {
     outline: 2px solid var(--color-accent-500);
     outline-offset: 2px;
 }
 
-.podcast__show {
+.this-week-with__show {
     display: -webkit-box;
     margin-top: 4.02cqw;
     font-size: 6.25cqw;
@@ -157,19 +157,19 @@ const onImageError = (event) => {
     overflow: hidden;
 }
 
-.podcast__show:focus-visible {
+.this-week-with__show:focus-visible {
     outline: 2px solid var(--color-accent-500);
     outline-offset: 2px;
 }
 
-.podcast__meta {
+.this-week-with__meta {
     margin-top: 3.13cqw;
     font-size: 5.36cqw;
     font-weight: 600;
     color: var(--color-neutral-500);
 }
 
-.podcast__hosts {
+.this-week-with__hosts {
     position: absolute;
     left: 3.57cqw;
     bottom: -1.79cqw;
@@ -178,17 +178,17 @@ const onImageError = (event) => {
     align-items: flex-end;
 }
 
-.podcast__host {
+.this-week-with__host {
     position: relative;
     width: 39.29cqw;
     height: 47.32cqw;
 }
 
-.podcast__host + .podcast__host {
+.this-week-with__host + .this-week-with__host {
     margin-left: -17.86cqw;
 }
 
-.podcast__host-bubble {
+.this-week-with__host-bubble {
     position: absolute;
     left: 50%;
     bottom: 3.57cqw;
@@ -199,15 +199,15 @@ const onImageError = (event) => {
     z-index: 1;
 }
 
-.podcast__host--taylor .podcast__host-bubble {
+.this-week-with__host--taylor .this-week-with__host-bubble {
     background: linear-gradient(150deg, #8fdcd7, #75d3cd);
 }
 
-.podcast__host--gordon .podcast__host-bubble {
+.this-week-with__host--gordon .this-week-with__host-bubble {
     background: linear-gradient(150deg, #fe7a74, #fd5a53);
 }
 
-.podcast__host-initial {
+.this-week-with__host-initial {
     position: absolute;
     left: 50%;
     bottom: 16.07cqw;
@@ -219,7 +219,7 @@ const onImageError = (event) => {
 }
 
 /* Headshots sit above both the bubble and the fallback initial. */
-.podcast__host-image {
+.this-week-with__host-image {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -231,7 +231,7 @@ const onImageError = (event) => {
     z-index: 3;
 }
 
-.podcast__play {
+.this-week-with__play {
     position: absolute;
     right: 7.14cqw;
     bottom: 7.14cqw;
@@ -251,17 +251,17 @@ const onImageError = (event) => {
     transition: transform 0.15s ease;
 }
 
-.podcast__play:hover {
+.this-week-with__play:hover {
     transform: scale(1.08);
 }
 
-.podcast__play-icon {
+.this-week-with__play-icon {
     width: 5.8cqw;
     height: auto;
     margin-left: 0.89cqw;
 }
 
-.podcast__play-icon--pause {
+.this-week-with__play-icon--pause {
     margin-left: 0;
 }
 </style>

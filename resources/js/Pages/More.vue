@@ -47,7 +47,7 @@ const site = [
         </p>
     </header>
 
-    <!-- One section per dataset kind (Writing, Watching, Travel, ...), replacing the old single "What I track" list. -->
+    <!-- One section per dataset kind (Writing, Watching, Travel, ...). -->
     <section v-for="group in tracked" :key="group.kind">
         <SectionHead :title="group.label" />
         <ul class="grid gap-x-24 sm:grid-cols-2">
