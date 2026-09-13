@@ -18,7 +18,7 @@ it('exposes previews only for internal, previewable content links', function () 
         'excerpt' => 'A short summary.',
         'occurred_at' => '2026-05-01 10:00:00',
         'slug' => 'target-post',
-        'published' => true,
+        'status' => 'published',
         'content' => [],
     ]);
     $targetHref = '/2026/05/01/target-post';
@@ -29,7 +29,7 @@ it('exposes previews only for internal, previewable content links', function () 
     $source = Article::factory()->create([
         'occurred_at' => '2026-05-02 10:00:00',
         'slug' => 'source-post',
-        'published' => true,
+        'status' => 'published',
         'content' => [[
             '_type' => 'block',
             'markDefs' => [

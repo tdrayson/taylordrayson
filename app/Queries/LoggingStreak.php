@@ -2,7 +2,7 @@
 
 namespace App\Queries;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Support\SqlDate;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -37,7 +37,7 @@ final class LoggingStreak
 
     private function count(): int
     {
-        $logged = Calorie::query()
+        $logged = Food::query()
             ->toBase()
             ->selectRaw(SqlDate::date('occurred_at').' as day')
             ->distinct()

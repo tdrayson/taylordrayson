@@ -2,9 +2,8 @@
 
 namespace App\Search;
 
-use App\Models\Article;
-use App\Models\Calorie;
-use App\Models\Page;
+use App\Enums\EntryStatus;
+use App\Models\Food;
 use App\Support\SqlDate;
 use App\Timeline\TypeRegistry;
 use Closure;
@@ -35,6 +34,11 @@ class SearchCompiler
     public function apply(EloquentBuilder $query, array $groups): EloquentBuilder
     {
         $schema = SearchSchema::types();
+
+        // The spine row carries the same status, so a guest never gets a hidden row whichever group matched it.
+        if (! Auth::check()) {
+            $query->where('timeline_entries.status', EntryStatus::Published->value);
+        }
 
         $query->where(function (EloquentBuilder $outer) use ($groups, $schema): void {
             $isFirstGroup = true;
@@ -72,26 +76,29 @@ class SearchCompiler
         }
 
         $method = $isFirstGroup ? 'whereHasMorph' : 'orWhereHasMorph';
-        $outer->{$method}('timelineable', [$type['model']], function (Builder $morph) use ($group, $type): void {
-            $this->guardPublished($morph, $type['model']);
+        $outer->{$method}('entry', [$type['model']], function (Builder $morph) use ($group, $type): void {
+            $this->guardStatus($morph, collect($group['conditions'])->contains('field', 'status'));
             $this->applyConditions($morph, $group, $type);
         });
     }
 
     /**
-     * Defence in depth against a stale timeline_entries row (e.g. a mass update
-     * that bypassed model observers): guests never see unpublished writing in
-     * search results. Public so other search entry points (e.g. the command
-     * palette's free-text suggest endpoint) share this single gate rather than
-     * duplicating the guard logic.
+     * Guests find published entries only. The owner finds everything but drafts,
+     * unless the group asks for a status itself. Public so the palette shares it.
      *
      * @param  Builder  $query  The (possibly morphed) model query to constrain.
-     * @param  class-string|null  $model  The model class this query targets.
+     * @param  bool  $hasStatusCondition  Whether the group already names a status.
      */
-    public function guardPublished(Builder $query, ?string $model): void
+    public function guardStatus(Builder $query, bool $hasStatusCondition = false): void
     {
-        if (in_array($model, [Article::class, Page::class], true) && ! Auth::check()) {
-            $query->where('published', true);
+        if (! Auth::check()) {
+            $query->where('status', EntryStatus::Published->value);
+
+            return;
+        }
+
+        if (! $hasStatusCondition) {
+            $query->where('status', '!=', EntryStatus::Draft->value);
         }
     }
 
@@ -142,16 +149,16 @@ class SearchCompiler
      * A food entry is a whole day but hangs off the first row of that day, so a
      * condition applied to the query directly reads one item out of a dozen.
      *
-     * @param  Builder  $query  A Calorie query for the row the entry hangs off.
+     * @param  Builder  $query  A Food query for the row the entry hangs off.
      * @param  Closure(Builder): void  $constrain  Applies the conditions to the aliased item query.
      */
     private function whereDayHasItem(Builder $query, Closure $constrain): void
     {
-        $items = Calorie::query()->from('calories as items')->selectRaw('1');
+        $items = Food::query()->from('food as items')->selectRaw('1');
 
         $constrain($items);
 
-        $items->whereRaw(SqlDate::date('items.occurred_at').' = '.SqlDate::date('calories.occurred_at'));
+        $items->whereRaw(SqlDate::date('items.occurred_at').' = '.SqlDate::date('food.occurred_at'));
 
         $query->whereExists($items);
     }
@@ -170,8 +177,8 @@ class SearchCompiler
     private function dayTotalClause(Builder $query, array $field, string $operator, mixed $value): void
     {
         // Interpolated, not bound: the column is a schema constant, never input.
-        $total = '(select coalesce(sum(totals.'.$field['column'].'), 0) from calories as totals where '
-            .SqlDate::date('totals.occurred_at').' = '.SqlDate::date('calories.occurred_at').')';
+        $total = '(select coalesce(sum(totals.'.$field['column'].'), 0) from food as totals where '
+            .SqlDate::date('totals.occurred_at').' = '.SqlDate::date('food.occurred_at').')';
 
         if ($operator === 'between' || $operator === 'not_between') {
             $range = $this->numberRange($value);
@@ -233,16 +240,17 @@ class SearchCompiler
     private function anyText(Builder $query, string $value): void
     {
         $registry = TypeRegistry::all();
-        $models = collect(SearchSchema::TEXT_COLUMNS)
+        $textColumns = SearchSchema::textColumns();
+        $models = collect($textColumns)
             ->keys()
             ->map(fn (string $key): string => $registry[$key]['model'])
             ->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($registry, $value): void {
-            $this->guardPublished($morph, $modelClass);
+        $query->whereHasMorph('entry', $models, function (Builder $morph, string $modelClass) use ($registry, $textColumns, $value): void {
+            $this->guardStatus($morph);
 
             $key = collect($registry)->search(fn (array $definition): bool => $definition['model'] === $modelClass);
-            $columns = SearchSchema::TEXT_COLUMNS[$key] ?? [];
+            $columns = $textColumns[$key] ?? [];
 
             $match = fn (Builder $inner, string $prefix) => $inner->where(function (Builder $any) use ($columns, $value, $prefix): void {
                 foreach ($columns as $column) {
@@ -252,7 +260,7 @@ class SearchCompiler
 
             // A food day is named by whichever item the entry hangs off, so
             // matching that row alone hides most of what was eaten.
-            if ($modelClass === Calorie::class) {
+            if ($modelClass === Food::class) {
                 $this->whereDayHasItem($morph, fn (Builder $items) => $match($items, 'items.'));
 
                 return;
@@ -319,8 +327,8 @@ class SearchCompiler
     {
         $models = collect(TypeRegistry::all())->pluck('model')->all();
 
-        $query->whereHasMorph('timelineable', $models, function (Builder $morph, string $modelClass) use ($operator, $value): void {
-            $this->guardPublished($morph, $modelClass);
+        $query->whereHasMorph('entry', $models, function (Builder $morph) use ($operator, $value): void {
+            $this->guardStatus($morph);
             $this->mediaClause($morph, $operator, $value);
         });
     }

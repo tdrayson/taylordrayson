@@ -3,13 +3,12 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
-use App\Enums\MediaType;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
 use App\Models\Event;
 use App\Models\Flight;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
@@ -47,7 +46,7 @@ final class FieldRegistry
             $model instanceof Flight => FlightFields::fields(),
             $model instanceof Fuel => FuelFields::fields(),
             $model instanceof Appearance => AppearanceFields::fields(),
-            $model instanceof Media && self::isBook($model) => BookFields::fields(),
+            $model instanceof Book => BookFields::fields(),
             default => throw new LogicException('No fields registered for '.$model::class),
         };
     }
@@ -66,22 +65,6 @@ final class FieldRegistry
             || $model instanceof Flight
             || $model instanceof Fuel
             || $model instanceof Appearance
-            || ($model instanceof Media && self::isBook($model));
-    }
-
-    /**
-     * Films and episodes come from Trakt and are never edited by hand; a book
-     * has no Trakt equivalent, so it is the one Media type with a form.
-     *
-     * A Media row with no type yet is treated as a book, since that is the only
-     * kind the authoring UI can create.
-     */
-    private static function isBook(Media $media): bool
-    {
-        $type = $media->getAttribute('type');
-
-        return $type === null
-            || $type === MediaType::Book
-            || $type === MediaType::Book->value;
+            || $model instanceof Book;
     }
 }

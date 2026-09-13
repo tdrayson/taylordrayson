@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Observers\LinkFaviconObserver;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -20,7 +21,8 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'published',
+    'status',
+    'password',
 ])]
 #[ObservedBy(LinkFaviconObserver::class)]
 class Page extends Model implements HasMedia
@@ -30,6 +32,8 @@ class Page extends Model implements HasMedia
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
+    use HasStatus;
+
     /**
      * @return array<string, string>
      */
@@ -37,7 +41,6 @@ class Page extends Model implements HasMedia
     {
         return [
             'content' => 'array',
-            'published' => 'boolean',
         ];
     }
 

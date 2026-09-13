@@ -2,6 +2,8 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\EntryStatus;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\EntryZone;
 use Carbon\CarbonInterface;
@@ -51,16 +53,20 @@ trait HasTimelineEntry
 
     public function timelineEntry(): MorphOne
     {
-        return $this->morphOne(TimelineEntry::class, 'timelineable');
+        return $this->morphOne(TimelineEntry::class, 'entry', 'dataset', 'entry_id')
+            ->withoutGlobalScope(ListedScope::class);
     }
 
     /**
-     * The URL slug lives on the spine row (assigned once at write time);
-     * models without one yet (e.g. unpublished articles) fall back to the
-     * bare slug.
+     * The URL slug lives on the spine row; a model without one yet falls back to its bare slug.
+     * A draft, dated or not, lives at its own address rather than its would-be dated one.
      */
     public function url(): string
     {
+        if ($this->status === EntryStatus::Draft || $this->occurred_at === null) {
+            return '/drafts/'.$this->getMorphClass().'/'.$this->getKey();
+        }
+
         return '/'.$this->occurred_at->format('Y/m/d').'/'.($this->timelineEntry?->url_slug ?? $this->slug());
     }
 
@@ -74,8 +80,7 @@ trait HasTimelineEntry
     }
 
     /**
-     * Every Timelineable appears on the spine by default; models with their
-     * own publication gate (e.g. Article) override this.
+     * Whether this model belongs on the spine at all, beyond its status.
      */
     public function shouldAppearOnTimeline(): bool
     {

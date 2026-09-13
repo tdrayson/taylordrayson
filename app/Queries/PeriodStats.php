@@ -3,15 +3,15 @@
 namespace App\Queries;
 
 use App\Enums\ActivityDiscipline;
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Calorie;
-use App\Models\Checkin;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
+use App\Models\Food;
 use App\Models\Note;
+use App\Models\Place;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 use Illuminate\Support\Carbon;
 
 /**
@@ -27,7 +27,7 @@ final class PeriodStats
      */
     public function __invoke(Carbon $start, Carbon $end, bool $withSuperlative = false): array
     {
-        $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
+        $between = fn ($query) => $query->listed()->whereBetween('occurred_at', [$start, $end]);
 
         $stats = [];
 
@@ -66,17 +66,17 @@ final class PeriodStats
 
         // Averaged over logged days only, so a partial period isn't diluted by
         // untracked ones.
-        $foodDays = (int) $between(Calorie::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
+        $foodDays = (int) $between(Food::query())->toBase()->selectRaw('COUNT(DISTINCT DATE(occurred_at)) as days')->value('days');
 
         if ($foodDays > 0) {
-            $avgCalories = (int) round($between(Calorie::query())->sum('calories') / $foodDays);
+            $avgCalories = (int) round($between(Food::query())->sum('calories') / $foodDays);
 
             if ($avgCalories > 0) {
                 $stats[] = ['label' => 'Food', 'value' => number_format($avgCalories), 'unit' => 'kcal/day'];
             }
         }
 
-        $films = $between(Media::query())->whereIn('type', [MediaType::Film->value, MediaType::TvEpisode->value])->count();
+        $films = $between(Film::query())->count() + $between(TvEpisode::query())->count();
 
         if ($films > 0) {
             $stats[] = ['label' => 'Watched', 'value' => number_format($films)];
@@ -88,13 +88,13 @@ final class PeriodStats
             $stats[] = ['label' => 'Flights', 'value' => number_format($flights)];
         }
 
-        $places = $between(Checkin::query())->count();
+        $places = $between(Place::query())->count();
 
         if ($places > 0) {
             $stats[] = ['label' => 'Places', 'value' => number_format($places)];
         }
 
-        $written = $between(Article::query())->where('published', true)->count() + $between(Note::query())->count();
+        $written = $between(Article::query())->count() + $between(Note::query())->count();
 
         if ($written > 0) {
             $stats[] = ['label' => 'Written', 'value' => number_format($written)];

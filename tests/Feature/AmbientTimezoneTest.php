@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Calorie;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Sleep;
 use App\Support\StateStore;
 use Carbon\CarbonImmutable;
@@ -93,9 +93,9 @@ it('derives the instant from the zone it just stamped', function () {
 });
 
 it('gives a food day an instant, which its observer never used to write', function () {
-    $calorie = Calorie::factory()->create(['occurred_at' => '2026-07-01 09:00:00', 'timezone' => 'America/New_York']);
+    $food = Food::factory()->create(['occurred_at' => '2026-07-01 09:00:00', 'timezone' => 'America/New_York']);
 
-    $entry = $calorie->fresh()->timelineEntry;
+    $entry = $food->fresh()->timelineEntry;
 
     // End of 1 July in New York, which is four hours into 2 July in UTC.
     expect($entry->occurred_utc->toDateTimeString())->toBe('2026-07-02 03:59:59');

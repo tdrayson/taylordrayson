@@ -4,6 +4,7 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Rules\NotReservedSlug;
 use App\Rules\TextOrDocument;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -39,8 +40,12 @@ final class FieldRules
             $rules[$field->name] = [
                 // Only the genuinely mandatory fields are required, and only on
                 // create: an update may touch one field and leave the rest
-                // alone. Visibility (primary) is a separate question.
-                $creating && $field->required ? 'required' : 'sometimes',
+                // alone. A date stamped at save is left empty by a draft.
+                match (true) {
+                    ! $creating || ! $field->required => 'sometimes',
+                    $field->defaultsToNow => 'required_unless:status,draft',
+                    default => 'required',
+                },
                 ...self::typeRules($field),
             ];
         }
@@ -76,13 +81,17 @@ final class FieldRules
             // Blocks from the editor, or a plain string from anything that only
             // has one; the model normalises a string into a single block.
             FieldType::Prose => ['nullable', new TextOrDocument($field->max)],
-            FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
+            FieldType::Slug => [
+                'nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
+                ...($field->checksReservedSlug ? [new NotReservedSlug] : []),
+            ],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
-            FieldType::Boolean, FieldType::Published => ['boolean'],
+            FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
+            FieldType::Status => ['string', self::in($field)],
             // Both resolve to a name the lookup filled in, which stays
             // editable afterwards, so neither is constrained to what the
             // source returned.

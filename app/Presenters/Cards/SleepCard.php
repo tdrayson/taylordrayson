@@ -41,8 +41,8 @@ final class SleepCard
     {
         $window = sprintf(
             'I went to bed at %s and woke at %s.',
-            $model->bedtime->format('g:ia'),
-            $model->wake_time->format('g:ia'),
+            $model->spanStart()->format('g:ia'),
+            $model->spanEnd()->format('g:ia'),
         );
 
         return $model->score

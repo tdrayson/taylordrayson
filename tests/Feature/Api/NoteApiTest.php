@@ -208,6 +208,25 @@ it('derives the note url from its opening words when no slug is given', function
         ->assertJsonPath('data.url', '/2026/07/04/plain-note');
 });
 
+it('rejects a typed slug that collides with a reserved word', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', [
+        'content' => 'A note.',
+        'slug' => 'food',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['slug']);
+
+    expect(Note::count())->toBe(0);
+});
+
+it('rejects a note whose content would generate a reserved slug', function () {
+    $this->withToken('test-token')->postJson('/api/v1/notes', ['content' => 'Sleep'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['slug']);
+
+    expect(Note::count())->toBe(0);
+});
+
 it('falls back to a bare note url when there are no words to use', function () {
     // A note that is only an emoji, or only a photo caption's punctuation, has
     // nothing to slug.

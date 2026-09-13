@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
 /**
@@ -31,6 +32,8 @@ final class AppearanceFields
             FieldData::optional('description', 'About', FieldType::Textarea),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

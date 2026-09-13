@@ -12,7 +12,7 @@ use JsonSerializable;
 final readonly class WatchDateGroup implements Arrayable, JsonSerializable
 {
     /**
-     * @param  list<EpisodeRow>  $episodes
+     * @param  list<TvEpisodeRow>  $episodes
      */
     public function __construct(
         public string $date,
@@ -28,7 +28,7 @@ final readonly class WatchDateGroup implements Arrayable, JsonSerializable
         return [
             'date' => $this->date,
             'anchor' => $this->anchor,
-            'episodes' => array_map(fn (EpisodeRow $episode): array => $episode->toArray(), $this->episodes),
+            'episodes' => array_map(fn (TvEpisodeRow $episode): array => $episode->toArray(), $this->episodes),
         ];
     }
 

@@ -3,21 +3,23 @@
 namespace Database\Seeders;
 
 use App\Enums\ActivityDiscipline;
-use App\Enums\MediaType;
+use App\Enums\ProjectStage;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
-use App\Models\Calorie;
-use App\Models\Checkin;
+use App\Models\Book;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
-use App\Models\Podcast;
+use App\Models\Place;
 use App\Models\Project;
-use App\Models\Series;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -42,9 +44,9 @@ class DatabaseSeeder extends Seeder
     ];
 
     /**
-     * @var array<string, Series> Show title => Series row, populated by seedTvSeries().
+     * @var array<string, TvShow> Show title => TvShow row, populated by seedTvShows().
      */
-    private array $tvSeries = [];
+    private array $tvShows = [];
 
     /**
      * Seed the application's database.
@@ -56,20 +58,20 @@ class DatabaseSeeder extends Seeder
             'email' => 'taylor@example.com',
         ]);
 
-        $this->seedTvSeries();
-        $this->seedOldCalorieStreak();
+        $this->seedTvShows();
+        $this->seedOldFoodStreak();
         $this->seedRecentData();
         $this->seedOneOffData();
     }
 
     /**
-     * Create one Series row per demo show so seeded episodes can be linked
-     * via series_id (needed for /media/tv and the timeline binge-collapse).
+     * Create one TvShow row per demo show so seeded episodes can be linked
+     * via tv_show_id (needed for /tv-shows and the timeline binge-collapse).
      */
-    private function seedTvSeries(): void
+    private function seedTvShows(): void
     {
         foreach (self::TV_SHOWS as $show) {
-            $this->tvSeries[$show] = Series::factory()->create([
+            $this->tvShows[$show] = TvShow::factory()->create([
                 'title' => $show,
                 'slug' => Str::slug($show),
                 'meta' => [
@@ -81,10 +83,10 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed ~2,145 days of minimal calorie data for the streak widget.
+     * Seed ~2,145 days of minimal food data for the streak widget.
      * Uses withoutEvents so observers don't fire for old data.
      */
-    private function seedOldCalorieStreak(): void
+    private function seedOldFoodStreak(): void
     {
         Model::withoutEvents(function (): void {
             $startDate = now()->subDays(2145 + 180);
@@ -92,7 +94,7 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < 2145; $i++) {
                 $date = $startDate->copy()->addDays($i);
 
-                Calorie::factory()->create([
+                Food::factory()->create([
                     'occurred_at' => $date->setTime(12, 0),
                 ]);
             }
@@ -104,19 +106,19 @@ class DatabaseSeeder extends Seeder
      */
     private function seedRecentData(): void
     {
-        $podcastEpisode = 1;
+        $episodeNumber = 1;
 
         for ($dayOffset = 179; $dayOffset >= 0; $dayOffset--) {
             $date = now()->subDays($dayOffset)->startOfDay();
 
             $this->seedSleep($date);
-            $this->seedCalories($date);
+            $this->seedFood($date);
             $this->seedActivities($date);
-            $this->seedCheckins($date);
+            $this->seedPlaces($date);
             $this->seedNotes($date);
             $this->seedMediaFilms($date);
             $this->seedMediaTvEpisodes($date);
-            $podcastEpisode = $this->seedPodcasts($date, $podcastEpisode);
+            $episodeNumber = $this->seedThisWeekWith($date, $episodeNumber);
             $this->seedArticles($date);
             $this->seedFlights($date);
             $this->seedFuel($date);
@@ -135,11 +137,11 @@ class DatabaseSeeder extends Seeder
      */
     private function seedOneOffData(): void
     {
-        $statuses = ['active', 'active', 'maintained', 'archived', 'on_hold'];
+        $stages = [ProjectStage::Active, ProjectStage::Active, ProjectStage::Maintained, ProjectStage::Archived, ProjectStage::OnHold];
 
-        foreach ($statuses as $index => $status) {
+        foreach ($stages as $index => $stage) {
             $project = Project::factory()->create([
-                'status' => $status,
+                'stage' => $stage,
                 'occurred_at' => now()->subDays(fake()->numberBetween(10, 170)),
             ]);
 
@@ -167,11 +169,11 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 
-    private function seedCalories(Carbon $date): void
+    private function seedFood(Carbon $date): void
     {
         $breakfastCount = fake()->numberBetween(1, 2);
         for ($i = 0; $i < $breakfastCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(7, 9), fake()->numberBetween(0, 59)),
                 'meal' => 'breakfast',
             ]);
@@ -179,7 +181,7 @@ class DatabaseSeeder extends Seeder
 
         $lunchCount = fake()->numberBetween(1, 2);
         for ($i = 0; $i < $lunchCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(12, 13), fake()->numberBetween(0, 59)),
                 'meal' => 'lunch',
             ]);
@@ -187,7 +189,7 @@ class DatabaseSeeder extends Seeder
 
         $dinnerCount = fake()->numberBetween(1, 3);
         for ($i = 0; $i < $dinnerCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(18, 20), fake()->numberBetween(0, 59)),
                 'meal' => 'dinner',
             ]);
@@ -195,7 +197,7 @@ class DatabaseSeeder extends Seeder
 
         $snackCount = fake()->numberBetween(0, 2);
         for ($i = 0; $i < $snackCount; $i++) {
-            Calorie::factory()->create([
+            Food::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(10, 16), fake()->numberBetween(0, 59)),
                 'meal' => 'snacks',
             ]);
@@ -228,7 +230,7 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedCheckins(Carbon $date): void
+    private function seedPlaces(Carbon $date): void
     {
         if (! fake()->boolean(60)) {
             return;
@@ -237,16 +239,16 @@ class DatabaseSeeder extends Seeder
         $count = fake()->numberBetween(1, 2);
 
         for ($i = 0; $i < $count; $i++) {
-            $checkin = Checkin::factory()->create([
+            $place = Place::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(9, 21), fake()->numberBetween(0, 59)),
             ]);
 
             if (fake()->boolean(30)) {
-                $this->attachPhotos($checkin, fake()->numberBetween(1, 2));
+                $this->attachPhotos($place, fake()->numberBetween(1, 2));
             }
 
             if (fake()->boolean(50)) {
-                $this->attachMap($checkin);
+                $this->attachMap($place);
             }
         }
     }
@@ -272,9 +274,8 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $film = Media::factory()->create([
+        $film = Film::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => MediaType::Film,
             'meta' => [
                 'year' => fake()->numberBetween(1990, 2026),
                 'runtime' => fake()->numberBetween(80, 200),
@@ -304,18 +305,17 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Create a run of consecutive episodes for one show on one day, linked
-     * to its Series row via series_id.
+     * to its TvShow row via tv_show_id.
      */
     private function seedEpisodeBatch(Carbon $date, string $showTitle, int $seasonNumber, int $startEpisode, int $episodeCount): void
     {
-        $series = $this->tvSeries[$showTitle];
+        $tvShow = $this->tvShows[$showTitle];
 
         for ($i = 0; $i < $episodeCount; $i++) {
-            $episode = Media::factory()->create([
+            $episode = TvEpisode::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 23), fake()->numberBetween(0, 59)),
-                'type' => MediaType::TvEpisode,
                 'title' => fake()->words(fake()->numberBetween(2, 4), true),
-                'series_id' => $series->id,
+                'tv_show_id' => $tvShow->id,
                 'meta' => [
                     'show_title' => $showTitle,
                     'season' => $seasonNumber,
@@ -331,7 +331,7 @@ class DatabaseSeeder extends Seeder
     /**
      * @return int The next episode number to use.
      */
-    private function seedPodcasts(Carbon $date, int $currentEpisode): int
+    private function seedThisWeekWith(Carbon $date, int $currentEpisode): int
     {
         if (! fake()->boolean(15)) {
             return $currentEpisode;
@@ -339,13 +339,13 @@ class DatabaseSeeder extends Seeder
 
         $seasonNumber = (int) ceil($currentEpisode / 10);
 
-        $podcast = Podcast::factory()->create([
+        $episode = ThisWeekWith::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(8, 18), fake()->numberBetween(0, 59)),
             'season_number' => $seasonNumber,
             'episode_number' => $currentEpisode,
         ]);
 
-        $this->attachCover($podcast);
+        $this->attachCover($episode);
 
         return $currentEpisode + 1;
     }
@@ -410,9 +410,8 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $book = Media::factory()->create([
+        $book = Book::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => MediaType::Book,
             'meta' => [
                 'author' => fake()->name(),
                 'isbn' => fake()->isbn13(),

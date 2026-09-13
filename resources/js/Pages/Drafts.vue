@@ -29,7 +29,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
     <div class="max-w-2xl">
         <h1 class="font-display text-display">Drafts</h1>
         <p class="mt-2 text-meta text-neutral-500">
-            Unpublished entries. Nobody else can see these.
+            Drafts. Nobody else can see these.
         </p>
 
         <p v-if="! groups.length" class="mt-8 text-body text-neutral-700">

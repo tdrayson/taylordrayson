@@ -1,10 +1,9 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
-use App\Models\Checkin;
-use App\Models\Media;
-use App\Models\Series;
+use App\Models\Film;
+use App\Models\Place;
+use App\Models\TvShow;
 use App\Presenters\CardPresenter;
 use App\Queries\PhotoStream;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,16 +14,16 @@ uses(RefreshDatabase::class);
 it('returns real photos newest first, and the limited call is a prefix of the full one', function () {
     Storage::fake('public');
 
-    $oldest = Checkin::factory()->create(['occurred_at' => now()->subYears(5)]);
+    $oldest = Place::factory()->create(['occurred_at' => now()->subYears(5)]);
     $oldest->addMediaFromString(fakeJpeg())->usingFileName('old.jpg')->toMediaCollection('photos');
 
     $newest = Activity::factory()->create(['occurred_at' => now()->subDay()]);
     $newest->addMediaFromString(fakeJpeg())->usingFileName('new.jpg')->toMediaCollection('cover');
 
     // Enrichment art that /photos excludes must never enter the stream.
-    Media::factory()->create(['type' => MediaType::Film])
+    Film::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('poster.jpg')->toMediaCollection('cover');
-    Series::factory()->create()
+    TvShow::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('series.jpg')->toMediaCollection('cover');
 
     $stream = app(PhotoStream::class);
@@ -47,9 +46,9 @@ it('pages the stream without shaping or dropping photos at a group boundary', fu
     // Three entries owning two photos each, so a page size of 3 splits the
     // middle group: the boundary an offset is most likely to get wrong.
     foreach (range(1, 3) as $day) {
-        $checkin = Checkin::factory()->create(['occurred_at' => now()->subDays($day)]);
-        $checkin->addMediaFromString(fakeJpeg())->usingFileName("a{$day}.jpg")->toMediaCollection('photos');
-        $checkin->addMediaFromString(fakeJpeg())->usingFileName("b{$day}.jpg")->toMediaCollection('photos');
+        $place = Place::factory()->create(['occurred_at' => now()->subDays($day)]);
+        $place->addMediaFromString(fakeJpeg())->usingFileName("a{$day}.jpg")->toMediaCollection('photos');
+        $place->addMediaFromString(fakeJpeg())->usingFileName("b{$day}.jpg")->toMediaCollection('photos');
     }
 
     $stream = app(PhotoStream::class);
@@ -72,19 +71,19 @@ it('pages the stream without shaping or dropping photos at a group boundary', fu
 it('captions a photo with its entry title, accent and permalink', function () {
     Storage::fake('public');
 
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'occurred_at' => now(),
         'venue_name' => 'Cineworld',
         'event_name' => null,
     ]);
-    $checkin->addMediaFromString(fakeJpeg())->usingFileName('me.jpg')->toMediaCollection('photos');
+    $place->addMediaFromString(fakeJpeg())->usingFileName('me.jpg')->toMediaCollection('photos');
 
     // The caption is built without the card presenter now, so it has to keep
     // matching the card a visitor sees on the entry itself.
     expect(app(PhotoStream::class)()[0])
         ->toMatchArray([
-            'caption' => CardPresenter::for($checkin->fresh())->title,
-            'accent' => 'checkin',
-            'url' => $checkin->url(),
+            'caption' => CardPresenter::for($place->fresh())->title,
+            'accent' => 'place',
+            'url' => $place->url(),
         ]);
 });

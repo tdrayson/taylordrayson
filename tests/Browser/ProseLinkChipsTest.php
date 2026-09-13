@@ -13,7 +13,7 @@ it('draws favicon chips on external links in an article', function () {
     File::put(Links::faviconPath('example.com'), file_get_contents(base_path('tests/Fixtures/pixel.webp')));
 
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => '2024-03-01 09:00:00',
         'content' => PortableText::fromPlainText('Read https://example.com/a-post today.'),
     ]);

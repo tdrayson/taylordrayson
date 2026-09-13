@@ -70,8 +70,7 @@ function scoredAgainstApple(): array
     foreach (NIGHTS as [$occurredAt, $bedtime, $duration, $awake, $rem, $core, $deep]) {
         Sleep::factory()->create([
             'occurred_at' => $occurredAt,
-            'bedtime' => $bedtime,
-            'wake_time' => $occurredAt,
+            'started_at' => $bedtime,
             'duration' => $duration,
             'awake' => $awake,
             'rem' => $rem,

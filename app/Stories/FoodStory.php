@@ -2,7 +2,7 @@
 
 namespace App\Stories;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -52,7 +52,7 @@ class FoodStory implements Story
 
         return [
             'slug' => $this->slug(),
-            'type' => 'calorie',
+            'type' => 'food',
             'title' => $og['heading'],
             'description' => $og['description'],
             'accent' => $og['accent'],
@@ -64,7 +64,7 @@ class FoodStory implements Story
      */
     public function build(): array
     {
-        $items = Calorie::query()->orderBy('occurred_at')->get();
+        $items = Food::query()->listed()->orderBy('occurred_at')->get();
 
         if ($items->isEmpty()) {
             return ['hasData' => false];
@@ -97,7 +97,7 @@ class FoodStory implements Story
     private function byDay(Collection $items): Collection
     {
         return $items
-            ->groupBy(fn (Calorie $item): string => $item->occurred_at->toDateString())
+            ->groupBy(fn (Food $item): string => $item->occurred_at->toDateString())
             ->map(fn (Collection $day, string $date): array => [
                 'date' => $date,
                 'year' => (int) substr($date, 0, 4),
@@ -267,8 +267,8 @@ class FoodStory implements Story
      */
     private function fizzy(Collection $items, int $fromYear, int $toYear): array
     {
-        $fizzy = $items->filter(fn (Calorie $item): bool => preg_match(self::FIZZY_PATTERN, (string) $item->name) === 1);
-        $counts = $fizzy->groupBy(fn (Calorie $item): int => $item->occurred_at->year)->map->count();
+        $fizzy = $items->filter(fn (Food $item): bool => preg_match(self::FIZZY_PATTERN, (string) $item->name) === 1);
+        $counts = $fizzy->groupBy(fn (Food $item): int => $item->occurred_at->year)->map->count();
 
         $series = collect(range($fromYear, $toYear))
             ->map(fn (int $year): array => ['year' => $year, 'count' => (int) ($counts[$year] ?? 0)])
@@ -292,7 +292,7 @@ class FoodStory implements Story
     private function meals(Collection $items): array
     {
         $total = (int) $items->sum('calories');
-        $byMeal = $items->groupBy(fn (Calorie $item): string => strtolower((string) $item->meal));
+        $byMeal = $items->groupBy(fn (Food $item): string => strtolower((string) $item->meal));
 
         return collect(['breakfast', 'lunch', 'dinner', 'snacks'])
             ->map(function (string $meal) use ($byMeal, $total): array {

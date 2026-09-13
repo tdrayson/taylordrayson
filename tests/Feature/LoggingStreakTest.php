@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Queries\LoggingStreak;
 use Illuminate\Support\Carbon;
 
@@ -8,7 +8,7 @@ use function Pest\Laravel\get;
 
 function logDay(string $date): void
 {
-    Calorie::factory()->create(['occurred_at' => $date.' 12:00:00']);
+    Food::factory()->create(['occurred_at' => $date.' 12:00:00']);
 }
 
 it('counts consecutive days back from today', function () {

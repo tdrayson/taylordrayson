@@ -76,7 +76,7 @@ setLayoutProps({
         </Link>
     </template>
     <StationsMap v-else-if="type === 'fuel' && map.length" :stations="map" class="mt-8" />
-    <PlacesMap v-else-if="type === 'checkin' && map.length" :places="map" class="mt-8" />
+    <PlacesMap v-else-if="type === 'place' && map.length" :places="map" class="mt-8" />
 
     <TaxonomyFilter :chips="chips" />
 

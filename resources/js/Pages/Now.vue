@@ -17,7 +17,7 @@ import SleepWidget from '../Components/Now/SleepWidget.vue';
 import EntriesWidget from '../Components/Now/EntriesWidget.vue';
 import ReadingWidget from '../Components/Now/ReadingWidget.vue';
 import LocationWidget from '../Components/Now/LocationWidget.vue';
-import PodcastWidget from '../Components/Now/PodcastWidget.vue';
+import ThisWeekWithWidget from '../Components/Now/ThisWeekWithWidget.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -83,7 +83,7 @@ const defaultWidgets = [
     { id: 'weather', component: markRaw(WeatherWidget), x: 1, y: 1, w: 1, h: 1, props: { ...weatherProps } },
     { id: 'photos', component: markRaw(PhotosWidget), x: 2, y: 1, w: 2, h: 2, props: { ...photosProps } },
     { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: { ...sleepProps } },
-    { id: 'podcast', component: markRaw(PodcastWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
+    { id: 'this-week-with', component: markRaw(ThisWeekWithWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
     { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { ...entriesProps } },
     { id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: { fill: true } },
 ];

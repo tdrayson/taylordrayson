@@ -5,6 +5,7 @@ import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
 import { Calendar03Icon, Login01Icon, Logout01Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import Pill from '../Ui/Pill.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
 import { useDialog } from '../../composables/useDialog';
 import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
@@ -210,6 +211,7 @@ const sections = computed(() => {
                 meta: entry.date,
                 href: entry.url,
                 icon: entryType(entry.type).icon,
+                pill: entry.statusLabel,
             })),
         });
     }
@@ -402,6 +404,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                             >
                                 <Icon :icon="item.icon" class="size-4 shrink-0 text-neutral-500" />
                                 <span class="flex-1 truncate">{{ item.label }}</span>
+                                <Pill v-if="item.pill" :label="item.pill" class="shrink-0" />
                                 <span v-if="item.meta" class="shrink-0 text-label text-neutral-500">{{ item.meta }}</span>
                                 <span class="w-3 shrink-0 text-right text-label text-neutral-500">{{ item.index === activeIndex ? '↵' : '' }}</span>
                             </button>

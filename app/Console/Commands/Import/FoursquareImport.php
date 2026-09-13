@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Import;
 
-use App\Actions\Checkins\ImportCheckin;
+use App\Actions\Places\ImportPlace;
 use App\Services\Foursquare\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -18,7 +18,7 @@ class FoursquareImport extends Command
      * asks the API only for check-ins newer than the last one stored rather
      * than paging the entire history on every run.
      */
-    public function handle(Client $foursquare, ImportCheckin $importCheckin): int
+    public function handle(Client $foursquare, ImportPlace $importPlace): int
     {
         $limit = (int) $this->option('limit');
         $imported = 0;
@@ -28,7 +28,7 @@ class FoursquareImport extends Command
 
         try {
             foreach ($foursquare->checkins() as $item) {
-                $result = $importCheckin($item);
+                $result = $importPlace($item);
 
                 $result->created ? $imported++ : $skipped++;
                 $photosAdded += $result->photosAdded;
@@ -38,7 +38,7 @@ class FoursquareImport extends Command
                 }
 
                 $processed++;
-                $this->info(sprintf('[%d] %s - %s', $processed, $result->checkin->venue_name, date('Y-m-d', $item['createdAt'])));
+                $this->info(sprintf('[%d] %s - %s', $processed, $result->place->venue_name, date('Y-m-d', $item['createdAt'])));
 
                 if ($limit > 0 && $processed >= $limit) {
                     break;

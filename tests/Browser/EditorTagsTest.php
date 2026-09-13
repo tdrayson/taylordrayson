@@ -8,7 +8,7 @@ beforeEach(fn () => $this->actingAs(User::factory()->create()));
 it('opens an entry with its tags as named chips', function () {
     $article = Article::factory()->create([
         'title' => 'A tagged piece',
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => now()->subDay(),
     ]);
     $article->syncTagNames(['Living Alone', 'Fitness']);

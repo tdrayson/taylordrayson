@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Checkin;
 use App\Models\Event;
+use App\Models\Place;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -68,11 +68,11 @@ it('does not overwrite an address that is already there', function () {
 it('leaves alone a row whose coordinates resolve to nothing useful', function () {
     Saloon::fake(['maps.googleapis.com*' => MockResponse::make(['results' => []])]);
 
-    $checkin = Checkin::factory()->create(['latitude' => 0, 'longitude' => 0, 'postcode' => null]);
+    $place = Place::factory()->create(['latitude' => 0, 'longitude' => 0, 'postcode' => null]);
 
     $this->artisan('entries:backfill-addresses --apply')->assertSuccessful();
 
-    expect($checkin->fresh()->postcode)->toBeNull();
+    expect($place->fresh()->postcode)->toBeNull();
 });
 
 it('skips entries with no coordinates to work from', function () {

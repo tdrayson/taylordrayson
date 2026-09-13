@@ -15,8 +15,7 @@ use Throwable;
  * keys because media files live in directories named after their row id.
  *
  * Goes through PDO rather than a SQL dump: MySQL reads a backslash in a string
- * literal as an escape, so a dump silently corrupts every
- * timeline_entries.timelineable_type class name.
+ * literal as an escape, so a dump can silently corrupt any column holding one.
  */
 #[Signature('db:copy
     {--from= : Path to the source SQLite file}

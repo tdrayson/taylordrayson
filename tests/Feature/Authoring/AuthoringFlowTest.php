@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Models\Fuel;
 use App\Models\Note;
@@ -36,7 +37,7 @@ it('creates an entry and lands on the finished entry', function () {
 });
 
 it('keeps a draft in the editor, having no entry to show yet', function () {
-    $article = Article::factory()->create(['published' => false]);
+    $article = Article::factory()->create(['status' => 'draft']);
 
     $this->patch("/entries/article/{$article->id}", ['title' => 'Still drafting'])
         ->assertRedirect($article->fresh()->url().'?edit');
@@ -47,8 +48,8 @@ it('validates against the field definitions', function () {
     $this->post('/entries/article', [])->assertSessionHasErrors('title');
 
     // And a select only takes one of its declared options.
-    $this->post('/entries/project', ['title' => 'A project', 'status' => 'nonsense'])
-        ->assertSessionHasErrors('status');
+    $this->post('/entries/project', ['title' => 'A project', 'stage' => 'nonsense'])
+        ->assertSessionHasErrors('stage');
 
     // A tag is a name. Posting the {name, slug} shape the entry payload uses
     // for its links is a validation failure, not a TypeError inside the sync.
@@ -82,26 +83,24 @@ it('ignores a computed figure posted at the save endpoint', function () {
     expect($fuel->fresh()->litres)->toEqual(10);
 });
 
-it('publishes and unpublishes through the same save endpoint', function () {
-    // The editor's Publish button sends the flag with the rest of the form, so
-    // it has to survive validation built from the field definitions.
-    $article = Article::factory()->create(['published' => false]);
+it('changes status through the same save endpoint', function () {
+    $article = Article::factory()->draft()->create();
 
-    $this->patch("/entries/article/{$article->id}", ['published' => true]);
+    $this->patch("/entries/article/{$article->id}", ['status' => 'published']);
 
-    expect($article->fresh()->published)->toBeTrue()
+    expect($article->fresh()->status)->toBe(EntryStatus::Published)
         ->and($article->fresh()->timelineEntry()->exists())->toBeTrue();
 
-    $this->patch("/entries/article/{$article->id}", ['published' => false]);
+    $this->patch("/entries/article/{$article->id}", ['status' => 'draft']);
 
-    expect($article->fresh()->published)->toBeFalse()
+    expect($article->fresh()->status)->toBe(EntryStatus::Draft)
         ->and($article->fresh()->timelineEntry()->exists())->toBeFalse();
 });
 
 it('lists drafts grouped by type, newest edited first', function () {
-    Article::factory()->create(['title' => 'Draft article', 'published' => false]);
-    Article::factory()->create(['title' => 'Published', 'published' => true]);
-    Page::factory()->create(['title' => 'Draft page', 'published' => false]);
+    Article::factory()->create(['title' => 'Draft article', 'status' => 'draft']);
+    Article::factory()->create(['title' => 'Published', 'status' => 'published']);
+    Page::factory()->create(['title' => 'Draft page', 'status' => 'draft']);
 
     $this->get('/drafts')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Drafts')

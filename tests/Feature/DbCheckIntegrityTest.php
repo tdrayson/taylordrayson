@@ -79,6 +79,19 @@ it('finds an attachment whose file was deleted from disk', function () {
         ->assertFailed();
 });
 
+it('finds a morph column still holding a class path', function () {
+    Note::factory()->create(['occurred_at' => '2025-05-01 10:00:00']);
+
+    // A raw write, mimicking data that never went through the migration that
+    // rewrote timelineable_type/model_type/taggable_type/owner_type to aliases.
+    DB::table('timeline_entries')->where('id', TimelineEntry::first()->id)
+        ->update(['dataset' => 'App\Models\Flight']);
+
+    $this->artisan('db:check')
+        ->expectsOutputToContain('timeline_entries.dataset still holds class paths')
+        ->assertFailed();
+});
+
 it('finds a card conversion that was never written', function () {
     Storage::fake('public');
 

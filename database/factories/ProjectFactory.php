@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProjectStage;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -44,7 +45,7 @@ class ProjectFactory extends Factory
             'description' => fake()->sentence(),
             'url' => fake()->optional(0.5)->url(),
             'github_url' => fake()->optional(0.6)->url(),
-            'status' => fake()->randomElement(['active', 'maintained', 'archived', 'on_hold']),
+            'stage' => fake()->randomElement(ProjectStage::cases()),
             'featured' => fake()->boolean(20),
         ];
     }

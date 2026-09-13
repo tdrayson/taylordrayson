@@ -7,9 +7,8 @@ import { authoringTypes, linkTypes, timelineTypes } from './types.generated.js';
  * types.generated.js, written by `php artisan types:sync`. Edit the catalogue,
  * not the generated file: a Pest test fails when the two drift apart.
  *
- * `icon` is an icon-registry name, `href` is the type's archive, and `accent` is
- * the --color-* token key, which matches the type key except where it diverges
- * server-side (calorie -> food).
+ * `icon` is an icon-registry name, `href` is the type's archive, and `accent`
+ * is the --color-* token key, which matches the type key.
  */
 
 /**
@@ -26,7 +25,7 @@ export const entryTypes = { ...timelineTypes, ...linkTypes, ...authoringTypes };
  * so a new server-side type renders as a plain entry rather than breaking.
  *
  * @param {string} type a type key, e.g. 'activity' or 'tag'
- * @returns {{icon: string, label: string, accent: string, plural?: string, href?: string, keywords?: string}}
+ * @returns {{icon: string, label: string, accent: string, plural?: string, href?: string, keywords?: string, noun?: string, nounPlural?: string, kind?: string}}
  */
 export function entryType(type) {
     return entryTypes[type] ?? { icon: 'StickyNote02Icon', label: type, accent: 'note' };

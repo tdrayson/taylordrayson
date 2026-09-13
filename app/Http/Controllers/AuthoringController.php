@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Entries\UpdateEntryStatus;
 use App\Actions\SyncBodyImages;
 use App\Actions\SyncEntryMedia;
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
@@ -50,6 +52,7 @@ class AuthoringController extends Controller
         $this->stampDefaults($request, $fields);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: true), [], FieldRules::labels($fields));
+        $attributes = $this->statusRules($this->blank($type), $attributes);
 
         $model = app($definition['create'])($this->expand($attributes, $fields));
 
@@ -66,6 +69,7 @@ class AuthoringController extends Controller
         $fields = FieldRegistry::for($model);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: false), [], FieldRules::labels($fields));
+        $attributes = $this->statusRules($model, $attributes);
 
         app($definition['update'])($model, $this->expand($attributes, $fields));
 
@@ -107,6 +111,11 @@ class AuthoringController extends Controller
      */
     private function stampDefaults(Request $request, array $fields): void
     {
+        // A draft stays undated until it leaves draft.
+        if ($request->input('status') === EntryStatus::Draft->value) {
+            return;
+        }
+
         $stamp = null;
 
         foreach ($fields as $field) {
@@ -120,18 +129,37 @@ class AuthoringController extends Controller
     }
 
     /**
+     * Refuse a status the entry cannot take, and drop a blank password so it never wipes a stored one.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    private function statusRules(Model $model, array $attributes): array
+    {
+        if (isset($attributes['status'])) {
+            UpdateEntryStatus::assertAllowed($model, EntryStatus::from($attributes['status']), $attributes['password'] ?? null);
+        }
+
+        if (blank($attributes['password'] ?? null)) {
+            unset($attributes['password']);
+        }
+
+        return $attributes;
+    }
+
+    /**
      * Saving means done, so it lands on the finished entry. A draft has no entry
      * to show yet and stays in the editor.
      */
     private function afterSave(Model $model): RedirectResponse
     {
-        $isDraft = $model->getAttribute('published') === false;
+        $isDraft = $model->getAttribute('status') === EntryStatus::Draft;
 
         return redirect($this->urlFor($model).($isDraft ? '?edit' : ''));
     }
 
     /**
-     * Everything unpublished, grouped by type.
+     * Every draft, grouped by type.
      *
      * Queried off the models rather than off timeline entries, which drafts
      * deliberately do not have.
@@ -144,7 +172,7 @@ class AuthoringController extends Controller
             $definition = AuthorableTypes::get($type);
 
             $rows = $definition['model']::query()
-                ->where('published', false)
+                ->where('status', EntryStatus::Draft)
                 ->orderByDesc('updated_at')
                 ->get()
                 ->map(fn (Model $model): array => [
@@ -192,7 +220,7 @@ class AuthoringController extends Controller
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string, draftable: bool}
+     * @return array{model: class-string<Model>, create: class-string, update: class-string}
      */
     private function definition(string $type): array
     {

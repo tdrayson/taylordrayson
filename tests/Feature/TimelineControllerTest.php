@@ -1,11 +1,11 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Calorie;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
+use App\Models\Food;
 use App\Models\Note;
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 use App\Support\PortableText;
 
 use function Pest\Laravel\get;
@@ -19,9 +19,9 @@ it('renders the timeline page via Inertia', function () {
 });
 
 it('shares the real This Week With episode count', function () {
-    Podcast::factory()->count(3)->create();
+    ThisWeekWith::factory()->count(3)->create();
 
-    get('/')->assertInertia(fn ($page) => $page->where('podcastEpisodes', 3));
+    get('/')->assertInertia(fn ($page) => $page->where('thisWeekWithEpisodes', 3));
 });
 
 it('groups timeline entries by day, newest day first', function () {
@@ -48,10 +48,10 @@ it('orders entries within a day latest first', function () {
 });
 
 it('exposes the card type for each entry', function () {
-    Calorie::factory()->create(['occurred_at' => now()]);
+    Food::factory()->create(['occurred_at' => now()]);
 
     get('/')->assertInertia(fn ($page) => $page
-        ->where('groups.0.items.0.iconKey', 'calorie')
+        ->where('groups.0.items.0.iconKey', 'food')
         ->where('groups.0.items.0.url', fn ($url) => str_contains($url, '/'))
     );
 });
@@ -82,7 +82,7 @@ it('pages on a date cursor, not an offset', function () {
 
 it('never splits a day across pages', function () {
     // One day carrying more than a page's entry budget on its own. Activity,
-    // not Calorie: a day's food collapses to a single spine row.
+    // not Food: a day's food collapses to a single spine row.
     Activity::factory()->count(60)->create(['occurred_at' => now()->subDay()]);
     Activity::factory()->create(['occurred_at' => now()->subDays(2)]);
 
@@ -137,7 +137,7 @@ it('offers every year the timeline holds something in', function () {
 it('renders different card types together', function () {
     Activity::factory()->create(['name' => 'Morning Park Run', 'occurred_at' => now()->subHour()]);
     Flight::factory()->create(['origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'occurred_at' => now()->subHours(2)]);
-    Media::factory()->create(['title' => 'The Shawshank Redemption', 'type' => 'film', 'occurred_at' => now()->subHours(3)]);
+    Film::factory()->create(['title' => 'The Shawshank Redemption', 'occurred_at' => now()->subHours(3)]);
     Note::factory()->create(['content' => 'A unique test note for verification', 'occurred_at' => now()->subHours(4)]);
 
     get('/')->assertInertia(function ($page) {

@@ -4,6 +4,8 @@ namespace App\Actions\Notes;
 
 use App\Models\Note;
 use App\Support\PortableText;
+use App\Support\TimelineUrlSlug;
+use Illuminate\Validation\ValidationException;
 
 class UpdateNote
 {
@@ -19,6 +21,16 @@ class UpdateNote
 
         if (isset($attributes['content']) && is_string($attributes['content'])) {
             $attributes['content'] = PortableText::fromPlainText($attributes['content']);
+        }
+
+        if (array_key_exists('slug', $attributes) || array_key_exists('content', $attributes)) {
+            $slug = array_key_exists('slug', $attributes) ? $attributes['slug'] : ($note->getAttributes()['slug'] ?? null);
+            $content = array_key_exists('content', $attributes) ? $attributes['content'] : ($note->getAttributes()['content'] ?? null);
+            $candidate = $slug !== null && $slug !== '' ? $slug : Note::slugFrom($content);
+
+            if (TimelineUrlSlug::isReserved($candidate)) {
+                throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($candidate)]]);
+            }
         }
 
         $note->fill($attributes)->save();

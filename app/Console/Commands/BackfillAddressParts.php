@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Checkin;
 use App\Models\Event;
+use App\Models\Place;
 use App\Services\GoogleMaps\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -92,9 +92,9 @@ class BackfillAddressParts extends Command
         $events = $this->located(Event::query())
             ->where(fn (Builder $query) => $query->whereNull('address')->orWhereNull('postcode'));
 
-        $checkins = $this->located(Checkin::query())->whereNull('postcode');
+        $places = $this->located(Place::query())->whereNull('postcode');
 
-        $rows = $events->get()->concat($checkins->get())
+        $rows = $events->get()->concat($places->get())
             ->sortByDesc(fn (Model $row): string => (string) $row->occurred_at)
             ->values();
 

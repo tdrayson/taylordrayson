@@ -2,33 +2,41 @@
 
 namespace App\Actions\Projects;
 
+use App\Enums\EntryStatus;
+use App\Enums\ProjectStage;
 use App\Models\Project;
-use App\Support\EntryInstant;
+use App\Support\TimelineUrlSlug;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CreateProject
 {
     /**
-     * `status` is the project's real-world state (active, shipped, archived),
-     * not a publish gate, so a project has no draft state and appears on the
-     * timeline as soon as it exists.
+     * `stage` is the project's lifecycle (active, maintained, on hold, archived).
      *
-     * @param  array{title: string, slug?: string|null, description?: string|null, long_description?: array<int, mixed>|null, url?: string|null, github_url?: string|null, status?: string, featured?: bool, occurred_at?: string|null, tags?: list<string>}  $attributes
+     * @param  array{title: string, slug?: string|null, description?: string|null, long_description?: array<int, mixed>|null, url?: string|null, github_url?: string|null, stage?: string, featured?: bool, occurred_at?: string|null, tags?: list<string>, status?: string, password?: string|null}  $attributes
      */
     public function __invoke(array $attributes): Project
     {
         $slug = $attributes['slug'] ?? null;
+        $slug = $slug !== null && $slug !== '' ? $slug : Str::slug($attributes['title']);
+
+        if (TimelineUrlSlug::isReserved($slug)) {
+            throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($slug)]]);
+        }
 
         $project = Project::create([
             'title' => $attributes['title'],
-            'slug' => $slug !== null && $slug !== '' ? $slug : Str::slug($attributes['title']),
+            'slug' => $slug,
             'description' => $attributes['description'] ?? null,
             'long_description' => $attributes['long_description'] ?? null,
             'url' => $attributes['url'] ?? null,
             'github_url' => $attributes['github_url'] ?? null,
-            'status' => $attributes['status'] ?? 'active',
+            'stage' => $attributes['stage'] ?? ProjectStage::Active,
             'featured' => $attributes['featured'] ?? false,
-            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
+            'occurred_at' => $attributes['occurred_at'] ?? null,
+            'status' => $attributes['status'] ?? EntryStatus::Published,
+            'password' => $attributes['password'] ?? null,
         ]);
 
         if (array_key_exists('tags', $attributes)) {
