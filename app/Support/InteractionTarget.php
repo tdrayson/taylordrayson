@@ -19,8 +19,8 @@ use Illuminate\Http\Request;
  * (archives, tags, trips, the timeline itself) are deliberately absent: a
  * response to a filtered view has nobody to notify and nothing to thread under.
  *
- * A private entry takes comments and reactions once unlocked, and no new
- * mentions in either direction, keeping the ones it had.
+ * A private entry takes comments and reactions once unlocked, and receives
+ * mentions, but sends none: nobody else could verify a link behind the password.
  */
 final class InteractionTarget
 {
@@ -59,25 +59,21 @@ final class InteractionTarget
         };
     }
 
-    /** Whether incoming webmentions, and mentions from my own entries, may land on this model. */
+    /**
+     * Whether incoming webmentions, and mentions from my own entries, may land on
+     * this model. A draft is refused, or a mention could confirm its URL exists.
+     */
     public static function takesMentions(Model $model): bool
     {
-        return self::isRespondable($model) && self::isPublic($model);
+        return self::isRespondable($model)
+            && in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted, EntryStatus::Private], strict: true);
     }
 
     /** Whether this model sends webmentions for its links and records mentions on my own entries. */
     public static function sendsMentions(Model $model): bool
     {
-        return self::isRespondable($model) && self::isPublic($model);
-    }
-
-    /**
-     * Whether mentions already recorded to or from this model stay. A private
-     * entry keeps them frozen, adding and removing none; a draft loses its own.
-     */
-    public static function keepsMentions(Model $model): bool
-    {
-        return self::isRespondable($model) && ($model->status ?? null) !== EntryStatus::Draft;
+        return self::isRespondable($model)
+            && in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted], strict: true);
     }
 
     /** The public type key for a model, or null when it accepts no interactions. */
@@ -114,15 +110,5 @@ final class InteractionTarget
     {
         return self::keyFor($model) !== null
             && ($model instanceof Page || ($model instanceof Timelineable && $model->shouldAppearOnTimeline()));
-    }
-
-    /**
-     * Whether anyone can read this without a password. A draft must be rejected
-     * rather than 404'd on write alone, or a mention could confirm that an
-     * unpublished URL exists.
-     */
-    private static function isPublic(Model $model): bool
-    {
-        return in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted], strict: true);
     }
 }

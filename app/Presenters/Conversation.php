@@ -53,8 +53,6 @@ final class Conversation
             reactions: app(ReactionsFor::class)($target, $identity),
 
             responses: self::responses($target, $timezone),
-
-            takesWebmentions: InteractionTarget::takesMentions($target),
         );
     }
 
