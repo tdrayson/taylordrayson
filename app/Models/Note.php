@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
@@ -31,8 +32,8 @@ use Spatie\MediaLibrary\HasMedia;
     'rsvp_value',
     'slug',
     'timezone',
-    'status',
-    'password',
+    'citation_id',
+    'response_quote',
 ])]
 class Note extends Model implements HasMedia, Timelineable
 {
@@ -108,5 +109,11 @@ class Note extends Model implements HasMedia, Timelineable
         $words = Str::words(PortableText::plainText($content), self::SLUG_WORDS, '');
 
         return Str::slug($words) ?: self::FALLBACK_SLUG;
+    }
+
+    /** @return BelongsTo<Citation, $this> */
+    public function citation(): BelongsTo
+    {
+        return $this->belongsTo(Citation::class);
     }
 }
