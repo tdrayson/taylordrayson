@@ -59,5 +59,8 @@ it('lists archives and published pages but not drafts', function () {
         ->and($body)->toContain(url('/activities'))
         ->and($body)->toContain(url('/stats/activities'))
         ->and($body)->toContain(url('/about'))
+        // /tv has no archive route of its own (the series index serves it),
+        // so it must come from the fixed list once, not the archive loop too.
+        ->and(substr_count($body, '<loc>'.url('/tv').'</loc>'))->toBe(1)
         ->and($body)->not->toContain('secret-draft');
 });

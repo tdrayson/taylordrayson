@@ -52,7 +52,7 @@ final readonly class LinkPreviewData implements Arrayable, JsonSerializable
     /**
      * One of the site's own fixed pages, described by the metadata it puts in
      * its own head. Carries an accent so a page that is really about one type
-     * (/media/tv, /flights/map) reads in that type's hue.
+     * (/tv, /flights/map) reads in that type's hue.
      */
     public static function site(string $url, string $title, ?string $excerpt, string $accent = 'article'): self
     {

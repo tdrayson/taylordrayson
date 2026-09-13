@@ -9,8 +9,8 @@ it('lists shows on the tv index', function () {
     $series = Series::factory()->create(['title' => 'Severance', 'slug' => 'severance']);
     Episode::factory()->create(['series_id' => $series->id, 'meta' => ['season' => 1, 'episode' => 1]]);
 
-    $this->get('/media/tv')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesIndex')->has('series', 1));
+    $this->get('/tv')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex')->has('series', 1));
 });
 
 it('orders the tv index by most recently watched episode first', function () {
@@ -20,8 +20,8 @@ it('orders the tv index by most recently watched episode first', function () {
     $newer = Series::factory()->create(['title' => 'Newer Show', 'slug' => 'newer-show']);
     Episode::factory()->create(['series_id' => $newer->id, 'occurred_at' => '2024-06-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
 
-    $this->get('/media/tv')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesIndex')
+    $this->get('/tv')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex')
             ->has('series', 2)
             ->where('series.0.slug', 'newer-show')
             ->where('series.1.slug', 'older-show')
@@ -45,8 +45,8 @@ it('reports distinct-episode progress on the tv index, clamped and rewatch-proof
     $unknown = Series::factory()->create(['slug' => 'unknown-aired-show', 'meta' => []]);
     Episode::factory()->create(['series_id' => $unknown->id, 'occurred_at' => '2024-01-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
 
-    $this->get('/media/tv')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesIndex')
+    $this->get('/tv')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex')
             ->has('series', 3)
             ->where('series.0.slug', 'rewatched-show')
             ->where('series.0.progress', 20)
@@ -66,8 +66,8 @@ it('resolves a poster on the tv index for a series with a cover image', function
     $bytes = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
     $series->addMediaFromString($bytes)->usingFileName('c.webp')->toMediaCollection('cover');
 
-    $this->get('/media/tv')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesIndex')
+    $this->get('/tv')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex')
             ->has('series', 1)
             ->where('series.0.slug', 'severance')
             ->where('series.0.poster', fn (?string $poster): bool => $poster !== null)
@@ -78,16 +78,16 @@ it('shows a series with its episodes and stats', function () {
     $series = Series::factory()->create(['slug' => 'severance', 'meta' => ['aired_episodes' => 9]]);
     Episode::factory()->create(['series_id' => $series->id, 'meta' => ['season' => 1, 'episode' => 1]]);
 
-    $this->get('/media/tv/severance')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesShow')->where('series.slug', 'severance')->has('stats'));
+    $this->get('/tv/severance')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesShow')->where('series.slug', 'severance')->has('stats'));
 });
 
 it('gives each grouped episode its standard entry url', function () {
     $series = Series::factory()->create(['slug' => 'severance']);
     $episode = Episode::factory()->create(['series_id' => $series->id, 'occurred_at' => '2024-03-01 20:00:00', 'meta' => ['season' => 1, 'episode' => 1]]);
 
-    $this->get('/media/tv/severance')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Media/SeriesShow')
+    $this->get('/tv/severance')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesShow')
             ->where('seasons.0.dates.0.episodes.0.url', $episode->url())
         );
 });

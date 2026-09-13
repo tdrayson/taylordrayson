@@ -28,7 +28,7 @@ it('offers a watched show as a palette destination', function () {
         ->and($destinations[0]['label'])->toBe('Severance')
         ->and($destinations[0]['section'])->toBe('TV')
         ->and($destinations[0]['type'])->toBe('episode')
-        ->and($destinations[0]['url'])->toBe('/media/tv/severance');
+        ->and($destinations[0]['url'])->toBe('/tv/severance');
 });
 
 it('leaves out a show with nothing watched', function () {

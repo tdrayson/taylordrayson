@@ -142,7 +142,7 @@ final class SitemapUrls
         // The home page and the two live views change whenever anything is
         // logged; the rest are structural and carry no lastmod of their own.
         $moving = ['/', '/now', '/on-this-day', '/photos'];
-        $static = ['/more', '/feeds', '/tags', '/trips', '/media/tv', '/flights/map', '/leaderboard'];
+        $static = ['/more', '/feeds', '/tags', '/trips', '/tv', '/flights/map', '/leaderboard'];
 
         return [
             ...array_map(fn (string $loc): array => ['loc' => $loc, 'lastmod' => $lastmod], $moving),
@@ -160,6 +160,12 @@ final class SitemapUrls
         $urls = [];
 
         foreach (TypeRegistry::all() as $definition) {
+            // A dataset with no archive of its own (episode, served by the
+            // series index at /tv) has no index page here to list.
+            if (! $definition['archive']) {
+                continue;
+            }
+
             $urls[] = ['loc' => '/'.$definition['slug'], 'lastmod' => null];
 
             if ($definition['stats']) {

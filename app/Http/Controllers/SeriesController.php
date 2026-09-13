@@ -21,7 +21,7 @@ class SeriesController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('Media/SeriesIndex', [
+        return Inertia::render('Tv/SeriesIndex', [
             'series' => ($this->watchedSeriesIndex)(),
             'og' => OgMeta::series(),
         ]);
@@ -35,7 +35,7 @@ class SeriesController extends Controller
     {
         $data = ($this->seriesShowData)($series);
 
-        return Inertia::render('Media/SeriesShow', [
+        return Inertia::render('Tv/SeriesShow', [
             ...$data->toArray(),
             'og' => OgMeta::seriesShow(
                 $data->series->title,

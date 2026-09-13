@@ -51,8 +51,7 @@ function seasonMeta(season) {
 
 setLayoutProps({
     breadcrumb: [
-        { label: 'Media', href: '/media' },
-        { label: 'TV series', href: '/media/tv' },
+        { label: 'TV', href: '/tv' },
         { label: props.series.title },
     ],
 });

@@ -8,7 +8,9 @@ use App\Models\Series;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 
 it('gives films, episodes and books their own dataset key on the timeline', function () {
     $film = Film::factory()->create();
@@ -36,8 +38,12 @@ it('lists a series episodes through the episode model', function () {
 });
 
 it('registers no archive route for the episode dataset', function () {
-    // The TV index still lives at /media/tv until the next task.
-    $this->get('/tv')->assertNotFound();
+    // /tv is served by SeriesController's series.index route, not an
+    // ArchiveController archive route.
+    expect(Route::has('archive.tv'))->toBeFalse();
+
+    $this->get('/tv')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex'));
 });
 
 it('splits a legacy media table into films, episodes and books via the migration, preserving ids', function () {

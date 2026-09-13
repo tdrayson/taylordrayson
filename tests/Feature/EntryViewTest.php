@@ -153,7 +153,7 @@ it('links an episode to its show page', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('entry.showTitle', 'Ted Lasso')
-            ->where('entry.showUrl', '/media/tv/ted-lasso')
+            ->where('entry.showUrl', '/tv/ted-lasso')
         );
 });
 

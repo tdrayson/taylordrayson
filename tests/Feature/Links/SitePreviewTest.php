@@ -20,10 +20,10 @@ it('previews the site\'s own pages from the metadata they publish', function () 
 });
 
 it('lets a literal route beat the taxonomy value it looks like', function () {
-    // /media/tv is the series index, and 'tv' is also a media taxonomy value;
-    // /flights/map is the globe, not an airline. Same collision routes/web.php
-    // orders around.
-    expect(previewFor('/media/tv')['title'])->toBe('Every series I have watched')
+    // /tv is the series index, and 'tv' is also the episode dataset's own
+    // registry slug; /flights/map is the globe, not an airline. Same
+    // collision routes/web.php orders around.
+    expect(previewFor('/tv')['title'])->toBe('Every series I have watched')
         ->and(previewFor('/flights/map')['title'])->toBe('Every flight on one globe');
 });
 

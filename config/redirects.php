@@ -16,4 +16,8 @@ return [
     'checkins' => 'places',
     'vehicles' => 'fuel',
     'checkin-map' => 'places',
+    'media' => 'films',
+    'media/films' => 'films',
+    'media/books' => 'books',
+    'media/tv' => 'tv',
 ];

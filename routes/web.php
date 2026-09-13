@@ -111,10 +111,13 @@ Route::post('/snake/score', [SnakeScoreController::class, 'store'])
 Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
     ->middleware('throttle:10,1')->name('snake.rename');
 
-// TV show pages, registered above the generic archive/taxonomy loop so
-// /media/tv wins over the /media/{value} taxonomy route for the 'tv' value.
-Route::get('/media/tv', [SeriesController::class, 'index'])->name('series.index');
-Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
+// TV show pages, registered above the generic archive loop for the same
+// reason as /flights/map below: a literal segment above the taxonomy routes.
+Route::get('/tv', [SeriesController::class, 'index'])->name('series.index');
+Route::get('/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
+
+// Old show urls, a pattern redirect config/redirects.php cannot express.
+Route::redirect('/media/tv/{slug}', '/tv/{slug}', 301);
 
 // Literal segment must beat the archive taxonomy route (/flights/{value}).
 Route::get('/flights/map', FlightMapController::class)->name('flights.map');

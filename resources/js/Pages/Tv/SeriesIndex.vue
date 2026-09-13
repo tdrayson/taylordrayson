@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Link, setLayoutProps } from '@inertiajs/vue3';
+import { setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
@@ -15,14 +15,15 @@ const props = defineProps({
     series: { type: Array, default: () => [] },
 });
 
-// Reuse the episode type's icon + accent so /media/tv's header matches /media.
+// The episode type's icon + accent, matching the eyebrow styling other
+// top-level archive pages use for their own type.
 const meta = entryType('episode');
 const accentStyle = { color: 'var(--color-episode)' };
 
 const subtitle = computed(() => `${props.series.length} ${props.series.length === 1 ? 'show' : 'shows'} watched`);
 
 setLayoutProps({
-    breadcrumb: [{ label: 'Media', href: '/media' }, { label: 'TV series' }],
+    breadcrumb: [{ label: 'TV' }],
 });
 </script>
 
@@ -34,7 +35,6 @@ setLayoutProps({
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
-            <Link href="/media" class="text-eyebrow uppercase transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">Media</Link>
             <h1 class="mt-1 font-display text-display">TV series</h1>
             <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
         </div>
