@@ -14,6 +14,7 @@ use App\Models\TvEpisode;
 use App\Presenters\EntryDescription;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 /**
@@ -480,13 +481,21 @@ class OgMeta
      * Both belong in the URL because the card is cached against both, and the
      * URL is what anyone holding a share preview refetches by. Without them a
      * redesigned or edited card keeps the address of the one it replaced.
+     *
+     * An unlisted or private entry's card URL is signed, so its card cannot be
+     * found by walking timeline ids.
      */
     public static function entryCardUrl(TimelineEntry $entry): string
     {
-        return route('og.entry', $entry).'?'.http_build_query([
+        $parameters = [
+            'entry' => $entry,
             'v' => OgRenderer::generation(),
             't' => BuildEntryOgData::entryTimestamp($entry),
-        ]);
+        ];
+
+        return $entry->status === EntryStatus::Published
+            ? route('og.entry', $parameters)
+            : URL::signedRoute('og.entry', $parameters);
     }
 
     /**

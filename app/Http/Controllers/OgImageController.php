@@ -8,6 +8,7 @@ use App\Datasets\Datasets;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\OgRenderer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -77,11 +78,14 @@ class OgImageController extends Controller
      * contextual image (route map, check-in marker, or cover) where one fits.
      *
      * Cached by entry id plus the model's last-updated stamp, so the same URL is
-     * reused until the entry changes.
+     * reused until the entry changes. An unlisted or private entry is served
+     * only on the signed URL its own page emits, and 404s otherwise.
      */
-    public function entry(int $entry): BinaryFileResponse
+    public function entry(Request $request, int $entry): BinaryFileResponse
     {
-        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)->findOrFail($entry);
+        $entry = TimelineEntry::query()
+            ->when($request->hasValidSignature(), fn (Builder $query): Builder => $query->withoutGlobalScope(ListedScope::class))
+            ->findOrFail($entry);
 
         $card = ($this->entryOgData)($entry, fn (): string => $this->galleryUrls->dataUri('taylor-cutout.png', 'image/png'));
 

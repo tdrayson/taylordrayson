@@ -121,13 +121,15 @@ it('shows each status only where it belongs', function (bool $owner) {
             ->where('metrics.0.value', '1')
             ->where('metrics.3.distanceM', 5000));
 
-    // OG image: every status with a spine row renders, whoever asks; a draft has none.
+    // OG image: every status with a spine row renders from its page's og meta, whoever
+    // asks; only published answers at the bare id; a draft has no spine row at all.
     foreach (['published', 'unlisted', 'private'] as $status) {
         $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('url_slug', "matrix-{$status}")->sole();
         $path = 'og/'.OgRenderer::generation().'/entry/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png';
         Storage::disk('local')->put($path, 'fake-png-bytes');
 
-        $this->get("/og/entry/{$entry->id}.png")->assertOk();
+        $this->get($this->get("/2026/06/15/matrix-{$status}")->inertiaProps('og.image'))->assertOk();
+        $this->get("/og/entry/{$entry->id}.png")->assertStatus($status === 'published' ? 200 : 404);
     }
 
     expect(TimelineEntry::withoutGlobalScope(ListedScope::class)->where('url_slug', 'matrix-draft')->exists())->toBeFalse();
