@@ -38,8 +38,6 @@ const props = defineProps({
     // The response URL and kind, which a citation field previews from.
     responseUrl: { type: String, default: null },
     responseKind: { type: String, default: null },
-    // The response URL the editor opened with, so a citation can tell an edit from a change.
-    openedResponseUrl: { type: String, default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
     // The sibling password a status field edits alongside the status itself.
@@ -266,7 +264,6 @@ function textToTags(value) {
             :model-value="modelValue ?? ''"
             :response-url="responseUrl"
             :response-kind="responseKind"
-            :opened-response-url="openedResponseUrl"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
