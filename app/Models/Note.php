@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasDynamicContent;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -41,7 +42,7 @@ class Note extends Model implements HasMedia, Timelineable
     /** How much of the note the derived slug uses. */
     private const SLUG_WORDS = 6;
 
-    use HasAttachments, HasFactory, HasTags, HasTimelineEntry;
+    use HasAttachments, HasDynamicContent, HasFactory, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>

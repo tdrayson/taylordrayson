@@ -5,6 +5,7 @@ namespace App\Fields;
 use App\Data\FieldData;
 use App\Enums\FieldType;
 use App\Rules\TextOrDocument;
+use App\Rules\ValidPortableText;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
@@ -75,7 +76,7 @@ final class FieldRules
             FieldType::RichText => ['nullable', 'array'],
             // Blocks from the editor, or a plain string from anything that only
             // has one; the model normalises a string into a single block.
-            FieldType::Prose => ['nullable', new TextOrDocument($field->max)],
+            FieldType::Prose => ['nullable', new TextOrDocument($field->max), new ValidPortableText],
             FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],

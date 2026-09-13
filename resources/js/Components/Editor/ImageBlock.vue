@@ -2,11 +2,16 @@
 import { computed, ref } from 'vue';
 import { NodeViewWrapper } from '@tiptap/vue-3';
 import Icon from '../Ui/Icon.vue';
+import DynamicTagOptions from './DynamicTagOptions.vue';
+import BlockSettings from './BlockSettings.vue';
 import { uploadPending } from '../../lib/editor/uploads';
+import { BLOCK_OPTIONS } from '../../lib/editor/blockOptions';
+import { defaultOptionsFor, useDynamicTags } from '../../composables/useDynamicTags';
 
 /**
  * An image inside a document. Empty until it has a source, so inserting one
- * gives you the place to drop a file or paste a URL rather than a prompt.
+ * gives you the place to drop a file or paste a URL, or point it at a live
+ * dynamic photo, rather than a prompt.
  */
 const props = defineProps({
     node: { type: Object, required: true },
@@ -19,7 +24,19 @@ const uploading = ref(false);
 const error = ref(null);
 const typedUrl = ref('');
 
+const { tags, previewFor } = useDynamicTags();
+
 const url = computed(() => props.node.attrs.url);
+const tagName = computed(() => props.node.attrs.tag);
+/** Tags legal as an image source, today just entries.photo. */
+const imageTags = computed(() => tags.value.filter((candidate) => candidate.supports.includes('image')));
+/** The photo a tagged image currently resolves to; null until that settles. */
+const tagPreviewUrl = computed(() => (tagName.value ? previewFor(tagName.value, props.node.attrs.options ?? {}, 'image') : null));
+
+const pendingImageTag = ref(null);
+const pendingImageOptions = ref({});
+const imageTagOptionsOpen = ref(false);
+const settingsOpen = ref(false);
 
 async function upload(file) {
     if (! file?.type?.startsWith('image/')) {
@@ -34,7 +51,7 @@ async function upload(file) {
 
         // The parked URL stands in until the entry saves, at which point the
         // server attaches the file and rewrites this to where it landed.
-        props.updateAttributes({ url: parked.url, alt: props.node.attrs.alt ?? '' });
+        props.updateAttributes({ url: parked.url, alt: props.node.attrs.alt ?? '', tag: null, options: null });
     } catch {
         error.value = 'That image could not be uploaded.';
     } finally {
@@ -46,32 +63,69 @@ function useTypedUrl() {
     const value = typedUrl.value.trim();
 
     if (value !== '') {
-        props.updateAttributes({ url: value });
+        props.updateAttributes({ url: value, tag: null, options: null });
     }
+}
+
+/** Picking a tag applies at once when it takes no options, otherwise opens its options form first. */
+function pickImageTag(tag) {
+    if (tag.options.length === 0) {
+        props.updateAttributes({ tag: tag.name, options: {}, url: null });
+
+        return;
+    }
+
+    pendingImageTag.value = tag;
+    pendingImageOptions.value = defaultOptionsFor(tag);
+    imageTagOptionsOpen.value = true;
+}
+
+function applyImageTag(options) {
+    props.updateAttributes({ tag: pendingImageTag.value.name, options, url: null });
+    pendingImageTag.value = null;
+    imageTagOptionsOpen.value = false;
 }
 </script>
 
 <template>
     <NodeViewWrapper class="not-prose relative my-8 max-w-media">
-        <!-- See CodeBlockView: the block places its own options panel. -->
-        <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
-
-        <figure v-if="url" class="group relative">
+        <figure v-if="url || tagName" class="group relative" :data-dynamic-tag="tagName || null">
             <img
-                :src="url"
+                v-if="tagName ? tagPreviewUrl : url"
+                :src="tagName ? tagPreviewUrl : url"
                 :alt="node.attrs.alt ?? ''"
                 class="w-full rounded-lg bg-neutral-25"
                 :class="node.attrs.ratio && node.attrs.ratio !== 'original' ? 'object-cover' : ''"
                 :style="node.attrs.ratio && node.attrs.ratio !== 'original' ? { aspectRatio: node.attrs.ratio } : null"
             >
 
-            <button
-                type="button"
+            <div v-else class="flex aspect-video items-center justify-center rounded-lg bg-neutral-25 text-caption text-neutral-500">
+                Nothing to show yet
+            </div>
+
+            <span
+                v-if="tagName"
+                class="absolute left-2 top-2 rounded bg-neutral-900/70 px-1.5 py-0.5 text-caption text-neutral-0"
+            >Live photo</span>
+
+            <div
                 contenteditable="false"
-                class="absolute right-2 top-2 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
-                aria-label="Remove image"
-                @click="deleteNode()"
-            ><Icon name="Delete02Icon" class="size-4" /></button>
+                class="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+            >
+                <button
+                    type="button"
+                    class="rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 transition-colors hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Image settings"
+                    @click="settingsOpen = true"
+                ><Icon name="Settings01Icon" class="size-4" /></button>
+
+                <button
+                    type="button"
+                    class="rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 transition-colors hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="Remove image"
+                    @click="deleteNode()"
+                ><Icon name="Delete02Icon" class="size-4" /></button>
+            </div>
 
             <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-caption text-neutral-500">
                 {{ node.attrs.caption }}
@@ -111,7 +165,35 @@ function useTypedUrl() {
                 >Use</button>
             </div>
 
+            <div v-if="imageTags.length" class="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-50 pt-2">
+                <button
+                    v-for="tag in imageTags"
+                    :key="tag.name"
+                    type="button"
+                    class="flex items-center gap-1 rounded px-2 py-1 text-caption text-neutral-500 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    :aria-label="`Use ${tag.label} as this image`"
+                    @click="pickImageTag(tag)"
+                ><Icon name="ChartColumnIcon" class="size-3.5 shrink-0" />{{ tag.label }}</button>
+            </div>
+
             <p v-if="error" class="mt-2 text-caption text-red-600">{{ error }}</p>
         </div>
+
+        <BlockSettings
+            v-model:open="settingsOpen"
+            :definition="BLOCK_OPTIONS.image"
+            :attributes="node.attrs"
+            @apply="updateAttributes($event)"
+        />
+
+        <DynamicTagOptions
+            v-if="pendingImageTag"
+            :open="imageTagOptionsOpen"
+            :tag="pendingImageTag"
+            :options="pendingImageOptions"
+            placement="image"
+            @apply="applyImageTag"
+            @update:open="imageTagOptionsOpen = $event"
+        />
     </NodeViewWrapper>
 </template>

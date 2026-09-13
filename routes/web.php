@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\DesignSystemController;
+use App\Http\Controllers\DynamicTagPreviewController;
+use App\Http\Controllers\DynamicTagsController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
+use App\Http\Controllers\ResolveDynamicTagDateController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SitemapController;
@@ -35,6 +38,13 @@ require __DIR__.'/auth.php';
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+    Route::get('/dynamic-tags', DynamicTagsController::class)->name('dynamic-tags');
+    // Resolves a tag against options an author is still choosing, rather than
+    // only ever the defaults the list above carries.
+    Route::get('/dynamic-tags/preview', DynamicTagPreviewController::class)->name('dynamic-tags.preview');
+    // Free text for a tag's `from`/`to` bound, resolved through the same
+    // grammar Period::parse applies at render time.
+    Route::get('/dynamic-tags/resolve-date', ResolveDynamicTagDateController::class)->name('dynamic-tags.resolve-date');
 
     // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
     Route::get('/new', [AuthoringController::class, 'new'])->name('new');

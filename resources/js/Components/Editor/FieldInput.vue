@@ -8,7 +8,7 @@ import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
 import LookupInput from './LookupInput.vue';
 import LocationInput from './LocationInput.vue';
-import DateTimeField from './DateTimeField.vue';
+import DateField from './DateField.vue';
 import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
@@ -177,9 +177,10 @@ function textToTags(value) {
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
-        <DateTimeField
+        <DateField
             v-else-if="field.type === 'datetime'"
             :id="field.name"
+            with-time
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
             @update:model-value="$emit('update:modelValue', $event)"

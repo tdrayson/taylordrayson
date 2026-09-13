@@ -113,10 +113,10 @@ class EntryController extends Controller
                 ? app(AttachedMediaValues::class)($model, FieldRegistry::for($model))
                 : [],
             'linkPreviews' => $model instanceof Article || $model instanceof Note
-                ? app(BuildLinkPreviews::class)($model->content)
+                ? app(BuildLinkPreviews::class)($model->resolvedContent())
                 : [],
             'linkFavicons' => $model instanceof Article || $model instanceof Note
-                ? (new BuildLinkFavicons)($model->content)
+                ? (new BuildLinkFavicons)($model->resolvedContent())
                 : [],
             // Stream series are large, so they're excluded from the main
             // entry payload and only sent once a profile chart is scrolled
@@ -216,6 +216,19 @@ class EntryController extends Controller
 
         if ($model instanceof Article) {
             $data['cover'] = $model->coverPhoto();
+        }
+
+        if ($model instanceof Article || $model instanceof Note) {
+            $data['content'] = $model->resolvedContent();
+
+            // The unresolved document, for the inline editor to seed its form
+            // from. Sent only to a signed-in viewer: editing is auth-gated
+            // anyway, and a guest has no use for a second copy of the body.
+            // Without this the editor would round-trip the resolved text and
+            // permanently overwrite a dynamic tag the first time it saves.
+            if (Auth::check()) {
+                $data['rawContent'] = $model->content;
+            }
         }
 
         if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Checkin) {

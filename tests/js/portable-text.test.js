@@ -234,3 +234,36 @@ describe('empty documents', () => {
         assert.equal(blocks[0]._key, 'b1');
     });
 });
+
+describe('dynamic tags', () => {
+    // A stored tag becomes its own atom node, not literal token text: see
+    // dynamic-tag-node.test.js for the node's own round-trip coverage.
+    it('converts a dynamicTag child into a dynamicTag node, rather than dropping it', () => {
+        const blocks = [{
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [
+                span('Logged '),
+                { _type: 'dynamicTag', _key: 't1', tag: 'entries.count', options: { type: 'note', period: '2026' } },
+                span('.'),
+            ],
+        }];
+
+        const content = toProseMirror(blocks).content[0].content;
+
+        assert.equal(content[1].type, 'dynamicTag');
+        assert.deepEqual(content[1].attrs, { tag: 'entries.count', options: { type: 'note', period: '2026' }, _key: 't1' });
+    });
+
+    it('keeps a tag with no options as an empty options object', () => {
+        const blocks = [{
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [{ _type: 'dynamicTag', _key: 't1', tag: 'streak.current', options: {} }],
+        }];
+
+        assert.deepEqual(toProseMirror(blocks).content[0].content[0].attrs, { tag: 'streak.current', options: {}, _key: 't1' });
+    });
+});

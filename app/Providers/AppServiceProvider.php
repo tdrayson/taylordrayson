@@ -2,10 +2,23 @@
 
 namespace App\Providers;
 
+use App\DynamicTags\Ambient\AmbientTag;
+use App\DynamicTags\DynamicTagRegistry;
+use App\DynamicTags\Entries\EntriesCount;
+use App\DynamicTags\Entries\EntriesFirst;
+use App\DynamicTags\Entries\EntriesLatest;
+use App\DynamicTags\Entries\EntriesPhoto;
+use App\DynamicTags\Site\SiteEmail;
+use App\DynamicTags\Site\SiteHome;
+use App\DynamicTags\Site\SiteSocial;
+use App\DynamicTags\Site\SiteUpdated;
+use App\DynamicTags\Streaks\StreakCurrent;
+use App\DynamicTags\Streaks\StreakLongest;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Queries\DayFoodTotals;
+use App\Queries\NowState;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
 use App\Support\FeedDiscovery;
@@ -43,6 +56,26 @@ class AppServiceProvider extends ServiceProvider
         // Held for the request so every food card on a page shares one read of
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
+
+        // Scoped so the status-bar share and every ambient tag on an article
+        // resolve the same instance, and StateStore::entries() runs once per
+        // request no matter how many ambient readings are referenced.
+        $this->app->scoped(NowState::class);
+
+        // The single registration path for every dynamic tag, including ones
+        // generated at runtime rather than written as classes: bind an
+        // instance under its own key and tag that key the same way.
+        $this->app->tag([EntriesCount::class, EntriesFirst::class, EntriesLatest::class, EntriesPhoto::class, StreakCurrent::class, StreakLongest::class, SiteEmail::class, SiteSocial::class, SiteHome::class, SiteUpdated::class], DynamicTagRegistry::CONTAINER_TAG);
+
+        // Generated rather than classes: bind each instance under its own
+        // name and tag that name the same way, so the field map stays the
+        // single source and no ambient tag name is hardcoded here.
+        foreach (AmbientTag::generate() as $tag) {
+            $this->app->instance($tag->name(), $tag);
+            $this->app->tag([$tag->name()], DynamicTagRegistry::CONTAINER_TAG);
+        }
+
+        $this->app->singleton(DynamicTagRegistry::class);
 
         $this->registerArchiveRoutes();
     }

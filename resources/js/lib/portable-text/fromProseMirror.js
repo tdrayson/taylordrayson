@@ -27,6 +27,32 @@ export function resetKeyCounter() {
 }
 
 /**
+ * A link mark's attrs, turned into the markDef it serialises to: a
+ * `dynamicHref` when the mark carries a tag, an ordinary `link` otherwise.
+ *
+ * @param {string} key
+ * @param {object} attrs
+ * @returns {object}
+ */
+function linkMarkDef(key, attrs = {}) {
+    if (attrs.tag) {
+        return { _key: key, _type: 'dynamicHref', tag: attrs.tag, options: attrs.options ?? {} };
+    }
+
+    const def = { _key: key, _type: 'link', href: attrs.href ?? '' };
+
+    // Written only once the author has actually chosen, so a link left alone
+    // keeps deciding by its host.
+    if (attrs.target === '_blank') {
+        def.blank = true;
+    } else if (attrs.target === '_self') {
+        def.blank = false;
+    }
+
+    return def;
+}
+
+/**
  * Convert a run of PM text nodes into Portable Text spans plus the markDefs
  * their links reference.
  *
@@ -37,6 +63,18 @@ function inlineToSpans(content) {
     const markDefs = [];
 
     for (const node of content ?? []) {
+        // A tag is a reference, not decorated text: only its name and options are
+        // stored, and its value is resolved server-side at render.
+        if (node.type === 'dynamicTag') {
+            children.push({
+                _type: 'dynamicTag',
+                _key: node.attrs?._key ?? newKey(),
+                tag: node.attrs?.tag ?? null,
+                options: node.attrs?.options ?? {},
+            });
+            continue;
+        }
+
         if (node.type !== 'text') {
             continue;
         }
@@ -54,17 +92,7 @@ function inlineToSpans(content) {
                 const key = mark.attrs?._key ?? newKey();
 
                 if (! markDefs.some((def) => def._key === key)) {
-                    const def = { _key: key, _type: 'link', href: mark.attrs?.href ?? '' };
-
-                    // Written only once the author has actually chosen, so a
-                    // link left alone keeps deciding by its host.
-                    if (mark.attrs?.target === '_blank') {
-                        def.blank = true;
-                    } else if (mark.attrs?.target === '_self') {
-                        def.blank = false;
-                    }
-
-                    markDefs.push(def);
+                    markDefs.push(linkMarkDef(key, mark.attrs));
                 }
 
                 linkKeys.push(key);
@@ -134,17 +162,28 @@ function customToBlock(node) {
     const key = node.attrs?._key ?? newKey();
 
     switch (node.type) {
-        case 'image':
+        case 'image': {
+            const tag = node.attrs?.tag ?? null;
+
+            return {
+                _type: 'image',
+                _key: key,
+                // A tagged image has no stored url: writing a null one fails
+                // ValidPortableText, which requires either a valid url or a tag.
+                ...(tag ? { tag, options: node.attrs?.options ?? {} } : { url: node.attrs?.url ?? null }),
+                alt: node.attrs?.alt ?? null,
+                ratio: node.attrs?.ratio ?? null,
+                caption: node.attrs?.caption ?? null,
+                width: node.attrs?.width ?? null,
+                height: node.attrs?.height ?? null,
+            };
+        }
         case 'video':
             return {
-                _type: node.type,
+                _type: 'video',
                 _key: key,
                 url: node.attrs?.url ?? null,
-                // Each type keeps only its own extras: an image has alt and a
-                // crop ratio, a video the still shown before it plays.
-                ...(node.type === 'image'
-                    ? { alt: node.attrs?.alt ?? null, ratio: node.attrs?.ratio ?? null }
-                    : { poster: node.attrs?.poster ?? null }),
+                poster: node.attrs?.poster ?? null,
                 caption: node.attrs?.caption ?? null,
                 width: node.attrs?.width ?? null,
                 height: node.attrs?.height ?? null,

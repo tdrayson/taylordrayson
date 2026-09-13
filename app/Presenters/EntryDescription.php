@@ -307,12 +307,12 @@ final class EntryDescription
     private static function articleText(Article $model): string
     {
         return Text::excerpt($model->excerpt, self::LIMIT)
-            ?: (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
+            ?: (string) Text::excerpt(PortableText::plainText($model->resolvedContent()), self::LIMIT);
     }
 
     private static function note(Note $model): string
     {
-        return (string) Text::excerpt(PortableText::plainText($model->content), self::LIMIT);
+        return (string) Text::excerpt(PortableText::plainText($model->resolvedContent()), self::LIMIT);
     }
 
     private static function project(Project $model): string

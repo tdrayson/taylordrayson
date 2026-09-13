@@ -35,6 +35,12 @@ function spanToText(span, markDefs) {
                     target: def.blank === undefined ? null : (def.blank ? '_blank' : '_self'),
                 },
             });
+        } else if (def?._type === 'dynamicHref') {
+            // No href: the tag resolves to one at render, and never before.
+            marks.push({
+                type: 'link',
+                attrs: { _key: def._key, tag: def.tag, options: def.options ?? {} },
+            });
         }
     }
 
@@ -52,11 +58,15 @@ function spanToText(span, markDefs) {
  *
  * Mentions are dropped rather than converted: picking an entry now inserts an
  * ordinary link, and the schema no longer has a mention node to emit one as.
+ * A dynamicTag becomes its own node, an atom carrying just the tag name and
+ * its options; the value it resolves to is never part of the document.
  */
 function inlineContent(block) {
     return (block.children ?? [])
-        .filter((child) => child._type !== 'mention' && (child.text ?? '') !== '')
-        .map((child) => spanToText(child, block.markDefs));
+        .filter((child) => child._type !== 'mention' && (child._type === 'dynamicTag' || (child.text ?? '') !== ''))
+        .map((child) => (child._type === 'dynamicTag'
+            ? { type: 'dynamicTag', attrs: { tag: child.tag, options: child.options ?? {}, _key: child._key } }
+            : spanToText(child, block.markDefs)));
 }
 
 /** A paragraph, heading or blockquote, i.e. any block that is not a list item. */
@@ -129,7 +139,10 @@ function customToNode(node) {
                 type: 'image',
                 attrs: {
                     _key: node._key,
-                    url: node.url ?? null,
+                    // A tagged image has no stored url; url and tag never coexist.
+                    url: node.tag ? null : (node.url ?? null),
+                    tag: node.tag ?? null,
+                    options: node.tag ? (node.options ?? {}) : null,
                     alt: node.alt ?? null,
                     ratio: node.ratio ?? null,
                     caption: node.caption ?? null,

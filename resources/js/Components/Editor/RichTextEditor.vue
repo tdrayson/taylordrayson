@@ -1,23 +1,27 @@
 <script setup>
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import TiptapImage from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from '../../lib/editor/lowlight';
-import { Callout, Video } from '../../lib/editor/nodes';
+import { Callout, Video, DynamicTagNode } from '../../lib/editor/nodes';
 import { extensionsFor } from '../../lib/editor/profiles';
 import { toProseMirror } from '../../lib/portable-text/toProseMirror';
 import { fromProseMirror } from '../../lib/portable-text/fromProseMirror';
 import SuggestionMenu from './SuggestionMenu.vue';
+import DynamicTagMenu from './DynamicTagMenu.vue';
 import SelectionToolbar from './SelectionToolbar.vue';
 import BlockHandles from './BlockHandles.vue';
 import CalloutBlock from './CalloutBlock.vue';
 import ImageBlock from './ImageBlock.vue';
 import CodeBlockView from './CodeBlockView.vue';
 import VideoBlock from './VideoBlock.vue';
+import DynamicTagChip from './DynamicTagChip.vue';
+import DynamicTagOptions from './DynamicTagOptions.vue';
 import { blocksFor } from '../../lib/editor/blocks';
 import { suggestionKeys } from '../../lib/editor/suggestionKeys';
 import { suggestionExtension } from '../../lib/editor/slashCommands';
+import { useDynamicTags, defaultOptionsFor } from '../../composables/useDynamicTags';
 
 /**
  * The writing surface. Speaks Portable Text on both sides: it takes the stored
@@ -49,6 +53,27 @@ let insert = null;
 // list on a fast "/" after an unfinished "@".
 const blockMenu = reactive({ open: false, items: [], active: 0, rect: null, getRect: null });
 let insertBlock = null;
+
+// Same reasoning as blockMenu: a fast "{" after an unfinished "@" or "/" must
+// not leak another trigger's items into this menu. `activeCategory`/`activeField`
+// track the cascading browse shown while `query` is empty; `active` tracks the
+// flat filtered list shown once an author starts typing. `activeChild` and
+// `childFocus` track the third pane a sub-grouped field (e.g. Rings' Move)
+// opens: `childFocus` is which pane up/down and Enter currently act on, not
+// whether the pane is drawn (drawing follows `activeField` alone).
+const dynamicTagMenu = reactive({
+    open: false,
+    query: '',
+    items: [],
+    active: 0,
+    activeCategory: 0,
+    activeField: 0,
+    activeChild: 0,
+    childFocus: false,
+    rect: null,
+    getRect: null,
+});
+let insertTag = null;
 
 /** Guards against the editor's own update echoing back in as a prop change. */
 const emitting = ref(false);
@@ -188,6 +213,350 @@ const slash = suggestionExtension('blockMenu').configure({
     },
 });
 
+const { tags: dynamicTagList, ensureLoaded: ensureDynamicTagsLoaded } = useDynamicTags();
+
+const inlineTags = computed(() => dynamicTagList.value.filter((tag) => tag.supports.includes('inline')));
+
+/**
+ * A tag shaped into what both the cascading and flat views of the "{" menu
+ * render: the dotted name is not shown, since a tag's category already gives
+ * that context and the two would only repeat each other.
+ */
+function tagRow(tag) {
+    return {
+        id: tag.name,
+        group: tag.group,
+        subgroup: tag.subgroup,
+        label: tag.label,
+        detail: tag.preview,
+        detailResolved: tag.previewResolved,
+        tag,
+    };
+}
+
+/**
+ * Turns a subgroup's rows (e.g. Rings' Move/Move goal/Move percent) into one
+ * parent row carrying them as `children`, with the shared prefix dropped from
+ * each child's label since the parent row already carries it (the ring's own
+ * value keeps its full label, e.g. "Move", since nothing precedes it to drop).
+ * A category with no subgroups at all comes back untouched, so this is safe
+ * to run over every category rather than special-casing Rings.
+ */
+function nestBySubgroup(rows) {
+    if (! rows.some((row) => row.subgroup)) {
+        return rows;
+    }
+
+    const bucketOrder = [];
+    const buckets = {};
+    const flat = [];
+
+    for (const row of rows) {
+        if (! row.subgroup) {
+            flat.push(row);
+            continue;
+        }
+
+        if (! buckets[row.subgroup]) {
+            buckets[row.subgroup] = [];
+            bucketOrder.push(row.subgroup);
+        }
+
+        if (row.label === row.subgroup) {
+            buckets[row.subgroup].push(row);
+            continue;
+        }
+
+        const shortLabel = row.label.replace(`${row.subgroup} `, '');
+
+        buckets[row.subgroup].push({
+            ...row,
+            label: shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1),
+            ariaLabel: row.label,
+        });
+    }
+
+    const parents = bucketOrder.map((name) => ({
+        id: `${name}-group`,
+        label: name,
+        isParent: true,
+        children: buckets[name],
+    }));
+
+    return [...parents, ...flat];
+}
+
+/**
+ * Categories for the cascading browse, in first-seen order, built once the
+ * registry is loaded and shared for every "{" the author types.
+ */
+const dynamicTagCategories = computed(() => {
+    const order = [];
+    const byLabel = {};
+
+    for (const tag of inlineTags.value) {
+        if (! byLabel[tag.group]) {
+            byLabel[tag.group] = { label: tag.group, rows: [] };
+            order.push(byLabel[tag.group]);
+        }
+
+        byLabel[tag.group].rows.push(tagRow(tag));
+    }
+
+    for (const category of order) {
+        category.rows = nestBySubgroup(category.rows);
+    }
+
+    return order;
+});
+
+/**
+ * Rows the "{" menu's flat list offers once an author has typed something:
+ * inline-capable tags whose label or dotted name matches. Filtered against
+ * the already-cached list rather than a fetch per keystroke, since the
+ * registry does not change while the page is open.
+ */
+async function matchDynamicTags(query) {
+    await ensureDynamicTagsLoaded();
+
+    const needle = (query ?? '').toLowerCase();
+
+    return inlineTags.value
+        .filter((tag) => tag.label.toLowerCase().includes(needle) || tag.name.toLowerCase().includes(needle))
+        .map(tagRow);
+}
+
+/**
+ * The tag options popup, opened either after picking a tag with options from
+ * the "{" menu (`instance` holds where to insert once applied) or never, for
+ * a tag with none, which inserts immediately with no options at all.
+ */
+const tagOptionsPopup = reactive({ open: false, tag: null, options: {} });
+let pendingInsert = null;
+
+/**
+ * Insert a picked tag. The typed trigger is removed immediately either way; a
+ * tag with no options is inserted right there, one with options is inserted
+ * once the popup is applied, at the cursor the trigger left behind.
+ */
+function insertDynamicTag(instance, range, tag) {
+    instance.chain().focus().deleteRange(range).run();
+
+    if (tag.options.length === 0) {
+        insertTagAtCursor(instance, tag.name, {});
+
+        return;
+    }
+
+    pendingInsert = instance;
+    tagOptionsPopup.tag = tag;
+    tagOptionsPopup.options = defaultOptionsFor(tag);
+    tagOptionsPopup.open = true;
+}
+
+/** Insert a tag chip at the current selection, rather than replacing a range. */
+function insertTagAtCursor(instance, name, options) {
+    instance.chain().focus().insertContent({ type: 'dynamicTag', attrs: { tag: name, options } }).run();
+}
+
+/** The popup's primary action: insert the tag with the options just chosen. */
+function applyInsertedTag(options) {
+    if (pendingInsert) {
+        insertTagAtCursor(pendingInsert, tagOptionsPopup.tag.name, options);
+    }
+
+    pendingInsert = null;
+}
+
+/** Escape, the backdrop, or Cancel: the range is already gone, nothing more to undo. */
+function closeTagOptionsPopup() {
+    tagOptionsPopup.open = false;
+    pendingInsert = null;
+}
+
+function pickDynamicTag(item) {
+    if (! item || ! insertTag) {
+        return;
+    }
+
+    insertTag(item);
+    dynamicTagMenu.open = false;
+}
+
+const flatDynamicTagKeys = suggestionKeys(dynamicTagMenu, pickDynamicTag);
+
+/**
+ * Key handling for the "{" menu. Once a query is typed it is a flat filtered
+ * list and behaves exactly like `@`/`/`; an empty query is the cascading
+ * browse, where up/down move through the active pane's rows and left/right
+ * move between panes: right drills into a parent field's third pane (a
+ * sub-grouped category like Rings), left steps back out of it, and otherwise
+ * right/left switch which category is open, exactly as the two-pane version
+ * always did.
+ */
+function dynamicTagKeys(event) {
+    if (! dynamicTagMenu.open) {
+        return false;
+    }
+
+    if (dynamicTagMenu.query) {
+        return flatDynamicTagKeys(event);
+    }
+
+    const categories = dynamicTagCategories.value;
+    const fields = categories[dynamicTagMenu.activeCategory]?.rows ?? [];
+    const activeRow = fields[dynamicTagMenu.activeField];
+    const children = activeRow?.isParent ? activeRow.children : [];
+
+    if (dynamicTagMenu.childFocus) {
+        switch (event.key) {
+            case 'ArrowDown':
+                dynamicTagMenu.activeChild = children.length ? (dynamicTagMenu.activeChild + 1) % children.length : 0;
+
+                return true;
+            case 'ArrowUp':
+                dynamicTagMenu.activeChild = children.length ? (dynamicTagMenu.activeChild - 1 + children.length) % children.length : 0;
+
+                return true;
+            case 'ArrowLeft':
+                dynamicTagMenu.childFocus = false;
+
+                return true;
+            case 'Enter':
+            case 'Tab':
+                pickDynamicTag(children[dynamicTagMenu.activeChild]);
+
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    switch (event.key) {
+        case 'ArrowDown':
+            dynamicTagMenu.activeField = fields.length ? (dynamicTagMenu.activeField + 1) % fields.length : 0;
+            dynamicTagMenu.activeChild = 0;
+
+            return true;
+        case 'ArrowUp':
+            dynamicTagMenu.activeField = fields.length ? (dynamicTagMenu.activeField - 1 + fields.length) % fields.length : 0;
+            dynamicTagMenu.activeChild = 0;
+
+            return true;
+        case 'ArrowRight':
+            if (activeRow?.isParent) {
+                dynamicTagMenu.childFocus = true;
+                dynamicTagMenu.activeChild = 0;
+
+                return true;
+            }
+
+            dynamicTagMenu.activeCategory = categories.length ? (dynamicTagMenu.activeCategory + 1) % categories.length : 0;
+            dynamicTagMenu.activeField = 0;
+
+            return true;
+        case 'ArrowLeft':
+            dynamicTagMenu.activeCategory = categories.length ? (dynamicTagMenu.activeCategory - 1 + categories.length) % categories.length : 0;
+            dynamicTagMenu.activeField = 0;
+
+            return true;
+        case 'Enter':
+        case 'Tab':
+            if (activeRow?.isParent) {
+                dynamicTagMenu.childFocus = true;
+                dynamicTagMenu.activeChild = 0;
+
+                return true;
+            }
+
+            pickDynamicTag(activeRow);
+
+            return true;
+        default:
+            return false;
+    }
+}
+
+function hoverDynamicTagCategory(index) {
+    dynamicTagMenu.activeCategory = index;
+    dynamicTagMenu.activeField = 0;
+    dynamicTagMenu.activeChild = 0;
+    dynamicTagMenu.childFocus = false;
+}
+
+/** Mouse and keyboard share one active field, so only one row is ever armed. */
+function hoverDynamicTagField(index) {
+    dynamicTagMenu.activeField = index;
+    dynamicTagMenu.activeChild = 0;
+    dynamicTagMenu.childFocus = false;
+}
+
+/** Hovering a third-pane row arms it the same way hovering a field does. */
+function hoverDynamicTagChild(index) {
+    dynamicTagMenu.activeChild = index;
+    dynamicTagMenu.childFocus = true;
+}
+
+const dynamicTagSuggestion = suggestionExtension('dynamicTags').configure({
+    suggestion: {
+        char: '{',
+        command: ({ editor: instance, range, props: row }) => insertDynamicTag(instance, range, row.tag),
+        items: ({ query }) => matchDynamicTags(query),
+        render: () => ({
+            onStart(p) {
+                insertTag = p.command;
+                dynamicTagMenu.items = p.items;
+                dynamicTagMenu.active = 0;
+                dynamicTagMenu.query = p.query ?? '';
+                dynamicTagMenu.activeCategory = 0;
+                dynamicTagMenu.activeField = 0;
+                dynamicTagMenu.activeChild = 0;
+                dynamicTagMenu.childFocus = false;
+                dynamicTagMenu.rect = p.clientRect?.() ?? null;
+                dynamicTagMenu.getRect = p.clientRect ?? null;
+                dynamicTagMenu.open = true;
+            },
+            onUpdate(p) {
+                insertTag = p.command;
+                dynamicTagMenu.items = p.items;
+                dynamicTagMenu.active = 0;
+                dynamicTagMenu.query = p.query ?? '';
+
+                // Back to an empty query: land on the first category again
+                // rather than wherever browsing left off before typing.
+                if (! dynamicTagMenu.query) {
+                    dynamicTagMenu.activeCategory = 0;
+                    dynamicTagMenu.activeField = 0;
+                    dynamicTagMenu.activeChild = 0;
+                    dynamicTagMenu.childFocus = false;
+                }
+
+                dynamicTagMenu.rect = p.clientRect?.() ?? null;
+                dynamicTagMenu.getRect = p.clientRect ?? null;
+            },
+            /**
+             * Escape is handled here rather than in the shared `dynamicTagKeys`:
+             * unlike `@` or `/`, which are ordinary characters worth keeping as
+             * plain text, `{` exists only to trigger this menu, so leaving
+             * `{query` behind reads as a broken tag rather than a typed word.
+             */
+            onKeyDown({ event, view, range }) {
+                if (event.key === 'Escape' && dynamicTagMenu.open) {
+                    view.dispatch(view.state.tr.delete(range.from, range.to));
+
+                    return true;
+                }
+
+                return dynamicTagKeys(event);
+            },
+            onExit() {
+                dynamicTagMenu.open = false;
+                dynamicTagMenu.items = [];
+            },
+        }),
+    },
+});
+
 // The panel is drawn as it will be published, and its label doubles as the
 // control that changes which kind it is.
 const callout = Callout.extend({
@@ -231,6 +600,14 @@ const video = Video.extend({
     },
 });
 
+// Drawn as a chip rather than its literal token, so the caret steps over it
+// as one character.
+const dynamicTag = DynamicTagNode.extend({
+    addNodeView() {
+        return VueNodeViewRenderer(DynamicTagChip);
+    },
+});
+
 const editor = useEditor({
     content: toProseMirror(props.modelValue),
     extensions: extensionsFor(props.profile, {
@@ -240,6 +617,8 @@ const editor = useEditor({
         callout,
         image,
         video,
+        dynamicTag,
+        dynamicTagSuggestion,
         codeBlock,
     }),
     editorProps: {
@@ -339,6 +718,33 @@ defineExpose({ focus: () => editor.value?.commands.focus() });
             :get-rect="blockMenu.getRect"
             empty-label="No matching block"
             @pick="pickBlock"
+        />
+
+        <DynamicTagMenu
+            v-if="dynamicTagMenu.open"
+            :categories="dynamicTagCategories"
+            :items="dynamicTagMenu.items"
+            :query="dynamicTagMenu.query"
+            :active="dynamicTagMenu.active"
+            :active-category="dynamicTagMenu.activeCategory"
+            :active-field="dynamicTagMenu.activeField"
+            :active-child="dynamicTagMenu.activeChild"
+            :rect="dynamicTagMenu.rect"
+            :get-rect="dynamicTagMenu.getRect"
+            empty-label="No matching tag"
+            @pick="pickDynamicTag"
+            @hover-category="hoverDynamicTagCategory"
+            @hover-field="hoverDynamicTagField"
+            @hover-child="hoverDynamicTagChild"
+        />
+
+        <DynamicTagOptions
+            v-if="tagOptionsPopup.tag"
+            :open="tagOptionsPopup.open"
+            :tag="tagOptionsPopup.tag"
+            :options="tagOptionsPopup.options"
+            @apply="applyInsertedTag"
+            @update:open="closeTagOptionsPopup"
         />
     </div>
 </template>

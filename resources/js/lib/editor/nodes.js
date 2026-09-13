@@ -1,6 +1,25 @@
 import { Node, Extension } from '@tiptap/core';
 
 /**
+ * Parses a `data-dynamic-options` attribute value, falling back rather than
+ * throwing when a paste carries malformed JSON.
+ * @param {string|null} raw The raw attribute value.
+ * @param {*} fallback The value to use when `raw` is empty or invalid.
+ * @return {*}
+ */
+export function parseDynamicOptions(raw, fallback = {}) {
+    if (! raw) {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return fallback;
+    }
+}
+
+/**
  * The node types the Portable Text converters produce which StarterKit has no
  * equivalent for, plus the extension that keeps `_key` alive across an edit.
  *
@@ -29,6 +48,7 @@ export const PreserveKeys = Extension.create({
                 'image',
                 'video',
                 'callout',
+                'dynamicTag',
             ],
             attributes: {
                 _key: { default: null, rendered: false },
@@ -79,6 +99,9 @@ export const CodeBlockMeta = Extension.create({
  * TipTap's image node speaks `src`, while the stored document speaks `url` and
  * carries a caption and alt text alongside it. Declared here so none of them
  * are dropped on load.
+ *
+ * `tag`/`options` stand in for `url` when the image is a live dynamic photo
+ * rather than a stored one; the two are mutually exclusive.
  */
 export const ImageMeta = Extension.create({
     name: 'imageMeta',
@@ -93,6 +116,8 @@ export const ImageMeta = Extension.create({
                 caption: { default: null, rendered: false },
                 width: { default: null, rendered: false },
                 height: { default: null, rendered: false },
+                tag: { default: null, rendered: false },
+                options: { default: null, rendered: false },
             },
         }];
     },
@@ -126,6 +151,51 @@ export const Video = Node.create({
 
     renderHTML({ HTMLAttributes }) {
         return ['div', { 'data-video': '', ...HTMLAttributes }];
+    },
+});
+
+/**
+ * A dynamic tag: a reference to live site data that resolves at render, e.g.
+ * `{entries.count type:note}`. Only its name and options are stored; its
+ * value is resolved server-side and never travels with the document.
+ *
+ * An atom with no content, so the caret steps over it as one character and
+ * backspace removes the whole tag rather than half a token.
+ */
+export const DynamicTagNode = Node.create({
+    name: 'dynamicTag',
+    group: 'inline',
+    inline: true,
+    atom: true,
+    selectable: true,
+
+    addAttributes() {
+        return {
+            tag: { default: null },
+            options: { default: () => ({}) },
+        };
+    },
+
+    /**
+     * Tag and options both ride on data attributes rather than the default
+     * same-name lookup, so a chip round-trips through copy and paste instead
+     * of coming back with a null tag.
+     */
+    parseHTML() {
+        return [{
+            tag: 'span[data-dynamic-tag]',
+            getAttrs: (element) => ({
+                tag: element.getAttribute('data-dynamic-tag'),
+                options: parseDynamicOptions(element.getAttribute('data-dynamic-options')),
+            }),
+        }];
+    },
+
+    renderHTML({ HTMLAttributes }) {
+        return ['span', {
+            'data-dynamic-tag': HTMLAttributes.tag,
+            'data-dynamic-options': JSON.stringify(HTMLAttributes.options ?? {}),
+        }, HTMLAttributes.tag];
     },
 });
 

@@ -4,8 +4,10 @@ import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
 import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
+import BatteryStatus from '../Layout/BatteryStatus.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
+import { dynamicTagIcon } from '../../lib/dynamicTagIcon';
 import VideoEmbed from './VideoEmbed.vue';
 
 
@@ -187,11 +189,51 @@ function renderInternalLink(def, label, text, previews) {
     ));
 }
 
+/**
+ * The icon vnode beside a resolved dynamic tag's value, or null when the
+ * author left the tag's icon option off. Reuses `dynamicTagIcon` so this and
+ * the editor chip (DynamicTagChip.vue) can never draw a different glyph for
+ * the same tag.
+ */
+function renderDynamicTagIcon(dynamicTag, favicons) {
+    const descriptor = dynamicTag && dynamicTagIcon(dynamicTag.tag, dynamicTag.value, dynamicTag.icon, favicons);
+
+    if (!descriptor) {
+        return null;
+    }
+
+    if (descriptor.kind === 'battery') {
+        return h(BatteryStatus, {
+            level: descriptor.level,
+            charging: descriptor.charging,
+            lowPower: descriptor.lowPower,
+            class: 'mb-0.5 mr-1 inline align-middle',
+        });
+    }
+
+    if (descriptor.kind === 'favicon') {
+        // not-prose: see renderExternalLink's identical favicon img, above.
+        return h('img', {
+            src: descriptor.src,
+            alt: '',
+            loading: 'lazy',
+            class: 'not-prose mb-0.5 mr-1 inline size-3.5 object-contain align-middle',
+        });
+    }
+
+    return h(Icon, { icon: descriptor.icon, class: descriptor.class });
+}
+
 // Render one span, nesting its marks around the text node: decorators
 // (strong/em/code) map directly to tags; any other mark key is a markDef
 // reference, currently only 'link' is understood.
 function renderSpan(span, markDefs, favicons, previews) {
     let node = span.text;
+    const icon = renderDynamicTagIcon(span.dynamicTag, favicons);
+
+    if (icon) {
+        node = [icon, node];
+    }
 
     for (const mark of span.marks ?? []) {
         if (mark === 'strong') {

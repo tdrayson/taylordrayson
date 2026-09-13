@@ -1,8 +1,9 @@
 /**
- * What each block type can be configured with, drawn by BlockOptions.vue.
+ * What each block type can be configured with, drawn by BlockSettings.vue.
  *
- * Keyed by node name, so the panel shows whatever the caret is inside without
- * knowing anything about the block itself.
+ * Keyed by node name, so a block reaches its own settings by name and the form
+ * knows nothing about the block itself. A new configurable block needs a
+ * definition here and a settings button in its node view.
  */
 
 /**
@@ -17,26 +18,26 @@ export const BLOCK_OPTIONS = {
     codeBlock: {
         type: 'codeBlock',
         label: 'Code',
-        icon: 'SourceCodeIcon',
         fields: [
             { name: 'language', label: 'Language', type: 'select', options: LANGUAGES, empty: 'Auto' },
-            { name: 'filename', label: 'Filename', type: 'text', wide: true },
+            { name: 'filename', label: 'Filename', type: 'text' },
             { name: 'lineNumbers', label: 'Line numbers', type: 'boolean' },
         ],
     },
     image: {
         type: 'image',
         label: 'Image',
-        icon: 'Image01Icon',
         fields: [
-            { name: 'alt', label: 'Alt text', type: 'text', wide: true },
-            { name: 'caption', label: 'Caption', type: 'text', wide: true },
+            { name: 'alt', label: 'Alt text', type: 'text' },
+            { name: 'caption', label: 'Caption', type: 'text' },
             {
                 name: 'ratio',
                 label: 'Aspect ratio',
                 type: 'select',
+                // Unset is the original ratio, which is also what the legacy
+                // "original" value means, so it needs no choice of its own.
+                empty: 'Original',
                 options: [
-                    { value: 'original', label: 'Original' },
                     { value: '16/9', label: '16:9' },
                     { value: '4/3', label: '4:3' },
                     { value: '1/1', label: 'Square' },
@@ -48,16 +49,10 @@ export const BLOCK_OPTIONS = {
     video: {
         type: 'video',
         label: 'Video',
-        icon: 'PlayIcon',
         fields: [
-            { name: 'url', label: 'Video URL', type: 'text', wide: true },
-            { name: 'caption', label: 'Caption', type: 'text', wide: true },
-            { name: 'poster', label: 'Thumbnail URL', type: 'text', wide: true },
+            { name: 'url', label: 'Video URL', type: 'text' },
+            { name: 'caption', label: 'Caption', type: 'text' },
+            { name: 'poster', label: 'Thumbnail URL', type: 'text' },
         ],
     },
 };
-
-/** The definition for whichever block the caret is in, or null. */
-export function blockOptionsFor(editor) {
-    return Object.values(BLOCK_OPTIONS).find((definition) => editor.isActive(definition.type)) ?? null;
-}

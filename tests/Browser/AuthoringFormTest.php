@@ -2,6 +2,7 @@
 
 use App\Models\Article;
 use App\Models\Fuel;
+use App\Models\Note;
 use App\Models\User;
 
 it('draws every primary field as an input, not a chip', function () {
@@ -39,6 +40,26 @@ it('keeps the timezone inside the date it qualifies, not beside it', function ()
         ->click('#occurred_at')
         ->assertSee('Timezone')
         ->assertNoJavascriptErrors();
+});
+
+it('sets the publish date by free text and the time by hand, and saves both', function () {
+    $this->actingAs(User::factory()->create());
+
+    $page = visit('/new/note');
+
+    $page->click('.prose-editor')->typeSlowly('.prose-editor', 'A test note.', 20);
+    $page->fill('#slug', 'a-test-note');
+
+    $page->click('#occurred_at')
+        ->fill('[placeholder="yesterday 9am, 3 Aug 18:30"]', '5 January 2027')
+        ->keys('[placeholder="yesterday 9am, 3 Aug 18:30"]', 'Enter')
+        ->click('#occurred_at')
+        ->fill('input[type="time"]', '17:29')
+        ->click('button:has-text("Done")')
+        ->click('button:has-text("Post")')
+        ->assertNoJavascriptErrors();
+
+    expect(Note::first()->occurred_at->format('Y-m-d H:i'))->toBe('2027-01-05 17:29');
 });
 
 it('draws even a long form whole', function () {

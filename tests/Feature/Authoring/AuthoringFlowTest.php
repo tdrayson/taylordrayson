@@ -5,6 +5,7 @@ use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\User;
+use App\Support\PortableText;
 
 beforeEach(fn () => $this->actingAs(User::factory()->create()));
 
@@ -140,6 +141,21 @@ it('keeps the field order the fields class declares', function () {
     $names = collect($this->get('/new/flight')->viewData('page')['props']['fields'])->pluck('name');
 
     expect($names->take(3)->all())->toBe(['occurred_at', 'departure_timezone', 'origin_iata']);
+});
+
+it('keeps a dynamic tag through an article save, not just a note', function () {
+    // Article content is RichText, not Prose: the editor renders a saved
+    // dynamicTag back to literal `{tag options}` text either way, so both
+    // field types need the reparse or the tag is lost on the next save.
+    $article = Article::factory()->create();
+
+    $document = [PortableText::block('You have written {entries.count type:calorie} things.')];
+
+    $this->patch("/entries/article/{$article->id}", ['content' => $document])->assertRedirect();
+
+    $types = collect($article->fresh()->content[0]['children'])->pluck('_type');
+
+    expect($types)->toContain('dynamicTag');
 });
 
 it('sends a new fuel entry to the finished entry, not back to a form', function () {

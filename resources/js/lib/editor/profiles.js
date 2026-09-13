@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
-import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout } from './nodes.js';
+import { PreserveKeys, CodeBlockMeta, ImageMeta, Video, Callout, DynamicTagNode, parseDynamicOptions } from './nodes.js';
 
 /** The display host for a URL, or null for an internal path. */
 function hostOf(href) {
@@ -36,6 +36,22 @@ const Link = TiptapLink.extend({
     },
 
     /**
+     * `_key` keeps this mark's identity across a save, the same as every other
+     * node's; a mark carries no attribute TipTap doesn't declare, so without
+     * this the key silently drops the moment the document round-trips through
+     * the editor. `tag`/`options` let a link point at a dynamic tag instead of
+     * a stored `href`.
+     */
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            _key: { default: null, rendered: false },
+            tag: { default: null, rendered: false },
+            options: { default: null, rendered: false },
+        };
+    },
+
+    /**
      * Anchors, plus this mark's own output.
      *
      * Copying from the editor puts spans on the clipboard, not anchors, so
@@ -50,12 +66,14 @@ const Link = TiptapLink.extend({
                 getAttrs: (element) => ({
                     href: element.getAttribute('data-href'),
                     target: element.getAttribute('data-target'),
+                    tag: element.getAttribute('data-dynamic-tag'),
+                    options: parseDynamicOptions(element.getAttribute('data-dynamic-options'), null),
                 }),
             },
         ];
     },
 
-    renderHTML({ HTMLAttributes }) {
+    renderHTML({ mark, HTMLAttributes }) {
         const href = HTMLAttributes.href ?? '';
         // A URL back to this site is internal, however it is written.
         const host = hostOf(href) === hostOf(window.location.href) ? null : hostOf(href);
@@ -64,6 +82,12 @@ const Link = TiptapLink.extend({
             class: 'editor-link',
             'data-href': href,
             'data-target': HTMLAttributes.target,
+            // A dynamic link has no href to compute a favicon from, and needs
+            // its tag on the DOM so copy/paste round-trips it rather than
+            // silently downgrading to a plain, empty link.
+            ...(mark.attrs.tag
+                ? { 'data-dynamic-tag': mark.attrs.tag, 'data-dynamic-options': JSON.stringify(mark.attrs.options ?? {}) }
+                : {}),
             // An internal link has no host to fetch an icon for, so it reads as
             // the entry chip the published page renders instead.
             ...(host
@@ -93,9 +117,16 @@ const PROSE = [
         link: false,
     }),
     Link.configure({ openOnClick: false, linkOnPaste: true }),
+    DynamicTagNode,
 ];
 
-/** Everything above, plus the block-level nodes only a long piece needs. */
+/**
+ * Everything above, plus the block-level nodes only a long piece needs.
+ *
+ * This list does not actually spread PROSE (StarterKit and Link are
+ * reconfigured here with their own options), so any node meant for both
+ * profiles, including DynamicTagNode, has to be added to both arrays.
+ */
 const DOCUMENT = [
     StarterKit.configure({
         heading: { levels: [2, 3, 4, 5, 6] },
@@ -109,6 +140,7 @@ const DOCUMENT = [
     Image,
     Video,
     Callout,
+    DynamicTagNode,
     CodeBlockMeta,
     ImageMeta,
 ];
@@ -117,12 +149,12 @@ const DOCUMENT = [
  * Build the extension list for a profile.
  *
  * @param {'prose'|'document'} profile
- * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, codeBlock?: object}} options
+ * @param {{placeholder?: string|(() => string), mention?: object, slash?: object, callout?: object, image?: object, video?: object, dynamicTag?: object, dynamicTagSuggestion?: object, codeBlock?: object}} options
  */
-export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, codeBlock = null } = {}) {
-    // The caller's callout replaces the plain node, so the editor can draw it
-    // with its picker while the renderer keeps the bare definition.
-    const overrides = { callout, image, video };
+export function extensionsFor(profile, { placeholder = '', mention = null, slash = null, callout = null, image = null, video = null, dynamicTag = null, dynamicTagSuggestion = null, codeBlock = null } = {}) {
+    // The caller's version replaces the plain node, so the editor can draw it
+    // with its node view while the renderer keeps the bare definition.
+    const overrides = { callout, image, video, dynamicTag };
 
     const base = (profile === 'document' ? DOCUMENT : PROSE)
         .map((extension) => overrides[extension.name] ?? extension);
@@ -145,6 +177,7 @@ export function extensionsFor(profile, { placeholder = '', mention = null, slash
         }),
         ...(mention ? [mention] : []),
         ...(slash ? [slash] : []),
+        ...(dynamicTagSuggestion ? [dynamicTagSuggestion] : []),
         // Appended rather than swapped in: StarterKit's own code block is off,
         // so there is nothing in the base list to replace.
         ...(codeBlock && profile === 'document' ? [codeBlock] : []),

@@ -10,7 +10,7 @@
     @include('partials.pwa')
     @include('partials.feeds')
 
-    <link rel="me" href="https://github.com/tdrayson">
+    <link rel="me" href="{{ config('site.social.github') }}">
 
     @vite(['resources/js/app.js'])
     @inertiaHead
