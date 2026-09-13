@@ -85,6 +85,18 @@ it('drops the old citation and quote when the reply is pointed somewhere else', 
         ->and($note->fresh()->response_quote)->toBeNull();
 });
 
+// wasRecentlyCreated stays true for the rest of the instance's life, so a
+// second save of the same object (as the authoring controller does after
+// rewriting body images) must not read as a second first-time reply.
+it('queues only one fetch when the same instance is saved again', function () {
+    Queue::fake();
+
+    $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => 'https://example.com/new']);
+    $note->update(['content' => [['_type' => 'block', 'children' => [['_type' => 'span', 'text' => 'Edited.']]]]]);
+
+    Queue::assertPushed(FetchCitationFor::class, 1);
+});
+
 it('never queues a fetch for a reply to one of my own entries', function () {
     Queue::fake();
     $target = Note::factory()->create();
