@@ -107,9 +107,8 @@ final class FetchCitation
     }
 
     /**
-     * The author's name and photo. A name that is really a URL, or a missing name
-     * beside an author URL, means the post only links to its author: look for an
-     * h-card for that URL on this page, and only then fetch the URL itself.
+     * The author's name and photo. A name that is only a URL is looked up on their
+     * h-card, here then at that URL, keeping the entry's photo when the card has none.
      *
      * @return array{0: ?string, 1: ?string}
      */
@@ -124,7 +123,7 @@ final class FetchCitation
         $authorUrl ??= $linkedOnly ? $name : null;
 
         if ($authorUrl === null) {
-            return [null, null];
+            return [null, $photo];
         }
 
         $card = $this->cardFor($html, $pageUrl, $authorUrl);
@@ -134,7 +133,9 @@ final class FetchCitation
             $card = $authorHtml === null ? null : $this->cardFor($authorHtml, $authorUrl, $authorUrl);
         }
 
-        return $card ?? [null, null];
+        [$cardName, $cardPhoto] = $card ?? [null, null];
+
+        return [$cardName, $cardPhoto ?? $photo];
     }
 
     /**
@@ -159,7 +160,7 @@ final class FetchCitation
             $photo = $properties['photo'][0] ?? null;
 
             return [
-                is_string($name) && $name !== '' ? $name : null,
+                is_string($name) && $name !== '' && filter_var($name, FILTER_VALIDATE_URL) === false ? $name : null,
                 is_array($photo) ? ($photo['value'] ?? null) : (is_string($photo) ? $photo : null),
             ];
         }
