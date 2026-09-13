@@ -56,10 +56,10 @@ const property = computed(() => `u-${props.response.property}`);
 
             <!-- Somebody else's: their name when the page gave one, otherwise just
                  that it was a post, so the site is never named twice. -->
-            <template v-else-if="cited?.authorName">
-                <img v-if="photo" :src="photo" alt="" class="size-5 rounded-full object-cover">
-                <span class="p-author h-card font-medium text-neutral-700">{{ cited.authorName }}</span>
-            </template>
+            <span v-else-if="cited?.authorName" class="p-author h-card inline-flex items-center gap-1.5 font-medium text-neutral-700">
+                <img v-if="photo" :src="photo" alt="" class="u-photo size-5 rounded-full object-cover">
+                {{ cited.authorName }}
+            </span>
             <a
                 v-else
                 :href="response.url"
@@ -74,10 +74,7 @@ const property = computed(() => `u-${props.response.property}`);
                 <span v-else>on {{ response.host }}</span>
             </template>
 
-            <!-- Their words behind the same rule a quote uses, each part only if
-                 it exists. basis-full breaks it onto its own row; mt-2 plus the
-                 flex row's gap-y-1 reproduces the original mt-3 gap now that this
-                 sits inside the flex-wrap instead of stacked as a block sibling. -->
+            <!-- Their words behind the same rule a quote uses; basis-full breaks it onto its own row. -->
             <div v-if="!response.internal && hasQuote" class="basis-full mt-2 border-l-2 border-neutral-100 pl-4">
                 <a v-if="cited.title" :href="response.url" class="u-url block font-semibold text-neutral-900 hover:text-accent-700">
                     <cite class="p-name not-italic">{{ cited.title }}</cite>
