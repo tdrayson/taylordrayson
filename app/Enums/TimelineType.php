@@ -18,7 +18,7 @@ enum TimelineType: string
     case Sleep = 'sleep';
     case Food = 'food';
     case Film = 'film';
-    case Episode = 'episode';
+    case TvEpisode = 'tv-episode';
     case Book = 'book';
     case Event = 'event';
     case Appearance = 'appearance';

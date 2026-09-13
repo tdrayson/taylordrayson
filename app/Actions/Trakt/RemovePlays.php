@@ -3,9 +3,9 @@
 namespace App\Actions\Trakt;
 
 use App\Data\TraktPruneResult;
-use App\Models\Episode;
 use App\Models\Film;
-use App\Models\Series;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 use App\Services\Trakt\Client;
 
 /**
@@ -25,7 +25,7 @@ final class RemovePlays
         array $playIds,
         string $accessToken,
         array $localOnlyPlayIds = [],
-        bool $pruneEmptySeries = false,
+        bool $pruneEmptyTvShows = false,
     ): TraktPruneResult {
         $playIds = array_map('intval', $playIds);
 
@@ -46,35 +46,35 @@ final class RemovePlays
 
         // A history id could name either a film or an episode play; both
         // tables are checked, since the caller has no way to know which.
-        $touchedSeries = Episode::query()
+        $touchedTvShows = TvEpisode::query()
             ->where('source', 'trakt')
             ->whereIn('source_id', $clearable)
-            ->pluck('series_id')
+            ->pluck('tv_show_id')
             ->filter()
             ->unique();
 
         $clearedRows = Film::query()->where('source', 'trakt')->whereIn('source_id', $clearable)->delete()
-            + Episode::query()->where('source', 'trakt')->whereIn('source_id', $clearable)->delete();
+            + TvEpisode::query()->where('source', 'trakt')->whereIn('source_id', $clearable)->delete();
 
         return new TraktPruneResult(
             requested: count($playIds),
             deleted: count($confirmedGone),
             notFound: $notFound,
             clearedRows: $clearedRows,
-            clearedSeries: $pruneEmptySeries ? $this->pruneEmptySeries($touchedSeries->all()) : 0,
+            clearedTvShows: $pruneEmptyTvShows ? $this->pruneEmptyTvShows($touchedTvShows->all()) : 0,
         );
     }
 
     /**
-     * Delete series rows left with no episodes, scoped to those this run touched so
-     * an unrelated empty series is not swept up.
+     * Delete show rows left with no episodes, scoped to those this run touched so
+     * an unrelated empty show is not swept up.
      *
-     * @param  array<int, int>  $seriesIds
+     * @param  array<int, int>  $tvShowIds
      */
-    private function pruneEmptySeries(array $seriesIds): int
+    private function pruneEmptyTvShows(array $tvShowIds): int
     {
-        return Series::query()
-            ->whereIn('id', $seriesIds)
+        return TvShow::query()
+            ->whereIn('id', $tvShowIds)
             ->whereDoesntHave('episodes')
             ->delete();
     }

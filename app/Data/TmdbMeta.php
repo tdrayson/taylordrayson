@@ -8,7 +8,7 @@ use JsonSerializable;
 
 /**
  * The `tmdb` block written by the EnrichFromTmdb job, for both films and
- * shows (on Series).
+ * shows (on TvShow).
  */
 final readonly class TmdbMeta implements Arrayable, JsonSerializable
 {

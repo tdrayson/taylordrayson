@@ -13,7 +13,6 @@ use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Event;
 use App\Models\Film;
 use App\Models\Flight;
@@ -24,6 +23,7 @@ use App\Models\Place;
 use App\Models\Tag;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\EntryArtwork;
@@ -227,11 +227,11 @@ class EntryController extends Controller
         // The show a TV episode belongs to has its own page gathering every
         // watched episode, so the detail row links to it rather than printing
         // the title as dead text. Null for a film, a book, or a show we hold no
-        // Series row for.
-        if ($model instanceof Film || $model instanceof Episode || $model instanceof Book) {
+        // TvShow row for.
+        if ($model instanceof Film || $model instanceof TvEpisode || $model instanceof Book) {
             $data = [...$data, ...(new EntryArtwork)($model)];
-            $data['showTitle'] = $model instanceof Episode ? ShowTitle::for($model) : null;
-            $data['showUrl'] = $data['showTitle'] === null ? null : $model->series?->url();
+            $data['showTitle'] = $model instanceof TvEpisode ? ShowTitle::for($model) : null;
+            $data['showUrl'] = $data['showTitle'] === null ? null : $model->tvShow?->url();
         }
 
         // A venue's category is already a taxonomy with its own archive, so the

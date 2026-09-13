@@ -1,7 +1,6 @@
 <?php
 
 use App\Data\TypeMeta;
-use App\Datasets\Datasets;
 use App\Models\Page;
 use App\Support\TypeCatalogue;
 
@@ -45,14 +44,8 @@ it('offers no page destination that 404s', function () {
 it('offers no archive destination that 404s', function () {
     // Straight from the catalogue rather than the module it generates: the sync
     // test already proves the two agree, and an href is a route either way.
-    // A dataset with no archive of its own (e.g. episode, served by the
-    // series index) names an href nothing routes at yet, so it is excluded.
     $hrefs = array_values(array_unique(array_filter(
-        array_map(function (TypeMeta $meta): ?string {
-            $dataset = Datasets::for($meta->key);
-
-            return $dataset !== null && ! $dataset->archive() ? null : $meta->href;
-        }, TypeCatalogue::all()),
+        array_map(fn (TypeMeta $meta): ?string => $meta->href, TypeCatalogue::all()),
     )));
 
     expect($hrefs)->not->toBeEmpty();

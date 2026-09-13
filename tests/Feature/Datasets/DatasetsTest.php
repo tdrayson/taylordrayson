@@ -1,16 +1,11 @@
 <?php
 
-use App\Datasets\BaseDataset;
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
-use App\Datasets\NoteDataset;
-use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
-use App\Models\Note;
 use App\Models\Place;
 use App\Models\User;
 use App\Presenters\CardPresenter;
-use App\Presenters\Cards\NoteCard;
 use App\Presenters\Cards\PlaceCard;
 use App\Search\SearchSchema;
 use App\Support\TypeCatalogue;
@@ -92,7 +87,7 @@ it('counts entries in the nouns the more page uses', function () {
         'sleep' => ['night', 'nights'],
         'food' => ['day', 'days'],
         'film' => ['film', 'films'],
-        'episode' => ['episode', 'episodes'],
+        'tv-episode' => ['episode', 'episodes'],
         'book' => ['book', 'books'],
         'event' => ['event', 'events'],
         'appearance' => ['appearance', 'appearances'],
@@ -114,7 +109,7 @@ it('groups every type into a kind', function () {
         'sleep' => 'health',
         'food' => 'health',
         'film' => 'watching',
-        'episode' => 'watching',
+        'tv-episode' => 'watching',
         'book' => 'watching',
         'event' => 'going-out',
         'appearance' => 'speaking',
@@ -152,68 +147,4 @@ it('exposes every dataset table to the MCP database tools', function () {
 
         expect(in_array($table, config('mcp.tables'), true))->toBeTrue("{$key} stores rows in {$table}, which config/mcp.php does not expose.");
     }
-});
-
-it('registers no archive route for a dataset without an archive', function () {
-    $dataset = new class extends BaseDataset
-    {
-        public function type(): TimelineType
-        {
-            return TimelineType::Note;
-        }
-
-        public function model(): string
-        {
-            return Note::class;
-        }
-
-        public function kind(): DatasetKind
-        {
-            return DatasetKind::Writing;
-        }
-
-        public function icon(): string
-        {
-            return 'StickyNote02Icon';
-        }
-
-        public function label(): string
-        {
-            return 'Note';
-        }
-
-        public function plural(): string
-        {
-            return 'Notes';
-        }
-
-        public function slug(): string
-        {
-            return 'notes';
-        }
-
-        public function keywords(): string
-        {
-            return '';
-        }
-
-        public function card(): object
-        {
-            return new NoteCard;
-        }
-
-        public function searchFields(): array
-        {
-            return [];
-        }
-
-        public function archive(): bool
-        {
-            return false;
-        }
-    };
-
-    expect($dataset->archive())->toBeFalse()
-        ->and((new NoteDataset)->archive())->toBeTrue()
-        ->and(collect(TypeRegistry::all())->every(fn (array $definition): bool => array_key_exists('archive', $definition)))->toBeTrue();
 });

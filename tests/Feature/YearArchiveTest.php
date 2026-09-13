@@ -3,12 +3,12 @@
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Note;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -82,7 +82,7 @@ it('counts tv episodes (not just films) in the "Watched" stat', function () {
     // Regression guard for the periodStats bug where `whereIn('type', ['film', 'show'])`
     // used the non-existent value 'show' instead of the real 'episode', silently
     // undercounting TV in the year/month "Watched" stat.
-    Episode::factory()->create(['occurred_at' => '2025-04-01 20:00:00']);
+    TvEpisode::factory()->create(['occurred_at' => '2025-04-01 20:00:00']);
     Film::factory()->create(['occurred_at' => '2025-04-02 20:00:00']);
     Book::factory()->create(['occurred_at' => '2025-04-03 20:00:00']);
 

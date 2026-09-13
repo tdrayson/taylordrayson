@@ -14,7 +14,7 @@ const props = defineProps({
     progress: { type: Number, default: null },
 });
 
-const href = computed(() => `/tv/${props.slug}`);
+const href = computed(() => `/tv-shows/${props.slug}`);
 // Accessible name for the whole tile since its visible title/year sit in
 // separate text nodes rather than one readable phrase.
 const label = computed(() => (props.year ? `${props.title}, ${props.year}` : props.title));

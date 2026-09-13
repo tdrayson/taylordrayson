@@ -2,12 +2,12 @@
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Film;
 use App\Models\Food;
-use App\Models\Series;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 
 /** The headline the OG card would print for the entry behind this model. */
 function ogTitle(object $model): string
@@ -64,10 +64,10 @@ it('says what was watched or read rather than naming it alone', function () {
 });
 
 it('names the show and the place in it, so a binge is not four identical cards', function () {
-    $series = Series::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
+    $tvShow = TvShow::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
 
-    $episode = Episode::factory()->create([
-        'series_id' => $series->id,
+    $episode = TvEpisode::factory()->create([
+        'tv_show_id' => $tvShow->id,
         'title' => 'Good News About Hell',
         'occurred_at' => '2026-08-29 21:00:00',
         'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance'],

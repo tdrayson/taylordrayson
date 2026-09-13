@@ -2,24 +2,34 @@
 
 use App\Datasets\Datasets;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Film;
-use App\Models\Series;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Inertia\Testing\AssertableInertia as Assert;
+
+/**
+ * Rolls back the tv rename (000008) so the tables are named 'episodes'/'series'
+ * again, matching the shape migration 000005 was written against. Only needed
+ * by the tests below that replay 000005 directly; every other test in the
+ * suite runs against the full, current migration chain.
+ */
+function revertTvRename(): void
+{
+    $migration = require database_path('migrations/2026_09_13_000008_rename_episodes_and_series_to_tv.php');
+    $migration->down();
+}
 
 it('gives films, episodes and books their own dataset key on the timeline', function () {
     $film = Film::factory()->create();
-    $episode = Episode::factory()->for(Series::factory())->create();
+    $episode = TvEpisode::factory()->for(TvShow::factory())->create();
     $book = Book::factory()->create();
 
-    expect(TimelineEntry::query()->pluck('dataset')->sort()->values()->all())->toBe(['book', 'episode', 'film'])
+    expect(TimelineEntry::query()->pluck('dataset')->sort()->values()->all())->toBe(['book', 'film', 'tv-episode'])
         ->and(CardPresenter::for($film)->type->value)->toBe('film')
-        ->and(CardPresenter::for($episode)->type->value)->toBe('episode')
+        ->and(CardPresenter::for($episode)->type->value)->toBe('tv-episode')
         ->and(CardPresenter::for($book)->type->value)->toBe('book');
 });
 
@@ -29,23 +39,20 @@ it('treats media as an unknown type on feeds', function () {
     $this->get('/feed?types=media')->assertOk();
 });
 
-it('lists a series episodes through the episode model', function () {
-    $series = Series::factory()->create();
-    Episode::factory()->for($series)->count(2)->create();
+it('lists a tv show episodes through the episode model', function () {
+    $tvShow = TvShow::factory()->create();
+    TvEpisode::factory()->for($tvShow)->count(2)->create();
 
-    expect($series->episodes)->toHaveCount(2)->each->toBeInstanceOf(Episode::class);
+    expect($tvShow->episodes)->toHaveCount(2)->each->toBeInstanceOf(TvEpisode::class);
 });
 
-it('registers no archive route for the episode dataset', function () {
-    // /tv is served by SeriesController's series.index route, not an
-    // ArchiveController archive route.
-    expect(Route::has('archive.tv'))->toBeFalse();
-
-    $this->get('/tv')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Tv/SeriesIndex'));
+it('serves the tv episode archive at /tv-episodes', function () {
+    $this->get('/tv-episodes')->assertOk();
 });
 
 it('refuses to roll back the media split once an id collides across films, episodes and books', function () {
+    revertTvRename();
+
     $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
 
     DB::table('films')->insert([
@@ -72,6 +79,8 @@ it('refuses to roll back the media split once an id collides across films, episo
 });
 
 it('refuses to split media while a morph reference points at a missing id', function () {
+    revertTvRename();
+
     $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
 
     $migration->down();
@@ -91,6 +100,8 @@ it('refuses to split media while a morph reference points at a missing id', func
 });
 
 it('splits a legacy media table into films, episodes and books via the migration, preserving ids', function () {
+    revertTvRename();
+
     $migration = require database_path('migrations/2026_09_13_000005_split_media_into_films_episodes_and_books.php');
 
     $migration->down();

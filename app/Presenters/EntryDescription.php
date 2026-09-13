@@ -7,7 +7,6 @@ use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Event;
 use App\Models\Film;
 use App\Models\Flight;
@@ -18,6 +17,7 @@ use App\Models\Place;
 use App\Models\Project;
 use App\Models\Sleep;
 use App\Models\ThisWeekWith;
+use App\Models\TvEpisode;
 use App\Queries\DayFoodTotals;
 use App\Support\Distance;
 use App\Support\PortableText;
@@ -66,7 +66,7 @@ final class EntryDescription
             $model instanceof Place => self::place($model),
             $model instanceof Flight => self::flight($model),
             $model instanceof Film => self::film($model),
-            $model instanceof Episode => self::episode($model),
+            $model instanceof TvEpisode => self::episode($model),
             $model instanceof Book => self::book($model),
             $model instanceof Food => self::food($model),
             $model instanceof Fuel => self::fuel($model),
@@ -174,7 +174,7 @@ final class EntryDescription
     }
 
     /** What was watched, said the way it would be said aloud: the episode's place in its run. */
-    private static function episode(Episode $model): string
+    private static function episode(TvEpisode $model): string
     {
         $rating = $model->rating ? " I rated it {$model->rating} out of 10." : '';
 
@@ -216,7 +216,7 @@ final class EntryDescription
      * The episode said as it would be said out loud: "season 2, episode 17 of
      * Georgie & Mandy's First Marriage". "S02E17" is shorthand for a filename.
      */
-    private static function episodeSentence(Episode $model): string
+    private static function episodeSentence(TvEpisode $model): string
     {
         $show = ShowTitle::for($model);
         $where = $model->meta->season !== null && $model->meta->episode !== null

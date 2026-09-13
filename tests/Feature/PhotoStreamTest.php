@@ -3,7 +3,7 @@
 use App\Models\Activity;
 use App\Models\Film;
 use App\Models\Place;
-use App\Models\Series;
+use App\Models\TvShow;
 use App\Presenters\CardPresenter;
 use App\Queries\PhotoStream;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,7 +23,7 @@ it('returns real photos newest first, and the limited call is a prefix of the fu
     // Enrichment art that /photos excludes must never enter the stream.
     Film::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('poster.jpg')->toMediaCollection('cover');
-    Series::factory()->create()
+    TvShow::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('series.jpg')->toMediaCollection('cover');
 
     $stream = app(PhotoStream::class);

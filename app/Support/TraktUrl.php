@@ -3,14 +3,14 @@
 namespace App\Support;
 
 use App\Enums\Source;
-use App\Models\Episode;
 use App\Models\Film;
+use App\Models\TvEpisode;
 
 /**
  * Builds links back to Trakt.
  *
  * One place rather than three: the show URL was assembled inline in
- * SeriesShowData while the film and episode URLs lived on their models as
+ * TvShowData while the film and episode URLs lived on their models as
  * presentation logic, so the same host and path shapes were written out twice
  * and could drift apart.
  */
@@ -29,7 +29,7 @@ final class TraktUrl
     }
 
     /** The Trakt page for a watched episode, or null when it did not come from Trakt or carries no slug to link to. */
-    public static function forEpisode(Episode $episode): ?string
+    public static function forEpisode(TvEpisode $episode): ?string
     {
         if ($episode->source !== Source::Trakt->value) {
             return null;

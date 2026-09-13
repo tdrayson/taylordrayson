@@ -3,7 +3,6 @@
 use App\Models\Activity;
 use App\Models\Airport;
 use App\Models\Article;
-use App\Models\Episode;
 use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Note;
@@ -11,6 +10,7 @@ use App\Models\Page;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
+use App\Models\TvEpisode;
 
 use function Pest\Laravel\get;
 
@@ -53,11 +53,11 @@ it('dates a log entry title so repeated names stay distinct', function () {
 });
 
 it('names the show in front of an episode title', function () {
-    // series_id null: the series relation would otherwise win over
+    // tv_show_id null: the tvShow relation would otherwise win over
     // meta.show_title, which is what this asserts on.
-    $episode = Episode::factory()->create([
+    $episode = TvEpisode::factory()->create([
         'title' => 'Netherlands (Race)',
-        'series_id' => null,
+        'tv_show_id' => null,
         'occurred_at' => '2026-08-23 20:00:00',
         'meta' => ['show_title' => 'Formula 1', 'season' => 2026, 'episode' => 69],
     ]);

@@ -6,7 +6,6 @@ use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
 use App\Models\Concerns\Timelineable;
-use App\Models\Episode;
 use App\Models\Event;
 use App\Models\Film;
 use App\Models\Flight;
@@ -17,6 +16,7 @@ use App\Models\Place;
 use App\Models\Project;
 use App\Models\Sleep;
 use App\Models\ThisWeekWith;
+use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 
 /**
@@ -31,7 +31,7 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
     'sleep' => fn () => Sleep::factory()->create(),
     'food' => fn () => Food::factory()->create(),
     'film' => fn () => Film::factory()->create(),
-    'episode' => fn () => Episode::factory()->create(),
+    'tv-episode' => fn () => TvEpisode::factory()->create(),
     'book' => fn () => Book::factory()->create(),
     'event' => fn () => Event::factory()->create(),
     'appearance' => fn () => Appearance::factory()->create(),

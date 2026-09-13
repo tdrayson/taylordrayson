@@ -11,19 +11,19 @@ use Illuminate\Database\Eloquent\Model;
  * Reading never yields null: an empty column hydrates to an empty DTO, so
  * every call site can reach for a field without first checking the bag exists.
  *
- * @implements CastsAttributes<FilmMeta|EpisodeMeta|BookMeta|SeriesMeta, FilmMeta|EpisodeMeta|BookMeta|SeriesMeta|array<string, mixed>|null>
+ * @implements CastsAttributes<FilmMeta|TvEpisodeMeta|BookMeta|TvShowMeta, FilmMeta|TvEpisodeMeta|BookMeta|TvShowMeta|array<string, mixed>|null>
  */
 final readonly class MetaCast implements CastsAttributes
 {
     /**
-     * @param  class-string<FilmMeta|EpisodeMeta|BookMeta|SeriesMeta>  $dto
+     * @param  class-string<FilmMeta|TvEpisodeMeta|BookMeta|TvShowMeta>  $dto
      */
     public function __construct(private string $dto) {}
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function get(Model $model, string $key, mixed $value, array $attributes): FilmMeta|EpisodeMeta|BookMeta|SeriesMeta
+    public function get(Model $model, string $key, mixed $value, array $attributes): FilmMeta|TvEpisodeMeta|BookMeta|TvShowMeta
     {
         return ($this->dto)::from($this->decode($value));
     }

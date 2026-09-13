@@ -5,13 +5,13 @@ namespace App\Queries;
 use App\Enums\ActivityDiscipline;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Episode;
 use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 use Illuminate\Support\Carbon;
 
 /**
@@ -76,7 +76,7 @@ final class PeriodStats
             }
         }
 
-        $films = $between(Film::query())->count() + $between(Episode::query())->count();
+        $films = $between(Film::query())->count() + $between(TvEpisode::query())->count();
 
         if ($films > 0) {
             $stats[] = ['label' => 'Watched', 'value' => number_format($films)];

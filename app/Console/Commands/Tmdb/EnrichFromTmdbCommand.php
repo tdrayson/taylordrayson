@@ -4,42 +4,42 @@ namespace App\Console\Commands\Tmdb;
 
 use App\Jobs\EnrichFromTmdb;
 use App\Models\Film;
-use App\Models\Series;
+use App\Models\TvShow;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('tmdb:enrich {--force : Re-enrich everything, not just bare items}')]
-#[Description('Re-dispatch TMDB enrichment for films and series missing artwork/metadata')]
+#[Description('Re-dispatch TMDB enrichment for films and TV shows missing artwork/metadata')]
 class EnrichFromTmdbCommand extends Command
 {
     /**
      * Backfill command for `TraktSync`'s per-run enrichment dispatch: catches
-     * series/films left bare because a prior `EnrichFromTmdb` job never ran,
+     * shows/films left bare because a prior `EnrichFromTmdb` job never ran,
      * or exhausted its retries, outside of the sync window that created them.
      */
     public function handle(): int
     {
         $force = (bool) $this->option('force');
 
-        $seriesCount = $this->enrichSeries($force);
+        $tvShowCount = $this->enrichTvShows($force);
         $filmCount = $this->enrichFilms($force);
 
-        $this->info("Dispatched enrichment for {$seriesCount} series and {$filmCount} film(s).");
+        $this->info("Dispatched enrichment for {$tvShowCount} TV show(s) and {$filmCount} film(s).");
 
         return self::SUCCESS;
     }
 
-    private function enrichSeries(bool $force): int
+    private function enrichTvShows(bool $force): int
     {
         $dispatched = 0;
 
-        Series::query()->whereHas('episodes')->get()->each(function (Series $series) use ($force, &$dispatched): void {
-            if (! $force && ! $this->seriesIsBare($series)) {
+        TvShow::query()->whereHas('episodes')->get()->each(function (TvShow $tvShow) use ($force, &$dispatched): void {
+            if (! $force && ! $this->tvShowIsBare($tvShow)) {
                 return;
             }
 
-            EnrichFromTmdb::dispatch($series, 'tv', $series->meta->ids->tmdb, null);
+            EnrichFromTmdb::dispatch($tvShow, 'tv', $tvShow->meta->ids->tmdb, null);
             $dispatched++;
         });
 
@@ -64,12 +64,12 @@ class EnrichFromTmdbCommand extends Command
     }
 
     /**
-     * Mirrors `TraktSync::seriesIsBare()`: missing either the cover artwork
+     * Mirrors `TraktSync::tvShowIsBare()`: missing either the cover artwork
      * or the TMDB enrichment metadata block.
      */
-    private function seriesIsBare(Series $series): bool
+    private function tvShowIsBare(TvShow $tvShow): bool
     {
-        return ! $series->hasMedia('cover') || $series->meta->tmdb->isEmpty();
+        return ! $tvShow->hasMedia('cover') || $tvShow->meta->tmdb->isEmpty();
     }
 
     private function filmIsBare(Film $film): bool

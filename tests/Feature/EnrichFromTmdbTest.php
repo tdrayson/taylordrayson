@@ -2,7 +2,7 @@
 
 use App\Jobs\EnrichFromTmdb;
 use App\Models\Film;
-use App\Models\Series;
+use App\Models\TvShow;
 use App\Services\Tmdb\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -67,13 +67,13 @@ function fakeEnrichmentApis(): void
     }]);
 }
 
-it('enriches a series with tmdb structure and downloaded art', function () {
+it('enriches a tv show with tmdb structure and downloaded art', function () {
     fakeEnrichmentApis();
 
-    $series = Series::factory()->create();
-    (new EnrichFromTmdb($series, 'tv', 71712, null))->handle(app(Client::class));
+    $tvShow = TvShow::factory()->create();
+    (new EnrichFromTmdb($tvShow, 'tv', 71712, null))->handle(app(Client::class));
 
-    $fresh = $series->fresh();
+    $fresh = $tvShow->fresh();
 
     expect($fresh->meta->seasons)->toBe(2)
         ->and($fresh->meta->seasonList)->toHaveCount(2)

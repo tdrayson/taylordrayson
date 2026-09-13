@@ -3,8 +3,8 @@
 namespace App\Search;
 
 use App\Models\Page;
-use App\Models\Series;
 use App\Models\Tag;
+use App\Models\TvShow;
 use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,7 +22,7 @@ final class SuggestSearch
     private const DESTINATION_LIMIT = 6;
 
     /** A show's share of that limit, so shows never crowd out taxonomy jumps. */
-    private const SERIES_LIMIT = 3;
+    private const TV_SHOW_LIMIT = 3;
 
     /** And a page's share, on the same reasoning. */
     private const PAGE_LIMIT = 3;
@@ -39,7 +39,7 @@ final class SuggestSearch
         'activity' => ['name'],
         'food' => ['name', 'meal'],
         'film' => ['title'],
-        'episode' => ['title'],
+        'tv-episode' => ['title'],
         'book' => ['title'],
         'event' => ['name', 'venue_name', 'city', 'country'],
         'appearance' => ['title', 'show_name', 'description'],
@@ -91,7 +91,7 @@ final class SuggestSearch
         return [
             'results' => $results,
             'destinations' => array_slice(
-                [...$this->matchSeries($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
+                [...$this->matchTvShows($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
                 0,
                 self::DESTINATION_LIMIT,
             ),
@@ -103,27 +103,27 @@ final class SuggestSearch
      *
      * A show is not a taxonomy value, so the registry sweep below cannot see
      * it: episodes are rows whose own titles name the episode, leaving no way
-     * to reach a series page by typing the series name. Listed first, since a
+     * to reach a show page by typing the show name. Listed first, since a
      * show is a more specific destination than a category.
      *
      * @param  string  $term  The free-text query.
      * @return array<int, array{label: string, section: string, type: string, tag: bool, url: string}>
      */
-    private function matchSeries(string $term): array
+    private function matchTvShows(string $term): array
     {
-        return Series::query()
+        return TvShow::query()
             ->whereHas('episodes')
             ->where('title', 'like', '%'.$term.'%')
             ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
             ->orderByRaw('LENGTH(title)')
-            ->limit(self::SERIES_LIMIT)
+            ->limit(self::TV_SHOW_LIMIT)
             ->get(['title', 'slug'])
-            ->map(fn (Series $series): array => [
-                'label' => $series->title,
+            ->map(fn (TvShow $tvShow): array => [
+                'label' => $tvShow->title,
                 'section' => 'TV',
-                'type' => 'episode',
+                'type' => 'tv-episode',
                 'tag' => false,
-                'url' => $series->url(),
+                'url' => $tvShow->url(),
             ])
             ->all();
     }

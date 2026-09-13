@@ -17,7 +17,6 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
@@ -25,6 +24,7 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\TvShowController;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -114,11 +114,11 @@ Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
 
 // TV show pages, registered above the generic archive loop for the same
 // reason as /flights/map below: a literal segment above the taxonomy routes.
-Route::get('/tv', [SeriesController::class, 'index'])->name('series.index');
-Route::get('/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
+Route::get('/tv-shows', [TvShowController::class, 'index'])->name('tv-shows.index');
+Route::get('/tv-shows/{tvShow:slug}', [TvShowController::class, 'show'])->name('tv-shows.show');
 
 // Old show urls, a pattern redirect config/redirects.php cannot express.
-Route::redirect('/media/tv/{slug}', '/tv/{slug}', 301);
+Route::redirect('/media/tv/{slug}', '/tv-shows/{slug}', 301);
 
 // Literal segment must beat the archive taxonomy route (/flights/{value}).
 Route::get('/flights/map', FlightMapController::class)->name('flights.map');

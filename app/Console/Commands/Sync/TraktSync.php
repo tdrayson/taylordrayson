@@ -4,9 +4,9 @@ namespace App\Console\Commands\Sync;
 
 use App\Exceptions\TraktException;
 use App\Jobs\EnrichFromTmdb;
-use App\Models\Episode;
 use App\Models\Film;
-use App\Models\Series;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 use App\Services\Trakt\Client;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
@@ -43,16 +43,16 @@ class TraktSync extends Command
     private array $showSummaries = [];
 
     /**
-     * Series ids that received a new episode this run, bounding
+     * TvShow ids that received a new episode this run, bounding
      * `normalizeEpisodeOrder()` away from a full-table scan.
      *
      * @var array<int, true>
      */
-    private array $affectedSeriesIds = [];
+    private array $affectedTvShowIds = [];
 
     /**
-     * Series ids that already had `EnrichFromTmdb` dispatched, capping it at one
-     * per series per run rather than one per episode.
+     * TvShow ids that already had `EnrichFromTmdb` dispatched, capping it at one
+     * per show per run rather than one per episode.
      *
      * @var array<int, true>
      */
@@ -83,7 +83,7 @@ class TraktSync extends Command
             // but films and episodes now live in separate tables, so dedupe is
             // looked up per table rather than against one shared set.
             $existingFilms = Film::query()->where('source', 'trakt')->pluck('source_id')->flip();
-            $existingEpisodes = Episode::query()->where('source', 'trakt')->pluck('source_id')->flip();
+            $existingEpisodes = TvEpisode::query()->where('source', 'trakt')->pluck('source_id')->flip();
 
             $filmsCreated = $this->importMovies($trakt, $startAt, $existingFilms);
             $episodesCreated = $this->importEpisodes($trakt, $startAt, $existingEpisodes);
@@ -120,7 +120,7 @@ class TraktSync extends Command
         /** @var string|null $newestFilm Europe/London wall-clock string, or null with no prior Trakt films. */
         $newestFilm = Film::query()->where('source', 'trakt')->max('occurred_at');
         /** @var string|null $newestEpisode Europe/London wall-clock string, or null with no prior Trakt episodes. */
-        $newestEpisode = Episode::query()->where('source', 'trakt')->max('occurred_at');
+        $newestEpisode = TvEpisode::query()->where('source', 'trakt')->max('occurred_at');
         $newest = collect([$newestFilm, $newestEpisode])->filter()->max();
 
         if ($newest === null) {
@@ -142,19 +142,19 @@ class TraktSync extends Command
      */
     private function normalizeEpisodeOrder(): void
     {
-        if ($this->affectedSeriesIds === []) {
+        if ($this->affectedTvShowIds === []) {
             return;
         }
 
-        Episode::query()
+        TvEpisode::query()
             ->where('source', 'trakt')
-            ->whereNotNull('series_id')
-            ->whereIn('series_id', array_keys($this->affectedSeriesIds))
+            ->whereNotNull('tv_show_id')
+            ->whereIn('tv_show_id', array_keys($this->affectedTvShowIds))
             ->get()
-            ->groupBy('series_id')
-            ->each(function (Collection $seriesEpisodes): void {
-                $seriesEpisodes
-                    ->groupBy(fn (Episode $episode): string => $episode->occurred_at->format('Y-m-d H:i:s'))
+            ->groupBy('tv_show_id')
+            ->each(function (Collection $showEpisodes): void {
+                $showEpisodes
+                    ->groupBy(fn (TvEpisode $episode): string => $episode->occurred_at->format('Y-m-d H:i:s'))
                     ->each(fn (Collection $group) => $this->nudgeTiedGroup($group));
             });
     }
@@ -164,7 +164,7 @@ class TraktSync extends Command
      * keeps the base time, the rest get base + rank in seconds. The base is
      * captured before any reassignment so offsets never compound.
      *
-     * @param  Collection<int, Episode>  $group  Episodes sharing one exact `occurred_at`.
+     * @param  Collection<int, TvEpisode>  $group  Episodes sharing one exact `occurred_at`.
      */
     private function nudgeTiedGroup(Collection $group): void
     {
@@ -187,7 +187,7 @@ class TraktSync extends Command
         }
 
         $group
-            ->sort(function (Episode $a, Episode $b): int {
+            ->sort(function (TvEpisode $a, TvEpisode $b): int {
                 $seasonA = $a->meta->season ?? 0;
                 $seasonB = $b->meta->season ?? 0;
 
@@ -208,7 +208,7 @@ class TraktSync extends Command
                 return $a->id <=> $b->id;
             })
             ->values()
-            ->each(function (Episode $episode, int $rank) use ($base): void {
+            ->each(function (TvEpisode $episode, int $rank) use ($base): void {
                 $target = $base->copy()->addSeconds($rank);
 
                 if (! $episode->occurred_at->equalTo($target)) {
@@ -219,8 +219,8 @@ class TraktSync extends Command
     }
 
     /**
-     * Pull personal star ratings (1-10) and apply them onto matching Film/Episode/Series
-     * rows by `meta.ids.trakt` or `Series.trakt_id`.
+     * Pull personal star ratings (1-10) and apply them onto matching Film/TvEpisode/TvShow
+     * rows by `meta.ids.trakt` or `TvShow.trakt_id`.
      */
     private function syncRatings(Client $trakt): void
     {
@@ -234,8 +234,8 @@ class TraktSync extends Command
         $showRatings = $this->fetchAllRatingPages($trakt, 'shows');
 
         $this->applyRatings(Film::query()->where('source', 'trakt'), $movieRatings);
-        $this->applyRatings(Episode::query()->where('source', 'trakt'), $episodeRatings);
-        $this->applySeriesRatings($showRatings);
+        $this->applyRatings(TvEpisode::query()->where('source', 'trakt'), $episodeRatings);
+        $this->applyTvShowRatings($showRatings);
     }
 
     /**
@@ -243,7 +243,7 @@ class TraktSync extends Command
      * matches. Matched in PHP rather than by JSON path because production is
      * not SQLite, and every matching row is updated since a rewatch has several.
      *
-     * @param  Builder<Film>|Builder<Episode>  $query
+     * @param  Builder<Film>|Builder<TvEpisode>  $query
      * @param  array<int|string, int>  $ratings  Trakt id => rating.
      */
     private function applyRatings(Builder $query, array $ratings): void
@@ -253,7 +253,7 @@ class TraktSync extends Command
         }
 
         $query->get()
-            ->each(function (Film|Episode $watched) use ($ratings): void {
+            ->each(function (Film|TvEpisode $watched) use ($ratings): void {
                 $traktId = $watched->meta->ids->trakt;
 
                 if ($traktId === null || ! array_key_exists($traktId, $ratings)) {
@@ -272,28 +272,28 @@ class TraktSync extends Command
     /**
      * @param  array<int|string, int>  $ratings  Trakt id => rating.
      */
-    private function applySeriesRatings(array $ratings): void
+    private function applyTvShowRatings(array $ratings): void
     {
         if ($ratings === []) {
             return;
         }
 
-        Series::all()->each(function (Series $series) use ($ratings): void {
-            if ($series->trakt_id === null || ! array_key_exists($series->trakt_id, $ratings)) {
+        TvShow::all()->each(function (TvShow $tvShow) use ($ratings): void {
+            if ($tvShow->trakt_id === null || ! array_key_exists($tvShow->trakt_id, $ratings)) {
                 return;
             }
 
-            $rating = $ratings[$series->trakt_id];
+            $rating = $ratings[$tvShow->trakt_id];
 
             // Compared numerically: the stored rating and the one Trakt
             // sends can differ in type without differing in value, and a
             // strict comparison would re-save every show on every run.
-            if ($series->meta->rating !== null && (float) $series->meta->rating === (float) $rating) {
+            if ($tvShow->meta->rating !== null && (float) $tvShow->meta->rating === (float) $rating) {
                 return;
             }
 
-            $series->meta = $series->meta->merge(['rating' => $rating]);
-            $series->save();
+            $tvShow->meta = $tvShow->meta->merge(['rating' => $rating]);
+            $tvShow->save();
         });
     }
 
@@ -433,13 +433,13 @@ class TraktSync extends Command
         $episode = $item['episode'];
         $summary = $this->showSummary($trakt, $show['ids']['trakt'] ?? null);
 
-        [$series, $wasNew] = $this->resolveSeries($show, $summary);
+        [$tvShow, $wasNew] = $this->resolveTvShow($show, $summary);
 
-        Episode::create([
+        TvEpisode::create([
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $episode['title'] ?? "Episode {$episode['number']}",
-            'series_id' => $series->id,
+            'tv_show_id' => $tvShow->id,
             'source' => 'trakt',
             'source_id' => (string) $item['id'],
             'meta' => [
@@ -452,49 +452,49 @@ class TraktSync extends Command
             ],
         ]);
 
-        $this->affectedSeriesIds[$series->id] = true;
+        $this->affectedTvShowIds[$tvShow->id] = true;
 
-        // Re-enrich an existing series that's still bare (e.g. a prior
+        // Re-enrich an existing show that's still bare (e.g. a prior
         // enrichment job never ran, or failed after its retries), not just
         // brand new ones. Deduped per run: a batch carrying several episodes
         // of the same bare show must only dispatch once.
-        if (! isset($this->enrichDispatched[$series->id]) && ($wasNew || $this->seriesIsBare($series))) {
-            $this->enrichDispatched[$series->id] = true;
+        if (! isset($this->enrichDispatched[$tvShow->id]) && ($wasNew || $this->tvShowIsBare($tvShow))) {
+            $this->enrichDispatched[$tvShow->id] = true;
             $posterUrl = $this->posterUrl($show, $summary);
 
-            EnrichFromTmdb::dispatch($series, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
+            EnrichFromTmdb::dispatch($tvShow, 'tv', $show['ids']['tmdb'] ?? null, $posterUrl);
         }
     }
 
     /**
-     * A series is bare when it's missing either its cover artwork or its
+     * A show is bare when it's missing either its cover artwork or its
      * TMDB enrichment metadata, e.g. because `EnrichFromTmdb` never ran or
-     * exhausted its retries after the series was first created.
+     * exhausted its retries after the show was first created.
      */
-    private function seriesIsBare(Series $series): bool
+    private function tvShowIsBare(TvShow $tvShow): bool
     {
-        return ! $series->hasMedia('cover') || $series->meta->tmdb->isEmpty();
+        return ! $tvShow->hasMedia('cover') || $tvShow->meta->tmdb->isEmpty();
     }
 
     /**
-     * Resolve the episode's series by Trakt id, minting a persisted slug on first
+     * Resolve the episode's show by Trakt id, minting a persisted slug on first
      * creation and refreshing the aired-episode counts every run.
      *
      * @param  array<string, mixed>  $show
      * @param  array<string, mixed>|null  $summary  The `/shows/{id}` response, if one was needed.
-     * @return array{0: Series, 1: bool} The series and whether it was newly created.
+     * @return array{0: TvShow, 1: bool} The show and whether it was newly created.
      */
-    private function resolveSeries(array $show, ?array $summary): array
+    private function resolveTvShow(array $show, ?array $summary): array
     {
-        $series = Series::firstOrNew(['trakt_id' => $show['ids']['trakt']]);
-        $wasNew = ! $series->exists;
+        $tvShow = TvShow::firstOrNew(['trakt_id' => $show['ids']['trakt']]);
+        $wasNew = ! $tvShow->exists;
 
         if ($wasNew) {
-            $series->fill([
-                'slug' => Series::slugFor(
+            $tvShow->fill([
+                'slug' => TvShow::slugFor(
                     $show['title'],
                     $show['year'] ?? null,
-                    fn (string $slug): bool => Series::where('slug', $slug)->exists(),
+                    fn (string $slug): bool => TvShow::where('slug', $slug)->exists(),
                 ),
                 'title' => $show['title'],
                 'year' => $show['year'] ?? null,
@@ -506,15 +506,15 @@ class TraktSync extends Command
         $seasons = $show['seasons'] ?? $summary['seasons'] ?? null;
         $seasons = is_countable($seasons) ? count($seasons) : $seasons;
 
-        $series->meta = $series->meta->merge(array_filter([
+        $tvShow->meta = $tvShow->meta->merge(array_filter([
             'ids' => $show['ids'] ?? [],
-            'aired_episodes' => $airedEpisodes ?? $series->meta->airedEpisodes,
-            'seasons' => $seasons ?? $series->meta->seasons,
+            'aired_episodes' => $airedEpisodes ?? $tvShow->meta->airedEpisodes,
+            'seasons' => $seasons ?? $tvShow->meta->seasons,
         ], fn ($value): bool => $value !== null));
 
-        $series->save();
+        $tvShow->save();
 
-        return [$series, $wasNew];
+        return [$tvShow, $wasNew];
     }
 
     /**

@@ -12,8 +12,6 @@ use App\Models\Place;
 use App\Models\Project;
 use App\Models\ThisWeekWith;
 use App\Models\User;
-use App\Providers\AppServiceProvider;
-use Illuminate\Support\Facades\Route;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -402,22 +400,6 @@ it('gates the tag bridge on visibility for guests', function () {
     actingAs(User::factory()->create());
     get('/activities/run')->assertInertia(fn ($page) => $page->where('tagLink.slug', 'run'));
     get('/tags/run')->assertOk();
-});
-
-it('skips registering an archive route for a definition without one', function () {
-    // No dataset opts out yet, so this calls the macro's per-item method directly.
-    // Checked against the raw route list: Route::has()'s name lookup only rebuilds when route files load.
-    $registeredArchiveFlagTest = fn (): bool => collect(Route::getRoutes())
-        ->contains(fn ($route) => $route->uri() === 'archive-flag-test');
-
-    $definition = ['slug' => 'archive-flag-test', 'stats' => false, 'taxonomy' => null, 'archive' => false];
-    AppServiceProvider::registerArchiveRoute('archive-flag-test', $definition);
-
-    expect($registeredArchiveFlagTest())->toBeFalse();
-
-    AppServiceProvider::registerArchiveRoute('archive-flag-test', [...$definition, 'archive' => true]);
-
-    expect($registeredArchiveFlagTest())->toBeTrue();
 });
 
 function archiveTitlesContains($groups, string $title): bool

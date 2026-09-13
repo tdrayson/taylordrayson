@@ -43,7 +43,6 @@ return [
         'articles',
         'attachments',
         'books',
-        'episodes',
         'events',
         'films',
         'flights',
@@ -54,7 +53,6 @@ return [
         'pages',
         'places',
         'projects',
-        'series',
         'sleep',
         'states',
         'taggables',
@@ -62,6 +60,8 @@ return [
         'this_week_with',
         'timeline_entries',
         'trips',
+        'tv_episodes',
+        'tv_shows',
     ],
 
 ];

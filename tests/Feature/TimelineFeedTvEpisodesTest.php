@@ -1,0 +1,88 @@
+<?php
+
+use App\Actions\BuildTimelineFeed;
+use App\Models\Film;
+use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
+use Illuminate\Support\Facades\Storage;
+
+it('gives every same-show same-day episode its own card linking to its own entry', function () {
+    $tvShow = TvShow::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
+    collect([1, 2, 3])->each(fn ($n) => TvEpisode::factory()->create([
+        'tv_show_id' => $tvShow->id,
+        'occurred_at' => "2024-03-01 2{$n}:00:00",
+        'meta' => ['season' => 1, 'episode' => $n, 'show_title' => 'Severance'],
+    ]));
+
+    $entries = TimelineEntry::query()->orderBy('occurred_at')->with('entry')->get();
+    $day = app(BuildTimelineFeed::class)->groupByDay($entries)[0];
+
+    $urls = collect($day['items'])->pluck('url');
+
+    expect($day['items'])->toHaveCount(3)
+        ->and($urls->unique())->toHaveCount(3)
+        ->and($urls->all())->toBe($entries->map->entry->map->url()->all());
+});
+
+it('preserves the caller order (ascending is not reversed)', function () {
+    // The year/month pages feed entries oldest-first via groupsForDates(ascending: true).
+    $tvShow = TvShow::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
+    Film::factory()->create(['title' => 'Morning Film', 'occurred_at' => '2024-05-01 08:00:00', 'meta' => ['year' => 2020]]);
+    TvEpisode::factory()->create(['tv_show_id' => $tvShow->id, 'occurred_at' => '2024-05-01 10:00:00', 'meta' => ['season' => 1, 'episode' => 1, 'show_title' => 'Severance']]);
+    TvEpisode::factory()->create(['tv_show_id' => $tvShow->id, 'occurred_at' => '2024-05-01 11:00:00', 'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance']]);
+    Film::factory()->create(['title' => 'Night Film', 'occurred_at' => '2024-05-01 20:00:00', 'meta' => ['year' => 2021]]);
+
+    $entries = TimelineEntry::query()->orderBy('occurred_at')->with('entry')->get();
+    $day = app(BuildTimelineFeed::class)->groupByDay($entries)[0];
+
+    expect($day['items'])->toHaveCount(4)
+        ->and($day['items'][0]['title'])->toBe('Morning Film')
+        ->and($day['items'][3]['title'])->toBe('Night Film');
+});
+
+it('renders a show backdrop once a day, on the first episode of the run', function () {
+    Storage::fake(config('media-library.disk_name'));
+
+    $tvShow = TvShow::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
+    $tvShow->addMediaFromString(file_get_contents(base_path('tests/Fixtures/pixel.webp')))
+        ->usingFileName('backdrop.webp')
+        ->toMediaCollection('backdrop');
+
+    collect([1, 2, 3, 4])->each(fn ($n) => TvEpisode::factory()->create([
+        'tv_show_id' => $tvShow->id,
+        'occurred_at' => "2024-03-01 1{$n}:00:00",
+        'meta' => ['season' => 1, 'episode' => $n, 'show_title' => 'Severance'],
+    ]));
+
+    $entries = TimelineEntry::query()->orderByInstant('desc')->with('entry')->get();
+    $items = app(BuildTimelineFeed::class)->groupByDay($entries)[0]['items'];
+
+    // Newest first, so the run is led by episode 4.
+    expect($items)->toHaveCount(4)
+        ->and($items[0]['backdrop'])->not->toBeNull()
+        ->and(collect($items)->pluck('backdrop')->filter())->toHaveCount(1);
+});
+
+it('keeps a backdrop for each show watched on the same day', function () {
+    Storage::fake(config('media-library.disk_name'));
+
+    $bytes = file_get_contents(base_path('tests/Fixtures/pixel.webp'));
+
+    collect(['severance' => 'Severance', 'shrinking' => 'Shrinking'])
+        ->each(function (string $title, string $slug) use ($bytes) {
+            $tvShow = TvShow::factory()->create(['slug' => $slug, 'title' => $title]);
+            $tvShow->addMediaFromString($bytes)->usingFileName("{$slug}.webp")->toMediaCollection('backdrop');
+
+            TvEpisode::factory()->create([
+                'tv_show_id' => $tvShow->id,
+                'occurred_at' => '2024-03-01 20:00:00',
+                'meta' => ['season' => 1, 'episode' => 1, 'show_title' => $title],
+            ]);
+        });
+
+    $entries = TimelineEntry::query()->orderByInstant('desc')->with('entry')->get();
+    $items = app(BuildTimelineFeed::class)->groupByDay($entries)[0]['items'];
+
+    expect(collect($items)->pluck('backdrop')->filter()->unique())->toHaveCount(2);
+});

@@ -20,11 +20,8 @@ it('previews the site\'s own pages from the metadata they publish', function () 
         ->and(previewFor('/'))->not->toBeNull();
 });
 
-it('lets a literal route beat the taxonomy value it looks like', function () {
-    // /tv is the series index, and 'tv' is also the episode dataset's own
-    // registry slug; /flights/map is the globe, not an airline. Same
-    // collision routes/web.php orders around.
-    expect(previewFor('/tv')['title'])->toBe('Every series I have watched')
+it('previews the tv shows page and the flights map as their own fixed pages', function () {
+    expect(previewFor('/tv-shows')['title'])->toBe('Every show I have watched')
         ->and(previewFor('/flights/map')['title'])->toBe('Every flight on one globe');
 });
 
@@ -41,7 +38,8 @@ it('gives nothing for a taxonomy value that does not exist', function () {
     expect(previewFor('/activities/not-a-real-type'))->toBeNull();
 });
 
-it('skips non-archive datasets so the episode dataset never previews /tv itself', function () {
-    expect(app(ArchiveResolver::class)->resolve('/tv'))->toBeNull()
-        ->and(previewFor('/tv')['title'])->toBe('Every series I have watched');
+it('resolves the tv episode archive and the tv shows page as separate, non-colliding routes', function () {
+    expect(app(ArchiveResolver::class)->resolve('/tv-episodes'))->not->toBeNull()
+        ->and(app(ArchiveResolver::class)->resolve('/tv-shows'))->toBeNull()
+        ->and(previewFor('/tv-shows')['title'])->toBe('Every show I have watched');
 });

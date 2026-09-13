@@ -63,11 +63,11 @@ class TimelineEntry extends Model implements Feedable
             Fuel::class => ['media'],
             Place::class => ['media'],
             Film::class => ['media'],
-            // `series` names the show on an episode card, and carries the
+            // `tvShow` names the show on an episode card, and carries the
             // backdrop an episode has none of its own. Without these every
             // episode in the feed resolves its show, and both their
             // attachments, one query at a time.
-            Episode::class => ['series', 'media', 'series.media'],
+            TvEpisode::class => ['tvShow', 'media', 'tvShow.media'],
             Book::class => ['media'],
         ];
     }

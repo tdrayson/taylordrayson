@@ -1,9 +1,9 @@
 <?php
 
 use App\Jobs\EnrichFromTmdb;
-use App\Models\Episode;
 use App\Models\Film;
-use App\Models\Series;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,7 +15,7 @@ beforeEach(function () {
  * Attaches a real single-file `cover` media item so a subject is genuinely
  * non-bare by the `hasMedia('cover')` half of the bare check.
  */
-function attachCover(Film|Series $subject): void
+function attachCover(Film|TvShow $subject): void
 {
     Storage::fake(config('media-library.disk_name'));
 
@@ -23,11 +23,11 @@ function attachCover(Film|Series $subject): void
     $subject->addMediaFromString($bytes)->usingFileName('cover.webp')->toMediaCollection('cover');
 }
 
-it('dispatches enrichment only for bare series/films by default, and for everything with --force', function () {
-    // (a) Bare series: has an episode (so it's picked up by whereHas), no
+it('dispatches enrichment only for bare tv shows/films by default, and for everything with --force', function () {
+    // (a) Bare tv show: has an episode (so it's picked up by whereHas), no
     // cover media, no meta.tmdb.
-    $bareSeries = Series::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1]]);
-    Episode::factory()->create(['series_id' => $bareSeries->id]);
+    $bareTvShow = TvShow::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1]]);
+    TvEpisode::factory()->create(['tv_show_id' => $bareTvShow->id]);
 
     // (b) Bare trakt film: no cover media, no meta.tmdb.
     $bareFilm = Film::factory()->create([
@@ -35,11 +35,11 @@ it('dispatches enrichment only for bare series/films by default, and for everyth
         'meta' => ['ids' => ['trakt' => 9, 'tmdb' => 438631]],
     ]);
 
-    // (c) Already-enriched series: has BOTH a cover and meta.tmdb, so it's
+    // (c) Already-enriched tv show: has BOTH a cover and meta.tmdb, so it's
     // non-bare (bare = missing cover OR missing tmdb).
-    $enrichedSeries = Series::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1, 'tmdb' => ['id' => 1]]]);
-    Episode::factory()->create(['series_id' => $enrichedSeries->id]);
-    attachCover($enrichedSeries);
+    $enrichedTvShow = TvShow::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1, 'tmdb' => ['id' => 1]]]);
+    TvEpisode::factory()->create(['tv_show_id' => $enrichedTvShow->id]);
+    attachCover($enrichedTvShow);
 
     $this->artisan('tmdb:enrich')->assertSuccessful();
 
@@ -51,8 +51,8 @@ it('dispatches enrichment only for bare series/films by default, and for everyth
     Bus::assertDispatched(EnrichFromTmdb::class, 3);
 });
 
-it('skips series with no episodes even when bare', function () {
-    Series::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1]]);
+it('skips tv shows with no episodes even when bare', function () {
+    TvShow::factory()->create(['meta' => ['aired_episodes' => 10, 'seasons' => 1]]);
 
     $this->artisan('tmdb:enrich')->assertSuccessful();
 

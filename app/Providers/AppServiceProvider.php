@@ -50,54 +50,38 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * `Route::archives()`, registering each type's archive page, its /stats
+     * `Route::archives()`, registering each type's archive index, its /stats
      * redirect and its taxonomy sub-route.
      *
      * A macro so routes/web.php stays a flat list of controllers rather than
      * reaching into the type registry to build routes. In register() rather
      * than boot(), because the route files are loaded during the framework's
      * own boot and the macro has to exist before web.php is evaluated.
+     *
+     * Order is load-bearing within each type: the /stats redirect is
+     * registered before the taxonomy route, so "stats" isn't matched as a
+     * taxonomy value.
      */
     private function registerArchiveRoutes(): void
     {
         Route::macro('archives', function (): void {
             foreach (TypeRegistry::all() as $type => $definition) {
-                AppServiceProvider::registerArchiveRoute($type, $definition);
+                Route::get($definition['slug'], [ArchiveController::class, 'index'])
+                    ->defaults('type', $type)->name("archive.{$definition['slug']}");
+
+                if ($definition['stats']) {
+                    Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
+                }
+
+                if ($taxonomy = $definition['taxonomy']) {
+                    // Its own name prefix: a taxonomy base usually matches the
+                    // type's own slug, so naming it archive.* too would collide
+                    // and route:cache refuses a table with duplicates.
+                    Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
+                        ->defaults('type', $type)->name("taxonomy.{$taxonomy['base']}");
+                }
             }
         });
-    }
-
-    /**
-     * Registers one type's archive index, stats redirect and taxonomy route,
-     * skipping a definition that opts out entirely.
-     *
-     * Order is load-bearing: the /stats redirect is registered before the
-     * taxonomy route, so "stats" isn't matched as a taxonomy value.
-     * Public because Route::macro() rebinds the closure's scope to the
-     * router, losing access to a private method.
-     *
-     * @param  array<string, mixed>  $definition
-     */
-    public static function registerArchiveRoute(string $type, array $definition): void
-    {
-        if (! $definition['archive']) {
-            return;
-        }
-
-        Route::get($definition['slug'], [ArchiveController::class, 'index'])
-            ->defaults('type', $type)->name("archive.{$definition['slug']}");
-
-        if ($definition['stats']) {
-            Route::redirect($definition['slug'].'/stats', '/stats/'.$definition['slug'], 301);
-        }
-
-        if ($taxonomy = $definition['taxonomy']) {
-            // Its own name prefix: a taxonomy base usually matches the
-            // type's own slug, so naming it archive.* too would collide
-            // and route:cache refuses a table with duplicates.
-            Route::get($taxonomy['base'].'/{value}', [ArchiveController::class, 'taxonomy'])
-                ->defaults('type', $type)->name("taxonomy.{$taxonomy['base']}");
-        }
     }
 
     /**

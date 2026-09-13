@@ -52,7 +52,7 @@ return [
         'sleep' => ["Every night's sleep", "How I've been sleeping", 'All my nights, logged'],
         'food' => ["Everything I've eaten", 'Every calorie, counted', 'A running tally of my snacking'],
         'film' => ["Every film I've watched", 'My cinema history, minus the cinema', 'What I put on instead of doing something useful'],
-        'episode' => ["Every episode I've watched", 'Where my evenings actually went', 'The full binge history'],
+        'tv-episode' => ["Every episode I've watched", 'Where my evenings actually went', 'The full binge history'],
         'book' => ["Everything I've read", 'My reading list, after the fact', "Books I've actually finished"],
         'event' => ["Events I've turned up to", "Everywhere I've shown my face", 'Times I left the house'],
         'appearance' => ['Talks and appearances', 'Times they let me on stage', "Where I've been let loose"],

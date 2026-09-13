@@ -5,7 +5,6 @@ use App\Fields\FieldRegistry;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Event;
 use App\Models\Film;
 use App\Models\Fuel;
@@ -13,6 +12,7 @@ use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 
 it('resolves fields for every authorable type', function (string $model) {
     expect(FieldRegistry::for(new $model))->not->toBeEmpty();
@@ -27,7 +27,7 @@ it('refuses a type nobody authors by hand', function () {
 it('authors books but not the Trakt-sourced media types', function () {
     $book = Book::factory()->make();
     $film = Film::factory()->make();
-    $episode = Episode::factory()->make();
+    $episode = TvEpisode::factory()->make();
 
     expect(FieldRegistry::has($book))->toBeTrue()
         ->and(FieldRegistry::has($film))->toBeFalse()

@@ -19,5 +19,5 @@ return [
     'media' => 'films',
     'media/films' => 'films',
     'media/books' => 'books',
-    'media/tv' => 'tv',
+    'media/tv' => 'tv-shows',
 ];

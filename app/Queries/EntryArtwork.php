@@ -3,8 +3,8 @@
 namespace App\Queries;
 
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Film;
+use App\Models\TvEpisode;
 
 /**
  * The hero artwork for a film, episode or book entry: backdrop, title logo and
@@ -22,9 +22,9 @@ final class EntryArtwork
      *
      * @return array{backdrop: ?string, logo: ?string, poster: ?string, logoIsTitle: bool}
      */
-    public function __invoke(Film|Episode|Book $media): array
+    public function __invoke(Film|TvEpisode|Book $media): array
     {
-        $fallback = $media instanceof Episode ? $media->series : null;
+        $fallback = $media instanceof TvEpisode ? $media->tvShow : null;
         $source = $media->optimisedUrl('backdrop') === null ? ($fallback ?? $media) : $media;
 
         return [

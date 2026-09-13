@@ -59,7 +59,7 @@ final class OgGalleryUrls
             'flight' => ['layout' => 'media', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
             'place' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('place'))],
             'film' => ['layout' => 'text', 'title' => 'I watched Dune', 'date' => 'Fri 3 Jan 2025', 'meta' => 'this 2021 sci-fi film'],
-            'episode' => ['layout' => 'text', 'title' => 'I watched season 1 episode 3 of Severance', 'date' => 'Sat 4 Jan 2025', 'meta' => null],
+            'tv-episode' => ['layout' => 'text', 'title' => 'I watched season 1 episode 3 of Severance', 'date' => 'Sat 4 Jan 2025', 'meta' => null],
             'book' => ['layout' => 'text', 'title' => 'I read Atomic Habits', 'date' => 'Sun 5 Jan 2025', 'meta' => 'James Clear'],
             'appearance' => ['layout' => 'text', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
             'this-week-with' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],

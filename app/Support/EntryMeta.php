@@ -4,10 +4,10 @@ namespace App\Support;
 
 use App\Models\Activity;
 use App\Models\Book;
-use App\Models\Episode;
 use App\Models\Event;
 use App\Models\Film;
 use App\Models\Flight;
+use App\Models\TvEpisode;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -50,8 +50,8 @@ final class EntryMeta
         // whole because the genres list is read from inside it.
         Film::class => ['year', 'runtime', 'genres', 'tmdb'],
 
-        // EpisodeDetail.vue.
-        Episode::class => ['season', 'episode', 'show_title', 'runtime', 'tmdb'],
+        // TvEpisodeDetail.vue.
+        TvEpisode::class => ['season', 'episode', 'show_title', 'runtime', 'tmdb'],
 
         // BookDetail.vue.
         Book::class => ['author', 'isbn'],

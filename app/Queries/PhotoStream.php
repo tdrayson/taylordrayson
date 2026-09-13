@@ -99,7 +99,7 @@ final class PhotoStream
      * How many photos the gallery holds, counted in the database rather than by
      * hydrating the stream.
      *
-     * Non-timeline owners (a Series poster, a Page cover) are excluded by the
+     * Non-timeline owners (a TvShow poster, a Page cover) are excluded by the
      * same rule contributesPhotos() applies, expressed here as model types.
      */
     public function count(): int
@@ -152,7 +152,7 @@ final class PhotoStream
      * types still routed through a card presenter read their own attachments;
      * left lazy that is two queries per entry.
      *
-     * Types the gallery then filters out (a Series poster, a Page cover) reach
+     * Types the gallery then filters out (a TvShow poster, a Page cover) reach
      * here too, and only Timelineable models have a timeline entry to load.
      *
      * @param  EloquentCollection<int, Attachment>  $attachments

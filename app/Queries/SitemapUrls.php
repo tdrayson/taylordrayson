@@ -3,10 +3,10 @@
 namespace App\Queries;
 
 use App\Models\Page;
-use App\Models\Series;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Models\Trip;
+use App\Models\TvShow;
 use App\Stories\StoryRegistry;
 use App\Support\SqlDate;
 use App\Timeline\TypeRegistry;
@@ -142,7 +142,7 @@ final class SitemapUrls
         // The home page and the two live views change whenever anything is
         // logged; the rest are structural and carry no lastmod of their own.
         $moving = ['/', '/now', '/on-this-day', '/photos'];
-        $static = ['/more', '/feeds', '/tags', '/trips', '/tv', '/flights/map', '/leaderboard'];
+        $static = ['/more', '/feeds', '/tags', '/trips', '/tv-shows', '/flights/map', '/leaderboard'];
 
         return [
             ...array_map(fn (string $loc): array => ['loc' => $loc, 'lastmod' => $lastmod], $moving),
@@ -160,12 +160,6 @@ final class SitemapUrls
         $urls = [];
 
         foreach (TypeRegistry::all() as $definition) {
-            // A dataset with no archive of its own (episode, served by the
-            // series index at /tv) has no index page here to list.
-            if (! $definition['archive']) {
-                continue;
-            }
-
             $urls[] = ['loc' => '/'.$definition['slug'], 'lastmod' => null];
 
             if ($definition['stats']) {
@@ -211,8 +205,8 @@ final class SitemapUrls
         $trips = Trip::query()->orderBy('slug')->get(['slug'])
             ->map(fn (Trip $trip): array => ['loc' => $trip->url(), 'lastmod' => null]);
 
-        $series = Series::query()->orderBy('slug')->get(['slug'])
-            ->map(fn (Series $show): array => ['loc' => $show->url(), 'lastmod' => null]);
+        $tvShows = TvShow::query()->orderBy('slug')->get(['slug'])
+            ->map(fn (TvShow $show): array => ['loc' => $show->url(), 'lastmod' => null]);
 
         $pages = Page::query()->where('published', true)->orderBy('slug')
             ->get(['slug', 'updated_at'])
@@ -221,6 +215,6 @@ final class SitemapUrls
                 'lastmod' => $page->updated_at?->toAtomString(),
             ]);
 
-        return [...$tags, ...$trips, ...$series, ...$pages];
+        return [...$tags, ...$trips, ...$tvShows, ...$pages];
     }
 }

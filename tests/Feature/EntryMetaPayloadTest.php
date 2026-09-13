@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Episode;
 use App\Models\Event;
 use App\Models\Flight;
+use App\Models\TvEpisode;
 use App\Support\EntryMeta;
 use Illuminate\Database\Eloquent\Model;
 
@@ -88,9 +88,9 @@ it('does not serialise the booking reference into the entry page', function () {
 });
 
 it('reads an episode entry whose meta is cast to a DTO', function () {
-    // Episode is one of the types that casts `meta` to an object, which
+    // TvEpisode is one of the types that casts `meta` to an object, which
     // Arr::only cannot read: every episode entry page returned a 500.
-    $episode = Episode::factory()->create(['meta' => [
+    $episode = TvEpisode::factory()->create(['meta' => [
         'show_title' => 'Jet Lag: The Game',
         'season' => 19,
         'episode' => 1,

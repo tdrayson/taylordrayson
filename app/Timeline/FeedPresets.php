@@ -23,7 +23,7 @@ class FeedPresets
             'curated' => [
                 'label' => 'Curated',
                 'description' => 'My highlights. The good stuff, minus the 3am sleep logs.',
-                'types' => ['note', 'article', 'project', 'film', 'episode', 'book', 'this-week-with', 'appearance'],
+                'types' => ['note', 'article', 'project', 'film', 'tv-episode', 'book', 'this-week-with', 'appearance'],
             ],
             'everything' => [
                 'label' => 'Everything',

@@ -6,9 +6,9 @@ use App\Data\CardData;
 use App\Data\SegmentData;
 use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
-use App\Models\Episode;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Queries\DayFoodTotals;
 use App\Support\OgPhrases;
@@ -128,7 +128,7 @@ final class BuildEntryOgData
                 ? OgPhrases::pick('this-week-with', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
                 : null,
             TimelineType::Film => "I watched {$model->title}",
-            TimelineType::Episode => 'I watched '.$this->episodeSubject($model),
+            TimelineType::TvEpisode => 'I watched '.$this->episodeSubject($model),
             TimelineType::Book => "I read {$model->title}",
             default => null,
         };
@@ -137,7 +137,7 @@ final class BuildEntryOgData
     }
 
     /** "season 4 episode 4 of Ted Lasso", falling back to whatever is known. */
-    private function episodeSubject(Episode $model): string
+    private function episodeSubject(TvEpisode $model): string
     {
         $show = ShowTitle::for($model);
         $where = $model->meta->season !== null && $model->meta->episode !== null

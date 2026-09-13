@@ -38,7 +38,7 @@ class SiteResolver implements LinkResolver
         '/trips' => ['trips', 'article'],
         '/leaderboard' => ['leaderboard', 'article'],
         '/design-system' => ['designSystem', 'article'],
-        '/tv' => ['series', 'episode'],
+        '/tv-shows' => ['tvShows', 'tv-episode'],
         '/flights/map' => ['flightMap', 'flight'],
     ];
 
