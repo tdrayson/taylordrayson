@@ -80,7 +80,7 @@ final class PlaceDataset extends BaseDataset
     {
         return [
             'venue' => ['label' => 'Venue', 'dataType' => 'text', 'column' => 'venue_name', 'category' => 'Place'],
-            'category' => ['label' => 'Category', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Place'],
+            'kind' => ['label' => 'Category', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Place'],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Place'],
             'city' => ['label' => 'City', 'dataType' => 'text', 'column' => 'city', 'category' => 'Location'],
             'county' => ['label' => 'County', 'dataType' => 'text', 'column' => 'county', 'category' => 'Location'],
