@@ -4,6 +4,7 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Rules\NotReservedSlug;
 use App\Rules\TextOrDocument;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -76,7 +77,10 @@ final class FieldRules
             // Blocks from the editor, or a plain string from anything that only
             // has one; the model normalises a string into a single block.
             FieldType::Prose => ['nullable', new TextOrDocument($field->max)],
-            FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
+            FieldType::Slug => [
+                'nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
+                ...($field->checksReservedSlug ? [new NotReservedSlug] : []),
+            ],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],

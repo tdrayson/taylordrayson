@@ -3,9 +3,12 @@
 use App\Models\Activity;
 use App\Models\Note;
 use App\Models\Sleep;
+use App\Models\User;
 use App\Support\PortableText;
 
 use function Pest\Laravel\get;
+
+beforeEach(fn () => $this->actingAs(User::factory()->create()));
 
 it('reserves the bare sleep slug so a same-day activity never holds it', function () {
     $activity = Activity::factory()->create(['name' => 'Sleep', 'type' => 'workout', 'occurred_at' => '2026-03-15 07:00:00']);
@@ -27,4 +30,24 @@ it('leaves an ordinary note with no clash on its bare slug', function () {
     expect($note->fresh()->url())->toBe('/2026/03/15/just-a-normal-note-today');
 
     get($note->fresh()->url())->assertSuccessful();
+});
+
+it('rejects a typed slug that collides with a reserved word', function () {
+    $this->post('/entries/note', ['content' => 'A note.', 'slug' => 'food'])
+        ->assertSessionHasErrors('slug');
+
+    $this->post('/entries/article', ['title' => 'An article', 'slug' => 'food'])
+        ->assertSessionHasErrors('slug');
+
+    $this->post('/entries/project', ['title' => 'A project', 'status' => 'active', 'slug' => 'food'])
+        ->assertSessionHasErrors('slug');
+
+    expect(Note::count())->toBe(0);
+});
+
+it('rejects a note whose content would generate a reserved slug', function () {
+    $this->post('/entries/note', ['content' => 'Sleep'])
+        ->assertSessionHasErrors('slug');
+
+    expect(Note::count())->toBe(0);
 });

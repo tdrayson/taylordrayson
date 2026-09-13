@@ -13,13 +13,31 @@ use App\Models\TimelineEntry;
 class TimelineUrlSlug
 {
     /**
-     * Slug => the only dataset key allowed to hold it bare: these words are
-     * also fixed day-URLs (/food, /sleep), so no other entry may borrow them.
+     * Slug => the dataset allowed to hold it bare, plus what to call it in a
+     * rejection message. These words are also fixed day-URLs (/food, /sleep),
+     * so no other entry may borrow them.
      */
     private const RESERVED = [
-        'food' => 'food',
-        'sleep' => 'sleep',
+        'food' => ['dataset' => 'food', 'label' => 'food days'],
+        'sleep' => ['dataset' => 'sleep', 'label' => 'sleep entries'],
     ];
+
+    /**
+     * Whether a slug is one of the words reserved for a dataset's day URL,
+     * regardless of who is asking for it.
+     */
+    public static function isReserved(string $slug): bool
+    {
+        return isset(self::RESERVED[$slug]);
+    }
+
+    /**
+     * Why a reserved slug was refused, naming the dataset it belongs to.
+     */
+    public static function reservationMessage(string $slug): string
+    {
+        return sprintf('"%s" is reserved for %s. Choose a different slug.', $slug, self::RESERVED[$slug]['label']);
+    }
 
     public static function ensure(TimelineEntry $entry, string $base): void
     {
@@ -59,7 +77,7 @@ class TimelineUrlSlug
 
     private static function reservedForOther(string $base, ?string $dataset): bool
     {
-        return isset(self::RESERVED[$base]) && self::RESERVED[$base] !== $dataset;
+        return isset(self::RESERVED[$base]) && self::RESERVED[$base]['dataset'] !== $dataset;
     }
 
     private static function takenByAnother(TimelineEntry $entry, string $slug): bool

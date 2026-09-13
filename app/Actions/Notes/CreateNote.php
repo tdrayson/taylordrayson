@@ -5,6 +5,8 @@ namespace App\Actions\Notes;
 use App\Models\Note;
 use App\Support\EntryInstant;
 use App\Support\PortableText;
+use App\Support\TimelineUrlSlug;
+use Illuminate\Validation\ValidationException;
 
 class CreateNote
 {
@@ -20,12 +22,21 @@ class CreateNote
      */
     public function __invoke(array $attributes): Note
     {
+        $content = is_string($attributes['content'])
+            ? PortableText::fromPlainText($attributes['content'])
+            : $attributes['content'];
+
+        $slug = $attributes['slug'] ?? null;
+        $candidate = $slug !== null && $slug !== '' ? $slug : Note::slugFrom($content);
+
+        if (TimelineUrlSlug::isReserved($candidate)) {
+            throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($candidate)]]);
+        }
+
         $note = Note::create([
-            'content' => is_string($attributes['content'])
-                ? PortableText::fromPlainText($attributes['content'])
-                : $attributes['content'],
+            'content' => $content,
             'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
-            'slug' => $attributes['slug'] ?? null,
+            'slug' => $slug,
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
         ]);
 

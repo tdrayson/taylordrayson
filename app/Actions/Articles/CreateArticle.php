@@ -4,7 +4,9 @@ namespace App\Actions\Articles;
 
 use App\Models\Article;
 use App\Support\EntryInstant;
+use App\Support\TimelineUrlSlug;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CreateArticle
 {
@@ -18,10 +20,15 @@ class CreateArticle
     public function __invoke(array $attributes): Article
     {
         $slug = $attributes['slug'] ?? null;
+        $slug = $slug !== null && $slug !== '' ? $slug : Str::slug($attributes['title']);
+
+        if (TimelineUrlSlug::isReserved($slug)) {
+            throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($slug)]]);
+        }
 
         $article = Article::create([
             'title' => $attributes['title'],
-            'slug' => $slug !== null && $slug !== '' ? $slug : Str::slug($attributes['title']),
+            'slug' => $slug,
             'excerpt' => $attributes['excerpt'] ?? null,
             'content' => $attributes['content'] ?? [],
             'published' => $attributes['published'] ?? false,

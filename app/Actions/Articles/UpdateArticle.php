@@ -3,6 +3,8 @@
 namespace App\Actions\Articles;
 
 use App\Models\Article;
+use App\Support\TimelineUrlSlug;
+use Illuminate\Validation\ValidationException;
 
 class UpdateArticle
 {
@@ -14,6 +16,10 @@ class UpdateArticle
         if (array_key_exists('tags', $attributes)) {
             $article->syncTagNames($attributes['tags']);
             unset($attributes['tags']);
+        }
+
+        if (! empty($attributes['slug']) && TimelineUrlSlug::isReserved($attributes['slug'])) {
+            throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($attributes['slug'])]]);
         }
 
         $article->fill($attributes)->save();

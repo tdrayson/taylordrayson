@@ -25,7 +25,7 @@ final class ArticleFields
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('slug', 'Slug', FieldType::Slug),
+            FieldData::optional('slug', 'Slug', FieldType::Slug, checksReservedSlug: true),
         ];
     }
 }

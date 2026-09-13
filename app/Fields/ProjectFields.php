@@ -33,7 +33,7 @@ final class ProjectFields
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('slug', 'Slug', FieldType::Slug),
+            FieldData::optional('slug', 'Slug', FieldType::Slug, checksReservedSlug: true),
         ];
     }
 }

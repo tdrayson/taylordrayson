@@ -4,7 +4,9 @@ namespace App\Actions\Projects;
 
 use App\Models\Project;
 use App\Support\EntryInstant;
+use App\Support\TimelineUrlSlug;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CreateProject
 {
@@ -18,10 +20,15 @@ class CreateProject
     public function __invoke(array $attributes): Project
     {
         $slug = $attributes['slug'] ?? null;
+        $slug = $slug !== null && $slug !== '' ? $slug : Str::slug($attributes['title']);
+
+        if (TimelineUrlSlug::isReserved($slug)) {
+            throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($slug)]]);
+        }
 
         $project = Project::create([
             'title' => $attributes['title'],
-            'slug' => $slug !== null && $slug !== '' ? $slug : Str::slug($attributes['title']),
+            'slug' => $slug,
             'description' => $attributes['description'] ?? null,
             'long_description' => $attributes['long_description'] ?? null,
             'url' => $attributes['url'] ?? null,
