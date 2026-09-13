@@ -115,12 +115,14 @@ it('links a reply to a citation stored after it, on its next save', function () 
     expect($note->fresh()->citation_id)->toBe($citation->id);
 });
 
-it('queues a fetch on any later save of a reply still without a citation', function () {
+it('refetches a reply still without a citation only when its URL changes', function () {
     Queue::fake();
     $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => 'https://example.com/unreadable']);
 
     $note->fresh()->update(['slug' => 'an-unrelated-change']);
+    Queue::assertPushed(FetchCitationFor::class, 1);
 
+    $note->fresh()->update(['response_url' => 'https://example.com/readable']);
     Queue::assertPushed(FetchCitationFor::class, 2);
 });
 

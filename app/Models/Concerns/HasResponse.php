@@ -62,11 +62,9 @@ trait HasResponse
             }
         });
 
-        // The instance that was just created already queued its fetch, so saving it again does not.
+        // Only a new URL fetches: bulk resaves (timezone backfills) would otherwise retry every dead link.
         static::updated(function (self $model): void {
-            $queuedOnCreate = $model->wasRecentlyCreated && ! $model->wasChanged('response_url');
-
-            if (! $queuedOnCreate && self::needsCitationFetch($model)) {
+            if ($model->wasChanged('response_url') && self::needsCitationFetch($model)) {
                 FetchCitationFor::dispatch($model);
             }
         });
