@@ -22,6 +22,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      * @param  bool  $hidden  Saved and filled by a lookup, but never offered in the UI.
      * @param  string|null  $fallback  What a Slug field resolves to when left empty.
      * @param  int|null  $max  Character limit on the field's readable text, drawn as a counter.
+     * @param  array<string, list<string>>|null  $showWhen  Field name to the values that reveal this one; an empty list means any value at all. A field it hides is also cleared, so a value cannot survive out of sight of the person who set it.
      * @param  bool  $checksReservedSlug  Whether a Slug field is rejected when it matches a dataset's reserved day-URL word.
      */
     private function __construct(
@@ -41,6 +42,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public bool $hidden,
         public ?string $fallback,
         public ?int $max,
+        public ?array $showWhen,
         public bool $checksReservedSlug,
     ) {}
 
@@ -50,9 +52,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, bool $checksReservedSlug = false): self
+    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, ?array $showWhen = null, bool $checksReservedSlug = false): self
     {
-        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $checksReservedSlug);
+        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $showWhen, $checksReservedSlug);
     }
 
     /**
@@ -60,9 +62,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, bool $checksReservedSlug = false): self
+    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, ?array $showWhen = null, bool $checksReservedSlug = false): self
     {
-        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $checksReservedSlug);
+        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $showWhen, $checksReservedSlug);
     }
 
     /**
@@ -71,7 +73,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function hidden(string $name, string $label, FieldType $type): self
     {
-        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null, null, false);
+        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null, null, null, false);
     }
 
     /**
@@ -127,6 +129,10 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->hidden) {
             $data['hidden'] = true;
+        }
+
+        if ($this->showWhen !== null) {
+            $data['showWhen'] = $this->showWhen;
         }
 
         return $data;
