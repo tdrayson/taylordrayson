@@ -82,7 +82,7 @@ Route::get('/og/entry/{entry}.png', [OgImageController::class, 'entry'])
 // TEMP: per-type OG card preview gallery.
 Route::get('/og-gallery', [OgImageController::class, 'gallery']);
 Route::get('/og/preview/{type}.png', [OgImageController::class, 'preview'])
-    ->where('type', '[a-z]+')->middleware('throttle:120,1');
+    ->where('type', '[a-z-]+')->middleware('throttle:120,1');
 
 // Search
 Route::get('/search', [SearchController::class, 'index'])->name('search');
