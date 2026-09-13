@@ -34,6 +34,8 @@ use Spatie\MediaLibrary\HasMedia;
     'timezone',
     'citation_id',
     'response_quote',
+    'status',
+    'password',
 ])]
 class Note extends Model implements HasMedia, Timelineable
 {
