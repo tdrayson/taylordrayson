@@ -183,7 +183,7 @@ it('links a check-in category to its archive', function () {
     get('/'.entryUrl($place))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('entry.category', 'Movie Theater')
+            ->where('entry.type', 'Movie Theater')
             ->where('entry.categoryHref', '/places/movie-theater')
             ->missing('entry.is_mayor')
         );

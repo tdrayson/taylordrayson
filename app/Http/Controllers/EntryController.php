@@ -234,17 +234,10 @@ class EntryController extends Controller
             $data['showUrl'] = $data['showTitle'] === null ? null : $model->series?->url();
         }
 
-        // The frontend calls this attribute "category" regardless of what the
-        // column is named, and the venue's category is already a taxonomy with
-        // its own archive, so the detail page links to it rather than printing
-        // it as dead text.
-        if ($model instanceof Place) {
-            $data['category'] = $data['type'] ?? null;
-            unset($data['type']);
-
-            if ($model->type !== null) {
-                $data['categoryHref'] = '/'.TypeRegistry::find('place')['taxonomy']['base'].'/'.Str::slug($model->type);
-            }
+        // A venue's category is already a taxonomy with its own archive, so the
+        // detail page links to it rather than printing it as dead text.
+        if ($model instanceof Place && $model->type !== null) {
+            $data['categoryHref'] = '/'.TypeRegistry::find('place')['taxonomy']['base'].'/'.Str::slug($model->type);
         }
 
         if ($model instanceof Event) {
