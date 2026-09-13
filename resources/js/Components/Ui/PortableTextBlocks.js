@@ -69,6 +69,34 @@ function isBareUrl(text, href) {
     return typeof text === 'string' && strip(text.trim()) === strip(href);
 }
 
+// True when a URL points somewhere below its site's root (a path, query or hash).
+function hasPath(href) {
+    try {
+        const url = new URL(href);
+
+        return url.pathname !== '/' || url.search !== '' || url.hash !== '';
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * The label a pasted URL collapses to: its host, trailed by an ellipsis when the
+ * link goes deeper than the root, so a deep link doesn't pass for a homepage.
+ *
+ * @param {string} host The display host.
+ * @param {string} href The link's address.
+ * @returns {string|object} The host, or a vnode when it carries the ellipsis.
+ */
+function collapsedUrl(host, href) {
+    if (!hasPath(href)) {
+        return host;
+    }
+
+    // Hidden from screen readers, which would announce "slash ellipsis".
+    return h('span', [host, h('span', { 'aria-hidden': 'true' }, '/…')]);
+}
+
 /**
  * This site's own host. The browser reads it off the address bar; the server
  * has no address bar, so the component below stands the app URL in its place.
@@ -117,7 +145,7 @@ function iconWithLabel(mark, label) {
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
  * into nonsense. A pasted URL is the one exception, collapsing to the domain
- * rather than sitting in the sentence as a raw address.
+ * (plus "/…" for a deep link) rather than sitting in the sentence as a raw address.
  */
 function renderExternalLink(def, label, text, favicons) {
     const host = hostOf(def.href);
@@ -146,7 +174,7 @@ function renderExternalLink(def, label, text, favicons) {
         target: away ? '_blank' : null,
         'data-external': '',
     }, [
-        ...iconWithLabel(mark, isBareUrl(text, def.href) && host ? host : label),
+        ...iconWithLabel(mark, isBareUrl(text, def.href) && host ? collapsedUrl(host, def.href) : label),
         away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
     ]);
 }
