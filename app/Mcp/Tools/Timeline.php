@@ -31,13 +31,13 @@ class Timeline extends Tool
             ->whereBetween('occurred_at', [$input['from'].' 00:00:00', $to.' 23:59:59']);
 
         if (isset($input['type'])) {
-            $datasets = Datasets::resolve($input['type']);
+            $dataset = Datasets::for($input['type']);
 
-            if ($datasets === []) {
+            if ($dataset === null) {
                 return Response::error("No type called {$input['type']}. Call data_freshness to list them.");
             }
 
-            $query->whereIn('dataset', array_map(fn ($dataset): string => (new ($dataset->model()))->getMorphClass(), $datasets));
+            $query->where('dataset', (new ($dataset->model()))->getMorphClass());
         }
 
         $entries = $query

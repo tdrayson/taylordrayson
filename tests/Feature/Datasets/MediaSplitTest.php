@@ -23,9 +23,8 @@ it('gives films, episodes and books their own dataset key on the timeline', func
         ->and(CardPresenter::for($book)->type->value)->toBe('book');
 });
 
-it('still accepts media as all three on feeds', function () {
-    expect(array_map(fn ($dataset) => $dataset->type()->value, Datasets::resolve('media')))->toBe(['film', 'episode', 'book'])
-        ->and(Datasets::resolveOne('media'))->toBeNull();
+it('treats media as an unknown type on feeds', function () {
+    expect(Datasets::for('media'))->toBeNull();
 
     $this->get('/feed?types=media')->assertOk();
 });

@@ -166,8 +166,8 @@ class TimelineEntry extends Model implements Feedable
     /**
      * Resolve the requested entry models from the feed query string:
      * `?filter=` selects a named preset, `?types=` a comma-separated list of
-     * dataset keys or aliases. Unknown presets/types are ignored, and an empty
-     * or absent selection returns null so the feed falls back to every type.
+     * dataset keys. Unknown presets/types are ignored, and an empty or absent
+     * selection returns null so the feed falls back to every type.
      *
      * @return array<int, class-string>|null
      */
@@ -187,7 +187,8 @@ class TimelineEntry extends Model implements Feedable
         }
 
         $models = collect($keys)
-            ->flatMap(fn (string $key): array => Datasets::resolve(trim($key)))
+            ->map(fn (string $key): ?Dataset => Datasets::for(trim($key)))
+            ->filter()
             ->map(fn (Dataset $dataset): string => $dataset->model())
             ->unique()
             ->values()

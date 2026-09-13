@@ -136,10 +136,11 @@ describe('search', function () {
             ->and(collect($sleep['fields'])->firstWhere('key', 'duration')['operators'])->toContain('gt');
     });
 
-    it('accepts a dataset alias', function () {
-        $result = callTool(SearchFields::class, ['type' => 'podcast'])['data'];
+    it('treats a retired dataset key as unknown', function () {
+        $result = callTool(SearchFields::class, ['type' => 'podcast']);
 
-        expect($result['type'])->toBe('this-week-with');
+        expect($result['error'])->toBeTrue()
+            ->and($result['text'])->toContain('No searchable type called podcast');
     });
 
     it('still errors on an unknown type', function () {
@@ -181,6 +182,13 @@ it('totals a period for one type', function () {
 
     expect($result['error'])->toBeFalse()
         ->and($result['data'])->toBeArray();
+});
+
+it('errors on a retired dataset key for stats', function () {
+    $result = callTool(Stats::class, ['from' => '2026-08-01', 'to' => '2026-08-31', 'type' => 'podcast']);
+
+    expect($result['error'])->toBeTrue()
+        ->and($result['text'])->toContain('No type called podcast');
 });
 
 // A tool whose schema will not build is invisible to a client rather than

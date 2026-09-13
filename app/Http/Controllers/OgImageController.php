@@ -103,7 +103,7 @@ class OgImageController extends Controller
      */
     public function preview(string $type): BinaryFileResponse
     {
-        $type = Datasets::resolveOne($type)?->type()->value;
+        $type = Datasets::for($type)?->type()->value;
         $cards = $this->galleryUrls->sampleCards();
 
         abort_unless($type !== null && isset($cards[$type]), 404);

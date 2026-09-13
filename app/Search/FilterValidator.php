@@ -52,7 +52,7 @@ final class FilterValidator
         $type = is_array($group) ? ($group['type'] ?? null) : null;
 
         if (is_string($type) && $type !== 'any') {
-            $type = Datasets::resolveOne($type)?->type()->value;
+            $type = Datasets::for($type)?->type()->value;
         }
 
         if (! isset($schema[$type]) || ! isset($group['conditions']) || ! is_array($group['conditions'])) {

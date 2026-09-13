@@ -47,17 +47,18 @@ it('404s the per-entry card for an unknown entry', function () {
     $this->get('/og/entry/999999.png')->assertNotFound();
 });
 
-it('serves the preview card for a hyphenated dataset key and its alias', function (string $type) {
+it('serves the preview card for a hyphenated dataset key', function () {
     Storage::fake('local');
     Storage::disk('local')->put('og/'.OgRenderer::generation().'/preview/'.md5('this-week-with').'.png', 'fake-png-bytes');
 
-    $this->get("/og/preview/{$type}.png")
+    $this->get('/og/preview/this-week-with.png')
         ->assertOk()
         ->assertHeader('content-type', 'image/png');
-})->with([
-    'canonical hyphenated key' => ['this-week-with'],
-    'alias' => ['podcast'],
-]);
+});
+
+it('404s the preview card for a retired dataset key', function () {
+    $this->get('/og/preview/podcast.png')->assertNotFound();
+});
 
 it('regenerates cards when the og version changes', function () {
     seedCard('Hello world');
