@@ -3,6 +3,7 @@
 namespace App\Actions\Mentions;
 
 use App\Models\Page;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\InteractionTarget;
 use Illuminate\Database\Eloquent\Model;
@@ -35,11 +36,11 @@ final class ResolveInternalTarget
             return null;
         }
 
-        return TimelineEntry::query()
-            ->with('timelineable')
+        return TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
+            ->with('entry')
             ->whereDate('occurred_at', "{$matches[1]}-{$matches[2]}-{$matches[3]}")
             ->where('url_slug', $matches[4])
-            ->first()?->timelineable;
+            ->first()?->entry;
     }
 
     /** A standalone page, /{slug}. */
