@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { csrf } from '../../lib/csrf.js';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import ReplyContext from '../Entry/ReplyContext.vue';
@@ -23,28 +23,39 @@ const failed = ref(false);
 // from the page's own first load of an existing reply.
 const loadedFor = ref(null);
 
+// Tags each load() call so a slower, older request cannot land after a newer
+// one and overwrite it with a stale answer.
+let latestRequestId = 0;
+
 /**
  * Asks the server what the context will look like, through the same builder the
  * entry page uses. `refresh` refetches even when a copy is already stored.
  *
  * Changing the URL to a different post makes a quote taken from the old one
  * stale, so it is cleared here before the new excerpt arrives rather than left
- * to be saved against the wrong post.
+ * to be saved against the wrong post. The url and kind are captured up front
+ * and used throughout, rather than re-read off props after the await, since
+ * either may have moved on again while this call was in flight.
  */
 async function load(refresh = false) {
-    if (! props.responseUrl || ! props.responseKind) {
+    const url = props.responseUrl;
+    const kind = props.responseKind;
+
+    if (! url || ! kind) {
         preview.value = null;
         loadedFor.value = null;
+        latestRequestId += 1;
 
         return;
     }
 
-    const changedUrl = loadedFor.value !== null && loadedFor.value !== props.responseUrl;
+    const changedUrl = loadedFor.value !== null && loadedFor.value !== url;
 
     if (changedUrl) {
         emit('update:modelValue', '');
     }
 
+    const requestId = ++latestRequestId;
     loading.value = true;
     failed.value = false;
 
@@ -53,25 +64,34 @@ async function load(refresh = false) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
             credentials: 'same-origin',
-            body: JSON.stringify({ url: props.responseUrl, kind: props.responseKind, refresh }),
+            body: JSON.stringify({ url, kind, refresh }),
         });
+
+        if (requestId !== latestRequestId) {
+            return;
+        }
 
         if (! response.ok) {
             throw new Error(response.status);
         }
 
         preview.value = (await response.json()).data;
-        loadedFor.value = props.responseUrl;
+        loadedFor.value = url;
 
         // Pre-fill the quote from the excerpt: the first time for this field, or
-        // whenever the url just changed and the old quote was cleared above.
-        if (preview.value?.cited?.quote && (changedUrl || ! props.modelValue)) {
+        // whenever the url just changed and the old quote was cleared above. A
+        // gesture has nothing to pre-fill, whatever the excerpt says.
+        if (kind === 'reply' && preview.value?.cited?.quote && (changedUrl || ! props.modelValue)) {
             emit('update:modelValue', preview.value.cited.quote);
         }
     } catch {
-        failed.value = true;
+        if (requestId === latestRequestId) {
+            failed.value = true;
+        }
     } finally {
-        loading.value = false;
+        if (requestId === latestRequestId) {
+            loading.value = false;
+        }
     }
 }
 
@@ -82,16 +102,46 @@ watch(() => [props.responseUrl, props.responseKind], () => {
     timer = setTimeout(() => load(), 400);
 }, { immediate: true });
 
+// Switching away from a reply drops the quote client-side too, so the value
+// held here (and about to be submitted) agrees with what a gesture publishes.
+watch(() => props.responseKind, (kind) => {
+    if (kind !== 'reply') {
+        emit('update:modelValue', '');
+    }
+});
+
 /** Puts the fetched excerpt back after it has been trimmed or replaced. */
 function reset() {
     emit('update:modelValue', preview.value?.cited?.quote ?? '');
 }
+
+/**
+ * The preview kept true to what will actually publish: BuildResponseContext
+ * quotes the trimmed response_quote when there is one, the fetched excerpt
+ * otherwise, so this mirrors that rule rather than always showing the
+ * excerpt untouched. `preview` itself is left alone, since "Reset to excerpt"
+ * and the pre-fill above both need the original.
+ */
+const displayPreview = computed(() => {
+    if (! preview.value) {
+        return null;
+    }
+
+    if (props.responseKind !== 'reply' || ! preview.value.cited || ! props.modelValue) {
+        return preview.value;
+    }
+
+    return {
+        ...preview.value,
+        cited: { ...preview.value.cited, quote: props.modelValue },
+    };
+});
 </script>
 
 <template>
     <div class="space-y-3">
         <div data-testid="citation-preview" :class="['transition-opacity', loading && 'opacity-50']">
-            <ReplyContext v-if="preview" :response="preview" />
+            <ReplyContext v-if="displayPreview" :response="displayPreview" />
             <p v-else-if="failed" class="text-caption text-neutral-500">Could not read that page. It will be tried again when you save.</p>
         </div>
 

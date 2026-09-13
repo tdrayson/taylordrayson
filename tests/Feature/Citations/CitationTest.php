@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ResponseKind;
 use App\Models\Article;
 use App\Models\Citation;
 use App\Models\Note;
@@ -17,10 +18,10 @@ it('lets two replies share one stored copy of a post', function () {
 });
 
 it('keeps a separate quote on each reply', function () {
-    $citation = Citation::factory()->create();
+    $citation = Citation::factory()->create(['url' => 'https://example.com/shared-post']);
 
-    $one = Note::factory()->create(['citation_id' => $citation->id, 'response_quote' => 'The first passage.']);
-    $two = Note::factory()->create(['citation_id' => $citation->id, 'response_quote' => 'A different passage.']);
+    $one = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => $citation->url, 'citation_id' => $citation->id, 'response_quote' => 'The first passage.']);
+    $two = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => $citation->url, 'citation_id' => $citation->id, 'response_quote' => 'A different passage.']);
 
     expect($one->fresh()->response_quote)->toBe('The first passage.')
         ->and($two->fresh()->response_quote)->toBe('A different passage.');

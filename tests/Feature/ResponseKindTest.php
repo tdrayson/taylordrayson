@@ -222,6 +222,18 @@ it('drops the citation and quote when the post is pointed somewhere else', funct
         ->and($note->fresh()->response_quote)->toBeNull();
 });
 
+// A gesture has no words of its own to quote, whichever kind it arrived as and
+// whatever wrote it: the editor, the API, or Micropub.
+it('drops a quote when the kind is not a reply', function () {
+    $note = Note::factory()->create([
+        'response_kind' => ResponseKind::Like,
+        'response_url' => 'https://example.com/liked',
+        'response_quote' => 'Should not be kept.',
+    ]);
+
+    expect($note->fresh()->response_quote)->toBeNull();
+});
+
 // A note of mine has no name, and its opening words are not one. The date is
 // what makes "my note" specific enough to be worth clicking.
 it('calls one of my own notes a note from the day it was written', function () {

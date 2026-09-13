@@ -34,6 +34,12 @@ trait HasResponse
                 $model->rsvp_value = null;
             }
 
+            // A gesture has no words of its own: only a reply carries a quote,
+            // whichever kind it arrived as and whatever wrote it.
+            if ($model->response_kind !== ResponseKind::Reply) {
+                $model->response_quote = null;
+            }
+
             // A citation and a quote belong to the post they were taken from, so
             // pointing the reply elsewhere drops both, unless a quote is being
             // written in the same breath.
