@@ -9,7 +9,7 @@ export const timelineTypes = {
     activity: { icon: 'WorkoutRunIcon', label: 'Activity', plural: 'Activities', href: '/activities', accent: 'activity', keywords: 'workout exercise sport', noun: 'activity', nounPlural: 'activities', kind: 'health' },
     sleep: { icon: 'Moon02Icon', label: 'Sleep', plural: 'Sleep', href: '/sleep', accent: 'sleep', keywords: 'rest bed nap', noun: 'night', nounPlural: 'nights', kind: 'health' },
     food: { icon: 'UtensilsIcon', label: 'Food', plural: 'Food', href: '/food', accent: 'food', keywords: 'food eat meal nutrition calorie calories', noun: 'day', nounPlural: 'days', kind: 'health' },
-    film: { icon: 'ClapperboardIcon', label: 'Film', plural: 'Films', href: '/films', accent: 'film', keywords: 'watch movie film media', noun: 'film', nounPlural: 'films', kind: 'watching' },
+    film: { icon: 'FlimSlateIcon', label: 'Film', plural: 'Films', href: '/films', accent: 'film', keywords: 'watch movie film media', noun: 'film', nounPlural: 'films', kind: 'watching' },
     'tv-episode': { icon: 'TvMinimalPlayIcon', label: 'TV episode', plural: 'TV episodes', href: '/tv-episodes', accent: 'tv-episode', keywords: 'watch tv show episode series media', noun: 'episode', nounPlural: 'episodes', kind: 'watching' },
     book: { icon: 'BookOpen01Icon', label: 'Book', plural: 'Books', href: '/books', accent: 'book', keywords: 'read book reading media', noun: 'book', nounPlural: 'books', kind: 'watching' },
     event: { icon: 'Ticket01Icon', label: 'Event', plural: 'Events', href: '/events', accent: 'event', keywords: 'ticket gig concert', noun: 'event', nounPlural: 'events', kind: 'going-out' },
