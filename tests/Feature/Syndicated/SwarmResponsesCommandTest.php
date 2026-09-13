@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\Source;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\SyndicatedResponse;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -24,7 +24,7 @@ function fakeSwarmPage(array $items): void
 }
 
 it('stores the likes reported for a check-in it already holds', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'source' => Source::Swarm->value, 'source_id' => 'abc', 'occurred_at' => now()->subDay(),
     ]);
 
@@ -36,7 +36,7 @@ it('stores the likes reported for a check-in it already holds', function () {
 
     $this->artisan('swarm:responses')->assertSuccessful();
 
-    expect($checkin->syndicatedResponses()->sole()->author_name)->toBe('Luke Allen');
+    expect($place->syndicatedResponses()->sole()->author_name)->toBe('Luke Allen');
 });
 
 it('ignores a check-in that is not stored here', function () {
@@ -63,10 +63,10 @@ it('fails gracefully when credentials are missing', function () {
 it('widens the window to the newest stored response when a gap is longer than --days', function () {
     Carbon::setTestNow('2026-01-15 00:00:00');
 
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'source' => Source::Swarm->value, 'source_id' => 'abc', 'occurred_at' => now()->subDays(15),
     ]);
-    SyndicatedResponse::factory()->for($checkin, 'target')->create([
+    SyndicatedResponse::factory()->for($place, 'target')->create([
         'source' => Source::Swarm->value, 'occurred_at' => now()->subDays(15),
     ]);
 
@@ -82,10 +82,10 @@ it('widens the window to the newest stored response when a gap is longer than --
 it('caps the self-heal at 90 days when the gap is much longer than that', function () {
     Carbon::setTestNow('2026-01-15 00:00:00');
 
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'source' => Source::Swarm->value, 'source_id' => 'abc', 'occurred_at' => now()->subDays(200),
     ]);
-    SyndicatedResponse::factory()->for($checkin, 'target')->create([
+    SyndicatedResponse::factory()->for($place, 'target')->create([
         'source' => Source::Swarm->value, 'occurred_at' => now()->subDays(200),
     ]);
 
