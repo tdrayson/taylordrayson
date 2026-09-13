@@ -64,6 +64,33 @@ it('never names the author after an unrelated h-card on the same page', function
     expect(app(FetchCitation::class)(POST)->authorName)->toBeNull();
 });
 
+// A response shown under the post can carry the author's own h-card, but with
+// the wrong (lazy-loaded placeholder) photo: it must not stand in for the page's own author card.
+it('fetches the author homepage instead of an h-card nested in a response under the post', function () {
+    Http::fake([
+        POST => Http::response(
+            '<article class="h-entry">'
+            .'<a class="u-author" href="https://example.com/">https://example.com/</a>'
+            .'<div class="p-comment h-cite">'
+            .'<span class="p-author h-card">'
+            .'<a class="u-url p-name" href="https://example.com/">Example Author</a>'
+            .'<img class="u-photo" src="https://example.com/placeholder.png" alt="">'
+            .'</span>'
+            .'</div>'
+            .'</article>'
+        ),
+        'https://example.com/' => Http::response(
+            '<div class="h-card"><a class="u-url p-name" href="https://example.com/">Example Author</a><img class="u-photo" src="https://example.com/real.jpg" alt=""></div>'
+        ),
+    ]);
+
+    $citation = app(FetchCitation::class)(POST);
+
+    expect($citation->authorPhotoUrl)->toBe('https://example.com/real.jpg');
+
+    Http::assertSentCount(2);
+});
+
 it('falls back to OpenGraph for a page with no microformats', function () {
     Http::fake([POST => Http::response(<<<'HTML'
         <html><head>

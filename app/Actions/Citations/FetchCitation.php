@@ -122,7 +122,9 @@ final class FetchCitation
     }
 
     /**
-     * Every h-card on the page, including nested ones.
+     * Every h-card belonging to the page itself: top-level items, their children,
+     * and an author property. Never a comment, like, repost or bookmark, which
+     * hold other people's responses rather than the page's own author.
      *
      * @param  list<array<string, mixed>>  $items
      * @return list<array<string, mixed>>
@@ -136,11 +138,9 @@ final class FetchCitation
                 $found[] = $item;
             }
 
-            foreach ($item['properties'] ?? [] as $values) {
-                foreach ($values as $value) {
-                    if (is_array($value) && isset($value['type'])) {
-                        $found = [...$found, ...$this->cards([$value])];
-                    }
+            foreach ($item['properties']['author'] ?? [] as $value) {
+                if (is_array($value) && isset($value['type'])) {
+                    $found = [...$found, ...$this->cards([$value])];
                 }
             }
 
