@@ -46,3 +46,18 @@ it('lets an update blank a like', function () {
 
     expect($note->fresh()->content)->toBe([]);
 });
+
+it('lets an update blank a like without resending its kind', function () {
+    $note = Note::factory()->create(['response_kind' => 'like', 'response_url' => 'https://example.com/post']);
+
+    $this->patchJson("/entries/note/{$note->id}", ['content' => []])->assertRedirect();
+
+    expect($note->fresh()->content)->toBe([]);
+});
+
+it('refuses an update that turns a like into a reply with no body', function () {
+    $note = Note::factory()->create(['response_kind' => 'like', 'response_url' => 'https://example.com/post']);
+
+    $this->patchJson("/entries/note/{$note->id}", ['content' => [], 'response_kind' => 'reply'])
+        ->assertJsonValidationErrors('content');
+});
