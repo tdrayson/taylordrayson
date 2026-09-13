@@ -3,6 +3,7 @@
 use App\Enums\EntryStatus;
 use App\Models\Activity;
 use App\Models\Food;
+use App\Models\Note;
 use App\Models\Page;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
@@ -63,6 +64,32 @@ it('hands the owner a control without draft for synced types, and a guest nothin
         ->where('statusControl.action', "/entries/activity/{$activity->id}/status")
         ->where('statusControl.status', 'published')
         ->where('statusControl.options', fn ($options) => ! collect($options)->pluck('value')->contains('draft')));
+});
+
+it('drafting a published entry drops its timeline row, and republishing brings it back at the same address', function () {
+    $note = Note::factory()->create(['occurred_at' => '2026-06-20 09:00:00', 'status' => 'published']);
+    $occurredAt = $note->occurred_at;
+    $originalUrl = $note->url();
+    $originalSlug = TimelineEntry::query()->where('entry_id', $note->id)->value('url_slug');
+
+    $this->actingAs(User::factory()->create())
+        ->patch("/entries/note/{$note->id}/status", ['status' => 'draft'])
+        ->assertSessionHasNoErrors();
+
+    $note->refresh();
+
+    expect($note->status)->toBe(EntryStatus::Draft)
+        ->and($note->occurred_at->equalTo($occurredAt))->toBeTrue()
+        ->and(TimelineEntry::query()->where('entry_id', $note->id)->exists())->toBeFalse();
+
+    $this->patch("/entries/note/{$note->id}/status", ['status' => 'published'])
+        ->assertSessionHasNoErrors();
+
+    $note->refresh();
+
+    expect($note->status)->toBe(EntryStatus::Published)
+        ->and($note->url())->toBe($originalUrl)
+        ->and(TimelineEntry::query()->where('entry_id', $note->id)->value('url_slug'))->toBe($originalSlug);
 });
 
 it('hands the owner a page control that allows draft', function () {

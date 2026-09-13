@@ -163,6 +163,32 @@ it('a new food row for a date inherits that date\'s existing status', function (
         ->and($second->status)->toBe(EntryStatus::Unlisted);
 });
 
+it('the day\'s existing status wins even over a status the new row was explicitly given', function () {
+    $date = now()->startOfDay()->addHours(8);
+
+    Food::create([
+        'occurred_at' => $date,
+        'name' => 'Weetabix',
+        'meal' => 'breakfast',
+        'quantity' => 2,
+        'units' => 'serving',
+        'calories' => 280,
+        'status' => 'unlisted',
+    ]);
+
+    $second = Food::create([
+        'occurred_at' => $date->copy()->addHours(4),
+        'name' => 'Sandwich',
+        'meal' => 'lunch',
+        'quantity' => 1,
+        'units' => 'serving',
+        'calories' => 450,
+        'status' => 'published',
+    ]);
+
+    expect($second->status)->toBe(EntryStatus::Unlisted);
+});
+
 it('food items on different dates create separate timeline entries', function () {
     Food::create([
         'occurred_at' => now()->startOfDay()->addHours(8),

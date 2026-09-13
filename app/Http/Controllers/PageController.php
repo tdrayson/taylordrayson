@@ -40,7 +40,6 @@ class PageController extends Controller
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'cover' => $page->coverPhoto(),
-            'status' => $page->status->value,
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,

@@ -19,7 +19,6 @@ const props = defineProps({
     // { src, srcset, full } or null, the same shape an article's cover takes.
     cover: { type: Object, default: null },
     content: { type: [Object, Array, String], default: null },
-    status: { type: String, default: 'published' },
     // { action, status, options, hasPassword }, null for a guest.
     statusControl: { type: Object, default: null },
     editing: { type: Boolean, default: false },

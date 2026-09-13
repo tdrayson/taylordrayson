@@ -69,7 +69,9 @@ class Food extends Model implements HasMedia, Timelineable
 
         // A food day is one entry, so a newly synced row (no status of its
         // own) joins the status the day already has rather than the model
-        // default, or a sync could republish a day the owner unlisted.
+        // default, or a sync could republish a day the owner unlisted. The
+        // day's existing status always wins, even over a status the new row
+        // was explicitly given.
         static::creating(function (self $food): void {
             $sibling = $food->occurred_at === null
                 ? null

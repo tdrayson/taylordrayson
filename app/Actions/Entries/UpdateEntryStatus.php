@@ -7,6 +7,7 @@ use App\Enums\EntryStatus;
 use App\Models\Food;
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class UpdateEntryStatus
@@ -23,7 +24,8 @@ final class UpdateEntryStatus
             ? Food::query()->whereDate('occurred_at', $model->occurred_at->toDateString())->orderBy('id')->get()
             : collect([$model]);
 
-        $rows->each(fn (Model $row) => $row->forceFill($values)->save());
+        // A failure partway through the loop must not leave a food day on mixed statuses.
+        DB::transaction(fn () => $rows->each(fn (Model $row) => $row->forceFill($values)->save()));
 
         return $model->refresh();
     }
