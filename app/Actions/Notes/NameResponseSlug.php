@@ -5,13 +5,14 @@ namespace App\Actions\Notes;
 use App\Actions\Mentions\ResolveInternalTarget;
 use App\Enums\ResponseKind;
 use App\Models\Note;
-use App\Support\EntryName;
 use App\Support\Links;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
  * The slug a response note is stored with when none was written: what it did,
- * then what it answered, e.g. `reply-to-sending-your-first-webmention`.
+ * then what it answered, e.g. `reply-to-sending-your-first-webmention`, or
+ * `like-back-under-the-bar` for one of my own entries.
  *
  * The editor previews this, so responseSlug() in resources/js/lib/editor/defaults.js
  * has to apply the same rule.
@@ -36,10 +37,16 @@ final class NameResponseSlug
         $target = $path === null ? null : ($this->resolve)($path);
 
         $name = $target !== null
-            ? self::words(EntryName::for($target, possessive: true))
+            ? self::own($target)
             : self::external($kind, $note, $url);
 
         return $name === '' ? null : self::prefix($kind).'-'.$name;
+    }
+
+    /** The last segment of one of my own entries' URLs, which is its slug. */
+    private static function own(Model $target): string
+    {
+        return self::words(str_replace('-', ' ', Str::afterLast($target->url(), '/')));
     }
 
     /** The citation's title or author, as far as this kind uses them, else the domain. */

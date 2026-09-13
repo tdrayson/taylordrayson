@@ -135,9 +135,19 @@ function domainSlug(url) {
     }
 }
 
+/** The last segment of one of my own entries' URLs, which is its slug, cut to the note word cap. */
+function ownSlug(url) {
+    try {
+        return slugWords(new URL(url).pathname.replace(/\/+$/, '').split('/').pop().replaceAll('-', ' '));
+    } catch {
+        return '';
+    }
+}
+
 /**
  * The slug a response note is stored with when none is written, e.g.
- * `reply-to-sending-your-first-webmention`. Mirrors NameResponseSlug.
+ * `reply-to-sending-your-first-webmention`, or `like-back-under-the-bar` for
+ * one of my own entries. Mirrors NameResponseSlug.
  *
  * @param {{kind: string, url: string, rsvp?: string, preview?: object|null}} response The
  *        response fields, plus the context CitationField fetched for the URL, if any.
@@ -159,7 +169,7 @@ export function responseSlug({ kind, url, rsvp = null, preview = null }) {
     }[kind] ?? [];
 
     const name = context?.internal
-        ? slugWords(context.title)
+        ? ownSlug(url)
         : candidates.map(slugWords).find(Boolean) ?? domainSlug(url);
 
     if (! name) {

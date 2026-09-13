@@ -73,12 +73,34 @@ it('names an rsvp after the event title', function () {
     expect($note->getAttributes()['slug'])->toBe('rsvp-indiewebcamp-brighton');
 });
 
-it('names a response to one of my own entries after that entry', function () {
-    $article = Article::factory()->create(['title' => 'My Great Article', 'status' => EntryStatus::Published]);
+it('names a response to one of my own entries after that entry\'s slug', function (array $response, string $slug) {
+    $article = Article::factory()->create(['title' => 'My Great Article', 'slug' => 'back-under-the-bar', 'status' => EntryStatus::Published]);
+
+    $note = respond([...$response, 'response_url' => rtrim(config('app.url'), '/').$article->url()]);
+
+    expect($note->getAttributes()['slug'])->toBe($slug);
+})->with([
+    'reply' => [['content' => 'Agreed.', 'response_kind' => 'reply'], 'reply-to-back-under-the-bar'],
+    'like' => [['response_kind' => 'like'], 'like-back-under-the-bar'],
+    'repost' => [['response_kind' => 'repost'], 'repost-back-under-the-bar'],
+    'rsvp' => [['response_kind' => 'rsvp', 'rsvp_value' => RsvpValue::Yes->value], 'rsvp-back-under-the-bar'],
+]);
+
+it('names a response to my own note after the slug its words give it, cut to the word cap', function () {
+    $target = Note::factory()->create(['content' => PortableText::fromPlainText('One two three four five six seven eight')]);
+
+    $note = respond(['response_kind' => 'like', 'response_url' => rtrim(config('app.url'), '/').$target->url()]);
+
+    expect($target->url())->toEndWith('/one-two-three-four-five-six')
+        ->and($note->getAttributes()['slug'])->toBe('like-one-two-three-four-five-six');
+});
+
+it('cuts a long stored slug of my own entry to the word cap', function () {
+    $article = Article::factory()->create(['slug' => 'one-two-three-four-five-six-seven-eight']);
 
     $note = respond(['response_kind' => 'like', 'response_url' => rtrim(config('app.url'), '/').$article->url()]);
 
-    expect($note->getAttributes()['slug'])->toBe('like-my-great-article');
+    expect($note->getAttributes()['slug'])->toBe('like-one-two-three-four-five-six');
 });
 
 it('keeps a hand-written slug as typed', function () {
