@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthoringController;
+use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
@@ -143,6 +144,11 @@ Route::get('/{year}/{month}', [TimelineController::class, 'month'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}'])->name('month');
 Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('day');
+
+// Old food day slug, a literal segment above the entry route below so it
+// never shadows another dated entry.
+Route::get('/{year}/{month}/{day}/calories', CaloriesRedirectController::class)
+    ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('calories.redirect');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 
