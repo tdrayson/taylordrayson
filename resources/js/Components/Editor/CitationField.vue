@@ -13,12 +13,16 @@ const props = defineProps({
     responseKind: { type: String, default: null },
 });
 
-const emit = defineEmits(['update:modelValue']);
+// `preview` hands the loaded context up, so the editor can name the slug after it.
+const emit = defineEmits(['update:modelValue', 'preview']);
 
 // The input this previews from, owned by its own field.
 const URL_INPUT_ID = 'response_url';
 
 const preview = ref(null);
+
+watch(preview, (value) => emit('preview', value));
+
 const loading = ref(false);
 const failed = ref(false);
 

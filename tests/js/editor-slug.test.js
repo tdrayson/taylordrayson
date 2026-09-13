@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { noteSlug, slugify, slugifyInput, tagName } from '../../resources/js/lib/editor/defaults.js';
+import { noteSlug, responseSlug, slugify, slugifyInput, tagName } from '../../resources/js/lib/editor/defaults.js';
 
 /** A Portable Text document holding one paragraph. */
 const doc = (text) => [{ _type: 'block', children: [{ _type: 'span', text }] }];
@@ -63,5 +63,47 @@ describe('tagName', () => {
         assert.equal(tagName('sci-fi'), 'Sci-Fi');
         assert.equal(tagName('TV show'), 'TV Show');
         assert.equal(tagName('iOS'), 'iOS');
+    });
+});
+
+describe('responseSlug', () => {
+    // Mirrored in ResponseSlugTest against NameResponseSlug.
+    const url = 'https://www.example.com/post';
+    const cited = (title, authorName = null) => ({ url, internal: false, cited: { title, authorName } });
+
+    it('is null for a plain note or an rsvp with no answer', () => {
+        assert.equal(responseSlug({ kind: '', url }), null);
+        assert.equal(responseSlug({ kind: 'like', url: '' }), null);
+        assert.equal(responseSlug({ kind: 'rsvp', url, rsvp: '' }), null);
+    });
+
+    it('names a like or repost after the domain, whatever was fetched', () => {
+        assert.equal(responseSlug({ kind: 'like', url, preview: cited('A Title') }), 'like-example-com');
+        assert.equal(responseSlug({ kind: 'repost', url: 'https://aaronparecki.com/a' }), 'repost-aaronparecki-com');
+    });
+
+    it('names a reply after the title, then the author, then the domain', () => {
+        assert.equal(responseSlug({ kind: 'reply', url, preview: cited('Sending your First Webmention', 'Aaron') }), 'reply-to-sending-your-first-webmention');
+        assert.equal(responseSlug({ kind: 'reply', url, preview: cited(null, 'Aaron Parecki') }), 'reply-to-aaron-parecki');
+        assert.equal(responseSlug({ kind: 'reply', url }), 'reply-to-example-com');
+    });
+
+    it('cuts a long title to the words a note slug uses', () => {
+        assert.equal(responseSlug({ kind: 'reply', url, preview: cited('One two three four five six seven eight') }), 'reply-to-one-two-three-four-five-six');
+    });
+
+    it('names an rsvp after the title, never the author', () => {
+        assert.equal(responseSlug({ kind: 'rsvp', url, rsvp: 'yes', preview: cited('IndieWebCamp Brighton', 'Somebody') }), 'rsvp-indiewebcamp-brighton');
+        assert.equal(responseSlug({ kind: 'rsvp', url, rsvp: 'yes', preview: cited(null, 'Somebody') }), 'rsvp-example-com');
+    });
+
+    it('names one of my own entries by the name the preview gives it', () => {
+        const preview = { url, internal: true, title: 'My Great Article', cited: null };
+
+        assert.equal(responseSlug({ kind: 'like', url, preview }), 'like-my-great-article');
+    });
+
+    it('ignores a preview fetched for a different url', () => {
+        assert.equal(responseSlug({ kind: 'reply', url, preview: { ...cited('Old'), url: 'https://example.com/old' } }), 'reply-to-example-com');
     });
 });
