@@ -136,6 +136,19 @@ describe('search', function () {
             ->and(collect($sleep['fields'])->firstWhere('key', 'duration')['operators'])->toContain('gt');
     });
 
+    it('accepts a dataset alias', function () {
+        $result = callTool(SearchFields::class, ['type' => 'podcast'])['data'];
+
+        expect($result['type'])->toBe('this-week-with');
+    });
+
+    it('still errors on an unknown type', function () {
+        $result = callTool(SearchFields::class, ['type' => 'made-up']);
+
+        expect($result['error'])->toBeTrue()
+            ->and($result['text'])->toContain('No searchable type called made-up');
+    });
+
     it('runs a structured filter', function () {
         aNight('2026-08-26', ['duration' => 30000]);
         aNight('2026-08-24', ['duration' => 10000]);

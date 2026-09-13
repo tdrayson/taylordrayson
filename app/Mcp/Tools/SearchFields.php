@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Datasets\Datasets;
 use App\Search\SearchSchema;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -21,6 +22,8 @@ class SearchFields extends Tool
         if ($type === null) {
             return Response::json(['types' => $schema]);
         }
+
+        $type = Datasets::resolveOne($type)?->type()->value ?? $type;
 
         $match = collect($schema)->firstWhere('type', $type);
 
