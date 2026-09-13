@@ -22,15 +22,11 @@ const props = defineProps({
     // list<{ year, href }>, newest first.
     years: { type: Array, default: () => [] },
     podcastEpisodes: { type: Number, default: 0 },
-    // Deferred, so this is undefined on first paint. Keyed `type:id`. No default,
-    // or a pending request would be indistinguishable from an empty answer.
-    interactions: { type: Object, default: undefined },
+    // Deferred, so this is undefined on first paint. Keyed `type:id`.
+    interactions: { type: Object, default: () => ({}) },
 });
 
-provideInteractions(
-    computed(() => props.interactions ?? {}),
-    computed(() => props.interactions === undefined),
-);
+provideInteractions(computed(() => props.interactions ?? {}));
 
 setLayoutProps({
     breadcrumb: [],

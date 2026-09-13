@@ -4,8 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import ReactionBar from '../Conversation/ReactionBar.vue';
-import { useInteractions, useInteractionsPending } from '../../lib/interactionContext.js';
-import Skeleton from '../Ui/Skeleton.vue';
+import { useInteractions } from '../../lib/interactionContext.js';
 import Button from '../Ui/Button.vue';
 import Pill from '../Ui/Pill.vue';
 import Tooltip from '../Ui/Tooltip.vue';
@@ -227,11 +226,6 @@ const interactions = useInteractions();
 // Keyed on iconKey: that is the timeline type value the reaction endpoint is
 // addressed by. The `type` prop is the display label and is empty in the feed.
 const row = computed(() => (props.id === null ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
-
-// While the counts are on their way, a card that will get a row holds its space
-// with a placeholder, so the feed does not shuffle down when they land.
-const interactionsPending = useInteractionsPending();
-const holdsRowSpace = computed(() => props.id !== null && interactionsPending.value);
 </script>
 
 <template>
@@ -441,12 +435,11 @@ const holdsRowSpace = computed(() => props.id !== null && interactionsPending.va
         </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
 
-        <!-- One transition for the placeholder and the row it stands in for, so the
-             swap is a quick fade in the same space rather than a jump. -->
-        <Transition name="reaction-row" mode="out-in">
-        <Skeleton v-if="holdsRowSpace" class="mt-3 h-7 w-28" />
+        <!-- The counts arrive on a second request, so the row fades in rather than
+             appearing all at once. -->
+        <Transition name="reaction-row">
         <ReactionBar
-            v-else-if="row"
+            v-if="row"
             variant="compact"
             class="mt-3"
             :type="iconKey"
@@ -471,22 +464,13 @@ const holdsRowSpace = computed(() => props.id !== null && interactionsPending.va
     transition: opacity 0.22s ease, translate 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.reaction-row-leave-active {
-    transition: opacity 0.12s ease;
-}
-
 .reaction-row-enter-from {
     opacity: 0;
     translate: 0 2px;
 }
 
-.reaction-row-leave-to {
-    opacity: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .reaction-row-enter-active,
-    .reaction-row-leave-active {
+    .reaction-row-enter-active {
         transition: none;
     }
 }
