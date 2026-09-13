@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Page;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -69,7 +70,7 @@ final class WebmentionTarget
      */
     private static function entry(array $parameters): ?Model
     {
-        return TimelineEntry::query()
+        return TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->whereDate('occurred_at', sprintf(
                 '%04d-%02d-%02d',
                 (int) $parameters['year'],
@@ -77,6 +78,6 @@ final class WebmentionTarget
                 (int) $parameters['day'],
             ))
             ->where('url_slug', $parameters['slug'])
-            ->first()?->timelineable;
+            ->first()?->entry;
     }
 }

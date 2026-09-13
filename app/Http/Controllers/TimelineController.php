@@ -77,13 +77,13 @@ class TimelineController extends Controller
     private function interactionsForDates(string $newest, string $oldest, Request $request): array
     {
         $entries = TimelineEntry::query()
-            ->with('timelineable')
+            ->with('entry')
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
             ->get();
 
         return app(InteractionsForFeed::class)(
-            $entries->pluck('timelineable')->filter()->values(),
+            $entries->pluck('entry')->filter()->values(),
             $request,
         );
     }
