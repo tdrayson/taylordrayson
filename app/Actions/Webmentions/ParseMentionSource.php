@@ -316,7 +316,7 @@ final class ParseMentionSource
         $published = $properties['published'][0] ?? null;
 
         return is_string($published)
-            ? rescue(fn (): Carbon => Carbon::parse($published), null, report: false)
+            ? rescue(fn (): Carbon => Carbon::parse($published)->utc(), null, report: false)
             : null;
     }
 

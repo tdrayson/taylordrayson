@@ -1,6 +1,10 @@
 <?php
 
+use App\Actions\BuildResponseContext;
 use App\Actions\Citations\FetchCitation;
+use App\Actions\Citations\StoreCitation;
+use App\Enums\ResponseKind;
+use App\Models\Note;
 use Illuminate\Support\Facades\Http;
 
 const POST = 'https://example.com/post';
@@ -107,6 +111,7 @@ it('falls back to OpenGraph for a page with no microformats', function () {
     expect($citation->title)->toBe('An OpenGraph title')
         ->and($citation->excerpt)->toBe('What the page says about itself.')
         ->and($citation->authorName)->toBe('Jo Bloggs')
+        ->and($citation->publishedAt->format('H:i'))->toBe('09:27')
         ->and($citation->publishedTimezone)->toBe('+01:00');
 });
 
@@ -132,4 +137,17 @@ it('caps the excerpt at 600 characters', function () {
     )]);
 
     expect(mb_strlen(app(FetchCitation::class)(POST)->excerpt))->toBeLessThanOrEqual(600);
+});
+
+it('renders the published time at the author\'s own clock', function () {
+    Http::fake([POST => Http::response(hEntry('<span class="p-author h-card">Aaron Parecki</span>'))]);
+
+    $citation = app(StoreCitation::class)(app(FetchCitation::class)(POST));
+    $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => POST]);
+
+    $published = app(BuildResponseContext::class)($note->fresh())->toArray()['cited']['published'];
+
+    expect($citation->fresh()->published_timezone)->toBe('-07:00')
+        ->and($published['label'])->toContain('8:35pm')
+        ->and($published['offset'])->toBe('-07:00');
 });
