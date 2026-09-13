@@ -4,6 +4,7 @@ namespace App\Search;
 
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
 
 /**
  * The filterable field catalogue for the advanced search query builder, keyed by
@@ -68,11 +69,28 @@ class SearchSchema
             $schema[$type] = [
                 'label' => $dataset->plural(),
                 'model' => $dataset->model(),
-                'fields' => self::normalise($dataset->searchFields()),
+                'fields' => self::normalise([...$dataset->searchFields(), 'status' => self::statusField()]),
             ];
         }
 
         return $schema;
+    }
+
+    /**
+     * The one status field every type shares, with fixed options so a guest's
+     * builder never learns which statuses exist in the data.
+     *
+     * @return array<string, mixed>
+     */
+    private static function statusField(): array
+    {
+        return [
+            'label' => 'Status',
+            'dataType' => 'enum',
+            'column' => 'status',
+            'category' => 'Publishing',
+            'options' => array_map(fn (EntryStatus $status): string => $status->value, EntryStatus::cases()),
+        ];
     }
 
     /**
@@ -97,9 +115,9 @@ class SearchSchema
                         'suffix' => $field['suffix'] ?? null,
                         'measure' => $field['measure'] ?? null,
                         'store' => $field['store'] ?? null,
-                        'options' => $field['dataType'] === 'enum' && ! isset($field['relation']) && $type['model'] !== null
+                        'options' => $field['options'] ?? ($field['dataType'] === 'enum' && ! isset($field['relation']) && $type['model'] !== null
                             ? self::options($type['model'], $field['column'])
-                            : null,
+                            : null),
                     ])
                     ->values()
                     ->all(),

@@ -77,8 +77,8 @@ it('suggests standalone pages as destinations', function () {
         ->toMatchArray(['label' => 'Sleep score', 'section' => 'Page', 'type' => 'page', 'tag' => false]);
 });
 
-it('hides an unpublished page from guests, and shows it to the authenticated user', function () {
-    Page::factory()->create(['status' => 'draft', 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
+it('hides an unlisted page from guests, and shows it to the owner', function () {
+    Page::factory()->create(['status' => 'unlisted', 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
 
     $urls = fn (array $json): array => collect($json)->pluck('url')->all();
 
@@ -101,13 +101,15 @@ it('hides unpublished articles from guest search suggestions', function () {
         ->assertJsonMissing(['title' => 'Secret draft thoughts']);
 });
 
-it('shows unpublished articles in suggestions to the authenticated user', function () {
+it('shows unlisted articles in suggestions to the owner, but never drafts', function () {
+    Article::factory()->create(['status' => 'unlisted', 'title' => 'Secret unlisted thoughts', 'occurred_at' => now()]);
     Article::factory()->create(['status' => 'draft', 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
 
     $this->actingAs(User::factory()->create())
-        ->getJson('/search/suggest?q=Secret draft')
+        ->getJson('/search/suggest?q=Secret')
         ->assertOk()
-        ->assertJsonFragment(['title' => 'Secret draft thoughts']);
+        ->assertJsonFragment(['title' => 'Secret unlisted thoughts'])
+        ->assertJsonMissing(['title' => 'Secret draft thoughts']);
 });
 
 it('shows published articles in suggestions to guests', function () {
