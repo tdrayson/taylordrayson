@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Button from '../Ui/Button.vue';
 import Input from '../Ui/Input.vue';
-import StyledSelect from '../Search/StyledSelect.vue';
+import Select from '../Ui/Select.vue';
 
 /** The owner's status switch: pick a status, add a password when private needs one, save. */
 const props = defineProps({
@@ -26,7 +26,7 @@ function save() {
     <form class="flex flex-wrap items-center gap-2" @submit.prevent="save">
         <label for="entry-status" class="sr-only">Status</label>
         <div class="w-40">
-            <StyledSelect id="entry-status" v-model="form.status" :options="control.options" class="min-h-11" />
+            <Select id="entry-status" v-model="form.status" :options="control.options" class="min-h-11" />
         </div>
 
         <Input v-if="needsPassword" v-model="form.password" type="password" placeholder="Password" class="w-auto" aria-label="Password" />

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import Input from '../Ui/Input.vue';
-import StyledSelect from '../Search/StyledSelect.vue';
+import Select from '../Ui/Select.vue';
 
 /**
  * The entry's status, and the password a private entry is locked with. The
@@ -26,7 +26,7 @@ function updatePassword(value) {
 
 <template>
     <div class="space-y-2">
-        <StyledSelect :id="id" :model-value="modelValue" :options="options" class="min-h-11" @update:model-value="emit('update:modelValue', $event)" />
+        <Select :id="id" :model-value="modelValue" :options="options" class="min-h-11" @update:model-value="emit('update:modelValue', $event)" />
 
         <Input
             v-if="modelValue === 'private'"
