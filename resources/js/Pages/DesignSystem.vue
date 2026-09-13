@@ -16,6 +16,7 @@ import ExternalLink from '../Components/Ui/ExternalLink.vue';
 import SocialLinks from '../Components/Profile/SocialLinks.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
+import { timelineTypes } from '../entryTypes.js';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import MonthStrip from '../Components/Timeline/MonthStrip.vue';
 import StyledSelect from '../Components/Search/StyledSelect.vue';
@@ -73,15 +74,10 @@ const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant
 const neutral = [0, 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 const accent = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 
-const dataTypes = [
-    { name: 'activity', hsl: '152 55% 40%' }, { name: 'sleep', hsl: '245 50% 58%' },
-    { name: 'food', hsl: '25 90% 52%' }, { name: 'media', hsl: '340 60% 52%' },
-    { name: 'event', hsl: '270 55% 52%' }, { name: 'appearance', hsl: '320 55% 50%' },
-    { name: 'podcast', hsl: '210 65% 48%' }, { name: 'flight', hsl: '200 75% 50%' },
-    { name: 'checkin', hsl: '170 55% 40%' }, { name: 'fuel', hsl: '45 85% 48%' },
-    { name: 'project', hsl: '185 60% 42%' }, { name: 'article', hsl: '215 18% 48%' },
-    { name: 'note', hsl: '36 40% 50%' },
-];
+// The accent tokens from the type catalogue, so a new data type shows up here
+// on its own. Swatches read the custom property rather than a copied hue, which
+// is what makes them correct in dark mode too.
+const dataTypes = Object.values(timelineTypes).map((type) => type.accent);
 
 const typeScale = [
     { cls: 'text-display-xl', display: true, label: 'display-xl', sample: '2026' },
@@ -178,8 +174,8 @@ function swatchInk(step) {
             <div>
                 <div class="ds-sub">Data types</div>
                 <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                    <span v-for="t in dataTypes" :key="t.name" class="flex items-center gap-2 text-caption capitalize">
-                        <span class="size-3 rounded-sm" :style="{ background: `hsl(${t.hsl})` }" />{{ t.name }}
+                    <span v-for="accent in dataTypes" :key="accent" class="flex items-center gap-2 text-caption capitalize">
+                        <span class="size-3 rounded-sm" :style="{ background: `var(--color-${accent})` }" />{{ accent }}
                     </span>
                 </div>
             </div>

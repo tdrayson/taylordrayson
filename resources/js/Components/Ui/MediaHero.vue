@@ -35,7 +35,7 @@ defineProps({
             v-if="poster"
             :src="poster"
             alt=""
-            class="absolute bottom-0 left-8 hidden w-40 rounded-md border border-neutral-50 shadow-card sm:block"
+            class="absolute bottom-0 left-8 hidden w-40 rounded-md border border-neutral-50 bg-neutral-25 shadow-card sm:block"
         >
     </div>
 </template>

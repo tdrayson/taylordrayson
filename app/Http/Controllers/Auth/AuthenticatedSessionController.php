@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +18,12 @@ use Inertia\Response;
  */
 class AuthenticatedSessionController extends Controller
 {
-    public function create(): Response
+    public function create(Request $request): Response|RedirectResponse
     {
+        if ($this->shouldAutoLogin()) {
+            return $this->autoLogin($request);
+        }
+
         return Inertia::render('Auth/Login', [
             'status' => session('status'),
         ]);
@@ -42,5 +47,39 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Whether a password is a formality here. The environment is checked
+     * alongside the flag so a .env copied onto a server cannot switch this on.
+     */
+    private function shouldAutoLogin(): bool
+    {
+        return config('app.auto_login') && app()->environment('local', 'testing');
+    }
+
+    /**
+     * Sign in the single account without the form, so a fresh local workspace
+     * opens with the editing gates already on.
+     */
+    private function autoLogin(Request $request): Response|RedirectResponse
+    {
+        // A pulled production database can hold more than one row, so the
+        // configured account wins over whichever happens to be first.
+        $user = User::query()
+            ->where('email', config('app.cp.email'))
+            ->first() ?? User::query()->oldest('id')->first();
+
+        if ($user === null) {
+            return Inertia::render('Auth/Login', [
+                'status' => 'No account exists yet. Run `php artisan db:seed --class=UserSeeder`.',
+            ]);
+        }
+
+        Auth::guard('web')->login($user, remember: true);
+
+        $request->session()->regenerate();
+
+        return redirect()->intended('/');
     }
 }

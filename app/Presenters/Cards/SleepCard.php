@@ -22,13 +22,11 @@ final class SleepCard
 
         return new CardData(
             type: $this->type(),
-            icon: 'bed',
             title: $this->title($model),
             titleLabel: 'Sleep log, I slept for '.Units::spokenDuration($model->duration),
             subtitle: $this->sentence($model),
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
-            accent: 'sleep',
             range: null,
             meta: CardMeta::sleep($this->stageSegments($model)),
         );
