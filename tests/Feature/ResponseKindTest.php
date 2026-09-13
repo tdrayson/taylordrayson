@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\BuildResponseContext;
+use App\Enums\EntryStatus;
 use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
 use App\Jobs\FetchResponseTitle;
@@ -119,7 +120,7 @@ it('carries the reply context to the entry page', function () {
 });
 
 it('names one of my own entries rather than the site it is already on', function () {
-    $article = Article::factory()->create(['published' => true]);
+    $article = Article::factory()->create(['status' => EntryStatus::Published]);
 
     $note = Note::factory()->create([
         'response_kind' => ResponseKind::Reply,
@@ -166,7 +167,7 @@ it('counts the target among the urls a send goes out to', function () {
 
 // One of mine is recorded as a mention, not announced over HTTP to myself.
 it('sends nothing when the target is one of my own entries', function () {
-    $article = Article::factory()->create(['published' => true]);
+    $article = Article::factory()->create(['status' => EntryStatus::Published]);
 
     $note = Note::factory()->create([
         'content' => [],
