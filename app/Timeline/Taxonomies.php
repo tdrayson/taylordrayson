@@ -2,14 +2,12 @@
 
 namespace App\Timeline;
 
-use App\Enums\MediaType;
+use App\Enums\EntryStatus;
 use App\Models\Airline;
-use App\Models\Article;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 /**
@@ -26,12 +24,13 @@ final class Taxonomies
      */
     public static function column(string $column, string $label, ?callable $title = null): callable
     {
-        $distinct = fn (string $model): Collection => $model::query()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column);
+        $distinct = fn (string $model): Collection => $model::query()->listed()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column);
 
         // Value counts, most-used first, so the archive filter can lead with the
         // categories actually visited most and collapse the long tail into a
         // searchable "more" popover (e.g. Places has 200 categories).
         $counts = fn (string $model): Collection => $model::query()
+            ->listed()
             ->whereNotNull($column)
             ->selectRaw($column.' as value, count(*) as total')
             ->groupBy($column)
@@ -53,21 +52,20 @@ final class Taxonomies
 
     /**
      * A taxonomy over the relational `tags` table, addressed by tag slug and
-     * scoped to tags attached to at least one record of the model. Guests are
-     * further restricted to published articles, so a draft-only tag stays hidden.
+     * scoped to tags attached to at least one record of the model. Only tags on
+     * listed entries count, for the owner as for a guest.
      */
     public static function tags(?callable $title = null): callable
     {
         $distinct = fn (string $model): Collection => Tag::query()
-            ->whereIn('id', fn ($query) => $query->select('tag_id')
+            ->whereIn('id', fn (QueryBuilder $query) => $query->select('tag_id')
                 ->from('taggables')
                 ->where('taggable_type', (new $model)->getMorphClass())
-                ->when($model === Article::class && ! Auth::check(), fn (QueryBuilder $query) => $query->whereExists(
-                    fn (QueryBuilder $exists) => $exists->selectRaw('1')
-                        ->from('articles')
-                        ->whereColumn('articles.id', 'taggables.taggable_id')
-                        ->where('articles.published', true)
-                )))
+                ->whereExists(fn (QueryBuilder $exists) => $exists->selectRaw('1')
+                    ->from('timeline_entries')
+                    ->whereColumn('timeline_entries.dataset', 'taggables.taggable_type')
+                    ->whereColumn('timeline_entries.entry_id', 'taggables.taggable_id')
+                    ->where('timeline_entries.status', EntryStatus::Published->value)))
             ->orderBy('name')
             ->get(['name', 'slug']);
 
@@ -80,25 +78,6 @@ final class Taxonomies
             'labelFor' => fn (string $value): string => $distinct($model)->firstWhere('slug', $value)?->name ?? Str::headline($value),
             'values' => fn (): Collection => $distinct($model)
                 ->map(fn (Tag $tag): array => ['value' => $tag->slug, 'label' => $tag->name]),
-        ];
-    }
-
-    public static function media(): callable
-    {
-        $map = [
-            'films' => [MediaType::Film->value],
-            'tv' => [MediaType::TvEpisode->value],
-            'books' => [MediaType::Book->value],
-        ];
-        $labels = ['films' => 'Films', 'tv' => 'TV series', 'books' => 'Books'];
-
-        return fn (string $model, string $slug): array => [
-            'base' => $slug,
-            'param' => 'type',
-            'label' => 'Type',
-            'filter' => fn (Builder $query, string $value) => $query->whereIn('type', $map[$value] ?? ['__none__']),
-            'labelFor' => fn (string $value): string => $labels[$value] ?? Str::headline($value),
-            'values' => fn (): Collection => collect($map)->keys()->map(fn ($value): array => ['value' => $value, 'label' => $labels[$value]]),
         ];
     }
 
@@ -118,6 +97,7 @@ final class Taxonomies
             'filter' => fn (Builder $query, string $value) => $query->where('season_number', (int) $value),
             'labelFor' => fn (string $value): string => "Season {$value}",
             'values' => fn (): Collection => $model::query()
+                ->listed()
                 ->whereNotNull('season_number')
                 ->selectRaw('season_number as value, count(*) as total')
                 ->groupBy('season_number')
@@ -134,7 +114,7 @@ final class Taxonomies
     public static function airline(): callable
     {
         $airlines = function (string $model): Collection {
-            $icaos = $model::query()->whereNotNull('airline_icao')->distinct()->pluck('airline_icao');
+            $icaos = $model::query()->listed()->whereNotNull('airline_icao')->distinct()->pluck('airline_icao');
 
             return Airline::query()->whereIn('icao_code', $icaos)->orderBy('name')->get();
         };

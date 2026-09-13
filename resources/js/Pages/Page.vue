@@ -4,10 +4,11 @@ import { setLayoutProps, usePage, Link } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
+import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
+import StatusControl from '../Components/Entry/StatusControl.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { provideLinkContext } from '../lib/linkContext.js';
-import Pill from '../Components/Ui/Pill.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -18,7 +19,8 @@ const props = defineProps({
     // { src, srcset, full } or null, the same shape an article's cover takes.
     cover: { type: Object, default: null },
     content: { type: [Object, Array, String], default: null },
-    published: { type: Boolean, default: true },
+    // { action, status, options, hasPassword }, null for a guest.
+    statusControl: { type: Object, default: null },
     editing: { type: Boolean, default: false },
     // Field definitions from FieldRegistry, driving the properties panel.
     fields: { type: Array, default: () => [] },
@@ -28,6 +30,8 @@ const props = defineProps({
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
+    locked: { type: Boolean, default: false },
+    unlockUrl: { type: String, default: null },
 });
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
@@ -66,13 +70,11 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
             <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
 
-            <!-- Both only mean anything to the owner, so they sit together
-                 below the page rather than the badge interrupting the title.
-                 Unpublished pages are visible to nobody else. -->
-            <div v-if="signedIn || !published" class="mt-3 flex items-center gap-3">
-                <Pill v-if="!published" label="Draft" variant="accent" />
+            <!-- Owner-only, so it sits below the page rather than interrupting the title. -->
+            <div v-if="signedIn" class="mt-3 flex flex-wrap items-center gap-3">
+                <StatusControl v-if="statusControl" :control="statusControl" />
 
-                <Link v-if="signedIn" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
+                <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
                     Edit this page
                 </Link>
             </div>
@@ -86,6 +88,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <img :src="cover.full" alt="" class="size-full object-cover">
         </div>
 
-        <BlockContent :document="content" class="mt-8" />
+        <BlockContent v-if="! locked" :document="content" class="mt-8" />
+        <PasswordPrompt v-else :action="unlockUrl" class="mt-8" />
     </article>
 </template>

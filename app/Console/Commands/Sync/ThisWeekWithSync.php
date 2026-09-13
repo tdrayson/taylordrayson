@@ -41,10 +41,10 @@ class ThisWeekWithSync extends Command
 
         try {
             foreach ($thisWeekWith->episodes($perPage) as $episode) {
-                $podcast = $this->store($this->mapEpisode($episode));
-                $changed = $changed || $podcast->wasRecentlyCreated || $podcast->wasChanged();
+                $stored = $this->store($this->mapEpisode($episode));
+                $changed = $changed || $stored->wasRecentlyCreated || $stored->wasChanged();
 
-                if ($podcast->wasRecentlyCreated) {
+                if ($stored->wasRecentlyCreated) {
                     $created++;
                     $consecutiveKnown = 0;
 
@@ -52,7 +52,7 @@ class ThisWeekWithSync extends Command
                     // so a new episode stops depending on the publisher as soon
                     // as it appears. Only for new episodes: a --full re-map
                     // walks all 255 and would re-queue the whole archive.
-                    StoreThisWeekWithMedia::dispatch($podcast);
+                    StoreThisWeekWithMedia::dispatch($stored);
 
                     continue;
                 }

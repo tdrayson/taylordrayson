@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use App\Models\Appearance;
+use App\Models\Book;
 use App\Models\Concerns\Timelineable;
-use App\Models\Media as MediaEntry;
+use App\Models\Film;
+use App\Models\TvEpisode;
 use App\Presenters\PhotoCaption;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
@@ -24,7 +26,7 @@ class GalleryPhotos
      *
      * @var list<class-string>
      */
-    public const ENRICHMENT_MODELS = [Appearance::class, MediaEntry::class];
+    public const ENRICHMENT_MODELS = [Appearance::class, Film::class, TvEpisode::class, Book::class];
 
     /**
      * Dataset aliases (the morph column value) whose photos reach the gallery,
@@ -47,7 +49,7 @@ class GalleryPhotos
 
     /**
      * Whether a model's cover/photos are real photographs. Non-timeline models
-     * (a Series poster, say) are excluded too, hence the Timelineable guard
+     * (a TvShow poster, say) are excluded too, hence the Timelineable guard
      * rather than a null check.
      */
     public static function contributesPhotos(?Model $model): bool

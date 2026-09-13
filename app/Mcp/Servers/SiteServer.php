@@ -22,7 +22,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 #[Version('2.0.0')]
 #[Instructions(<<<'TEXT'
 Read-only access to a personal site: a timeline of sleep, activities, food,
-flights, places, media, notes and more. Nothing here can write.
+flights, places, films, TV, books, notes and more. Nothing here can write.
 
 Reach for these first, in roughly this order:
 

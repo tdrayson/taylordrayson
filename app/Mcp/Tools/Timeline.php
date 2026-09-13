@@ -31,7 +31,7 @@ class Timeline extends Tool
             ->whereBetween('occurred_at', [$input['from'].' 00:00:00', $to.' 23:59:59']);
 
         if (isset($input['type'])) {
-            $dataset = Datasets::resolveOne($input['type']);
+            $dataset = Datasets::for($input['type']);
 
             if ($dataset === null) {
                 return Response::error("No type called {$input['type']}. Call data_freshness to list them.");

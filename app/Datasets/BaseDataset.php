@@ -2,6 +2,7 @@
 
 namespace App\Datasets;
 
+use App\Enums\SpanAnchor;
 use Illuminate\Support\Str;
 
 /**
@@ -43,6 +44,16 @@ abstract class BaseDataset implements Dataset
     }
 
     public function stats(): bool
+    {
+        return false;
+    }
+
+    public function spanAnchor(): ?SpanAnchor
+    {
+        return null;
+    }
+
+    public function draftable(): bool
     {
         return false;
     }

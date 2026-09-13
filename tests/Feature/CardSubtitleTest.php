@@ -2,10 +2,10 @@
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
@@ -115,7 +115,7 @@ it('drops the price sentence when there is no price per litre', function () {
         ->and($subtitle)->not->toContain('p/L');
 });
 
-it('uses the checkin note as its subtitle when present', function () {
+it('uses the place note as its subtitle when present', function () {
     $place = Place::factory()->create([
         'description' => 'Great coffee here',
         'type' => 'Coffee Shop',
@@ -127,7 +127,7 @@ it('uses the checkin note as its subtitle when present', function () {
 
 // Foursquare's vocabulary includes Road, Platform and Town, so the category is
 // shown as its own label rather than written into a sentence about the place.
-it('leaves a checkin with no note unsubtitled, carrying its category as data', function () {
+it('leaves a place with no note unsubtitled, carrying its category as data', function () {
     $place = Place::factory()->create([
         'description' => null,
         'venue_name' => 'Blue Bottle',
@@ -168,8 +168,7 @@ it('keeps the food subtitle comma-joined with no connectives', function () {
 });
 
 it('names a film by its leading genre and how long it ran', function () {
-    $media = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Exit 8',
         'rating' => null,
         'meta' => [
@@ -180,19 +179,18 @@ it('names a film by its leading genre and how long it ran', function () {
         ],
     ]);
 
-    expect(CardPresenter::for($media)->toArray()['subtitle'])
+    expect(CardPresenter::for($film)->toArray()['subtitle'])
         ->toBe('I watched this 2026 horror film. It was 95 minutes long.');
 });
 
 it('falls back to "film" when TMDB gave no genre', function () {
-    $media = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Unknown',
         'rating' => null,
         'meta' => ['year' => 2026],
     ]);
 
-    expect(CardPresenter::for($media)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
+    expect(CardPresenter::for($film)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
 });
 
 // "9h 21m" is read out a letter at a time, so the link's accessible name spells
@@ -200,8 +198,8 @@ it('falls back to "film" when TMDB gave no genre', function () {
 it('spells the duration in the sleep card\'s accessible name', function () {
     $sleep = Sleep::factory()->create([
         'duration' => 33660, // 9h 21m
-        'bedtime' => '2026-08-24 23:30:00',
-        'wake_time' => '2026-08-25 08:51:00',
+        'occurred_at' => '2026-08-25 08:51:00',
+        'started_at' => '2026-08-24 23:30:00',
         'score' => 80,
     ]);
 

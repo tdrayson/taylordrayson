@@ -1,9 +1,8 @@
 <?php
 
-use App\Enums\MediaType;
-use App\Models\Media;
+use App\Models\Film;
 use App\Models\Place;
-use App\Models\Series;
+use App\Models\TvShow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -27,10 +26,10 @@ it('shows only photos taken, excluding posters and non-timeline art', function (
     $place = Place::factory()->create();
     $place->addMediaFromString(galleryJpegBytes())->usingFileName('me.jpg')->toMediaCollection('photos');
 
-    // A film poster (Media cover) and a Series poster (non-timeline) — must not.
-    Media::factory()->create(['type' => MediaType::Film])
+    // A film poster (cover) and a TvShow poster (non-timeline) — must not.
+    Film::factory()->create()
         ->addMediaFromString(galleryJpegBytes())->usingFileName('poster.jpg')->toMediaCollection('cover');
-    Series::factory()->create()
+    TvShow::factory()->create()
         ->addMediaFromString(galleryJpegBytes())->usingFileName('series.jpg')->toMediaCollection('cover');
 
     // The gallery defers and paginates its photos, so the shell carries the

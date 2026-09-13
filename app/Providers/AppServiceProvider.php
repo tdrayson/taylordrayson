@@ -50,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * `Route::archives()`, registering each type's archive page, its /stats
+     * `Route::archives()`, registering each type's archive index, its /stats
      * redirect and its taxonomy sub-route.
      *
      * A macro so routes/web.php stays a flat list of controllers rather than
@@ -58,9 +58,9 @@ class AppServiceProvider extends ServiceProvider
      * than boot(), because the route files are loaded during the framework's
      * own boot and the macro has to exist before web.php is evaluated.
      *
-     * Order inside is load-bearing and matches what the loop did: the /stats
-     * redirect is registered before the taxonomy route, so "stats" is not
-     * matched as a taxonomy value.
+     * Order is load-bearing within each type: the /stats redirect is
+     * registered before the taxonomy route, so "stats" isn't matched as a
+     * taxonomy value.
      */
     private function registerArchiveRoutes(): void
     {

@@ -5,50 +5,55 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Data\StatusControlData;
 use App\Data\TagLink;
+use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
 use App\Enums\TimelineType;
 use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
+use App\Models\Scopes\ListedScope;
 use App\Models\Tag;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
-use App\Queries\MediaArtwork;
+use App\Queries\EntryArtwork;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use App\Support\ShowTitle;
 use App\Timeline\TypeRegistry;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
     public function __construct(private readonly TripForEntry $tripForEntry) {}
 
-    public function show(int $year, int $month, int $day, string $slug): Response
+    public function show(int $year, int $month, int $day, string $slug): SymfonyResponse
     {
         $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
 
-        $entry = TimelineEntry::query()
+        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->with('entry')
             ->whereDate('occurred_at', $date)
             ->where('url_slug', $slug)
@@ -57,48 +62,96 @@ class EntryController extends Controller
         $model = $entry?->entry;
         $model?->setRelation('timelineEntry', $entry);
 
-        // Unpublished articles have no timeline entry (TimelineEntryObserver
-        // removes it), so an authenticated preview needs a direct lookup.
+        // Drafts have no spine row, so the owner reaches a dated one directly.
         if ($model === null && Auth::check()) {
-            $model = Article::query()
-                ->whereDate('occurred_at', $date)
-                ->where('slug', $slug)
-                ->first();
+            $model = $this->draftAt($date, $slug);
         }
 
         if ($model === null) {
             throw new NotFoundHttpException;
         }
 
-        if ($model instanceof Article && ! $model->published && ! Auth::check()) {
+        return $this->render($model, $entry, sprintf('/%04d/%02d/%02d', $year, $month, $day));
+    }
+
+    /** An owner's draft at its own address, dated or not. */
+    public function draft(string $dataset, int $id): SymfonyResponse
+    {
+        $definition = Datasets::for($dataset);
+
+        if ($definition === null || ! $definition->draftable()) {
             throw new NotFoundHttpException;
         }
 
+        $model = $definition->model()::query()->findOrFail($id);
+
+        return $this->render($model, null, $model->occurred_at?->format('/Y/m/d'));
+    }
+
+    private function render(Model $model, ?TimelineEntry $entry, ?string $dayUrl): SymfonyResponse
+    {
+        if (! $model->isViewableBy(Auth::user())) {
+            throw new NotFoundHttpException;
+        }
+
+        $locked = ! $model->isUnlockedFor(request());
+
+        // Loaded here, ahead of the card and OG description below, because
+        // those must render in full even while the rest of the body is locked.
         if ($model instanceof Flight) {
             $model->load('airline', 'origin', 'destination');
         }
 
-        if ($model instanceof Appearance || $model instanceof Activity || $model instanceof Note) {
-            $model->load('media');
-        }
-
         $card = CardPresenter::for($model);
 
-        return Inertia::render('Entry', [
+        $props = [
             'type' => $card->type->value,
             'accent' => $card->accent,
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
             'title' => $card->type === TimelineType::Note ? null : $card->title,
-            ...$this->occurredFields($model->occurredAtForDisplay(), $model->timezone()),
+            ...$this->occurredFields($model),
             'og' => OgMeta::entry($entry, $model, $card),
-            'dayUrl' => sprintf('/%04d/%02d/%02d', $year, $month, $day),
+            'dayUrl' => $dayUrl,
             'trip' => $this->trip($model),
+            'source' => $this->source($model),
+            'locked' => $locked,
+            'unlockUrl' => $locked
+                ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
+                : null,
+            'statusControl' => Auth::check() ? StatusControlData::for($model) : null,
+        ];
+
+        $response = Inertia::render('Entry', [
+            ...$props,
+            ...($locked ? ['entry' => null] : $this->bodyProps($model)),
+        ])->toResponse(request());
+
+        // A private page differs per session, so no shared cache may keep it.
+        if ($model->status === EntryStatus::Private) {
+            $response->headers->set('Cache-Control', 'private, no-store');
+        }
+
+        return $response;
+    }
+
+    /**
+     * The body of an entry page: the record itself plus every editing and
+     * media prop, held back entirely while the entry is locked.
+     *
+     * @return array<string, mixed>
+     */
+    private function bodyProps(Model $model): array
+    {
+        if ($model instanceof Appearance || $model instanceof Activity || $model instanceof Note) {
+            $model->load('media');
+        }
+
+        return [
             'entry' => $model instanceof Food
                 ? $this->foodDay($model)
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
-            'source' => $this->source($model),
             // Editing in place, offered only for hand-authored types: a synced
             // activity has no form, and inventing one would let an edit be
             // silently overwritten by the next sync.
@@ -129,7 +182,29 @@ class EntryController extends Controller
                     'track' => $model->track,
                 ])
                 : null,
-        ]);
+        ];
+    }
+
+    /** The owner's draft at a dated address; drafts have no spine row, so each draftable type is checked by date and slug. */
+    private function draftAt(string $date, string $slug): ?Model
+    {
+        foreach (Datasets::all() as $dataset) {
+            if (! $dataset->draftable()) {
+                continue;
+            }
+
+            $draft = $dataset->model()::query()
+                ->where('status', EntryStatus::Draft)
+                ->whereDate('occurred_at', $date)
+                ->get()
+                ->first(fn (Model $model): bool => $model->slug() === $slug);
+
+            if ($draft !== null) {
+                return $draft;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -146,13 +221,17 @@ class EntryController extends Controller
     }
 
     /**
-     * Local-time display fields for the entry header.
+     * Local-time display fields for the entry header, all null for an undated draft.
      *
-     * @return array{occurredAt: string, occurredLabel: string, occurredOffset: string}
+     * @return array{occurredAt: ?string, occurredLabel: ?string, occurredOffset: ?string}
      */
-    private function occurredFields(CarbonInterface $occurredAt, ?string $timezone): array
+    private function occurredFields(Model $model): array
     {
-        $local = LocalTime::for($occurredAt, $timezone);
+        if ($model->occurred_at === null) {
+            return ['occurredAt' => null, 'occurredLabel' => null, 'occurredOffset' => null];
+        }
+
+        $local = LocalTime::for($model->occurredAtForDisplay(), $model->timezone());
 
         return [
             'occurredAt' => $local['iso'],
@@ -225,24 +304,17 @@ class EntryController extends Controller
         // The show a TV episode belongs to has its own page gathering every
         // watched episode, so the detail row links to it rather than printing
         // the title as dead text. Null for a film, a book, or a show we hold no
-        // Series row for.
-        if ($model instanceof Media) {
-            $data = [...$data, ...(new MediaArtwork)($model)];
-            $data['showTitle'] = ShowTitle::for($model);
-            $data['showUrl'] = ShowTitle::for($model) === null ? null : $model->series?->url();
+        // TvShow row for.
+        if ($model instanceof Film || $model instanceof TvEpisode || $model instanceof Book) {
+            $data = [...$data, ...(new EntryArtwork)($model)];
+            $data['showTitle'] = $model instanceof TvEpisode ? ShowTitle::for($model) : null;
+            $data['showUrl'] = $data['showTitle'] === null ? null : $model->tvShow?->url();
         }
 
-        // The frontend calls this attribute "category" regardless of what the
-        // column is named, and the venue's category is already a taxonomy with
-        // its own archive, so the detail page links to it rather than printing
-        // it as dead text.
-        if ($model instanceof Place) {
-            $data['category'] = $data['type'] ?? null;
-            unset($data['type']);
-
-            if ($model->type !== null) {
-                $data['categoryHref'] = '/'.TypeRegistry::find('place')['taxonomy']['base'].'/'.Str::slug($model->type);
-            }
+        // A venue's category is already a taxonomy with its own archive, so the
+        // detail page links to it rather than printing it as dead text.
+        if ($model instanceof Place && $model->type !== null) {
+            $data['categoryHref'] = '/'.TypeRegistry::find('place')['taxonomy']['base'].'/'.Str::slug($model->type);
         }
 
         if ($model instanceof Event) {

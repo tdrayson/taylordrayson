@@ -18,7 +18,7 @@ final class ThisWeekWithEpisodeCount
 
     public function __invoke(): int
     {
-        return Cache::remember(self::KEY, now()->endOfDay(), fn (): int => ThisWeekWith::query()->count());
+        return Cache::remember(self::KEY, now()->endOfDay(), fn (): int => ThisWeekWith::query()->listed()->count());
     }
 
     /** Drop the cached count, so the next read recomputes it. */

@@ -87,4 +87,9 @@ final class FlightDataset extends BaseDataset
     {
         return Taxonomies::airline();
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }

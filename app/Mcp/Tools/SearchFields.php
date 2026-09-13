@@ -23,7 +23,7 @@ class SearchFields extends Tool
             return Response::json(['types' => $schema]);
         }
 
-        $type = Datasets::resolveOne($type)?->type()->value ?? $type;
+        $type = Datasets::for($type)?->type()->value ?? $type;
 
         $match = collect($schema)->firstWhere('type', $type);
 

@@ -9,7 +9,7 @@ use function Pest\Laravel\get;
 it('serves the portable text array in entry.content for an article page', function () {
     $article = Article::factory()->create([
         'occurred_at' => '2026-03-15 09:00:00',
-        'published' => true,
+        'status' => 'published',
         'content' => [
             PortableText::block('Hello World', 'h2'),
             PortableText::block('A paragraph of body text.'),
@@ -27,7 +27,7 @@ it('serves the portable text array in entry.content for an article page', functi
 it('serves the portable text array in content for a published page', function () {
     $page = Page::factory()->create([
         'slug' => 'about',
-        'published' => true,
+        'status' => 'published',
         'content' => [
             PortableText::block('About', 'h2'),
             PortableText::block('Some page body.'),
@@ -43,7 +43,7 @@ it('serves the portable text array in content for a published page', function ()
 it('shows a timeline card excerpt matching the plain text of the article content', function () {
     $article = Article::factory()->create([
         'occurred_at' => '2026-03-15 09:00:00',
-        'published' => true,
+        'status' => 'published',
         'content' => [
             PortableText::block('Hello World', 'h2'),
             PortableText::block('A short paragraph.'),

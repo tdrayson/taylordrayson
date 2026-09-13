@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\FoodTimelineObserver;
@@ -31,10 +32,12 @@ use Spatie\MediaLibrary\HasMedia;
     'fibre',
     'cholesterol',
     'sodium',
+    'status',
+    'password',
 ])]
 class Food extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasTimelineEntry;
 
     protected $table = 'food';
 
@@ -63,6 +66,21 @@ class Food extends Model implements HasMedia, Timelineable
                 $food->occurred_at = $food->occurred_at->copy()->endOfDay();
             }
         });
+
+        // A food day is one entry, so a newly synced row (no status of its
+        // own) joins the status the day already has rather than the model
+        // default, or a sync could republish a day the owner unlisted. The
+        // day's existing status always wins, even over a status the new row
+        // was explicitly given.
+        static::creating(function (self $food): void {
+            $sibling = $food->occurred_at === null
+                ? null
+                : static::whereDate('occurred_at', $food->occurred_at->toDateString())->first();
+
+            if ($sibling !== null) {
+                $food->status = $sibling->status;
+            }
+        });
     }
 
     /**
@@ -76,6 +94,6 @@ class Food extends Model implements HasMedia, Timelineable
 
     public function slug(): string
     {
-        return 'calories';
+        return 'food';
     }
 }

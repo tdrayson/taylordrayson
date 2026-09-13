@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
 /**
@@ -35,6 +36,8 @@ final class EventFields
             FieldData::optional('organiser', 'Organiser', FieldType::Text),
             FieldData::optional('url', 'Link', FieldType::Url),
             FieldData::optional('description', 'About', FieldType::Textarea),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

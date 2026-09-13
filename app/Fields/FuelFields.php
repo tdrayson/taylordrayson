@@ -4,6 +4,7 @@ namespace App\Fields;
 
 use App\Actions\Fuel\DeriveFuelFigures;
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
 /**
@@ -36,6 +37,8 @@ final class FuelFields
             FieldData::optional('odometer', 'Odometer', FieldType::Number, suffix: 'mi'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 

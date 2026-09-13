@@ -67,7 +67,7 @@ it('matches the registry entry each type has today', function (Dataset $dataset)
 
 it('feeds the search schema from each dataset', function (Dataset $dataset) {
     $key = $dataset->type()->value;
-    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year']));
+    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year', 'status']));
 
     expect(array_keys($fields))->toBe(array_keys($dataset->searchFields()))
         ->and(SearchSchema::textColumns()[$key] ?? [])->toBe($dataset->textColumns());
@@ -86,7 +86,9 @@ it('counts entries in the nouns the more page uses', function () {
         'activity' => ['activity', 'activities'],
         'sleep' => ['night', 'nights'],
         'food' => ['day', 'days'],
-        'media' => ['logged', 'logged'],
+        'film' => ['film', 'films'],
+        'tv-episode' => ['episode', 'episodes'],
+        'book' => ['book', 'books'],
         'event' => ['event', 'events'],
         'appearance' => ['appearance', 'appearances'],
         'this-week-with' => ['episode', 'episodes'],
@@ -106,7 +108,9 @@ it('groups every type into a kind', function () {
         'activity' => 'health',
         'sleep' => 'health',
         'food' => 'health',
-        'media' => 'watching',
+        'film' => 'watching',
+        'tv-episode' => 'watching',
+        'book' => 'watching',
         'event' => 'going-out',
         'appearance' => 'speaking',
         'this-week-with' => 'speaking',

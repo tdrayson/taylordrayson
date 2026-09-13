@@ -292,8 +292,8 @@ it('filters the project archive by relational tag slug', function () {
 });
 
 it('filters the article archive by relational tag slug', function () {
-    $laravel = Article::factory()->create(['published' => true, 'title' => 'Laravel Tips', 'occurred_at' => now()->subDay()]);
-    $other = Article::factory()->create(['published' => true, 'title' => 'A Day Out', 'occurred_at' => now()->subDays(2)]);
+    $laravel = Article::factory()->create(['status' => 'published', 'title' => 'Laravel Tips', 'occurred_at' => now()->subDay()]);
+    $other = Article::factory()->create(['status' => 'published', 'title' => 'A Day Out', 'occurred_at' => now()->subDays(2)]);
     $laravel->syncTagNames(['Laravel']);
     $other->syncTagNames(['Travel']);
 
@@ -304,8 +304,8 @@ it('filters the article archive by relational tag slug', function () {
 });
 
 it('hides tags used only on unpublished articles from guest archive chips', function () {
-    $public = Article::factory()->create(['published' => true, 'title' => 'Public Post', 'occurred_at' => now()->subDay()]);
-    $secret = Article::factory()->create(['published' => false, 'title' => 'Secret Launch Post', 'occurred_at' => now()->subDays(2)]);
+    $public = Article::factory()->create(['status' => 'published', 'title' => 'Public Post', 'occurred_at' => now()->subDay()]);
+    $secret = Article::factory()->create(['status' => 'draft', 'title' => 'Secret Launch Post', 'occurred_at' => now()->subDays(2)]);
     $public->syncTagNames(['Public Topic']);
     $secret->syncTagNames(['Secret Launch']);
 
@@ -317,9 +317,9 @@ it('hides tags used only on unpublished articles from guest archive chips', func
     get('/articles/secret-launch')->assertNotFound();
 });
 
-it('shows draft-only tags to the authenticated user', function () {
-    $public = Article::factory()->create(['published' => true, 'title' => 'Public Post', 'occurred_at' => now()->subDay()]);
-    $secret = Article::factory()->create(['published' => false, 'title' => 'Secret Launch Post', 'occurred_at' => now()->subDays(2)]);
+it('hides draft-only tags from the owner too', function () {
+    $public = Article::factory()->create(['status' => 'published', 'title' => 'Public Post', 'occurred_at' => now()->subDay()]);
+    $secret = Article::factory()->create(['status' => 'draft', 'title' => 'Secret Launch Post', 'occurred_at' => now()->subDays(2)]);
     $public->syncTagNames(['Public Topic']);
     $secret->syncTagNames(['Secret Launch']);
 
@@ -327,7 +327,7 @@ it('shows draft-only tags to the authenticated user', function () {
 
     get('/articles')->assertInertia(fn ($page) => $page
         ->where('chips', fn ($chips) => collect($chips)->pluck('label')->contains('Public Topic')
-            && collect($chips)->pluck('label')->contains('Secret Launch'))
+            && ! collect($chips)->pluck('label')->contains('Secret Launch'))
     );
 });
 
@@ -383,12 +383,12 @@ it('omits the tag bridge when no tag matches the taxonomy value', function () {
     get('/activities/run')->assertOk()->assertInertia(fn ($page) => $page->where('tagLink', null));
 });
 
-it('gates the tag bridge on visibility for guests', function () {
+it('gates the tag bridge on listed entries, for guest and owner alike', function () {
     // A run activity renders /activities/run via its type column, untagged itself
     // (a column-backed archive renders regardless of tags, unlike tag-backed ones).
     Activity::factory()->create(['type' => 'run', 'occurred_at' => now()->subDay()]);
-    // The matching "run" tag exists, but lives only on an unpublished article.
-    $draft = Article::factory()->create(['published' => false, 'occurred_at' => now()->subDays(2)]);
+    // The matching "run" tag exists, but lives only on a draft article.
+    $draft = Article::factory()->create(['status' => 'draft', 'occurred_at' => now()->subDays(2)]);
     $draft->syncTagNames(['Run']);
 
     // Guest: nothing visible resolves for the tag, so no bridge is offered, and
@@ -396,10 +396,10 @@ it('gates the tag bridge on visibility for guests', function () {
     get('/activities/run')->assertOk()->assertInertia(fn ($page) => $page->where('tagLink', null));
     get('/tags/run')->assertNotFound();
 
-    // Owner: the draft-only tag is visible, so the bridge appears and resolves.
+    // Owner: listings are for visitors, so the owner gets the same answer.
     actingAs(User::factory()->create());
-    get('/activities/run')->assertInertia(fn ($page) => $page->where('tagLink.slug', 'run'));
-    get('/tags/run')->assertOk();
+    get('/activities/run')->assertInertia(fn ($page) => $page->where('tagLink', null));
+    get('/tags/run')->assertNotFound();
 });
 
 function archiveTitlesContains($groups, string $title): bool

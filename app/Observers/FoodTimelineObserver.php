@@ -3,9 +3,11 @@
 namespace App\Observers;
 
 use App\Models\Food;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Queries\LoggingStreak;
 use App\Support\EntryInstant;
+use App\Support\TimelineUrlSlug;
 
 class FoodTimelineObserver
 {
@@ -30,7 +32,7 @@ class FoodTimelineObserver
         // both read from.
         $occurredAt = $food->occurred_at->copy()->endOfDay();
 
-        TimelineEntry::updateOrCreate(
+        $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->updateOrCreate(
             [
                 'dataset' => (new Food)->getMorphClass(),
                 'entry_id' => $firstFood->id,
@@ -38,9 +40,11 @@ class FoodTimelineObserver
             [
                 'occurred_at' => $occurredAt,
                 'occurred_utc' => EntryInstant::utc($occurredAt, $firstFood->timezone()),
-                'url_slug' => $firstFood->slug(),
+                'status' => $firstFood->status,
             ],
         );
+
+        TimelineUrlSlug::ensure($entry, $firstFood->slug());
     }
 
     public function deleted(Food $food): void
@@ -57,15 +61,15 @@ class FoodTimelineObserver
         $dataset = (new Food)->getMorphClass();
 
         if (! $remaining) {
-            TimelineEntry::where('dataset', $dataset)
+            TimelineEntry::withoutGlobalScope(ListedScope::class)->where('dataset', $dataset)
                 ->where('entry_id', $food->id)
                 ->delete();
 
             return;
         }
 
-        TimelineEntry::where('dataset', $dataset)
+        TimelineEntry::withoutGlobalScope(ListedScope::class)->where('dataset', $dataset)
             ->where('entry_id', $food->id)
-            ->update(['entry_id' => $remaining->id]);
+            ->update(['entry_id' => $remaining->id, 'status' => $remaining->status->value]);
     }
 }

@@ -22,8 +22,7 @@ it('exposes local label, offset and offset-aware iso on the entry page', functio
 it('shows the wake time on a sleep entry', function () {
     $sleep = Sleep::factory()->create([
         'occurred_at' => '2026-07-01 06:45:00',
-        'bedtime' => '2026-06-30 23:00:00',
-        'wake_time' => '2026-07-01 06:45:00',
+        'started_at' => '2026-06-30 23:00:00',
     ]);
 
     $this->get($sleep->url())->assertInertia(fn ($page) => $page

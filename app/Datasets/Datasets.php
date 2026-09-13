@@ -4,8 +4,8 @@ namespace App\Datasets;
 
 use App\Enums\TimelineType;
 use App\Models\Page;
-use App\Models\Series;
 use App\Models\Trip;
+use App\Models\TvShow;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,7 +32,9 @@ final class Datasets
             new ActivityDataset,
             new SleepDataset,
             new FoodDataset,
-            new MediaDataset,
+            new FilmDataset,
+            new TvEpisodeDataset,
+            new BookDataset,
             new EventDataset,
             new AppearanceDataset,
             new ThisWeekWithDataset,
@@ -59,7 +61,7 @@ final class Datasets
         return [
             ...array_map(fn (Dataset $dataset): string => $dataset->model(), self::all()),
             'page' => Page::class,
-            'series' => Series::class,
+            'tv-show' => TvShow::class,
             'user' => User::class,
             'trip' => Trip::class,
         ];
@@ -68,46 +70,6 @@ final class Datasets
     public static function for(TimelineType|string $type): ?Dataset
     {
         return self::all()[$type instanceof TimelineType ? $type->value : $type] ?? null;
-    }
-
-    /**
-     * Keys that no longer exist but are still accepted from outside, mapped to what replaced them.
-     *
-     * @var array<string, list<string>>
-     */
-    public const ALIASES = [
-        'calorie' => ['food'],
-        'checkin' => ['place'],
-        'podcast' => ['this-week-with'],
-    ];
-
-    /**
-     * Every dataset a key names: itself when live, its replacements when an alias.
-     *
-     * @return list<Dataset>
-     */
-    public static function resolve(string $key): array
-    {
-        $key = trim($key);
-
-        if (($dataset = self::for($key)) !== null) {
-            return [$dataset];
-        }
-
-        return array_values(array_filter(array_map(
-            fn (string $target): ?Dataset => self::for($target),
-            self::ALIASES[$key] ?? [],
-        )));
-    }
-
-    /**
-     * The single dataset a key names, or null when it names none or several.
-     */
-    public static function resolveOne(string $key): ?Dataset
-    {
-        $datasets = self::resolve($key);
-
-        return count($datasets) === 1 ? $datasets[0] : null;
     }
 
     /**

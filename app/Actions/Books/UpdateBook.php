@@ -2,7 +2,7 @@
 
 namespace App\Actions\Books;
 
-use App\Models\Media;
+use App\Models\Book;
 
 class UpdateBook
 {
@@ -12,7 +12,7 @@ class UpdateBook
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function __invoke(Media $book, array $attributes): Media
+    public function __invoke(Book $book, array $attributes): Book
     {
         if (array_key_exists('meta', $attributes)) {
             $attributes['meta'] = $book->meta->merge($attributes['meta']);

@@ -56,19 +56,12 @@ class SleepProcessor implements HealthProcessor
      */
     private function store(array $record): void
     {
-        $bedtime = $record['bedtime'];
-        $wakeTime = $record['wake_time'] ?? $record['occurred_at'];
-
         $existing = Sleep::query()
-            ->where('bedtime', '<', $wakeTime)
-            ->where('wake_time', '>', $bedtime)
+            ->where('started_at', '<', $record['occurred_at'])
+            ->where('occurred_at', '>', $record['started_at'])
             ->first();
 
-        // Stored at the moment it ended, so ordering and the card read from the
-        // row rather than from an accessor over it.
-        $attributes = [...$record, 'occurred_at' => $wakeTime];
-
-        $existing ? $existing->forceFill($attributes)->save() : Sleep::query()->create($attributes);
+        $existing ? $existing->forceFill($record)->save() : Sleep::query()->create($record);
     }
 
     /**
@@ -117,7 +110,7 @@ class SleepProcessor implements HealthProcessor
         $recent = [];
 
         foreach ($nights as $night) {
-            $bedtimeMinutes = $this->bedtimeMinutes((string) $night->bedtime);
+            $bedtimeMinutes = $this->bedtimeMinutes((string) $night->started_at);
             $baseline = count($recent) >= self::BASELINE_MINIMUM ? $this->median($recent) : null;
 
             $scores = $this->scorer->score([

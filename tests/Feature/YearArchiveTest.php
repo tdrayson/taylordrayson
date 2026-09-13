@@ -1,13 +1,14 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
+use App\Models\Book;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -27,7 +28,7 @@ it('serves real year numbers, entry count and heatmap', function () {
     Activity::factory()->create(['occurred_at' => '2025-03-10 18:00:00', 'distance' => 7000]);
     Sleep::factory()->create(['occurred_at' => '2025-03-11 00:00:00', 'duration' => 8 * 3600]);
     Flight::factory()->create(['occurred_at' => '2025-06-01 10:00:00']);
-    Article::factory()->create(['occurred_at' => '2025-07-01 12:00:00', 'published' => true]);
+    Article::factory()->create(['occurred_at' => '2025-07-01 12:00:00', 'status' => 'published']);
     Note::factory()->create(['occurred_at' => '2025-07-02 12:00:00']);
 
     get('/2025')
@@ -81,9 +82,9 @@ it('counts tv episodes (not just films) in the "Watched" stat', function () {
     // Regression guard for the periodStats bug where `whereIn('type', ['film', 'show'])`
     // used the non-existent value 'show' instead of the real 'episode', silently
     // undercounting TV in the year/month "Watched" stat.
-    Media::factory()->create(['type' => MediaType::TvEpisode, 'occurred_at' => '2025-04-01 20:00:00']);
-    Media::factory()->create(['type' => MediaType::Film, 'occurred_at' => '2025-04-02 20:00:00']);
-    Media::factory()->create(['type' => MediaType::Book, 'occurred_at' => '2025-04-03 20:00:00']);
+    TvEpisode::factory()->create(['occurred_at' => '2025-04-01 20:00:00']);
+    Film::factory()->create(['occurred_at' => '2025-04-02 20:00:00']);
+    Book::factory()->create(['occurred_at' => '2025-04-03 20:00:00']);
 
     get('/2025')->assertInertia(fn ($page) => $page
         ->where('stats', fn ($stats) => collect($stats)->firstWhere('label', 'Watched')['value'] === '2'));

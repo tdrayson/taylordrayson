@@ -49,7 +49,7 @@ final class FoodDataset extends BaseDataset
 
     public function keywords(): string
     {
-        return 'food eat meal nutrition';
+        return 'food eat meal nutrition calorie calories';
     }
 
     /**

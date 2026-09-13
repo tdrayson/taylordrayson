@@ -35,7 +35,7 @@ class Stats extends Tool
             return Response::json(($this->forPeriod)($start, $end));
         }
 
-        $dataset = Datasets::resolveOne($input['type']);
+        $dataset = Datasets::for($input['type']);
 
         if ($dataset === null) {
             return Response::error("No type called {$input['type']}. Call data_freshness to list them.");

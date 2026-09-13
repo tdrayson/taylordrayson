@@ -3,21 +3,23 @@
 namespace Database\Seeders;
 
 use App\Enums\ActivityDiscipline;
-use App\Enums\MediaType;
+use App\Enums\ProjectStage;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
+use App\Models\Book;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Project;
-use App\Models\Series;
 use App\Models\Sleep;
 use App\Models\ThisWeekWith;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -42,9 +44,9 @@ class DatabaseSeeder extends Seeder
     ];
 
     /**
-     * @var array<string, Series> Show title => Series row, populated by seedTvSeries().
+     * @var array<string, TvShow> Show title => TvShow row, populated by seedTvShows().
      */
-    private array $tvSeries = [];
+    private array $tvShows = [];
 
     /**
      * Seed the application's database.
@@ -56,20 +58,20 @@ class DatabaseSeeder extends Seeder
             'email' => 'taylor@example.com',
         ]);
 
-        $this->seedTvSeries();
+        $this->seedTvShows();
         $this->seedOldFoodStreak();
         $this->seedRecentData();
         $this->seedOneOffData();
     }
 
     /**
-     * Create one Series row per demo show so seeded episodes can be linked
-     * via series_id (needed for /media/tv and the timeline binge-collapse).
+     * Create one TvShow row per demo show so seeded episodes can be linked
+     * via tv_show_id (needed for /tv-shows and the timeline binge-collapse).
      */
-    private function seedTvSeries(): void
+    private function seedTvShows(): void
     {
         foreach (self::TV_SHOWS as $show) {
-            $this->tvSeries[$show] = Series::factory()->create([
+            $this->tvShows[$show] = TvShow::factory()->create([
                 'title' => $show,
                 'slug' => Str::slug($show),
                 'meta' => [
@@ -135,11 +137,11 @@ class DatabaseSeeder extends Seeder
      */
     private function seedOneOffData(): void
     {
-        $statuses = ['active', 'active', 'maintained', 'archived', 'on_hold'];
+        $stages = [ProjectStage::Active, ProjectStage::Active, ProjectStage::Maintained, ProjectStage::Archived, ProjectStage::OnHold];
 
-        foreach ($statuses as $index => $status) {
+        foreach ($stages as $index => $stage) {
             $project = Project::factory()->create([
-                'status' => $status,
+                'stage' => $stage,
                 'occurred_at' => now()->subDays(fake()->numberBetween(10, 170)),
             ]);
 
@@ -272,9 +274,8 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $film = Media::factory()->create([
+        $film = Film::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => MediaType::Film,
             'meta' => [
                 'year' => fake()->numberBetween(1990, 2026),
                 'runtime' => fake()->numberBetween(80, 200),
@@ -304,18 +305,17 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Create a run of consecutive episodes for one show on one day, linked
-     * to its Series row via series_id.
+     * to its TvShow row via tv_show_id.
      */
     private function seedEpisodeBatch(Carbon $date, string $showTitle, int $seasonNumber, int $startEpisode, int $episodeCount): void
     {
-        $series = $this->tvSeries[$showTitle];
+        $tvShow = $this->tvShows[$showTitle];
 
         for ($i = 0; $i < $episodeCount; $i++) {
-            $episode = Media::factory()->create([
+            $episode = TvEpisode::factory()->create([
                 'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 23), fake()->numberBetween(0, 59)),
-                'type' => MediaType::TvEpisode,
                 'title' => fake()->words(fake()->numberBetween(2, 4), true),
-                'series_id' => $series->id,
+                'tv_show_id' => $tvShow->id,
                 'meta' => [
                     'show_title' => $showTitle,
                     'season' => $seasonNumber,
@@ -410,9 +410,8 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $book = Media::factory()->create([
+        $book = Book::factory()->create([
             'occurred_at' => $date->copy()->setTime(fake()->numberBetween(19, 22), fake()->numberBetween(0, 59)),
-            'type' => MediaType::Book,
             'meta' => [
                 'author' => fake()->name(),
                 'isbn' => fake()->isbn13(),

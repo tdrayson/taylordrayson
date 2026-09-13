@@ -184,11 +184,13 @@
         }
     }
 
-    /* 13 data-type accent colours — one per timeline data type */
+    /* Data-type accent colours — one per timeline data type */
     --color-activity: hsl(152 55% 40%);
     --color-sleep: hsl(245 50% 58%);
     --color-food: hsl(25 90% 52%);
-    --color-media: hsl(340 60% 52%);
+    --color-film: hsl(340 60% 52%);
+    --color-tv-episode: hsl(95 45% 40%);
+    --color-book: hsl(290 45% 52%);
     --color-event: hsl(270 55% 52%);
     --color-appearance: hsl(320 55% 50%);
     --color-this-week-with: hsl(210 65% 48%);
@@ -198,6 +200,9 @@
     --color-project: hsl(185 60% 42%);
     --color-article: hsl(215 18% 48%);
     --color-note: hsl(36 40% 50%);
+
+    /* The editor's caution callout, split off the old media hue */
+    --color-caution: hsl(340 60% 52%);
 
     /* Sleep stage colours */
     --color-sleep-awake: hsl(0 70% 72%);

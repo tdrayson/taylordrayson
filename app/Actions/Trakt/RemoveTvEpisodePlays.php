@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Actions\Trakt;
+
+use App\Data\TraktPruneResult;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
+use App\Services\Trakt\Client;
+use Illuminate\Support\Collection;
+
+/**
+ * Remove whole episodes from Trakt history and clear the local rows mirroring
+ * them. The episode-level sibling of {@see RemovePlays}. A local row is deleted
+ * only once Trakt confirms, so a failed removal is recoverable.
+ */
+final class RemoveTvEpisodePlays
+{
+    public function __construct(private readonly Client $trakt) {}
+
+    /**
+     * @param  array<int, int>  $episodeTraktIds  Episode trakt ids (meta.ids.trakt), NOT history ids.
+     */
+    public function __invoke(array $episodeTraktIds, string $accessToken, bool $pruneEmptyTvShows = false): TraktPruneResult
+    {
+        $episodeTraktIds = array_map('intval', $episodeTraktIds);
+
+        $this->trakt->removeEpisodePlays($episodeTraktIds, $accessToken);
+
+        // Confirm against authenticated history rather than the remove
+        // endpoint's own counts: those have proven unreliable (a false
+        // deleted count, and a zero-deleted response for plays already gone),
+        // and clearing local rows on that basis has twice lost data. An
+        // episode absent from the real history is genuinely gone; one still
+        // present was not removed and its local row must stay.
+        $stillPresent = array_flip($this->trakt->authenticatedEpisodeTraktIdsInHistory($accessToken));
+
+        $confirmedGone = array_values(array_filter($episodeTraktIds, fn (int $id): bool => ! isset($stillPresent[$id])));
+        $notFound = array_values(array_filter($episodeTraktIds, fn (int $id): bool => isset($stillPresent[$id])));
+
+        $rows = $this->localRowsFor($confirmedGone);
+        $touchedTvShows = $rows->pluck('tv_show_id')->filter()->unique();
+
+        $clearedRows = 0;
+
+        foreach ($rows as $row) {
+            $row->delete();
+            $clearedRows++;
+        }
+
+        return new TraktPruneResult(
+            requested: count($episodeTraktIds),
+            deleted: count($confirmedGone),
+            notFound: $notFound,
+            clearedRows: $clearedRows,
+            clearedTvShows: $pruneEmptyTvShows ? $this->pruneEmptyTvShows($touchedTvShows->all()) : 0,
+        );
+    }
+
+    /**
+     * Local episode rows whose meta trakt id is in the confirmed-gone set. Matched
+     * in PHP rather than by JSON path, which is not portable across drivers.
+     *
+     * @param  array<int, int>  $episodeTraktIds
+     * @return Collection<int, TvEpisode>
+     */
+    private function localRowsFor(array $episodeTraktIds): Collection
+    {
+        if ($episodeTraktIds === []) {
+            return collect();
+        }
+
+        $wanted = array_flip($episodeTraktIds);
+
+        return TvEpisode::query()
+            ->where('source', 'trakt')
+            ->get()
+            ->filter(fn (TvEpisode $row): bool => isset($wanted[(int) data_get($row->meta, 'ids.trakt')]));
+    }
+
+    /**
+     * @param  array<int, int>  $tvShowIds
+     */
+    private function pruneEmptyTvShows(array $tvShowIds): int
+    {
+        return TvShow::query()
+            ->whereIn('id', $tvShowIds)
+            ->whereDoesntHave('episodes')
+            ->delete();
+    }
+}

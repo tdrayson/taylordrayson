@@ -1,15 +1,14 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Concerns\Timelineable;
 use App\Models\Food;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Series;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 
 use function Pest\Laravel\get;
 
@@ -102,7 +101,7 @@ it('aggregates the whole day for a food entry', function () {
 });
 
 it('exposes tags as linkable {name, slug, url} objects on an article entry', function () {
-    $article = Article::factory()->create(['published' => true, 'occurred_at' => '2026-03-15 09:00:00']);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => '2026-03-15 09:00:00']);
     $article->syncTagNames(['Laravel', 'PHP']);
 
     get('/'.entryUrl($article))->assertInertia(fn ($page) => $page
@@ -123,53 +122,50 @@ it('returns 404 for an unknown entry slug', function () {
     get('/2026/03/15/does-not-exist')->assertNotFound();
 });
 
-it('renders a media entry via Inertia', function () {
-    $media = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+it('renders an episode entry via Inertia', function () {
+    $episode = TvEpisode::factory()->create([
         'title' => 'Episode 1',
         'occurred_at' => '2026-03-15 21:00:00',
         'meta' => ['show_title' => 'Jet Lag: The Game', 'season' => 19, 'episode' => 1],
     ]);
 
-    get('/'.entryUrl($media))
+    get('/'.entryUrl($episode))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Entry')
-            ->where('type', 'media')
+            ->where('type', 'tv-episode')
             ->where('title', 'Episode 1')
             ->where('entry.meta.show_title', 'Jet Lag: The Game')
         );
 });
 
 it('links an episode to its show page', function () {
-    $series = Series::factory()->create(['title' => 'Ted Lasso', 'slug' => 'ted-lasso']);
+    $tvShow = TvShow::factory()->create(['title' => 'Ted Lasso', 'slug' => 'ted-lasso']);
 
-    $media = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+    $episode = TvEpisode::factory()->create([
         'title' => 'Riches of Embarrassment',
-        'series_id' => $series->id,
+        'tv_show_id' => $tvShow->id,
         'occurred_at' => '2026-09-03 21:00:00',
         'meta' => ['show_title' => 'Ted Lasso', 'season' => 4, 'episode' => 4],
     ]);
 
-    get('/'.entryUrl($media))
+    get('/'.entryUrl($episode))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('entry.showTitle', 'Ted Lasso')
-            ->where('entry.showUrl', '/media/tv/ted-lasso')
+            ->where('entry.showUrl', '/tv-shows/ted-lasso')
         );
 });
 
-it('leaves the show unlinked when no series record backs it', function () {
-    $media = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+it('leaves the show unlinked when no tv show record backs it', function () {
+    $episode = TvEpisode::factory()->create([
         'title' => 'Episode 1',
-        'series_id' => null,
+        'tv_show_id' => null,
         'occurred_at' => '2026-09-04 21:00:00',
         'meta' => ['show_title' => 'Jet Lag: The Game', 'season' => 19, 'episode' => 1],
     ]);
 
-    get('/'.entryUrl($media))
+    get('/'.entryUrl($episode))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('entry.showTitle', 'Jet Lag: The Game')
@@ -187,7 +183,7 @@ it('links a check-in category to its archive', function () {
     get('/'.entryUrl($place))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('entry.category', 'Movie Theater')
+            ->where('entry.type', 'Movie Theater')
             ->where('entry.categoryHref', '/places/movie-theater')
             ->missing('entry.is_mayor')
         );

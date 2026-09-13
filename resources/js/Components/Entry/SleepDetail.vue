@@ -15,8 +15,8 @@ const props = defineProps({
 const hasScore = computed(() => props.entry.score != null);
 
 const stats = computed(() => [
-    { label: 'Bedtime', value: time(props.entry.bedtime) },
-    { label: 'Woke', value: time(props.entry.wake_time) },
+    { label: 'Bedtime', value: time(props.entry.started_at) },
+    { label: 'Woke', value: time(props.entry.occurred_at) },
 ]);
 
 const fallbackSegments = computed(() =>

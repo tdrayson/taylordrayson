@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\ThisWeekWith;
 use App\Support\PortableText;
@@ -137,7 +137,7 @@ it('offers every year the timeline holds something in', function () {
 it('renders different card types together', function () {
     Activity::factory()->create(['name' => 'Morning Park Run', 'occurred_at' => now()->subHour()]);
     Flight::factory()->create(['origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'occurred_at' => now()->subHours(2)]);
-    Media::factory()->create(['title' => 'The Shawshank Redemption', 'type' => 'film', 'occurred_at' => now()->subHours(3)]);
+    Film::factory()->create(['title' => 'The Shawshank Redemption', 'occurred_at' => now()->subHours(3)]);
     Note::factory()->create(['content' => 'A unique test note for verification', 'occurred_at' => now()->subHours(4)]);
 
     get('/')->assertInertia(function ($page) {

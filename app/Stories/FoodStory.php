@@ -64,7 +64,7 @@ class FoodStory implements Story
      */
     public function build(): array
     {
-        $items = Food::query()->orderBy('occurred_at')->get();
+        $items = Food::query()->listed()->orderBy('occurred_at')->get();
 
         if ($items->isEmpty()) {
             return ['hasData' => false];

@@ -1,17 +1,17 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Airport;
 use App\Models\Article;
 use App\Models\Flight;
 use App\Models\Fuel;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
+use App\Models\TvEpisode;
+use App\Support\OgMeta;
 
 use function Pest\Laravel\get;
 
@@ -24,9 +24,8 @@ use function Pest\Laravel\get;
  */
 it('describes a sleep entry with its duration, date and window', function () {
     $sleep = Sleep::factory()->create([
-        'occurred_at' => '2026-08-24 00:00:00',
-        'bedtime' => '2026-08-23 23:30:00',
-        'wake_time' => '2026-08-24 08:51:00',
+        'occurred_at' => '2026-08-24 08:51:00',
+        'started_at' => '2026-08-23 23:30:00',
         'duration' => 33660,
         'score' => 80,
     ]);
@@ -54,9 +53,11 @@ it('dates a log entry title so repeated names stay distinct', function () {
 });
 
 it('names the show in front of an episode title', function () {
-    $episode = Media::factory()->create([
-        'type' => MediaType::TvEpisode,
+    // tv_show_id null: the tvShow relation would otherwise win over
+    // meta.show_title, which is what this asserts on.
+    $episode = TvEpisode::factory()->create([
         'title' => 'Netherlands (Race)',
+        'tv_show_id' => null,
         'occurred_at' => '2026-08-23 20:00:00',
         'meta' => ['show_title' => 'Formula 1', 'season' => 2026, 'episode' => 69],
     ]);
@@ -89,7 +90,7 @@ it('prefers an article excerpt over its opening prose', function () {
     $article = Article::factory()->create([
         'title' => 'A Title',
         'excerpt' => 'The hand-written summary.',
-        'published' => true,
+        'status' => 'published',
         'occurred_at' => '2026-08-01 10:00:00',
         'content' => [['_type' => 'block', 'children' => [['text' => 'The opening prose instead.']]]],
     ]);
@@ -100,6 +101,23 @@ it('prefers an article excerpt over its opening prose', function () {
             ->where('og.title', 'A Title')
             ->where('og.description', 'The hand-written summary.')
         );
+});
+
+it('gives a private article with no excerpt the site description, never its body', function () {
+    $article = Article::factory()->create([
+        'title' => 'Kept close',
+        'excerpt' => null,
+        'status' => 'private',
+        'password' => 'hunter2',
+        'occurred_at' => '2026-08-01 10:00:00',
+        'content' => [['_type' => 'block', 'children' => [['text' => 'Only after the password appears anywhere.']]]],
+    ]);
+
+    $response = get('/'.$article->occurred_at->format('Y/m/d').'/'.$article->slug());
+
+    $response->assertOk()
+        ->assertDontSee('Only after the password appears anywhere')
+        ->assertInertia(fn ($page) => $page->where('og.description', OgMeta::page('Any page', null)['description']));
 });
 
 it('falls back to a note body for its own description', function () {
@@ -153,7 +171,7 @@ it('uses page prose when a page has no excerpt', function () {
         'title' => 'Colophon',
         'slug' => 'colophon',
         'excerpt' => null,
-        'published' => true,
+        'status' => 'published',
         'content' => [['_type' => 'block', 'children' => [['text' => 'How this site is built.']]]],
     ]);
 
@@ -162,6 +180,24 @@ it('uses page prose when a page has no excerpt', function () {
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'How this site is built.')
         );
+});
+
+it('keeps a private page description to the generic fallback, never its body, with no excerpt', function () {
+    Page::factory()->create([
+        'title' => 'Vault',
+        'slug' => 'vault',
+        'excerpt' => null,
+        'status' => 'private',
+        'password' => 'hunter2',
+        'content' => [['_type' => 'block', 'children' => [['text' => 'Only after the password appears anywhere.']]]],
+    ]);
+
+    $response = get('/vault');
+
+    $response->assertOk()
+        ->assertDontSee('Only after the password appears anywhere')
+        ->assertInertia(fn ($page) => $page
+            ->where('og.description', fn (string $value): bool => ! str_contains($value, 'Only after the password')));
 });
 
 it('publishes what I wrote on Strava rather than the numbers it could generate', function () {

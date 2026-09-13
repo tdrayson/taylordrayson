@@ -3,15 +3,15 @@
 namespace App\Queries;
 
 use App\Enums\ActivityDiscipline;
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
+use App\Models\Film;
 use App\Models\Flight;
 use App\Models\Food;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 use Illuminate\Support\Carbon;
 
 /**
@@ -27,7 +27,7 @@ final class PeriodStats
      */
     public function __invoke(Carbon $start, Carbon $end, bool $withSuperlative = false): array
     {
-        $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
+        $between = fn ($query) => $query->listed()->whereBetween('occurred_at', [$start, $end]);
 
         $stats = [];
 
@@ -76,7 +76,7 @@ final class PeriodStats
             }
         }
 
-        $films = $between(Media::query())->whereIn('type', [MediaType::Film->value, MediaType::TvEpisode->value])->count();
+        $films = $between(Film::query())->count() + $between(TvEpisode::query())->count();
 
         if ($films > 0) {
             $stats[] = ['label' => 'Watched', 'value' => number_format($films)];
@@ -94,7 +94,7 @@ final class PeriodStats
             $stats[] = ['label' => 'Places', 'value' => number_format($places)];
         }
 
-        $written = $between(Article::query())->where('published', true)->count() + $between(Note::query())->count();
+        $written = $between(Article::query())->count() + $between(Note::query())->count();
 
         if ($written > 0) {
             $stats[] = ['label' => 'Written', 'value' => number_format($written)];

@@ -1,7 +1,12 @@
 <?php
 
+use App\Actions\Og\BuildEntryOgData;
+use App\Enums\EntryStatus;
 use App\Http\Controllers\OgImageController;
 use App\Models\Activity;
+use App\Models\Note;
+use App\Models\Scopes\ListedScope;
+use App\Models\TimelineEntry;
 use App\Support\OgRenderer;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,17 +52,54 @@ it('404s the per-entry card for an unknown entry', function () {
     $this->get('/og/entry/999999.png')->assertNotFound();
 });
 
-it('serves the preview card for a hyphenated dataset key and its alias', function (string $type) {
+it('serves a hidden entry\'s card only through the signed url its page emits', function (EntryStatus $status) {
+    Storage::fake('local');
+
+    $note = Note::factory()->create([
+        'slug' => 'hidden-card',
+        'occurred_at' => '2026-06-15 09:00:00',
+        'status' => $status,
+        'password' => $status === EntryStatus::Private ? 'hunter2' : null,
+    ]);
+    $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('entry_id', $note->id)->sole();
+    Storage::disk('local')->put('og/'.OgRenderer::generation().'/entry/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png', 'fake-png-bytes');
+
+    $this->get("/og/entry/{$entry->id}.png")->assertNotFound();
+
+    $image = $this->get('/2026/06/15/hidden-card')->inertiaProps('og.image');
+
+    $this->get($image)->assertOk()->assertHeader('content-type', 'image/png');
+    $this->get(str_replace('signature=', 'signature=0', $image))->assertNotFound();
+})->with([
+    'unlisted' => [EntryStatus::Unlisted],
+    'private' => [EntryStatus::Private],
+]);
+
+it('serves a published entry\'s card at its plain url', function () {
+    Storage::fake('local');
+
+    $note = Note::factory()->create(['slug' => 'open-card', 'occurred_at' => '2026-06-15 09:00:00']);
+    $entry = TimelineEntry::query()->where('entry_id', $note->id)->sole();
+    Storage::disk('local')->put('og/'.OgRenderer::generation().'/entry/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png', 'fake-png-bytes');
+
+    $image = $this->get('/2026/06/15/open-card')->inertiaProps('og.image');
+
+    expect($image)->not->toContain('signature=');
+    $this->get("/og/entry/{$entry->id}.png")->assertOk();
+});
+
+it('serves the preview card for a hyphenated dataset key', function () {
     Storage::fake('local');
     Storage::disk('local')->put('og/'.OgRenderer::generation().'/preview/'.md5('this-week-with').'.png', 'fake-png-bytes');
 
-    $this->get("/og/preview/{$type}.png")
+    $this->get('/og/preview/this-week-with.png')
         ->assertOk()
         ->assertHeader('content-type', 'image/png');
-})->with([
-    'canonical hyphenated key' => ['this-week-with'],
-    'alias' => ['podcast'],
-]);
+});
+
+it('404s the preview card for a retired dataset key', function () {
+    $this->get('/og/preview/podcast.png')->assertNotFound();
+});
 
 it('regenerates cards when the og version changes', function () {
     seedCard('Hello world');

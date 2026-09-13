@@ -16,7 +16,7 @@ function category(string $type): string
 
 beforeEach(function () {
     Note::factory()->create(['occurred_at' => now()->subDay()]);
-    Article::factory()->create(['occurred_at' => now()->subDays(2), 'published' => true]);
+    Article::factory()->create(['occurred_at' => now()->subDays(2), 'status' => 'published']);
     Place::factory()->create(['occurred_at' => now()->subDays(3)]);
 });
 
@@ -81,7 +81,7 @@ it('renders the subscribe page with every type and preset', function () {
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Feeds')
-            ->has('types', 13)
+            ->has('types', 15)
             ->has('presets', 8)
             ->where('presets.0.key', 'curated')
         );

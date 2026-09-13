@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import Icon from '../Ui/Icon.vue';
+import Select from '../Ui/Select.vue';
 
 /**
  * The options panel for whichever block the caret is in.
@@ -44,16 +45,14 @@ function update(name, value) {
                 {{ field.label }}
             </label>
 
-            <select
+            <Select
                 v-else-if="field.type === 'select'"
-                :value="attributes[field.name] ?? ''"
+                size="sm"
+                :model-value="attributes[field.name] ?? ''"
+                :options="[{ value: '', label: field.empty ?? field.label }, ...(field.options ?? [])]"
                 :aria-label="field.label"
-                class="rounded-md border border-neutral-100 bg-neutral-0 px-2 py-1 text-meta text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                @change="update(field.name, $event.target.value || null)"
-            >
-                <option value="">{{ field.empty ?? field.label }}</option>
-                <option v-for="option in field.options" :key="option.value" :value="option.value">{{ option.label }}</option>
-            </select>
+                @update:model-value="update(field.name, $event || null)"
+            />
 
             <input
                 v-else

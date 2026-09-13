@@ -28,7 +28,7 @@ class StoreThisWeekWithMedia implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct(private ThisWeekWith $podcast, private bool $force = false) {}
+    public function __construct(private ThisWeekWith $episode, private bool $force = false) {}
 
     /**
      * Never two runs for the same episode at once, so a job released back onto
@@ -38,13 +38,13 @@ class StoreThisWeekWithMedia implements ShouldQueue
      */
     public function middleware(): array
     {
-        return [(new WithoutOverlapping((string) $this->podcast->id))->dontRelease()];
+        return [(new WithoutOverlapping((string) $this->episode->id))->dontRelease()];
     }
 
     public function handle(): void
     {
-        $this->store('cover', $this->podcast->cover_image);
-        $this->store('artwork', $this->podcast->thumbnail);
+        $this->store('cover', $this->episode->cover_image);
+        $this->store('artwork', $this->episode->thumbnail);
     }
 
     /**
@@ -54,7 +54,7 @@ class StoreThisWeekWithMedia implements ShouldQueue
      */
     private function store(string $collection, ?string $url): void
     {
-        if (! $url || ($this->podcast->getFirstMedia($collection) && ! $this->force)) {
+        if (! $url || ($this->episode->getFirstMedia($collection) && ! $this->force)) {
             return;
         }
 
@@ -70,22 +70,22 @@ class StoreThisWeekWithMedia implements ShouldQueue
         } catch (ConnectionException $exception) {
             @unlink($temporaryFile);
 
-            throw new RuntimeException("Could not reach {$url} for episode #{$this->podcast->id}.", previous: $exception);
+            throw new RuntimeException("Could not reach {$url} for episode #{$this->episode->id}.", previous: $exception);
         }
 
         if ($response->failed()) {
             @unlink($temporaryFile);
 
-            throw new RuntimeException("Got {$response->status()} fetching {$url} for episode #{$this->podcast->id}.");
+            throw new RuntimeException("Got {$response->status()} fetching {$url} for episode #{$this->episode->id}.");
         }
 
         $extension = pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION);
 
         // Named after the episode rather than after the publisher's file, so a
         // stored copy says which episode it is without a database lookup.
-        $filename = $this->podcast->slug().($extension ? ".{$extension}" : '');
+        $filename = $this->episode->slug().($extension ? ".{$extension}" : '');
 
-        $this->podcast->clearMediaCollection($collection);
-        $this->podcast->addMedia($temporaryFile)->usingFileName($filename)->toMediaCollection($collection);
+        $this->episode->clearMediaCollection($collection);
+        $this->episode->addMedia($temporaryFile)->usingFileName($filename)->toMediaCollection($collection);
     }
 }

@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
+use App\Models\Scopes\ListedScope;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 
+#[ScopedBy([ListedScope::class])]
 #[Fillable([
     'dataset',
     'entry_id',
@@ -24,6 +28,7 @@ use Spatie\Feed\FeedItem;
     'ends_at',
     'occurred_utc',
     'url_slug',
+    'status',
 ])]
 class TimelineEntry extends Model implements Feedable
 {
@@ -38,6 +43,7 @@ class TimelineEntry extends Model implements Feedable
             'occurred_at' => 'datetime',
             'occurred_utc' => 'datetime',
             'ends_at' => 'datetime',
+            'status' => EntryStatus::class,
         ];
     }
 
@@ -62,11 +68,13 @@ class TimelineEntry extends Model implements Feedable
             Event::class => ['media'],
             Fuel::class => ['media'],
             Place::class => ['media'],
-            // `series` names the show on an episode card, and carries the
+            Film::class => ['media'],
+            // `tvShow` names the show on an episode card, and carries the
             // backdrop an episode has none of its own. Without these every
             // episode in the feed resolves its show, and both their
             // attachments, one query at a time.
-            Media::class => ['series', 'media', 'series.media'],
+            TvEpisode::class => ['tvShow', 'media', 'tvShow.media'],
+            Book::class => ['media'],
         ];
     }
 
@@ -135,7 +143,7 @@ class TimelineEntry extends Model implements Feedable
             // The standalone sentence, not the card subtitle: a subtitle is
             // written to sit under its title, and a check-in without a note has
             // none at all.
-            'summary' => EntryDescription::for($this->entry, $card),
+            'summary' => EntryDescription::for($this->entry, $card) ?? '',
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
@@ -164,8 +172,8 @@ class TimelineEntry extends Model implements Feedable
     /**
      * Resolve the requested entry models from the feed query string:
      * `?filter=` selects a named preset, `?types=` a comma-separated list of
-     * dataset keys or aliases. Unknown presets/types are ignored, and an empty
-     * or absent selection returns null so the feed falls back to every type.
+     * dataset keys. Unknown presets/types are ignored, and an empty or absent
+     * selection returns null so the feed falls back to every type.
      *
      * @return array<int, class-string>|null
      */
@@ -185,7 +193,8 @@ class TimelineEntry extends Model implements Feedable
         }
 
         $models = collect($keys)
-            ->flatMap(fn (string $key): array => Datasets::resolve(trim($key)))
+            ->map(fn (string $key): ?Dataset => Datasets::for(trim($key)))
+            ->filter()
             ->map(fn (Dataset $dataset): string => $dataset->model())
             ->unique()
             ->values()
