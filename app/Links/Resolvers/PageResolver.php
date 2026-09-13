@@ -18,7 +18,7 @@ class PageResolver implements LinkResolver
             return null;
         }
 
-        $page = Page::query()->where('slug', $matches[1])->where('published', true)->first();
+        $page = Page::query()->where('slug', $matches[1])->viewableBy(null)->first();
 
         return $page === null ? null : LinkPreviewData::page($path, $page->title, $page->excerpt);
     }

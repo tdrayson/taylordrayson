@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
+import Pill from '../Ui/Pill.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import StageBar from '../Stats/StageBar.vue';
@@ -67,6 +68,8 @@ const props = defineProps({
     url: { type: String, default: null },
     label: { type: String, default: '' },
     offset: { type: String, default: '' },
+    // Set only for an entry that is not published, which only the owner's search returns.
+    statusLabel: { type: String, default: null },
 });
 
 // Unit-aware distance formatter; route.distance is already in miles.
@@ -185,10 +188,9 @@ const routeView = computed(() => {
 
 const airline = computed(() => props.route?.airline ?? null);
 
-// The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
 
-// Stored static map for this entry (activity route, flight arc, event/fuel/checkin
+// Stored static map for this entry (activity route, flight arc, event/fuel/place
 // pin), pre-generated server-side. Shown only when there is no cover photo.
 const routeImageUrl = computed(() => props.map ?? null);
 
@@ -231,6 +233,7 @@ function openLightbox(index) {
                     <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
                 </Tooltip>
                 <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
+                <Pill v-if="statusLabel" :label="statusLabel" />
             </div>
         </div>
         <NoteBody v-if="hasBody" :document="body" />

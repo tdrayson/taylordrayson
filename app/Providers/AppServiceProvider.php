@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Datasets\Datasets;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
@@ -13,6 +14,7 @@ use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
 use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -48,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * `Route::archives()`, registering each type's archive page, its /stats
+     * `Route::archives()`, registering each type's archive index, its /stats
      * redirect and its taxonomy sub-route.
      *
      * A macro so routes/web.php stays a flat list of controllers rather than
@@ -56,9 +58,9 @@ class AppServiceProvider extends ServiceProvider
      * than boot(), because the route files are loaded during the framework's
      * own boot and the macro has to exist before web.php is evaluated.
      *
-     * Order inside is load-bearing and matches what the loop did: the /stats
-     * redirect is registered before the taxonomy route, so "stats" is not
-     * matched as a taxonomy value.
+     * Order is load-bearing within each type: the /stats redirect is
+     * registered before the taxonomy route, so "stats" isn't matched as a
+     * taxonomy value.
      */
     private function registerArchiveRoutes(): void
     {
@@ -87,6 +89,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Morph columns store dataset keys; an unmapped model throws instead of writing a class path.
+        Relation::enforceMorphMap(Datasets::morphMap());
+
         // Passport ships no consent screen, so the OAuth flow 500s without one.
         // Rendered through Inertia to match the rest of the site; the approve
         // and deny controls inside it are plain forms, because completing the

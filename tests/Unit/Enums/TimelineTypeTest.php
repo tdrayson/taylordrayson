@@ -2,17 +2,19 @@
 
 use App\Enums\TimelineType;
 
-it('has exactly the thirteen stored values', function () {
+it('has exactly the fifteen stored values', function () {
     expect(array_column(TimelineType::cases(), 'value'))->toBe([
         'activity',
         'sleep',
-        'calorie',
-        'media',
+        'food',
+        'film',
+        'tv-episode',
+        'book',
         'event',
         'appearance',
-        'podcast',
+        'this-week-with',
         'flight',
-        'checkin',
+        'place',
         'fuel',
         'project',
         'article',
@@ -25,13 +27,15 @@ it('resolves each case from its stored backed value', function (string $value, T
 })->with([
     ['activity', TimelineType::Activity],
     ['sleep', TimelineType::Sleep],
-    ['calorie', TimelineType::Calorie],
-    ['media', TimelineType::Media],
+    ['food', TimelineType::Food],
+    ['film', TimelineType::Film],
+    ['tv-episode', TimelineType::TvEpisode],
+    ['book', TimelineType::Book],
     ['event', TimelineType::Event],
     ['appearance', TimelineType::Appearance],
-    ['podcast', TimelineType::Podcast],
+    ['this-week-with', TimelineType::ThisWeekWith],
     ['flight', TimelineType::Flight],
-    ['checkin', TimelineType::Checkin],
+    ['place', TimelineType::Place],
     ['fuel', TimelineType::Fuel],
     ['project', TimelineType::Project],
     ['article', TimelineType::Article],

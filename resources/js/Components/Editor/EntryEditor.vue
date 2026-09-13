@@ -37,12 +37,10 @@ const page = usePage();
 
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
-// Publish state is the save action, not a field: it lives in the footer beside
-// the button so the button can say what it will actually do.
-const publishField = computed(() => props.fields.find((field) => field.isPublished) ?? null);
-const isPublished = computed(() => publishField.value !== null && form[publishField.value.name] === true);
+const offered = computed(() => props.fields.filter((field) => !field.hidden));
 
-const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
+// The status is an ordinary row in the stack; the footer only saves.
+const statusField = computed(() => props.fields.find((field) => field.type === 'status') ?? null);
 
 // Title and body are drawn above the stack, so neither appears in it.
 const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));
@@ -86,13 +84,17 @@ function groupSummary(item) {
 const slugField = computed(() => props.fields.find((field) => field.type === 'slug') ?? null);
 
 /**
- * Publishing settles the URL: it can be linked, bookmarked or in a feed from
- * that moment, so the slug stops following the title and stops being editable.
- * A draft has none of that, and keeps tracking its title however often it is
- * saved. A type with no publish state goes live at its first save, which is
- * where its slug settles instead.
+ * Leaving draft settles the URL: it can be linked, bookmarked or in a feed from
+ * then on, so the slug stops following the title. A draft keeps tracking it
+ * however often it is saved; a type with no status settles at its first save.
  */
-const slugLocked = computed(() => (publishField.value ? isPublished.value : props.method !== 'post'));
+const slugLocked = computed(() => {
+    if (props.method === 'post') {
+        return false;
+    }
+
+    return statusField.value ? props.values[statusField.value.name] !== 'draft' : true;
+});
 
 /**
  * Until then it follows the title, unless it has been typed by hand: writing a
@@ -256,9 +258,17 @@ function convert() {
 
 const errorCount = computed(() => Object.keys(form.errors).length);
 
+/** What the saved status means for who can see the entry. */
+const STATUS_NOTES = {
+    draft: 'Draft, only you can see this',
+    published: 'Published, live to everyone',
+    unlisted: 'Unlisted, only people with the link',
+    private: 'Private, locked behind a password',
+};
+
 const status = computed(() => {
     if (form.processing) {
-        return publishField.value ? 'Saving...' : 'Posting...';
+        return props.method === 'post' ? 'Posting...' : 'Saving...';
     }
 
     // Ahead of the dirty check for the same reason the error count is: the form
@@ -277,19 +287,15 @@ const status = computed(() => {
         return 'Unsaved changes';
     }
 
-    if (publishField.value) {
-        return isPublished.value ? 'Published, live to everyone' : 'Draft, only you can see this';
+    if (statusField.value && props.method !== 'post') {
+        return STATUS_NOTES[props.values[statusField.value.name]] ?? 'Posted';
     }
 
     return props.method === 'post' ? 'Not posted yet' : 'Posted';
 });
 
-/** Save, optionally flipping publish state in the same request. */
-function submit(published = null) {
-    if (published !== null && publishField.value) {
-        form[publishField.value.name] = published;
-    }
-
+/** Save the form as it stands; the status travels with every other field. */
+function submit() {
     // A media field holds { id, name, url } so the picker can draw a thumbnail,
     // but the server takes the ids alone. Reduced here rather than in the field
     // component, which would then have nothing left to render.
@@ -399,28 +405,8 @@ function submit(published = null) {
         <div class="sticky bottom-0 z-10 mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4">
             <p class="text-caption text-neutral-500 sm:text-meta">{{ status }}</p>
 
-            <div v-if="publishField" class="flex shrink-0 items-center gap-2">
-                <Button
-                    :variant="isPublished ? 'ghost' : 'secondary'"
-                    size="lg"
-                    :disabled="form.processing || overLimit"
-                    @click="submit(isPublished ? false : null)"
-                >
-                    {{ isPublished ? 'Unpublish' : 'Save draft' }}
-                </Button>
-
-                <Button
-                    variant="primary"
-                    size="lg"
-                    :disabled="form.processing || overLimit"
-                    @click="submit(isPublished ? null : true)"
-                >
-                    {{ isPublished ? 'Update' : 'Publish' }}
-                </Button>
-            </div>
-
-            <Button v-else variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit" @click="submit">
-                {{ submitLabel }}
+            <Button variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit" @click="submit">
+                {{ method === 'post' ? submitLabel : 'Save' }}
             </Button>
         </div>
     </div>

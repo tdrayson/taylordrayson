@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Sync;
 
 use App\Enums\Source;
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Services\Rovi\Client;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 #[Signature('rovi:sync-food {--days=7 : How many days back to re-check, catching food logged late for an earlier day}')]
-#[Description('Sync the Rovi food diary into calories rows for a rolling window of recent days, keyed by Rovi id so re-runs stay idempotent')]
+#[Description('Sync the Rovi food diary into food rows for a rolling window of recent days, keyed by Rovi id so re-runs stay idempotent')]
 class RoviFoodSync extends Command
 {
     private const SOURCE = Source::Rovi->value;
@@ -40,7 +40,7 @@ class RoviFoodSync extends Command
         // while the sync was not running), extend the start back to it so the
         // gap is backfilled instead of stranded forever behind a fixed window.
         $from = Carbon::today()->subDays($days);
-        $lastSynced = Calorie::query()->where('source', self::SOURCE)->max('occurred_at');
+        $lastSynced = Food::query()->where('source', self::SOURCE)->max('occurred_at');
 
         if ($lastSynced !== null) {
             $healFrom = Carbon::parse($lastSynced)->startOfDay();
@@ -77,7 +77,7 @@ class RoviFoodSync extends Command
             $seenIds[] = (string) $item['id'];
             $roviDates[] = (string) $item['dateKey'];
 
-            Calorie::updateOrCreate(
+            Food::updateOrCreate(
                 ['source' => self::SOURCE, 'source_id' => (string) $item['id']],
                 $this->attributes($item),
             );
@@ -127,7 +127,7 @@ class RoviFoodSync extends Command
     }
 
     /**
-     * Map a Rovi diary item onto Calorie columns. The diary only carries the
+     * Map a Rovi diary item onto Food columns. The diary only carries the
      * macros below; saturated fat, sugars, cholesterol and sodium are not
      * provided and stay null.
      *
@@ -177,7 +177,7 @@ class RoviFoodSync extends Command
      */
     private function reconcile(string $from, string $to, array $roviDates, array $seenIds): int
     {
-        $stale = Calorie::query()
+        $stale = Food::query()
             ->whereBetween('occurred_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->where(function ($query) use ($roviDates, $seenIds): void {
                 // (A) Rovi rows that have since vanished from the diary.

@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Note;
+use App\Models\Place;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -16,8 +16,8 @@ function category(string $type): string
 
 beforeEach(function () {
     Note::factory()->create(['occurred_at' => now()->subDay()]);
-    Article::factory()->create(['occurred_at' => now()->subDays(2), 'published' => true]);
-    Checkin::factory()->create(['occurred_at' => now()->subDays(3)]);
+    Article::factory()->create(['occurred_at' => now()->subDays(2), 'status' => 'published']);
+    Place::factory()->create(['occurred_at' => now()->subDays(3)]);
 });
 
 it('returns every type when no filter is given', function () {
@@ -25,7 +25,7 @@ it('returns every type when no filter is given', function () {
 
     $response->assertSee(category('note'), false)
         ->assertSee(category('article'), false)
-        ->assertSee(category('checkin'), false);
+        ->assertSee(category('place'), false);
 });
 
 it('filters to a single type via the types parameter', function () {
@@ -33,14 +33,14 @@ it('filters to a single type via the types parameter', function () {
 
     $response->assertSee(category('note'), false)
         ->assertDontSee(category('article'), false)
-        ->assertDontSee(category('checkin'), false);
+        ->assertDontSee(category('place'), false);
 });
 
 it('combines several types via the types parameter', function () {
-    $response = $this->get('/feed/rss?types=note,checkin')->assertSuccessful();
+    $response = $this->get('/feed/rss?types=note,place')->assertSuccessful();
 
     $response->assertSee(category('note'), false)
-        ->assertSee(category('checkin'), false)
+        ->assertSee(category('place'), false)
         ->assertDontSee(category('article'), false);
 });
 
@@ -49,7 +49,7 @@ it('resolves a named preset via the filter parameter', function () {
 
     $response->assertSee(category('note'), false)
         ->assertSee(category('article'), false)
-        ->assertDontSee(category('checkin'), false);
+        ->assertDontSee(category('place'), false);
 });
 
 it('ignores unknown types but keeps the valid ones', function () {
@@ -57,7 +57,7 @@ it('ignores unknown types but keeps the valid ones', function () {
 
     $response->assertSee(category('note'), false)
         ->assertDontSee(category('article'), false)
-        ->assertDontSee(category('checkin'), false);
+        ->assertDontSee(category('place'), false);
 });
 
 it('falls back to everything when no valid type remains', function () {
@@ -65,7 +65,7 @@ it('falls back to everything when no valid type remains', function () {
 
     $response->assertSee(category('note'), false)
         ->assertSee(category('article'), false)
-        ->assertSee(category('checkin'), false);
+        ->assertSee(category('place'), false);
 });
 
 it('applies the same filter to the json feed', function () {
@@ -73,7 +73,7 @@ it('applies the same filter to the json feed', function () {
 
     $response->assertSee('"note"', false)
         ->assertSee('"article"', false)
-        ->assertDontSee('"checkin"', false);
+        ->assertDontSee('"place"', false);
 });
 
 it('renders the subscribe page with every type and preset', function () {
@@ -81,8 +81,8 @@ it('renders the subscribe page with every type and preset', function () {
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Feeds')
-            ->has('types', 13)
-            ->has('presets', 6)
+            ->has('types', 15)
+            ->has('presets', 8)
             ->where('presets.0.key', 'curated')
         );
 });

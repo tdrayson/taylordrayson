@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Models\Note;
 
@@ -25,7 +26,9 @@ final class NoteFields
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
             FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::primary('slug', 'Slug', FieldType::Slug, fallback: Note::FALLBACK_SLUG),
+            FieldData::primary('slug', 'Slug', FieldType::Slug, fallback: Note::FALLBACK_SLUG, checksReservedSlug: true),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

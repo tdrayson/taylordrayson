@@ -3,6 +3,7 @@
 namespace App\Datasets;
 
 use App\Enums\DatasetKind;
+use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Sleep;
 use App\Presenters\Cards\SleepCard;
@@ -78,5 +79,10 @@ final class SleepDataset extends BaseDataset
             'deep' => ['label' => 'Deep', 'dataType' => 'duration', 'column' => 'deep', 'category' => 'Stages'],
             'source' => ['label' => 'Source', 'dataType' => 'enum', 'column' => 'source', 'category' => 'Sleep'],
         ];
+    }
+
+    public function spanAnchor(): SpanAnchor
+    {
+        return SpanAnchor::End;
     }
 }

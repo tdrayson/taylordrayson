@@ -61,8 +61,8 @@ it('serialises route meta with only route, map, mapDark', function () {
     expect($meta->toArray())->toBe(['route' => $route->toArray(), 'map' => 'map.png', 'mapDark' => null]);
 });
 
-it('serialises checkin meta with photos, map, mapDark, address, category', function () {
-    $meta = CardMeta::checkin([], 'map.png', 'mapdark.png', 'High Street, London', 'Coffee Shop');
+it('serialises place meta with photos, map, mapDark, address, category', function () {
+    $meta = CardMeta::place([], 'map.png', 'mapdark.png', 'High Street, London', 'Coffee Shop');
 
     expect($meta->toArray())->toBe([
         'photos' => [],

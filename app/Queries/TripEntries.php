@@ -33,7 +33,7 @@ final class TripEntries
 
         return $this->candidates($trip)
             ->filter(function (TimelineEntry $entry) use ($start, $end): bool {
-                $occurred = Instant::for($entry->occurred_at, $entry->timelineable->timezone());
+                $occurred = Instant::for($entry->occurred_at, $entry->entry->timezone());
 
                 return $occurred->betweenIncluded($start, $end);
             })
@@ -59,6 +59,6 @@ final class TripEntries
                 CarbonImmutable::parse($trip->ends_at->format('Y-m-d H:i:s'))->addDays(self::PAD_DAYS),
             ])
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null);
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null);
     }
 }

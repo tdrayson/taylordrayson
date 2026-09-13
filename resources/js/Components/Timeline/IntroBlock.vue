@@ -10,7 +10,7 @@ const props = defineProps({
     streakDays: { type: [Number, String], default: null },
     agencyUrl: { type: String, default: 'https://thecreativetinker.com' },
     pluginUrl: { type: String, default: 'https://wpextended.io' },
-    podcastEpisodes: { type: Number, default: 0 },
+    thisWeekWithEpisodes: { type: Number, default: 0 },
 });
 
 const page = usePage();
@@ -94,7 +94,7 @@ const externalIconClass =
                 </span>
                 podcast
             </Link>
-            with my dad that's somehow at <span class="tnum">{{ podcastEpisodes }}</span> episodes.
+            with my dad that's somehow at <span class="tnum">{{ thisWeekWithEpisodes }}</span> episodes.
             Elsewhere on here you'll find
             <Link href="/activities" :class="textLinkClass">activities</Link>,
             <Link href="/sleep" :class="textLinkClass">sleep</Link>,

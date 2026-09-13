@@ -33,7 +33,7 @@ function microformatsOf(string $path, string $root = '.h-entry'): array
 
 it('marks an article permalink up as an h-entry', function () {
     $article = Article::factory()->create([
-        'published' => true,
+        'status' => 'published',
         'title' => 'A titled piece',
         'occurred_at' => '2024-03-01 09:00:00',
         'content' => PortableText::fromPlainText('The body of the piece.'),
@@ -63,7 +63,7 @@ it('leaves a note without a name, so it does not parse as an article', function 
 });
 
 it('wraps the timeline in an authored h-feed', function () {
-    Article::factory()->create(['published' => true, 'occurred_at' => now()->subHour()]);
+    Article::factory()->create(['status' => 'published', 'occurred_at' => now()->subHour()]);
 
     $feed = microformatItem(microformatsOf('/', '.h-feed .h-entry'), 'h-feed');
 

@@ -4,6 +4,7 @@ use App\Models\Activity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Laravel\Mcp\Request;
 use MensBeam\Microformats;
 use Saloon\Config as SaloonConfig;
 use Saloon\Http\Faking\MockClient;
@@ -74,6 +75,22 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Invoke an MCP tool directly, bypassing the transport. Lives here rather than
+ * in one test file so every test file can call it: paratest runs each test
+ * file in its own process, and a function declared inside a test file is
+ * invisible to any other file when the suite runs in parallel.
+ *
+ * @return array{error: bool, data: mixed, text: string}
+ */
+function callTool(string $tool, array $arguments = []): array
+{
+    $response = app($tool)->handle(new Request($arguments));
+    $text = $response->content()->toArray()['text'];
+
+    return ['error' => $response->isError(), 'data' => json_decode($text, true), 'text' => $text];
 }
 
 /**

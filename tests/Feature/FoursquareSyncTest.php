@@ -1,8 +1,8 @@
 <?php
 
-use App\Actions\Checkins\ImportCheckin;
+use App\Actions\Places\ImportPlace;
 use App\Jobs\GenerateEntryMap;
-use App\Models\Checkin;
+use App\Models\Place;
 use Illuminate\Support\Facades\Queue;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -49,7 +49,7 @@ function swarmItem(string $id, ?string $shout = null): array
 }
 
 it('re-checks the --days window when check-ins are current', function () {
-    Checkin::factory()->create([
+    Place::factory()->create([
         'source' => 'swarm',
         'source_id' => 'recent',
         'occurred_at' => now()->subHours(6),
@@ -66,7 +66,7 @@ it('re-checks the --days window when check-ins are current', function () {
 
 it('extends the window back to the newest stored check-in when a gap has opened', function () {
     $newest = now()->subDays(10);
-    Checkin::factory()->create([
+    Place::factory()->create([
         'source' => 'swarm',
         'source_id' => 'stale',
         'occurred_at' => $newest,
@@ -81,7 +81,7 @@ it('extends the window back to the newest stored check-in when a gap has opened'
 });
 
 it('caps the catch-up so a long gap does not refetch all history', function () {
-    Checkin::factory()->create([
+    Place::factory()->create([
         'source' => 'swarm',
         'source_id' => 'ancient',
         'occurred_at' => now()->subYears(3),
@@ -100,11 +100,11 @@ it('stores a newly returned check-in', function () {
 
     $this->artisan('foursquare:sync')->assertSuccessful();
 
-    $checkin = Checkin::where('source_id', 'fresh')->first();
-    expect($checkin)->not->toBeNull()
-        ->and($checkin->venue_name)->toBe('Coffee Bar')
-        ->and($checkin->city)->toBe('London')
-        ->and($checkin->description)->toBe('Flat white');
+    $place = Place::where('source_id', 'fresh')->first();
+    expect($place)->not->toBeNull()
+        ->and($place->venue_name)->toBe('Coffee Bar')
+        ->and($place->city)->toBe('London')
+        ->and($place->description)->toBe('Flat white');
 });
 
 /**
@@ -138,24 +138,24 @@ it('updates rather than duplicates a check-in seen again in the overlap window',
     $this->artisan('foursquare:sync')->assertSuccessful();
     $this->artisan('foursquare:sync')->assertSuccessful();
 
-    expect(Checkin::where('source_id', 'same')->count())->toBe(1)
-        ->and(Checkin::where('source_id', 'same')->first()->description)->toBe('Added later');
+    expect(Place::where('source_id', 'same')->count())->toBe(1)
+        ->and(Place::where('source_id', 'same')->first()->description)->toBe('Added later');
 });
 
 it('tries the photo added to a check-in that already had one, and only that photo', function () {
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'source' => 'swarm',
         'source_id' => 'ally-pally',
         'occurred_at' => now()->subDay(),
         'venue_name' => 'Alexandra Palace Theatre',
     ]);
 
-    $checkin->addMediaFromString(fakeJpeg())->usingFileName('first.jpg')->toMediaCollection('photos');
+    $place->addMediaFromString(fakeJpeg())->usingFileName('first.jpg')->toMediaCollection('photos');
 
     // The check-in comes back with the photo it already has and a second added
     // in Swarm after the fact. Bailing on "has any photo at all" meant the new
     // one could never arrive, however many times the sync ran.
-    $result = app(ImportCheckin::class)([
+    $result = app(ImportPlace::class)([
         'id' => 'ally-pally',
         'createdAt' => now()->subDay()->timestamp,
         'venue' => ['name' => 'Alexandra Palace Theatre', 'location' => ['lat' => 51.594, 'lng' => -0.13]],

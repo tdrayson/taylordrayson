@@ -3,10 +3,10 @@
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
 use App\Enums\TimelineType;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\User;
 use App\Presenters\CardPresenter;
-use App\Presenters\Cards\CheckinCard;
+use App\Presenters\Cards\PlaceCard;
 use App\Search\SearchSchema;
 use App\Support\TypeCatalogue;
 use App\Timeline\TypeRegistry;
@@ -31,10 +31,10 @@ it('finds a dataset by model instance and by class name', function () {
 });
 
 it('resolves a subclassed timeline model to its parent dataset', function () {
-    $subclass = new class extends Checkin {};
+    $subclass = new class extends Place {};
 
-    expect(Datasets::forModel($subclass)?->type()->value)->toBe('checkin')
-        ->and(CardPresenter::card($subclass))->toBeInstanceOf(CheckinCard::class);
+    expect(Datasets::forModel($subclass)?->type()->value)->toBe('place')
+        ->and(CardPresenter::card($subclass))->toBeInstanceOf(PlaceCard::class);
 });
 
 it('matches the catalogue row each type has today', function (Dataset $dataset) {
@@ -67,7 +67,7 @@ it('matches the registry entry each type has today', function (Dataset $dataset)
 
 it('feeds the search schema from each dataset', function (Dataset $dataset) {
     $key = $dataset->type()->value;
-    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year']));
+    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year', 'status']));
 
     expect(array_keys($fields))->toBe(array_keys($dataset->searchFields()))
         ->and(SearchSchema::textColumns()[$key] ?? [])->toBe($dataset->textColumns());
@@ -85,13 +85,15 @@ it('counts entries in the nouns the more page uses', function () {
     expect($nouns)->toBe([
         'activity' => ['activity', 'activities'],
         'sleep' => ['night', 'nights'],
-        'calorie' => ['day', 'days'],
-        'media' => ['logged', 'logged'],
+        'food' => ['day', 'days'],
+        'film' => ['film', 'films'],
+        'tv-episode' => ['episode', 'episodes'],
+        'book' => ['book', 'books'],
         'event' => ['event', 'events'],
         'appearance' => ['appearance', 'appearances'],
-        'podcast' => ['episode', 'episodes'],
+        'this-week-with' => ['episode', 'episodes'],
         'flight' => ['flight', 'flights'],
-        'checkin' => ['check-in', 'check-ins'],
+        'place' => ['check-in', 'check-ins'],
         'fuel' => ['fill-up', 'fill-ups'],
         'project' => ['project', 'projects'],
         'article' => ['article', 'articles'],
@@ -105,13 +107,15 @@ it('groups every type into a kind', function () {
     expect($kinds)->toBe([
         'activity' => 'health',
         'sleep' => 'health',
-        'calorie' => 'health',
-        'media' => 'watching',
+        'food' => 'health',
+        'film' => 'watching',
+        'tv-episode' => 'watching',
+        'book' => 'watching',
         'event' => 'going-out',
         'appearance' => 'speaking',
-        'podcast' => 'speaking',
+        'this-week-with' => 'speaking',
         'flight' => 'travel',
-        'checkin' => 'travel',
+        'place' => 'travel',
         'fuel' => 'travel',
         'project' => 'writing',
         'article' => 'writing',

@@ -3,7 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Activity;
-use App\Models\Checkin;
+use App\Models\Place;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\EntryInstant;
 use App\Support\VenueTimezone;
@@ -55,8 +56,8 @@ class BackfillTimezones extends Command
         $guessed = $this->clearGuessedActivityZones($trips, $dry);
         $this->components->info("Activities whose zone was an offset guess: {$guessed}");
 
-        $checkins = $this->backfillCheckins($venues, $dry);
-        $this->components->info("Check-ins given a venue timezone: {$checkins}");
+        $places = $this->backfillPlaces($venues, $dry);
+        $this->components->info("Check-ins given a venue timezone: {$places}");
 
         $this->components->info('Trips found from flights: '.count($trips));
 
@@ -144,19 +145,19 @@ class BackfillTimezones extends Command
      * The stored reading came from `date()` on a UTC timestamp, so it is the
      * server's clock: converting back through UTC recovers the true instant.
      */
-    private function backfillCheckins(VenueTimezone $venues, bool $dry): int
+    private function backfillPlaces(VenueTimezone $venues, bool $dry): int
     {
         $changed = 0;
 
         // Home is already what an empty column means, so the ~2,265 UK
         // check-ins need no lookup at all. Nulls are included in case a
         // country was never recorded.
-        $away = Checkin::query()
+        $away = Place::query()
             ->whereNull('timezone')
             ->where(fn ($query) => $query->whereNull('country')->orWhere('country', '!=', self::HOME_COUNTRY));
 
-        foreach ($away->lazy() as $checkin) {
-            $zone = $venues->forCoordinate($checkin->latitude, $checkin->longitude);
+        foreach ($away->lazy() as $place) {
+            $zone = $venues->forCoordinate($place->latitude, $place->longitude);
 
             if ($zone === null || $zone === self::HOME) {
                 // Home is what the column already means when empty, so writing
@@ -164,10 +165,10 @@ class BackfillTimezones extends Command
                 continue;
             }
 
-            $instant = Carbon::parse((string) $checkin->getRawOriginal('occurred_at'), self::HOME);
+            $instant = Carbon::parse((string) $place->getRawOriginal('occurred_at'), self::HOME);
 
             if (! $dry) {
-                $checkin->forceFill([
+                $place->forceFill([
                     'timezone' => $zone,
                     'occurred_at' => $instant->copy()->setTimezone($zone)->format('Y-m-d H:i:s'),
                 ])->save();
@@ -206,7 +207,7 @@ class BackfillTimezones extends Command
             // strictly worse: an airport check-in on the outbound day would be
             // stamped with the destination. One that could not be resolved is
             // better left empty, which already means home.
-            if ($model === Checkin::class || ! $this->hasTimezoneColumn($model)) {
+            if ($model === Place::class || ! $this->hasTimezoneColumn($model)) {
                 continue;
             }
 
@@ -271,8 +272,8 @@ class BackfillTimezones extends Command
     {
         $changed = 0;
 
-        foreach (TimelineEntry::query()->with('timelineable')->lazy() as $entry) {
-            $model = $entry->timelineable;
+        foreach (TimelineEntry::query()->withoutGlobalScope(ListedScope::class)->with('entry')->lazy() as $entry) {
+            $model = $entry->entry;
 
             if ($model === null) {
                 continue;

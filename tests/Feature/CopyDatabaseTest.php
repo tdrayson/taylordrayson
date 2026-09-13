@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\TimelineEntry;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
@@ -55,9 +54,9 @@ it('copies rows across keeping their ids', function () {
 /**
  * Why this is a command and not a SQL dump: MySQL reads a backslash in a string
  * literal as an escape, so a dumped 'App\Models\Activity' arrives as
- * "AppModelsActivity" and breaks every polymorphic relation, silently.
+ * "AppModelsActivity" and breaks every column holding one, silently.
  */
-it('keeps class names in polymorphic columns intact', function () {
+it('keeps values containing a backslash intact', function () {
     $path = sourceDatabase();
     $source = DB::connection('copy_test_source');
 
@@ -65,13 +64,12 @@ it('keeps class names in polymorphic columns intact', function () {
         'id' => 900, 'occurred_at' => '2026-06-01 09:00:00', 'type' => 'run', 'name' => 'Run', 'duration' => 600,
     ]);
     $source->table('timeline_entries')->insert([
-        'id' => 900, 'timelineable_type' => Activity::class, 'timelineable_id' => 900, 'occurred_at' => '2026-06-01 09:00:00',
+        'id' => 900, 'dataset' => Activity::class, 'entry_id' => 900, 'occurred_at' => '2026-06-01 09:00:00',
     ]);
 
     $this->artisan('db:copy', ['--from' => $path])->assertSuccessful();
 
-    expect(DB::table('timeline_entries')->find(900)->timelineable_type)->toBe('App\Models\Activity')
-        ->and(TimelineEntry::find(900)->timelineable)->not->toBeNull();
+    expect(DB::table('timeline_entries')->find(900)->dataset)->toBe('App\Models\Activity');
 });
 
 /**

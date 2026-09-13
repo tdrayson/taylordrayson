@@ -5,7 +5,7 @@ import Icon from '../Ui/Icon.vue';
 import { entryType } from '../../entryTypes.js';
 
 const sleepIcon = entryType('sleep').icon;
-const foodIcon = entryType('calorie').icon;
+const foodIcon = entryType('food').icon;
 
 const props = defineProps({
     year: { type: Number, required: true },

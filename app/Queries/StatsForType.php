@@ -76,6 +76,7 @@ final class StatsForType
     private function days(Carbon $start, Carbon $end): array
     {
         $rows = Activity::query()
+            ->listed()
             ->toBase()
             ->selectRaw('DATE(occurred_at) AS d')
             ->selectRaw('COUNT(*) AS sessions')
@@ -293,6 +294,7 @@ final class StatsForType
     private function byType(Carbon $start, Carbon $end): array
     {
         return Activity::query()
+            ->listed()
             ->toBase()
             ->selectRaw('type, COUNT(*) AS total')
             ->whereBetween('occurred_at', [$start, $end])
@@ -316,6 +318,7 @@ final class StatsForType
         $hour = SqlDate::hour('occurred_at');
 
         $rows = Activity::query()
+            ->listed()
             ->toBase()
             ->selectRaw("{$dow} AS dow, {$hour} AS hr, COUNT(*) AS total")
             ->whereBetween('occurred_at', [$start, $end])
@@ -342,9 +345,9 @@ final class StatsForType
     private function records(Carbon $start, Carbon $end): array
     {
         $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
-        $longestRun = (int) $between(Activity::query()->where('type', ActivityDiscipline::Run->value))->max('distance');
-        $longestRide = (int) $between(Activity::query()->whereIn('type', [ActivityDiscipline::Ride->value, ActivityDiscipline::EbikeRide->value]))->max('distance');
-        $longestSession = (int) $between(Activity::query())->max('duration');
+        $longestRun = (int) $between(Activity::query()->listed()->where('type', ActivityDiscipline::Run->value))->max('distance');
+        $longestRide = (int) $between(Activity::query()->listed()->whereIn('type', [ActivityDiscipline::Ride->value, ActivityDiscipline::EbikeRide->value]))->max('distance');
+        $longestSession = (int) $between(Activity::query()->listed())->max('duration');
 
         return [
             ['label' => 'Longest run', 'distanceM' => $longestRun, 'precision' => 1],
@@ -361,6 +364,7 @@ final class StatsForType
     private function routePolylines(Carbon $start, Carbon $end): array
     {
         return Activity::query()
+            ->listed()
             ->whereRaw("json_extract(meta, '$.polyline') IS NOT NULL")
             ->whereBetween('occurred_at', [$start, $end])
             ->latest('occurred_at')

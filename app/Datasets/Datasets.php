@@ -3,6 +3,10 @@
 namespace App\Datasets;
 
 use App\Enums\TimelineType;
+use App\Models\Page;
+use App\Models\Trip;
+use App\Models\TvShow;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -27,13 +31,15 @@ final class Datasets
         foreach ([
             new ActivityDataset,
             new SleepDataset,
-            new CalorieDataset,
-            new MediaDataset,
+            new FoodDataset,
+            new FilmDataset,
+            new TvEpisodeDataset,
+            new BookDataset,
             new EventDataset,
             new AppearanceDataset,
-            new PodcastDataset,
+            new ThisWeekWithDataset,
             new FlightDataset,
-            new CheckinDataset,
+            new PlaceDataset,
             new FuelDataset,
             new ProjectDataset,
             new ArticleDataset,
@@ -43,6 +49,22 @@ final class Datasets
         }
 
         return self::$all = $all;
+    }
+
+    /**
+     * Every morphable model keyed by the alias stored in morph columns.
+     *
+     * @return array<string, class-string<Model>>
+     */
+    public static function morphMap(): array
+    {
+        return [
+            ...array_map(fn (Dataset $dataset): string => $dataset->model(), self::all()),
+            'page' => Page::class,
+            'tv-show' => TvShow::class,
+            'user' => User::class,
+            'trip' => Trip::class,
+        ];
     }
 
     public static function for(TimelineType|string $type): ?Dataset

@@ -8,31 +8,20 @@ use App\Mcp\Tools\SearchEntries;
 use App\Mcp\Tools\SearchFields;
 use App\Mcp\Tools\Stats;
 use App\Mcp\Tools\Timeline;
+use App\Models\Activity;
+use App\Models\Place;
 use App\Models\Sleep;
-use Laravel\Mcp\Request;
 
 /*
  * The purpose-built tools, which exist so that answering an ordinary question
  * does not require writing SQL against a schema the caller has to learn first.
  */
 
-/**
- * @return array{error: bool, data: mixed, text: string}
- */
-function callTool(string $tool, array $arguments = []): array
-{
-    $response = app($tool)->handle(new Request($arguments));
-    $text = $response->content()->toArray()['text'];
-
-    return ['error' => $response->isError(), 'data' => json_decode($text, true), 'text' => $text];
-}
-
 function aNight(string $date = '2026-08-26', array $overrides = []): Sleep
 {
     return Sleep::factory()->create([
         'occurred_at' => $date.' 07:00:00',
-        'bedtime' => $date.' 00:00:00',
-        'wake_time' => $date.' 07:00:00',
+        'started_at' => $date.' 00:00:00',
         'duration' => 25200,
         'awake' => 600,
         'score' => 88,
@@ -114,6 +103,27 @@ describe('one entry', function () {
     it('refuses a url with no entry behind it', function () {
         expect(callTool(Entry::class, ['url' => '/2026/01/01/nothing'])['error'])->toBeTrue();
     });
+
+    // A model's own `type` column (a place's category, an activity's
+    // discipline) must never overwrite the dataset key the card already put in
+    // `type`; it is exposed as `kind` instead.
+    it('keeps the dataset key as type and exposes a place\'s own type as kind', function () {
+        $place = Place::factory()->create(['type' => 'Coffee Shop']);
+
+        $entry = callTool(Entry::class, ['url' => $place->url()])['data'];
+
+        expect($entry['type'])->toBe('place')
+            ->and($entry['kind'])->toBe('Coffee Shop');
+    });
+
+    it('keeps the dataset key as type and exposes an activity\'s own type as kind', function () {
+        $activity = Activity::factory()->create(['type' => 'run']);
+
+        $entry = callTool(Entry::class, ['url' => $activity->url()])['data'];
+
+        expect($entry['type'])->toBe('activity')
+            ->and($entry['kind'])->toBe('run');
+    });
 });
 
 describe('search', function () {
@@ -123,6 +133,20 @@ describe('search', function () {
         expect($sleep['type'])->toBe('sleep')
             ->and(collect($sleep['fields'])->pluck('key'))->toContain('duration')
             ->and(collect($sleep['fields'])->firstWhere('key', 'duration')['operators'])->toContain('gt');
+    });
+
+    it('treats a retired dataset key as unknown', function () {
+        $result = callTool(SearchFields::class, ['type' => 'podcast']);
+
+        expect($result['error'])->toBeTrue()
+            ->and($result['text'])->toContain('No searchable type called podcast');
+    });
+
+    it('still errors on an unknown type', function () {
+        $result = callTool(SearchFields::class, ['type' => 'made-up']);
+
+        expect($result['error'])->toBeTrue()
+            ->and($result['text'])->toContain('No searchable type called made-up');
     });
 
     it('runs a structured filter', function () {
@@ -157,6 +181,13 @@ it('totals a period for one type', function () {
 
     expect($result['error'])->toBeFalse()
         ->and($result['data'])->toBeArray();
+});
+
+it('errors on a retired dataset key for stats', function () {
+    $result = callTool(Stats::class, ['from' => '2026-08-01', 'to' => '2026-08-31', 'type' => 'podcast']);
+
+    expect($result['error'])->toBeTrue()
+        ->and($result['text'])->toContain('No type called podcast');
 });
 
 // A tool whose schema will not build is invisible to a client rather than

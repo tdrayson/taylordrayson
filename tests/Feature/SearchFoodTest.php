@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Calorie;
+use App\Models\Food;
 
 use function Pest\Laravel\get;
 
@@ -11,7 +11,7 @@ use function Pest\Laravel\get;
 function foodSearch(array $conditions): string
 {
     return '/search?'.http_build_query([
-        'filter' => json_encode([['type' => 'calorie', 'conditions' => $conditions]]),
+        'filter' => json_encode([['type' => 'food', 'conditions' => $conditions]]),
     ]);
 }
 
@@ -24,7 +24,7 @@ function foodSearch(array $conditions): string
 function logFoodDay(string $date, array $items): void
 {
     foreach ($items as $index => [$name, $calories, $protein]) {
-        Calorie::factory()->create([
+        Food::factory()->create([
             'occurred_at' => sprintf('%s %02d:00:00', $date, 8 + $index),
             'name' => $name,
             'meal' => 'lunch',

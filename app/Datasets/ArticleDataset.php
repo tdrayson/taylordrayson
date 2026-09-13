@@ -82,4 +82,9 @@ final class ArticleDataset extends BaseDataset
     {
         return Taxonomies::tags(fn (string $label): string => "Articles tagged {$label}");
     }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
 }

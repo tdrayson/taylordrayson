@@ -1,10 +1,9 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Flight;
-use App\Models\Media;
+use App\Models\TvEpisode;
 use App\Support\EntryMeta;
 use Illuminate\Database\Eloquent\Model;
 
@@ -61,7 +60,7 @@ it('publishes nothing for a type nobody registered', function () {
 it('does not ship the stream arrays in the initial payload', function () {
     // These are excluded from the payload and sent separately as a deferred
     // prop, because they are large. They were being shipped anyway inside the
-    // `timeline_entry.timelineable` copy of the model, which no exclusion
+    // `timeline_entry.entry` copy of the model, which no exclusion
     // above it could reach.
     $activity = Activity::factory()->create([
         'occurred_at' => '2024-05-04 09:00:00',
@@ -88,10 +87,10 @@ it('does not serialise the booking reference into the entry page', function () {
         ->and($response->getContent())->toContain('Airbus A320');
 });
 
-it('reads a media entry whose meta is cast to a DTO', function () {
-    // Media is the one type that casts `meta` to an object, which Arr::only
-    // cannot read: every media entry page returned a 500.
-    $media = Media::factory()->create(['type' => MediaType::TvEpisode, 'meta' => [
+it('reads an episode entry whose meta is cast to a DTO', function () {
+    // TvEpisode is one of the types that casts `meta` to an object, which
+    // Arr::only cannot read: every episode entry page returned a 500.
+    $episode = TvEpisode::factory()->create(['meta' => [
         'show_title' => 'Jet Lag: The Game',
         'season' => 19,
         'episode' => 1,
@@ -99,6 +98,6 @@ it('reads a media entry whose meta is cast to a DTO', function () {
         'ids' => ['trakt' => 9001],
     ]]);
 
-    expect(EntryMeta::published($media))
-        ->toBe(['runtime' => 42, 'season' => 19, 'episode' => 1, 'show_title' => 'Jet Lag: The Game']);
+    expect(EntryMeta::published($episode))
+        ->toBe(['season' => 19, 'episode' => 1, 'show_title' => 'Jet Lag: The Game', 'runtime' => 42]);
 });

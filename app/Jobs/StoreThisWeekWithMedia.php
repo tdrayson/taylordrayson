@@ -1,0 +1,91 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\ThisWeekWith;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
+
+/**
+ * Mirrors one episode's artwork off the publisher and into local storage, so the
+ * site renders its own images rather than hotlinking thisweekwith.co.uk.
+ *
+ * Audio is deliberately not mirrored: it is served from the publisher's URL,
+ * which is our own, so a second ~10GB copy would buy nothing.
+ */
+class StoreThisWeekWithMedia implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    public int $timeout = 120;
+
+    public function __construct(private ThisWeekWith $episode, private bool $force = false) {}
+
+    /**
+     * Never two runs for the same episode at once, so a job released back onto
+     * the queue mid-download cannot store the same image twice.
+     *
+     * @return array<int, object>
+     */
+    public function middleware(): array
+    {
+        return [(new WithoutOverlapping((string) $this->episode->id))->dontRelease()];
+    }
+
+    public function handle(): void
+    {
+        $this->store('cover', $this->episode->cover_image);
+        $this->store('artwork', $this->episode->thumbnail);
+    }
+
+    /**
+     * Download one file into one single-file collection, leaving an existing copy
+     * alone unless forced. Streamed to a temporary file rather than held in memory;
+     * addMedia() moves it, so there is nothing to clean up.
+     */
+    private function store(string $collection, ?string $url): void
+    {
+        if (! $url || ($this->episode->getFirstMedia($collection) && ! $this->force)) {
+            return;
+        }
+
+        $temporaryFile = tempnam(sys_get_temp_dir(), 'tww');
+
+        try {
+            // Same publisher, same quirk as the API connector: their IPv6 edge
+            // answers 401 where IPv4 serves the file, and PHP prefers IPv6.
+            $response = Http::timeout(600)
+                ->withOptions(['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]])
+                ->sink($temporaryFile)
+                ->get($url);
+        } catch (ConnectionException $exception) {
+            @unlink($temporaryFile);
+
+            throw new RuntimeException("Could not reach {$url} for episode #{$this->episode->id}.", previous: $exception);
+        }
+
+        if ($response->failed()) {
+            @unlink($temporaryFile);
+
+            throw new RuntimeException("Got {$response->status()} fetching {$url} for episode #{$this->episode->id}.");
+        }
+
+        $extension = pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION);
+
+        // Named after the episode rather than after the publisher's file, so a
+        // stored copy says which episode it is without a database lookup.
+        $filename = $this->episode->slug().($extension ? ".{$extension}" : '');
+
+        $this->episode->clearMediaCollection($collection);
+        $this->episode->addMedia($temporaryFile)->usingFileName($filename)->toMediaCollection($collection);
+    }
+}

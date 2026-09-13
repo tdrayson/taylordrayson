@@ -35,9 +35,8 @@ class SleepFactory extends Factory
         $durationSeconds = min($durationSeconds, 36000);
 
         return [
-            'occurred_at' => $occurredAt,
-            'bedtime' => $bedtime,
-            'wake_time' => $wakeTime,
+            'occurred_at' => $wakeTime,
+            'started_at' => $bedtime,
             'duration' => $durationSeconds,
             'source' => fake()->randomElement(['oura', 'apple_watch', 'clock']),
             'stages' => null,

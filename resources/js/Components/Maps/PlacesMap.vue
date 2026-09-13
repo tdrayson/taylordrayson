@@ -7,7 +7,7 @@ import { useTheme } from '../../useTheme.js';
 const props = defineProps({
     // [{ lat, lng, label }]
     places: { type: Array, required: true },
-    color: { type: String, default: 'var(--color-checkin)' },
+    color: { type: String, default: 'var(--color-place)' },
     // Break out full-bleed (true) or sit within the content column (false).
     bleed: { type: Boolean, default: true },
 });

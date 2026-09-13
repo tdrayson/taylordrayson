@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Support\EntryColumns;
@@ -44,15 +45,15 @@ class Entry extends Tool
 
         [, $year, $month, $day, $slug] = $parts;
 
-        $entry = TimelineEntry::query()
-            ->with('timelineable')
+        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
+            ->with('entry')
             ->whereDate('occurred_at', "{$year}-{$month}-{$day}")
             ->where('url_slug', $slug)
             ->first();
 
-        $entry?->timelineable?->setRelation('timelineEntry', $entry);
+        $entry?->entry?->setRelation('timelineEntry', $entry);
 
-        return $entry?->timelineable;
+        return $entry?->entry;
     }
 
     private function find(Request $request): ?Model

@@ -2,7 +2,7 @@
 
 namespace App\Queries\Lookups;
 
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Services\GoogleMaps\Client;
 
 /**
@@ -45,13 +45,13 @@ final class PlaceLookup
      */
     private function lastKnownPosition(): array
     {
-        $checkin = Checkin::query()
+        $place = Place::query()
             ->whereNotNull('latitude')
             ->orderByDesc('occurred_at')
             ->first(['latitude', 'longitude']);
 
-        return $checkin === null
+        return $place === null
             ? [null, null]
-            : [(float) $checkin->latitude, (float) $checkin->longitude];
+            : [(float) $place->latitude, (float) $place->longitude];
     }
 }

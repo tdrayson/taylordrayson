@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -37,7 +38,17 @@ class ArticleFactory extends Factory
             'slug' => Str::slug($title),
             'excerpt' => fake()->sentence(fake()->numberBetween(10, 20)),
             'content' => $blocks,
-            'published' => fake()->boolean(90),
+            'status' => EntryStatus::Published,
         ];
+    }
+
+    public function published(): static
+    {
+        return $this->state(fn (): array => ['status' => EntryStatus::Published]);
+    }
+
+    public function draft(): static
+    {
+        return $this->state(fn (): array => ['status' => EntryStatus::Draft]);
     }
 }

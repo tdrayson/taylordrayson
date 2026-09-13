@@ -3,12 +3,11 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EntryStatus;
 use App\Enums\FieldType;
+use App\Enums\ProjectStage;
 
-/**
- * Status here is the project's real-world state, not a publish gate: a project
- * has no draft state, so it never appears in /drafts.
- */
+/** A project's stage is its real-world lifecycle, not a publishing state. */
 final class ProjectFields
 {
     /**
@@ -19,12 +18,10 @@ final class ProjectFields
         return [
             FieldData::primary('title', 'Title', FieldType::Title, required: true),
             FieldData::primary('description', 'Summary', FieldType::Textarea, required: true),
-            FieldData::primary('status', 'Status', FieldType::Select, [
-                ['value' => 'active', 'label' => 'Active'],
-                ['value' => 'maintained', 'label' => 'Maintained'],
-                ['value' => 'on_hold', 'label' => 'On hold'],
-                ['value' => 'archived', 'label' => 'Archived'],
-            ], required: true),
+            FieldData::primary('stage', 'Stage', FieldType::Select, array_map(
+                fn (ProjectStage $stage): array => ['value' => $stage->value, 'label' => $stage->label()],
+                ProjectStage::cases(),
+            ), required: true),
             FieldData::primary('url', 'Link', FieldType::Url),
             FieldData::optional('long_description', 'About', FieldType::RichText),
             FieldData::optional('github_url', 'Repository', FieldType::Url),
@@ -33,7 +30,9 @@ final class ProjectFields
             FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
             FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('slug', 'Slug', FieldType::Slug),
+            FieldData::optional('slug', 'Slug', FieldType::Slug, checksReservedSlug: true),
+            FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
+            FieldData::hidden('password', 'Password', FieldType::Text),
         ];
     }
 }

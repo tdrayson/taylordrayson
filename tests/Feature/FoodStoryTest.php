@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Stories\FoodStory;
 
 it('reports no data when there are no logs', function () {
@@ -9,9 +9,9 @@ it('reports no data when there are no logs', function () {
 
 it('rolls per-item logs into daily and headline figures', function () {
     // Day one: two items totalling 1,500 kcal. Day two: one item, 500 kcal.
-    Calorie::factory()->create(['occurred_at' => '2024-01-01 00:00:00', 'calories' => 600, 'protein' => 20, 'meal' => 'breakfast']);
-    Calorie::factory()->create(['occurred_at' => '2024-01-01 00:00:00', 'calories' => 900, 'protein' => 40, 'meal' => 'dinner']);
-    Calorie::factory()->create(['occurred_at' => '2024-01-02 00:00:00', 'calories' => 500, 'protein' => 10, 'meal' => 'lunch']);
+    Food::factory()->create(['occurred_at' => '2024-01-01 00:00:00', 'calories' => 600, 'protein' => 20, 'meal' => 'breakfast']);
+    Food::factory()->create(['occurred_at' => '2024-01-01 00:00:00', 'calories' => 900, 'protein' => 40, 'meal' => 'dinner']);
+    Food::factory()->create(['occurred_at' => '2024-01-02 00:00:00', 'calories' => 500, 'protein' => 10, 'meal' => 'lunch']);
 
     $story = app(FoodStory::class)->build();
 
@@ -27,12 +27,12 @@ it('rolls per-item logs into daily and headline figures', function () {
 });
 
 it('counts fizzy drinks per year, across brands, for the fizzy chapter', function () {
-    Calorie::factory()->count(3)->create(['occurred_at' => '2024-06-01 00:00:00', 'name' => 'Can Of Coke', 'calories' => 139]);
-    Calorie::factory()->create(['occurred_at' => '2024-06-02 00:00:00', 'name' => 'Pepsi Max', 'calories' => 1]);
-    Calorie::factory()->create(['occurred_at' => '2024-06-03 00:00:00', 'name' => 'Fanta Orange', 'calories' => 50]);
+    Food::factory()->count(3)->create(['occurred_at' => '2024-06-01 00:00:00', 'name' => 'Can Of Coke', 'calories' => 139]);
+    Food::factory()->create(['occurred_at' => '2024-06-02 00:00:00', 'name' => 'Pepsi Max', 'calories' => 1]);
+    Food::factory()->create(['occurred_at' => '2024-06-03 00:00:00', 'name' => 'Fanta Orange', 'calories' => 50]);
     // Not fizzy, and "chocolate" must not match the "cola" pattern.
-    Calorie::factory()->create(['occurred_at' => '2024-06-04 00:00:00', 'name' => 'Chocolate Bar', 'calories' => 250]);
-    Calorie::factory()->create(['occurred_at' => '2024-06-05 00:00:00', 'name' => 'Orange Juice', 'calories' => 90]);
+    Food::factory()->create(['occurred_at' => '2024-06-04 00:00:00', 'name' => 'Chocolate Bar', 'calories' => 250]);
+    Food::factory()->create(['occurred_at' => '2024-06-05 00:00:00', 'name' => 'Orange Juice', 'calories' => 90]);
 
     $fizzy = app(FoodStory::class)->build()['fizzy'];
 

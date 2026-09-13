@@ -36,8 +36,10 @@ export function defaultValueFor(field) {
         case 'gallery':
             return [];
         case 'boolean':
-        case 'published':
             return false;
+        // The first option is the type's default, so an article starts as a draft and a note as published.
+        case 'status':
+            return field.options?.[0]?.value ?? 'published';
         // Unset, not the first option: a required choice must be made, not
         // silently made for you. The input renders a placeholder row for this.
         case 'select':

@@ -27,9 +27,8 @@ class LinkResolvers
         TagResolver::class,
         LiveResolver::class,
         PeriodResolver::class,
-        // Above the archive: /flights/map and /media/tv are literal routes that
-        // sit at the same shape as a taxonomy value, exactly as they do in
-        // routes/web.php.
+        // Above the archive: /flights/map is a literal route shaped like a
+        // taxonomy value.
         SiteResolver::class,
         ArchiveResolver::class,
         PageResolver::class,
