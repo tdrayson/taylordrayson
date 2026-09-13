@@ -49,11 +49,11 @@ class PageController extends Controller
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'cover' => $page->coverPhoto(),
-            'content' => $page->content,
+            'content' => $page->resolvedContent(),
             'published' => $page->published,
-            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content)),
-            'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
-            'linkFavicons' => (new BuildLinkFavicons)($page->content),
+            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->resolvedContent())),
+            'linkPreviews' => app(BuildLinkPreviews::class)($page->resolvedContent()),
+            'linkFavicons' => (new BuildLinkFavicons)($page->resolvedContent()),
         ]);
     }
 }

@@ -25,7 +25,7 @@ final class ArticleCard
             type: $this->type(),
             title: $this->title($model),
             titleLabel: null,
-            subtitle: Text::excerpt(PortableText::plainText($model->content), 240) ?: $model->excerpt,
+            subtitle: Text::excerpt(PortableText::plainText($model->resolvedContent()), 240) ?: $model->excerpt,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             range: null,

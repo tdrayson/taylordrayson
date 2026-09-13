@@ -48,15 +48,30 @@ function spanToText(span, markDefs) {
 }
 
 /**
+ * Render a stored dynamicTag node back to its `{tag options}` source form.
+ * There is no TipTap node for a tag yet, so it round-trips as this literal
+ * text; the server reparses it with the same tokeniser fromPlainText() uses
+ * before saving, so nothing is lost.
+ */
+function tagToText(node) {
+    const options = Object.entries(node.options ?? {})
+        .map(([key, value]) => `${key}:${value}`)
+        .join(' ');
+
+    return options === '' ? `{${node.tag}}` : `{${node.tag} ${options}}`;
+}
+
+/**
  * The inline content of a block.
  *
  * Mentions are dropped rather than converted: picking an entry now inserts an
  * ordinary link, and the schema no longer has a mention node to emit one as.
+ * A dynamicTag is kept, rendered as its literal token text (see tagToText).
  */
 function inlineContent(block) {
     return (block.children ?? [])
-        .filter((child) => child._type !== 'mention' && (child.text ?? '') !== '')
-        .map((child) => spanToText(child, block.markDefs));
+        .filter((child) => child._type !== 'mention' && (child._type === 'dynamicTag' || (child.text ?? '') !== ''))
+        .map((child) => (child._type === 'dynamicTag' ? { type: 'text', text: tagToText(child) } : spanToText(child, block.markDefs)));
 }
 
 /** A paragraph, heading or blockquote, i.e. any block that is not a list item. */

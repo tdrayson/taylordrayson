@@ -65,9 +65,14 @@ provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: pro
 // address into meta, which is where a book keeps its author.
 // Media lives in collections, not columns, so it arrives beside the entry
 // rather than on it.
+//
+// `content` is overridden with `rawContent` where it exists: `entry.content`
+// is resolved for the renderer, and seeding the form with it would round-trip
+// a dynamic tag's resolved text back as static content on save.
 const editorValues = computed(() => valuesFor(props.fields, {
     ...props.entry,
     ...props.media,
+    content: props.entry.rawContent,
     // The payload carries {name, slug, url} so the footer can link each tag; the
     // form posts names, which is what syncTagNames takes.
     tags: (props.entry.tags ?? []).map((tag) => tag.name),

@@ -234,3 +234,36 @@ describe('empty documents', () => {
         assert.equal(blocks[0]._key, 'b1');
     });
 });
+
+describe('dynamic tags', () => {
+    // There is no TipTap node for a tag yet, so toProseMirror renders it as
+    // literal `{tag options}` text the author can see and edit; the server
+    // reparses that text with the same tokeniser on save (PortableText::withTags).
+    it('converts a dynamicTag child into its literal token text, rather than dropping it', () => {
+        const blocks = [{
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [
+                span('Logged '),
+                { _type: 'dynamicTag', _key: 't1', tag: 'entries.count', options: { type: 'note', period: '2026' } },
+                span('.'),
+            ],
+        }];
+
+        const content = toProseMirror(blocks).content[0].content;
+
+        assert.deepEqual(content.map((node) => node.text), ['Logged ', '{entries.count type:note period:2026}', '.']);
+    });
+
+    it('renders a tag with no options without a trailing space', () => {
+        const blocks = [{
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            children: [{ _type: 'dynamicTag', _key: 't1', tag: 'streak.current', options: {} }],
+        }];
+
+        assert.equal(toProseMirror(blocks).content[0].content[0].text, '{streak.current}');
+    });
+});

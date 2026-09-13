@@ -15,6 +15,8 @@ final class NowState
 {
     /**
      * Snake_case on the wire from Shortcuts, camelCase to the components.
+     * Anything mapped here also becomes publicly referenceable as an
+     * `ambient.*` dynamic tag: never add `name`, `street` or `postcode`.
      *
      * @var array<string, array<string, string>>
      */
@@ -23,9 +25,18 @@ final class NowState
         'battery' => ['percent' => 'percent', 'charging' => 'charging', 'low_power' => 'lowPower'],
         // `high`/`low` are still accepted and stored, but nothing renders them.
         'weather' => ['condition' => 'condition', 'temp' => 'temp', 'humidity' => 'humidity', 'wind' => 'wind'],
-        'location' => ['city' => 'city', 'state' => 'state', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
+        'location' => ['city' => 'city', 'state' => 'state', 'county' => 'county', 'country_code' => 'countryCode', 'latitude' => 'latitude', 'longitude' => 'longitude', 'timezone' => 'timezone'],
         'rings' => ['move' => 'move', 'move_goal' => 'moveGoal', 'exercise' => 'exercise', 'exercise_goal' => 'exerciseGoal', 'stand' => 'stand', 'stand_goal' => 'standGoal', 'steps' => 'steps'],
     ];
+
+    /**
+     * Mapped fields excluded from the dynamic-tag allow-list even though they
+     * are public. Named after the {@see FIELDS} output prop, so renaming a
+     * mapped name here and in `FIELDS` together keeps the exclusion matching.
+     *
+     * @var list<string>
+     */
+    public const TAG_EXCLUDED_FIELDS = ['latitude', 'longitude'];
 
     /**
      * Decimal places kept on a public coordinate. The Now map is a regional view
@@ -33,12 +44,37 @@ final class NowState
      */
     private const COORDINATE_PLACES = 0;
 
+    /** Memoised per instance, so a scoped binding reads state once per request. */
+    private ?array $cache = null;
+
     public function __construct(private readonly StateStore $state) {}
+
+    /**
+     * The allow-list itself, read-only. Lets the ambient tag generator build
+     * from the same map rather than duplicating it.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public static function fieldMap(): array
+    {
+        return self::FIELDS;
+    }
+
+    /**
+     * Reads the underlying state once per instance; a scoped container
+     * binding makes that one read per request regardless of caller count.
+     *
+     * @return array<string, array<string, mixed>|null>
+     */
+    public function __invoke(): array
+    {
+        return $this->cache ??= $this->read();
+    }
 
     /**
      * @return array<string, array<string, mixed>|null>
      */
-    public function __invoke(): array
+    private function read(): array
     {
         $keys = array_map(fn (string $group): string => "now.{$group}", array_keys(self::FIELDS));
         $entries = $this->state->entries($keys);

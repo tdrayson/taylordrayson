@@ -11,6 +11,7 @@ use App\Fields\FieldRules;
 use App\Presenters\CardPresenter;
 use App\Support\EntryInstant;
 use App\Support\EntryZone;
+use App\Support\PortableText;
 use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -48,6 +49,7 @@ class AuthoringController extends Controller
         $fields = FieldRegistry::for($this->blank($type));
 
         $this->stampDefaults($request, $fields);
+        $this->injectDynamicTags($request, $fields);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: true), [], FieldRules::labels($fields));
 
@@ -65,6 +67,8 @@ class AuthoringController extends Controller
         $model = $definition['model']::query()->findOrFail($id);
         $fields = FieldRegistry::for($model);
 
+        $this->injectDynamicTags($request, $fields);
+
         $attributes = $request->validate(FieldRules::for($fields, creating: false), [], FieldRules::labels($fields));
 
         app($definition['update'])($model, $this->expand($attributes, $fields));
@@ -73,6 +77,27 @@ class AuthoringController extends Controller
         $this->attachBodyImages($model, $definition, $fields, $attributes);
 
         return $this->afterSave($model->refresh());
+    }
+
+    /**
+     * Reparse literal `{tag options}` text in a Portable Text field's blocks
+     * back into dynamicTag nodes, before validation runs (see PortableText::withTags()).
+     *
+     * @param  list<FieldData>  $fields
+     */
+    private function injectDynamicTags(Request $request, array $fields): void
+    {
+        foreach ($fields as $field) {
+            if (! $field->type->isRichText()) {
+                continue;
+            }
+
+            $value = $request->input($field->name);
+
+            if (is_array($value)) {
+                $request->merge([$field->name => PortableText::withTags($value)]);
+            }
+        }
     }
 
     /**

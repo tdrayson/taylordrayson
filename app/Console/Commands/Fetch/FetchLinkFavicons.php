@@ -57,7 +57,9 @@ class FetchLinkFavicons extends Command
 
         foreach ([Article::class, Page::class, Note::class] as $class) {
             foreach ($class::query()->cursor() as $model) {
-                foreach (Links::hostsIn($model->content) as $host) {
+                // resolvedContent(), not content: a dynamicHref markDef has no
+                // host until its tag resolves.
+                foreach (Links::hostsIn($model->resolvedContent()) as $host) {
                     $hosts[$host] = true;
                 }
             }
