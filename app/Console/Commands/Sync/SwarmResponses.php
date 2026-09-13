@@ -4,7 +4,7 @@ namespace App\Console\Commands\Sync;
 
 use App\Actions\Syndicated\PullSwarmResponses;
 use App\Enums\Source;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\SyndicatedResponse;
 use App\Services\Foursquare\Client;
 use Carbon\Carbon;
@@ -29,7 +29,7 @@ class SwarmResponses extends Command
         $all = (bool) $this->option('all');
         $after = $all ? null : $this->resolveAfterTimestamp();
 
-        $stored = Checkin::query()
+        $stored = Place::query()
             ->where('source', Source::Swarm->value)
             ->whereNotNull('source_id')
             ->get()
@@ -39,15 +39,15 @@ class SwarmResponses extends Command
 
         try {
             foreach ($swarm->checkins($after) as $item) {
-                $checkin = $stored->get((string) ($item['id'] ?? ''));
+                $place = $stored->get((string) ($item['id'] ?? ''));
 
                 // Likes and comments ride along with the check-in itself, so
                 // there is nothing to skip for: reading it is the whole cost.
-                if ($checkin === null) {
+                if ($place === null) {
                     continue;
                 }
 
-                $pull($checkin, $item);
+                $pull($place, $item);
                 $pulled++;
             }
         } catch (RuntimeException $exception) {

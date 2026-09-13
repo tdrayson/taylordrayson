@@ -3,8 +3,8 @@
 use App\Enums\CommentStatus;
 use App\Enums\Source;
 use App\Enums\WebmentionKind;
-use App\Models\Checkin;
 use App\Models\Note;
+use App\Models\Place;
 use App\Presenters\Conversation;
 use App\Support\EntryInstant;
 use App\Support\PortableText;
@@ -35,18 +35,18 @@ it('shows a comment posted now at the real local clock time, not an hour early',
 it('renders a response to an entry recorded abroad in that entry\'s own timezone, not home time', function () {
     Carbon::setTestNow('2026-01-15 03:00:00');
 
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'occurred_at' => '2026-01-15 09:00:00',
         'timezone' => 'Australia/Sydney',
     ]);
 
-    $checkin->comments()->create([
+    $place->comments()->create([
         'author_name' => 'Jo',
         'body' => PortableText::fromPlainText('G\'day.'),
         'status' => CommentStatus::Approved,
     ]);
 
-    $responses = Conversation::for($checkin)->toArray()['responses'];
+    $responses = Conversation::for($place)->toArray()['responses'];
 
     // 03:00 UTC is 2pm in Sydney (AEDT, +11) and 3am at home (Europe/London):
     // rendering in home time would show the wrong hour entirely.
@@ -141,19 +141,19 @@ it('renders a webmention at the offset its dt-published carried', function () {
 it('still renders a Strava kudo in the entry\'s timezone, since no author timezone is available', function () {
     Carbon::setTestNow('2026-01-15 03:00:00');
 
-    $checkin = Checkin::factory()->create([
+    $place = Place::factory()->create([
         'occurred_at' => '2026-01-15 09:00:00',
         'timezone' => 'Australia/Sydney',
     ]);
 
-    $checkin->syndicatedResponses()->create([
+    $place->syndicatedResponses()->create([
         'source' => Source::Strava->value,
         'kind' => WebmentionKind::Like,
         'author_name' => 'Justin M.',
         'occurred_at' => now(),
     ]);
 
-    $responses = Conversation::for($checkin)->toArray()['responses'];
+    $responses = Conversation::for($place)->toArray()['responses'];
 
     expect($responses[0]['occurredAt']['offset'])->toBe('+11:00');
 });

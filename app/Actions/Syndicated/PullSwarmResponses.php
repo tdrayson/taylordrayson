@@ -5,7 +5,7 @@ namespace App\Actions\Syndicated;
 use App\Data\SyndicatedResponseData;
 use App\Enums\Source;
 use App\Enums\WebmentionKind;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Support\EntryInstant;
 use App\Support\PortableText;
 use Carbon\Carbon;
@@ -23,7 +23,7 @@ final class PullSwarmResponses
     /**
      * @param  array<string, mixed>  $item  One check-in item from the Foursquare payload.
      */
-    public function __invoke(Checkin $checkin, array $item): void
+    public function __invoke(Place $place, array $item): void
     {
         $likers = self::likers($item);
         $likesAmbiguous = self::likesAmbiguous($item, $likers);
@@ -32,13 +32,13 @@ final class PullSwarmResponses
         // timestamp of its own, so it borrows the check-in's, converted via
         // the check-in's own timezone. A comment missing its own createdAt
         // falls back to the same converted instant.
-        $checkinOccurredAt = EntryInstant::utc($checkin->occurred_at, $checkin->timezone()) ?? $checkin->occurred_at;
+        $placeOccurredAt = EntryInstant::utc($place->occurred_at, $place->timezone()) ?? $place->occurred_at;
 
         $responses = [
             ...($likesAmbiguous ? [] : array_map(fn (array $user): SyndicatedResponseData => new SyndicatedResponseData(
                 kind: WebmentionKind::Like,
                 authorName: self::name($user),
-                occurredAt: $checkinOccurredAt,
+                occurredAt: $placeOccurredAt,
                 sourceId: null,
                 authorPhotoUrl: self::photo($user),
             ), $likers)),
@@ -48,14 +48,14 @@ final class PullSwarmResponses
                 authorName: self::name($comment['user'] ?? []),
                 occurredAt: isset($comment['createdAt'])
                     ? Carbon::createFromTimestamp($comment['createdAt'])
-                    : $checkinOccurredAt,
+                    : $placeOccurredAt,
                 sourceId: (string) $comment['id'],
                 body: PortableText::fromPlainText((string) ($comment['text'] ?? '')),
                 authorPhotoUrl: self::photo($comment['user'] ?? []),
             ), self::comments($item)),
         ];
 
-        ($this->reconcile)($checkin, Source::Swarm, $responses, $likesAmbiguous ? [WebmentionKind::Like] : []);
+        ($this->reconcile)($place, Source::Swarm, $responses, $likesAmbiguous ? [WebmentionKind::Like] : []);
     }
 
     /**
