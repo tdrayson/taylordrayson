@@ -61,12 +61,11 @@ const sparseMonths = MONTH_NAMES.map((label, i) => ({
 }));
 
 // One Portable Text callout per variant, so the set is reviewable in one place.
-// One sample row of counts for the CountGroup demo, with a zero to show muting.
+// One sample row of counts for the CountGroup demo.
 const countSample = [
-    { key: 'reactions', icon: 'ThumbsUpIcon', count: 26, colour: 'var(--color-count-reactions)' },
-    { key: 'replies', icon: 'Comment01Icon', count: 19, colour: 'var(--color-count-replies)' },
-    { key: 'reposts', icon: 'ArrowReloadHorizontalIcon', count: 7, colour: 'var(--color-count-reposts)' },
-    { key: 'mentions', icon: 'Link02Icon', count: 0, colour: 'var(--color-count-mentions)' },
+    { key: 'reactions', icon: 'ThumbsUpIcon', count: 26 },
+    { key: 'replies', icon: 'Comment01Icon', count: 19 },
+    { key: 'reposts', icon: 'ArrowReloadHorizontalIcon', count: 7 },
 ];
 
 const callouts = ['note', 'tip', 'important', 'warning', 'caution'].map((variant, i) => ({
@@ -232,9 +231,9 @@ function swatchInk(step) {
         <!-- Count groups -->
         <section class="space-y-4">
             <h2 class="ds-label">Count groups</h2>
-            <div v-for="variant in ['tinted', 'icons', 'plain']" :key="variant" class="flex flex-wrap items-center gap-3">
+            <div v-for="variant in ['plain', 'bare']" :key="variant" class="flex flex-wrap items-center gap-3">
                 <CountGroup v-for="size in ['md', 'sm']" :key="size" :variant="variant" :size="size">
-                    <CountSegment v-for="item in countSample" :key="item.key" :colour="item.colour" :muted="item.count === 0" :class="size === 'sm' ? 'text-caption' : 'text-meta'">
+                    <CountSegment v-for="item in countSample" :key="item.key" :class="size === 'sm' ? 'text-caption' : 'text-meta'">
                         <Icon :name="item.icon" :class="size === 'sm' ? 'size-3.5' : 'size-4'" />
                         <span class="tnum">{{ item.count }}</span>
                     </CountSegment>
