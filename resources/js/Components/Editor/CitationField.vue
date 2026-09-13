@@ -183,6 +183,28 @@ const displayPreview = computed(() => {
 
 // Shown greyed in an empty quote: what publishes when it is left blank.
 const excerpt = computed(() => preview.value?.cited?.quote ?? '');
+
+const quoteInput = ref(null);
+
+/**
+ * Grows the quote box to its text rather than scrolling it. The quote is capped
+ * at 600 characters, so the box can never get unreasonably tall.
+ */
+function fitQuote() {
+    const el = quoteInput.value;
+
+    if (! el) {
+        return;
+    }
+
+    el.style.height = 'auto';
+    // scrollHeight excludes the border, which border-box sizing counts.
+    el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+}
+
+// Refits after every value change, typed, pre-filled or reset, once the DOM holds it.
+watch(() => [props.modelValue, props.responseKind], fitQuote, { flush: 'post' });
+onMounted(fitQuote);
 </script>
 
 <template>
@@ -196,11 +218,12 @@ const excerpt = computed(() => preview.value?.cited?.quote ?? '');
         <textarea
             v-if="responseKind === 'reply'"
             :id="id"
+            ref="quoteInput"
             :value="modelValue"
             :placeholder="excerpt"
             rows="3"
             maxlength="600"
-            :class="[CONTROL, CONTROL_BORDER, 'text-neutral-900']"
+            :class="[CONTROL, CONTROL_BORDER, 'resize-none overflow-hidden text-neutral-900']"
             @input="emit('update:modelValue', $event.target.value)"
         />
 

@@ -79,7 +79,7 @@ const property = computed(() => `u-${props.response.property}`);
                 <a v-if="cited.title" :href="response.url" class="u-url block font-semibold text-neutral-900 hover:text-accent-700">
                     <cite class="p-name not-italic">{{ cited.title }}</cite>
                 </a>
-                <p v-if="cited.quote" :class="['p-content line-clamp-3 text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
+                <p v-if="cited.quote" :class="['p-content text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
                 <a v-if="cited.published" :href="response.url" class="u-url mt-2 inline-block text-caption text-neutral-500 hover:text-accent-700">
                     <time class="dt-published" :datetime="cited.published.iso">{{ cited.published.label }} {{ cited.published.offset }}</time>
                 </a>
