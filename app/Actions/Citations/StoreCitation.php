@@ -33,11 +33,23 @@ final class StoreCitation
         $citation->save();
 
         if ($reply !== null && $reply->citation_id !== $citation->id) {
-            $reply->citation()->associate($citation);
-            // Quietly, so relinking does not run the response hooks that queued this.
-            $reply->saveQuietly();
+            $this->link($reply, $citation, $data->url);
         }
 
         return $citation;
+    }
+
+    /** Points the reply at the citation, unless its URL changed while the fetch ran. */
+    private function link(Model $reply, Citation $citation, string $url): void
+    {
+        $linked = $reply::query()
+            ->whereKey($reply->getKey())
+            ->where('response_url', $url)
+            ->update(['citation_id' => $citation->id]);
+
+        if ($linked > 0) {
+            $reply->citation()->associate($citation);
+            $reply->syncOriginalAttribute('citation_id');
+        }
     }
 }

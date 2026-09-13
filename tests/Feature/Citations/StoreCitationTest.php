@@ -23,7 +23,8 @@ function found(array $overrides = []): CitationData
 }
 
 it('stores a new citation and points the reply at it', function () {
-    $note = Note::factory()->create();
+    Queue::fake();
+    $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => 'https://example.com/post']);
 
     $citation = app(StoreCitation::class)(found(), $note);
 
@@ -124,4 +125,14 @@ it('queues a fetch on any later save of a reply still without a citation', funct
     $note->fresh()->update(['slug' => 'an-unrelated-change']);
 
     Queue::assertPushed(FetchCitationFor::class, 2);
+});
+
+it('links nothing when the reply was pointed elsewhere while the fetch ran', function () {
+    Queue::fake();
+    $note = Note::factory()->create(['response_kind' => ResponseKind::Reply, 'response_url' => 'https://example.com/post']);
+    Note::query()->whereKey($note->id)->update(['response_url' => 'https://example.com/elsewhere']);
+
+    app(StoreCitation::class)(found(), $note);
+
+    expect($note->fresh()->citation_id)->toBeNull();
 });
