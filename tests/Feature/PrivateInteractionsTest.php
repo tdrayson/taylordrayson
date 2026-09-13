@@ -150,6 +150,35 @@ it('records a mention on a private entry linked from a public one', function () 
     expect($article->mentions()->count())->toBe(1);
 });
 
+it('records its mentions and sends its webmentions once published, with the content unchanged', function (EntryStatus $from, EntryStatus $to) {
+    $sleep = Sleep::factory()->create();
+    $note = Note::factory()->create([
+        'status' => $from,
+        'password' => $from === EntryStatus::Private ? 'hunter2' : null,
+        'content' => PortableText::fromPlainText('See https://example.com/post and '.absoluteUrl($sleep->url())),
+    ]);
+
+    Queue::assertNotPushed(SendWebmentions::class);
+    expect($sleep->mentions()->count())->toBe(0);
+
+    $note->update(['status' => $to]);
+
+    Queue::assertPushed(SendWebmentions::class, 1);
+    expect($sleep->mentions()->count())->toBe(1);
+})->with([
+    'private to published' => [EntryStatus::Private, EntryStatus::Published],
+    'private to unlisted' => [EntryStatus::Private, EntryStatus::Unlisted],
+    'draft to published' => [EntryStatus::Draft, EntryStatus::Published],
+]);
+
+it('sends nothing again when a published entry is only unlisted', function () {
+    $note = Note::factory()->create(['content' => PortableText::fromPlainText('See https://example.com/post')]);
+
+    $note->update(['status' => EntryStatus::Unlisted]);
+
+    Queue::assertPushed(SendWebmentions::class, 1);
+});
+
 it('keeps the mentions an entry made and received when it goes private', function () {
     $sleep = Sleep::factory()->create();
     $article = Article::factory()->create([
