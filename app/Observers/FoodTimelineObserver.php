@@ -6,6 +6,7 @@ use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Queries\LoggingStreak;
 use App\Support\EntryInstant;
+use App\Support\TimelineUrlSlug;
 
 class FoodTimelineObserver
 {
@@ -30,7 +31,7 @@ class FoodTimelineObserver
         // both read from.
         $occurredAt = $food->occurred_at->copy()->endOfDay();
 
-        TimelineEntry::updateOrCreate(
+        $entry = TimelineEntry::updateOrCreate(
             [
                 'dataset' => (new Food)->getMorphClass(),
                 'entry_id' => $firstFood->id,
@@ -38,9 +39,10 @@ class FoodTimelineObserver
             [
                 'occurred_at' => $occurredAt,
                 'occurred_utc' => EntryInstant::utc($occurredAt, $firstFood->timezone()),
-                'url_slug' => $firstFood->slug(),
             ],
         );
+
+        TimelineUrlSlug::ensure($entry, $firstFood->slug());
     }
 
     public function deleted(Food $food): void
