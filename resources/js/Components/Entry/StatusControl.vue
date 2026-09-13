@@ -1,10 +1,9 @@
 <script setup>
 import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
-import { cn } from '../../lib/cn.js';
 import Button from '../Ui/Button.vue';
 import Input from '../Ui/Input.vue';
+import StyledSelect from '../Search/StyledSelect.vue';
 
 /** The owner's status switch: pick a status, add a password when private needs one, save. */
 const props = defineProps({
@@ -26,9 +25,9 @@ function save() {
 <template>
     <form class="flex flex-wrap items-center gap-2" @submit.prevent="save">
         <label for="entry-status" class="sr-only">Status</label>
-        <select id="entry-status" v-model="form.status" :class="cn(CONTROL, CONTROL_BORDER, 'w-auto text-neutral-900')">
-            <option v-for="option in control.options" :key="option.value" :value="option.value">{{ option.label }}</option>
-        </select>
+        <div class="w-40">
+            <StyledSelect id="entry-status" v-model="form.status" :options="control.options" class="min-h-11" />
+        </div>
 
         <Input v-if="needsPassword" v-model="form.password" type="password" placeholder="Password" class="w-auto" aria-label="Password" />
 
