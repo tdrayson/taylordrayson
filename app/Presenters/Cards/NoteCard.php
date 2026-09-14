@@ -12,7 +12,7 @@ use App\Data\ResponseData;
 use App\Enums\TimelineType;
 use App\Models\Note;
 use App\Support\PortableText;
-use Illuminate\Support\Str;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for a Note: truncated content as the title, the
@@ -72,7 +72,7 @@ final class NoteCard
         $response = $this->response($model);
 
         if ($response === null || ! $model->responseKind()?->isGesture()) {
-            return Str::limit(PortableText::plainText($model->resolvedContent()), 80);
+            return Text::excerpt(PortableText::plainText($model->resolvedContent()), 80);
         }
 
         $sentence = $model->responseKind()?->sentence()
