@@ -8,11 +8,9 @@ use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
 use App\Models\TimelineEntry;
-use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Queries\DayFoodTotals;
 use App\Support\OgPhrases;
-use App\Support\ShowTitle;
 use App\Support\StaticMap;
 use App\Support\TypeCatalogue;
 use App\Support\TypeColors;
@@ -127,28 +125,13 @@ final class BuildEntryOgData
             TimelineType::ThisWeekWith => $model->season_number && $model->episode_number
                 ? OgPhrases::pick('this-week-with', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
                 : null,
-            TimelineType::Film => "I watched {$model->title}",
-            TimelineType::TvEpisode => 'I watched '.$this->episodeSubject($model),
-            TimelineType::Book => "I read {$model->title}",
+            TimelineType::Film => "I watched {$card->title}",
+            TimelineType::TvEpisode => 'I watched '.CardPresenter::card($model)->subject($model),
+            TimelineType::Book => "I read {$card->title}",
             default => null,
         };
 
         return Str::limit($phrase ?? trim(CardPresenter::publicTitle($model, $card)), 160, '');
-    }
-
-    /** "season 4 episode 4 of Ted Lasso", falling back to whatever is known. */
-    private function episodeSubject(TvEpisode $model): string
-    {
-        $show = ShowTitle::for($model);
-        $where = $model->meta->season !== null && $model->meta->episode !== null
-            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
-            : null;
-
-        return match (true) {
-            $where !== null && $show !== null => "{$where} of {$show}",
-            $show !== null => $show,
-            default => $model->title,
-        };
     }
 
     /**

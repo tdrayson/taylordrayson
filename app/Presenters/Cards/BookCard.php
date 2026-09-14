@@ -28,13 +28,25 @@ final class BookCard
         );
     }
 
+    /** The overview, else the sentence with the book named: "I read Project Hail Mary by Andy Weir and rated it 9/10." */
+    public function description(Book $model): string
+    {
+        $author = $model->meta->author ? " by {$model->meta->author}" : '';
+
+        return Text::prose($model->overview) ?? "I read {$model->title}{$author}{$this->rated($model)}.";
+    }
+
     /** "I read Andy Weir's book and rated it 9/10." */
     private function sentence(Book $model): string
     {
         $book = $model->meta->author ? "{$model->meta->author}'s book" : 'this book';
-        $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
 
-        return "I read {$book}{$rated}.";
+        return "I read {$book}{$this->rated($model)}.";
+    }
+
+    private function rated(Book $model): string
+    {
+        return $model->rating ? " and rated it {$model->rating}/10" : '';
     }
 
     public function title(Book $model): string
