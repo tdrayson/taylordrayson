@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Data\MediaData;
 use App\Enums\TimelineType;
 use App\Models\Appearance;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for an Appearance: show name as the subtitle and
@@ -34,6 +35,7 @@ final class AppearanceCard
                 duration: $model->duration,
                 url: $model->url(),
             )),
+            summary: Text::prose($model->description),
         );
     }
 

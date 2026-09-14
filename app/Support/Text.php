@@ -26,6 +26,16 @@ class Text
         return implode(', ', $parts).' and '.$last;
     }
 
+    /**
+     * Source prose as stored, or null when absent or blank.
+     */
+    public static function prose(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
+
     public static function excerpt(?string $value, int $limit = 160, string $end = '…'): ?string
     {
         if ($value === null) {
