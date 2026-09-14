@@ -10,8 +10,10 @@ use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
+use App\Support\BookProgress;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -22,6 +24,8 @@ use Spatie\MediaLibrary\HasMedia;
 final class Book extends Model implements HasMedia, Timelineable
 {
     use HasAttachments, HasFactory, HasSpan, HasStatus, HasTags, HasTimelineEntry;
+
+    protected $appends = ['progress'];
 
     /**
      * @return array<string, string>
@@ -37,6 +41,20 @@ final class Book extends Model implements HasMedia, Timelineable
             'pages' => 'integer',
             'meta' => BookMeta::class,
         ];
+    }
+
+    /**
+     * Reading progress floored to a whole percent, the only form it is ever
+     * shown in. Not persisted: `progress_percent` is what the sync and the
+     * page-based calculation write.
+     *
+     * @return Attribute<int|null, never>
+     */
+    protected function progress(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?int => $this->progress_percent === null ? null : BookProgress::display($this->progress_percent),
+        );
     }
 
     public function slug(): string

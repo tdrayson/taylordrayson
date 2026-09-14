@@ -113,7 +113,7 @@ it('still saves an older published book that has no cover', function () {
 it('offers progress and the Kindle id read-only on a Kindle book', function () {
     $fields = collect(BookFields::fields(kindleDraft()))->keyBy('name');
 
-    expect($fields['progress_percent']->readOnly)->toBeTrue()
+    expect($fields['progress']->readOnly)->toBeTrue()
         ->and($fields['source_id']->readOnly)->toBeTrue()
         ->and($fields->has('current_page'))->toBeFalse()
         ->and(collect(BookFields::fields())->pluck('name'))->toContain('current_page', 'pages')->not->toContain('source_id');
@@ -125,4 +125,32 @@ it('lists what each draft book still needs', function () {
     $this->get('/drafts')->assertInertia(fn (Assert $page) => $page
         ->where('groups.0.rows.0.detail', '42%, needs author and cover')
     );
+});
+
+it('floors reading progress for display and carries it on the entry payload', function () {
+    $book = kindleDraft(['progress_percent' => 42.9]);
+
+    expect($book->progress)->toBe(42)
+        ->and($book->toArray()['progress'])->toBe(42);
+});
+
+it('lets a published book go back to draft even at 100 percent', function () {
+    $book = Book::factory()->create([
+        'source' => 'manual',
+        'status' => 'published',
+        'progress_percent' => 100.0,
+        'meta' => ['author' => 'James Clear'],
+    ]);
+    $book->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
+
+    $this->patch("/entries/book/{$book->id}", ['status' => 'draft'])->assertSessionHasNoErrors();
+
+    expect($book->fresh()->status)->toBe(EntryStatus::Draft);
+});
+
+it('refuses to create a published book without an author and a cover', function () {
+    $this->post('/entries/book', ['title' => 'Atomic Habits', 'status' => 'published'])
+        ->assertSessionHasErrors(['status' => 'Add an author and a cover before publishing.']);
+
+    expect(Book::count())->toBe(0);
 });

@@ -36,7 +36,10 @@ final class PrepareBookSave
         $missing = $this->missing($book, $attributes);
         $percent = $attributes['progress_percent'] ?? $book->progress_percent;
 
-        if ($status === EntryStatus::Draft && $percent !== null && $percent >= BookProgress::FINISHED && $missing === []) {
+        // Only a book actually leaving draft is auto-published; otherwise an
+        // already-published book explicitly sent back to draft would be
+        // flipped straight back to published because it still reads 100%.
+        if ($leavingDraft && $status === EntryStatus::Draft && $percent !== null && $percent >= BookProgress::FINISHED && $missing === []) {
             $status = EntryStatus::Published;
             $attributes['status'] = $status->value;
         }
