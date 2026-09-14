@@ -7,10 +7,11 @@ use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Enums\TimelineType;
 use App\Models\Place;
+use App\Support\Text;
 
 /**
- * Builds the timeline card for a Place: "at Cineworld", the note when there is
- * one, and the generated location map.
+ * Builds the timeline card for a Place: "at Cineworld", the note as its
+ * summary, and the generated location map.
  */
 final class PlaceCard
 {
@@ -28,10 +29,7 @@ final class PlaceCard
             // "Check-in at Cineworld" reads straight through; an event title
             // already names something, so it takes a comma.
             titleLabel: $model->event_name ? "Check-in, {$title}" : "Check-in {$title}",
-            // The note only. A check-in without one says nothing here: what the
-            // place is arrives as its category, which is Foursquare's word and
-            // not a sentence to be written around.
-            subtitle: $model->description ?: null,
+            subtitle: null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             range: null,
@@ -45,6 +43,7 @@ final class PlaceCard
                 address: $address !== '' ? $address : null,
                 category: $model->type,
             ),
+            summary: Text::prose($model->description),
         );
     }
 

@@ -36,6 +36,9 @@ const props = defineProps({
     // Structured subtitle tokens (raw metres/kg + literal text) composed reactively
     // via useFormat; null falls back to the plain `meta` string (e.g. notes).
     metaTokens: { type: Array, default: null },
+    // Source prose (my note or description, a publisher's overview), shown as
+    // its own paragraph under the generated subtitle. Never merged into `meta`.
+    summary: { type: String, default: null },
     segments: { type: Array, default: null },
     route: { type: Object, default: null },
     media: { type: Object, default: null },
@@ -272,7 +275,8 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <p v-else-if="metaText" v-twemoji class="mt-2 line-clamp-3 max-w-prose text-meta" :class="[pb ? 'font-semibold text-accent-500' : 'text-neutral-700', { 'p-summary': !summary }]">{{ metaText }}</p>
+        <p v-if="summary" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose whitespace-pre-line text-meta text-neutral-700">{{ summary }}</p>
         <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
              and the `dark:` class picks the right one, no JS needed. -->
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
