@@ -145,12 +145,12 @@ const contentEl = ref(null);
 
 /* Wins over the generic :deep(a) rule above, which would otherwise underline
    the chip and repaint its text. */
-.block-content :deep(a.entry-chip) {
+.block-content :deep(a.link-chip) {
     color: var(--color-accent-700);
     text-decoration: none;
 }
 
-.block-content :deep(a.entry-chip:hover) {
+.block-content :deep(a.link-chip:hover) {
     background-color: var(--color-accent-100);
 }
 

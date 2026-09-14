@@ -36,6 +36,22 @@ const Link = TiptapLink.extend({
     },
 
     /**
+     * Link's own attributes, plus whether a pasted URL shows its whole address.
+     *
+     * @returns {object}
+     */
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            expanded: {
+                default: false,
+                parseHTML: (element) => element.hasAttribute('data-expanded'),
+                renderHTML: (attributes) => (attributes.expanded ? { 'data-expanded': '' } : {}),
+            },
+        };
+    },
+
+    /**
      * Anchors, plus this mark's own output.
      *
      * Copying from the editor puts spans on the clipboard, not anchors, so
@@ -50,6 +66,7 @@ const Link = TiptapLink.extend({
                 getAttrs: (element) => ({
                     href: element.getAttribute('data-href'),
                     target: element.getAttribute('data-target'),
+                    expanded: element.hasAttribute('data-expanded'),
                 }),
             },
         ];
@@ -64,6 +81,7 @@ const Link = TiptapLink.extend({
             class: 'editor-link',
             'data-href': href,
             'data-target': HTMLAttributes.target,
+            'data-expanded': HTMLAttributes['data-expanded'],
             // An internal link has no host to fetch an icon for, so it reads as
             // the entry chip the published page renders instead.
             ...(host

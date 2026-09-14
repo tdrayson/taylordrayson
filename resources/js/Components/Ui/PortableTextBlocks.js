@@ -6,6 +6,7 @@ import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
+import { isBareUrl } from '../../lib/portable-text/links';
 import VideoEmbed from './VideoEmbed.vue';
 
 
@@ -59,14 +60,6 @@ function hostOf(href) {
     } catch {
         return null;
     }
-}
-
-// True when the link text is just the address, i.e. a pasted URL rather than
-// words the author chose. Only then may the label be replaced.
-function isBareUrl(text, href) {
-    const strip = (value) => value.replace(/\/$/, '').replace(/^https?:\/\//, '');
-
-    return typeof text === 'string' && strip(text.trim()) === strip(href);
 }
 
 // True when a URL points somewhere below its site's root (a path, query or hash).
@@ -142,10 +135,32 @@ function iconWithLabel(mark, label) {
 }
 
 /**
+ * A pasted URL shown whole, minus its protocol and www: the icon rides with the
+ * host, and the path breaks wherever the line ends.
+ *
+ * @param {object} mark The icon vnode.
+ * @param {string} text The link text, which is the address.
+ * @returns {Array} The anchor's children.
+ */
+function iconWithAddress(mark, text) {
+    const address = text.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
+    const slash = address.indexOf('/');
+    const host = slash === -1 ? address : address.slice(0, slash);
+
+    return [
+        h('span', { class: 'whitespace-nowrap' }, [mark, host]),
+        slash === -1 ? null : h('span', { class: 'break-all' }, address.slice(slash)),
+    ];
+}
+
+/** Every link is a chip; its icon, not its shape, says where it goes. */
+const CHIP = 'link-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline';
+
+/**
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
- * into nonsense. A pasted URL is the one exception, collapsing to the domain
- * (plus "/…" for a deep link) rather than sitting in the sentence as a raw address.
+ * into nonsense. A pasted URL is the exception, showing the domain (plus "/…"
+ * for a deep link), or the whole address when the author expanded it.
  */
 function renderExternalLink(def, label, text, favicons) {
     const host = hostOf(def.href);
@@ -167,23 +182,27 @@ function renderExternalLink(def, label, text, favicons) {
     // The author's choice wins where they made one; otherwise an external
     // destination opens away, which is the expected default.
     const away = def.blank ?? true;
+    const pasted = Boolean(host) && isBareUrl(text, def.href);
+
+    const children = ! pasted
+        ? iconWithLabel(mark, label)
+        : (def.expanded ? iconWithAddress(mark, text) : iconWithLabel(mark, collapsedUrl(host, def.href)));
 
     return h('a', {
         href: def.href,
         rel: away ? 'noopener noreferrer' : null,
         target: away ? '_blank' : null,
+        class: CHIP,
         'data-external': '',
     }, [
-        ...iconWithLabel(mark, isBareUrl(text, def.href) && host ? collapsedUrl(host, def.href) : label),
+        ...children,
         away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
     ]);
 }
 
 /**
- * An internal link that resolves to an entry: a chip carrying that entry type's
- * glyph, so a reference that keeps you on the site reads differently from one
- * that leaves it. A link with no entry behind it (an archive page, an
- * unpublished target) stays an ordinary link.
+ * An internal link: the entry type's glyph when it resolves to an entry, or a
+ * plain link glyph for anything else (an archive page, an unpublished target).
  *
  * The glyph takes the type's hue and nothing else does. Tinting the fill per
  * type would put a dozen colours through a paragraph and move the text contrast
@@ -194,7 +213,10 @@ function renderInternalLink(def, label, text, previews) {
     const preview = previews[def.href];
 
     if (! preview) {
-        return h('a', { href: def.href }, label);
+        return h('a', { href: def.href, class: CHIP }, iconWithLabel(
+            h(Icon, { icon: 'Link02Icon', class: 'mb-0.5 mr-1 inline size-3.5 align-middle text-neutral-400' }),
+            label,
+        ));
     }
 
     // A pasted address is not anchor text anyone chose, so the entry names
@@ -204,7 +226,7 @@ function renderInternalLink(def, label, text, previews) {
 
     return h('a', {
         href: def.href,
-        class: 'entry-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline',
+        class: CHIP,
     }, iconWithLabel(
         h(Icon, {
             icon: entryType(preview.type).icon,

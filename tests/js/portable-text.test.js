@@ -90,6 +90,16 @@ describe('portable text round trip', () => {
         },
     ]);
 
+    survives('a pasted URL expanded to its full address', [
+        {
+            _type: 'block',
+            _key: 'b1',
+            style: 'normal',
+            markDefs: [{ _key: 'l1', _type: 'link', href: 'https://example.com/a/b', expanded: true }],
+            children: [span('https://example.com/a/b', ['l1'])],
+        },
+    ]);
+
     survives('a bulleted list', [
         { _type: 'block', _key: 'i1', style: 'normal', listItem: 'bullet', level: 1, children: [span('One')] },
         { _type: 'block', _key: 'i2', style: 'normal', listItem: 'bullet', level: 1, children: [span('Two')] },

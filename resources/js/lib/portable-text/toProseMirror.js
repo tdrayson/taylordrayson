@@ -33,6 +33,7 @@ function spanToText(span, markDefs) {
                     href: def.href,
                     _key: def._key,
                     target: def.blank === undefined ? null : (def.blank ? '_blank' : '_self'),
+                    expanded: def.expanded === true,
                 },
             });
         }
