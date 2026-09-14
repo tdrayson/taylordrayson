@@ -19,14 +19,7 @@ use App\Models\ThisWeekWith;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 
-/**
- * Proves CardPresenter::for() is a total resolver: every Timelineable model
- * dispatches to a presenter and returns a CardData, so a model can never
- * silently fall through to the "no presenter registered" branch.
- */
-it('resolves a CardData for every Timelineable model', function (Timelineable $model) {
-    expect(CardPresenter::for($model))->toBeInstanceOf(CardData::class);
-})->with([
+dataset('timelineable models', [
     'activity' => fn () => Activity::factory()->create(),
     'sleep' => fn () => Sleep::factory()->create(),
     'food' => fn () => Food::factory()->create(),
@@ -43,3 +36,16 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
     'article' => fn () => Article::factory()->create(),
     'note' => fn () => Note::factory()->create(),
 ]);
+
+/**
+ * Proves CardPresenter::for() is a total resolver: every Timelineable model
+ * dispatches to a presenter and returns a CardData, so a model can never
+ * silently fall through to the "no presenter registered" branch.
+ */
+it('resolves a CardData for every Timelineable model', function (Timelineable $model) {
+    expect(CardPresenter::for($model))->toBeInstanceOf(CardData::class);
+})->with('timelineable models');
+
+it('has every card write its own description', function (Timelineable $model) {
+    expect(CardPresenter::card($model)->description($model))->toBeString();
+})->with('timelineable models');

@@ -32,9 +32,9 @@ final class CardPresenter
 
     /**
      * The per-type presenter for a model, declared on its dataset. Each card
-     * exposes present() and title(); a caller wanting only the heading
-     * (PhotoCaption) takes the latter. Not typed to an interface: every card
-     * narrows its parameter to its own model.
+     * exposes present(), title() and description(); a caller wanting only the
+     * heading (PhotoCaption) takes the latter. Not typed to an interface: every
+     * card narrows its parameter to its own model.
      */
     public static function card(Timelineable $model): object
     {
