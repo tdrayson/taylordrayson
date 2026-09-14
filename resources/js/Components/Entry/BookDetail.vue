@@ -34,6 +34,8 @@ const rows = computed(() => [
             <span class="text-meta text-neutral-500">/ 10</span>
         </div>
 
+        <p v-if="entry.overview" v-twemoji class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.overview }}</p>
+
         <DetailList :rows="rows" />
     </div>
 </template>
