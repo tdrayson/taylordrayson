@@ -36,10 +36,10 @@ final readonly class KindleItem implements Arrayable, JsonSerializable
         );
     }
 
-    /** Magazines and newspapers sync too, and are not books. */
+    /** Magazines, newspapers and untyped items sync too, and are not books. */
     public function isBook(): bool
     {
-        return $this->type === null || in_array($this->type, self::BOOK_TYPES, true);
+        return $this->type !== null && in_array($this->type, self::BOOK_TYPES, true);
     }
 
     /**

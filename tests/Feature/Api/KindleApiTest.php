@@ -109,13 +109,14 @@ it('leaves a finished book alone', function () {
     expect($book->fresh()->progress_percent)->toBe(100.0);
 });
 
-it('skips magazines and readings from the future', function () {
+it('skips magazines, untyped items and readings from the future', function () {
     syncKindle([
         kindleItem(['cde_key' => 'MAG1', 'type' => 'MAGZ']),
+        kindleItem(['cde_key' => 'UNTYPED', 'type' => null]),
         kindleItem(['cde_key' => 'FUTURE', 'last_open' => Carbon::now()->addDays(3)->getTimestamp()]),
     ])
         ->assertOk()
-        ->assertJsonPath('data.skipped', 2);
+        ->assertJsonPath('data.skipped', 3);
 
     expect(Book::count())->toBe(0);
 });
