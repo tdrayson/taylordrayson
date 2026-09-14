@@ -96,7 +96,7 @@ class Client
     }
 
     /**
-     * Each book's description, tags and default editions, keyed by Hardcover book id.
+     * Each book's description, tags and edition covers, keyed by Hardcover book id.
      *
      * @param  list<int>  $ids
      * @return array<int, array<string, mixed>>
@@ -114,8 +114,11 @@ class Client
                 description
                 image { url }
                 cached_tags
-                default_physical_edition { subtitle pages isbn_13 image { url } }
-                default_ebook_edition { subtitle pages isbn_13 image { url } }
+                editions(
+                  where: {image_id: {_is_null: false}, _or: [{language_id: {_is_null: true}}, {language: {code2: {_eq: "en"}}}]}
+                  order_by: {users_count: desc}
+                  limit: 40
+                ) { image { url } }
               }
             }
             GRAPHQL, ['ids' => $ids]);

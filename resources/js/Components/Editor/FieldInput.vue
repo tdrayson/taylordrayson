@@ -44,6 +44,8 @@ const props = defineProps({
     placeholder: { type: String, default: '' },
     // A line under the control, e.g. the URL a slug is going to produce.
     hint: { type: String, default: null },
+    // Values a lookup offered for this field to choose between, such as covers.
+    suggestions: { type: Array, default: () => [] },
 });
 
 // How much of a capped field's budget the current value spends. Measured on
@@ -65,7 +67,7 @@ const coordinates = computed(() => {
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
 // what other fields exist.
-defineEmits(['update:modelValue', 'fill']);
+defineEmits(['update:modelValue', 'fill', 'suggest']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -142,6 +144,7 @@ function textToTags(value) {
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :multiple="field.type === 'gallery'"
             :invalid="Boolean(error)"
+            :suggestions="suggestions"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -216,6 +219,7 @@ function textToTags(value) {
             :source="field.source"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
+            @suggest="$emit('suggest', $event)"
         />
 
         <LocationInput

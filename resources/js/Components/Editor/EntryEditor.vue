@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
 import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
@@ -223,6 +223,13 @@ function applyFill(values) {
     });
 }
 
+/** Keep what a lookup offered to choose from, keyed by the field it is for. */
+const suggestions = reactive({});
+
+function applySuggestions(values) {
+    Object.assign(suggestions, values);
+}
+
 /** The field carrying a character limit, if this type declares one. */
 const cappedField = computed(() => props.fields.find((field) => field.max) ?? null);
 
@@ -345,10 +352,12 @@ function submit() {
             :field="bodyField"
             :model-value="form[bodyField.name]"
             :error="form.errors[bodyField.name]"
+            :suggestions="suggestions[bodyField.name] ?? []"
             hide-label
             :class="titleField ? 'mt-4' : ''"
             @update:model-value="form[bodyField.name] = $event"
             @fill="applyFill"
+            @suggest="applySuggestions"
         />
 
         <LengthNotice
@@ -381,8 +390,10 @@ function submit() {
                         :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
                         :hint="row.field.type === 'slug' ? slugPreview : null"
+                        :suggestions="suggestions[row.field.name] ?? []"
                         @update:model-value="onFieldInput(row.field, $event)"
                         @fill="applyFill"
+                        @suggest="applySuggestions"
                     />
 
                     <LengthNotice
@@ -406,8 +417,10 @@ function submit() {
                         :field="field"
                         :model-value="form[field.name]"
                         :error="form.errors[field.name]"
+                        :suggestions="suggestions[field.name] ?? []"
                         @update:model-value="onFieldInput(field, $event)"
                         @fill="applyFill"
+                        @suggest="applySuggestions"
                     />
                 </FieldGroup>
             </template>

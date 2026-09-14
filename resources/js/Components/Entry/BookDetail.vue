@@ -11,15 +11,10 @@ const props = defineProps({
 
 const meta = computed(() => props.entry.meta || {});
 
-// The ISBN links out by edition, so no vendor id has to be stored to reach a book page.
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
     { label: 'Author', value: meta.value.author },
-    {
-        label: 'ISBN',
-        value: meta.value.isbn,
-        externalHref: meta.value.isbn ? `https://openlibrary.org/isbn/${meta.value.isbn}` : null,
-    },
+    { label: 'ISBN', value: meta.value.isbn },
 ]);
 </script>
 

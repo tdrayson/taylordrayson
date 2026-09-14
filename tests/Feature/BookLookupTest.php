@@ -16,12 +16,13 @@ function hardcoverSearch(): MockResponse
             'author_names' => ['Dale Carnegie'],
             'release_year' => 1913,
             'pages' => 288,
+            'isbns' => ['9780671027032'],
             'image' => ['url' => 'https://assets.hardcover.app/book.jpeg'],
         ]],
     ]]]]]);
 }
 
-function hardcoverEditions(array $book = []): MockResponse
+function hardcoverBooks(array $editions): MockResponse
 {
     return MockResponse::make(['data' => ['books' => [[
         'id' => 427812,
@@ -32,40 +33,52 @@ function hardcoverEditions(array $book = []): MockResponse
             ['tag' => 'Psychology', 'count' => 4],
             ['tag' => '1735854455972', 'count' => 1],
         ]],
-        'default_physical_edition' => ['subtitle' => null, 'pages' => 276, 'isbn_13' => '9780671027032', 'image' => ['url' => 'https://assets.hardcover.app/paperback.jpeg']],
-        'default_ebook_edition' => ['subtitle' => null, 'pages' => 288, 'isbn_13' => '9781443433167', 'image' => ['url' => 'https://assets.hardcover.app/ebook.jpeg']],
-        ...$book,
+        'editions' => $editions,
     ]]]]);
 }
 
-it('fills from the default physical edition, not the book record', function () {
-    Saloon::fake([hardcoverSearch(), hardcoverEditions()]);
+function editionCovers(int $count): array
+{
+    return array_map(fn (int $n): array => ['image' => ['url' => "https://assets.hardcover.app/edition-{$n}.jpeg"]], range(1, $count));
+}
+
+it('fills book-level details and the most-read cover, never edition details', function () {
+    Saloon::fake([hardcoverSearch(), hardcoverBooks(editionCovers(2))]);
 
     $option = app(BookLookup::class)('how to win friends')[0];
 
     expect($option['detail'])->toBe('Dale Carnegie')
+        ->and($option['image'])->toBe('https://assets.hardcover.app/edition-1.jpeg')
         ->and($option['fill'])->toBe([
             'title' => 'How to Win Friends and Influence People',
             'meta.author' => 'Dale Carnegie',
-            'meta.isbn' => '9780671027032',
-            'pages' => 276,
             'overview' => 'Simple and timeless tools for success.',
-            'cover' => [['id' => 'url:https://assets.hardcover.app/paperback.jpeg', 'name' => 'Cover', 'url' => 'https://assets.hardcover.app/paperback.jpeg']],
+            'cover' => [['id' => 'url:https://assets.hardcover.app/edition-1.jpeg', 'name' => 'Cover', 'url' => 'https://assets.hardcover.app/edition-1.jpeg']],
             'tags' => ['Self-Help', 'Psychology'],
         ]);
 });
 
-it('falls back to the ebook edition when there is no physical one', function () {
-    Saloon::fake([hardcoverSearch(), hardcoverEditions(['default_physical_edition' => null])]);
+it('suggests unique edition covers, capped at twelve, with the book cover as a fallback', function () {
+    $editions = [...editionCovers(14), ['image' => ['url' => 'https://assets.hardcover.app/edition-1.jpeg']], ['image' => null]];
+    Saloon::fake([hardcoverSearch(), hardcoverBooks($editions)]);
 
-    expect(app(BookLookup::class)('how to win friends')[0]['fill'])
-        ->toMatchArray(['meta.isbn' => '9781443433167', 'pages' => 288]);
+    $covers = app(BookLookup::class)('how to win friends')[0]['suggestions']['cover'];
+
+    expect($covers)->toHaveCount(12)
+        ->and($covers[0])->toBe('https://assets.hardcover.app/edition-1.jpeg')
+        ->and(array_unique($covers))->toBe($covers);
+
+    Saloon::fake([hardcoverSearch(), hardcoverBooks([])]);
+
+    expect(app(BookLookup::class)('how to win friends')[0]['suggestions']['cover'])
+        ->toBe(['https://assets.hardcover.app/book.jpeg']);
 });
 
 it('keeps the search results when the edition lookup fails', function () {
     Saloon::fake([hardcoverSearch(), MockResponse::make(['errors' => [['message' => 'boom']]], 200)]);
 
-    expect(app(BookLookup::class)('how to win friends')[0]['fill'])
-        ->toMatchArray(['title' => 'How to Win Friends and Influence People', 'pages' => 288])
-        ->not->toHaveKey('meta.subtitle');
+    $option = app(BookLookup::class)('how to win friends')[0];
+
+    expect($option['fill'])->toMatchArray(['title' => 'How to Win Friends and Influence People', 'meta.author' => 'Dale Carnegie'])
+        ->and($option['suggestions']['cover'])->toBe(['https://assets.hardcover.app/book.jpeg']);
 });

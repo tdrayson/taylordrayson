@@ -7,13 +7,15 @@ use App\Services\Hardcover\Client;
 use Illuminate\Support\Str;
 
 /**
- * Books from Hardcover, filled from the default edition. Hardcover's book-level
- * subtitle is crowd-edited and often from another language, so it is not used.
- * This is the only place Hardcover's shapes are known.
+ * Books from Hardcover: book-level details, plus the covers of its editions to
+ * choose from. Edition ISBNs and pages describe someone else's printing, so
+ * they are never filled.
  */
 final class BookLookup
 {
     private const MAX_RESULTS = 10;
+
+    private const MAX_COVERS = 12;
 
     /** Genres below this many votes are mostly one reader's noise. */
     private const MIN_GENRE_VOTES = 2;
@@ -24,7 +26,7 @@ final class BookLookup
     public function __construct(private Client $hardcover) {}
 
     /**
-     * @return list<array{value: string, label: string, detail: string|null, fill: array<string, mixed>}>
+     * @return list<array{value: string, label: string, detail: string|null, image: string|null, suggestions: array{cover: list<string>}, fill: array<string, mixed>}>
      */
     public function __invoke(string $query): array
     {
@@ -55,30 +57,47 @@ final class BookLookup
     /**
      * @param  array<string, mixed>  $document
      * @param  array<string, mixed>  $details
-     * @return array{value: string, label: string, detail: string|null, fill: array<string, mixed>}
+     * @return array{value: string, label: string, detail: string|null, image: string|null, suggestions: array{cover: list<string>}, fill: array<string, mixed>}
      */
     private function option(array $document, array $details): array
     {
-        $edition = $details['default_physical_edition'] ?? $details['default_ebook_edition'] ?? [];
         $author = implode(', ', (array) data_get($document, 'author_names', [])) ?: data_get($document, 'contributions.0.author.name');
-        $cover = data_get($edition, 'image.url') ?? data_get($details, 'image.url') ?? data_get($document, 'image.url');
+        $covers = $this->covers($document, $details);
         $overview = Str::limit(trim((string) (data_get($details, 'description') ?? data_get($document, 'description'))), self::MAX_OVERVIEW, '');
 
         return [
             'value' => (string) data_get($document, 'title', ''),
             'label' => (string) data_get($document, 'title', 'Untitled'),
             'detail' => $author ?: null,
+            'image' => $covers[0] ?? null,
+            'suggestions' => ['cover' => $covers],
             'fill' => array_filter([
                 'title' => data_get($document, 'title'),
                 'meta.author' => $author,
-                'meta.subtitle' => data_get($edition, 'subtitle'),
-                'meta.isbn' => data_get($edition, 'isbn_13'),
-                'pages' => data_get($edition, 'pages') ?? data_get($document, 'pages'),
                 'overview' => $overview,
-                'cover' => $cover === null ? null : [['id' => 'url:'.$cover, 'name' => 'Cover', 'url' => $cover]],
+                'cover' => $covers === [] ? null : [['id' => 'url:'.$covers[0], 'name' => 'Cover', 'url' => $covers[0]]],
                 'tags' => $this->genres($details),
             ], fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []),
         ];
+    }
+
+    /**
+     * Unique edition covers, most-read first, falling back to the book's own cover.
+     *
+     * @param  array<string, mixed>  $document
+     * @param  array<string, mixed>  $details
+     * @return list<string>
+     */
+    private function covers(array $document, array $details): array
+    {
+        return collect((array) data_get($details, 'editions', []))
+            ->map(fn (mixed $edition): mixed => data_get($edition, 'image.url'))
+            ->push(data_get($details, 'image.url') ?? data_get($document, 'image.url'))
+            ->filter(fn (mixed $url): bool => is_string($url) && $url !== '')
+            ->unique()
+            ->take(self::MAX_COVERS)
+            ->values()
+            ->all();
     }
 
     /**
