@@ -13,8 +13,8 @@ use App\Models\Flight;
 use App\Support\Distance;
 
 /**
- * Builds the timeline card for a Flight: route title, a sentence naming the
- * airports, and the full route payload (airports, airline, depart/arrive
+ * Builds the timeline card for a Flight: IATA route title, a sentence naming
+ * the airports, and the full route payload (airports, airline, depart/arrive
  * local times) for the flight map.
  */
 final class FlightCard
@@ -27,7 +27,11 @@ final class FlightCard
         return new CardData(
             type: $this->type(),
             title: $this->title($model),
-            titleLabel: null,
+            titleLabel: sprintf(
+                '%s to %s',
+                $this->airportName($model, 'origin') ?? $model->origin_iata,
+                $this->airportName($model, 'destination') ?? $model->destination_iata,
+            ),
             subtitle: $this->sentence($model),
             // Raw metres, not Distance::miles, so FeedItem.vue can convert through
             // useFormat and react to the visitor's unit toggle.
@@ -116,16 +120,10 @@ final class FlightCard
         return $model->relationLoaded($relation) ? $model->{$relation}?->name : null;
     }
 
-    /**
-     * Route title using city names when the airport relations are loaded
-     * (the entry page), falling back to IATA codes otherwise (the feed).
-     */
+    /** The route as IATA codes, "KRK → LGW"; the card's titleLabel speaks the airport names. */
     public function title(Flight $model): string
     {
-        $origin = ($model->relationLoaded('origin') ? $model->origin?->place : null) ?? $model->origin_iata;
-        $destination = ($model->relationLoaded('destination') ? $model->destination?->place : null) ?? $model->destination_iata;
-
-        return "{$origin} → {$destination}";
+        return "{$model->origin_iata} → {$model->destination_iata}";
     }
 
     public function type(): TimelineType

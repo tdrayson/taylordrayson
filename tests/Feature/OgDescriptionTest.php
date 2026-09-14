@@ -10,6 +10,7 @@ use App\Models\Page;
 use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
+use App\Models\ThisWeekWith;
 use App\Models\TvEpisode;
 use App\Support\OgMeta;
 
@@ -267,19 +268,34 @@ it('starts a new sentence when the note it follows already ended one', function 
         );
 });
 
-// " | Taylor Drayson" is appended in the browser, so a title measured without
-// it overflows the search result by exactly that much.
-it('leaves room for the site name when it cuts a long title', function () {
-    $activity = Activity::factory()->create([
-        'name' => 'A very long activity name that would run past where Google cuts it off',
-        'type' => 'walk',
-        'occurred_at' => '2026-08-31 07:00:00',
+it('keeps an episode name whole up to 100 characters, and cuts only past that', function (string $title, string $occurredAt, string $expected) {
+    // tv_show_id null so meta.show_title names the show.
+    $episode = TvEpisode::factory()->create([
+        'title' => $title,
+        'tv_show_id' => null,
+        'occurred_at' => $occurredAt,
+        'meta' => ['show_title' => "Georgie & Mandy's First Marriage", 'season' => 2, 'episode' => 16],
     ]);
 
-    $response = get('/'.$activity->occurred_at->format('Y/m/d').'/'.$activity->slug())->assertOk();
-    $title = $response->viewData('page')['props']['og']['title'];
+    get('/'.$episode->occurred_at->format('Y/m/d').'/'.$episode->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('og.title', $expected));
+})->with([
+    '69 characters' => ['Alpha Males and the Power of Prayer', '2026-08-29 17:40:00', "Georgie & Mandy's First Marriage: Alpha Males and the Power of Prayer - 29 Aug 2026"],
+    '78 characters' => ["A New Scoreboard and a Horse's You-Know-What", '2026-09-12 16:18:00', "Georgie & Mandy's First Marriage: A New Scoreboard and a Horse's You-Know-What - 12 Sep 2026"],
+    '125 characters, cut at a word boundary' => ['A Very Long Episode Title That Definitely Exceeds The One Hundred Character Budget By A Lot', '2026-09-10 10:00:00', "Georgie & Mandy's First Marriage: A Very Long Episode Title That Definitely Exceeds The One Hundred… - 10 Sep 2026"],
+]);
 
-    expect(mb_strlen($title.' | Taylor Drayson'))->toBeLessThanOrEqual(60);
+it('keeps the episode number in a This Week With title', function () {
+    $episode = ThisWeekWith::factory()->create([
+        'season_number' => 7,
+        'episode_number' => 257,
+        'occurred_at' => '2026-09-04 13:00:00',
+    ]);
+
+    get('/'.$episode->occurred_at->format('Y/m/d').'/'.$episode->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('og.title', 'This Week With: Season 7, Episode 257 - 4 Sep 2026'));
 });
 
 // The title only has room for the codes, so naming the airports is the whole
@@ -359,5 +375,38 @@ it('plays a sport rather than covering it', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('og.description', 'I played padel for 1h 46m, covering 2.2 mi.')
+        );
+});
+
+it('heads a check-in "at" the venue but titles the page by the venue alone', function () {
+    $place = Place::factory()->create([
+        'venue_name' => 'Starbucks',
+        'event_name' => null,
+        'occurred_at' => '2026-08-24 09:00:00',
+    ]);
+
+    get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('title', 'at Starbucks')
+            ->where('og.title', 'Starbucks - 24 Aug 2026')
+        );
+});
+
+it('titles a flight page by its codes', function () {
+    Airport::factory()->create(['iata_code' => 'KRK', 'name' => 'Kraków John Paul II International Airport', 'city' => 'Balice']);
+    Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick Airport', 'city' => 'London']);
+
+    $flight = Flight::factory()->create([
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'occurred_at' => '2026-06-08 22:15:00',
+    ]);
+
+    get('/'.$flight->occurred_at->format('Y/m/d').'/'.$flight->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('title', 'KRK → LGW')
+            ->where('og.title', 'KRK → LGW - 8 Jun 2026')
         );
 });

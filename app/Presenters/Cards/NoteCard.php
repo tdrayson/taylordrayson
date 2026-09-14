@@ -10,7 +10,7 @@ use App\Data\PhotoData;
 use App\Enums\TimelineType;
 use App\Models\Note;
 use App\Support\PortableText;
-use Illuminate\Support\Str;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for a Note: truncated content as the title, the
@@ -51,7 +51,7 @@ final class NoteCard
 
     public function title(Note $model): string
     {
-        return Str::limit(PortableText::plainText($model->content), 80);
+        return Text::excerpt(PortableText::plainText($model->content), 80);
     }
 
     public function type(): TimelineType

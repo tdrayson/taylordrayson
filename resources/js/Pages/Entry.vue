@@ -21,6 +21,8 @@ const props = defineProps({
     accent: { type: String, required: true },
     // Null for title-less types (notes): the header shows only the type label and date.
     title: { type: String, default: null },
+    // Spoken alternative when the visible title reads badly aloud (e.g. flight codes, durations).
+    titleLabel: { type: String, default: null },
     occurredAt: { type: String, default: null },
     dayUrl: { type: String, default: null },
     // { title, url } when this entry falls inside a trip window, else null.
@@ -139,7 +141,10 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
                     <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl p-name font-display text-display">{{ title }}</h1>
+                <h1 v-if="title" v-twemoji :class="{ 'p-name': !titleLabel }" class="mt-1 max-w-2xl font-display text-display">
+                    <template v-if="titleLabel"><span aria-hidden="true" class="p-name">{{ title }}</span><span class="sr-only">{{ titleLabel }}</span></template>
+                    <template v-else>{{ title }}</template>
+                </h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->
