@@ -505,3 +505,27 @@ it('skips the history endpoints with --ratings-only', function () {
     Saloon::assertNotSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/history/'));
     Saloon::assertSent(fn ($request, $response) => str_contains($response->getPendingRequest()->getUrl(), '/ratings/'));
 });
+
+it('stores the trakt overview on films and episodes', function () {
+    fakeTraktHistory(
+        movies: [[
+            'id' => 901, 'watched_at' => '2026-09-09T21:10:00.000Z', 'action' => 'watch', 'type' => 'movie',
+            'movie' => [
+                'title' => 'Fall 2: Deadpoint', 'year' => 2026, 'runtime' => 98,
+                'overview' => 'Two climbers become trapped.',
+                'ids' => ['trakt' => 1, 'slug' => 'fall-2', 'tmdb' => 2],
+                'images' => ['poster' => ['walter-r2.trakt.tv/posters/fall-2.jpg']],
+            ],
+        ]],
+        episodes: [[
+            'id' => 902, 'watched_at' => '2026-09-10T18:59:00.000Z', 'action' => 'watch', 'type' => 'episode',
+            'episode' => ['season' => 4, 'number' => 6, 'title' => "Don't Jump Around Much Anymore", 'runtime' => 47, 'overview' => "It's New Year's Eve!", 'ids' => ['trakt' => 3]],
+            'show' => ['title' => 'Ted Lasso', 'year' => 2020, 'ids' => ['trakt' => 4, 'slug' => 'ted-lasso', 'tmdb' => 5]],
+        ]],
+    );
+
+    $this->artisan('trakt:sync', ['--full' => true])->assertSuccessful();
+
+    expect(Film::firstWhere('source_id', '901')->overview)->toBe('Two climbers become trapped.')
+        ->and(TvEpisode::firstWhere('source_id', '902')->overview)->toBe("It's New Year's Eve!");
+});
