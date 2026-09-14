@@ -18,6 +18,7 @@ final class UpdateEntryStatus
     public function __invoke(Model $model, EntryStatus $status, ?string $password = null): Model
     {
         self::assertAllowed($model, $status, $password);
+        self::assertBookComplete($model, $status);
 
         $values = ['status' => $status, ...(filled($password) ? ['password' => $password] : [])];
 
@@ -47,18 +48,32 @@ final class UpdateEntryStatus
         if ($status === EntryStatus::Private && blank($password) && ! $keepsPassword) {
             throw ValidationException::withMessages(['status' => 'A private entry needs a password.']);
         }
-
-        if ($model instanceof Book && $model->status === EntryStatus::Draft && $status !== EntryStatus::Draft) {
-            $missing = BookCompleteness::forBook($model);
-
-            if ($missing !== []) {
-                throw ValidationException::withMessages(['status' => 'Add '.BookCompleteness::sentence($missing).' before publishing.']);
-            }
-        }
     }
 
     public static function canBeDraft(Model $model): bool
     {
         return $model instanceof Page || (Datasets::forModel($model)?->draftable() ?? false);
+    }
+
+    /**
+     * This endpoint only ever changes status and password, so a draft Book
+     * being published here can never gain the title, author or cover it is
+     * still missing. The editor's own save already checks completeness
+     * against the attributes it is about to write, so this only guards the
+     * status-only path.
+     *
+     * @throws ValidationException When a still-incomplete draft Book is being published.
+     */
+    private static function assertBookComplete(Model $model, EntryStatus $status): void
+    {
+        if (! $model instanceof Book || $model->status !== EntryStatus::Draft || $status === EntryStatus::Draft) {
+            return;
+        }
+
+        $missing = BookCompleteness::forBook($model);
+
+        if ($missing !== []) {
+            throw ValidationException::withMessages(['status' => 'Add '.BookCompleteness::sentence($missing).' before publishing.']);
+        }
     }
 }
