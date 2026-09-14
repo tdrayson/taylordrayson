@@ -4,9 +4,11 @@ use App\Models\Fuel;
 use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\File;
 
-it('uses the flat station_name as the card title', function () {
+it('uses the station name when the fill has no brand', function () {
     $fuel = Fuel::factory()->create([
         'station_name' => 'ASDA Wallington',
+        'brand' => null,
+        'city' => null,
         'litres' => 32.13,
         'cost' => 41.13,
         'price_per_litre' => 1.28,
@@ -14,17 +16,17 @@ it('uses the flat station_name as the card title', function () {
 
     $card = CardPresenter::for($fuel);
 
-    expect($card->title)->toBe('£41.13 at ASDA Wallington');
+    expect($card->title)->toBe('I filled up the car at ASDA Wallington');
     expect($card->titleLabel)->toContain('ASDA Wallington');
-    expect($card->subtitle)->toContain('32.13L');
+    expect($card->subtitle)->toContain('32.13 litres');
 });
 
 // The imported rows carry no station, city, brand or coordinates, so the title
 // names no place rather than inventing one.
 it('names no place when no station is set', function () {
-    $fuel = Fuel::factory()->create(['station_name' => null, 'cost' => 41.13]);
+    $fuel = Fuel::factory()->create(['station_name' => null, 'brand' => null, 'city' => null, 'cost' => 41.13]);
 
-    expect(CardPresenter::for($fuel)->title)->toBe('£41.13 at the pump');
+    expect(CardPresenter::for($fuel)->title)->toBe('I filled up the car');
 });
 
 afterEach(function () {

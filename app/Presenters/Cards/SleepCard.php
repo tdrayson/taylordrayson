@@ -50,6 +50,12 @@ final class SleepCard
             : $window;
     }
 
+    /** The night's sentence, which already stands alone. */
+    public function description(Sleep $model): string
+    {
+        return $this->sentence($model);
+    }
+
     /**
      * Per-stage durations (seconds) for the timeline breakdown bar.
      *

@@ -48,6 +48,37 @@ final class PlaceCard
     }
 
     /**
+     * The note with the place hung off the end, else a check-in sentence. Foursquare's
+     * category stays out: its vocabulary ("Gym and Studio", "Road") does not read as prose.
+     */
+    public function description(Place $model): string
+    {
+        $note = Text::prose($model->description);
+        $place = collect([$model->venue_name, $model->city])->filter()->implode(', ');
+
+        if ($note !== null) {
+            return $place === '' ? $note : $this->append($note, "at {$place}");
+        }
+
+        if (! $model->venue_name) {
+            return '';
+        }
+
+        return "I checked in at {$model->venue_name}".($model->city ? " in {$model->city}" : '').'.';
+    }
+
+    /**
+     * Attach a clause to a note without editing it; a note ending on a stop or an emoji gets
+     * it as its own sentence. A closing quote or bracket after the stop still counts as ended.
+     */
+    private function append(string $note, string $clause): string
+    {
+        $ended = preg_match('/(?:[.!?…][\x{22}\x{27}\x{2019}\x{201D}\)]*|\p{Extended_Pictographic}[\x{FE0F}\x{200D}\x{1F3FB}-\x{1F3FF}\p{Extended_Pictographic}]*)$/u', $note) === 1;
+
+        return $ended ? "{$note} ".ucfirst($clause).'.' : "{$note} {$clause}.";
+    }
+
+    /**
      * Display-only: the URL slug still comes from the venue (Place::slug()).
      */
     public function title(Place $model): string

@@ -32,26 +32,41 @@ final class FoodCard
         );
     }
 
+    /** The day's total and macros for a reader with no title above it; empty when no macros were logged. */
+    public function description(Food $model): string
+    {
+        $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
+        $macros = $this->macros($totals);
+
+        return $macros === []
+            ? ''
+            : sprintf("That day's food came to %s calories, with %s.", number_format($totals['calories']), Text::sentenceList($macros));
+    }
+
     /**
-     * The day's macros as a sentence. The title says what was eaten, so this
-     * breaks it down rather than repeating the verb, and names no date: the
-     * date-group heading carries one, and EntryDescription writes the standalone
-     * sentence for the surfaces that have no heading above them.
-     *
-     * No meal count: the rows carry a meal slot (breakfast/lunch/dinner/snacks),
-     * so counting them counts groupings rather than meals eaten.
+     * The day's macros as a sentence under a title that already says what was eaten.
+     * No meal count: rows carry a meal slot, so counting them counts groupings.
      *
      * @param  array{calories: int, protein: float, carbs: float, fat: float}  $totals
      */
     private function sentence(array $totals): ?string
     {
-        $macros = array_values(array_filter([
+        $macros = $this->macros($totals);
+
+        return $macros === [] ? null : sprintf('That was %s.', Text::sentenceList($macros));
+    }
+
+    /**
+     * @param  array{calories: int, protein: float, carbs: float, fat: float}  $totals
+     * @return list<string>
+     */
+    private function macros(array $totals): array
+    {
+        return array_values(array_filter([
             $totals['protein'] ? round($totals['protein']).'g of protein' : null,
             $totals['carbs'] ? round($totals['carbs']).'g of carbs' : null,
             $totals['fat'] ? round($totals['fat']).'g of fat' : null,
         ]));
-
-        return $macros === [] ? null : sprintf('That was %s.', Text::sentenceList($macros));
     }
 
     /**

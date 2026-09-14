@@ -28,13 +28,23 @@ final class FilmCard
         );
     }
 
+    /** The overview, else the sentence with the film named: "I watched Fall 2: Deadpoint and rated it 8/10." */
+    public function description(Film $model): string
+    {
+        return Text::prose($model->overview) ?? "I watched {$model->title}{$this->rated($model)}.";
+    }
+
     /** "I watched this 2026 film and rated it 8/10." Genre and runtime stay on the entry page. */
     private function sentence(Film $model): string
     {
         $film = $model->meta->year === null ? 'this film' : "this {$model->meta->year} film";
-        $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
 
-        return "I watched {$film}{$rated}.";
+        return "I watched {$film}{$this->rated($model)}.";
+    }
+
+    private function rated(Film $model): string
+    {
+        return $model->rating ? " and rated it {$model->rating}/10" : '';
     }
 
     public function title(Film $model): string

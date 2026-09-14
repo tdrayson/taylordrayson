@@ -99,7 +99,7 @@ it('writes the fuel subtitle as a sentence with a price clause', function () {
     ]);
 
     expect(CardPresenter::for($fuel)->toArray()['subtitle'])
-        ->toBe('I filled up with 33.00L in '.$fuel->city.'. Fuel was 135.9p/L.');
+        ->toBe('It cost £45.06 for 33.00 litres, which is 135.9p a litre.');
 });
 
 it('drops the price sentence when there is no price per litre', function () {
@@ -111,8 +111,8 @@ it('drops the price sentence when there is no price per litre', function () {
 
     $subtitle = CardPresenter::for($fuel)->toArray()['subtitle'];
 
-    expect($subtitle)->toBe('I filled up with 33.00L in '.$fuel->city.'.')
-        ->and($subtitle)->not->toContain('p/L');
+    expect($subtitle)->toBe('It cost £45.06 for 33.00 litres.')
+        ->and($subtitle)->not->toContain('a litre');
 });
 
 it('uses the place note as its summary, not its subtitle', function () {

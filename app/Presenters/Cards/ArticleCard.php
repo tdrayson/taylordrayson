@@ -35,6 +35,12 @@ final class ArticleCard
         );
     }
 
+    /** The hand-written excerpt, else the article's opening prose. */
+    public function description(Article $model): string
+    {
+        return Text::prose($model->excerpt) ?? PortableText::plainText($model->content);
+    }
+
     public function title(Article $model): string
     {
         return $model->title;

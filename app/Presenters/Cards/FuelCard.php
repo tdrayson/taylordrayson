@@ -9,8 +9,8 @@ use App\Models\Fuel;
 use App\Support\Units;
 
 /**
- * Builds the timeline card for a Fuel stop: what it cost and where, with the
- * litres and price per litre written as a sentence beneath.
+ * Builds the timeline card for a Fuel stop: where I filled up as the title and
+ * what it cost as the sentence beneath.
  */
 final class FuelCard
 {
@@ -35,40 +35,37 @@ final class FuelCard
         );
     }
 
-    /**
-     * Cost leads, since it is the one figure every row has. The imported rows
-     * carry no station, city, brand or coordinates at all, so they name no
-     * place rather than inventing one.
-     */
-    public function title(Fuel $model): string
+    /** Title and sentence together, since the title already reads as one. */
+    public function description(Fuel $model): string
     {
-        $cost = '£'.number_format((float) $model->cost, 2);
-
-        return $model->station_name
-            ? "{$cost} at {$model->station_name}"
-            : "{$cost} at the pump";
+        return "{$this->title($model)}. {$this->sentence($model)}";
     }
 
     /**
-     * The fill-up as sentences: how much went in and where, then what it cost a
-     * litre. Two sentences rather than one with a trailing clause, which is how
-     * it would be said out loud.
+     * "I filled up the car at BP in Croydon": the brand is what anyone calls a garage,
+     * the forecourt name only when there is no brand. The imported rows name no place.
      */
+    public function title(Fuel $model): string
+    {
+        $garage = $model->brand ?: $model->station_name;
+        $at = $garage ? " at {$garage}" : '';
+        $in = $model->city ? " in {$model->city}" : '';
+
+        return "I filled up the car{$at}{$in}";
+    }
+
+    /** "It cost £50.64 for 31.28 litres, which is 161.9p a litre.", without the price clause when unknown. */
     private function sentence(Fuel $model): string
     {
-        // "filled up with", not "put ... in": the trailing "in" collides with
-        // the city clause ("I put 33 litres in, in Grimsby") whenever there is
-        // no price between them.
-        $sentence = sprintf('I filled up with %sL', number_format((float) $model->litres, 2));
-        $sentence .= $model->city ? " in {$model->city}." : '.';
+        $paid = sprintf(
+            'It cost £%s for %s litres',
+            number_format((float) $model->cost, 2),
+            number_format((float) $model->litres, 2),
+        );
 
-        if (! $model->price_per_litre) {
-            return $sentence;
-        }
-
-        // "Fuel was", not "That was": the "that" pointed at the fill-up, which
-        // was not what cost a tenth of a penny.
-        return $sentence.sprintf(' Fuel was %s/L.', Units::pencePerLitre($model->price_per_litre));
+        return $model->price_per_litre
+            ? sprintf('%s, which is %s a litre.', $paid, Units::pencePerLitre($model->price_per_litre))
+            : "{$paid}.";
     }
 
     public function type(): TimelineType
