@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Enums\TimelineType;
 use App\Models\TvEpisode;
 use App\Support\ShowTitle;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for an episode: rating and the show/place-in-run as
@@ -30,6 +31,7 @@ final class TvEpisodeCard
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::backdrop($this->backdrop($model)),
+            summary: Text::prose($model->overview),
         );
     }
 
