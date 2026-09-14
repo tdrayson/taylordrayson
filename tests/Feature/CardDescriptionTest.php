@@ -83,7 +83,7 @@ it('publishes what I wrote on Strava, else the session sentence', function () {
 });
 
 it('speaks at a talk and appears on everything else', function (string $type, string $expected) {
-    $appearance = Appearance::factory()->create(['type' => $type, 'show_name' => 'Laracon EU', 'description' => null]);
+    $appearance = Appearance::factory()->create(['type' => $type, 'show_name' => 'Laracon EU', 'description' => null, 'duration' => null]);
 
     expect(CardPresenter::for($appearance)->subtitle)->toBe($expected)
         ->and(cardDescription($appearance))->toBe($expected);
