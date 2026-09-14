@@ -56,11 +56,7 @@ final class UpdateEntryStatus
     }
 
     /**
-     * This endpoint only ever changes status and password, so a draft Book
-     * being published here can never gain the title, author or cover it is
-     * still missing. The editor's own save already checks completeness
-     * against the attributes it is about to write, so this only guards the
-     * status-only path.
+     * Refuse to publish a draft book that is missing its title, author or cover.
      *
      * @throws ValidationException When a still-incomplete draft Book is being published.
      */

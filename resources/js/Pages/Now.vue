@@ -70,16 +70,10 @@ const ringsProps = ambient('rings', ['move', 'moveGoal', 'exercise', 'exerciseGo
 // owns the tiles, so they are never re-rendered from a fresh widget list.
 const readingProps = reactive({ fill: true, ...(props.reading ?? {}) });
 
-// Gridstack only lays out the tiles present at mount, so it cannot grow or
-// drop the reading tile itself; when a poll changes whether there is a book
-// at all, revisit the page to rebuild the grid rather than patch a tile that
-// may not exist. router.reload() always forces preserveState back to true
-// internally, which would reuse this same mounted instance, so a plain visit
-// is used instead to force Vue to remount the page. It fetches every prop
-// (not just `reading`), since a remount rebuilds every widget from scratch.
+// A book appearing or going away changes the tiles, so remount; otherwise update the card in place.
 watch(() => props.reading, (reading, previous) => {
     if (Boolean(reading) !== Boolean(previous)) {
-        router.visit(window.location.href, { preserveState: false });
+        router.visit(window.location.href, { preserveState: false, preserveScroll: true });
 
         return;
     }
