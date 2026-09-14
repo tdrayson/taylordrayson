@@ -75,3 +75,14 @@ it('names the show and the place in it, so a binge is not four identical cards',
 
     expect(ogTitle($episode))->toBe('I watched season 1 episode 2 of Severance');
 });
+
+it('says an episode of the show when it has no place in the run', function () {
+    $episode = TvEpisode::factory()->create([
+        'title' => 'Netherlands (Race)',
+        'tv_show_id' => null,
+        'occurred_at' => '2026-08-23 20:00:00',
+        'meta' => ['show_title' => 'Formula 1'],
+    ]);
+
+    expect(ogTitle($episode))->toBe('I watched an episode of Formula 1');
+});

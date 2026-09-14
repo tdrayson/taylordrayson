@@ -35,6 +35,26 @@ final class TvEpisodeCard
         );
     }
 
+    /** The overview, else the episode named with its show: "I watched season 4 episode 6 of Ted Lasso and rated it 9/10." */
+    public function description(TvEpisode $model): string
+    {
+        return Text::prose($model->overview) ?? "I watched {$this->subject($model)}{$this->rated($model)}.";
+    }
+
+    /** The episode named for a reader with no heading above it, also the object of the OG headline. */
+    public function subject(TvEpisode $model): string
+    {
+        $show = ShowTitle::for($model);
+        $where = $this->where($model);
+
+        return match (true) {
+            $show !== null && $where !== null => "{$where} of {$show}",
+            $show !== null => "an episode of {$show}",
+            $model->title !== '' => $model->title,
+            default => $where ?? 'an episode',
+        };
+    }
+
     /**
      * The wide artwork behind the card. An episode has none of its own, so it
      * reads its show's, which is what EntryArtwork already does for the entry
@@ -51,26 +71,22 @@ final class TvEpisodeCard
 
     private function sentence(TvEpisode $model, ?string $show, string $title): ?string
     {
-        $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
         $what = $this->episodeClause($model, $show, $title);
 
         if ($what === null) {
             return $model->rating ? "I rated this {$model->rating}/10." : null;
         }
 
-        return "I watched {$what}{$rated}.";
+        return "I watched {$what}{$this->rated($model)}.";
     }
 
-    /** The show and where in it, spelled out rather than as "S04E04". */
+    /** The show and where in it, for the subtitle under the episode's own title. */
     private function episodeClause(TvEpisode $model, ?string $show, string $title): ?string
     {
         // The show is already the heading when the episode had no name of its
         // own, so repeating it would print the same words twice.
         $named = $show !== null && $show !== $title ? $show : null;
-
-        $where = $model->meta->season !== null && $model->meta->episode !== null
-            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
-            : null;
+        $where = $this->where($model);
 
         return match (true) {
             $named !== null && $where !== null => "{$where} of {$named}",
@@ -78,6 +94,19 @@ final class TvEpisodeCard
             $where !== null => $where,
             default => null,
         };
+    }
+
+    /** "season 4 episode 6", spelled out rather than "S04E06"; null without both numbers. */
+    private function where(TvEpisode $model): ?string
+    {
+        return $model->meta->season !== null && $model->meta->episode !== null
+            ? sprintf('season %d episode %d', $model->meta->season, $model->meta->episode)
+            : null;
+    }
+
+    private function rated(TvEpisode $model): string
+    {
+        return $model->rating ? " and rated it {$model->rating}/10" : '';
     }
 
     /**
