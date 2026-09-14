@@ -55,6 +55,8 @@ const rows = computed(() => [
             <span class="text-sm text-neutral-500">/ 10</span>
         </div>
 
+        <p v-if="entry.overview" class="max-w-prose whitespace-pre-line text-base text-neutral-700">{{ entry.overview }}</p>
+
         <div v-if="genres.length" class="flex flex-wrap gap-2">
             <Pill v-for="genre in genres" :key="genre" :label="genre" />
         </div>
