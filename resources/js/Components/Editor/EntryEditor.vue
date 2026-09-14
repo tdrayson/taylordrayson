@@ -378,7 +378,7 @@ function submit() {
                         :latitude="form.latitude ?? null"
                         :longitude="form.longitude ?? null"
                         :error="form.errors[row.field.name]"
-                        :readonly="row.field.type === 'slug' && slugLocked"
+                        :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
                         :hint="row.field.type === 'slug' ? slugPreview : null"
                         @update:model-value="onFieldInput(row.field, $event)"

@@ -29,8 +29,15 @@ final class FieldRules
         $rules = [];
 
         foreach ($fields as $field) {
+            if ($field->readOnly) {
+                $rules[$field->name] = ['exclude'];
+
+                continue;
+            }
+
             if ($field->type->isMedia()) {
-                $rules[$field->name.'.*'] = ['string', 'max:100'];
+                // A `url:` item carries a full URL rather than an attached uuid.
+                $rules[$field->name.'.*'] = ['string', 'max:2048'];
             }
 
             if ($field->type === FieldType::Tags) {

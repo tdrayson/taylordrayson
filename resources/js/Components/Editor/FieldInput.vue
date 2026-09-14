@@ -255,7 +255,7 @@ function textToTags(value) {
 
         <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
 
-        <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
+        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
 
         <p v-else-if="hint" class="mt-1 truncate text-caption text-neutral-500">{{ hint }}</p>
     </div>

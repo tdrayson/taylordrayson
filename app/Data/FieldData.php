@@ -23,6 +23,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      * @param  string|null  $fallback  What a Slug field resolves to when left empty.
      * @param  int|null  $max  Character limit on the field's readable text, drawn as a counter.
      * @param  bool  $checksReservedSlug  Whether a Slug field is rejected when it matches a dataset's reserved day-URL word.
+     * @param  bool  $readOnly  Shown for reference but never posted, since something other than the form writes it.
      */
     private function __construct(
         public string $name,
@@ -42,6 +43,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public ?string $fallback,
         public ?int $max,
         public bool $checksReservedSlug,
+        public bool $readOnly,
     ) {}
 
     /**
@@ -52,7 +54,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, bool $checksReservedSlug = false): self
     {
-        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $checksReservedSlug);
+        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $checksReservedSlug, false);
     }
 
     /**
@@ -62,7 +64,7 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, bool $checksReservedSlug = false): self
     {
-        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $checksReservedSlug);
+        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $checksReservedSlug, false);
     }
 
     /**
@@ -71,7 +73,15 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      */
     public static function hidden(string $name, string $label, FieldType $type): self
     {
-        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null, null, false);
+        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null, null, false, false);
+    }
+
+    /**
+     * A field drawn read-only, for a value a sync owns.
+     */
+    public static function readOnly(string $name, string $label, FieldType $type, ?string $suffix = null): self
+    {
+        return new self($name, $label, $type, true, false, [], null, false, null, null, $suffix, null, null, false, null, null, false, true);
     }
 
     /**
@@ -127,6 +137,10 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->hidden) {
             $data['hidden'] = true;
+        }
+
+        if ($this->readOnly) {
+            $data['readOnly'] = true;
         }
 
         return $data;
