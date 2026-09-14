@@ -11,10 +11,15 @@ const props = defineProps({
 
 const meta = computed(() => props.entry.meta || {});
 
+// The ISBN links out by edition, so no vendor id has to be stored to reach a book page.
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
     { label: 'Author', value: meta.value.author },
-    { label: 'ISBN', value: meta.value.isbn },
+    {
+        label: 'ISBN',
+        value: meta.value.isbn,
+        externalHref: meta.value.isbn ? `https://openlibrary.org/isbn/${meta.value.isbn}` : null,
+    },
 ]);
 </script>
 
@@ -28,11 +33,22 @@ const rows = computed(() => [
             :title="entry.title ?? ''"
         />
 
+        <img
+            v-else-if="entry.poster"
+            :src="entry.poster"
+            :alt="`Cover of ${entry.title}`"
+            class="w-32 rounded-lg shadow-card"
+        >
+
+        <p v-if="meta.subtitle" class="text-body text-neutral-700">{{ meta.subtitle }}</p>
+
         <div v-if="entry.rating" class="flex items-center gap-2">
             <Icon name="StarIcon" class="size-5 text-accent-500" />
             <span class="font-display text-stat tnum">{{ entry.rating }}</span>
             <span class="text-meta text-neutral-500">/ 10</span>
         </div>
+
+        <p v-if="entry.overview" class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.overview }}</p>
 
         <DetailList :rows="rows" />
     </div>

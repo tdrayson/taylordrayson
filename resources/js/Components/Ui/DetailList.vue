@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import ExternalLink from './ExternalLink.vue';
 
 const props = defineProps({
     rows: { type: Array, default: () => [] },
@@ -10,7 +11,7 @@ const props = defineProps({
 });
 
 // Rows with nothing to show are dropped, so a caller can pass a sparse list.
-// A row carrying an `href` renders its value as an internal link.
+// A row carrying an `href` renders as an internal link, `externalHref` as an outbound one.
 // The whole list goes with them: an empty dl still draws its two borders, which
 // lands as a stray 2px rule.
 const filled = computed(() => props.rows.filter(
@@ -37,6 +38,7 @@ const filled = computed(() => props.rows.filter(
                     :href="row.href"
                     class="font-medium transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                 >{{ row.value }}</Link>
+                <ExternalLink v-else-if="row.externalHref" :href="row.externalHref" :label="String(row.value)" />
                 <template v-else>{{ row.value }}</template>
             </dd>
         </div>
