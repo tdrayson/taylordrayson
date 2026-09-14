@@ -6,6 +6,7 @@ use App\Data\BookMeta;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasSpan;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -17,10 +18,10 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
-#[Fillable(['occurred_at', 'started_at', 'title', 'rating', 'timezone', 'source', 'source_id', 'meta', 'status', 'password'])]
+#[Fillable(['occurred_at', 'started_at', 'title', 'rating', 'timezone', 'source', 'source_id', 'meta', 'status', 'password', 'progress_percent', 'current_page', 'pages', 'progressed_at', 'overview'])]
 final class Book extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSpan, HasStatus, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -30,6 +31,10 @@ final class Book extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'started_at' => 'datetime',
+            'progressed_at' => 'datetime',
+            'progress_percent' => 'float',
+            'current_page' => 'integer',
+            'pages' => 'integer',
             'meta' => BookMeta::class,
         ];
     }

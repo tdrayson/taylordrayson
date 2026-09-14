@@ -9,13 +9,13 @@ use Illuminate\Support\Arr;
 use JsonSerializable;
 
 /**
- * The `books.meta` column, typed. Books are hand-authored rather than synced,
- * so unlike film/episode there is no `ids`/`tmdb` block.
+ * The `books.meta` column, typed. No vendor ids are kept: the ISBN is what
+ * identifies a book, whichever service filled it in.
  */
 final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
 {
     /** Keys spelled out below. Everything else survives via `$extra`. */
-    private const NAMED = ['author', 'year', 'isbn'];
+    private const NAMED = ['author', 'year', 'isbn', 'subtitle'];
 
     /**
      * @param  array<string, mixed>  $extra
@@ -24,6 +24,7 @@ final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
         public ?string $author = null,
         public ?int $year = null,
         public ?string $isbn = null,
+        public ?string $subtitle = null,
         public array $extra = [],
     ) {}
 
@@ -38,6 +39,7 @@ final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
             author: MetaValue::string($meta['author'] ?? null),
             year: MetaValue::int($meta['year'] ?? null),
             isbn: MetaValue::string($meta['isbn'] ?? null),
+            subtitle: MetaValue::string($meta['subtitle'] ?? null),
             extra: Arr::except($meta, self::NAMED),
         );
     }
@@ -65,6 +67,7 @@ final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
             'author' => $this->author,
             'year' => $this->year,
             'isbn' => $this->isbn,
+            'subtitle' => $this->subtitle,
         ]) + $this->extra;
     }
 
