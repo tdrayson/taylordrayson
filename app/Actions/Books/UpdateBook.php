@@ -18,6 +18,11 @@ class UpdateBook
             $attributes['meta'] = $book->meta->merge($attributes['meta']);
         }
 
+        if (array_key_exists('tags', $attributes)) {
+            $book->syncTagNames($attributes['tags']);
+            unset($attributes['tags']);
+        }
+
         $book->fill($attributes)->save();
 
         return $book->refresh();

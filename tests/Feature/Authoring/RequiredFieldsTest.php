@@ -11,7 +11,6 @@ it('refuses a create without a newly required field', function (string $type, ar
     $this->postJson("/entries/{$type}", $payload)->assertJsonValidationErrors($missing);
 })->with([
     'event category' => ['event', ['name' => 'A gig', 'occurred_at' => '2026-08-13 19:00:00'], 'tags'],
-    'book author' => ['book', ['title' => 'A book', 'occurred_at' => '2026-08-13 19:00:00'], 'meta.author'],
     'appearance show' => ['appearance', ['title' => 'A talk', 'occurred_at' => '2026-08-13 19:00:00', 'type' => 'podcast'], 'show_name'],
     'appearance kind' => ['appearance', ['title' => 'A talk', 'occurred_at' => '2026-08-13 19:00:00', 'show_name' => 'A show'], 'type'],
     'project description' => ['project', ['title' => 'A project', 'stage' => 'active'], 'description'],

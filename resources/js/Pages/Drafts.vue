@@ -46,7 +46,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
                         class="flex items-baseline justify-between gap-4 py-2.5 transition-colors hover:text-accent-500"
                     >
                         <span class="min-w-0 truncate text-body text-neutral-900">{{ row.title }}</span>
-                        <span class="shrink-0 text-caption text-neutral-500">{{ editedLabel(row.updated) }}</span>
+                        <span class="shrink-0 text-caption text-neutral-500">{{ row.detail ? `${row.detail}, ` : '' }}{{ editedLabel(row.updated) }}</span>
                     </Link>
                 </li>
             </ul>

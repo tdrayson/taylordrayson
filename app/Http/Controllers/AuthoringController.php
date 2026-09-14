@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Entries\UpdateEntryStatus;
+use App\Actions\Media\FetchRemoteMedia;
 use App\Actions\SyncBodyImages;
 use App\Actions\SyncEntryMedia;
 use App\Data\FieldData;
@@ -47,12 +48,14 @@ class AuthoringController extends Controller
     public function store(Request $request, string $type): RedirectResponse
     {
         $definition = $this->definition($type);
-        $fields = FieldRegistry::for($this->blank($type));
+        $blank = $this->blank($type);
+        $fields = FieldRegistry::for($blank);
 
         $this->stampDefaults($request, $fields);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: true), [], FieldRules::labels($fields));
-        $attributes = $this->statusRules($this->blank($type), $attributes);
+        $attributes = app(FetchRemoteMedia::class)($fields, $attributes);
+        $attributes = $this->prepare($definition, $blank, $this->statusRules($blank, $attributes));
 
         $model = app($definition['create'])($this->expand($attributes, $fields));
 
@@ -69,7 +72,8 @@ class AuthoringController extends Controller
         $fields = FieldRegistry::for($model);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: false), [], FieldRules::labels($fields));
-        $attributes = $this->statusRules($model, $attributes);
+        $attributes = app(FetchRemoteMedia::class)($fields, $attributes);
+        $attributes = $this->prepare($definition, $model, $this->statusRules($model, $attributes));
 
         app($definition['update'])($model, $this->expand($attributes, $fields));
 
@@ -148,6 +152,18 @@ class AuthoringController extends Controller
     }
 
     /**
+     * Let a type adjust or refuse a save once the form has validated.
+     *
+     * @param  array{prepare?: class-string}  $definition
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare(array $definition, Model $model, array $attributes): array
+    {
+        return isset($definition['prepare']) ? app($definition['prepare'])($model, $attributes) : $attributes;
+    }
+
+    /**
      * Saving means done, so it lands on the finished entry. A draft has no entry
      * to show yet and stays in the editor.
      */
@@ -179,6 +195,7 @@ class AuthoringController extends Controller
                     'title' => $this->titleFor($model),
                     'url' => $this->urlFor($model).'?edit',
                     'updated' => $model->updated_at?->toIso8601String(),
+                    'detail' => isset($definition['draftDetail']) ? app($definition['draftDetail'])($model) : null,
                 ])
                 ->all();
 
@@ -220,7 +237,7 @@ class AuthoringController extends Controller
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string}
+     * @return array{model: class-string<Model>, create: class-string, update: class-string, prepare?: class-string, draftDetail?: class-string}
      */
     private function definition(string $type): array
     {

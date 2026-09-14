@@ -103,8 +103,8 @@ final class FieldRules
             // editable afterwards, so neither is constrained to what the
             // source returned.
             FieldType::Lookup, FieldType::Location => ['nullable', 'string', 'max:255'],
-            // An ordered list of media uuids and `pending:` upload tokens; the
-            // items themselves are checked by itemRules() below.
+            // An ordered list of media uuids, `pending:` upload tokens and
+            // `url:` items; the items themselves are checked by itemRules() below.
             FieldType::Image => ['nullable', 'array', 'max:1'],
             FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
         };
