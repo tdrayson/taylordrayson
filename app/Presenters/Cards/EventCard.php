@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Data\PhotoData;
 use App\Enums\TimelineType;
 use App\Models\Event;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for an Event: venue/city subtitle, multi-day
@@ -42,6 +43,7 @@ final class EventCard
                 map: $model->optimisedUrl('map'),
                 mapDark: $model->optimisedUrl('map_dark'),
             ),
+            summary: Text::prose($model->description),
         );
     }
 

@@ -7,9 +7,10 @@ use App\Data\CardMeta;
 use App\Data\MediaData;
 use App\Enums\TimelineType;
 use App\Models\ThisWeekWith;
+use App\Support\Text;
 
 /**
- * Builds the timeline card for a This Week With episode: topic as the subtitle and
+ * Builds the timeline card for a This Week With episode: topic as the summary and
  * the audio/video/thumbnail media payload for the inline player.
  */
 final class ThisWeekWithCard
@@ -20,7 +21,7 @@ final class ThisWeekWithCard
             type: $this->type(),
             title: $this->title($model),
             titleLabel: null,
-            subtitle: $model->topic,
+            subtitle: null,
             subtitleTokens: null,
             occurredAt: $model->occurred_at,
             range: null,
@@ -35,6 +36,7 @@ final class ThisWeekWithCard
                 duration: $model->duration,
                 url: $model->url(),
             )),
+            summary: Text::prose($model->topic),
         );
     }
 
