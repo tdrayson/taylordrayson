@@ -408,6 +408,7 @@ class TraktSync extends Command
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $movie['title'],
+            'overview' => $movie['overview'] ?? null,
             'source' => 'trakt',
             'source_id' => (string) $item['id'],
             'meta' => [
@@ -439,6 +440,7 @@ class TraktSync extends Command
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $episode['title'] ?? "Episode {$episode['number']}",
+            'overview' => $episode['overview'] ?? null,
             'tv_show_id' => $tvShow->id,
             'source' => 'trakt',
             'source_id' => (string) $item['id'],
