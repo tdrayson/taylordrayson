@@ -1,15 +1,20 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Airport;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
 use App\Models\Concerns\Timelineable;
 use App\Models\Event;
 use App\Models\Film;
+use App\Models\Flight;
+use App\Models\Food;
+use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Project;
+use App\Models\Sleep;
 use App\Models\ThisWeekWith;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
@@ -134,4 +139,75 @@ it('describes the written entry types from their own words', function (Closure $
     'note body' => [fn () => Note::factory()->make(['content' => [['_type' => 'block', 'children' => [['text' => 'A short thought.']]]]]), 'A short thought.'],
     'project description' => [fn () => Project::factory()->make(['title' => 'Glaze', 'description' => 'A macOS app for writing.']), 'A macOS app for writing.'],
     'project, no description' => [fn () => Project::factory()->make(['title' => 'Glaze', 'description' => null]), 'Glaze, a project of mine.'],
+]);
+
+it('describes a night with the card sentence', function () {
+    $sleep = Sleep::factory()->create([
+        'occurred_at' => '2026-08-24 08:51:00',
+        'started_at' => '2026-08-23 23:30:00',
+        'duration' => 33660,
+        'score' => 80,
+    ]);
+
+    expect(cardDescription($sleep))->toBe('I went to bed at 11:30pm and woke at 8:51am. My sleep score was 80.');
+});
+
+it('describes a food day by its total and macros', function () {
+    $food = Food::factory()->create([
+        'occurred_at' => '2026-07-19 12:00:00',
+        'calories' => 500,
+        'protein' => 30,
+        'carbs' => 40,
+        'fat' => 10,
+    ]);
+
+    expect(cardDescription($food))->toBe("That day's food came to 500 calories, with 30g of protein, 40g of carbs and 10g of fat.");
+});
+
+// An airport's city is the parish the runway sits in: Kraków's is "Balice".
+it('names the airports, never their city, in the flight sentence', function () {
+    Airport::factory()->create(['iata_code' => 'KRK', 'name' => 'Kraków John Paul II International Airport', 'city' => 'Balice']);
+    Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick Airport', 'city' => 'London']);
+
+    $flight = Flight::factory()->create([
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'distance' => 1609344,
+        'cabin_class' => 'economy',
+    ])->load('origin', 'destination');
+
+    $expected = 'I flew from Kraków John Paul II International Airport to London Gatwick Airport. It was 1,000 mi in economy.';
+
+    expect(CardPresenter::for($flight)->subtitle)->toBe($expected)
+        ->and(cardDescription($flight))->toBe($expected);
+});
+
+it('writes a fill-up the way it would be said out loud', function (array $attributes, string $title, string $subtitle) {
+    $fuel = Fuel::factory()->create($attributes);
+    $card = CardPresenter::for($fuel);
+
+    expect($card->title)->toBe($title)
+        ->and($card->subtitle)->toBe($subtitle)
+        ->and(cardDescription($fuel))->toBe("{$title}. {$subtitle}");
+})->with([
+    'brand and town' => [
+        ['brand' => 'BP', 'station_name' => 'Beddington Lane Service Station', 'city' => 'Croydon', 'litres' => 31.279, 'cost' => 50.64, 'price_per_litre' => 1.619],
+        'I filled up the car at BP in Croydon',
+        'It cost £50.64 for 31.28 litres, which is 161.9p a litre.',
+    ],
+    'station when no brand' => [
+        ['brand' => null, 'station_name' => 'ASDA Wallington', 'city' => null, 'litres' => 32.13, 'cost' => 41.13, 'price_per_litre' => 1.28],
+        'I filled up the car at ASDA Wallington',
+        'It cost £41.13 for 32.13 litres, which is 128.0p a litre.',
+    ],
+    'town only, no price' => [
+        ['brand' => null, 'station_name' => null, 'city' => 'Grimsby', 'litres' => 33, 'cost' => 45.06, 'price_per_litre' => null],
+        'I filled up the car in Grimsby',
+        'It cost £45.06 for 33.00 litres.',
+    ],
+    'nothing known' => [
+        ['brand' => null, 'station_name' => null, 'city' => null, 'litres' => 40, 'cost' => 60, 'price_per_litre' => null],
+        'I filled up the car',
+        'It cost £60.00 for 40.00 litres.',
+    ],
 ]);

@@ -13,8 +13,8 @@ use App\Models\Flight;
 use App\Support\Distance;
 
 /**
- * Builds the timeline card for a Flight: route title, distance/cabin class
- * subtitle, and the full route payload (airports, airline, depart/arrive
+ * Builds the timeline card for a Flight: route title, a sentence naming the
+ * airports, and the full route payload (airports, airline, depart/arrive
  * local times) for the flight map.
  */
 final class FlightCard
@@ -22,23 +22,13 @@ final class FlightCard
     public function present(Flight $model): CardData
     {
         $cabinClass = $model->cabin_class?->value;
-
         $lead = $this->lead($model);
-
-        $subtitle = $model->distance === null
-            ? $lead
-            : sprintf(
-                '%s It was %s mi%s.',
-                $lead,
-                number_format(Distance::miles($model->distance)),
-                $cabinClass ? " in {$cabinClass}" : '',
-            );
 
         return new CardData(
             type: $this->type(),
             title: $this->title($model),
             titleLabel: null,
-            subtitle: $subtitle,
+            subtitle: $this->sentence($model),
             // Raw metres, not Distance::miles, so FeedItem.vue can convert through
             // useFormat and react to the visitor's unit toggle.
             subtitleTokens: $model->distance
@@ -85,19 +75,45 @@ final class FlightCard
         );
     }
 
+    /** The card sentence, which names both airports and so already stands alone. */
+    public function description(Flight $model): string
+    {
+        return $this->sentence($model);
+    }
+
+    /** "I flew from ... to ... with easyJet. It was 800 mi in economy.", the string the tokens compose. */
+    private function sentence(Flight $model): string
+    {
+        $lead = $this->lead($model);
+        $cabinClass = $model->cabin_class?->value;
+
+        return $model->distance === null
+            ? $lead
+            : sprintf(
+                '%s It was %s mi%s.',
+                $lead,
+                number_format(Distance::miles($model->distance)),
+                $cabinClass ? " in {$cabinClass}" : '',
+            );
+    }
+
     /**
-     * Where the flight went and who flew it. The route is named again rather
-     * than left to the title, because the surfaces this string reaches (feeds,
-     * search, link previews) show the IATA codes when the relations are not
-     * loaded, and "TFS to LGW" names nothing to a reader.
+     * Where the flight went and who flew it, by airport name. Codes stand in when the
+     * relations are not loaded (feeds, search), since "TFS to LGW" still beats nothing.
      */
     private function lead(Flight $model): string
     {
-        $origin = ($model->relationLoaded('origin') ? $model->origin?->city : null) ?? $model->origin_iata;
-        $destination = ($model->relationLoaded('destination') ? $model->destination?->city : null) ?? $model->destination_iata;
+        $origin = $this->airportName($model, 'origin') ?? $model->origin_iata;
+        $destination = $this->airportName($model, 'destination') ?? $model->destination_iata;
         $airline = $model->relationLoaded('airline') && $model->airline ? " with {$model->airline->name}" : '';
 
         return "I flew from {$origin} to {$destination}{$airline}.";
+    }
+
+    /** The airport's name, never its city: that column holds the runway's parish ("Balice" for Kraków). */
+    private function airportName(Flight $model, string $relation): ?string
+    {
+        return $model->relationLoaded($relation) ? $model->{$relation}?->name : null;
     }
 
     /**
