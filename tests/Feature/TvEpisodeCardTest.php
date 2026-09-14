@@ -63,3 +63,9 @@ it('builds the tv episode detail from meta using the model, not a phantom "tv" v
 
     expect(CardPresenter::for($episode)->subtitle)->toContain('season 2 episode 5');
 });
+
+it('carries the episode overview as its summary', function () {
+    $episode = TvEpisode::factory()->create(['overview' => "It's New Year's Eve!"]);
+
+    expect(CardPresenter::for($episode)->summary)->toBe("It's New Year's Eve!");
+});

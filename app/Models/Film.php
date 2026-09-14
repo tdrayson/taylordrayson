@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy(TimelineEntryObserver::class)]
-#[Fillable(['occurred_at', 'title', 'rating', 'timezone', 'source', 'source_id', 'meta', 'status', 'password'])]
+#[Fillable(['occurred_at', 'title', 'overview', 'rating', 'timezone', 'source', 'source_id', 'meta', 'status', 'password'])]
 final class Film extends Model implements HasMedia, Timelineable
 {
     use HasAttachments, HasFactory, HasStatus, HasTimelineEntry;
