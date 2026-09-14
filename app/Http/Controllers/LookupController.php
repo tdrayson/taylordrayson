@@ -18,8 +18,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Autocomplete for airports, airlines, books and places, plus a book's edition
- * covers: one endpoint with a source segment, since each returns the same
- * shape. A result may carry `fill`, which populates other fields on the form too.
+ * covers: one endpoint with a source segment. A result may carry `fill`, which
+ * populates other fields on the form too.
  */
 class LookupController extends Controller
 {

@@ -18,7 +18,6 @@ function hardcoverSearch(): MockResponse
             'author_names' => ['Dale Carnegie'],
             'release_year' => 1913,
             'pages' => 288,
-            'isbns' => ['9780671027032'],
             'image' => ['url' => 'https://assets.hardcover.app/book.jpeg'],
         ]],
     ]]]]]);
