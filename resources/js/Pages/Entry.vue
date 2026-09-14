@@ -26,6 +26,8 @@ const props = defineProps({
     title: { type: String, default: null },
     // The title as tokens when it carries a measurement, e.g. a night's sleep.
     titleTokens: { type: Array, default: null },
+    // Spoken alternative when the visible title reads badly aloud (e.g. flight codes, durations).
+    titleLabel: { type: String, default: null },
     occurredAt: { type: String, default: null },
     dayUrl: { type: String, default: null },
     // { title, url } when this entry falls inside a trip window, else null.
@@ -159,7 +161,10 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
                     <Link :href="meta.href" data-morph="label" class="inline-block text-2xs font-semibold uppercase tracking-wider underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji :title="titleExact" data-morph="title" class="mt-1 w-fit max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">{{ titleText }}</h1>
+                <h1 v-if="title" v-twemoji :title="titleExact" data-morph="title" class="mt-1 w-fit max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">
+                    <template v-if="titleLabel"><span aria-hidden="true">{{ titleText }}</span><span class="sr-only">{{ titleLabel }}</span></template>
+                    <template v-else>{{ titleText }}</template>
+                </h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->
