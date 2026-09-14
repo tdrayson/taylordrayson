@@ -122,6 +122,8 @@ it('hangs the place off a check-in note without editing it', function (?string $
 })->with([
     'plain note' => ['Watching One Night Only with Gordon', 'Crawley', 'Watching One Night Only with Gordon at Costa, Crawley.'],
     'note ends a sentence' => ['Great flat white.', 'Croydon', 'Great flat white. At Costa, Croydon.'],
+    'note ends on a closing quote' => ['Great flat white."', 'Croydon', 'Great flat white." At Costa, Croydon.'],
+    'note ends on a closing bracket' => ['Great flat white!)', 'Croydon', 'Great flat white!) At Costa, Croydon.'],
     'note ends on an emoji' => ['Marty was waiting for me to get back 🐶', 'Croydon', 'Marty was waiting for me to get back 🐶 At Costa, Croydon.'],
     'note ends on a modified emoji' => ['So we settled for Supergirl 🦸🏼‍♀️', 'Crawley', 'So we settled for Supergirl 🦸🏼‍♀️ At Costa, Crawley.'],
     'note, no town' => ['Great coffee', null, 'Great coffee at Costa.'],

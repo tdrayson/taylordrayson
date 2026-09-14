@@ -67,10 +67,13 @@ final class PlaceCard
         return "I checked in at {$model->venue_name}".($model->city ? " in {$model->city}" : '').'.';
     }
 
-    /** Attach a clause to a note without editing it; a note ending on a stop or an emoji gets it as its own sentence. */
+    /**
+     * Attach a clause to a note without editing it; a note ending on a stop or an emoji gets
+     * it as its own sentence. A closing quote or bracket after the stop still counts as ended.
+     */
     private function append(string $note, string $clause): string
     {
-        $ended = preg_match('/(?:[.!?…]|\p{Extended_Pictographic}[\x{FE0F}\x{200D}\x{1F3FB}-\x{1F3FF}\p{Extended_Pictographic}]*)$/u', $note) === 1;
+        $ended = preg_match('/(?:[.!?…][\x{22}\x{27}\x{2019}\x{201D}\)]*|\p{Extended_Pictographic}[\x{FE0F}\x{200D}\x{1F3FB}-\x{1F3FF}\p{Extended_Pictographic}]*)$/u', $note) === 1;
 
         return $ended ? "{$note} ".ucfirst($clause).'.' : "{$note} {$clause}.";
     }
