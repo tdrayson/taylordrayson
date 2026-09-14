@@ -1,9 +1,11 @@
 <script setup>
 defineProps({
     fill: { type: Boolean, default: false },
-    title: { type: String, default: 'How to Win Friends and Influence People' },
-    author: { type: String, default: 'Dale Carnegie' },
-    cover: { type: String, default: 'https://duckduckgo.com/i/3d84f7550ffc1d4c.jpg' },
+    title: { type: String, required: true },
+    author: { type: String, required: true },
+    cover: { type: String, default: null },
+    // Whole-number percent, already floored server-side.
+    percent: { type: Number, required: true },
 });
 
 const onCoverError = (event) => {
@@ -15,13 +17,14 @@ const onCoverError = (event) => {
     <div class="reading rounded-3xl" :class="{ 'reading--has-aspect': !fill }">
         <div class="reading__cover">
             <div class="reading__cover-fallback"><span>Cover</span></div>
-            <img v-if="cover" class="reading__cover-image" :src="cover" alt="" referrerpolicy="no-referrer" @error="onCoverError" />
+            <img v-if="cover" class="reading__cover-image" :src="cover" alt="" @error="onCoverError" />
         </div>
 
         <div class="reading__info">
             <div class="reading__eyebrow">Currently reading</div>
             <h2 class="reading__title">{{ title }}</h2>
             <div class="reading__author">{{ author }}</div>
+            <div class="reading__progress">{{ percent }}% read</div>
         </div>
     </div>
 </template>
@@ -124,6 +127,13 @@ const onCoverError = (event) => {
     font-size: 3.1cqw;
     font-weight: 500;
     color: var(--color-neutral-500);
+}
+
+.reading__progress {
+    margin-top: 1.2cqw;
+    font-size: 3.1cqw;
+    font-weight: 700;
+    color: var(--color-neutral-700);
 }
 
 @keyframes reading-book-in {

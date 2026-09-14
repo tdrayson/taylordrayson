@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, markRaw } from 'vue';
-import { setLayoutProps, usePage } from '@inertiajs/vue3';
+import { ref, reactive, watch, onMounted, onBeforeUnmount, markRaw } from 'vue';
+import { setLayoutProps, usePage, usePoll } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import 'gridstack/dist/gridstack.min.css';
 import { DragDropVerticalIcon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
@@ -30,6 +30,8 @@ const props = defineProps({
     entryDays: { type: Array, default: () => [] },
     // Recent real photos ({ src, srcset, url, caption }) for the "Life lately" deck.
     photos: { type: Array, default: () => [] },
+    // The book on the go ({ title, author, cover, percent }), or null when none is matched.
+    reading: { type: Object, default: null },
 });
 
 setLayoutProps({
@@ -64,6 +66,19 @@ const weatherProps = ambient('weather', ['condition', 'temp', 'humidity', 'wind'
 const locationProps = ambient('location', ['city', 'latitude', 'longitude']);
 const ringsProps = ambient('rings', ['move', 'moveGoal', 'exercise', 'exerciseGoal', 'stand', 'standGoal']);
 
+// One reactive object, so a poll updates the mounted card in place. Gridstack
+// owns the tiles, so they are never re-rendered from a fresh widget list.
+const readingProps = reactive({ fill: true, ...(props.reading ?? {}) });
+
+watch(() => props.reading, (reading) => {
+    if (reading) {
+        Object.assign(readingProps, reading);
+    }
+});
+
+// The Kindle syncs whenever a book is closed; a minute behind is close enough.
+usePoll(60_000, { only: ['reading'] });
+
 // The clock reads the same location group, under the prop names it declares.
 const timeProps = ambient('location', ['timezone']);
 
@@ -84,7 +99,7 @@ const defaultWidgets = [
     { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: { ...sleepProps } },
     { id: 'this-week-with', component: markRaw(ThisWeekWithWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
     { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { days: props.entryDays } },
-    { id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: { fill: true } },
+    ...(props.reading ? [{ id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: readingProps }] : []),
 ];
 
 function readSaved() {
