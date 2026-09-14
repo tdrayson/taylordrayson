@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 final class EntryName
 {
     /**
-     * The types with no name of their own: the four whose card sets a
+     * The types with no name of their own: the five whose card sets a
      * titleLabel, which is those cards saying their title does not stand up
      * alone, plus notes, which have no title at all. EntryNameTest holds this
      * list to the cards so the two cannot drift.
@@ -37,6 +38,7 @@ final class EntryName
     private const NOUNS = [
         Note::class => 'note',
         Sleep::class => 'sleep',
+        Flight::class => 'flight',
         Food::class => 'food log',
         Place::class => 'check-in',
         Fuel::class => 'fill-up',
@@ -68,11 +70,7 @@ final class EntryName
         return $date === null ? "{$determiner} {$noun}" : "{$determiner} {$noun} from {$date}";
     }
 
-    /**
-     * What a type with neither a title nor a name is called, from the label its
-     * archive already uses: a flight is "my flight from 28 August", which reads
-     * better after "Replied to" than the route its card shows.
-     */
+    /** What a type with neither a title nor a name is called, from the label its archive already uses. */
     private static function nounFor(Model $model): string
     {
         foreach (TypeRegistry::all() as $definition) {
