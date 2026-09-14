@@ -38,15 +38,8 @@ class OgMeta
 {
     private const SITE_DESCRIPTION = 'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
 
-    /** Where Google truncates a title, measured on the whole assembled string. */
-    private const TITLE_LIMIT = 60;
-
-    /**
-     * The cost of the " | Taylor Drayson" that AppHead.vue appends. Budgeted
-     * for here because this is where the title is cut, and a cut measured
-     * without it overflows by exactly this much.
-     */
-    private const SITE_SUFFIX_LENGTH = 17;
+    /** How much of an entry's own title the page title keeps; search engines truncate the display. */
+    private const ENTRY_TITLE_LIMIT = 100;
 
     /**
      * @return OgPayload
@@ -539,7 +532,7 @@ class OgMeta
 
         $suffix = $card->occurredAt === null ? '' : ' - '.$card->occurredAt->format('j M Y');
 
-        return Text::excerpt($title, self::TITLE_LIMIT - self::SITE_SUFFIX_LENGTH - mb_strlen($suffix)).$suffix;
+        return Text::excerpt($title, self::ENTRY_TITLE_LIMIT).$suffix;
     }
 
     /**
