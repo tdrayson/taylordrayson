@@ -60,7 +60,11 @@ final class RecordKindleSnapshot
             return 'created';
         }
 
-        if ($book->status !== EntryStatus::Draft || $book->progress_percent === $item->percent) {
+        $storedAt = EntryInstant::utc($book->progressed_at, $book->timezone);
+
+        if ($book->status !== EntryStatus::Draft
+            || $book->progress_percent === $item->percent
+            || ($storedAt !== null && $item->lastOpenedAt->isBefore($storedAt))) {
             return 'unchanged';
         }
 

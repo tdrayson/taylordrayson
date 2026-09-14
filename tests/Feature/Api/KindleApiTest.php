@@ -90,6 +90,17 @@ it('updates progress without overwriting a corrected title', function () {
         ->progress_percent->toBe(50.123);
 });
 
+it('ignores a snapshot older than the stored progress', function () {
+    $book = kindleBook(['progress_percent' => 50.0, 'progressed_at' => '2026-09-14 08:00:00']);
+
+    syncKindle([kindleItem(['percent' => 10, 'last_open' => Carbon::parse('2026-09-13 21:00:00', 'UTC')->getTimestamp()])])
+        ->assertJsonPath('data.unchanged', 1);
+
+    expect($book->fresh())
+        ->progress_percent->toBe(50.0)
+        ->progressed_at->format('Y-m-d H:i:s')->toBe('2026-09-14 08:00:00');
+});
+
 it('leaves a finished book alone', function () {
     $book = kindleBook(['status' => 'published', 'occurred_at' => '2026-09-01 21:00:00', 'progress_percent' => 100.0]);
 
