@@ -4,8 +4,9 @@ defineProps({
     title: { type: String, required: true },
     author: { type: String, required: true },
     cover: { type: String, default: null },
-    // Whole-number percent, already floored server-side.
-    percent: { type: Number, required: true },
+    // Whole-number percent, already floored server-side; null for a finished book.
+    percent: { type: Number, default: null },
+    finished: { type: Boolean, default: false },
 });
 
 const onCoverError = (event) => {
@@ -21,10 +22,10 @@ const onCoverError = (event) => {
         </div>
 
         <div class="reading__info">
-            <div class="reading__eyebrow">Currently reading</div>
+            <div class="reading__eyebrow">{{ finished ? 'Last read' : 'Currently reading' }}</div>
             <h2 class="reading__title">{{ title }}</h2>
             <div class="reading__author">{{ author }}</div>
-            <div class="reading__progress">{{ percent }}% read</div>
+            <div v-if="percent !== null" class="reading__progress">{{ percent }}% read</div>
         </div>
     </div>
 </template>
