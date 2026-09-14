@@ -141,8 +141,8 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
                     <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl p-name font-display text-display">
-                    <template v-if="titleLabel"><span aria-hidden="true">{{ title }}</span><span class="sr-only">{{ titleLabel }}</span></template>
+                <h1 v-if="title" v-twemoji :class="{ 'p-name': !titleLabel }" class="mt-1 max-w-2xl font-display text-display">
+                    <template v-if="titleLabel"><span aria-hidden="true" class="p-name">{{ title }}</span><span class="sr-only">{{ titleLabel }}</span></template>
                     <template v-else>{{ title }}</template>
                 </h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
