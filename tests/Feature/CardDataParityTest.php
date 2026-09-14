@@ -173,6 +173,7 @@ it('reproduces the pre-refactor appearance card shape', function () {
         'occurred_at' => '2026-01-01 12:00:00',
         'title' => 'Building a Lifelog',
         'show_name' => 'Laracon EU',
+        'type' => 'talk',
         'video_url' => 'https://www.youtube.com/watch?v=W7rO_mZTuWM',
         'audio_url' => null,
         'duration' => 1800,

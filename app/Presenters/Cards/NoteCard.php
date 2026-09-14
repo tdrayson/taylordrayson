@@ -43,6 +43,12 @@ final class NoteCard
         );
     }
 
+    /** The note's own words. */
+    public function description(Note $model): string
+    {
+        return PortableText::plainText($model->content);
+    }
+
     public function title(Note $model): string
     {
         return Str::limit(PortableText::plainText($model->content), 80);

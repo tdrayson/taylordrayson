@@ -76,6 +76,12 @@ final class ActivityCard
         );
     }
 
+    /** What I wrote on Strava, else the session sentence. */
+    public function description(Activity $model): string
+    {
+        return Text::prose($model->description) ?? (string) $this->cardSubtitle($model);
+    }
+
     /**
      * @return list<PhotoData>
      */
