@@ -86,6 +86,10 @@ final class PrepareBookSave
             return $attributes;
         }
 
+        if (array_key_exists('current_page', $attributes) && blank($attributes['current_page'])) {
+            return [...$attributes, 'progress_percent' => null, 'progressed_at' => null];
+        }
+
         $page = $attributes['current_page'] ?? $book->current_page;
         $pages = array_key_exists('pages', $attributes) ? $attributes['pages'] : $book->pages;
 

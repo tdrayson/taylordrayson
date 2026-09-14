@@ -95,6 +95,25 @@ it('turns a page into percent for a manual book', function () {
         ->and($book->fresh()->progressed_at->format('Y-m-d H:i:s'))->toBe('2026-09-14 13:00:00');
 });
 
+it('clears progress when the page is cleared', function () {
+    $book = Book::factory()->create([
+        'source' => 'manual',
+        'status' => 'draft',
+        'occurred_at' => null,
+        'current_page' => 122,
+        'pages' => 288,
+        'progress_percent' => 42.361,
+        'progressed_at' => '2026-09-14 09:00:00',
+    ]);
+
+    $this->patch("/entries/book/{$book->id}", ['current_page' => null])->assertSessionHasNoErrors();
+
+    expect($book->fresh())
+        ->current_page->toBeNull()
+        ->progress_percent->toBeNull()
+        ->progressed_at->toBeNull();
+});
+
 it('asks for the page count before tracking by page', function () {
     $book = Book::factory()->create(['source' => 'manual', 'status' => 'draft', 'occurred_at' => null]);
 
