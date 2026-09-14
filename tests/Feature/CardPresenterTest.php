@@ -1,6 +1,7 @@
 <?php
 
 use App\Data\CardData;
+use App\Datasets\Datasets;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -49,3 +50,18 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
 it('has every card write its own description', function (Timelineable $model) {
     expect(CardPresenter::card($model)->description($model))->toBeString();
 })->with('timelineable models');
+
+/**
+ * Guards against a new dataset registered without a card implementing the
+ * present/title/description contract, which the hand-maintained dataset above
+ * would not catch since it never sees newly registered datasets.
+ */
+it('requires present, title and description on every registered card', function () {
+    foreach (Datasets::all() as $dataset) {
+        $card = $dataset->card();
+
+        expect(method_exists($card, 'present'))->toBeTrue("{$dataset->model()}'s card is missing present()")
+            ->and(method_exists($card, 'title'))->toBeTrue("{$dataset->model()}'s card is missing title()")
+            ->and(method_exists($card, 'description'))->toBeTrue("{$dataset->model()}'s card is missing description()");
+    }
+});
