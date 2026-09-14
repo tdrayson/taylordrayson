@@ -6,9 +6,10 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\TimelineType;
 use App\Models\Book;
+use App\Support\Text;
 
 /**
- * Builds the timeline card for a book: rating and its author as the subtitle.
+ * Builds the timeline card for a book: who wrote it, my rating, and the overview as its summary.
  */
 final class BookCard
 {
@@ -23,15 +24,17 @@ final class BookCard
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::backdrop($model->optimisedUrl('backdrop')),
+            summary: Text::prose($model->overview),
         );
     }
 
-    private function sentence(Book $model): ?string
+    /** "I read Andy Weir's book and rated it 9/10." */
+    private function sentence(Book $model): string
     {
+        $book = $model->meta->author ? "{$model->meta->author}'s book" : 'this book';
         $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
-        $what = 'this book'.($model->meta->author ? " by {$model->meta->author}" : '');
 
-        return "I read {$what}{$rated}.";
+        return "I read {$book}{$rated}.";
     }
 
     public function title(Book $model): string

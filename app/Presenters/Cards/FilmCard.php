@@ -8,9 +8,10 @@ use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Film;
 use App\Presenters\SubtitleText;
+use App\Support\Text;
 
 /**
- * Builds the timeline card for a film: rating and year/genre as the subtitle.
+ * Builds the timeline card for a film: a watched-and-rated sentence and the overview as its summary.
  */
 final class FilmCard
 {
@@ -25,39 +26,21 @@ final class FilmCard
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::backdrop($model->optimisedUrl('backdrop')),
+            summary: Text::prose($model->overview),
         );
     }
 
     /**
-     * What was watched, then how long it ran as its own sentence.
+     * "I watched this 2026 film and rated it 8/10." Genre and runtime stay on the entry page.
      *
      * @return list<SubtitleToken>
      */
     private function tokens(Film $model): array
     {
+        $film = $model->meta->year === null ? 'this film' : "this {$model->meta->year} film";
         $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
-        $tokens = [SubtitleToken::text("I watched {$this->filmClause($model)}{$rated}.")];
 
-        if ($model->meta->runtime) {
-            $tokens[] = SubtitleToken::text('It was', ' ');
-            $tokens[] = SubtitleToken::dur($model->meta->runtime * 60, ' ', 'minutes');
-            $tokens[] = SubtitleToken::text('long.', ' ');
-        }
-
-        return $tokens;
-    }
-
-    /**
-     * "this 2024 drama": the year and TMDB's leading genre, which is ordered by
-     * relevance. One genre only, since stringing two together reads as neither
-     * ("this science fiction and mystery film").
-     */
-    private function filmClause(Film $model): string
-    {
-        $genre = $model->meta->tmdb->genres[0] ?? null;
-        $what = $genre === null ? 'film' : mb_strtolower($genre).' film';
-
-        return $model->meta->year === null ? "this {$what}" : "this {$model->meta->year} {$what}";
+        return [SubtitleToken::text("I watched {$film}{$rated}.")];
     }
 
     public function title(Film $model): string
