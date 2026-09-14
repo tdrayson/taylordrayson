@@ -4,8 +4,10 @@ namespace App\Actions\Entries;
 
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
+use App\Models\Book;
 use App\Models\Food;
 use App\Models\Page;
+use App\Support\BookCompleteness;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -44,6 +46,14 @@ final class UpdateEntryStatus
 
         if ($status === EntryStatus::Private && blank($password) && ! $keepsPassword) {
             throw ValidationException::withMessages(['status' => 'A private entry needs a password.']);
+        }
+
+        if ($model instanceof Book && $model->status === EntryStatus::Draft && $status !== EntryStatus::Draft) {
+            $missing = BookCompleteness::forBook($model);
+
+            if ($missing !== []) {
+                throw ValidationException::withMessages(['status' => 'Add '.BookCompleteness::sentence($missing).' before publishing.']);
+            }
         }
     }
 
