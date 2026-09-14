@@ -8,6 +8,7 @@ use App\Models\Film;
 use App\Models\TvEpisode;
 use App\Models\TvShow;
 use App\Services\Trakt\Client;
+use App\Support\Text;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -408,7 +409,7 @@ class TraktSync extends Command
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $movie['title'],
-            'overview' => $movie['overview'] ?? null,
+            'overview' => Text::prose($movie['overview'] ?? null),
             'source' => 'trakt',
             'source_id' => (string) $item['id'],
             'meta' => [
@@ -440,7 +441,7 @@ class TraktSync extends Command
             'occurred_at' => $this->localWallClock($item['watched_at']),
             'timezone' => self::DISPLAY_TIMEZONE,
             'title' => $episode['title'] ?? "Episode {$episode['number']}",
-            'overview' => $episode['overview'] ?? null,
+            'overview' => Text::prose($episode['overview'] ?? null),
             'tv_show_id' => $tvShow->id,
             'source' => 'trakt',
             'source_id' => (string) $item['id'],
