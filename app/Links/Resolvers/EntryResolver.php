@@ -5,6 +5,7 @@ namespace App\Links\Resolvers;
 use App\Data\LinkPreviewData;
 use App\Enums\EntryStatus;
 use App\Links\LinkResolver;
+use App\Models\Flight;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
@@ -29,6 +30,10 @@ class EntryResolver implements LinkResolver
 
         if ($model === null || ! $model->isViewableBy(null)) {
             return null;
+        }
+
+        if ($model instanceof Flight) {
+            $model->loadMissing(['origin', 'destination', 'airline']);
         }
 
         $card = CardPresenter::for($model);
