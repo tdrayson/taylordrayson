@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Airport;
 use App\Models\Article;
 use App\Models\Concerns\Timelineable;
+use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Note;
 use App\Models\Place;
@@ -49,6 +51,24 @@ it('renders a note entry via Inertia', function () {
             ->where('type', 'note')
             ->where('title', null)
             ->where('og.title', fn ($title) => str_contains((string) $title, 'Finished the migration')));
+});
+
+it('speaks the airport names for a flight entry titleLabel', function () {
+    Airport::factory()->create(['iata_code' => 'KRK', 'name' => 'Kraków John Paul II International Airport']);
+    Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick Airport']);
+
+    $flight = Flight::factory()->create([
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'occurred_at' => '2026-03-15 07:30:00',
+    ]);
+
+    get('/'.entryUrl($flight))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Entry')
+            ->where('title', 'KRK → LGW')
+            ->where('titleLabel', 'Kraków John Paul II International Airport to London Gatwick Airport'));
 });
 
 it('exposes the polyline when present', function () {
