@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\FlightController;
 use App\Http\Controllers\Api\V1\HealthExportController;
+use App\Http\Controllers\Api\V1\KindleController;
 use App\Http\Controllers\Api\V1\NoteController;
 use App\Http\Controllers\Api\V1\NowStateController;
 use App\Http\Controllers\Api\V1\SetgraphController;
@@ -20,6 +21,7 @@ Route::prefix('v1')->middleware('api.token')->name('api.v1.')->group(function ()
     Route::get('/health-export', [HealthExportController::class, 'ping'])->name('health-export.ping');
     Route::post('/health-export', [HealthExportController::class, 'store'])->name('health-export.store');
     Route::post('/setgraph', SetgraphController::class)->name('setgraph.store');
+    Route::post('/kindle', KindleController::class)->name('kindle.store');
 
     // Ambient readings from Apple Shortcuts for the Now page. Unlike the ingest
     // routes above, the payload shape is ours, so the path is named for what it
