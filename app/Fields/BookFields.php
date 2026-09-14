@@ -33,7 +33,7 @@ final class BookFields
             FieldData::primary('title', 'Title', FieldType::Lookup, required: true, source: 'book'),
             FieldData::primary('meta.author', 'Author', FieldType::Text),
             FieldData::optional('meta.subtitle', 'Subtitle', FieldType::Text),
-            FieldData::primary('cover', 'Cover', FieldType::Image, collection: 'cover'),
+            FieldData::primary('cover', 'Cover', FieldType::BookCover, collection: 'cover'),
             ...$progress,
             FieldData::primary('occurred_at', 'Finished', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('started_at', 'Started', FieldType::DateTime),

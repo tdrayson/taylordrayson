@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use App\Queries\Lookups\BookCoverLookup;
 use App\Queries\Lookups\BookLookup;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -48,7 +50,6 @@ it('fills book-level details and the most-read cover, never edition details', fu
     $option = app(BookLookup::class)('how to win friends')[0];
 
     expect($option['detail'])->toBe('Dale Carnegie')
-        ->and($option['image'])->toBe('https://assets.hardcover.app/edition-1.jpeg')
         ->and($option['fill'])->toBe([
             'title' => 'How to Win Friends and Influence People',
             'meta.author' => 'Dale Carnegie',
@@ -58,27 +59,43 @@ it('fills book-level details and the most-read cover, never edition details', fu
         ]);
 });
 
-it('suggests unique edition covers, capped at twelve, with the book cover as a fallback', function () {
-    $editions = [...editionCovers(14), ['image' => ['url' => 'https://assets.hardcover.app/edition-1.jpeg']], ['image' => null]];
-    Saloon::fake([hardcoverSearch(), hardcoverBooks($editions)]);
-
-    $covers = app(BookLookup::class)('how to win friends')[0]['suggestions']['cover'];
-
-    expect($covers)->toHaveCount(12)
-        ->and($covers[0])->toBe('https://assets.hardcover.app/edition-1.jpeg')
-        ->and(array_unique($covers))->toBe($covers);
-
-    Saloon::fake([hardcoverSearch(), hardcoverBooks([])]);
-
-    expect(app(BookLookup::class)('how to win friends')[0]['suggestions']['cover'])
-        ->toBe(['https://assets.hardcover.app/book.jpeg']);
-});
-
 it('keeps the search results when the edition lookup fails', function () {
     Saloon::fake([hardcoverSearch(), MockResponse::make(['errors' => [['message' => 'boom']]], 200)]);
 
     $option = app(BookLookup::class)('how to win friends')[0];
 
-    expect($option['fill'])->toMatchArray(['title' => 'How to Win Friends and Influence People', 'meta.author' => 'Dale Carnegie'])
-        ->and($option['suggestions']['cover'])->toBe(['https://assets.hardcover.app/book.jpeg']);
+    expect($option['fill'])->toMatchArray(['title' => 'How to Win Friends and Influence People', 'meta.author' => 'Dale Carnegie', 'cover' => [['id' => 'url:https://assets.hardcover.app/book.jpeg', 'name' => 'Cover', 'url' => 'https://assets.hardcover.app/book.jpeg']]])
+        ->and($option)->not->toHaveKeys(['image', 'suggestions']);
+});
+
+it('lists unique edition covers for the best match, capped at twenty, with the book cover as a fallback', function () {
+    $editions = [...editionCovers(24), ['image' => ['url' => 'https://assets.hardcover.app/edition-1.jpeg']], ['image' => null]];
+    Saloon::fake([hardcoverSearch(), hardcoverBooks($editions)]);
+
+    $covers = app(BookCoverLookup::class)('How to Win Friends Dale Carnegie');
+
+    expect($covers)->toHaveCount(20)
+        ->and($covers[0])->toBe('https://assets.hardcover.app/edition-1.jpeg')
+        ->and(array_unique($covers))->toBe($covers);
+
+    Saloon::fake([hardcoverSearch(), hardcoverBooks([])]);
+
+    expect(app(BookCoverLookup::class)('How to Win Friends'))->toBe(['https://assets.hardcover.app/book.jpeg']);
+});
+
+it('returns no covers for a blank query or a failed search', function () {
+    expect(app(BookCoverLookup::class)('  '))->toBe([]);
+
+    Saloon::fake([MockResponse::make(['errors' => [['message' => 'boom']]], 200)]);
+
+    expect(app(BookCoverLookup::class)('How to Win Friends'))->toBe([]);
+});
+
+it('serves covers from the lookup endpoint', function () {
+    Saloon::fake([hardcoverSearch(), hardcoverBooks(editionCovers(2))]);
+
+    $this->actingAs(User::factory()->create())
+        ->getJson('/lookup/book-covers?q=How+to+Win+Friends')
+        ->assertOk()
+        ->assertJsonPath('data.0', 'https://assets.hardcover.app/edition-1.jpeg');
 });

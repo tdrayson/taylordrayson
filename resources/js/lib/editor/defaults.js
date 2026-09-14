@@ -33,6 +33,7 @@ export function defaultValueFor(field) {
         case 'prose':
         case 'tags':
         case 'image':
+        case 'book-cover':
         case 'gallery':
             return [];
         case 'boolean':

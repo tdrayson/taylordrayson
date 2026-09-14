@@ -14,6 +14,7 @@ import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
+import BookCoverField from './BookCoverField.vue';
 import LengthRing from './LengthRing.vue';
 import StatusInput from './StatusInput.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
@@ -134,6 +135,14 @@ function textToTags(value) {
             rows="4"
             :class="[CONTROL, borderClass, 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
+        />
+
+        <BookCoverField
+            v-else-if="field.type === 'book-cover'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :invalid="Boolean(error)"
+            @update:model-value="$emit('update:modelValue', $event)"
         />
 
         <ImageField
