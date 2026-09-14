@@ -25,6 +25,9 @@ const covers = ref([]);
 const loading = ref(false);
 const failed = ref(false);
 
+// Bumped on every call so a slower earlier fetch, resolving after a newer one, is dropped instead of overwriting it.
+let requestId = 0;
+
 /** Open the dialog and fetch covers for whichever book the form names now. */
 async function openCovers() {
     open.value = true;
@@ -32,6 +35,7 @@ async function openCovers() {
     failed.value = false;
 
     const query = [form?.title, form?.['meta.author']].filter(Boolean).join(' ');
+    const id = ++requestId;
 
     try {
         const response = await fetch(`/lookup/book-covers?${new URLSearchParams({ q: query })}`, {
@@ -39,13 +43,23 @@ async function openCovers() {
             credentials: 'same-origin',
         });
 
+        if (id !== requestId) {
+            return;
+        }
+
         failed.value = ! response.ok;
         covers.value = response.ok ? (await response.json()).data ?? [] : [];
     } catch {
+        if (id !== requestId) {
+            return;
+        }
+
         failed.value = true;
         covers.value = [];
     } finally {
-        loading.value = false;
+        if (id === requestId) {
+            loading.value = false;
+        }
     }
 }
 
