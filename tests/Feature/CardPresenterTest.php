@@ -1,6 +1,7 @@
 <?php
 
 use App\Data\CardData;
+use App\Datasets\Datasets;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Article;
@@ -59,4 +60,19 @@ it('names an entry by its card heading and a page by its own title', function ()
     expect(CardPresenter::title($note))->toBe('Hello world')
         ->and(CardPresenter::title($page))->toBe('Uses')
         ->and(CardPresenter::title(null))->toBe('an entry that has since gone');
+});
+
+/**
+ * Guards against a new dataset registered without a card implementing the
+ * present/title/description contract, which the hand-maintained dataset above
+ * would not catch since it never sees newly registered datasets.
+ */
+it('requires present, title and description on every registered card', function () {
+    foreach (Datasets::all() as $dataset) {
+        $card = $dataset->card();
+
+        expect(method_exists($card, 'present'))->toBeTrue("{$dataset->model()}'s card is missing present()")
+            ->and(method_exists($card, 'title'))->toBeTrue("{$dataset->model()}'s card is missing title()")
+            ->and(method_exists($card, 'description'))->toBeTrue("{$dataset->model()}'s card is missing description()");
+    }
 });
