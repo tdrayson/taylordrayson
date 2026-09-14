@@ -6,6 +6,7 @@ use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Enums\TimelineType;
 use App\Models\Project;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for a Project: description as the subtitle, no
@@ -25,6 +26,12 @@ final class ProjectCard
             range: null,
             meta: CardMeta::empty(),
         );
+    }
+
+    /** My description of the project, else a line naming it. */
+    public function description(Project $model): string
+    {
+        return Text::prose($model->description) ?? "{$model->title}, a project of mine.";
     }
 
     public function title(Project $model): string

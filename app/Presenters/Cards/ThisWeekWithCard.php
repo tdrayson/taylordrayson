@@ -40,6 +40,12 @@ final class ThisWeekWithCard
         );
     }
 
+    /** The episode's topic line; empty without one, so the title stands in. */
+    public function description(ThisWeekWith $model): string
+    {
+        return (string) Text::prose($model->topic);
+    }
+
     public function title(ThisWeekWith $model): string
     {
         return $model->title;

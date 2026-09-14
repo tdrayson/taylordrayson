@@ -53,6 +53,12 @@ final class NoteCard
         );
     }
 
+    /** The note's own words. */
+    public function description(Note $model): string
+    {
+        return PortableText::plainText($model->resolvedContent());
+    }
+
     /**
      * A gesture wrote nothing, so it is named by what was done and to what,
      * where another note is named by its opening words. A photo caption reads
