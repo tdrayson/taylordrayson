@@ -20,7 +20,9 @@ it('omits summary from the card payload when there is none', function () {
 it('emits summary after the subtitle when set', function () {
     $card = new CardData(TimelineType::Note, 'Title', null, 'Sub', null, null, null, CardMeta::empty(), summary: 'My words');
 
-    expect(array_keys($card->toArray()))->toContain('summary')
+    $keys = array_keys($card->toArray());
+
+    expect(array_search('summary', $keys, true))->toBe(array_search('subtitle', $keys, true) + 1)
         ->and($card->toArray()['summary'])->toBe('My words');
 });
 
