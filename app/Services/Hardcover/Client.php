@@ -96,6 +96,37 @@ class Client
     }
 
     /**
+     * Each book's description, tags and default editions, keyed by Hardcover book id.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function booksWithEditions(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $data = $this->query(<<<'GRAPHQL'
+            query BooksWithEditions($ids: [Int!]) {
+              books(where: {id: {_in: $ids}}) {
+                id
+                description
+                image { url }
+                cached_tags
+                default_physical_edition { subtitle pages isbn_13 image { url } }
+                default_ebook_edition { subtitle pages isbn_13 image { url } }
+              }
+            }
+            GRAPHQL, ['ids' => $ids]);
+
+        return collect($data['books'] ?? [])
+            ->filter(fn (mixed $book): bool => is_array($book) && isset($book['id']))
+            ->keyBy(fn (array $book): int => (int) $book['id'])
+            ->all();
+    }
+
+    /**
      * @param  array<string, mixed>  $variables
      */
     private function request(string $query, array $variables): Response
