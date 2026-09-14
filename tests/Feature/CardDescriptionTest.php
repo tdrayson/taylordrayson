@@ -1,15 +1,20 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Airport;
 use App\Models\Appearance;
 use App\Models\Article;
 use App\Models\Book;
 use App\Models\Concerns\Timelineable;
 use App\Models\Event;
 use App\Models\Film;
+use App\Models\Flight;
+use App\Models\Food;
+use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Place;
 use App\Models\Project;
+use App\Models\Sleep;
 use App\Models\ThisWeekWith;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
@@ -135,3 +140,51 @@ it('describes the written entry types from their own words', function (Closure $
     'project description' => [fn () => Project::factory()->make(['title' => 'Glaze', 'description' => 'A macOS app for writing.']), 'A macOS app for writing.'],
     'project, no description' => [fn () => Project::factory()->make(['title' => 'Glaze', 'description' => null]), 'Glaze, a project of mine.'],
 ]);
+
+it('describes a night with the card sentence', function () {
+    $sleep = Sleep::factory()->create([
+        'occurred_at' => '2026-08-24 08:51:00',
+        'started_at' => '2026-08-23 23:30:00',
+        'duration' => 33660,
+        'score' => 80,
+    ]);
+
+    expect(cardDescription($sleep))->toBe('I went to bed at 11:30pm and woke at 8:51am. My sleep score was 80.');
+});
+
+it('describes a food day by its total and macros', function () {
+    $food = Food::factory()->create([
+        'occurred_at' => '2026-07-19 12:00:00',
+        'calories' => 500,
+        'protein' => 30,
+        'carbs' => 40,
+        'fat' => 10,
+    ]);
+
+    expect(cardDescription($food))->toBe("That day's food came to 500 calories, with 30g of protein, 40g of carbs and 10g of fat.");
+});
+
+// An airport's city is the parish the runway sits in: Kraków's is "Balice".
+it('names the airports, never their city, in the flight sentence', function () {
+    Airport::factory()->create(['iata_code' => 'KRK', 'name' => 'Kraków John Paul II International Airport', 'city' => 'Balice']);
+    Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick Airport', 'city' => 'London']);
+
+    $flight = Flight::factory()->create([
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'distance' => 1609344,
+        'cabin_class' => 'economy',
+    ])->load('origin', 'destination');
+
+    $expected = 'I flew from Kraków John Paul II International Airport to London Gatwick Airport. It was 1,000 mi in economy.';
+
+    expect(CardPresenter::for($flight)->subtitle)->toBe($expected)
+        ->and(cardDescription($flight))->toBe($expected);
+});
+
+it('describes a fill-up as its title then its sentence', function () {
+    $fuel = Fuel::factory()->create(['litres' => 31.279, 'price_per_litre' => 1.619]);
+    $card = CardPresenter::for($fuel);
+
+    expect(cardDescription($fuel))->toBe("{$card->title}. {$card->subtitle}");
+});
