@@ -392,3 +392,21 @@ it('heads a check-in "at" the venue but titles the page by the venue alone', fun
             ->where('og.title', 'Starbucks - 24 Aug 2026')
         );
 });
+
+it('titles a flight page by its codes', function () {
+    Airport::factory()->create(['iata_code' => 'KRK', 'name' => 'Kraków John Paul II International Airport', 'city' => 'Balice']);
+    Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick Airport', 'city' => 'London']);
+
+    $flight = Flight::factory()->create([
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'occurred_at' => '2026-06-08 22:15:00',
+    ]);
+
+    get('/'.$flight->occurred_at->format('Y/m/d').'/'.$flight->slug())
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('title', 'KRK → LGW')
+            ->where('og.title', 'KRK → LGW - 8 Jun 2026')
+        );
+});

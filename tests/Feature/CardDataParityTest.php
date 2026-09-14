@@ -66,6 +66,7 @@ it('reproduces the pre-refactor flight card shape', function () {
     expect(CardPresenter::for($flight)->toArray())->toEqual([
         'type' => 'flight',
         'title' => 'LHR → JFK',
+        'titleLabel' => 'LHR to JFK',
         'subtitle' => 'I flew from LHR to JFK. It was 1,000 mi in economy.',
         'subtitleTokens' => [
             ['t' => 'text', 'v' => 'I flew from LHR to JFK. It was'],
