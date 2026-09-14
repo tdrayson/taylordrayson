@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, watch, onMounted, onBeforeUnmount, markRaw } from 'vue';
-import { setLayoutProps, usePage, usePoll } from '@inertiajs/vue3';
+import { router, setLayoutProps, usePage, usePoll } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import 'gridstack/dist/gridstack.min.css';
 import { DragDropVerticalIcon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
@@ -70,7 +70,17 @@ const ringsProps = ambient('rings', ['move', 'moveGoal', 'exercise', 'exerciseGo
 // owns the tiles, so they are never re-rendered from a fresh widget list.
 const readingProps = reactive({ fill: true, ...(props.reading ?? {}) });
 
-watch(() => props.reading, (reading) => {
+// Gridstack only lays out the tiles present at mount, so it cannot grow or
+// drop the reading tile itself; when a poll changes whether there is a book
+// at all, reload the page to rebuild the grid rather than patch a tile that
+// may not exist.
+watch(() => props.reading, (reading, previous) => {
+    if (Boolean(reading) !== Boolean(previous)) {
+        router.reload({ preserveState: false });
+
+        return;
+    }
+
     if (reading) {
         Object.assign(readingProps, reading);
     }
