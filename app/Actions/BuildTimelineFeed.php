@@ -124,6 +124,7 @@ class BuildTimelineFeed
             'titleTokens' => $card->titleTokens,
             'meta' => Text::excerpt($card->subtitle, 240),
             'metaTokens' => $card->subtitleTokens,
+            'summary' => Text::excerpt($card->summary, 400),
             'body' => $card->meta->body,
             'previews' => $card->meta->previews,
             'favicons' => $card->meta->favicons,
