@@ -139,11 +139,16 @@
 /* A link while writing. Not an anchor: see the Link override in profiles.js.
    The favicon is set as a background image from Google's icon service so
    it appears the moment a URL is typed, where the published page serves the
-   copy stored at save time. */
+   copy stored at save time. Neutral fill: the published chip colours an entry's
+   glyph by type, and an accent fill would clash with that hue. */
 .ProseMirror .editor-link {
-    color: var(--color-accent-500);
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    background: var(--color-neutral-25);
+    color: var(--color-neutral-900);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.3em;
+    text-decoration: none;
+    font-weight: 500;
+    box-decoration-break: clone;
     cursor: pointer;
 }
 
@@ -173,18 +178,6 @@
 
 :root {
     --editor-link-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1'/%3E%3Cpath d='M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1'/%3E%3C/svg%3E");
-}
-
-/* Neutral ground and neutral text: the published chip colours its glyph by
-   entry type, and an accent fill would clash with whichever hue that is. */
-.ProseMirror .editor-link[data-internal] {
-    background: var(--color-neutral-25);
-    color: var(--color-neutral-900);
-    border-radius: 0.25rem;
-    padding: 0.1em 0.3em;
-    text-decoration: none;
-    font-weight: 500;
-    box-decoration-break: clone;
 }
 
 /* Says the destination leaves the site, matching the toolbar's own toggle. */
