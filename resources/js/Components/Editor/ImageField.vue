@@ -18,8 +18,6 @@ const props = defineProps({
     multiple: { type: Boolean, default: false },
     id: { type: String, default: null },
     invalid: { type: Boolean, default: false },
-    // Remote images offered to choose from, e.g. a book's edition covers.
-    suggestions: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -161,14 +159,6 @@ function move(index, by) {
     [next[index], next[target]] = [next[target], next[index]];
     emit('update:modelValue', next);
 }
-
-/** Swap the single image for a suggested one; the server downloads it on save. */
-function choose(url) {
-    emit('update:modelValue', [{ id: `url:${url}`, name: 'Cover', url }]);
-}
-
-/** Whether a suggestion is the image currently in the field. */
-const isChosen = (url) => items.value[0]?.url === url;
 </script>
 
 <template>
@@ -241,20 +231,5 @@ const isChosen = (url) => items.value[0]?.url === url;
         </label>
 
         <p v-if="error" class="text-caption text-red-600">{{ error }}</p>
-
-        <ul v-if="! multiple && suggestions.length > 1" class="flex flex-wrap gap-2" aria-label="Other covers">
-            <li v-for="(url, index) in suggestions" :key="url">
-                <button
-                    type="button"
-                    class="block overflow-hidden rounded-sm border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
-                    :class="isChosen(url) ? 'border-accent-500' : 'border-transparent hover:border-neutral-300 focus-visible:border-neutral-300'"
-                    :aria-label="`Use cover ${index + 1}`"
-                    :aria-pressed="isChosen(url)"
-                    @click="choose(url)"
-                >
-                    <img :src="url" alt="" class="h-24 w-16 object-cover" loading="lazy">
-                </button>
-            </li>
-        </ul>
     </div>
 </template>

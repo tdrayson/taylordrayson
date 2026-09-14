@@ -17,7 +17,7 @@ const props = defineProps({
     id: { type: String, default: null },
 });
 
-const emit = defineEmits(['update:modelValue', 'fill', 'suggest']);
+const emit = defineEmits(['update:modelValue', 'fill']);
 
 const { isOpen: open, root, open: show, close } = useDismissable();
 const query = ref(String(props.modelValue ?? ''));
@@ -91,11 +91,6 @@ function pick(result) {
         emit('fill', result.fill);
     }
 
-    // Choices a result offers rather than decides, such as a book's other covers.
-    if (result.suggestions) {
-        emit('suggest', result.suggestions);
-    }
-
     close();
     results.value = [];
 }
@@ -134,15 +129,12 @@ function pick(result) {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full items-center gap-3 px-3 py-2 text-left text-meta transition-colors"
+                    class="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-meta transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(result)"
                 >
-                    <img v-if="result.image" :src="result.image" alt="" class="h-12 w-8 shrink-0 rounded-sm object-cover" loading="lazy">
-                    <span class="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-                        <span class="w-full truncate font-medium">{{ result.label }}</span>
-                        <span v-if="result.detail" class="w-full truncate text-caption text-neutral-500">{{ result.detail }}</span>
-                    </span>
+                    <span class="w-full truncate font-medium">{{ result.label }}</span>
+                    <span v-if="result.detail" class="w-full truncate text-caption text-neutral-500">{{ result.detail }}</span>
                 </button>
             </li>
         </ul>
