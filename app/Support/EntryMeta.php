@@ -54,7 +54,7 @@ final class EntryMeta
         TvEpisode::class => ['season', 'episode', 'show_title', 'runtime', 'tmdb'],
 
         // BookDetail.vue.
-        Book::class => ['author', 'isbn', 'subtitle'],
+        Book::class => ['author', 'isbn'],
     ];
 
     /**

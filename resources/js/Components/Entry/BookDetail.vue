@@ -35,8 +35,6 @@ const rows = computed(() => [
             class="w-32 rounded-lg shadow-card"
         >
 
-        <p v-if="meta.subtitle" class="text-body text-neutral-700">{{ meta.subtitle }}</p>
-
         <div v-if="entry.rating" class="flex items-center gap-2">
             <Icon name="StarIcon" class="size-5 text-accent-500" />
             <span class="font-display text-stat tnum">{{ entry.rating }}</span>

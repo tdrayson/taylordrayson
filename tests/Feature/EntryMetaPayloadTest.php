@@ -103,16 +103,15 @@ it('reads an episode entry whose meta is cast to a DTO', function () {
         ->toBe(['season' => 19, 'episode' => 1, 'show_title' => 'Jet Lag: The Game', 'runtime' => 42]);
 });
 
-it('publishes a book subtitle and overview, never a progress count', function () {
+it('publishes a book overview, never a progress count', function () {
     $book = Book::factory()->create([
         'status' => 'published',
         'overview' => 'A synopsis.',
         'progress_percent' => 100.0,
-        'meta' => ['author' => 'Dale Carnegie', 'subtitle' => 'The classic', 'isbn' => '9780671027032'],
+        'meta' => ['author' => 'Dale Carnegie', 'isbn' => '9780671027032'],
     ]);
 
     $this->get($book->url())->assertInertia(fn ($page) => $page
-        ->where('entry.meta.subtitle', 'The classic')
         ->where('entry.overview', 'A synopsis.')
     );
 });

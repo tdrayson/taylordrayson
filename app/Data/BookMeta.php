@@ -15,7 +15,7 @@ use JsonSerializable;
 final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
 {
     /** Keys spelled out below. Everything else survives via `$extra`. */
-    private const NAMED = ['author', 'year', 'isbn', 'subtitle'];
+    private const NAMED = ['author', 'year', 'isbn'];
 
     /**
      * @param  array<string, mixed>  $extra
@@ -24,7 +24,6 @@ final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
         public ?string $author = null,
         public ?int $year = null,
         public ?string $isbn = null,
-        public ?string $subtitle = null,
         public array $extra = [],
     ) {}
 
@@ -39,7 +38,6 @@ final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
             author: MetaValue::string($meta['author'] ?? null),
             year: MetaValue::int($meta['year'] ?? null),
             isbn: MetaValue::string($meta['isbn'] ?? null),
-            subtitle: MetaValue::string($meta['subtitle'] ?? null),
             extra: Arr::except($meta, self::NAMED),
         );
     }
@@ -67,7 +65,6 @@ final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
             'author' => $this->author,
             'year' => $this->year,
             'isbn' => $this->isbn,
-            'subtitle' => $this->subtitle,
         ]) + $this->extra;
     }
 

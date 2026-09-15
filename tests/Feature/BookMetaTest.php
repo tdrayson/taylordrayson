@@ -21,13 +21,6 @@ it('round-trips keys it does not name, rather than dropping them on save', funct
     ]);
 });
 
-it('keeps a subtitle as a named meta key', function () {
-    $book = Book::factory()->create(['meta' => ['author' => 'Dale Carnegie', 'subtitle' => 'The classic']]);
-
-    expect($book->fresh()->meta->subtitle)->toBe('The classic')
-        ->and($book->fresh()->meta->extra)->not->toHaveKey('subtitle');
-});
-
 it('stores reading progress on the book itself', function () {
     $book = Book::factory()->create([
         'status' => 'draft',
