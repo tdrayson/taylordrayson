@@ -1,7 +1,7 @@
 <script setup>
 import { computed, useSlots } from 'vue';
 import { cn } from '../../lib/cn.js';
-import { CONTROL } from '../../lib/editor/control.js';
+import { CONTROL, READONLY } from '../../lib/editor/control.js';
 
 const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
@@ -41,7 +41,7 @@ const wrapperClasses = computed(() =>
         CONTROL,
         'flex items-center gap-1.5 py-0',
         border.value,
-        props.readonly && 'bg-neutral-50 text-neutral-700 cursor-default',
+        props.readonly && READONLY,
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
     ),
@@ -56,7 +56,7 @@ const bareClasses = computed(() =>
             : props.readonly
                 ? 'border-neutral-100 focus:border-neutral-100'
                 : 'border-neutral-100 focus:border-accent-500',
-        props.readonly && 'bg-neutral-50 text-neutral-700 cursor-default',
+        props.readonly && READONLY,
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
     ),

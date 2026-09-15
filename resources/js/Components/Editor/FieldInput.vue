@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
+import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { cn } from '../../lib/cn.js';
 import Input from '../Ui/Input.vue';
 import Select from '../Ui/Select.vue';
@@ -50,9 +50,13 @@ const props = defineProps({
 // readable text, the same way the server measures it.
 const usedCharacters = computed(() => plainTextOf(props.modelValue).length);
 
-const borderClass = computed(() => (props.error
-    ? 'border-red-500 focus:border-red-500 focus:outline-none'
-    : CONTROL_BORDER));
+const borderClass = computed(() => {
+    if (props.error) {
+        return 'border-red-500 focus:border-red-500 focus:outline-none';
+    }
+
+    return props.readonly ? 'border-neutral-100 focus:border-neutral-100 focus:outline-none' : CONTROL_BORDER;
+});
 
 /** The picked point, or null while the lookup has not resolved one. */
 const coordinates = computed(() => {
@@ -132,7 +136,8 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            :class="[CONTROL, borderClass, 'text-neutral-900']"
+            :readonly="readonly"
+            :class="[CONTROL, borderClass, readonly ? READONLY : 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
@@ -142,6 +147,7 @@ function textToTags(value) {
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :multiple="field.type === 'gallery'"
             :invalid="Boolean(error)"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -149,13 +155,14 @@ function textToTags(value) {
              than repeating the label drawn above every other field. -->
         <div
             v-else-if="field.type === 'boolean'"
-            :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3 text-neutral-900']"
+            :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3', readonly ? READONLY : 'text-neutral-900']"
         >
             <span>{{ field.label }}</span>
 
             <Switch
                 :id="field.name"
                 :model-value="Boolean(modelValue)"
+                :readonly="readonly"
                 @update:model-value="$emit('update:modelValue', $event)"
             />
         </div>
@@ -166,6 +173,7 @@ function textToTags(value) {
             :model-value="modelValue ?? 'published'"
             :password="password"
             :options="field.options ?? []"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -177,6 +185,7 @@ function textToTags(value) {
             :options="field.options ?? []"
             :placeholder="`Choose ${field.label.toLowerCase()}`"
             :invalid="Boolean(error)"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -184,6 +193,7 @@ function textToTags(value) {
             v-else-if="field.type === 'tags'"
             :id="field.name"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -192,6 +202,7 @@ function textToTags(value) {
             :id="field.name"
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -199,6 +210,7 @@ function textToTags(value) {
             v-else-if="field.type === 'duration'"
             :id="field.name"
             :model-value="modelValue"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -206,6 +218,7 @@ function textToTags(value) {
             v-else-if="field.type === 'distance'"
             :id="field.name"
             :model-value="modelValue"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -214,6 +227,7 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -223,6 +237,7 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source ?? 'place'"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />

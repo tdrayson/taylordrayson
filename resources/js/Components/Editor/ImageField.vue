@@ -18,6 +18,7 @@ const props = defineProps({
     multiple: { type: Boolean, default: false },
     id: { type: String, default: null },
     invalid: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -171,7 +172,10 @@ function move(index, by) {
             >
                 <img :src="item.url" :alt="item.name" class="size-24 object-cover">
 
-                <div class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-neutral-900/70 px-1 py-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                <div
+                    v-if="! readonly"
+                    class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-neutral-900/70 px-1 py-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                >
                     <div v-if="multiple" class="flex gap-0.5">
                         <button
                             type="button"
@@ -205,7 +209,7 @@ function move(index, by) {
         <!-- A label rather than a div: the whole zone is then the click target
              natively, and the sr-only input keeps its own keyboard focus. -->
         <label
-            v-if="! full"
+            v-if="! full && ! readonly"
             class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-6 text-meta transition-colors focus-within:ring-2 focus-within:ring-accent-500"
             :class="[
                 dragging ? 'border-accent-500 bg-accent-50 text-accent-700' : 'text-neutral-500 hover:border-accent-500 hover:text-accent-700',

@@ -13,6 +13,7 @@ defineProps({
     modelValue: { type: String, default: 'published' },
     password: { type: String, default: '' },
     options: { type: Array, default: () => [] },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue', 'fill']);
@@ -23,7 +24,7 @@ const revealed = ref(false);
 
 <template>
     <div class="space-y-2">
-        <Select :id="id" :model-value="modelValue" :options="options" @update:model-value="emit('update:modelValue', $event)" />
+        <Select :id="id" :model-value="modelValue" :options="options" :readonly="readonly" @update:model-value="emit('update:modelValue', $event)" />
 
         <!-- new-password stops the browser filling in the owner's sign-in password. -->
         <Input
@@ -33,6 +34,7 @@ const revealed = ref(false);
             placeholder="Password"
             autocomplete="new-password"
             :model-value="password"
+            :readonly="readonly"
             @update:model-value="emit('fill', { password: $event })"
         >
             <template #suffix>

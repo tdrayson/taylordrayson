@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { cn } from '../../lib/cn.js';
+import { READONLY } from '../../lib/editor/control.js';
 
 const props = defineProps({
     modelValue: { type: String, default: '' },
@@ -22,7 +23,7 @@ const classes = computed(() =>
             : props.readonly
                 ? 'border-neutral-100 focus:border-neutral-100'
                 : 'border-neutral-100 focus:border-accent-500',
-        props.readonly && 'bg-neutral-50 text-neutral-700 cursor-default',
+        props.readonly && READONLY,
         props.disabled && 'cursor-not-allowed opacity-50',
         props.class,
     ),

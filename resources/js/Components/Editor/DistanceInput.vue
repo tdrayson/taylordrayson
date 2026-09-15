@@ -12,6 +12,7 @@ import Input from '../Ui/Input.vue';
 const props = defineProps({
     modelValue: { type: [Number, String], default: null },
     id: { type: String, default: null },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -37,5 +38,5 @@ function onInput(value) {
 </script>
 
 <template>
-    <Input :id="id" :model-value="text" type="number" inputmode="decimal" step="any" suffix="miles" placeholder="0" @update:model-value="onInput" />
+    <Input :id="id" :model-value="text" :readonly="readonly" type="number" inputmode="decimal" step="any" suffix="miles" placeholder="0" @update:model-value="onInput" />
 </template>
