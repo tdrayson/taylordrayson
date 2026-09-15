@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as chrono from 'chrono-node';
 import Input from '../Ui/Input.vue';
-import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
+import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
 import { useDismissable } from '../../lib/editor/dismissable.js';
 import { stampWallClock, toWallClockDate, wallClockParts } from '../../lib/editor/wallClock.js';
@@ -20,11 +20,21 @@ const props = defineProps({
     // relativeTo: an event's end is nearly always a few hours after its start.
     relativeToValue: { type: String, default: null },
     relativeToLabel: { type: String, default: 'start' },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const { isOpen: open, root, close, toggle } = useDismissable();
+
+/** The picker never opens read-only: there is nothing to change. */
+function onToggle() {
+    if (props.readonly) {
+        return;
+    }
+
+    toggle();
+}
 const typed = ref('');
 
 /** Read the stored wall clock literally rather than through Date. */
@@ -160,18 +170,22 @@ function setTimePart(value) {
         <button
             :id="id"
             type="button"
+            :aria-readonly="readonly || undefined"
             :class="[
                 CONTROL,
-                'border-neutral-100 text-left hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                parts.date ? 'text-neutral-900' : 'text-neutral-500',
+                'text-left',
+                readonly
+                    ? [READONLY, 'border-neutral-100']
+                    : 'border-neutral-100 hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                ! readonly && (parts.date ? 'text-neutral-900' : 'text-neutral-500'),
             ]"
-            @click="toggle"
+            @click="onToggle"
         >
             {{ label }}
         </button>
 
         <div
-            v-if="open"
+            v-if="open && ! readonly"
             class="absolute inset-x-0 z-30 mt-1 rounded-lg border border-neutral-100 bg-neutral-0 p-3 shadow-lg sm:right-auto sm:w-80"
         >
             <Input

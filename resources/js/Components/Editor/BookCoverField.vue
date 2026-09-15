@@ -13,6 +13,7 @@ defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -75,8 +76,8 @@ function choose(url) {
 
 <template>
     <div>
-        <ImageField v-bind="$attrs" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-            <template #actions>
+        <ImageField v-bind="$attrs" :model-value="modelValue" :readonly="readonly" @update:model-value="emit('update:modelValue', $event)">
+            <template v-if="! readonly" #actions>
                 <Button size="sm" variant="secondary" :disabled="! form?.title" @click="openCovers">
                     <Icon name="Image01Icon" class="size-4" />
                     Choose from editions

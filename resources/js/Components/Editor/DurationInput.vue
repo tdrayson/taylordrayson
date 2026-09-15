@@ -11,6 +11,7 @@ import Input from '../Ui/Input.vue';
 const props = defineProps({
     modelValue: { type: [Number, String], default: null },
     id: { type: String, default: null },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -76,6 +77,7 @@ const hint = computed(() => {
         <Input
             :id="id"
             :model-value="text"
+            :readonly="readonly"
             placeholder="2h 15m"
             @update:model-value="text = $event; emit('update:modelValue', parse($event))"
         />

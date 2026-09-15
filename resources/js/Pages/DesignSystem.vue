@@ -266,6 +266,15 @@ function swatchInk(step) {
 
                 <p class="ds-sub pt-3">Select, small</p>
                 <Select v-model="selectYear" :options="yearOptions" size="sm" />
+
+                <p class="ds-sub pt-3">Read-only</p>
+                <Input model-value="Settled after the first save" readonly />
+                <Textarea model-value="Written once, never edited again." :rows="2" readonly />
+                <div class="flex items-center gap-6 pt-1">
+                    <label class="flex items-center gap-2 text-meta"><Checkbox model-value readonly /> Checkbox</label>
+                    <label class="flex items-center gap-2 text-meta"><Switch model-value readonly /> Switch</label>
+                </div>
+                <Select :model-value="selectYear" :options="yearOptions" readonly />
             </div>
         </section>
 
