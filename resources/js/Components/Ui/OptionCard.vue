@@ -2,25 +2,39 @@
 import Card from './Card.vue';
 import Pill from './Pill.vue';
 
-defineProps({
+const props = defineProps({
     label: { type: String, required: true },
     description: { type: String, required: true },
     recommended: { type: Boolean, default: false },
     active: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
 });
 
-defineEmits(['select']);
+const emit = defineEmits(['select']);
+
+function onClick() {
+    if (props.readonly) {
+        return;
+    }
+
+    emit('select');
+}
 </script>
 
 <template>
     <button
         type="button"
         class="block w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-        @click="$emit('select')"
+        :class="readonly && 'cursor-default'"
+        :aria-readonly="readonly || undefined"
+        @click="onClick"
     >
         <Card
             variant="outline"
-            :class="['h-full transition-colors', active ? 'border-accent-500 ring-1 ring-accent-500' : 'hover:border-accent-500']"
+            :class="[
+                'h-full transition-colors',
+                readonly ? 'bg-neutral-50' : (active ? 'border-accent-500 ring-1 ring-accent-500' : 'hover:border-accent-500'),
+            ]"
         >
             <div class="flex items-start justify-between gap-3">
                 <p class="font-display text-item-title text-neutral-900">{{ label }}</p>

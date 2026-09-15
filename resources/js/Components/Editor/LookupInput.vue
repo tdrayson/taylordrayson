@@ -15,6 +15,7 @@ const props = defineProps({
     source: { type: String, required: true },
     placeholder: { type: String, default: '' },
     id: { type: String, default: null },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue', 'fill']);
@@ -102,17 +103,18 @@ function pick(result) {
             :id="id"
             :model-value="query"
             :placeholder="placeholder"
+            :readonly="readonly"
             autocomplete="off"
             role="combobox"
             :aria-expanded="open"
             aria-autocomplete="list"
             @update:model-value="onInput"
-            @focus="query && search()"
+            @focus="! readonly && query && search()"
             @keydown="onKeydown"
         />
 
         <ul
-            v-if="open && (results.length || searching || failed)"
+            v-if="! readonly && open && (results.length || searching || failed)"
             class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             role="listbox"
         >

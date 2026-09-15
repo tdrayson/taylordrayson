@@ -15,6 +15,7 @@ defineProps({
     source: { type: String, default: 'place' },
     placeholder: { type: String, default: '' },
     id: { type: String, default: null },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue', 'fill']);
@@ -115,12 +116,14 @@ function useMyLocation() {
                 :model-value="modelValue"
                 :source="source"
                 :placeholder="placeholder"
+                :readonly="readonly"
                 class="flex-1"
                 @update:model-value="emit('update:modelValue', $event)"
                 @fill="onFill"
             />
 
             <button
+                v-if="! readonly"
                 type="button"
                 class="flex size-11 shrink-0 items-center justify-center rounded-md border border-neutral-100 text-neutral-700 transition-colors not-disabled:hover:border-accent-500 not-disabled:hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40"
                 :disabled="locating"
