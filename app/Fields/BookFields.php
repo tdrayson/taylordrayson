@@ -39,7 +39,7 @@ final class BookFields
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
             FieldData::optional('rating', 'Rating', FieldType::Rating, suffix: '/10'),
             FieldData::optional('overview', 'Overview', FieldType::Textarea),
-            FieldData::optional('meta.year', 'Published', FieldType::Number),
+            FieldData::optional('meta.year', 'Publication year', FieldType::Number),
             FieldData::optional('meta.isbn', 'ISBN', FieldType::Text),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
