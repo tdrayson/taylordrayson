@@ -55,7 +55,7 @@ const onCoverError = (event) => {
     z-index: 2;
     transform: rotate(-5deg);
     transform-origin: bottom center;
-    border-radius: 1.8cqw;
+    border-radius: 1.2cqw;
     overflow: hidden;
     box-shadow:
         0 3.5cqw 7.5cqw rgba(20, 22, 30, 0.32),
