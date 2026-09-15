@@ -157,7 +157,7 @@ it('allows a blank rating', function () {
 it('offers progress and the Kindle id read-only on a Kindle book', function () {
     $fields = collect(BookFields::fields(kindleDraft()))->keyBy('name');
 
-    expect($fields['progress']->readOnly)->toBeTrue()
+    expect($fields['percent_read']->readOnly)->toBeTrue()
         ->and($fields['source_id']->readOnly)->toBeTrue()
         ->and($fields->has('current_page'))->toBeFalse()
         ->and(collect(BookFields::fields())->pluck('name'))->toContain('current_page', 'pages')->not->toContain('source_id');
@@ -174,8 +174,8 @@ it('lists what each draft book still needs', function () {
 it('floors reading progress for display and carries it on the entry payload', function () {
     $book = kindleDraft(['progress_percent' => 42.9]);
 
-    expect($book->progress)->toBe(42)
-        ->and($book->toArray()['progress'])->toBe(42);
+    expect($book->percent_read)->toBe(42)
+        ->and($book->toArray()['percent_read'])->toBe(42);
 });
 
 it('lets a published book go back to draft even at 100 percent', function () {

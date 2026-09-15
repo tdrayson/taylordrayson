@@ -25,7 +25,7 @@ final class Book extends Model implements HasMedia, Timelineable
 {
     use HasAttachments, HasFactory, HasSpan, HasStatus, HasTags, HasTimelineEntry;
 
-    protected $appends = ['progress'];
+    protected $appends = ['percent_read'];
 
     /**
      * @return array<string, string>
@@ -50,7 +50,7 @@ final class Book extends Model implements HasMedia, Timelineable
      *
      * @return Attribute<int|null, never>
      */
-    protected function progress(): Attribute
+    protected function percentRead(): Attribute
     {
         return Attribute::make(
             get: fn (): ?int => $this->progress_percent === null ? null : BookProgress::display($this->progress_percent),

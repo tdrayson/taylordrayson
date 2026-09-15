@@ -21,7 +21,7 @@ final class BookFields
     {
         $progress = $book?->source === Source::Kindle->value
             ? [
-                FieldData::readOnly('progress', 'Progress', FieldType::Number, suffix: '%'),
+                FieldData::readOnly('percent_read', 'Progress', FieldType::Number, suffix: '%'),
                 FieldData::readOnly('source_id', 'Kindle ID', FieldType::Text),
             ]
             : [
