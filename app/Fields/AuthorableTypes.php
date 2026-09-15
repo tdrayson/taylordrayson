@@ -7,6 +7,7 @@ use App\Actions\Appearances\UpdateAppearance;
 use App\Actions\Articles\CreateArticle;
 use App\Actions\Articles\UpdateArticle;
 use App\Actions\Books\CreateBook;
+use App\Actions\Books\PrepareBookSave;
 use App\Actions\Books\UpdateBook;
 use App\Actions\Events\CreateEvent;
 use App\Actions\Events\UpdateEvent;
@@ -30,6 +31,7 @@ use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Queries\Books\BookDraftDetail;
 use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Model;
 
@@ -44,7 +46,9 @@ use Illuminate\Database\Eloquent\Model;
 final class AuthorableTypes
 {
     /**
-     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string}>
+     * `prepare` may adjust or refuse validated values before saving; `draftDetail` describes a row on /drafts.
+     *
+     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, prepare?: class-string, draftDetail?: class-string}>
      */
     private const TYPES = [
         'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class],
@@ -52,7 +56,7 @@ final class AuthorableTypes
         'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class],
         'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class],
         'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class],
-        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class],
+        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'prepare' => PrepareBookSave::class, 'draftDetail' => BookDraftDetail::class],
         'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class],
         'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class],
         'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class],
@@ -64,7 +68,7 @@ final class AuthorableTypes
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string}|null
+     * @return array{model: class-string<Model>, create: class-string, update: class-string, prepare?: class-string, draftDetail?: class-string}|null
      */
     public static function get(string $type): ?array
     {

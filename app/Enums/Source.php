@@ -17,6 +17,8 @@ enum Source: string
     case Iphone = 'iphone';
     case Rovi = 'rovi';
     case Setgraph = 'setgraph';
+    case Kindle = 'kindle';
+    case Manual = 'manual';
 
     public function label(): string
     {
@@ -29,6 +31,8 @@ enum Source: string
             self::Iphone => 'iPhone',
             self::Rovi => 'Rovi',
             self::Setgraph => 'Setgraph',
+            self::Kindle => 'Kindle',
+            self::Manual => 'Manual',
         };
     }
 }

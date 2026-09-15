@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sleep;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
+use App\Queries\CurrentlyReading;
 use App\Queries\PhotoStream;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
@@ -21,11 +22,12 @@ class NowController extends Controller
     public function index(): Response
     {
         return Inertia::render('Now', [
-            'og' => OgMeta::now(),
-            'episode' => $this->latestEpisode(),
-            'sleep' => $this->recentSleep(),
-            'entryDays' => $this->entryDays(),
-            'photos' => $this->recentPhotos(),
+            'og' => fn (): array => OgMeta::now(),
+            'episode' => fn (): ?array => $this->latestEpisode(),
+            'sleep' => fn (): array => $this->recentSleep(),
+            'entryDays' => fn (): array => $this->entryDays(),
+            'photos' => fn (): array => $this->recentPhotos(),
+            'reading' => fn (): ?array => app(CurrentlyReading::class)()?->toArray(),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 use App\Enums\EntryStatus;
 use App\Models\Activity;
+use App\Models\Book;
 use App\Models\Food;
 use App\Models\Note;
 use App\Models\Scopes\ListedScope;
@@ -36,6 +37,16 @@ it('refuses a draft for a synced entry and private without a password', function
     $this->patch("/entries/activity/{$activity->id}/status", ['status' => 'private', 'password' => 'hunter2'])->assertSessionHasNoErrors();
 
     expect($activity->fresh()->password)->toBe('hunter2');
+});
+
+it('refuses to publish a draft book missing its author and cover through the status endpoint', function () {
+    $book = Book::factory()->create(['title' => 'Atomic Habits', 'status' => 'draft', 'meta' => []]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch("/entries/book/{$book->id}/status", ['status' => 'published'])
+        ->assertSessionHasErrors(['status' => 'Add an author and a cover before publishing.']);
+
+    expect($book->fresh()->status)->toBe(EntryStatus::Draft);
 });
 
 it('applies a food status to every row of the day and to its spine row', function () {

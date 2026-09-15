@@ -234,6 +234,10 @@ function move(index, by) {
             >
         </label>
 
+        <div v-if="$slots.actions" class="flex flex-wrap gap-2">
+            <slot name="actions" />
+        </div>
+
         <p v-if="error" class="text-caption text-red-600">{{ error }}</p>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
 import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
@@ -33,6 +33,9 @@ const props = defineProps({
 });
 
 const form = useForm({ ...props.values });
+
+// Lets a field read its siblings, such as a book cover searching by the title, without new props.
+provide('editorForm', form);
 
 const titleField = computed(() => props.fields.find((field) => field.isTitle) ?? null);
 const page = usePage();
@@ -378,7 +381,7 @@ function submit() {
                         :latitude="form.latitude ?? null"
                         :longitude="form.longitude ?? null"
                         :error="form.errors[row.field.name]"
-                        :readonly="row.field.type === 'slug' && slugLocked"
+                        :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
                         :hint="row.field.type === 'slug' ? slugPreview : null"
                         @update:model-value="onFieldInput(row.field, $event)"

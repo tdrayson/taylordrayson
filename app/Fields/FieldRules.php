@@ -29,8 +29,15 @@ final class FieldRules
         $rules = [];
 
         foreach ($fields as $field) {
+            if ($field->readOnly) {
+                $rules[$field->name] = ['exclude'];
+
+                continue;
+            }
+
             if ($field->type->isMedia()) {
-                $rules[$field->name.'.*'] = ['string', 'max:100'];
+                // A `url:` item carries a full URL rather than an attached uuid.
+                $rules[$field->name.'.*'] = ['string', 'max:2048'];
             }
 
             if ($field->type === FieldType::Tags) {
@@ -88,6 +95,7 @@ final class FieldRules
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
+            FieldType::Rating => ['nullable', 'integer', 'between:1,10'],
             FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
@@ -96,9 +104,9 @@ final class FieldRules
             // editable afterwards, so neither is constrained to what the
             // source returned.
             FieldType::Lookup, FieldType::Location => ['nullable', 'string', 'max:255'],
-            // An ordered list of media uuids and `pending:` upload tokens; the
-            // items themselves are checked by itemRules() below.
-            FieldType::Image => ['nullable', 'array', 'max:1'],
+            // An ordered list of media uuids, `pending:` upload tokens and
+            // `url:` items; the items themselves are checked by itemRules() below.
+            FieldType::Image, FieldType::BookCover => ['nullable', 'array', 'max:1'],
             FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
         };
     }

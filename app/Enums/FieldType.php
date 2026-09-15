@@ -19,6 +19,7 @@ enum FieldType: string
     case Url = 'url';
     case DateTime = 'datetime';
     case Number = 'number';
+    case Rating = 'rating';
     case Duration = 'duration';
     case Distance = 'distance';
     case Boolean = 'boolean';
@@ -28,6 +29,7 @@ enum FieldType: string
     case Lookup = 'lookup';
     case Location = 'location';
     case Image = 'image';
+    case BookCover = 'book-cover';
     case Gallery = 'gallery';
 
     public function label(): string
@@ -42,6 +44,7 @@ enum FieldType: string
             self::Url => 'URL',
             self::DateTime => 'Date and time',
             self::Number => 'Number',
+            self::Rating => 'Rating',
             self::Duration => 'Duration',
             self::Distance => 'Distance',
             self::Boolean => 'Toggle',
@@ -51,6 +54,7 @@ enum FieldType: string
             self::Lookup => 'Lookup',
             self::Location => 'Location',
             self::Image => 'Image',
+            self::BookCover => 'Book cover',
             self::Gallery => 'Photos',
         };
     }
@@ -62,7 +66,7 @@ enum FieldType: string
      */
     public function isMedia(): bool
     {
-        return $this === self::Image || $this === self::Gallery;
+        return $this === self::Image || $this === self::BookCover || $this === self::Gallery;
     }
 
     /**

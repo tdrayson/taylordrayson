@@ -28,11 +28,20 @@ const rows = computed(() => [
             :title="entry.title ?? ''"
         />
 
+        <img
+            v-else-if="entry.poster"
+            :src="entry.poster"
+            :alt="`Cover of ${entry.title}`"
+            class="w-32 rounded-lg shadow-card"
+        >
+
         <div v-if="entry.rating" class="flex items-center gap-2">
             <Icon name="StarIcon" class="size-5 text-accent-500" />
             <span class="font-display text-stat tnum">{{ entry.rating }}</span>
             <span class="text-meta text-neutral-500">/ 10</span>
         </div>
+
+        <p v-if="entry.overview" class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.overview }}</p>
 
         <DetailList :rows="rows" />
     </div>

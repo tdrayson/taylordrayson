@@ -4,8 +4,10 @@ namespace App\Actions\Entries;
 
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
+use App\Models\Book;
 use App\Models\Food;
 use App\Models\Page;
+use App\Support\BookCompleteness;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +18,7 @@ final class UpdateEntryStatus
     public function __invoke(Model $model, EntryStatus $status, ?string $password = null): Model
     {
         self::assertAllowed($model, $status, $password);
+        self::assertBookComplete($model, $status);
 
         $values = ['status' => $status, ...(filled($password) ? ['password' => $password] : [])];
 
@@ -50,5 +53,23 @@ final class UpdateEntryStatus
     public static function canBeDraft(Model $model): bool
     {
         return $model instanceof Page || (Datasets::forModel($model)?->draftable() ?? false);
+    }
+
+    /**
+     * Refuse to publish a draft book that is missing its title, author or cover.
+     *
+     * @throws ValidationException When a still-incomplete draft Book is being published.
+     */
+    private static function assertBookComplete(Model $model, EntryStatus $status): void
+    {
+        if (! $model instanceof Book || $model->status !== EntryStatus::Draft || $status === EntryStatus::Draft) {
+            return;
+        }
+
+        $missing = BookCompleteness::forBook($model);
+
+        if ($missing !== []) {
+            throw ValidationException::withMessages(['status' => 'Add '.BookCompleteness::sentence($missing).' before publishing.']);
+        }
     }
 }

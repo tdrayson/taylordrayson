@@ -20,3 +20,30 @@ it('round-trips keys it does not name, rather than dropping them on save', funct
         'ids' => ['trakt' => 5, 'plex' => ['guid' => 'abc']],
     ]);
 });
+
+it('stores reading progress on the book itself', function () {
+    $book = Book::factory()->create([
+        'status' => 'draft',
+        'occurred_at' => null,
+        'progress_percent' => 42.5,
+        'current_page' => 122,
+        'pages' => 288,
+        'progressed_at' => '2026-09-14 08:00:00',
+        'overview' => 'A synopsis.',
+    ]);
+
+    $fresh = $book->fresh();
+
+    expect($fresh->progress_percent)->toBe(42.5)
+        ->and($fresh->current_page)->toBe(122)
+        ->and($fresh->pages)->toBe(288)
+        ->and($fresh->progressed_at->format('Y-m-d H:i:s'))->toBe('2026-09-14 08:00:00')
+        ->and($fresh->overview)->toBe('A synopsis.');
+});
+
+it('tags a book', function () {
+    $book = Book::factory()->create();
+    $book->syncTagNames(['Self-Help', 'Psychology']);
+
+    expect($book->fresh()->tagNames())->toEqualCanonicalizing(['Self-Help', 'Psychology']);
+});

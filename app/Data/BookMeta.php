@@ -9,8 +9,8 @@ use Illuminate\Support\Arr;
 use JsonSerializable;
 
 /**
- * The `books.meta` column, typed. Books are hand-authored rather than synced,
- * so unlike film/episode there is no `ids`/`tmdb` block.
+ * The `books.meta` column, typed. No vendor ids are kept: the ISBN is what
+ * identifies a book, whichever service filled it in.
  */
 final readonly class BookMeta implements Arrayable, Castable, JsonSerializable
 {

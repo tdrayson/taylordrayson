@@ -14,6 +14,7 @@ import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
+import BookCoverField from './BookCoverField.vue';
 import LengthRing from './LengthRing.vue';
 import StatusInput from './StatusInput.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
@@ -141,6 +142,15 @@ function textToTags(value) {
             @input="$emit('update:modelValue', $event.target.value)"
         />
 
+        <BookCoverField
+            v-else-if="field.type === 'book-cover'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :invalid="Boolean(error)"
+            :readonly="readonly"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
+
         <ImageField
             v-else-if="field.type === 'image' || field.type === 'gallery'"
             :id="field.name"
@@ -248,9 +258,11 @@ function textToTags(value) {
             :model-value="modelValue ?? ''"
             :invalid="Boolean(error)"
             :readonly="readonly"
-            :type="field.type === 'number' ? 'number' : 'text'"
-            :inputmode="field.type === 'number' ? 'decimal' : undefined"
-            :step="field.type === 'number' ? 'any' : undefined"
+            :type="field.type === 'number' || field.type === 'rating' ? 'number' : 'text'"
+            :inputmode="field.type === 'number' ? 'decimal' : field.type === 'rating' ? 'numeric' : undefined"
+            :step="field.type === 'number' ? 'any' : field.type === 'rating' ? '1' : undefined"
+            :min="field.type === 'rating' ? '1' : undefined"
+            :max="field.type === 'rating' ? '10' : undefined"
             :prefix="field.prefix"
             :suffix="field.suffix"
             :placeholder="placeholder"
@@ -269,7 +281,7 @@ function textToTags(value) {
 
         <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
 
-        <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
+        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
 
         <p v-else-if="hint" class="mt-1 truncate text-caption text-neutral-500">{{ hint }}</p>
     </div>

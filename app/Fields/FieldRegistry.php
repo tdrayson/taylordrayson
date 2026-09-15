@@ -46,7 +46,7 @@ final class FieldRegistry
             $model instanceof Flight => FlightFields::fields(),
             $model instanceof Fuel => FuelFields::fields(),
             $model instanceof Appearance => AppearanceFields::fields(),
-            $model instanceof Book => BookFields::fields(),
+            $model instanceof Book => BookFields::fields($model),
             default => throw new LogicException('No fields registered for '.$model::class),
         };
     }

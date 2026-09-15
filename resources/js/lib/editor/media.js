@@ -5,7 +5,7 @@
  */
 
 /** The field types whose value is a list of media rather than a scalar. */
-const MEDIA_TYPES = ['image', 'gallery'];
+const MEDIA_TYPES = ['image', 'book-cover', 'gallery'];
 
 /**
  * The ids behind a media field's value, dropping anything without one.
