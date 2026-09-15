@@ -129,6 +129,31 @@ it('still saves an older published book that has no cover', function () {
     expect($book->fresh()->rating)->toBe(8);
 });
 
+it('rejects a rating outside 1 to 10', function (int|float $rating) {
+    $book = Book::factory()->create(['source' => 'manual', 'status' => 'published']);
+
+    $this->patch("/entries/book/{$book->id}", ['rating' => $rating])
+        ->assertSessionHasErrors(['rating']);
+})->with([0, 11, 7.5]);
+
+it('saves a rating at the edges of the scale', function (int $rating) {
+    $book = Book::factory()->create(['source' => 'manual', 'status' => 'published']);
+
+    $this->patch("/entries/book/{$book->id}", ['rating' => $rating])
+        ->assertSessionHasNoErrors();
+
+    expect($book->fresh()->rating)->toBe($rating);
+})->with([1, 10]);
+
+it('allows a blank rating', function () {
+    $book = Book::factory()->create(['source' => 'manual', 'status' => 'published', 'rating' => 8]);
+
+    $this->patch("/entries/book/{$book->id}", ['rating' => ''])
+        ->assertSessionHasNoErrors();
+
+    expect($book->fresh()->rating)->toBeNull();
+});
+
 it('offers progress and the Kindle id read-only on a Kindle book', function () {
     $fields = collect(BookFields::fields(kindleDraft()))->keyBy('name');
 

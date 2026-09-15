@@ -37,7 +37,7 @@ final class BookFields
             FieldData::primary('occurred_at', 'Finished', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('started_at', 'Started', FieldType::DateTime),
             FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('rating', 'Rating', FieldType::Number),
+            FieldData::optional('rating', 'Rating', FieldType::Rating, suffix: '/10'),
             FieldData::optional('overview', 'Overview', FieldType::Textarea),
             FieldData::optional('meta.year', 'Published', FieldType::Number),
             FieldData::optional('meta.isbn', 'ISBN', FieldType::Text),

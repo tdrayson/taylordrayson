@@ -19,6 +19,7 @@ enum FieldType: string
     case Url = 'url';
     case DateTime = 'datetime';
     case Number = 'number';
+    case Rating = 'rating';
     case Duration = 'duration';
     case Distance = 'distance';
     case Boolean = 'boolean';
@@ -43,6 +44,7 @@ enum FieldType: string
             self::Url => 'URL',
             self::DateTime => 'Date and time',
             self::Number => 'Number',
+            self::Rating => 'Rating',
             self::Duration => 'Duration',
             self::Distance => 'Distance',
             self::Boolean => 'Toggle',

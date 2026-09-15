@@ -95,6 +95,7 @@ final class FieldRules
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
+            FieldType::Rating => ['nullable', 'integer', 'between:1,10'],
             FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
