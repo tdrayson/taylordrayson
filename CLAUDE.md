@@ -299,3 +299,13 @@ House style, adopted from The Laravel Architect's project structure. Follow thes
 
 - Controllers wire request -> Query/Action -> response. No business logic or computation inline. Prefer single-action invokable controllers when a controller serves one route.
 - `routes/web.php` is a flat, explicit list, ordered so literal-segment routes win over the digit-constrained dated routes and the `/{slug}` page catch-all stays last.
+
+## Bloom Workspaces
+
+**Browser work goes through Bloom's MCP bridge, never Playwright.** `browser_go`, `browser_snapshot`, `browser_click`, `browser_fill`, `browser_press`, `browser_scroll`, `browser_wait`, `browser_text`, `browser_screenshot`, `browser_console`, `browser_network` drive the browser pane the workspace already has open on its own Herd site. Use them to look at a page, reproduce a bug, check a change, or read console errors and failed requests.
+
+- Playwright's only job here is running the Pest browser tests (`php artisan test --compact --filter=...`). Never start a Playwright MCP server, and never script a browser to do what the bridge already does.
+- The bridge cannot evaluate JavaScript in the page. If a task genuinely needs that, say so rather than falling back to Playwright.
+- Snapshot before acting, and again after anything that changes the page: element references go stale on navigation.
+
+**One branch per worktree, and it never changes.** Never `git checkout -b` or `git switch` in a workspace, and never start new work in the main checkout. For a new piece of work or a pull request to review, start a workspace with `workspace_start`: `base_branch` to cut a new branch, `existing_branch` to continue one, `pull_request` to review a PR. `.bloom/setup.sh` gives each workspace its own Herd site and database, and `.bloom/archive.sh` takes them away again.
