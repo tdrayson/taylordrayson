@@ -150,6 +150,7 @@
     --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
     --animate-book-in: book-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+    --animate-drift: drift 6.5s ease-in-out infinite;
 
     @keyframes book-in {
         from {
@@ -204,6 +205,12 @@
 
         100% {
             transform: translateY(0) rotate(360deg) scale(1);
+        }
+    }
+
+    @keyframes drift {
+        50% {
+            transform: translate(-3.25%, -3.25%);
         }
     }
 
