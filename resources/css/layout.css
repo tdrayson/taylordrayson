@@ -69,3 +69,7 @@
     grid-column: full-width;
     padding-inline: var(--padding-inline);
 }
+
+@utility h-map {
+    height: clamp(20rem, 48vh, 32rem);
+}

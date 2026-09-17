@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="places-map relative overflow-hidden border-neutral-50" :class="layoutClass">
+    <div class="relative h-map overflow-hidden border-neutral-50" :class="layoutClass">
         <div ref="container" class="size-full" />
         <div class="absolute left-2.5 top-2.5 z-10">
             <button
@@ -210,9 +210,3 @@ onBeforeUnmount(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.places-map {
-    height: clamp(20rem, 48vh, 32rem);
-}
-</style>
