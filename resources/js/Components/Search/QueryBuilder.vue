@@ -289,7 +289,7 @@ function clearFilter() {
             </div>
 
             <div class="flex items-center gap-3">
-                <span class="or-neutral-100 flex-1" />
+                <span class="or-line h-0.5 flex-1" />
                 <button
                     type="button"
                     class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-label uppercase text-accent-500 transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
@@ -297,7 +297,7 @@ function clearFilter() {
                 >
                     <Icon name="PlusSignIcon" class="size-3.5" /> Or
                 </button>
-                <span class="or-neutral-100 flex-1" />
+                <span class="or-line h-0.5 flex-1" />
             </div>
         </template>
 
@@ -312,8 +312,7 @@ function clearFilter() {
 
 <style scoped>
 /* Dashed divider with a larger dash + gap than CSS dotted/dashed borders allow. */
-.or-neutral-100 {
-    height: 2px;
+.or-line {
     background: repeating-linear-gradient(to right, var(--color-neutral-100) 0 8px, transparent 8px 16px);
 }
 </style>
