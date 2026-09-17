@@ -40,7 +40,7 @@ const externalIconClass =
         <p>
             Hi. I'm
             <span class="whitespace-nowrap">
-                Taylor<Avatar size="size-7" alt="" class="ml-1.5 inline-block rounded-sm align-[-0.25em]" />
+                Taylor<Avatar size="size-7" alt="" class="ml-1.5 inline-block rounded-sm align-drop-25" />
             </span>,
             a web developer in London. I log far more of my life than is strictly necessary. I've
             <Link href="/food" :class="textLinkClass">logged every calorie</Link>

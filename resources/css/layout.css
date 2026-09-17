@@ -73,3 +73,8 @@
 @utility h-map {
     height: clamp(20rem, 48vh, 32rem);
 }
+
+/* Drops an inline chip below the baseline by N hundredths of an em: align-drop-25. */
+@utility align-drop-* {
+    vertical-align: calc(--value(integer) * -0.01em);
+}
