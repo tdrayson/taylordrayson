@@ -27,10 +27,10 @@ const cards = [
                 class="block overflow-hidden rounded-md border-2 transition"
                 :class="theme === card.value ? 'border-accent-500' : 'border-neutral-100 group-hover:border-neutral-300'"
             >
-                <span class="preview" :class="`preview-${card.value}`">
-                    <span class="preview-bar" />
-                    <span class="preview-line" />
-                    <span class="preview-line short" />
+                <span class="flex aspect-16/10 flex-col gap-1 p-1.5" :class="`preview-${card.value}`">
+                    <span class="preview-bar h-1.5 w-2/5 rounded-full" />
+                    <span class="preview-line h-1 w-17/20 rounded-full" />
+                    <span class="preview-line h-1 w-3/5 rounded-full" />
                 </span>
             </span>
             <span
@@ -42,32 +42,7 @@ const cards = [
 </template>
 
 <style scoped>
-.preview {
-    display: block;
-    aspect-ratio: 16 / 10;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.preview-bar {
-    height: 6px;
-    width: 40%;
-    border-radius: 3px;
-}
-
-.preview-line {
-    height: 4px;
-    width: 85%;
-    border-radius: 2px;
-}
-
-.preview-line.short {
-    width: 60%;
-}
-
-/* Light thumbnail. */
+/* Each thumbnail shows its theme regardless of the active one, so it can't read the tokens, which flip under .dark. */
 .preview-light {
     background: #ffffff;
 }
