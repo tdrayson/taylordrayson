@@ -87,3 +87,7 @@
 @utility max-w-viewport-inset {
     max-width: calc(100vw - 2rem);
 }
+
+@utility pt-palette {
+    padding-top: 12vh;
+}
