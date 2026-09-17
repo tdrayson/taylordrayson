@@ -59,3 +59,11 @@
 @utility max-h-media {
     max-height: clamp(20rem, 75vh, 34rem);
 }
+
+@utility no-scrollbar {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
