@@ -206,7 +206,7 @@ function choosePreset(preset) {
 
                     <!-- Day grid. -->
                     <div v-if="view === 'days'" class="grid grid-cols-7 gap-0.5 text-center">
-                        <span v-for="weekday in WEEKDAYS" :key="weekday" class="py-1 text-[10px] uppercase text-neutral-400">{{ weekday }}</span>
+                        <span v-for="weekday in WEEKDAYS" :key="weekday" class="py-1 text-micro uppercase text-neutral-400">{{ weekday }}</span>
                         <template v-for="(date, index) in cells" :key="index">
                             <span v-if="!date" />
                             <button

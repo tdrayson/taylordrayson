@@ -66,6 +66,8 @@
     /* Relative to the surrounding text: a duration's h/m/s suffix. */
     --text-unit: 0.7em;
 
+    --text-micro: 0.625rem;
+
     /* ----------------------------------------------------------------
        Colour scales — uniform, purpose-free. Use these directly:
        bg-neutral-25, text-neutral-900, border-neutral-100, bg-accent-500.
