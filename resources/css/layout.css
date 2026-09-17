@@ -83,3 +83,7 @@
 @utility w-bleed-* {
     width: calc(100% + var(--spacing) * --value(integer));
 }
+
+@utility max-w-viewport-inset {
+    max-width: calc(100vw - 2rem);
+}
