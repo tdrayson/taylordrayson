@@ -49,218 +49,81 @@ const VALUE_COLOURS = {
     idle: 'var(--color-neutral-900)',
 };
 
-const FILL_MODIFIERS = {
-    'low-power': 'charging__fill--power',
-    low: 'charging__fill--low',
-    charging: 'charging__fill--charging',
-    idle: 'charging__fill--idle',
+const FILL_CLASSES = {
+    'low-power': 'fill-power before:bg-black/22',
+    low: 'bg-battery-low before:bg-white/50',
+    charging: 'fill-charging animate-charging-breathe overflow-hidden before:bg-black/22 after:absolute after:inset-0 after:animate-charging-sheen after:bg-linear-100 after:from-transparent after:from-25% after:via-white/50 after:to-transparent after:to-75% motion-reduce:animate-none motion-reduce:after:hidden',
+    idle: 'fill-idle shadow-md shadow-battery/30 before:bg-black/22',
 };
 
 const valueColor = computed(() => VALUE_COLOURS[state.value]);
-const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
+const fillClass = computed(() => FILL_CLASSES[state.value]);
 </script>
 
 <template>
-    <div class="charging relative aspect-square rounded-3xl bg-neutral-0 shadow-card">
-        <div class="charging__inner flex h-full flex-col justify-center">
-            <p class="charging__status flex items-center font-semibold">
-                <svg v-if="charging" class="charging__bolt text-neutral-900" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <div class="@container relative aspect-square rounded-3xl bg-neutral-0 shadow-card">
+        <div class="flex h-full flex-col justify-center p-3.5 @5xs:p-4.5 @4xs:p-5.5 @xs:p-7">
+            <p class="flex items-center gap-1 text-2xs leading-none font-semibold whitespace-nowrap @5xs:gap-1.5 @5xs:text-xs @4xs:gap-2 @4xs:text-sm @xs:gap-2.5 @xs:text-lg">
+                <svg v-if="charging" class="size-2.5 shrink-0 text-neutral-900 @5xs:size-3 @4xs:size-3.5 @xs:size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M13 2 4 13.5h6L9 22l10-12.5h-6z" />
                 </svg>
                 <span class="text-neutral-900">{{ device }}</span>
                 <span class="text-neutral-500">{{ statusText }}</span>
             </p>
 
-            <p class="charging__value flex items-baseline tnum">
-                <span class="charging__percent font-extrabold" :style="{ color: valueColor }">{{ clamped }}%</span>
-                <span v-if="hasSubText" class="charging__time font-extrabold text-neutral-900">{{ subText }}</span>
+            <p class="mt-2 flex items-baseline gap-2 whitespace-nowrap tabular-nums @5xs:mt-2.5 @5xs:gap-2.5 @4xs:mt-3 @4xs:gap-3 @xs:mt-4.5 @xs:gap-4">
+                <span class="text-base leading-none font-extrabold tracking-tight @5xs:text-xl @4xs:text-2xl @xs:text-4xl" :style="{ color: valueColor }">{{ clamped }}%</span>
+                <span v-if="hasSubText" class="text-base leading-none font-extrabold tracking-tight text-neutral-900 @5xs:text-xl @4xs:text-2xl @xs:text-3xl">{{ subText }}</span>
             </p>
 
-            <div class="charging__scale flex justify-between font-semibold text-neutral-300">
+            <div class="mx-0.5 mt-3 mb-1.5 flex justify-between text-3xs leading-none font-semibold text-neutral-300 @5xs:mt-4 @4xs:mt-4.5 @4xs:mb-2 @4xs:text-2xs @xs:mx-1 @xs:mt-6 @xs:mb-2.5 @xs:text-sm">
                 <span>0</span><span>50</span><span>100</span>
             </div>
 
-            <div class="charging__bar relative">
-                <div class="charging__track absolute inset-0 bg-neutral-50" />
-                <div class="charging__fill" :class="fillModifier" :style="{ width: `${clamped}%` }" />
+            <div class="relative aspect-17/6">
+                <div class="absolute inset-0 rounded-xl bg-neutral-50 @5xs:rounded-2xl @xs:rounded-3xl" />
+                <div
+                    class="absolute inset-y-0 left-0 rounded-md before:absolute before:top-1/2 before:right-2 before:h-27/50 before:w-px before:-translate-y-1/2 before:rounded-xs @5xs:rounded-lg @5xs:before:right-2.5 @4xs:rounded-2xl @4xs:before:right-3 @xs:rounded-3xl @xs:before:right-4 @xs:before:w-0.5"
+                    :class="fillClass"
+                    :style="{ width: `${clamped}%` }"
+                />
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-/* The card is the query container; everything inside sizes in cqw (1cqw ≈ the
-   reference's px ÷ 3.32) so the whole composition scales with the grid cell. */
-.charging {
-    container-type: inline-size;
-}
-
-.charging__inner {
-    padding: 9cqw;
-}
-
-.charging__status {
-    gap: 3cqw;
-    font-size: 5.8cqw;
-    line-height: 1;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-}
-
-.charging__bolt {
-    width: 6cqw;
-    height: 6cqw;
-    flex: none;
-}
-
-.charging__value {
-    gap: 5cqw;
-    margin-top: 5.4cqw;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.charging__percent {
-    font-size: 10.5cqw;
-    letter-spacing: -0.025em;
-}
-
-.charging__time {
-    font-size: 10cqw;
-    letter-spacing: -0.03em;
-}
-
-.charging__scale {
-    margin: 7.8cqw 1.2cqw 3.3cqw;
-    font-size: 4.2cqw;
-    line-height: 1;
-}
-
-.charging__bar {
-    height: 28.9cqw;
-}
-
-.charging__track {
-    border-radius: 7.8cqw;
-}
-
-.charging__fill {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    border-radius: 7.2cqw;
-}
-
-/* Subtle terminal tick near the end of the fill, like a battery's nub. */
-.charging__fill::before {
-    content: '';
-    position: absolute;
-    right: 4.8cqw;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0.6cqw;
-    height: 54%;
-    border-radius: 2px;
-    background: rgba(0, 0, 0, 0.22);
-}
-
-.charging__fill--idle {
+.fill-idle {
     background: linear-gradient(
         180deg,
-        color-mix(in srgb, var(--color-battery) 82%, white),
+        color-mix(in srgb, var(--color-battery) 82%, var(--color-white)),
         var(--color-battery) 60%,
-        color-mix(in srgb, var(--color-battery) 88%, black)
+        color-mix(in srgb, var(--color-battery) 88%, var(--color-black))
     );
-    box-shadow: 0 1cqw 2cqw color-mix(in srgb, var(--color-battery) 30%, transparent);
 }
 
-.charging__fill--idle::before {
-    background: rgba(0, 0, 0, 0.22);
-}
-
-.charging__fill--low {
-    background: var(--color-battery-low);
-}
-
-.charging__fill--low::before {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Low Power Mode — orange, soft static glow. */
-.charging__fill--power {
+.fill-power {
     background: linear-gradient(
         180deg,
-        color-mix(in srgb, var(--color-battery-power) 80%, white),
+        color-mix(in srgb, var(--color-battery-power) 80%, var(--color-white)),
         var(--color-battery-power) 60%,
-        color-mix(in srgb, var(--color-battery-power) 92%, black)
+        color-mix(in srgb, var(--color-battery-power) 92%, var(--color-black))
     );
     box-shadow:
-        0 0 7cqw 1cqw color-mix(in srgb, var(--color-battery-power) 45%, transparent),
-        inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.35);
+        0 0 14px 2px color-mix(in srgb, var(--color-battery-power) 45%, transparent),
+        inset 0 1px 2px color-mix(in srgb, var(--color-white) 35%, transparent);
 }
 
-.charging__fill--power::before {
-    background: rgba(0, 0, 0, 0.22);
-}
-
-.charging__fill--charging {
-    overflow: hidden;
+.fill-charging {
     background: linear-gradient(
         180deg,
-        color-mix(in srgb, var(--color-battery-charging) 84%, white),
+        color-mix(in srgb, var(--color-battery-charging) 84%, var(--color-white)),
         var(--color-battery-charging) 60%,
-        color-mix(in srgb, var(--color-battery-charging) 92%, black)
+        color-mix(in srgb, var(--color-battery-charging) 92%, var(--color-black))
     );
     box-shadow:
-        0 0 9cqw 1.8cqw color-mix(in srgb, var(--color-battery-charging) 55%, transparent),
-        0 2.4cqw 6.6cqw color-mix(in srgb, var(--color-battery-charging) 35%, transparent),
-        inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.35);
-    animation: charging-breathe 2.6s ease-in-out infinite;
-}
-
-/* Charging sheen — a soft highlight that sweeps left to right. */
-.charging__fill--charging::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.5) 50%, transparent 75%);
-    transform: translateX(-120%);
-    animation: charging-sheen 2.4s ease-in-out infinite;
-}
-
-@keyframes charging-sheen {
-    0% {
-        transform: translateX(-120%);
-    }
-
-    60%,
-    100% {
-        transform: translateX(120%);
-    }
-}
-
-@keyframes charging-breathe {
-    0%,
-    100% {
-        box-shadow:
-            0 0 7.8cqw 1.2cqw color-mix(in srgb, var(--color-battery-charging) 48%, transparent),
-            0 2.4cqw 6.6cqw color-mix(in srgb, var(--color-battery-charging) 30%, transparent),
-            inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.35);
-    }
-
-    50% {
-        box-shadow:
-            0 0 10.8cqw 2.4cqw color-mix(in srgb, var(--color-battery-charging) 62%, transparent),
-            0 2.4cqw 7.8cqw color-mix(in srgb, var(--color-battery-charging) 40%, transparent),
-            inset 0 0.6cqw 1.2cqw rgba(255, 255, 255, 0.4);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .charging__fill--charging,
-    .charging__fill--charging::after {
-        animation: none;
-    }
+        0 0 18px 4px color-mix(in srgb, var(--color-battery-charging) 55%, transparent),
+        0 5px 13px color-mix(in srgb, var(--color-battery-charging) 35%, transparent),
+        inset 0 1px 2px color-mix(in srgb, var(--color-white) 35%, transparent);
 }
 </style>
