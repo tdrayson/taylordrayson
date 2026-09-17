@@ -137,6 +137,8 @@
        rail is replaced by the floating pill, not lost. */
     --breakpoint-toc: 85rem;
 
+    --grid-template-columns-breakdown: 7rem 1fr auto;
+
     /* Elevation — the single shadow tier */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
 

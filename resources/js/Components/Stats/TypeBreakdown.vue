@@ -22,7 +22,7 @@ function share(value) {
 
 <template>
     <ul class="flex flex-col gap-3">
-        <li v-for="item in items" :key="item.label" class="grid grid-cols-[7rem_1fr_auto] items-center gap-3">
+        <li v-for="item in items" :key="item.label" class="grid grid-cols-breakdown items-center gap-3">
             <span class="truncate text-meta text-neutral-700">{{ item.label }}</span>
             <span class="h-2.5 overflow-hidden rounded-full bg-neutral-25">
                 <span class="block h-full rounded-full" :style="{ width: width(item.value), backgroundColor: accent }" />
