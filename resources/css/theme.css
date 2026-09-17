@@ -255,6 +255,12 @@
     --color-article: hsl(215 18% 48%);
     --color-note: hsl(36 40% 50%);
 
+    /* This Week With host bubbles, the show's own brand colours */
+    --color-host-taylor-light: #8fdcd7;
+    --color-host-taylor: #75d3cd;
+    --color-host-gordon-light: #fe7a74;
+    --color-host-gordon: #fd5a53;
+
     /* The editor's caution callout, split off the old media hue */
     --color-caution: hsl(340 60% 52%);
 

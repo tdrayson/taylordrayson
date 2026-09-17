@@ -13,8 +13,8 @@ const props = defineProps({
 
 // The two hosts are constant for this show; bubble gradients distinguish them.
 const hosts = [
-    { initial: 'G', name: 'Gordon', modifier: 'this-week-with__host--gordon', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/gordon-drayson-optimised-1024x1024-1.png' },
-    { initial: 'T', name: 'Taylor', modifier: 'this-week-with__host--taylor', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/Taylor-headshot.png' },
+    { initial: 'G', name: 'Gordon', position: 'left-0', bubble: 'from-host-gordon-light to-host-gordon', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/gordon-drayson-optimised-1024x1024-1.png' },
+    { initial: 'T', name: 'Taylor', position: 'right-0', bubble: 'from-host-taylor-light to-host-taylor', image: 'https://cdn.shortpixel.ai/spai3/q_lossy+ret_img+to_auto/www.thisweekwith.co.uk/wp-content/uploads/Taylor-headshot.png' },
 ];
 
 const seasonEpisode = computed(() => {
@@ -70,198 +70,55 @@ const onImageError = (event) => {
 </script>
 
 <template>
-    <div class="this-week-with rounded-3xl">
-        <div class="this-week-with__top">
-            <Link v-if="seasonEpisode" :href="episode.url" class="this-week-with__episode">{{ seasonEpisode }}</Link>
-            <span v-else class="this-week-with__episode this-week-with__episode--empty">No episodes yet</span>
-            <Link :href="archiveHref" class="this-week-with__show">{{ show }}</Link>
-            <div v-if="metaLine" class="this-week-with__meta">{{ metaLine }}</div>
+    <div class="@container relative aspect-square overflow-hidden rounded-3xl bg-neutral-0 text-neutral-900 shadow-card">
+        <div class="absolute top-2/25 right-1/14 left-2/25 z-3">
+            <Link
+                v-if="seasonEpisode"
+                :href="episode.url"
+                class="inline-block text-2xl leading-none font-extrabold tracking-tight text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:text-3xl @4xs:text-4xl @2xs:text-5xl"
+            >
+                {{ seasonEpisode }}
+            </Link>
+            <span v-else class="inline-block text-sm leading-none font-extrabold tracking-tight text-neutral-500 @5xs:text-base @4xs:text-lg @2xs:text-2xl">No episodes yet</span>
+            <Link
+                :href="archiveHref"
+                class="mt-1.5 line-clamp-2 text-xs leading-tight font-bold text-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:mt-2 @4xs:mt-2.5 @4xs:text-sm @2xs:mt-3 @2xs:text-xl"
+            >
+                {{ show }}
+            </Link>
+            <div v-if="metaLine" class="mt-1 text-xs font-semibold text-neutral-500 @5xs:mt-1.5 @4xs:mt-2 @2xs:mt-2.5 @2xs:text-lg">{{ metaLine }}</div>
         </div>
 
-        <div class="this-week-with__hosts">
-            <div v-for="host in hosts" :key="host.initial" class="this-week-with__host" :class="host.modifier">
-                <span class="this-week-with__host-bubble" />
-                <span class="this-week-with__host-initial">{{ host.initial }}</span>
-                <img class="this-week-with__host-image" :src="host.image" :alt="host.name" referrerpolicy="no-referrer" @error="onImageError" />
+        <div class="absolute -bottom-1/56 left-1/28 z-2 h-53/112 w-17/28">
+            <div v-for="host in hosts" :key="host.initial" class="absolute bottom-0 h-full w-11/17" :class="host.position">
+                <span class="absolute bottom-3/40 left-1/2 z-1 aspect-square w-10/11 -translate-x-1/2 rounded-full bg-linear-150" :class="host.bubble" />
+                <span class="absolute bottom-17/50 left-1/2 z-2 -translate-x-1/2 text-base font-extrabold text-neutral-900 @5xs:text-lg @4xs:text-2xl @2xs:text-3xl">
+                    {{ host.initial }}
+                </span>
+                <img
+                    class="absolute inset-0 z-3 size-full object-contain object-bottom drop-shadow-lg drop-shadow-black/20"
+                    :src="host.image"
+                    :alt="host.name"
+                    referrerpolicy="no-referrer"
+                    @error="onImageError"
+                />
             </div>
         </div>
 
         <button
             v-if="hasAudio"
             type="button"
-            class="this-week-with__play"
-            :class="{ 'this-week-with__play--active': isPlaying }"
+            class="absolute right-1/14 bottom-1/14 z-4 flex size-17/100 cursor-pointer appearance-none items-center justify-center rounded-full bg-this-week-with p-0 text-white shadow-lg shadow-this-week-with/40 transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:hover:scale-108"
             :aria-label="isPlaying ? 'Pause latest episode' : 'Play latest episode'"
             @click="listen"
         >
-            <svg v-if="isPlaying" class="this-week-with__play-icon this-week-with__play-icon--pause" width="12" height="15" viewBox="0 0 12 15" fill="none" aria-hidden="true">
-                <rect x="1" y="1" width="3.4" height="13" rx="1" fill="#fff" />
-                <rect x="7.6" y="1" width="3.4" height="13" rx="1" fill="#fff" />
+            <svg v-if="isPlaying" class="h-auto w-1/3" width="12" height="15" viewBox="0 0 12 15" fill="none" aria-hidden="true">
+                <rect x="1" y="1" width="3.4" height="13" rx="1" fill="currentColor" />
+                <rect x="7.6" y="1" width="3.4" height="13" rx="1" fill="currentColor" />
             </svg>
-            <svg v-else class="this-week-with__play-icon" width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true">
-                <path d="M1 1.3v12.4a1 1 0 0 0 1.5.87l10.2-6.2a1 1 0 0 0 0-1.74L2.5.43A1 1 0 0 0 1 1.3Z" fill="#fff" />
+            <svg v-else class="h-auto w-1/3 translate-x-3/20" width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true">
+                <path d="M1 1.3v12.4a1 1 0 0 0 1.5.87l10.2-6.2a1 1 0 0 0 0-1.74L2.5.43A1 1 0 0 0 1 1.3Z" fill="currentColor" />
             </svg>
         </button>
     </div>
 </template>
-
-<style scoped>
-/* The card is the query container; everything sizes in cqw (1cqw ≈ reference
-   px ÷ 2.24) so the composition scales with the grid cell. */
-.this-week-with {
-    container-type: inline-size;
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    background: var(--color-neutral-0);
-    box-shadow: var(--shadow-card);
-    color: var(--color-neutral-900);
-}
-
-.this-week-with__top {
-    position: absolute;
-    left: 8.04cqw;
-    top: 8.04cqw;
-    right: 7.14cqw;
-    z-index: 3;
-}
-
-.this-week-with__episode {
-    display: inline-block;
-    font-size: 14.29cqw;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    color: var(--color-neutral-900);
-}
-
-.this-week-with__episode--empty {
-    font-size: 8cqw;
-    color: var(--color-neutral-500);
-}
-
-.this-week-with__episode:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
-}
-
-.this-week-with__show {
-    display: -webkit-box;
-    margin-top: 4.02cqw;
-    font-size: 6.25cqw;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-neutral-800);
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-}
-
-.this-week-with__show:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
-}
-
-.this-week-with__meta {
-    margin-top: 3.13cqw;
-    font-size: 5.36cqw;
-    font-weight: 600;
-    color: var(--color-neutral-500);
-}
-
-.this-week-with__hosts {
-    position: absolute;
-    left: 3.57cqw;
-    bottom: -1.79cqw;
-    z-index: 2;
-    display: flex;
-    align-items: flex-end;
-}
-
-.this-week-with__host {
-    position: relative;
-    width: 39.29cqw;
-    height: 47.32cqw;
-}
-
-.this-week-with__host + .this-week-with__host {
-    margin-left: -17.86cqw;
-}
-
-.this-week-with__host-bubble {
-    position: absolute;
-    left: 50%;
-    bottom: 3.57cqw;
-    transform: translateX(-50%);
-    width: 35.71cqw;
-    height: 35.71cqw;
-    border-radius: 50%;
-    z-index: 1;
-}
-
-.this-week-with__host--taylor .this-week-with__host-bubble {
-    background: linear-gradient(150deg, #8fdcd7, #75d3cd);
-}
-
-.this-week-with__host--gordon .this-week-with__host-bubble {
-    background: linear-gradient(150deg, #fe7a74, #fd5a53);
-}
-
-.this-week-with__host-initial {
-    position: absolute;
-    left: 50%;
-    bottom: 16.07cqw;
-    transform: translateX(-50%);
-    z-index: 2;
-    font-size: 9.38cqw;
-    font-weight: 800;
-    color: var(--color-neutral-900);
-}
-
-/* Headshots sit above both the bubble and the fallback initial. */
-.this-week-with__host-image {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: bottom center;
-    filter: drop-shadow(0 2.68cqw 4.02cqw rgba(20, 22, 30, 0.22));
-    z-index: 3;
-}
-
-.this-week-with__play {
-    position: absolute;
-    right: 7.14cqw;
-    bottom: 7.14cqw;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 16.96cqw;
-    height: 16.96cqw;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: var(--color-this-week-with);
-    box-shadow: 0 2.68cqw 6.25cqw color-mix(in srgb, var(--color-this-week-with) 40%, transparent);
-    cursor: pointer;
-    appearance: none;
-    transition: transform 0.15s ease;
-}
-
-.this-week-with__play:hover {
-    transform: scale(1.08);
-}
-
-.this-week-with__play-icon {
-    width: 5.8cqw;
-    height: auto;
-    margin-left: 0.89cqw;
-}
-
-.this-week-with__play-icon--pause {
-    margin-left: 0;
-}
-</style>
