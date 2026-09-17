@@ -139,6 +139,19 @@
     --animate-fade-in: fade-in 0.25s ease;
     --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
+    --animate-book-in: book-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+
+    @keyframes book-in {
+        from {
+            opacity: 0;
+            transform: translateY(45%);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
 
     @keyframes fade-in {
         from {
