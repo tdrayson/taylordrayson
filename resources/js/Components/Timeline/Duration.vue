@@ -54,16 +54,6 @@ const fullLabel = computed(() => {
 
 <template>
     <time :datetime="isoDuration" :title="fullLabel" class="tnum">
-        <template v-for="(segment, index) in segments" :key="segment.unit">{{ index ? ' ' : '' }}{{ segment.value }}<abbr class="unit" :title="segment.label">{{ segment.unit }}</abbr></template>
+        <template v-for="(segment, index) in segments" :key="segment.unit">{{ index ? ' ' : '' }}{{ segment.value }}<abbr class="ml-px text-unit font-semibold text-neutral-500 no-underline" :title="segment.label">{{ segment.unit }}</abbr></template>
     </time>
 </template>
-
-<style scoped>
-.unit {
-    margin-left: 0.05em;
-    font-size: 0.7em;
-    font-weight: 600;
-    color: var(--color-neutral-500);
-    text-decoration: none;
-}
-</style>

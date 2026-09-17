@@ -63,6 +63,9 @@
     --text-display-xl--font-weight: 800;
     --text-display-xl--letter-spacing: -0.035em;
 
+    /* Relative to the surrounding text: a duration's h/m/s suffix. */
+    --text-unit: 0.7em;
+
     /* ----------------------------------------------------------------
        Colour scales — uniform, purpose-free. Use these directly:
        bg-neutral-25, text-neutral-900, border-neutral-100, bg-accent-500.
