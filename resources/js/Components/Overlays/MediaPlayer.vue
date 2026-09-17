@@ -312,7 +312,7 @@ onBeforeUnmount(() => {
                         :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
                     <div class="mt-1 flex items-center gap-2">
-                        <span class="text-label text-neutral-500 tnum">{{ clock(currentTime) }}</span>
+                        <span class="text-label text-neutral-500 tabular-nums">{{ clock(currentTime) }}</span>
                         <div
                             class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 transition-colors hover:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                             role="slider"
@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
                         >
                             <div class="absolute inset-y-0 left-0 rounded-full bg-accent-500" :style="{ width: progress + '%' }" />
                         </div>
-                        <span class="text-label text-neutral-500 tnum">{{ clock(duration) }}</span>
+                        <span class="text-label text-neutral-500 tabular-nums">{{ clock(duration) }}</span>
                     </div>
                 </div>
                 <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">

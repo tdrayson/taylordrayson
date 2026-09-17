@@ -170,16 +170,16 @@ const cursor = computed(() => {
                 :style="{ left: `${Math.min(90, Math.max(10, cursor.x))}%` }"
             >
                 <span class="size-2 rounded-full" :style="{ background: cursor.color }" />
-                <span class="tnum">{{ cursor.time }}</span>
+                <span class="tabular-nums">{{ cursor.time }}</span>
                 <span class="text-white/80">{{ cursor.label }}</span>
-                <span class="text-white/60 tnum">{{ cursor.duration }}</span>
+                <span class="text-white/60 tabular-nums">{{ cursor.duration }}</span>
             </div>
         </div>
 
         <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
             <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-meta text-neutral-700">
                 <span class="size-2.5 rounded-full" :style="{ background: total.color }" />
-                {{ total.label }} <span class="text-neutral-500 tnum">{{ total.duration }}</span>
+                {{ total.label }} <span class="text-neutral-500 tabular-nums">{{ total.duration }}</span>
             </div>
         </div>
     </div>

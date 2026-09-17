@@ -107,14 +107,14 @@ function weightLabel(value) {
                 <div v-for="exercise in exercises" :key="exercise.name" class="overflow-hidden rounded-lg border border-neutral-50">
                     <div class="flex items-baseline justify-between gap-4 bg-neutral-25 px-4 py-2.5">
                         <span class="min-w-0 truncate font-display text-section">{{ exercise.name }}</span>
-                        <span class="shrink-0 text-meta font-semibold text-neutral-700 tnum">
+                        <span class="shrink-0 text-meta font-semibold text-neutral-700 tabular-nums">
                             {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume">, {{ weight(exercise.volume, 0) }}</template>
                         </span>
                     </div>
                     <div class="divide-y divide-neutral-50">
                         <div v-for="(set, index) in exercise.sets" :key="index" class="flex items-center justify-between gap-4 px-4 py-2">
                             <span class="text-label uppercase text-neutral-500">Set {{ index + 1 }}</span>
-                            <span class="text-meta text-neutral-900 tnum">
+                            <span class="text-meta text-neutral-900 tabular-nums">
                                 <span class="font-semibold">{{ set.reps }}</span> <span class="text-neutral-500">reps</span>, {{ weightLabel(set.weight) }}
                             </span>
                         </div>

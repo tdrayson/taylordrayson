@@ -66,7 +66,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             @click="toggle"
         >
             <span class="flex-1 truncate">{{ summary ?? placeholder }}</span>
-            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-label text-accent-700 tnum">{{ modelValue.length }}</span>
+            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-label text-accent-700 tabular-nums">{{ modelValue.length }}</span>
             <Icon name="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
         </button>
 
