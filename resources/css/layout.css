@@ -78,3 +78,8 @@
 @utility align-drop-* {
     vertical-align: calc(--value(integer) * -0.01em);
 }
+
+/* Full width plus a negative left margin of the same step: -ml-3 w-bleed-3. */
+@utility w-bleed-* {
+    width: calc(100% + var(--spacing) * --value(integer));
+}
