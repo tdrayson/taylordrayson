@@ -31,7 +31,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Data stories' }] });
             <Link
                 :href="`/stories/${story.slug}`"
                 :style="{ '--accent': `#${story.accent}` }"
-                class="story-card group relative flex h-full flex-col overflow-hidden rounded-xl border border-neutral-50 p-6 transition-colors focus-visible:outline-none"
+                class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-neutral-50 p-6 transition-colors hover:border-(--accent) hover:bg-(--accent)/5 focus-visible:border-(--accent) focus-visible:bg-(--accent)/5 focus-visible:outline-none"
             >
                 <!-- Soft accent blob glowing from the bottom-right corner, like the OG card. -->
                 <span class="pointer-events-none absolute -bottom-12 -right-12 size-44 rounded-full opacity-25 blur-2xl" :style="{ backgroundColor: `#${story.accent}` }" />
@@ -45,13 +45,3 @@ setLayoutProps({ breadcrumb: [{ label: 'Data stories' }] });
         </li>
     </ul>
 </template>
-
-<style scoped>
-/* The accent (set inline per card via --accent) tints the border and a faint
-   wash on hover/focus, so each card lights up in its own data-type colour. */
-.story-card:hover,
-.story-card:focus-visible {
-    border-color: var(--accent);
-    background-color: color-mix(in srgb, var(--accent) 5%, transparent);
-}
-</style>
