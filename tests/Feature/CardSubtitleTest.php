@@ -115,14 +115,17 @@ it('drops the price sentence when there is no price per litre', function () {
         ->and($subtitle)->not->toContain('p/L');
 });
 
-it('uses the place note as its subtitle when present', function () {
+it('uses the place note as its summary, not its subtitle', function () {
     $place = Place::factory()->create([
         'description' => 'Great coffee here',
         'type' => 'Coffee Shop',
         'city' => 'London',
     ]);
 
-    expect(CardPresenter::for($place)->toArray()['subtitle'])->toBe('Great coffee here');
+    $card = CardPresenter::for($place);
+
+    expect($card->summary)->toBe('Great coffee here')
+        ->and($card->subtitle)->toBeNull();
 });
 
 // Foursquare's vocabulary includes Road, Platform and Town, so the category is

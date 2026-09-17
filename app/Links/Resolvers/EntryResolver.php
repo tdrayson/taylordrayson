@@ -39,7 +39,7 @@ class EntryResolver implements LinkResolver
         return LinkPreviewData::entry(
             url: $path,
             title: CardPresenter::publicTitle($model, $card),
-            excerpt: $model->status === EntryStatus::Private ? EntryDescription::for($model, $card) : $card->subtitle,
+            excerpt: $model->status === EntryStatus::Private ? EntryDescription::for($model, $card) : ($card->summary ?? $card->subtitle),
             type: $card->type->value,
             accent: $card->accent,
             date: $model->occurredAtForDisplay()?->toDateString(),
