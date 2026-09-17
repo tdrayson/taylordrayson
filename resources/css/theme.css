@@ -132,6 +132,9 @@
     /* Wide dashboards (e.g. the stats pages) cap here and centre, so cards
        don't stretch awkwardly on very wide screens (`max-w-dashboard`). */
     --container-dashboard: 90rem;
+    /* Square Now widgets run 159-324px wide, below Tailwind's smallest container step. */
+    --container-5xs: 11rem;
+    --container-4xs: 14rem;
 
     /* The contents rail is absolutely positioned off the 44rem body column and
        needs 264px beside it, which `xl` does not yet afford: at 1280px it runs

@@ -12,7 +12,7 @@ const props = defineProps({
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 // Empty + three accent steps.
-const COLORS = ['var(--color-neutral-100)', 'var(--color-accent-200)', 'var(--color-accent-400)', 'var(--color-accent-600)'];
+const COLORS = ['bg-neutral-100', 'bg-accent-200', 'bg-accent-400', 'bg-accent-600'];
 const level = (c) => (c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3);
 
 const total = computed(() => props.days.reduce((sum, day) => sum + (day.count ?? 0), 0));
@@ -44,137 +44,34 @@ const cells = computed(() => props.days.map(({ date, count }) => {
 </script>
 
 <template>
-    <div class="entries rounded-3xl">
-        <div class="entries__inner">
-            <div class="entries__header">
-                <h2 class="entries__title">Last 4 weeks</h2>
-                <span class="entries__total">{{ total }}</span>
+    <div class="@container aspect-square rounded-3xl bg-neutral-0 text-neutral-900 shadow-card">
+        <div class="flex h-full flex-col p-3.25 @5xs:p-4 @4xs:p-5 @xs:p-6.75">
+            <div class="flex items-baseline justify-between font-extrabold">
+                <h2 class="text-2xs @5xs:text-xs @4xs:text-sm @xs:text-xl">Last 4 weeks</h2>
+                <span class="text-2xs text-accent-500 @5xs:text-xs @4xs:text-base @xs:text-xl">{{ total }}</span>
             </div>
 
-            <div class="entries__grid">
-                <span v-for="(weekday, i) in WEEKDAYS" :key="`weekday-${i}`" class="entries__weekday" aria-hidden="true">{{ weekday }}</span>
+            <div class="mt-2.25 mb-2 grid min-h-0 flex-1 grid-cols-7 content-center gap-1 @5xs:mt-2.75 @5xs:mb-2.5 @5xs:gap-1.25 @4xs:mt-3.25 @4xs:mb-3 @4xs:gap-1.5 @xs:mt-4.5 @xs:mb-4 @xs:gap-2">
+                <span v-for="(weekday, i) in WEEKDAYS" :key="`weekday-${i}`" class="text-center text-3xs leading-none font-semibold text-neutral-400 @4xs:text-2xs @xs:text-xs" aria-hidden="true">{{ weekday }}</span>
                 <template v-for="cell in cells" :key="cell.key">
-                    <span v-if="cell.future" class="entries__cell-wrap entries__cell--future" />
-                    <Tooltip v-else :label="cell.title" placement="top" class="entries__cell-wrap">
-                        <Link :href="cell.href" class="entries__cell" :style="{ background: cell.color }" :aria-label="cell.title" />
+                    <span v-if="cell.future" class="flex aspect-square w-full rounded-xs inset-ring inset-ring-neutral-100 @5xs:rounded @xs:rounded-sm" />
+                    <Tooltip v-else :label="cell.title" placement="top" class="aspect-square w-full">
+                        <Link
+                            :href="cell.href"
+                            class="flex-1 rounded-xs transition-transform duration-120 hover:z-1 focus-visible:z-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:hover:scale-118 @5xs:rounded @xs:rounded-sm"
+                            :class="cell.color"
+                            :aria-label="cell.title"
+                        />
                     </Tooltip>
                 </template>
             </div>
 
-            <div class="entries__footer">
-                <span class="entries__footer-label">{{ label }}</span>
-                <span class="entries__legend">
-                    <i v-for="color in COLORS" :key="color" class="entries__legend-swatch" :style="{ background: color }" />
+            <div class="flex items-center justify-between">
+                <span class="text-3xs font-semibold text-neutral-500 @5xs:text-2xs @4xs:text-xs @xs:text-base">{{ label }}</span>
+                <span class="flex items-center gap-0.5 @5xs:gap-0.75 @xs:gap-1.25">
+                    <i v-for="color in COLORS" :key="color" class="size-1.5 rounded-xs @5xs:size-1.75 @4xs:size-2.25 @xs:size-3 @xs:rounded" :class="color" />
                 </span>
             </div>
         </div>
     </div>
 </template>
-
-<style scoped>
-/* The card is the query container; inner sizing is in cqw (1cqw ≈ reference
-   px ÷ 2.16). Padding/flex live on .entries__inner so cqw references the card. */
-.entries {
-    container-type: inline-size;
-    aspect-ratio: 1 / 1;
-    background: var(--color-neutral-0);
-    box-shadow: var(--shadow-card);
-    color: var(--color-neutral-900);
-}
-
-.entries__inner {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 8.3cqw;
-}
-
-.entries__header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-}
-
-.entries__title {
-    font-size: 6cqw;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-}
-
-.entries__total {
-    font-size: 6.5cqw;
-    font-weight: 800;
-    color: var(--color-accent-500);
-}
-
-.entries__grid {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    align-content: center;
-    gap: 2.3cqw;
-    margin: 5.6cqw 0 5.1cqw;
-}
-
-.entries__weekday {
-    font-size: 3.7cqw;
-    font-weight: 600;
-    line-height: 1;
-    text-align: center;
-    color: var(--color-neutral-400);
-}
-
-.entries__cell-wrap {
-    display: flex;
-    width: 100%;
-    aspect-ratio: 1;
-}
-
-.entries__cell--future {
-    border-radius: 1.85cqw;
-    box-shadow: inset 0 0 0 1px var(--color-neutral-100);
-}
-
-.entries__cell {
-    flex: 1;
-    align-self: stretch;
-    border-radius: 1.85cqw;
-    transition: transform 0.12s ease;
-}
-
-.entries__cell:hover {
-    transform: scale(1.18);
-    z-index: 1;
-}
-
-.entries__cell:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
-    z-index: 1;
-}
-
-.entries__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.entries__footer-label {
-    font-size: 5.1cqw;
-    font-weight: 600;
-    color: var(--color-neutral-500);
-}
-
-.entries__legend {
-    display: flex;
-    align-items: center;
-    gap: 1.4cqw;
-}
-
-.entries__legend-swatch {
-    width: 3.7cqw;
-    height: 3.7cqw;
-    border-radius: 1.16cqw;
-}
-</style>
