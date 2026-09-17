@@ -31,7 +31,7 @@ const fallbackSegments = computed(() =>
 
 <template>
     <div class="space-y-8">
-        <div v-if="hasScore" class="animate-rise space-y-3">
+        <div v-if="hasScore" class="animate-rise space-y-3 motion-reduce:animate-none">
             <p class="text-eyebrow uppercase text-sleep">Sleep score</p>
             <SleepScoreRing
                 :score="entry.score"
@@ -44,11 +44,11 @@ const fallbackSegments = computed(() =>
             </Link>
         </div>
 
-        <div class="animate-rise" :style="{ animationDelay: '0.1s' }">
+        <div class="animate-rise motion-reduce:animate-none" :style="{ animationDelay: '0.1s' }">
             <StatGrid :stats="stats" />
         </div>
 
-        <div v-if="entry.stages?.length || fallbackSegments.length" class="animate-rise" :style="{ animationDelay: '0.18s' }">
+        <div v-if="entry.stages?.length || fallbackSegments.length" class="animate-rise motion-reduce:animate-none" :style="{ animationDelay: '0.18s' }">
             <SectionHead title="Stages" />
             <SleepStages v-if="entry.stages?.length" :stages="entry.stages" />
             <StageBar v-else :segments="fallbackSegments" />

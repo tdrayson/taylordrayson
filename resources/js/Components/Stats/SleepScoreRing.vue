@@ -104,3 +104,15 @@ const segments = computed(() => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.ring-fill {
+    transition: stroke-dashoffset 0.7s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ring-fill {
+        transition: none;
+    }
+}
+</style>

@@ -184,3 +184,25 @@ const cursor = computed(() => {
         </div>
     </div>
 </template>
+
+<style scoped>
+@keyframes seg-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.hypnogram-seg {
+    animation: seg-in 0.45s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hypnogram-seg {
+        animation: none;
+    }
+}
+</style>
