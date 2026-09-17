@@ -23,13 +23,13 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
     <!-- Mirrors FeedItem's rail so the trip index reads as the same kind of feed.
          Trips borrow the flight accent rather than minting a fourteenth colour. -->
     <div class="relative block" :style="{ '--type-color': 'var(--color-flight)' }">
-        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 lg:-left-12">
+        <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 text-(--type-color) lg:-left-12">
             <Icon name="Luggage01Icon" class="size-5" />
         </span>
 
         <div class="flex min-h-9 items-center">
             <div class="flex items-baseline gap-2.5">
-                <Link :href="href" class="type-color text-label uppercase underline-offset-2 hover:underline focus-visible:underline">Trip</Link>
+                <Link :href="href" class="text-label uppercase text-(--type-color) underline-offset-2 hover:underline focus-visible:underline">Trip</Link>
                 <Tooltip :label="fullTimestamp" placement="top">
                     <Link :href="href" :aria-label="fullTimestamp" class="underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
                         <time :datetime="start.iso" class="text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ start.time }}</time>
@@ -45,10 +45,10 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
         <!-- Each end carries its own full date, since a trip title names a place
              and never the year. -->
         <div class="mt-3 flex max-w-md items-center gap-4">
-            <div class="tile-border flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border">
-                <div class="tile-band py-1 text-center text-label uppercase text-white">{{ start.month }}</div>
+            <div class="flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border border-(--type-color)">
+                <div class="bg-(--type-color) py-1 text-center text-label uppercase text-white">{{ start.month }}</div>
                 <div class="flex flex-col items-center justify-center gap-0.5 p-2">
-                    <time :datetime="start.iso" class="tile-day font-display text-stat leading-none tnum">{{ start.day }}</time>
+                    <time :datetime="start.iso" class="font-display text-stat leading-none text-(--type-color) tnum">{{ start.day }}</time>
                     <span class="text-caption text-neutral-400 tnum">{{ start.year }}</span>
                 </div>
             </div>
@@ -63,36 +63,13 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
                 </div>
             </div>
 
-            <div class="tile-border flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border">
-                <div class="tile-band py-1 text-center text-label uppercase text-white">{{ end.month }}</div>
+            <div class="flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border border-(--type-color)">
+                <div class="bg-(--type-color) py-1 text-center text-label uppercase text-white">{{ end.month }}</div>
                 <div class="flex flex-col items-center justify-center gap-0.5 p-2">
-                    <time :datetime="end.iso" class="tile-day font-display text-stat leading-none tnum">{{ end.day }}</time>
+                    <time :datetime="end.iso" class="font-display text-stat leading-none text-(--type-color) tnum">{{ end.day }}</time>
                     <span class="text-caption text-neutral-400 tnum">{{ end.year }}</span>
                 </div>
             </div>
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Mirrors FeedItem's own rule: the eyebrow and rail bubble take the type colour
-   set on the wrapper, which for a trip is the flight accent. */
-.type-color {
-    color: var(--type-color);
-}
-
-/* The calendar tile: accent border and month band, accent day number. Set here
-   rather than with arbitrary Tailwind values so the colour follows the single
-   --type-color the card already declares. */
-.tile-border {
-    border-color: var(--type-color);
-}
-
-.tile-band {
-    background: var(--type-color);
-}
-
-.tile-day {
-    color: var(--type-color);
-}
-</style>

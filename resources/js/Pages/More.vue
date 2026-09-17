@@ -56,7 +56,7 @@ const site = [
                     class="group flex items-center gap-3 rounded-md py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                     :style="{ '--type-color': `var(--color-${entryTypes[item.type]?.accent ?? 'note'})` }"
                 >
-                    <span class="type-color flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-25">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-(--type-color)">
                         <Icon :icon="entryTypes[item.type]?.icon" class="size-5" />
                     </span>
                     <span class="font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ item.label }}</span>
@@ -86,9 +86,3 @@ const site = [
         </ul>
     </section>
 </template>
-
-<style scoped>
-.type-color {
-    color: var(--type-color);
-}
-</style>
