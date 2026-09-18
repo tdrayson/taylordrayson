@@ -31,7 +31,7 @@ const filled = computed(() => props.rows.filter(
             :class="variant === 'plain' ? 'gap-3' : 'gap-6 py-3'"
         >
             <dt class="text-label uppercase text-neutral-500" :class="[{ 'pl-4 text-neutral-400': row.sub }, variant === 'plain' ? 'whitespace-nowrap' : '']">{{ row.label }}</dt>
-            <dd class="text-right text-neutral-900 tnum" :class="variant === 'plain' ? 'text-caption' : 'text-meta'">
+            <dd class="text-right text-neutral-900 tabular-nums" :class="variant === 'plain' ? 'text-caption' : 'text-meta'">
                 <Link
                     v-if="row.href"
                     :href="row.href"

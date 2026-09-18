@@ -26,7 +26,7 @@ const formatted = computed(() =>
         <div class="text-eyebrow uppercase text-neutral-500">Streak</div>
         <div class="mt-1 flex items-baseline gap-2">
             <Icon name="FireIcon" class="size-4 self-center text-accent-500" />
-            <span class="font-display text-name tnum">{{ formatted }}</span>
+            <span class="font-display text-name tabular-nums">{{ formatted }}</span>
             <span class="text-caption text-neutral-500">{{ label }}</span>
         </div>
     </div>

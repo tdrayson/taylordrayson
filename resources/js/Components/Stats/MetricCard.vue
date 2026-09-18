@@ -54,12 +54,12 @@ const up = computed(() => (props.delta ?? 0) >= 0);
             <!-- Comparison vs the previous period: accent for up, muted for down. -->
             <span
                 v-if="delta !== null"
-                class="text-label font-semibold tnum"
+                class="text-label font-semibold tabular-nums"
                 :style="up ? { color: accent } : null"
                 :class="up ? '' : 'text-neutral-400'"
             >{{ up ? '↑' : '↓' }} {{ Math.abs(delta) }}%</span>
         </div>
-        <dd class="font-display text-stat leading-none tnum text-neutral-900">
+        <dd class="font-display text-stat leading-none tabular-nums text-neutral-900">
             {{ display.value }}<abbr v-if="display.unit" :title="unitTitle(display.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ display.unit }}</abbr>
         </dd>
         <svg v-if="sparkPath" class="h-6 w-full" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">

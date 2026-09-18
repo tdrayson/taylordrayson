@@ -142,14 +142,17 @@
        rail is replaced by the floating pill, not lost. */
     --breakpoint-toc: 85rem;
 
-    /* Elevation — the single shadow tier */
+    /* Elevation */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
+    --shadow-marker: 0 1px 3px rgb(0 0 0 / 0.3);
+    --drop-shadow-rings: 0 4px 10px rgba(0, 0, 0, 0.25);
 
     /* Motion */
     --animate-fade-in: fade-in 0.25s ease;
     --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
     --animate-book-in: book-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+    --animate-rise: rise 0.5s ease both;
     --animate-drift: drift 6.5s ease-in-out infinite;
     --animate-charging-breathe: charging-breathe 2.6s ease-in-out infinite;
     --animate-charging-sheen: charging-sheen 2.4s ease-in-out infinite;
@@ -163,6 +166,18 @@
         to {
             opacity: 1;
             transform: none;
+        }
+    }
+
+    @keyframes rise {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
     }
 
@@ -286,4 +301,16 @@
     --color-score-duration: hsl(212 88% 56%);
     --color-score-bedtime: hsl(168 65% 42%);
     --color-score-interruptions: hsl(5 80% 66%);
+
+    /* Activity rings, after the Apple Watch face. Deliberately absent from
+       dark.css: the rings and the dark face look the same in either theme. */
+    --color-ring-move: #fb1b53;
+    --color-ring-move-light: #ff4d72;
+    --color-ring-exercise: #84db20;
+    --color-ring-exercise-light: #c6ff4d;
+    --color-ring-exercise-dark: #5fb80a;
+    --color-ring-stand: #15d9d9;
+    --color-ring-stand-light: #5bf5f5;
+    --color-ring-face: #232327;
+    --color-ring-face-deep: #0e0e10;
 }
