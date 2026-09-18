@@ -72,7 +72,8 @@ class AuthoringController extends Controller
         $fields = FieldRegistry::for($model);
 
         $attributes = $request->validate(FieldRules::for($fields, creating: false, stored: $model), [], FieldRules::labels($fields));
-        $attributes = $this->statusRules($model, $attributes);
+        $attributes = app(FetchRemoteMedia::class)($fields, $attributes);
+        $attributes = $this->prepare($definition, $model, $this->statusRules($model, $attributes));
 
         app($definition['update'])($model, $this->expand($attributes, $fields));
 
