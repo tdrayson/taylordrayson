@@ -39,17 +39,6 @@
 
 /* Column-placement utilities — defined with @utility so responsive variants
    (e.g. md:breakout, lg:full-width) and other modifiers work. */
-/* Content images: cap the rendered height so portrait images don't tower
-   over the prose; width follows the ratio (pair with w-auto). Companion to
-   max-w-media. The lightbox shows the full size. */
-@utility max-h-media {
-    max-height: clamp(20rem, 75vh, 34rem);
-}
-
-@utility content-width {
-    grid-column: content;
-}
-
 @utility breakout {
     grid-column: breakout;
 }
@@ -64,8 +53,17 @@
     grid-column: inset;
 }
 
-/* Full bleed box whose inner content respects the gutter (ACSS "full width safe"). */
-@utility full-width-safe {
-    grid-column: full-width;
-    padding-inline: var(--padding-inline);
+/* Content images: cap the rendered height so portrait images don't tower
+   over the prose; width follows the ratio (pair with w-auto). Companion to
+   max-w-media. The lightbox shows the full size. */
+@utility max-h-media {
+    max-height: clamp(20rem, 75vh, 34rem);
+}
+
+@utility no-scrollbar {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }

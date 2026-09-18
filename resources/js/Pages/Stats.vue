@@ -155,7 +155,7 @@ setLayoutProps({
                     <dl class="flex flex-col gap-4">
                         <div v-for="item in perWeek" :key="item.label" class="flex items-baseline justify-between gap-3">
                             <dt class="text-meta text-neutral-500">{{ item.label }}</dt>
-                            <dd class="font-display text-item-title tnum text-neutral-900">{{ item.distanceM != null ? distance(item.distanceM, item.precision) : item.display }}</dd>
+                            <dd class="font-display text-item-title tabular-nums text-neutral-900">{{ item.distanceM != null ? distance(item.distanceM, item.precision) : item.display }}</dd>
                         </div>
                     </dl>
                 </section>
@@ -166,7 +166,7 @@ setLayoutProps({
                     <dl class="flex flex-col gap-4">
                         <div v-for="record in records" :key="record.label" class="flex items-baseline justify-between gap-3">
                             <dt class="text-meta text-neutral-500">{{ record.label }}</dt>
-                            <dd class="font-display text-item-title tnum text-neutral-900">{{ record.distanceM != null ? distance(record.distanceM, record.precision) : record.value }}</dd>
+                            <dd class="font-display text-item-title tabular-nums text-neutral-900">{{ record.distanceM != null ? distance(record.distanceM, record.precision) : record.value }}</dd>
                         </div>
                     </dl>
                 </section>

@@ -111,14 +111,3 @@ function goTo(index) {
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Swipe carousel with no visible scrollbar (the dots convey position). */
-.no-scrollbar {
-    scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-</style>

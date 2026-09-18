@@ -178,7 +178,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         <button
                             v-if="cell"
                             type="button"
-                            class="rounded border-2 border-transparent py-1 text-caption tnum transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                            class="rounded border-2 border-transparent py-1 text-caption tabular-nums transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
                             :class="isSelectedDay(cell) ? 'bg-accent-500 text-neutral-0' : isToday(cell) ? 'font-semibold text-accent-500 hover:border-accent-500' : 'text-neutral-700 hover:border-accent-500'"
                             @click="pickDay(cell)"
                         >
@@ -220,7 +220,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     <button type="button" aria-label="Previous years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(-1)">
                         <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <span class="text-meta font-semibold text-neutral-900 tnum">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
+                    <span class="text-meta font-semibold text-neutral-900 tabular-nums">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
                     <button type="button" aria-label="Next years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(1)">
                         <Icon name="ArrowRight01Icon" class="size-4" />
                     </button>
@@ -230,7 +230,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         v-for="year in yearRange"
                         :key="year"
                         type="button"
-                        class="rounded border-2 border-transparent py-2 text-caption tnum transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                        class="rounded border-2 border-transparent py-2 text-caption tabular-nums transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
                         :class="isSelectedYear(year) ? 'bg-accent-500 text-neutral-0' : 'text-neutral-700 hover:border-accent-500'"
                         @click="pickYear(year)"
                     >

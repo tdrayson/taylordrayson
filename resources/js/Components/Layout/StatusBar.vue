@@ -104,7 +104,7 @@ const batteryLabel = computed(() => {
         </Tooltip>
 
         <Tooltip :label="`${date}, ${zone}`">
-            <span class="tnum">{{ time }}</span>
+            <span class="tabular-nums">{{ time }}</span>
         </Tooltip>
 
         <Tooltip :label="batteryLabel">

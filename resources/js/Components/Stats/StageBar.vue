@@ -43,7 +43,7 @@ const items = computed(() =>
         <div class="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-caption text-neutral-700">
             <div v-for="(item, index) in items" :key="index" class="flex items-center gap-1.5">
                 <span class="size-2 rounded-full" :style="{ background: item.color }" />
-                {{ item.label }} <span class="text-neutral-500 tnum">{{ item.duration }}</span>
+                {{ item.label }} <span class="text-neutral-500 tabular-nums">{{ item.duration }}</span>
             </div>
         </div>
     </div>
