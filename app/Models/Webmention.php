@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
+use App\Models\Concerns\NotifiesUpstream;
 use App\Support\Links;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,7 +33,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 ])]
 class Webmention extends Model
 {
-    use HasFactory;
+    use HasFactory, NotifiesUpstream;
 
     /**
      * Take the nested responses with the mention that carried them.
@@ -98,6 +99,25 @@ class Webmention extends Model
     public function scopeTopLevel(Builder $query): Builder
     {
         return $query->whereNull('parent_source_url');
+    }
+
+    /** The entry this mention landed on, which is what gets re-announced upstream. */
+    public function upstreamSubject(): ?Model
+    {
+        return $this->target;
+    }
+
+    /**
+     * Only a reply, and only one sent to us directly.
+     *
+     * A gesture puts no words on the page. A response read out of somebody
+     * else's thread is where a two-site loop would start: their page grows
+     * because ours did, so re-announcing ours because theirs grew would have the
+     * two of us pinging each other until one gave up.
+     */
+    public function isWrittenResponse(): bool
+    {
+        return $this->parent_source_url === null && $this->kind() === WebmentionKind::Reply;
     }
 
     /**
