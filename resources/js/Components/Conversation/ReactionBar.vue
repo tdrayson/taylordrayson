@@ -48,7 +48,7 @@ const compact = computed(() => props.variant === 'compact');
 /** One place for every size that differs, rather than a ternary per element. */
 const sizes = computed(() => (compact.value
     ? { row: 'gap-3', text: 'text-meta', icon: 'size-4', pip: 'size-5', pipIcon: 'size-3.5', group: 'sm', gap: 'gap-1', segment: 'gap-1 px-2 py-0.5' }
-    : { row: 'gap-4', text: 'text-body', icon: 'size-5', pip: 'size-6', pipIcon: 'size-4', group: 'md', gap: 'gap-1.5', segment: 'gap-1.5 px-2.5 py-1' }));
+    : { row: 'gap-4', text: 'text-body', icon: 'size-4', pip: 'size-5', pipIcon: 'size-3.5', group: 'md', gap: 'gap-1.5', segment: 'gap-1.5 px-2.5 py-1' }));
 
 /**
  * A white glyph on a coloured disc rather than an emoji glyph: an emoji is drawn
