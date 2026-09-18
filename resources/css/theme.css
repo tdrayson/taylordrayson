@@ -139,14 +139,16 @@
 
     --grid-template-columns-breakdown: 7rem 1fr auto;
 
-    /* Elevation — the single shadow tier */
+    /* Elevation */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
+    --shadow-marker: 0 1px 3px rgb(0 0 0 / 0.3);
 
     /* Motion */
     --animate-fade-in: fade-in 0.25s ease;
     --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
     --animate-book-in: book-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+    --animate-rise: rise 0.5s ease both;
 
     @keyframes book-in {
         from {
@@ -157,6 +159,18 @@
         to {
             opacity: 1;
             transform: none;
+        }
+    }
+
+    @keyframes rise {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
     }
 

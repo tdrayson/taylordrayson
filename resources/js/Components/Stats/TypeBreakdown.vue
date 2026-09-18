@@ -27,7 +27,7 @@ function share(value) {
             <span class="h-2.5 overflow-hidden rounded-full bg-neutral-25">
                 <span class="block h-full rounded-full" :style="{ width: width(item.value), backgroundColor: accent }" />
             </span>
-            <span class="text-meta text-neutral-500 tnum">{{ item.value }} <span class="text-neutral-400">({{ share(item.value) }}%)</span></span>
+            <span class="text-meta text-neutral-500 tabular-nums">{{ item.value }} <span class="text-neutral-400">({{ share(item.value) }}%)</span></span>
         </li>
     </ul>
 </template>

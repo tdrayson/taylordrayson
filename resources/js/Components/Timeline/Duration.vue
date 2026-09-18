@@ -53,7 +53,7 @@ const fullLabel = computed(() => {
 </script>
 
 <template>
-    <time :datetime="isoDuration" :title="fullLabel" class="tnum">
+    <time :datetime="isoDuration" :title="fullLabel" class="tabular-nums">
         <template v-for="(segment, index) in segments" :key="segment.unit">{{ index ? ' ' : '' }}{{ segment.value }}<abbr class="ml-px text-unit font-semibold text-neutral-500 no-underline" :title="segment.label">{{ segment.unit }}</abbr></template>
     </time>
 </template>

@@ -48,7 +48,7 @@ const metaLines = computed(() => {
             <dl class="mx-auto grid max-w-4xl grid-cols-2 gap-px bg-neutral-800 lg:grid-cols-4">
                 <div v-for="(kpi, index) in kpis" :key="index" class="flex flex-col-reverse bg-neutral-900 px-5 py-5 sm:px-10 lg:first:pl-0 lg:last:pr-0">
                     <dt class="mt-1 text-label uppercase text-neutral-400">{{ kpi.label }}</dt>
-                    <dd class="font-display text-stat tnum" :style="{ color: accent }">{{ kpi.value }}</dd>
+                    <dd class="font-display text-stat tabular-nums" :style="{ color: accent }">{{ kpi.value }}</dd>
                 </div>
             </dl>
         </div>

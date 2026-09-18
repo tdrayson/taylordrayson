@@ -32,7 +32,7 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
                 <Link :href="href" class="text-label uppercase text-(--type-color) underline-offset-2 hover:underline focus-visible:underline">Trip</Link>
                 <Tooltip :label="fullTimestamp" placement="top">
                     <Link :href="href" :aria-label="fullTimestamp" class="underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
-                        <time :datetime="start.iso" class="text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ start.time }}</time>
+                        <time :datetime="start.iso" class="text-xs text-neutral-500 tabular-nums transition-colors hover:text-accent-500">{{ start.time }}</time>
                     </Link>
                 </Tooltip>
             </div>
@@ -48,13 +48,13 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
             <div class="flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border border-(--type-color)">
                 <div class="bg-(--type-color) py-1 text-center text-label uppercase text-white">{{ start.month }}</div>
                 <div class="flex flex-col items-center justify-center gap-0.5 p-2">
-                    <time :datetime="start.iso" class="font-display text-stat leading-none text-(--type-color) tnum">{{ start.day }}</time>
-                    <span class="text-caption text-neutral-400 tnum">{{ start.year }}</span>
+                    <time :datetime="start.iso" class="font-display text-stat leading-none text-(--type-color) tabular-nums">{{ start.day }}</time>
+                    <span class="text-caption text-neutral-400 tabular-nums">{{ start.year }}</span>
                 </div>
             </div>
 
             <div class="flex flex-1 flex-col items-center gap-1">
-                <span class="text-label uppercase text-neutral-500 tnum">{{ days }} {{ days === 1 ? 'day' : 'days' }}</span>
+                <span class="text-label uppercase text-neutral-500 tabular-nums">{{ days }} {{ days === 1 ? 'day' : 'days' }}</span>
                 <div class="relative flex w-full items-center justify-center">
                     <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
                     <span class="relative bg-neutral-0 px-2 text-neutral-500">
@@ -66,8 +66,8 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
             <div class="flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border border-(--type-color)">
                 <div class="bg-(--type-color) py-1 text-center text-label uppercase text-white">{{ end.month }}</div>
                 <div class="flex flex-col items-center justify-center gap-0.5 p-2">
-                    <time :datetime="end.iso" class="font-display text-stat leading-none text-(--type-color) tnum">{{ end.day }}</time>
-                    <span class="text-caption text-neutral-400 tnum">{{ end.year }}</span>
+                    <time :datetime="end.iso" class="font-display text-stat leading-none text-(--type-color) tabular-nums">{{ end.day }}</time>
+                    <span class="text-caption text-neutral-400 tabular-nums">{{ end.year }}</span>
                 </div>
             </div>
         </div>

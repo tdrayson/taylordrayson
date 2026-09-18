@@ -95,7 +95,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 
             <!-- Both columns share leading-6 so gutter rows line up with code lines
                  without splitting the highlighted HTML. -->
-            <div v-if="lineNumbers" aria-hidden="true" class="select-none py-4 pl-4 pr-3 text-right text-meta leading-6 text-neutral-300 tnum">
+            <div v-if="lineNumbers" aria-hidden="true" class="select-none py-4 pl-4 pr-3 text-right text-meta leading-6 text-neutral-300 tabular-nums">
                 <div v-for="line in lineCount" :key="line">{{ line }}</div>
             </div>
 

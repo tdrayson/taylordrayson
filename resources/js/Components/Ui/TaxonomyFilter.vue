@@ -223,7 +223,7 @@ function onSearchKeydown(event) {
                             <span v-else-if="hasIcons" class="size-4 shrink-0" aria-hidden="true"></span>
                             <span class="truncate">{{ chip.label }}</span>
                         </span>
-                        <span v-if="chip.count != null" class="shrink-0 text-neutral-400 tnum">{{ number(chip.count) }}</span>
+                        <span v-if="chip.count != null" class="shrink-0 text-neutral-400 tabular-nums">{{ number(chip.count) }}</span>
                     </Link>
                 </li>
                 <li v-if="!filtered.length" class="px-3 py-2 text-caption text-neutral-400">No matches</li>

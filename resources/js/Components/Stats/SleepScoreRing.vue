@@ -87,7 +87,7 @@ const segments = computed(() => {
                 </g>
             </svg>
             <div class="absolute inset-0 flex items-center justify-center">
-                <span class="font-display text-stat font-extrabold leading-none tnum">{{ score }}</span>
+                <span class="font-display text-stat font-extrabold leading-none tabular-nums">{{ score }}</span>
             </div>
         </div>
 
@@ -98,9 +98,21 @@ const segments = computed(() => {
                 <div v-for="segment in segments" :key="segment.label" class="flex items-center gap-2 text-meta text-neutral-700">
                     <span class="size-2.5 shrink-0 rounded-full" :style="{ background: segment.color }" />
                     <dt>{{ segment.label }}</dt>
-                    <dd class="text-neutral-500 tnum">{{ segment.points }}/{{ segment.max }}</dd>
+                    <dd class="text-neutral-500 tabular-nums">{{ segment.points }}/{{ segment.max }}</dd>
                 </div>
             </dl>
         </div>
     </div>
 </template>
+
+<style scoped>
+.ring-fill {
+    transition: stroke-dashoffset 0.7s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ring-fill {
+        transition: none;
+    }
+}
+</style>

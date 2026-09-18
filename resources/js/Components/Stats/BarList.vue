@@ -11,7 +11,7 @@ defineProps({
             <div class="h-3 flex-1 overflow-hidden rounded bg-neutral-25">
                 <div class="h-full rounded" :class="bar.accent ? 'bg-accent-500' : 'bg-neutral-900'" :style="{ width: bar.width + '%' }" />
             </div>
-            <span class="w-12 flex-none text-right text-xs text-neutral-700 tnum">{{ bar.value }}</span>
+            <span class="w-12 flex-none text-right text-xs text-neutral-700 tabular-nums">{{ bar.value }}</span>
         </div>
     </div>
 </template>
