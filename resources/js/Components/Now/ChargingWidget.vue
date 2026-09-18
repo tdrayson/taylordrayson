@@ -71,7 +71,7 @@ const fillModifier = computed(() => FILL_MODIFIERS[state.value]);
                 <span class="text-neutral-500">{{ statusText }}</span>
             </p>
 
-            <p class="charging__value flex items-baseline tnum">
+            <p class="charging__value flex items-baseline tabular-nums">
                 <span class="charging__percent font-extrabold" :style="{ color: valueColor }">{{ clamped }}%</span>
                 <span v-if="hasSubText" class="charging__time font-extrabold text-neutral-900">{{ subText }}</span>
             </p>
