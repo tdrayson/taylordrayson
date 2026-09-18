@@ -52,15 +52,3 @@ const options = computed(() => [
         </button>
     </div>
 </template>
-
-<style scoped>
-/* The chips themselves show there is more to the right; a bar over them in a
-   panel this small costs more than it tells you. */
-.no-scrollbar {
-    scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-</style>

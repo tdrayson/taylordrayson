@@ -19,6 +19,6 @@ const icon = computed(() => weatherFor(props.condition).icon);
 <template>
     <span class="weather-status inline-flex items-center gap-1.5">
         <Icon :icon="icon" :class="['size-4 text-neutral-500']" />
-        <span class="tnum">{{ temp }}</span>
+        <span class="tabular-nums">{{ temp }}</span>
     </span>
 </template>

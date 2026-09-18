@@ -43,7 +43,7 @@ const nextTag = computed(() => (props.nextUrl ? Link : hasNext.value ? 'button' 
 
         <!-- A date-ordered feed says where it is by date; a flat list of one type
              says it by page number, which is what the fallback keeps. -->
-        <span class="text-neutral-500 tnum" aria-current="page">
+        <span class="text-neutral-500 tabular-nums" aria-current="page">
             <slot name="label">Page {{ currentPage }} of {{ lastPage }}</slot>
         </span>
 

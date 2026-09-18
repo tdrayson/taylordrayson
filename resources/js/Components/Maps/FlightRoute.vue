@@ -15,7 +15,7 @@ defineProps({
 <template>
     <div class="flex items-center justify-between gap-4">
         <div class="shrink-0">
-            <div v-if="departTime" class="font-display tnum" :class="compact ? 'text-section' : 'text-stat'">{{ departTime }}</div>
+            <div v-if="departTime" class="font-display tabular-nums" :class="compact ? 'text-section' : 'text-stat'">{{ departTime }}</div>
             <div class="font-display" :class="compact ? 'text-meta' : 'text-section'">
                 <abbr v-if="origin.name" :title="origin.name" class="cursor-help no-underline">{{ origin.iata }}</abbr>
                 <template v-else>{{ origin.iata }}</template>
@@ -24,18 +24,18 @@ defineProps({
         </div>
 
         <div class="flex flex-1 flex-col items-center gap-1">
-            <div v-if="duration" class="text-label uppercase text-neutral-500 tnum">{{ duration }}</div>
+            <div v-if="duration" class="text-label uppercase text-neutral-500 tabular-nums">{{ duration }}</div>
             <div class="relative flex w-full items-center justify-center">
                 <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
                 <span class="relative bg-neutral-0 px-2 text-neutral-500">
                     <Icon name="Airplane01Icon" class="size-4" />
                 </span>
             </div>
-            <div v-if="note" class="text-label uppercase text-neutral-500 tnum">{{ note }}</div>
+            <div v-if="note" class="text-label uppercase text-neutral-500 tabular-nums">{{ note }}</div>
         </div>
 
         <div class="shrink-0 text-right">
-            <div v-if="arriveTime" class="font-display tnum" :class="compact ? 'text-section' : 'text-stat'">{{ arriveTime }}</div>
+            <div v-if="arriveTime" class="font-display tabular-nums" :class="compact ? 'text-section' : 'text-stat'">{{ arriveTime }}</div>
             <div class="font-display" :class="compact ? 'text-meta' : 'text-section'">
                 <abbr v-if="destination.name" :title="destination.name" class="cursor-help no-underline">{{ destination.iata }}</abbr>
                 <template v-else>{{ destination.iata }}</template>

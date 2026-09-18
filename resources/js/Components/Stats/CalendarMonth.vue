@@ -71,7 +71,7 @@ function dayUrl(day) {
                 <span class="text-sm font-semibold" :class="isCurrentMonth && cell === today.getDate() ? 'text-accent-500' : 'text-neutral-900'">{{ cell }}</span>
                 <!-- Sleep and food stack on their own lines so every cell reads consistently.
                      Both are dropped below sm, where the cell is too narrow to hold "2,302". -->
-                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 hidden flex-col gap-0.5 text-xs text-neutral-500 tnum sm:flex">
+                <div v-if="days[cell]?.sleep || days[cell]?.calories" class="mt-0.5 hidden flex-col gap-0.5 text-xs text-neutral-500 tabular-nums sm:flex">
                     <span v-if="days[cell]?.sleep" class="inline-flex items-center gap-1">
                         <Icon :icon="sleepIcon" class="size-3" />{{ sleepHours(days[cell].sleep) }}
                     </span>
@@ -96,7 +96,7 @@ function dayUrl(day) {
                         :icon="entryType(type).icon"
                         class="size-3.5"
                     />
-                    <span v-if="days[cell].types.length > ICON_LIMIT" class="text-xs font-medium tnum">
+                    <span v-if="days[cell].types.length > ICON_LIMIT" class="text-xs font-medium tabular-nums">
                         +{{ days[cell].types.length - ICON_LIMIT }}
                     </span>
                 </div>

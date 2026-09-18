@@ -152,7 +152,7 @@ function swatchInk(step) {
                         class="flex h-16 flex-1 items-end p-1.5"
                         :style="{ background: `var(--color-neutral-${n})` }"
                     >
-                        <span class="text-xs tnum" :class="swatchInk(n)">{{ n }}</span>
+                        <span class="text-xs tabular-nums" :class="swatchInk(n)">{{ n }}</span>
                     </div>
                 </div>
             </div>
@@ -166,7 +166,7 @@ function swatchInk(step) {
                         class="flex h-16 flex-1 items-end p-1.5"
                         :style="{ background: `var(--color-accent-${a})` }"
                     >
-                        <span class="text-xs tnum" :class="a >= 400 ? 'text-neutral-0' : 'text-neutral-900'">{{ a }}</span>
+                        <span class="text-xs tabular-nums" :class="a >= 400 ? 'text-neutral-0' : 'text-neutral-900'">{{ a }}</span>
                     </div>
                 </div>
             </div>
@@ -210,7 +210,7 @@ function swatchInk(step) {
                 </p>
                 <ul class="list-disc space-y-1 pl-5">
                     <li>Lists stay calm and close-set.</li>
-                    <li>Numbers like <span class="font-semibold tnum">11,240</span> use tabular figures.</li>
+                    <li>Numbers like <span class="font-semibold tabular-nums">11,240</span> use tabular figures.</li>
                     <li>Emphasis is <span class="font-semibold text-accent-500">a single voltage</span>, used sparingly.</li>
                 </ul>
                 <blockquote class="border-l-2 border-accent-200 pl-4 italic text-neutral-500">
@@ -386,11 +386,11 @@ function swatchInk(step) {
                 <div class="min-w-0 flex-1">
                     <div class="block truncate text-meta font-semibold text-neutral-900">This Week With, Episode 12</div>
                     <div class="mt-1 flex items-center gap-2">
-                        <span class="text-label text-neutral-500 tnum">1:24</span>
+                        <span class="text-label text-neutral-500 tabular-nums">1:24</span>
                         <div class="relative h-1.5 flex-1 rounded-full bg-neutral-100">
                             <div class="absolute inset-y-0 left-0 rounded-full bg-accent-500" style="width: 38%" />
                         </div>
-                        <span class="text-label text-neutral-500 tnum">42:10</span>
+                        <span class="text-label text-neutral-500 tabular-nums">42:10</span>
                     </div>
                 </div>
                 <Icon name="Cancel01Icon" class="size-5 shrink-0 text-neutral-500" />
