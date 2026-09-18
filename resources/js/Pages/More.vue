@@ -60,7 +60,7 @@ const site = [
                         <Icon :icon="entryTypes[item.type]?.icon" class="size-5" />
                     </span>
                     <span class="font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ item.label }}</span>
-                    <span class="ml-auto text-meta text-neutral-500 tnum">{{ countLabel(item) }}</span>
+                    <span class="ml-auto text-meta text-neutral-500 tabular-nums">{{ countLabel(item) }}</span>
                 </Link>
             </li>
         </ul>

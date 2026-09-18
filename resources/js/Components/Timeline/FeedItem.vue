@@ -252,11 +252,11 @@ function openLightbox(index) {
                 >{{ displayType }}</component>
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
                     <Link v-if="url" :href="url" :aria-label="fullTimestamp" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
-                        <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
+                        <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tabular-nums transition-colors hover:text-accent-500">{{ time }}</time>
                     </Link>
-                    <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
+                    <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tabular-nums">{{ time }}</time>
                 </Tooltip>
-                <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
+                <span v-else-if="time" class="text-xs text-neutral-500 tabular-nums">{{ time }}</span>
                 <Pill v-if="statusLabel" :label="statusLabel" />
             </div>
         </div>
@@ -282,7 +282,7 @@ function openLightbox(index) {
         <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>
-            <span v-if="airline.number" class="text-neutral-400 tnum">{{ airline.number }}</span>
+            <span v-if="airline.number" class="text-neutral-400 tabular-nums">{{ airline.number }}</span>
         </div>
         <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
         <FlightRoute
@@ -356,7 +356,7 @@ function openLightbox(index) {
             <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                 <ZoomButton />
             </span>
-            <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
+            <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
         </div>
 
         <!-- A wide route map beside a square cover on lg+, sharing one fixed height
@@ -393,7 +393,7 @@ function openLightbox(index) {
                 <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                     <ZoomButton />
                 </span>
-                <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
+                <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
             </div>
         </div>
         <!-- Check-in's full address, shown beneath the map/photos whether or not

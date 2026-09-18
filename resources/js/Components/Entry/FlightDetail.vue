@@ -60,7 +60,7 @@ const stats = computed(() => [
             <span v-else-if="airline" class="font-display text-section">{{ airline.name }}</span>
             <div v-if="flightNumber" class="ml-auto text-right">
                 <div class="text-label uppercase text-neutral-500">Flight</div>
-                <div class="text-section text-neutral-700 tnum">{{ flightNumber }}</div>
+                <div class="text-section text-neutral-700 tabular-nums">{{ flightNumber }}</div>
             </div>
         </div>
 

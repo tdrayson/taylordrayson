@@ -64,7 +64,7 @@ const scale = computed(() => SIZES[props.size] ?? SIZES.md);
                 {{ stat.label }}
                 <span v-if="stat.sub" class="mt-1 block normal-case tracking-normal text-neutral-400">{{ stat.sub }}</span>
             </dt>
-            <dd class="font-display font-extrabold leading-none tracking-tight tnum" :class="scale.value">
+            <dd class="font-display font-extrabold leading-none tracking-tight tabular-nums" :class="scale.value">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />
                 <template v-else>
                     {{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 font-semibold text-neutral-500 no-underline" :class="scale.unit">{{ stat.unit }}</abbr>

@@ -33,7 +33,7 @@ const sparkPath = computed(() => {
 <template>
     <div class="flex flex-col justify-between rounded-lg border border-neutral-50 bg-neutral-0 p-4">
         <dt class="text-label uppercase text-neutral-500">{{ label }}</dt>
-        <dd class="mt-2 font-display text-stat leading-none tnum text-neutral-900">
+        <dd class="mt-2 font-display text-stat leading-none tabular-nums text-neutral-900">
             {{ value }}<abbr v-if="unit" :title="unitTitle(unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ unit }}</abbr>
         </dd>
         <svg v-if="sparkPath" class="mt-3 h-7 w-full" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">

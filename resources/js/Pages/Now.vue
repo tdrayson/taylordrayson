@@ -270,6 +270,7 @@ onBeforeUnmount(() => {
     overflow: visible;
     background: transparent;
     border: 0;
+    border-radius: 1.5rem;
 }
 
 /* Fill the cell so widgets whose content is absolutely positioned (and so have

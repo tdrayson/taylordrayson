@@ -92,7 +92,7 @@ setLayoutProps({
 
     <div v-if="show.rating" data-testid="tv-show-rating" class="mt-8 flex items-center gap-2">
         <Icon :icon="StarIcon" class="size-5 text-accent-500" />
-        <span class="font-display text-stat tnum">{{ show.rating }}</span>
+        <span class="font-display text-stat tabular-nums">{{ show.rating }}</span>
         <span class="text-meta text-neutral-500">/ 10</span>
     </div>
 
