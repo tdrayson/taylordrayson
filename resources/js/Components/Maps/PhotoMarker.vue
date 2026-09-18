@@ -36,9 +36,9 @@ defineEmits(['select']);
 /*
     Overlapping markers stack by DOM order, so the hovered or focused one is
     raised clear of its neighbours. MapLibre gives every marker its own inline
-    z-index, so this has to clear those rather than sit at 1; the map's controls
-    are lifted above all of them in editor.css. EntryMap isolates the map, so
-    none of this escapes to the page.
+    z-index, so this has to clear those rather than sit at 1; vendor.css lifts
+    the map's controls above all of them and isolates the map, so none of this
+    escapes to the page.
 */
 button:hover,
 button:focus-within {
