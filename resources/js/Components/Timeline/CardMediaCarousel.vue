@@ -1,22 +1,19 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import ZoomButton from '../Ui/ZoomButton.vue';
 
 const props = defineProps({
     // The static location/route map (light) and its dark twin, shown as the
-    // last slide and linking through to the entry.
+    // last slide. Like the photos, it opens the lightbox.
     map: { type: String, default: null },
     mapDark: { type: String, default: null },
     // Photo gallery in {src, srcset, full} shape; each becomes a slide that
     // opens the lightbox.
     photos: { type: Array, default: () => [] },
-    // Entry permalink the map slide links to (photos open the lightbox instead).
-    url: { type: String, default: null },
 });
 
-// Opening a photo slide bubbles its index up so the parent can drive the
-// shared Lightbox (whose items are the photos, map excluded).
+// Opening a slide bubbles its index up so the parent can drive the shared
+// Lightbox, whose items are the photos followed by the map.
 const emit = defineEmits(['open']);
 
 const track = ref(null);
@@ -24,13 +21,14 @@ const track = ref(null);
 const active = ref(0);
 
 // Photos lead and the map trails them: an entry with a photo should open on the
-// photo, and one without a photo shows the map anyway. `photoIndex` maps a photo
-// slide back to its position in the parent's photos/lightbox array.
+// photo, and one without a photo shows the map anyway. `lightboxIndex` maps a
+// slide back to its position in the parent's lightbox array, which is built in
+// this same order.
 const slides = computed(() => {
-    const list = props.photos.map((photo, index) => ({ kind: 'photo', photo, photoIndex: index }));
+    const list = props.photos.map((photo, index) => ({ kind: 'photo', photo, lightboxIndex: index }));
 
     if (props.map) {
-        list.push({ kind: 'map' });
+        list.push({ kind: 'map', lightboxIndex: props.photos.length });
     }
 
     return list;
@@ -66,26 +64,17 @@ function goTo(index) {
                 :key="index"
                 class="relative aspect-video w-full shrink-0 snap-center overflow-hidden border border-neutral-50"
             >
-                <component
-                    :is="url ? Link : 'div'"
-                    v-if="slide.kind === 'map'"
-                    :href="url || undefined"
-                    :tabindex="url ? -1 : undefined"
-                    :aria-hidden="url ? 'true' : undefined"
-                    class="block size-full"
-                >
-                    <img :src="map" alt="" class="size-full object-cover" :class="mapDark ? 'dark:hidden' : ''">
-                    <img v-if="mapDark" :src="mapDark" alt="" class="hidden size-full object-cover dark:block">
-                </component>
-
                 <button
-                    v-else
                     type="button"
                     class="group/zoom block size-full cursor-zoom-in transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
-                    aria-label="View photo"
-                    @click="emit('open', slide.photoIndex)"
+                    :aria-label="slide.kind === 'map' ? 'View map' : 'View photo'"
+                    @click="emit('open', slide.lightboxIndex)"
                 >
-                    <img :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
+                    <template v-if="slide.kind === 'map'">
+                        <img :src="map" alt="" class="size-full object-cover" :class="mapDark ? 'dark:hidden' : ''">
+                        <img v-if="mapDark" :src="mapDark" alt="" class="hidden size-full object-cover dark:block">
+                    </template>
+                    <img v-else :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
                     <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                         <ZoomButton />
                     </span>
