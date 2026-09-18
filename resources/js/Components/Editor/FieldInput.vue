@@ -183,6 +183,7 @@ function textToTags(value) {
             :model-value="modelValue ?? 'published'"
             :password="password"
             :options="field.options ?? []"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -195,6 +196,7 @@ function textToTags(value) {
             :placeholder="`Choose ${field.label.toLowerCase()}`"
             :invalid="Boolean(error)"
             :clearable="! field.required"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
