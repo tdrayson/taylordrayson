@@ -18,123 +18,35 @@ const props = defineProps({
 // tile and the top bar can never disagree about the same sky.
 const data = computed(() => weatherFor(props.condition));
 const temp = computed(() => props.temp ?? data.value.t);
+
+const pillClass = 'rounded bg-neutral-0/55 px-1.5 py-0.5 text-2xs font-semibold text-neutral-500 backdrop-blur-xs @5xs:rounded-sm @5xs:px-2 @5xs:text-xs @4xs:px-2.5 @4xs:text-base @xs:rounded-md @xs:px-3 @xs:py-1 @xs:text-xl @xs:backdrop-blur-sm';
 </script>
 
 <template>
-    <div class="weather relative aspect-square overflow-hidden rounded-3xl bg-neutral-0 shadow-card">
-        <div class="weather__aura" :style="{ background: data.gradient }" />
-        <div class="weather__inner">
-            <p class="weather__headline">{{ data.line }}</p>
-            <div class="weather__current">
-                <Icon class="weather__icon" :icon="data.icon" :stroke-width="1.8" />
-                <span v-if="temp !== null" class="weather__temp">{{ temp }}°</span>
+    <div class="@container relative aspect-square overflow-hidden rounded-3xl bg-neutral-0 shadow-card">
+        <div
+            class="absolute -right-1/5 -bottom-1/5 z-1 size-43/50 animate-drift rounded-full opacity-35 blur-lg motion-reduce:animate-none @4xs:blur-xl"
+            :style="{ background: data.gradient }"
+        />
+        <div class="relative z-2 flex h-full flex-col p-4 @5xs:p-5 @4xs:p-6 @xs:p-8">
+            <p data-testid="weather-headline" class="text-base leading-tight font-extrabold tracking-tight text-neutral-900 @5xs:text-xl @4xs:text-2xl @xs:text-3xl">
+                {{ data.line }}
+            </p>
+            <div class="mt-3 flex items-center gap-2 @5xs:mt-3.5 @5xs:gap-2.5 @4xs:mt-4 @4xs:gap-3 @xs:mt-5.5 @xs:gap-4">
+                <Icon data-testid="weather-icon" class="size-5.5 shrink-0 text-neutral-500 @5xs:size-7 @4xs:size-8 @xs:size-11" :icon="data.icon" :stroke-width="1.8" />
+                <span v-if="temp !== null" data-testid="weather-temp" class="text-xl font-semibold text-neutral-900 @5xs:text-2xl @4xs:text-3xl @xs:text-4xl">{{ temp }}°</span>
             </div>
             <!-- Bare readings, with the tooltip carrying what each one is. The
                  labels spelled out wrapped each pill onto two lines in a tile
                  this small. -->
-            <div v-if="humidity !== null || wind !== null" class="weather__range">
+            <div v-if="humidity !== null || wind !== null" class="mt-auto flex gap-1 @5xs:gap-1.5 @4xs:gap-2 @xs:gap-2.5">
                 <Tooltip v-if="humidity !== null" :label="`${humidity}% humidity`" placement="top">
-                    <span class="weather__pill">{{ humidity }}%</span>
+                    <span :class="pillClass">{{ humidity }}%</span>
                 </Tooltip>
                 <Tooltip v-if="wind !== null" :label="`${wind} mph wind`" placement="top">
-                    <span class="weather__pill">{{ wind }} mph</span>
+                    <span :class="pillClass">{{ wind }} mph</span>
                 </Tooltip>
             </div>
         </div>
     </div>
 </template>
-
-<style scoped>
-/* The card is the query container; inner sizing is in cqw (1cqw ≈ reference
-   px ÷ 2.48) so the whole composition scales with the grid cell. */
-.weather {
-    container-type: inline-size;
-}
-
-/* Soft corner aura: a blurred glow that bleeds from the bottom-right with no
-   defined edge, rather than a crisp circle. */
-.weather__aura {
-    position: absolute;
-    right: -20cqw;
-    bottom: -20cqw;
-    width: 86cqw;
-    height: 86cqw;
-    border-radius: 50%;
-    z-index: 1;
-    filter: blur(10cqw);
-    opacity: 0.35;
-    animation: weather-float 6.5s ease-in-out infinite;
-}
-
-.weather__inner {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    padding: 10.5cqw;
-}
-
-.weather__headline {
-    font-size: 10cqw;
-    font-weight: 800;
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-    color: var(--color-neutral-900);
-}
-
-.weather__current {
-    display: flex;
-    align-items: center;
-    gap: 5cqw;
-    margin-top: 7cqw;
-}
-
-.weather__icon {
-    width: 13.7cqw;
-    height: 13.7cqw;
-    flex: none;
-    color: var(--color-neutral-500);
-}
-
-.weather__temp {
-    font-size: 12cqw;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--color-neutral-900);
-}
-
-.weather__range {
-    margin-top: auto;
-    display: flex;
-    gap: 3cqw;
-}
-
-.weather__pill {
-    padding: 1.2cqw 4cqw;
-    border-radius: 3.6cqw;
-    font-size: 6.5cqw;
-    font-weight: 600;
-    color: #5e646c;
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(2.5cqw);
-    -webkit-backdrop-filter: blur(2.5cqw);
-}
-
-@keyframes weather-float {
-    0%,
-    100% {
-        transform: translate(0, 0);
-    }
-
-    50% {
-        transform: translate(-2.8cqw, -2.8cqw);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .weather__aura {
-        animation: none;
-    }
-}
-</style>

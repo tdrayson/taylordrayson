@@ -153,6 +153,9 @@
     --animate-ping-slow: ping-slow 6s cubic-bezier(0, 0, 0.2, 1) infinite;
     --animate-book-in: book-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
     --animate-rise: rise 0.5s ease both;
+    --animate-drift: drift 6.5s ease-in-out infinite;
+    --animate-charging-breathe: charging-breathe 2.6s ease-in-out infinite;
+    --animate-charging-sheen: charging-sheen 2.4s ease-in-out infinite;
 
     @keyframes book-in {
         from {
@@ -219,6 +222,40 @@
 
         100% {
             transform: translateY(0) rotate(360deg) scale(1);
+        }
+    }
+
+    @keyframes drift {
+        50% {
+            transform: translate(-3.25%, -3.25%);
+        }
+    }
+
+    @keyframes charging-breathe {
+        0%,
+        100% {
+            box-shadow:
+                0 0 16px 2px color-mix(in srgb, var(--color-battery-charging) 48%, transparent),
+                0 5px 13px color-mix(in srgb, var(--color-battery-charging) 30%, transparent),
+                inset 0 1px 2px color-mix(in srgb, var(--color-white) 35%, transparent);
+        }
+
+        50% {
+            box-shadow:
+                0 0 22px 5px color-mix(in srgb, var(--color-battery-charging) 62%, transparent),
+                0 5px 16px color-mix(in srgb, var(--color-battery-charging) 40%, transparent),
+                inset 0 1px 2px color-mix(in srgb, var(--color-white) 40%, transparent);
+        }
+    }
+
+    @keyframes charging-sheen {
+        0% {
+            transform: translateX(-120%);
+        }
+
+        60%,
+        100% {
+            transform: translateX(120%);
         }
     }
 
