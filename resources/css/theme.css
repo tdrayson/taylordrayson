@@ -63,6 +63,13 @@
     --text-display-xl--font-weight: 800;
     --text-display-xl--letter-spacing: -0.035em;
 
+    /* Below `text-xs`, for type in the smallest Now widgets. */
+    --text-2xs: 0.625rem;
+    --text-2xs--line-height: 1.5;
+
+    --text-3xs: 0.5rem;
+    --text-3xs--line-height: 1.5;
+
     /* ----------------------------------------------------------------
        Colour scales — uniform, purpose-free. Use these directly:
        bg-neutral-25, text-neutral-900, border-neutral-100, bg-accent-500.
@@ -125,6 +132,9 @@
     /* Wide dashboards (e.g. the stats pages) cap here and centre, so cards
        don't stretch awkwardly on very wide screens (`max-w-dashboard`). */
     --container-dashboard: 90rem;
+    /* Square Now widgets run 159-324px wide, below Tailwind's smallest container step. */
+    --container-5xs: 11rem;
+    --container-4xs: 14rem;
 
     /* The contents rail is absolutely positioned off the 44rem body column and
        needs 264px beside it, which `xl` does not yet afford: at 1280px it runs
@@ -135,6 +145,7 @@
     /* Elevation */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;
     --shadow-marker: 0 1px 3px rgb(0 0 0 / 0.3);
+    --drop-shadow-rings: 0 4px 10px rgba(0, 0, 0, 0.25);
 
     /* Motion */
     --animate-fade-in: fade-in 0.25s ease;
@@ -253,4 +264,16 @@
     --color-score-duration: hsl(212 88% 56%);
     --color-score-bedtime: hsl(168 65% 42%);
     --color-score-interruptions: hsl(5 80% 66%);
+
+    /* Activity rings, after the Apple Watch face. Deliberately absent from
+       dark.css: the rings and the dark face look the same in either theme. */
+    --color-ring-move: #fb1b53;
+    --color-ring-move-light: #ff4d72;
+    --color-ring-exercise: #84db20;
+    --color-ring-exercise-light: #c6ff4d;
+    --color-ring-exercise-dark: #5fb80a;
+    --color-ring-stand: #15d9d9;
+    --color-ring-stand-light: #5bf5f5;
+    --color-ring-face: #232327;
+    --color-ring-face-deep: #0e0e10;
 }

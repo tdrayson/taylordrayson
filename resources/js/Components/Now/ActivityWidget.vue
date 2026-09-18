@@ -21,9 +21,9 @@ const TAU = 2 * Math.PI;
 
 const rings = computed(() =>
     [
-        { key: 'move', r: 42, label: 'Move', unit: 'CAL', value: props.move, goal: props.moveGoal, base: '#FB1B53' },
-        { key: 'exercise', r: 30, label: 'Exercise', unit: 'MIN', value: props.exercise, goal: props.exerciseGoal, base: '#84DB20' },
-        { key: 'stand', r: 18, label: 'Stand', unit: 'HRS', value: props.stand, goal: props.standGoal, base: '#15D9D9' },
+        { key: 'move', r: 42, label: 'Move', unit: 'CAL', value: props.move, goal: props.moveGoal, color: 'var(--color-ring-move)', light: 'var(--color-ring-move-light)', text: 'text-ring-move' },
+        { key: 'exercise', r: 30, label: 'Exercise', unit: 'MIN', value: props.exercise, goal: props.exerciseGoal, color: 'var(--color-ring-exercise)', light: 'var(--color-ring-exercise-light)', text: 'text-ring-exercise' },
+        { key: 'stand', r: 18, label: 'Stand', unit: 'HRS', value: props.stand, goal: props.standGoal, color: 'var(--color-ring-stand)', light: 'var(--color-ring-stand-light)', text: 'text-ring-stand' },
     ].map((ring) => {
         const circ = TAU * ring.r;
         const fraction = Math.max(0, Math.min(1, ring.goal ? ring.value / ring.goal : 0));
@@ -32,13 +32,7 @@ const rings = computed(() =>
     }),
 );
 
-const labelColor = (ring) => {
-    if (ring.key === 'exercise') {
-        return props.variant === 'light' ? '#5FB80A' : '#84DB20';
-    }
-
-    return ring.base;
-};
+const labelClass = (ring) => (ring.key === 'exercise' && props.variant === 'light' ? 'text-ring-exercise-dark' : ring.text);
 
 // Rings start empty and counters at zero; both animate to target on mount.
 const offsets = reactive({});
@@ -86,33 +80,39 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="activity rounded-3xl" :class="[`activity--${variant}`, { 'activity--has-aspect': !fill }]">
-        <div class="activity__inner">
-            <div class="activity__rings">
-                <svg viewBox="0 0 100 100">
+    <div
+        class="@container rounded-3xl shadow-card"
+        :class="[variant === 'dark' ? 'bg-linear-165 from-ring-face to-ring-face-deep text-white' : 'bg-neutral-0 text-neutral-900', { 'aspect-2/1': !fill }]"
+    >
+        <div class="flex h-full items-center gap-2.75 px-4 py-2.5 @sm:gap-3.25 @sm:px-5 @sm:py-3 @md:gap-4 @md:px-6 @md:py-3.75 @xl:gap-5.25 @xl:px-8 @xl:py-5">
+            <div class="aspect-square w-7/15 flex-none drop-shadow-rings">
+                <svg class="block size-full" viewBox="0 0 100 100">
                     <defs>
-                        <linearGradient :id="gradId('move')" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#FF4D72" />
-                            <stop offset="1" stop-color="#FA114F" />
-                        </linearGradient>
-                        <linearGradient :id="gradId('exercise')" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#C6FF4D" />
-                            <stop offset="1" stop-color="#84DB20" />
-                        </linearGradient>
-                        <linearGradient :id="gradId('stand')" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#5BF5F5" />
-                            <stop offset="1" stop-color="#15D9D9" />
+                        <linearGradient v-for="ring in rings" :id="gradId(ring.key)" :key="ring.key" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" :style="{ stopColor: ring.light }" />
+                            <stop offset="1" :style="{ stopColor: ring.color }" />
                         </linearGradient>
                     </defs>
 
-                    <circle v-for="ring in rings" :key="`track-${ring.key}`" class="activity__ring-track" cx="50" cy="50" :r="ring.r" :stroke="ring.base" />
                     <circle
-                        v-for="(ring, i) in rings"
-                        :key="`fill-${ring.key}`"
-                        class="activity__ring-fill"
+                        v-for="ring in rings"
+                        :key="`track-${ring.key}`"
+                        class="fill-none stroke-9"
+                        :class="variant === 'dark' ? 'opacity-20' : 'opacity-16'"
                         cx="50"
                         cy="50"
                         :r="ring.r"
+                        :style="{ stroke: ring.color }"
+                    />
+                    <circle
+                        v-for="(ring, i) in rings"
+                        :key="`fill-${ring.key}`"
+                        class="ring-draw fill-none stroke-9"
+                        cx="50"
+                        cy="50"
+                        :r="ring.r"
+                        stroke-linecap="round"
+                        transform="rotate(-90 50 50)"
                         :stroke="`url(#${gradId(ring.key)})`"
                         :stroke-dasharray="ring.circ"
                         :style="{ strokeDashoffset: offsets[ring.key], transitionDelay: `${0.05 + i * 0.12}s` }"
@@ -120,10 +120,15 @@ onMounted(() => {
                 </svg>
             </div>
 
-            <div class="activity__metrics">
-                <div v-for="ring in rings" :key="ring.key" class="activity__metric">
-                    <div class="activity__metric-label" :style="{ color: labelColor(ring) }">{{ ring.label }}</div>
-                    <div class="activity__metric-value">{{ counts[ring.key] }}<small class="activity__metric-unit">/{{ ring.goal }} {{ ring.unit }}</small></div>
+            <div class="flex flex-1 flex-col justify-center gap-2.5 pl-1.25 @sm:gap-3 @sm:pl-1.5 @md:gap-3.75 @md:pl-1.75 @xl:gap-5 @xl:pl-2.25">
+                <div v-for="ring in rings" :key="ring.key">
+                    <div class="text-2xs font-extrabold @sm:text-xs @md:text-sm @xl:text-xl" :class="labelClass(ring)">{{ ring.label }}</div>
+                    <div class="mt-0.5 text-xl leading-none font-extrabold tracking-tight tabular-nums @sm:text-2xl @md:text-3xl @xl:mt-0.75 @xl:text-4xl">
+                        {{ counts[ring.key] }}<small
+                            class="text-2xs leading-none font-semibold tracking-normal @sm:text-xs @md:text-sm @xl:text-xl"
+                            :class="variant === 'dark' ? 'text-white/50' : 'text-neutral-400'"
+                        >/{{ ring.goal }} {{ ring.unit }}</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,121 +136,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* The card is the query container; inner sizing is in cqw (1cqw ≈ reference
-   px ÷ 4.4) so the whole 2:1 widget scales with the grid cell. */
-.activity {
-    container-type: inline-size;
-    box-shadow: var(--shadow-card);
-}
-
-/* Standalone (not in a square-defined grid row) keeps the iOS 2:1 ratio. */
-.activity--has-aspect {
-    aspect-ratio: 2 / 1;
-}
-
-.activity--dark {
-    background: linear-gradient(165deg, #232327, #0e0e10);
-    color: #fff;
-}
-
-.activity--light {
-    background: var(--color-neutral-0);
-    color: var(--color-neutral-900);
-}
-
-/* Padding/flex live on a descendant so their cqw values reference the card
-   (a container can't query itself). */
-.activity__inner {
-    display: flex;
-    height: 100%;
-    align-items: center;
-    gap: 3.2cqw;
-    padding: 3cqw 5cqw;
-}
-
-.activity__rings {
-    width: 42cqw;
-    height: 42cqw;
-    flex: none;
-    filter: drop-shadow(0 0.9cqw 2.3cqw rgba(0, 0, 0, 0.25));
-}
-
-.activity__rings svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-.activity__ring-track {
-    fill: none;
-    stroke-width: 9;
-}
-
-.activity--dark .activity__ring-track {
-    opacity: 0.2;
-}
-
-.activity--light .activity__ring-track {
-    opacity: 0.16;
-}
-
-.activity__ring-fill {
-    fill: none;
-    stroke-width: 9;
-    stroke-linecap: round;
-    transform: rotate(-90deg);
-    transform-origin: 50px 50px;
+.ring-draw {
     transition: stroke-dashoffset 1.2s cubic-bezier(0.32, 1, 0.38, 1);
 }
 
-.activity__metrics {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: center;
-    gap: 3cqw;
-    padding-left: 1.4cqw;
-}
-
-.activity__metric-label {
-    font-size: 3cqw;
-    font-weight: 800;
-    letter-spacing: 0.01em;
-}
-
-.activity__metric-value {
-    margin-top: 0.5cqw;
-    font-size: 6.1cqw;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-}
-
-.activity__metric-unit {
-    font-size: 3cqw;
-    font-weight: 600;
-    letter-spacing: 0;
-}
-
-.activity--dark .activity__metric-value {
-    color: #fff;
-}
-
-.activity--dark .activity__metric-unit {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.activity--light .activity__metric-value {
-    color: #16181c;
-}
-
-.activity--light .activity__metric-unit {
-    color: #9aa0a8;
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .activity__ring-fill {
+    .ring-draw {
         transition: none;
     }
 }
