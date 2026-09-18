@@ -261,11 +261,12 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     </button>
                 </div>
 
-                <!-- Image region: fills the space between the bars; clicking the
-                     empty area around the image closes. -->
+                <!-- Image region: fills the space between the bars. Every dark
+                     surface closes on a click and says so with the zoom-out
+                     cursor; only a carousel photo overrides it, to grab. -->
                 <div
-                    class="relative flex min-h-0 flex-1 touch-none overflow-hidden"
-                    :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-out items-center justify-center'"
+                    class="relative flex min-h-0 flex-1 cursor-zoom-out touch-none overflow-hidden"
+                    :class="{ 'items-center justify-center': ! hasMultiple }"
                     @click.self="closeUnlessDrag"
                 >
                     <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">
@@ -275,11 +276,11 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                             class="flex h-full w-1/3 shrink-0 items-center justify-center px-2 sm:px-3"
                             @click.self="closeUnlessDrag"
                         >
-                            <img :src="slide.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                            <img :src="slide.full" draggable="false" alt="" class="max-h-full max-w-full cursor-grab select-none rounded-lg object-contain shadow-card active:cursor-grabbing">
                         </div>
                     </div>
 
-                    <img v-else-if="current" :src="current.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                    <img v-else-if="current" :src="current.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card" @click="closeUnlessDrag">
 
                     <button
                         v-if="hasMultiple"
