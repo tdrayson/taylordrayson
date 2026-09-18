@@ -2,8 +2,6 @@
 
 namespace App\Services\Tmdb;
 
-use App\Services\GetRequest;
-
 /**
  * Client for the TMDB API v3, used for enrichment only (season/episode structure,
  * artwork). Never authoritative for identity: our own slug and the Trakt id
@@ -18,7 +16,7 @@ class Client
      */
     public function tv(int $id): ?array
     {
-        return $this->get("/tv/{$id}");
+        return $this->connector->json("/tv/{$id}");
     }
 
     /**
@@ -26,7 +24,7 @@ class Client
      */
     public function movie(int $id): ?array
     {
-        return $this->get("/movie/{$id}");
+        return $this->connector->json("/movie/{$id}");
     }
 
     /**
@@ -35,7 +33,7 @@ class Client
      */
     public function images(string $kind, int $id): ?array
     {
-        return $this->get("/{$kind}/{$id}/images");
+        return $this->connector->json("/{$kind}/{$id}/images");
     }
 
     public function imageUrl(?string $path, string $size): ?string
@@ -45,15 +43,5 @@ class Client
         }
 
         return config('services.tmdb.image_base').$size.$path;
-    }
-
-    /**
-     * @return array<mixed>|null
-     */
-    private function get(string $path): ?array
-    {
-        $response = $this->connector->send(new GetRequest($path));
-
-        return $response->failed() ? null : $response->json();
     }
 }

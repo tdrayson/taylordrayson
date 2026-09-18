@@ -11,4 +11,10 @@ class AirlineLogosConnector extends ApiConnector
     {
         return 'https://airlines-api.logostream.dev';
     }
+
+    /** @return array<string, mixed> */
+    protected function defaultQuery(): array
+    {
+        return ['key' => config('services.logostream.key')];
+    }
 }
