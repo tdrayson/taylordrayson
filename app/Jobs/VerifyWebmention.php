@@ -2,14 +2,15 @@
 
 namespace App\Jobs;
 
+use App\Actions\Webmentions\DecideMentionStatus;
 use App\Actions\Webmentions\ParseMentionSource;
 use App\Actions\Webmentions\StoreAuthorPhoto;
+use App\Actions\Webmentions\StoreNestedResponses;
 use App\Data\MentionData;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Models\Webmention;
 use App\Services\Pushover\Client as Pushover;
-use App\Support\Links;
 use App\Support\SafeFetch;
 use App\Support\WebmentionTarget;
 use DOMDocument;
@@ -35,7 +36,7 @@ class VerifyWebmention implements ShouldQueue
 
     public function __construct(private readonly int $webmentionId) {}
 
-    public function handle(ParseMentionSource $parse): void
+    public function handle(ParseMentionSource $parse, StoreNestedResponses $storeNested): void
     {
         $mention = Webmention::query()->find($this->webmentionId);
 
@@ -83,7 +84,8 @@ class VerifyWebmention implements ShouldQueue
             return;
         }
 
-        $parsed = $parse($html, $mention->source_url, $mention->target_url);
+        $entry = $parse->entryIn($html, $mention->source_url, $mention->target_url);
+        $parsed = $entry === null ? MentionData::bare() : $parse->fromEntry($entry, $mention->target_url);
 
         $mention->target()->associate($target);
         $mention->fill([
@@ -97,10 +99,15 @@ class VerifyWebmention implements ShouldQueue
             'content' => $parsed->content,
             'published_at' => $parsed->publishedAt,
             'timezone' => $parsed->publishedTimezone,
-            'status' => $this->statusFor($parsed),
+            'status' => app(DecideMentionStatus::class)($parsed->authorUrl),
             'verified_at' => now(),
             'last_checked_at' => now(),
         ])->save();
+
+        // The responses their page carries under the post that mentioned us.
+        // Read on every check, not just the first: the whole point of a
+        // salmention is that this thread grows after we were told about it.
+        $storeNested($mention, $entry ?? []);
 
         $this->notify($mention);
     }
@@ -195,31 +202,5 @@ class VerifyWebmention implements ShouldQueue
     private static function normalise(string $url): string
     {
         return rtrim((string) preg_replace('#^https?://#i', '', trim($url)), '/');
-    }
-
-    /**
-     * Hold the first mention from a site, then trust that site. Same rule as
-     * comments, keyed on the sending host rather than a name.
-     *
-     * Matched on the whole host. The old `like %host%` matched any substring,
-     * so one approved mention from indieweb.org silently trusted dieweb.org,
-     * and example.com trusted example.com.evil.tld. A host is either the same
-     * host or a different one; there is no partial credit.
-     */
-    private function statusFor(MentionData $parsed): CommentStatus
-    {
-        $host = $parsed->authorUrl === null ? null : Links::host($parsed->authorUrl);
-
-        if ($host === null || $host === '') {
-            return CommentStatus::Pending;
-        }
-
-        if (in_array($host, config('webmentions.trusted_hosts', []), strict: true)) {
-            return CommentStatus::Approved;
-        }
-
-        return Webmention::query()->approved()->where('author_host', $host)->exists()
-            ? CommentStatus::Approved
-            : CommentStatus::Pending;
     }
 }

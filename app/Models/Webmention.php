@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable([
     'source_url',
+    'parent_source_url',
     'target_url',
     'kind',
     'title',
@@ -32,6 +33,23 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Webmention extends Model
 {
     use HasFactory;
+
+    /**
+     * Take the nested responses with the mention that carried them.
+     *
+     * A salmention is only ever visible because the page it was read from is:
+     * left behind when that page stops linking here, it would keep a stranger's
+     * comment thread on the entry with nothing above it to explain why.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $mention): void {
+            self::query()
+                ->where('parent_source_url', $mention->source_url)
+                ->where('target_url', $mention->target_url)
+                ->delete();
+        });
+    }
 
     /**
      * `kind` is deliberately not cast. Its values come from other people's
@@ -76,9 +94,20 @@ class Webmention extends Model
         return $query->where('status', CommentStatus::Approved);
     }
 
-    /** The kind as an enum, or null for a value this app does not recognise. */
+    /** Mentions somebody sent us, as opposed to ones read out of another page's thread. */
+    public function scopeTopLevel(Builder $query): Builder
+    {
+        return $query->whereNull('parent_source_url');
+    }
+
+    /**
+     * The kind as an enum, or null for a value this app does not recognise.
+     *
+     * Read off the raw attributes: `$this->kind` would resolve this method as a
+     * relationship on a row that has not been given one yet, and throw.
+     */
     public function kind(): ?WebmentionKind
     {
-        return WebmentionKind::tryFrom((string) $this->kind);
+        return WebmentionKind::tryFrom((string) ($this->attributes['kind'] ?? ''));
     }
 }

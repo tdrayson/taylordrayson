@@ -1,6 +1,5 @@
 <?php
 
-use App\Actions\Webmentions\ParseMentionSource;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Jobs\VerifyWebmention;
@@ -56,7 +55,7 @@ function verify(Note $note, ?string $html, int $status = 200): ?Webmention
 
     $mention = Webmention::query()->create(['source_url' => SOURCE, 'target_url' => $target]);
 
-    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+    app()->call([new VerifyWebmention($mention->id), 'handle']);
 
     return $mention->fresh();
 }
@@ -298,7 +297,7 @@ it('will not follow a redirect into a private address', function () {
 
     $mention = Webmention::query()->create(['source_url' => SOURCE, 'target_url' => $target]);
 
-    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+    app()->call([new VerifyWebmention($mention->id), 'handle']);
 
     // Nothing was fetched from the redirect target, so nothing was verified.
     expect($mention->fresh()?->verified_at)->toBeNull();
