@@ -33,7 +33,7 @@ function height(value) {
             </Tooltip>
         </div>
         <div class="mt-1.5 flex gap-1">
-            <span v-for="(item, index) in items" :key="index" class="flex-1 text-center text-micro uppercase text-neutral-400">{{ item.tick ?? '' }}</span>
+            <span v-for="(item, index) in items" :key="index" class="flex-1 text-center text-2xs uppercase text-neutral-400">{{ item.tick ?? '' }}</span>
         </div>
     </div>
 </template>

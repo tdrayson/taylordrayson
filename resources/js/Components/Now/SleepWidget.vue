@@ -17,15 +17,15 @@ const props = defineProps({
 
 const MAX = 9;
 
-// Map the raw stage hours to their display label and design-token colour.
+// Map the raw stage hours to their display label and design-token swatch.
 const stages = computed(() => {
     const split = props.lastNight?.stageHours;
 
     return split === undefined || split === null ? [] : [
-        { key: 'Deep', hours: split.deep, color: 'var(--color-sleep-deep)' },
-        { key: 'Core', hours: split.core, color: 'var(--color-sleep)' },
-        { key: 'REM', hours: split.rem, color: 'var(--color-sleep-rem)' },
-        { key: 'Awake', hours: split.awake, color: 'var(--color-sleep-awake)' },
+        { key: 'Deep', hours: split.deep, swatch: 'bg-sleep-deep' },
+        { key: 'Core', hours: split.core, swatch: 'bg-sleep' },
+        { key: 'REM', hours: split.rem, swatch: 'bg-sleep-rem' },
+        { key: 'Awake', hours: split.awake, swatch: 'bg-sleep-awake' },
     ];
 });
 
@@ -75,243 +75,59 @@ const days = computed(() => props.nights.map((night, i) => ({
 </script>
 
 <template>
-    <div class="sleep rounded-3xl" :class="{ 'sleep--has-aspect': !fill }">
-        <div class="sleep__inner">
-            <div class="sleep__summary">
-                <h2 class="sleep__label"><Icon class="sleep__label-icon" name="Moon02Icon" />Sleep</h2>
-                <div v-if="bigParts" class="sleep__duration">{{ bigParts.hours }}h <small class="sleep__minutes">{{ bigParts.minutes }}m</small></div>
-                <div v-else class="sleep__duration sleep__duration--empty">N/A</div>
-                <div class="sleep__caption">Last night</div>
+    <div class="@container rounded-3xl bg-neutral-0 text-neutral-900 shadow-card" :class="{ 'aspect-2/1': !fill }">
+        <div class="flex h-full gap-4 px-4.5 py-4 @sm:gap-5 @sm:px-5.5 @sm:py-5 @md:gap-6 @md:px-6.5 @md:py-6 @xl:gap-8 @xl:px-9 @xl:py-8">
+            <div class="flex min-w-0 shrink-0 basis-3/7 flex-col">
+                <h2 class="flex items-center gap-1 text-2xs font-bold text-neutral-500 @sm:gap-1.5 @sm:text-xs @md:gap-2 @md:text-sm @xl:gap-2.5 @xl:text-xl">
+                    <Icon class="size-3 shrink-0 text-sleep @sm:size-3.5 @md:size-4.5 @xl:size-6" name="Moon02Icon" />Sleep
+                </h2>
+                <div v-if="bigParts" class="mt-1 text-3xl leading-none font-extrabold tracking-tight @sm:mt-1.5 @sm:text-4xl @md:text-5xl @xl:mt-2 @xl:text-6xl">
+                    {{ bigParts.hours }}h <small class="ml-0.5 text-sm leading-none font-bold text-neutral-400 @sm:text-lg @md:text-xl @xl:text-3xl">{{ bigParts.minutes }}m</small>
+                </div>
+                <div v-else class="mt-1 text-3xl leading-none font-extrabold tracking-tight text-neutral-400 @sm:mt-1.5 @sm:text-4xl @md:text-5xl @xl:mt-2 @xl:text-6xl">N/A</div>
+                <div class="mt-0.5 text-2xs font-medium text-neutral-500 @sm:mt-0.75 @sm:text-xs @md:mt-1 @md:text-sm @xl:mt-1.25 @xl:text-lg">Last night</div>
 
                 <!-- No split to draw without a night to draw it from. -->
                 <template v-if="stages.length">
-                    <div class="sleep__stages">
-                        <i v-for="stage in stages" :key="stage.key" class="sleep__stage-segment" :style="{ flex: stage.hours, background: stage.color }" />
+                    <div class="mt-auto flex h-2 overflow-hidden rounded-full @sm:h-2.5 @md:h-3 @xl:h-4">
+                        <i v-for="stage in stages" :key="stage.key" class="h-full" :class="stage.swatch" :style="{ flex: stage.hours }" />
                     </div>
-                    <div class="sleep__legend">
-                        <span v-for="stage in stages" :key="stage.key" class="sleep__legend-item">
-                            <b class="sleep__legend-swatch" :style="{ background: stage.color }" />{{ stage.key }}
+                    <div class="mt-1.5 flex gap-1.5 @sm:mt-2 @sm:gap-2.5 @md:mt-2.5 @md:gap-3 @xl:mt-3 @xl:gap-4">
+                        <span
+                            v-for="stage in stages"
+                            :key="stage.key"
+                            class="flex items-center gap-0.75 text-3xs font-semibold text-neutral-500 @sm:gap-1 @sm:text-2xs @md:text-xs @xl:gap-1.5 @xl:text-sm"
+                        >
+                            <b class="size-1.25 shrink-0 rounded-full @sm:size-1.5 @md:size-2 @xl:size-2.5" :class="stage.swatch" />{{ stage.key }}
                         </span>
                     </div>
                 </template>
             </div>
 
-            <div class="sleep__chart">
-                <div class="sleep__chart-header">
-                    <h3 class="sleep__chart-title">LAST 7 NIGHTS</h3>
-                    <span v-if="averageParts" class="sleep__chart-average">avg {{ averageParts.hours }}h {{ averageParts.minutes }}m</span>
+            <div class="flex min-w-0 flex-1 flex-col">
+                <div class="flex items-baseline justify-between text-3xs @sm:text-2xs @md:text-xs @xl:text-base">
+                    <h3 class="font-bold tracking-wider text-neutral-500">LAST 7 NIGHTS</h3>
+                    <span v-if="averageParts" class="font-semibold text-neutral-400">avg {{ averageParts.hours }}h {{ averageParts.minutes }}m</span>
                 </div>
-                <div class="sleep__bars">
-                    <Tooltip v-for="night in nightCells" :key="night.date" :label="night.label" placement="top" class="sleep__bar-column">
+                <div class="mt-1.25 mb-0.75 flex flex-1 gap-1.5 @sm:mt-1.5 @sm:mb-1 @sm:gap-2 @md:mt-2 @md:mb-1.25 @md:gap-2.5 @xl:mt-2.5 @xl:mb-1.5 @xl:gap-3.5">
+                    <Tooltip v-for="night in nightCells" :key="night.date" :label="night.label" placement="top" class="min-w-0 flex-1 flex-col justify-end">
                         <!-- A night with no record keeps its column but draws no
                              bar, so the row still reads as a calendar week. -->
                         <Link
                             v-if="night.heightPct"
                             :href="night.href"
-                            class="sleep__bar"
-                            :class="{ 'sleep__bar--today': night.today }"
+                            class="min-h-1/25 w-full rounded-t rounded-b-xs transition duration-120 hover:brightness-92 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @xl:rounded-t-sm"
+                            :class="night.today ? 'bg-sleep' : 'bg-sleep/25'"
                             :style="{ height: night.heightPct }"
                             :aria-label="night.label"
                         />
-                        <span v-else class="sleep__bar sleep__bar--empty" :aria-label="night.label" />
+                        <span v-else :aria-label="night.label" />
                     </Tooltip>
                 </div>
-                <div class="sleep__days">
-                    <span v-for="(day, i) in days" :key="i" class="sleep__day" :class="{ 'sleep__day--today': day.today }">{{ day.letter }}</span>
+                <div class="flex text-3xs font-semibold text-neutral-400 @sm:text-2xs @md:text-xs @xl:text-base">
+                    <span v-for="(day, i) in days" :key="i" class="flex-1 text-center" :class="{ 'text-sleep': day.today }">{{ day.letter }}</span>
                 </div>
             </div>
         </div>
     </div>
 </template>
-
-<style scoped>
-/* The card is the query container; inner sizing is in cqw (1cqw ≈ reference
-   px ÷ 4.52). Padding/flex live on .sleep__inner so cqw references the card. */
-.sleep {
-    container-type: inline-size;
-    color: var(--color-neutral-900);
-    background: var(--color-neutral-0);
-    box-shadow: var(--shadow-card);
-}
-
-.sleep--has-aspect {
-    aspect-ratio: 2 / 1;
-}
-
-.sleep__inner {
-    display: flex;
-    height: 100%;
-    gap: 4.9cqw;
-    padding: 4.9cqw 5.3cqw;
-}
-
-.sleep__summary {
-    flex: 0 0 43%;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.sleep__label {
-    display: flex;
-    align-items: center;
-    gap: 1.5cqw;
-    font-size: 2.9cqw;
-    font-weight: 700;
-    color: var(--color-neutral-500);
-}
-
-.sleep__label-icon {
-    width: 3.5cqw;
-    height: 3.5cqw;
-    flex: none;
-    color: var(--color-sleep);
-}
-
-.sleep__duration {
-    margin-top: 1.3cqw;
-    font-size: 8.4cqw;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1;
-}
-
-.sleep__minutes {
-    margin-left: 0.4cqw;
-    font-size: 4.2cqw;
-    font-weight: 700;
-    color: var(--color-neutral-400);
-}
-
-.sleep__duration--empty {
-    color: var(--color-neutral-400);
-}
-
-.sleep__caption {
-    margin-top: 0.7cqw;
-    font-size: 2.8cqw;
-    font-weight: 500;
-    color: var(--color-neutral-500);
-}
-
-.sleep__stages {
-    display: flex;
-    height: 2.4cqw;
-    margin-top: auto;
-    border-radius: 1.3cqw;
-    overflow: hidden;
-}
-
-.sleep__stage-segment {
-    height: 100%;
-}
-
-.sleep__legend {
-    display: flex;
-    gap: 2.4cqw;
-    margin-top: 2cqw;
-}
-
-.sleep__legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.9cqw;
-    font-size: 2.2cqw;
-    font-weight: 600;
-    color: var(--color-neutral-500);
-}
-
-.sleep__legend-swatch {
-    width: 1.5cqw;
-    height: 1.5cqw;
-    flex: none;
-    border-radius: 50%;
-}
-
-.sleep__chart {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.sleep__chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-.sleep__chart-title {
-    font-size: 2.4cqw;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--color-neutral-500);
-}
-
-.sleep__chart-average {
-    font-size: 2.4cqw;
-    font-weight: 600;
-    color: var(--color-neutral-400);
-}
-
-.sleep__bars {
-    flex: 1;
-    display: flex;
-    align-items: stretch;
-    gap: 2cqw;
-    margin: 1.6cqw 0 1cqw;
-}
-
-.sleep__bar-column {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    flex-direction: column;
-    justify-content: flex-end;
-}
-
-.sleep__bar {
-    width: 100%;
-    min-height: 4%;
-    border-radius: 1.2cqw 1.2cqw 0.4cqw 0.4cqw;
-    background: color-mix(in srgb, var(--color-sleep) 25%, var(--color-neutral-0));
-    transition: filter 0.12s ease;
-}
-
-/* A night with no record: the column is still there to keep the week aligned,
-   but there is nothing to say about its height. */
-.sleep__bar--empty {
-    height: 0;
-    min-height: 0;
-    background: none;
-}
-
-.sleep__bar--today {
-    background: var(--color-sleep);
-}
-
-.sleep__bar:hover {
-    filter: brightness(0.92);
-}
-
-.sleep__bar:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
-}
-
-.sleep__days {
-    display: flex;
-}
-
-.sleep__day {
-    flex: 1;
-    text-align: center;
-    font-size: 2.4cqw;
-    font-weight: 600;
-    color: var(--color-neutral-400);
-}
-
-.sleep__day--today {
-    color: var(--color-sleep);
-}
-</style>
