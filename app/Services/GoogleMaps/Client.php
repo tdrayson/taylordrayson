@@ -2,7 +2,7 @@
 
 namespace App\Services\GoogleMaps;
 
-use RuntimeException;
+use App\Services\GetRequest;
 
 /**
  * Client for Google Places and Geocoding, used by the location field. Google
@@ -11,10 +11,6 @@ use RuntimeException;
  */
 class Client
 {
-    /**
-     * The legacy Text Search, not Places API (New): the new one is not enabled
-     * on this project, and this returns what the field needs anyway.
-     */
     /** Wide enough to reach the venue you are standing outside, not the next town. */
     private const NEARBY_RADIUS_METRES = 500;
 
@@ -35,7 +31,7 @@ class Client
                 : [];
         }
 
-        $parameters = ['query' => $query, 'key' => $this->key()];
+        $parameters = ['query' => $query];
 
         if ($latitude !== null && $longitude !== null) {
             // A bias, not a restriction: somewhere further away still shows, it
@@ -44,7 +40,9 @@ class Client
             $parameters['radius'] = 50000;
         }
 
-        $response = $this->connector->send(new PlacesRequest($parameters));
+        // The legacy Text Search, not Places API (New): the new one is not
+        // enabled on this project, and this returns what the field needs.
+        $response = $this->connector->send(new GetRequest('/place/textsearch/json', $parameters));
 
         if ($response->failed()) {
             return [];
@@ -64,7 +62,10 @@ class Client
      */
     private function nearby(float $latitude, float $longitude): array
     {
-        $response = $this->connector->send(new NearbyRequest($latitude, $longitude, self::NEARBY_RADIUS_METRES, $this->key()));
+        $response = $this->connector->send(new GetRequest('/place/nearbysearch/json', [
+            'location' => "{$latitude},{$longitude}",
+            'radius' => self::NEARBY_RADIUS_METRES,
+        ]));
 
         if ($response->failed()) {
             return [];
@@ -83,7 +84,9 @@ class Client
      */
     public function reverse(float $latitude, float $longitude): ?array
     {
-        $response = $this->connector->send(new GeocodeRequest($latitude, $longitude, $this->key()));
+        $response = $this->connector->send(new GetRequest('/geocode/json', [
+            'latlng' => "{$latitude},{$longitude}",
+        ]));
 
         $result = $response->successful() ? ($response->json('results.0') ?? null) : null;
 
@@ -157,16 +160,5 @@ class Client
             'city' => $of('postal_town') ?? $of('locality'),
             'country' => $of('country'),
         ];
-    }
-
-    private function key(): string
-    {
-        $key = config('services.google.maps_key');
-
-        if (! is_string($key) || $key === '') {
-            throw new RuntimeException('Google Maps key is not configured (GOOGLE_MAPS_API_KEY).');
-        }
-
-        return $key;
     }
 }

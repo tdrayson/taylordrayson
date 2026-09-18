@@ -47,4 +47,33 @@ abstract class ApiConnector extends Connector
 
         return in_array($exception->getResponse()->status(), self::RETRYABLE, true);
     }
+
+    /**
+     * Whether the connection has what it needs to authenticate. Connectors
+     * whose credential is acquired at runtime override this.
+     */
+    protected function canAuthenticate(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Send a request and decode it, treating any failure as no data.
+     *
+     * @param  string|Request  $target  A path to GET, or a request to send.
+     * @param  array<string, mixed>  $query  Applied to a path only.
+     * @return array<array-key, mixed>|null
+     */
+    public function json(string|Request $target, array $query = []): ?array
+    {
+        // An unauthenticated call to a provider that wants credentials is just
+        // a slower way of getting null.
+        if (! $this->canAuthenticate()) {
+            return null;
+        }
+
+        $response = $this->send(is_string($target) ? new GetRequest($target, $query) : $target);
+
+        return $response->failed() ? null : $response->json();
+    }
 }
