@@ -63,6 +63,9 @@
     --text-display-xl--font-weight: 800;
     --text-display-xl--letter-spacing: -0.035em;
 
+    /* Relative to the surrounding text: a duration's h/m/s suffix. */
+    --text-unit: 0.7em;
+
     /* Below `text-xs`, for type in the smallest Now widgets. */
     --text-2xs: 0.625rem;
     --text-2xs--line-height: 1.5;
@@ -141,6 +144,8 @@
        ~12px past the viewport and scrolls the page sideways. Below this the
        rail is replaced by the floating pill, not lost. */
     --breakpoint-toc: 85rem;
+
+    --grid-template-columns-breakdown: 7rem 1fr auto;
 
     /* Elevation */
     --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 4px 14px 0;

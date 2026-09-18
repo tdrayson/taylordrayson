@@ -137,7 +137,7 @@ setLayoutProps({
 
         <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
             <!-- Route map: solid routes in the type colour. -->
-            <section class="flex h-[440px] flex-col lg:col-span-8" :class="CARD">
+            <section class="flex h-110 flex-col lg:col-span-8" :class="CARD">
                 <header class="mb-4 flex items-baseline justify-between gap-3">
                     <h2 class="font-display text-item-title">Routes</h2>
                     <span class="text-meta text-neutral-500">{{ routes.length }} routes</span>

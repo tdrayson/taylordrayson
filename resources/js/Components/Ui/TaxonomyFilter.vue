@@ -192,7 +192,7 @@ function onSearchKeydown(event) {
 
         <div
             v-if="open"
-            class="absolute left-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-neutral-50 bg-neutral-0 p-2 shadow-card"
+            class="absolute left-0 top-full z-20 mt-2 w-72 max-w-viewport-inset rounded-xl border border-neutral-50 bg-neutral-0 p-2 shadow-card"
             @click.stop
         >
             <input

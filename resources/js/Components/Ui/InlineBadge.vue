@@ -11,7 +11,7 @@ defineProps({
 
 <template>
     <span
-        class="inline-badge inline-block size-7 overflow-hidden bg-neutral-25"
+        class="inline-block size-7 overflow-hidden bg-neutral-25 align-drop-25"
         :class="circle ? 'rounded-full' : 'rounded-sm'"
         aria-hidden="true"
     >
@@ -24,10 +24,3 @@ defineProps({
         <Icon v-else-if="icon" :icon="icon" class="size-full" />
     </span>
 </template>
-
-<style scoped>
-/* Seat the badge just below the text baseline (à la inline avatars/FA icons). */
-.inline-badge {
-    vertical-align: -0.25em;
-}
-</style>

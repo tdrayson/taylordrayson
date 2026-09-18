@@ -215,7 +215,7 @@ function openLightbox(index) {
 
 <template>
     <div class="relative block h-entry" :style="{ '--type-color': typeColor }">
-        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 lg:-left-12">
+        <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 text-(--type-color) lg:-left-12">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
         <div class="flex min-h-9 items-center">
@@ -223,7 +223,7 @@ function openLightbox(index) {
                 <component
                     :is="typeHref ? Link : 'div'"
                     :href="typeHref || undefined"
-                    class="type-color p-category text-label uppercase"
+                    class="p-category text-label uppercase text-(--type-color)"
                     :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
                 >{{ displayType }}</component>
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
@@ -245,7 +245,7 @@ function openLightbox(index) {
                 :href="url || undefined"
                 :aria-label="titleLabel || undefined"
                 class="p-name"
-                :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
+                :class="url ? 'u-url underline-offset-4 transition-colors hover:text-(--type-color) hover:underline focus-visible:text-(--type-color) focus-visible:underline' : ''"
             >{{ title }}</component>
         </h3>
         <p v-if="category" class="mt-1.5 text-caption text-neutral-500">{{ category }}</p>
@@ -416,14 +416,3 @@ function openLightbox(index) {
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
     </div>
 </template>
-
-<style scoped>
-.type-color {
-    color: var(--type-color);
-}
-
-.type-link:hover,
-.type-link:focus-visible {
-    color: var(--type-color);
-}
-</style>

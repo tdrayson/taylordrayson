@@ -361,7 +361,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
         <Transition name="palette">
             <div
                 v-if="isOpen"
-                class="overlay fixed inset-0 flex items-start justify-center px-4"
+                class="fixed inset-0 z-100 flex items-start justify-center px-4 pt-palette"
                 @click.self="close"
             >
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
@@ -430,11 +430,6 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
 </template>
 
 <style scoped>
-.overlay {
-    z-index: 100;
-    padding-top: 12vh;
-}
-
 kbd {
     display: inline-block;
     min-width: 1.1rem;

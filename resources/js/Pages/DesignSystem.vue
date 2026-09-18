@@ -141,10 +141,10 @@ function swatchInk(step) {
 
         <!-- Colour -->
         <section class="space-y-5">
-            <h2 class="ds-label">Colour</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Colour</h2>
 
             <div>
-                <div class="ds-sub">Neutral</div>
+                <div class="text-label uppercase text-neutral-500">Neutral</div>
                 <div class="mt-2 flex overflow-hidden rounded-lg border border-neutral-100">
                     <div
                         v-for="n in neutral"
@@ -158,7 +158,7 @@ function swatchInk(step) {
             </div>
 
             <div>
-                <div class="ds-sub">Accent</div>
+                <div class="text-label uppercase text-neutral-500">Accent</div>
                 <div class="mt-2 flex overflow-hidden rounded-lg border border-neutral-100">
                     <div
                         v-for="a in accent"
@@ -172,7 +172,7 @@ function swatchInk(step) {
             </div>
 
             <div>
-                <div class="ds-sub">Data types</div>
+                <div class="text-label uppercase text-neutral-500">Data types</div>
                 <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
                     <span v-for="accent in dataTypes" :key="accent" class="flex items-center gap-2 text-caption capitalize">
                         <span class="size-3 rounded-sm" :style="{ background: `var(--color-${accent})` }" />{{ accent }}
@@ -183,22 +183,22 @@ function swatchInk(step) {
 
         <!-- Typography -->
         <section class="space-y-6">
-            <h2 class="ds-label">Typography</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Typography</h2>
 
             <div class="flex gap-10">
                 <div>
                     <div class="font-display text-stat">Aa</div>
-                    <div class="ds-sub mt-1">Bricolage, display</div>
+                    <div class="mt-1 text-label uppercase text-neutral-500">Bricolage, display</div>
                 </div>
                 <div>
                     <div class="text-stat">Aa</div>
-                    <div class="ds-sub mt-1">Inter, body</div>
+                    <div class="mt-1 text-label uppercase text-neutral-500">Inter, body</div>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div v-for="t in typeScale" :key="t.cls" class="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-6">
-                    <div class="ds-sub w-24 shrink-0 sm:pt-1">{{ t.label }}</div>
+                    <div class="w-24 shrink-0 text-label uppercase text-neutral-500 sm:pt-1">{{ t.label }}</div>
                     <div :class="[t.cls, t.display ? 'font-display' : '', t.upper ? 'uppercase' : '']">{{ t.sample }}</div>
                 </div>
             </div>
@@ -221,7 +221,7 @@ function swatchInk(step) {
 
         <!-- Buttons -->
         <section class="space-y-3">
-            <h2 class="ds-label">Buttons</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Buttons</h2>
             <div class="flex flex-wrap items-center gap-3">
                 <Button v-for="v in buttonVariants" :key="v" :variant="v">{{ v }}</Button>
             </div>
@@ -229,13 +229,13 @@ function swatchInk(step) {
 
         <!-- Callouts (Portable Text nodes) -->
         <section class="space-y-3">
-            <h2 class="ds-label">Callouts</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Callouts</h2>
             <BlockContent :document="callouts" />
         </section>
 
         <!-- Pills -->
         <section class="space-y-3">
-            <h2 class="ds-label">Pills</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Pills</h2>
             <div class="flex flex-wrap items-center gap-2">
                 <Pill label="Default" />
                 <Pill label="Accent" variant="accent" />
@@ -245,7 +245,7 @@ function swatchInk(step) {
 
         <!-- Form -->
         <section class="space-y-3">
-            <h2 class="ds-label">Form</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Form</h2>
             <div class="max-w-sm space-y-3">
                 <Input placeholder="Search entries…" />
                 <Textarea v-model="note" :rows="2" placeholder="A quick note…" />
@@ -254,20 +254,20 @@ function swatchInk(step) {
                     <label class="flex items-center gap-2 text-meta"><Switch v-model="toggled" /> Switch</label>
                 </div>
 
-                <p class="ds-sub pt-3">Select, boxed and bare</p>
+                <p class="pt-3 text-label uppercase text-neutral-500">Select, boxed and bare</p>
                 <Select v-model="selectYear" :options="yearOptions" />
                 <p class="text-meta text-neutral-500">
                     Sits inline in a sentence, jump to
                     <Select v-model="selectYear" variant="bare" :options="yearOptions" />
                 </p>
 
-                <p class="ds-sub pt-3">Select, invalid</p>
+                <p class="pt-3 text-label uppercase text-neutral-500">Select, invalid</p>
                 <Select v-model="selectYear" :options="yearOptions" invalid />
 
-                <p class="ds-sub pt-3">Select, small</p>
+                <p class="pt-3 text-label uppercase text-neutral-500">Select, small</p>
                 <Select v-model="selectYear" :options="yearOptions" size="sm" />
 
-                <p class="ds-sub pt-3">Read-only</p>
+                <p class="pt-3 text-label uppercase text-neutral-500">Read-only</p>
                 <Input model-value="Settled after the first save" readonly />
                 <Textarea model-value="Written once, never edited again." :rows="2" readonly />
                 <div class="flex items-center gap-6 pt-1">
@@ -280,28 +280,28 @@ function swatchInk(step) {
 
         <!-- Links -->
         <section class="space-y-4">
-            <h2 class="ds-label">Links</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Links</h2>
             <div>
-                <div class="ds-sub mb-1.5">In-app</div>
+                <div class="mb-1.5 text-label uppercase text-neutral-500">In-app</div>
                 <Link href="/" class="text-meta font-semibold text-neutral-700 transition-colors hover:text-accent-500">Back to timeline</Link>
             </div>
             <div>
-                <div class="ds-sub mb-1.5">External</div>
+                <div class="mb-1.5 text-label uppercase text-neutral-500">External</div>
                 <ExternalLink href="https://thisweekwith.co.uk" label="This Week With" />
             </div>
             <div>
-                <div class="ds-sub mb-1.5">Social</div>
+                <div class="mb-1.5 text-label uppercase text-neutral-500">Social</div>
                 <SocialLinks />
             </div>
             <div>
-                <div class="ds-sub mb-1.5">In body content</div>
+                <div class="mb-1.5 text-label uppercase text-neutral-500">In body content</div>
                 <p class="max-w-prose text-body text-neutral-700">
                     Links in prose use the editor style:
                     <a href="#" class="text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">an inline link</a>.
                 </p>
             </div>
             <div>
-                <div class="ds-sub mb-1.5">Smart links</div>
+                <div class="mb-1.5 text-label uppercase text-neutral-500">Smart links</div>
                 <!-- The real renderer over a real document, so this section
                      cannot drift from what an entry actually shows. -->
                 <BlockContent
@@ -315,7 +315,7 @@ function swatchInk(step) {
 
         <!-- Detail list -->
         <section class="space-y-3">
-            <h2 class="ds-label">Detail list</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Detail list</h2>
             <div class="max-w-md">
                 <DetailList :rows="detailRows" />
             </div>
@@ -323,12 +323,12 @@ function swatchInk(step) {
 
         <!-- Pagination -->
         <section class="space-y-3">
-            <h2 class="ds-label">Pagination</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Pagination</h2>
             <div class="max-w-md">
                 <Pagination :current-page="page" :last-page="5" @navigate="page = $event" />
             </div>
 
-            <p class="ds-sub pt-6">Timeline, date anchored</p>
+            <p class="pt-6 text-label uppercase text-neutral-500">Timeline, date anchored</p>
             <div class="max-w-xl">
                 <Pagination :current-page="2" :last-page="99" prev-label="Newer" next-label="Older" prev-url="/?before=2026-09-03" next-url="/?before=2026-08-24">
                     <template #label>24 Aug &ndash; 2 Sep 2026</template>
@@ -336,7 +336,7 @@ function swatchInk(step) {
                 <YearJump :years="jumpYears" :current="2026" />
             </div>
 
-            <p class="ds-sub pt-6">Year archive, month strip</p>
+            <p class="pt-6 text-label uppercase text-neutral-500">Year archive, month strip</p>
             <div class="max-w-xl space-y-4">
                 <div>
                     <p class="mb-2 text-caption text-neutral-500">Full year, June current</p>
@@ -348,7 +348,7 @@ function swatchInk(step) {
                 </div>
             </div>
 
-            <p class="ds-sub pt-6">Month archive, date anchored</p>
+            <p class="pt-6 text-label uppercase text-neutral-500">Month archive, date anchored</p>
             <div class="max-w-xl">
                 <Pagination :current-page="2" :last-page="12" prev-label="Newer" next-label="Older" prev-url="/2018/05" next-url="/2018/05">
                     <template #label>4 &ndash; 9 May 2018</template>
@@ -358,7 +358,7 @@ function swatchInk(step) {
 
         <!-- Figure -->
         <section class="space-y-3">
-            <h2 class="ds-label">Figure</h2>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Figure</h2>
             <figure class="max-w-sm">
                 <img src="/headshot-taylor.jpg" alt="Taylor Drayson" class="w-full rounded-lg" />
                 <figcaption class="mt-2 text-caption text-neutral-500">Taylor Drayson, Croydon.</figcaption>
@@ -367,8 +367,8 @@ function swatchInk(step) {
 
         <!-- Video -->
         <section class="space-y-3">
-            <h2 class="ds-label">Video</h2>
-            <p class="ds-sub">Plyr, themed to the accent. Sample source.</p>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Video</h2>
+            <p class="text-label uppercase text-neutral-500">Plyr, themed to the accent. Sample source.</p>
             <div class="max-w-xl overflow-hidden rounded-lg bg-black">
                 <div ref="videoEl" data-plyr-provider="youtube" data-plyr-embed-id="bTqVqk7FSmY"></div>
             </div>
@@ -376,8 +376,8 @@ function swatchInk(step) {
 
         <!-- Audio -->
         <section class="space-y-3">
-            <h2 class="ds-label">Audio</h2>
-            <p class="ds-sub">The player controls from our custom audio bar.</p>
+            <h2 class="text-eyebrow uppercase text-neutral-900">Audio</h2>
+            <p class="text-label uppercase text-neutral-500">The player controls from our custom audio bar.</p>
             <div class="flex max-w-md items-center gap-4">
                 <img src="/logos/this-week-with.jpg" alt="" class="size-11 shrink-0 rounded-md object-cover">
                 <Button variant="primary" size="icon" pill class="size-10 shrink-0" aria-label="Play">
@@ -388,7 +388,7 @@ function swatchInk(step) {
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-label text-neutral-500 tabular-nums">1:24</span>
                         <div class="relative h-1.5 flex-1 rounded-full bg-neutral-100">
-                            <div class="absolute inset-y-0 left-0 rounded-full bg-accent-500" style="width: 38%" />
+                            <div class="absolute inset-y-0 left-0 w-3/8 rounded-full bg-accent-500" />
                         </div>
                         <span class="text-label text-neutral-500 tabular-nums">42:10</span>
                     </div>
@@ -399,22 +399,3 @@ function swatchInk(step) {
     </article>
 </template>
 
-<style scoped>
-.ds-label {
-    font-size: var(--text-eyebrow);
-    line-height: 1.2;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--color-neutral-900);
-}
-
-.ds-sub {
-    font-size: var(--text-label);
-    line-height: 1.3;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--color-neutral-500);
-}
-</style>
