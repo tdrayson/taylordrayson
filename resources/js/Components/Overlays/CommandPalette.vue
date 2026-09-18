@@ -4,6 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import * as chrono from 'chrono-node';
 import fuzzysort from 'fuzzysort';
 import { Calendar03Icon, Login01Icon, Logout01Icon, SparklesIcon, Tag01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Icon from '../Ui/Icon.vue';
 import Pill from '../Ui/Pill.vue';
 import { useCommandPalette } from '../../composables/useCommandPalette';
@@ -361,7 +362,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
         <Transition name="palette">
             <div
                 v-if="isOpen"
-                class="overlay fixed inset-0 flex items-start justify-center px-4"
+                class="fixed inset-0 z-100 flex items-start justify-center px-4 pt-palette"
                 @click.self="close"
             >
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
@@ -382,7 +383,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                             v-model="query"
                             type="text"
                             placeholder="Search pages, archives, dates…"
-                            class="w-full bg-transparent py-4 text-nav text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+                            class="w-full bg-transparent py-4 text-sm font-medium text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                             autocomplete="off"
                             spellcheck="false"
                             @keydown="onInputKeydown"
@@ -391,13 +392,13 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
 
                     <div ref="listEl" class="max-h-80 overflow-y-auto py-2">
                         <template v-for="section in sections" :key="section.heading">
-                            <div class="px-4 pb-1 pt-2 text-label uppercase text-neutral-500">{{ section.heading }}</div>
+                            <Eyebrow class="px-4 pb-1 pt-2 text-neutral-500">{{ section.heading }}</Eyebrow>
                             <button
                                 v-for="item in section.items"
                                 :key="item.index"
                                 type="button"
                                 :data-active="item.index === activeIndex"
-                                class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-nav transition-colors"
+                                class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium transition-colors"
                                 :class="item.index === activeIndex ? 'bg-neutral-25 text-neutral-900' : 'text-neutral-700'"
                                 @click="select(item)"
                                 @mousemove="activeIndex = item.index"
@@ -405,20 +406,20 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
                                 <Icon :icon="item.icon" class="size-4 shrink-0 text-neutral-500" />
                                 <span class="flex-1 truncate">{{ item.label }}</span>
                                 <Pill v-if="item.pill" :label="item.pill" class="shrink-0" />
-                                <span v-if="item.meta" class="shrink-0 text-label text-neutral-500">{{ item.meta }}</span>
-                                <span class="w-3 shrink-0 text-right text-label text-neutral-500">{{ item.index === activeIndex ? '↵' : '' }}</span>
+                                <span v-if="item.meta" class="shrink-0 text-2xs font-semibold text-neutral-500">{{ item.meta }}</span>
+                                <span class="w-3 shrink-0 text-right text-2xs font-semibold text-neutral-500">{{ item.index === activeIndex ? '↵' : '' }}</span>
                             </button>
                         </template>
 
-                        <p v-if="flatItems.length === 0 && searching" class="px-4 py-6 text-center text-meta text-neutral-500">
+                        <p v-if="flatItems.length === 0 && searching" class="px-4 py-6 text-center text-sm text-neutral-500">
                             Searching…
                         </p>
-                        <p v-else-if="flatItems.length === 0" class="px-4 py-6 text-center text-meta text-neutral-500">
+                        <p v-else-if="flatItems.length === 0" class="px-4 py-6 text-center text-sm text-neutral-500">
                             No matches for &ldquo;{{ query }}&rdquo;
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-4 border-t border-neutral-50 px-4 py-2.5 text-label text-neutral-500">
+                    <div class="flex items-center gap-4 border-t border-neutral-50 px-4 py-2.5 text-2xs font-semibold text-neutral-500">
                         <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
                         <span><kbd>↵</kbd> open</span>
                         <span><kbd>esc</kbd> close</span>
@@ -430,11 +431,6 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
 </template>
 
 <style scoped>
-.overlay {
-    z-index: 100;
-    padding-top: 12vh;
-}
-
 kbd {
     display: inline-block;
     min-width: 1.1rem;

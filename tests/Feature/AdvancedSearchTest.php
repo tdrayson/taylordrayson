@@ -149,16 +149,26 @@ it('filters between two months and before a year', function () {
         ->assertInertia(fn ($page) => $page->where('total', 1));
 });
 
-it('exposes enum options in the client schema', function () {
+it('exposes enum options in the client schema as labelled pairs', function () {
     Activity::factory()->create(['type' => 'walk', 'occurred_at' => now()]);
-    Activity::factory()->create(['type' => 'run', 'occurred_at' => now()]);
+    Activity::factory()->create(['type' => 'weight-training', 'occurred_at' => now()]);
+
+    $optionsFor = fn (mixed $schema, string $type, string $key): ?array => collect(
+        collect($schema)->firstWhere('type', $type)['fields'] ?? []
+    )->firstWhere('key', $key)['options'] ?? null;
 
     get('/search')->assertInertia(fn ($page) => $page
-        ->where('schema', fn ($schema) => collect($schema)
-            ->firstWhere('type', 'activity')['fields']
-            ? collect(collect($schema)->firstWhere('type', 'activity')['fields'])
-                ->firstWhere('key', 'kind')['options'] === ['run', 'walk']
-            : false)
+        // 'walk' has an ActivityDiscipline case behind it, 'weight-training' does not.
+        ->where('schema', fn ($schema) => $optionsFor($schema, 'activity', 'kind') === [
+            ['value' => 'walk', 'label' => 'Walk'],
+            ['value' => 'weight-training', 'label' => 'Weight training'],
+        ])
+        ->where('schema', fn ($schema) => $optionsFor($schema, 'note', 'status') === [
+            ['value' => 'draft', 'label' => 'Draft'],
+            ['value' => 'published', 'label' => 'Published'],
+            ['value' => 'unlisted', 'label' => 'Unlisted'],
+            ['value' => 'private', 'label' => 'Private'],
+        ])
     );
 });
 

@@ -169,7 +169,7 @@ function choosePreset(preset) {
     <div class="relative">
         <button
             type="button"
-            class="inline-flex items-center gap-2 rounded-lg border border-neutral-50 px-3 py-2 text-nav font-medium text-neutral-900 transition-colors hover:border-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="inline-flex items-center gap-2 rounded-lg border border-neutral-50 px-3 py-2 text-sm font-medium text-neutral-900 transition-colors hover:border-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="open = !open"
         >
             <Icon name="Calendar03Icon" class="size-4 text-neutral-500" />
@@ -182,7 +182,7 @@ function choosePreset(preset) {
             <div class="fixed inset-0 z-30" @click="open = false" />
 
             <div class="absolute right-0 z-40 mt-2 flex overflow-hidden rounded-lg border border-neutral-50 bg-neutral-0 shadow-card">
-                <ul class="w-40 shrink-0 border-r border-neutral-50 p-2 text-nav">
+                <ul class="w-40 shrink-0 border-r border-neutral-50 p-2 text-sm font-medium">
                     <li v-for="preset in presets" :key="preset">
                         <button type="button" class="w-full rounded-md px-3 py-1.5 text-left text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="choosePreset(preset)">
                             {{ preset }}
@@ -196,7 +196,7 @@ function choosePreset(preset) {
                             <Icon name="ArrowLeft01Icon" class="size-4" />
                         </button>
                         <!-- Click to jump up a level: month -> months, year -> years. -->
-                        <button type="button" class="rounded-md px-2 py-1 text-nav font-medium text-neutral-900 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="openHeader">
+                        <button type="button" class="rounded-md px-2 py-1 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="openHeader">
                             {{ headerLabel }}
                         </button>
                         <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Next" @click="stepNav(1)">
@@ -206,13 +206,13 @@ function choosePreset(preset) {
 
                     <!-- Day grid. -->
                     <div v-if="view === 'days'" class="grid grid-cols-7 gap-0.5 text-center">
-                        <span v-for="weekday in WEEKDAYS" :key="weekday" class="py-1 text-[10px] uppercase text-neutral-400">{{ weekday }}</span>
+                        <span v-for="weekday in WEEKDAYS" :key="weekday" class="py-1 text-2xs uppercase text-neutral-400">{{ weekday }}</span>
                         <template v-for="(date, index) in cells" :key="index">
                             <span v-if="!date" />
                             <button
                                 v-else
                                 type="button"
-                                class="aspect-square rounded-md text-meta transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                                class="aspect-square rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                                 :class="isSame(date, start) || isSame(date, end) ? 'bg-neutral-900 text-neutral-0' : inRange(date) ? 'bg-neutral-25 text-neutral-900' : 'text-neutral-700 hover:bg-neutral-25'"
                                 @click="pick(date)"
                             >{{ date.getDate() }}</button>
@@ -225,7 +225,7 @@ function choosePreset(preset) {
                             v-for="(name, index) in MONTHS_SHORT"
                             :key="name"
                             type="button"
-                            class="rounded-md py-2 text-meta transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                            class="rounded-md py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                             :class="index === viewMonth ? 'bg-neutral-900 text-neutral-0' : 'text-neutral-700 hover:bg-neutral-25'"
                             @click="pickMonth(index)"
                         >{{ name }}</button>
@@ -237,13 +237,13 @@ function choosePreset(preset) {
                             v-for="year in yearWindow"
                             :key="year"
                             type="button"
-                            class="rounded-md py-2 text-meta transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                            class="rounded-md py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                             :class="year === viewYear ? 'bg-neutral-900 text-neutral-0' : 'text-neutral-700 hover:bg-neutral-25'"
                             @click="pickYear(year)"
                         >{{ year }}</button>
                     </div>
 
-                    <button type="button" class="mt-3 w-full rounded-md bg-neutral-900 py-1.5 text-nav font-medium text-neutral-0 transition-opacity not-disabled:hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40" :disabled="!start" @click="applyCustom">
+                    <button type="button" class="mt-3 w-full rounded-md bg-neutral-900 py-1.5 text-sm font-medium text-neutral-0 transition-opacity not-disabled:hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:opacity-40" :disabled="!start" @click="applyCustom">
                         Apply
                     </button>
                 </div>

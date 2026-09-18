@@ -2,6 +2,7 @@
 
 namespace App\Services\LogoStream;
 
+use App\Services\GetRequest;
 use App\Support\Distance;
 
 /**
@@ -29,7 +30,11 @@ class Client
      */
     public function airlineLogo(string $iata, string $variant, int $size = 400): array
     {
-        $response = $this->logos->send(new AirlineLogoRequest($iata, $variant, $size));
+        $response = $this->logos->send(new GetRequest("/airlines/iata/{$iata}", [
+            'variant' => $variant,
+            'format' => 'png',
+            'size' => $size,
+        ]));
 
         if (! $response->successful()) {
             return ['status' => 'error', 'body' => null];
@@ -53,7 +58,11 @@ class Client
      */
     public function route(string $departureIata, string $arrivalIata): ?array
     {
-        $response = $this->aviation->send(new RouteRequest($departureIata, $arrivalIata));
+        $response = $this->aviation->send(new GetRequest('/v1/routes', [
+            'departureIata' => $departureIata,
+            'arrivalIata' => $arrivalIata,
+            'limit' => 1,
+        ]));
 
         if (! $response->successful()) {
             return null;

@@ -26,7 +26,7 @@ function select(preset) {
             <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Previous range" @click="emit('step', -1)">
                 <Icon name="ArrowLeft01Icon" class="size-4" />
             </button>
-            <span class="min-w-40 px-2 text-center text-nav font-medium text-neutral-900">{{ label }}</span>
+            <span class="min-w-40 px-2 text-center text-sm font-medium text-neutral-900">{{ label }}</span>
             <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Next range" @click="emit('step', 1)">
                 <Icon name="ArrowRight01Icon" class="size-4" />
             </button>

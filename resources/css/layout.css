@@ -60,10 +60,32 @@
     max-height: clamp(20rem, 75vh, 34rem);
 }
 
+@utility h-map {
+    height: clamp(20rem, 48vh, 32rem);
+}
+
+@utility max-w-viewport-inset {
+    max-width: calc(100vw - 2rem);
+}
+
 @utility no-scrollbar {
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
         display: none;
     }
+}
+
+/* Drops an inline chip below the baseline by N hundredths of an em: align-drop-25. */
+@utility align-drop-* {
+    vertical-align: calc(--value(integer) * -0.01em);
+}
+
+/* Full width plus a negative left margin of the same step: -ml-3 w-bleed-3. */
+@utility w-bleed-* {
+    width: calc(100% + var(--spacing) * --value(integer));
+}
+
+@utility pt-palette {
+    padding-top: 12vh;
 }

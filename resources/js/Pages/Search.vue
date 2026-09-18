@@ -8,6 +8,8 @@ import OptionCard from '../Components/Ui/OptionCard.vue';
 import Select from '../Components/Ui/Select.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
+import Eyebrow from '../Components/Ui/Eyebrow.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -59,8 +61,8 @@ function goToPage(page) {
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">Search</h1>
-        <p class="mt-2 max-w-prose text-meta text-neutral-500">
+        <Heading as="h1" size="display">Search</Heading>
+        <p class="mt-2 max-w-prose text-sm text-neutral-500">
             Dig through everything I've logged. Stack a few conditions to get specific, or start from an example below.
         </p>
     </header>
@@ -69,7 +71,7 @@ function goToPage(page) {
 
     <template v-if="hasSearch">
         <div class="mt-10 flex items-center justify-between gap-4">
-            <p class="text-caption text-neutral-500">{{ total }} {{ total === 1 ? 'result' : 'results' }}</p>
+            <p class="text-xs text-neutral-500">{{ total }} {{ total === 1 ? 'result' : 'results' }}</p>
             <div v-if="groups.length" class="w-40 shrink-0">
                 <Select
                     :model-value="order"
@@ -91,7 +93,7 @@ function goToPage(page) {
             />
         </div>
 
-        <p v-else class="mt-6 text-meta text-neutral-500">Nothing matched. Try one of the examples below.</p>
+        <p v-else class="mt-6 text-sm text-neutral-500">Nothing matched. Try one of the examples below.</p>
 
         <Pagination
             v-if="lastPage > 1"
@@ -103,9 +105,9 @@ function goToPage(page) {
     </template>
 
     <section v-if="showExamples && presets.length" class="mt-12">
-        <h2 class="mb-3 text-label uppercase text-neutral-500">
+        <Eyebrow as="h2" class="mb-3 text-neutral-500">
             {{ hasSearch ? 'Try one of these instead' : 'Not sure where to start?' }}
-        </h2>
+        </Eyebrow>
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <OptionCard
                 v-for="preset in presets"

@@ -137,7 +137,7 @@ export function applyGlobe(map, resolved) {
 export function placeLabel(maplibregl, point, text, options = {}) {
     const element = document.createElement('div');
     element.textContent = text;
-    element.className = 'pointer-events-none max-w-48 truncate rounded-md border border-neutral-100 bg-neutral-0 px-1.5 py-0.5 text-label font-bold text-neutral-700 shadow-card';
+    element.className = 'pointer-events-none max-w-48 truncate rounded-md border border-neutral-100 bg-neutral-0 px-1.5 py-0.5 text-2xs font-bold text-neutral-700 shadow-card';
 
     return new maplibregl.Marker({ element, anchor: 'bottom', offset: [0, -9], ...options }).setLngLat([point.lng, point.lat]);
 }

@@ -5,6 +5,7 @@ import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
 import PosterCard from '../../Components/Ui/PosterCard.vue';
+import Heading from '../../Components/Ui/Heading.vue';
 import { entryType } from '../../entryTypes.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -35,8 +36,8 @@ setLayoutProps({
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
-            <h1 class="font-display text-display">TV shows</h1>
-            <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
+            <Heading as="h1" size="display">TV shows</Heading>
+            <p v-if="subtitle" class="mt-2 text-sm text-neutral-500">{{ subtitle }}</p>
         </div>
     </header>
 
@@ -52,5 +53,5 @@ setLayoutProps({
         />
     </div>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">No shows watched yet.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">No shows watched yet.</p>
 </template>

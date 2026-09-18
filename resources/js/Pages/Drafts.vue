@@ -2,6 +2,8 @@
 import { Link, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
+import Eyebrow from '../Components/Ui/Eyebrow.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import { relativeDay } from '../lib/format.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -27,17 +29,17 @@ setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
     <AppHead :og="{ title: 'Drafts' }" />
 
     <div class="max-w-2xl">
-        <h1 class="font-display text-display">Drafts</h1>
-        <p class="mt-2 text-meta text-neutral-500">
+        <Heading as="h1" size="display">Drafts</Heading>
+        <p class="mt-2 text-sm text-neutral-500">
             Drafts. Nobody else can see these.
         </p>
 
-        <p v-if="! groups.length" class="mt-8 text-body text-neutral-700">
+        <p v-if="! groups.length" class="mt-8 text-base text-neutral-700">
             Nothing unfinished. <Link href="/new" class="text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Start something</Link>.
         </p>
 
         <section v-for="group in groups" :key="group.type" class="mt-8">
-            <h2 class="text-label uppercase text-neutral-500">{{ group.label }} ({{ group.rows.length }})</h2>
+            <Eyebrow as="h2" class="text-neutral-500">{{ group.label }} ({{ group.rows.length }})</Eyebrow>
 
             <ul class="mt-2 divide-y divide-neutral-50 border-y border-neutral-50">
                 <li v-for="row in group.rows" :key="row.url">
@@ -45,8 +47,8 @@ setLayoutProps({ breadcrumb: [{ label: 'Drafts' }] });
                         :href="row.url"
                         class="flex items-baseline justify-between gap-4 py-2.5 transition-colors hover:text-accent-500"
                     >
-                        <span class="min-w-0 truncate text-body text-neutral-900">{{ row.title }}</span>
-                        <span class="shrink-0 text-caption text-neutral-500">{{ row.detail ? `${row.detail}, ` : '' }}{{ editedLabel(row.updated) }}</span>
+                        <span class="min-w-0 truncate text-base text-neutral-900">{{ row.title }}</span>
+                        <span class="shrink-0 text-xs text-neutral-500">{{ row.detail ? `${row.detail}, ` : '' }}{{ editedLabel(row.updated) }}</span>
                     </Link>
                 </li>
             </ul>

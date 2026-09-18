@@ -29,25 +29,19 @@ const sortedCodes = computed(() => [...props.codes].sort((a, b) => name(a).local
 
 <template>
     <ul class="my-7 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
-        <li v-for="code in sortedCodes" :key="code" class="flex items-center gap-2.5 text-meta text-neutral-700">
-            <span :class="['fi', `fi-${code.toLowerCase()}`]" class="story-flag shrink-0" aria-hidden="true" />
+        <li v-for="code in sortedCodes" :key="code" class="flex items-center gap-2.5 text-sm text-neutral-700">
+            <span :class="['fi', `fi-${code.toLowerCase()}`]" class="story-flag aspect-4/3 shrink-0 rounded-xs inset-ring inset-ring-black/8" aria-hidden="true" />
             <span class="truncate">{{ name(code) }}</span>
         </li>
     </ul>
 </template>
 
 <style scoped>
-/* Fixed 4:3 flag boxes so every flag matches and the grid columns line up.
-   font-size: 0 cancels the &nbsp; flag-icons injects for height; a hairline
-   ring defines pale flags against the page. */
+/* Overrides flag-icons' unlayered .fi, which utilities can't; font-size 0 collapses its injected space. */
 .story-flag {
     display: block;
     width: 1.375rem;
-    height: 1.03125rem;
     font-size: 0;
     background-size: cover;
-    background-position: center;
-    border-radius: 2px;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
 }
 </style>
