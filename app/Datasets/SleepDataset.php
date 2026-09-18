@@ -3,6 +3,7 @@
 namespace App\Datasets;
 
 use App\Enums\DatasetKind;
+use App\Enums\Source;
 use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Sleep;
@@ -77,7 +78,7 @@ final class SleepDataset extends BaseDataset
             'rem' => ['label' => 'REM', 'dataType' => 'duration', 'column' => 'rem', 'category' => 'Stages'],
             'core' => ['label' => 'Core', 'dataType' => 'duration', 'column' => 'core', 'category' => 'Stages'],
             'deep' => ['label' => 'Deep', 'dataType' => 'duration', 'column' => 'deep', 'category' => 'Stages'],
-            'source' => ['label' => 'Source', 'dataType' => 'enum', 'column' => 'source', 'category' => 'Sleep'],
+            'source' => ['label' => 'Source', 'dataType' => 'enum', 'column' => 'source', 'category' => 'Sleep', 'enum' => Source::class],
         ];
     }
 

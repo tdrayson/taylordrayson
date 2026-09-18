@@ -2,6 +2,7 @@
 
 namespace App\Datasets;
 
+use App\Enums\CabinClass;
 use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Flight;
@@ -66,7 +67,7 @@ final class FlightDataset extends BaseDataset
         return [
             'airline' => ['label' => 'Airline', 'dataType' => 'text', 'relation' => 'airline', 'column' => 'name', 'category' => 'Flight'],
             'number' => ['label' => 'Flight number', 'dataType' => 'text', 'column' => 'flight_number', 'category' => 'Flight'],
-            'cabin' => ['label' => 'Cabin class', 'dataType' => 'enum', 'column' => 'cabin_class', 'category' => 'Flight'],
+            'cabin' => ['label' => 'Cabin class', 'dataType' => 'enum', 'column' => 'cabin_class', 'category' => 'Flight', 'enum' => CabinClass::class],
             'reason' => ['label' => 'Reason', 'dataType' => 'text', 'column' => 'reason', 'category' => 'Flight'],
             'origin' => ['label' => 'Origin (IATA)', 'dataType' => 'text', 'column' => 'origin_iata', 'category' => 'Route'],
             'destination' => ['label' => 'Destination (IATA)', 'dataType' => 'text', 'column' => 'destination_iata', 'category' => 'Route'],

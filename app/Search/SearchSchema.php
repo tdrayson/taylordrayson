@@ -5,6 +5,7 @@ namespace App\Search;
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
+use BackedEnum;
 
 /**
  * The filterable field catalogue for the advanced search query builder, keyed by
@@ -89,6 +90,7 @@ class SearchSchema
             'dataType' => 'enum',
             'column' => 'status',
             'category' => 'Publishing',
+            'enum' => EntryStatus::class,
             'options' => array_map(fn (EntryStatus $status): string => $status->value, EntryStatus::cases()),
         ];
     }
@@ -115,9 +117,7 @@ class SearchSchema
                         'suffix' => $field['suffix'] ?? null,
                         'measure' => $field['measure'] ?? null,
                         'store' => $field['store'] ?? null,
-                        'options' => $field['options'] ?? ($field['dataType'] === 'enum' && ! isset($field['relation']) && $type['model'] !== null
-                            ? self::options($type['model'], $field['column'])
-                            : null),
+                        'options' => self::optionsFor($type, $field),
                     ])
                     ->values()
                     ->all(),
@@ -127,7 +127,49 @@ class SearchSchema
     }
 
     /**
+     * An enum field's dropdown options as value/label pairs. The value is the
+     * string as stored; the label comes from the field's enum where it has a
+     * case for that value, and is otherwise the stored string made readable.
+     *
+     * @param  array<string, mixed>  $type  The field's owning type.
+     * @param  array<string, mixed>  $field  The normalised field definition.
+     * @return array<int, array{value: string, label: string}>|null Null for every field that is not a dropdown.
+     */
+    private static function optionsFor(array $type, array $field): ?array
+    {
+        $values = $field['options'] ?? null;
+
+        if ($values === null) {
+            if ($field['dataType'] !== 'enum' || isset($field['relation']) || $type['model'] === null) {
+                return null;
+            }
+
+            $values = self::options($type['model'], $field['column']);
+        }
+
+        /** @var class-string<BackedEnum>|null $enum */
+        $enum = $field['enum'] ?? null;
+
+        return array_map(fn (string $value): array => [
+            'value' => $value,
+            'label' => ($enum ? $enum::tryFrom($value)?->label() : null) ?? self::readable($value),
+        ], $values);
+    }
+
+    /**
+     * A stored value with no enum case behind it, as a label: separators become
+     * spaces and the first letter is capitalised. Values already written for
+     * display, such as a place category, come back untouched.
+     */
+    private static function readable(string $value): string
+    {
+        return ucfirst(str_replace(['-', '_'], ' ', $value));
+    }
+
+    /**
      * Distinct stored values for an enum field, to populate the builder's dropdown.
+     * A cast column plucks as enum cases, so they are unwrapped back to what the
+     * filter will actually carry.
      *
      * @param  class-string  $model
      * @return array<int, string>
@@ -139,6 +181,7 @@ class SearchSchema
             ->distinct()
             ->orderBy($column)
             ->pluck($column)
+            ->map(fn (mixed $value): string => $value instanceof BackedEnum ? (string) $value->value : (string) $value)
             ->all();
     }
 
