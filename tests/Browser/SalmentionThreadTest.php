@@ -57,10 +57,34 @@ it('hangs a nested response off the mention that carried it', function () {
         ->assertNoJavascriptErrors();
 });
 
-// Still a p-comment h-cite: a parser upstream reads the whole thread out of our
-// page, so indenting it must not cost it its property.
-it('keeps a nested response readable as a comment on this entry', function () {
+// A reply to their post, published inside their citation rather than beside it.
+// Flattened onto the entry it would read as a direct reply to me, which is the
+// one thing the thread shape is there to say it is not.
+it('publishes a nested response inside the citation that carried it', function () {
     $note = noteWithNestedMention();
 
-    visit($note->url())->assertPresent('#mention-2.p-comment.h-cite');
+    visit($note->url())
+        ->assertPresent('#mention-2.p-comment.h-cite')
+        ->assertScript("document.querySelector('#mention-2').parentElement.closest('.h-cite').id === 'mention-1'");
+});
+
+// The class names are not the contract: what a consumer reads is the parsed
+// tree, and whether a property lands on the entry or on the citation is a
+// question about scoping that a selector cannot answer.
+it('parses as a comment of the mention, not as a comment of the entry', function () {
+    $note = noteWithNestedMention();
+
+    $page = visit($note->url())->assertPresent('#mention-2');
+
+    $parsed = parseMicroformats(
+        $page->script('document.documentElement.outerHTML'),
+        config('app.url').$note->url(),
+    );
+
+    $entry = microformatItem($parsed, 'h-entry');
+    $citation = $entry['properties']['comment'][0];
+
+    expect($entry['properties']['comment'])->toHaveCount(1)
+        ->and($citation['properties']['author'][0]['properties']['name'][0])->toBe('Jo Bloggs')
+        ->and($citation['properties']['comment'][0]['properties']['author'][0]['properties']['name'][0])->toBe('Chris');
 });
