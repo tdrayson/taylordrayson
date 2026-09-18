@@ -76,14 +76,14 @@ const cards = [
 
 /* Dark thumbnail. */
 .preview-dark {
-    background: #191919;
+    background: #141a23;
 }
 .preview-dark .preview-bar { background: #6c84f2; }
-.preview-dark .preview-line { background: #3f3f3f; }
+.preview-dark .preview-line { background: #3a434e; }
 
 /* System thumbnail: diagonal split of light and dark. */
 .preview-system {
-    background: linear-gradient(135deg, #ffffff 0 50%, #191919 50% 100%);
+    background: linear-gradient(135deg, #ffffff 0 50%, #141a23 50% 100%);
 }
 .preview-system .preview-bar { background: #6c84f2; }
 .preview-system .preview-line { background: #8c8c8c; }
