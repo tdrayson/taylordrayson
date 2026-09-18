@@ -156,6 +156,10 @@
     --animate-drift: drift 6.5s ease-in-out infinite;
     --animate-charging-breathe: charging-breathe 2.6s ease-in-out infinite;
     --animate-charging-sheen: charging-sheen 2.4s ease-in-out infinite;
+    --animate-location-pulse: location-pulse 10s ease-out infinite;
+    --animate-location-pulse-late: location-pulse 10s ease-out 0.7s infinite;
+    --animate-location-pulse-hover: location-pulse-hover 2.6s ease-out infinite;
+    --animate-location-pulse-hover-late: location-pulse-hover 2.6s ease-out 0.7s infinite;
 
     @keyframes book-in {
         from {
@@ -259,6 +263,39 @@
         }
     }
 
+    @keyframes location-pulse {
+        0% {
+            transform: scale(0.7);
+            opacity: 0.5;
+        }
+
+        14% {
+            opacity: 0;
+        }
+
+        20%,
+        100% {
+            transform: scale(2.6);
+            opacity: 0;
+        }
+    }
+
+    @keyframes location-pulse-hover {
+        0% {
+            transform: scale(0.7);
+            opacity: 0.5;
+        }
+
+        70% {
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(2.6);
+            opacity: 0;
+        }
+    }
+
     /* Data-type accent colours — one per timeline data type */
     --color-activity: hsl(152 55% 40%);
     --color-sleep: hsl(245 50% 58%);
@@ -275,6 +312,12 @@
     --color-project: hsl(185 60% 42%);
     --color-article: hsl(215 18% 48%);
     --color-note: hsl(36 40% 50%);
+
+    /* This Week With host bubbles, the show's own brand colours */
+    --color-host-taylor-light: #8fdcd7;
+    --color-host-taylor: #75d3cd;
+    --color-host-gordon-light: #fe7a74;
+    --color-host-gordon: #fd5a53;
 
     /* The editor's caution callout, split off the old media hue */
     --color-caution: hsl(340 60% 52%);
