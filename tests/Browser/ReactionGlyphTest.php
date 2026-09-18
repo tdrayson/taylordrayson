@@ -113,11 +113,11 @@ it('sets every number on the row at one size, so they sit on one line', function
         'published_at' => now(),
     ]);
 
-    $sizes = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tnum')]"
+    $sizes = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tabular-nums')]"
         .'.map((el) => getComputedStyle(el).fontSize)).size';
 
     visit($note->url())
-        ->assertPresent('[data-testid="reaction-bar"] .tnum')
+        ->assertPresent('[data-testid="reaction-bar"] .tabular-nums')
         ->assertScript($sizes, 1);
 });
 
@@ -137,7 +137,7 @@ it('keeps every count the same colour, including the one you reacted with', func
         'published_at' => now(),
     ]);
 
-    $colours = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tnum')]"
+    $colours = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tabular-nums')]"
         .'.map((el) => getComputedStyle(el).color)).size';
 
     // Seeded rather than clicked: the accent only ever applied once you were in
@@ -154,7 +154,7 @@ it('keeps every count the same colour, including the one you reacted with', func
     }
 
     visit($note->url())
-        ->assertPresent('[data-testid="reaction-bar"] .tnum')
+        ->assertPresent('[data-testid="reaction-bar"] .tabular-nums')
         ->assertScript("document.querySelector('[data-testid=\"reaction-bar\"] button').getAttribute('aria-pressed')", 'true')
         ->assertScript($colours, 1);
 });
@@ -163,7 +163,7 @@ it('bolds the total when you are one of the people in it', function () {
     $note = noteWithEveryReaction();
 
     // Nobody has reacted from this browser, so the total reads like the rest.
-    $weight = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tnum')).fontWeight";
+    $weight = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tabular-nums')).fontWeight";
 
     $page = visit($note->url())->assertPresent('[data-testid="reaction-bar"]');
     $page->assertScript($weight, '500');

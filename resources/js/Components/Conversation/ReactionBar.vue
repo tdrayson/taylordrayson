@@ -250,7 +250,7 @@ function press() {
                          entry, and a lone number reads as a stray mark.
                          Weight, not colour, says you are in this count: the row
                          stays one colour and the disc keeps whichever it has. -->
-                    <span class="tnum" :class="mine ? 'font-bold' : 'font-medium'">{{ total }}</span>
+                    <span class="tabular-nums" :class="mine ? 'font-bold' : 'font-medium'">{{ total }}</span>
                 </button>
 
                 <Transition name="picker-pop">
@@ -297,14 +297,14 @@ function press() {
                 :aria-label="responsesLabel"
             >
                 <Icon name="Comment01Icon" :class="sizes.icon" />
-                <span class="tnum font-medium">{{ replyCount }}</span>
+                <span class="tabular-nums font-medium">{{ replyCount }}</span>
             </component>
             </Tooltip>
 
             <Tooltip v-for="gesture in gestures" :key="gesture.key" :label="gestureLabel(gesture)" placement="top">
                 <span :class="['inline-flex items-center gap-1.5 text-neutral-500', sizes.text]" :aria-label="gestureLabel(gesture)">
                     <Icon :name="gesture.icon" :class="sizes.icon" />
-                    <span class="tnum font-medium">{{ gesture.count }}</span>
+                    <span class="tabular-nums font-medium">{{ gesture.count }}</span>
                 </span>
             </Tooltip>
 
@@ -333,7 +333,7 @@ function press() {
 
                     <!-- Its own count, revealed with the spread so each disc can
                          be read rather than guessed at. -->
-                    <span :class="['reaction-count tnum font-medium text-neutral-500', sizes.text]" aria-hidden="true">{{ bucket.count }}</span>
+                    <span :class="['reaction-count tabular-nums font-medium text-neutral-500', sizes.text]" aria-hidden="true">{{ bucket.count }}</span>
                     </Tooltip>
                 </li>
             </ul>

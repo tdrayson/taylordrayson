@@ -51,7 +51,7 @@ it('adds the summary row up to the number in the heading', function () {
     // The pile's per-disc counts are a breakdown of the reaction total, not
     // figures of their own, so they are not part of the sum.
     $page->assertScript(
-        "[...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tnum')]"
+        "[...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tabular-nums')]"
             .".filter((el) => ! el.closest('.reaction-item'))"
             .'.reduce((sum, el) => sum + Number(el.textContent), 0)',
         11,
