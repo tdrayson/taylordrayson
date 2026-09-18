@@ -7,10 +7,11 @@ import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
-    // title, body, occurredAt, parentId, commentId, sourceUrl, sourceHost,
-    // emoji, source, sourceName }.
+    // title, body, occurredAt, parentId, parentItemId, commentId, sourceUrl,
+    // sourceHost, emoji, source, sourceName }.
     item: { type: Object, required: true },
-    // Rendered as a reply to somebody, one level deep only.
+    // Rendered as a reply to somebody, one level deep only. Also how a response
+    // read out of another site's thread hangs off the mention that carried it.
     nested: { type: Boolean, default: false },
 });
 

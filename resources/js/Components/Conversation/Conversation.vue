@@ -34,6 +34,17 @@ const thread = computed(() => {
         all.filter((item) => item.commentId !== null).map((item) => [item.commentId, item]),
     );
 
+    const byItemId = new Map(all.map((item) => [item.id, item]));
+
+    /**
+     * What this response answers: a comment left here, or the mention it
+     * arrived nested inside when it was read out of somebody else's thread.
+     * Null when it stands on its own, or when its parent is not shown.
+     */
+    const parentOf = (item) => byItemId.get(item.parentItemId)
+        ?? (item.parentId === null ? null : byCommentId.get(item.parentId))
+        ?? null;
+
     /**
      * The response a reply ultimately hangs off, however deep it was left.
      * Grouping by the immediate parent instead dropped a reply to a reply
@@ -45,11 +56,13 @@ const thread = computed(() => {
         // Bounded: a parent chain that somehow looped would hang the page
         // rather than merely render it wrong.
         for (let hops = 0; hops < 100; hops += 1) {
-            if (current.parentId === null || ! byCommentId.has(current.parentId)) {
+            const parent = parentOf(current);
+
+            if (parent === null) {
                 break;
             }
 
-            current = byCommentId.get(current.parentId);
+            current = parent;
         }
 
         return current;

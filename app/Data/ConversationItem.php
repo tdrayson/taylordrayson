@@ -42,6 +42,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?array $body,
         public CarbonInterface $occurredAt,
         public ?int $parentId,
+        /** The item id of the response this one arrived nested inside; null for anything top level. */
+        public ?string $parentItemId,
         /** The row id, when replying to this is possible; null for a mention. */
         public ?int $commentId,
         /** Where the response lives, for a webmention; null for a comment. */
@@ -68,6 +70,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             body: $comment->body,
             occurredAt: $comment->created_at,
             parentId: $comment->parent_id,
+            parentItemId: null,
             commentId: $comment->id,
             sourceUrl: null,
             emoji: null,
@@ -77,7 +80,11 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         );
     }
 
-    public static function fromWebmention(Webmention $mention, ?string $timezone): self
+    /**
+     * @param  int|null  $parentMentionId  The mention this one was read out of,
+     *                                     for a response nested in somebody else's thread.
+     */
+    public static function fromWebmention(Webmention $mention, ?string $timezone, ?int $parentMentionId = null): self
     {
         $kind = $mention->kind()?->value ?? WebmentionKind::Mention->value;
         $isReacji = $kind === WebmentionKind::Reacji->value;
@@ -97,6 +104,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             body: $isReacji || blank($mention->content) ? null : $mention->content,
             occurredAt: $mention->published_at ?? $mention->created_at,
             parentId: null,
+            parentItemId: $parentMentionId === null ? null : 'mention-'.$parentMentionId,
             commentId: null,
             sourceUrl: $mention->source_url,
             emoji: $isReacji ? trim(PortableText::plainText($mention->content ?? [])) : null,
@@ -126,6 +134,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             body: $response->body,
             occurredAt: $response->occurred_at,
             parentId: null,
+            parentItemId: null,
             commentId: null,
             sourceUrl: $response->url,
             emoji: $response->emoji,
@@ -168,6 +177,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             body: null,
             occurredAt: $occurredAt ?? $source->created_at,
             parentId: null,
+            parentItemId: null,
             commentId: null,
             sourceUrl: $source->url(),
             emoji: null,
@@ -235,6 +245,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             // into the entry's own timezone so one stream shares one clock.
             'occurredAt' => LocalTime::forInstant($this->occurredAt, $this->timezone),
             'parentId' => $this->parentId,
+            'parentItemId' => $this->parentItemId,
             'commentId' => $this->commentId,
             'sourceUrl' => $this->sourceUrl,
             'sourceHost' => $this->sourceHost(),
