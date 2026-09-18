@@ -87,9 +87,9 @@ setLayoutProps({
         <div v-if="rings" class="mt-8 flex items-center gap-5">
             <ActivityRings large animate :move="rings.move" :exercise="rings.exercise" :stand="rings.stand" />
             <div class="space-y-1.5 text-sm text-neutral-500">
-                <div><span class="font-display text-base font-bold text-neutral-900 tnum">{{ rings.moveKcal }}</span> kcal move</div>
-                <div><span class="font-display text-base font-bold text-neutral-900 tnum">{{ rings.exerciseMins }}</span> min exercise</div>
-                <div><span class="font-display text-base font-bold text-neutral-900 tnum">{{ rings.standHrs }}</span> hr stand</div>
+                <div><span class="font-display text-base font-bold text-neutral-900 tabular-nums">{{ rings.moveKcal }}</span> kcal move</div>
+                <div><span class="font-display text-base font-bold text-neutral-900 tabular-nums">{{ rings.exerciseMins }}</span> min exercise</div>
+                <div><span class="font-display text-base font-bold text-neutral-900 tabular-nums">{{ rings.standHrs }}</span> hr stand</div>
             </div>
         </div>
 

@@ -188,11 +188,11 @@ onBeforeUnmount(() => {
             <div class="flex items-end justify-between gap-2 @sm:gap-2.5 @md:gap-3 @xl:gap-4">
                 <div>
                     <h2 class="text-lg font-extrabold tracking-tight @sm:text-2xl @md:text-3xl @xl:text-4xl">{{ title }}</h2>
-                    <div class="text-xs font-medium text-neutral-500 @sm:text-sm @md:text-base @xl:text-xl">{{ subtitle }}</div>
+                    <div class="text-2xs font-medium text-neutral-500 @sm:text-sm @md:text-base @xl:text-xl">{{ subtitle }}</div>
                 </div>
                 <Link
                     href="/photos"
-                    class="flex items-center gap-1 rounded-xs text-xs font-bold whitespace-nowrap text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @md:gap-1.5 @md:text-sm @xl:gap-2 @xl:text-lg"
+                    class="flex items-center gap-1 rounded-xs text-2xs font-bold whitespace-nowrap text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @md:gap-1.5 @md:text-sm @xl:gap-2 @xl:text-lg"
                 >
                     All photos
                     <Icon class="size-3 @sm:size-3.5 @md:size-4 @xl:size-5" name="ArrowRight01Icon" :stroke-width="2.6" />

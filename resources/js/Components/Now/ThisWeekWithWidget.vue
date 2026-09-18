@@ -75,24 +75,24 @@ const onImageError = (event) => {
             <Link
                 v-if="seasonEpisode"
                 :href="episode.url"
-                class="inline-block text-2xl leading-none font-extrabold tracking-tight text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:text-3xl @4xs:text-4xl @2xs:text-5xl"
+                class="inline-block text-2xl leading-none font-extrabold tracking-tight text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:text-3xl @4xs:text-4xl @xs:text-5xl"
             >
                 {{ seasonEpisode }}
             </Link>
-            <span v-else class="inline-block text-sm leading-none font-extrabold tracking-tight text-neutral-500 @5xs:text-base @4xs:text-lg @2xs:text-2xl">No episodes yet</span>
+            <span v-else class="inline-block text-sm leading-none font-extrabold tracking-tight text-neutral-500 @5xs:text-base @4xs:text-lg @xs:text-2xl">No episodes yet</span>
             <Link
                 :href="archiveHref"
-                class="mt-1.5 line-clamp-2 text-xs leading-tight font-bold text-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:mt-2 @4xs:mt-2.5 @4xs:text-sm @2xs:mt-3 @2xs:text-xl"
+                class="mt-1.5 line-clamp-2 text-2xs leading-tight font-bold text-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:mt-2 @5xs:text-xs @4xs:mt-2.5 @4xs:text-sm @xs:mt-3 @xs:text-xl"
             >
                 {{ show }}
             </Link>
-            <div v-if="metaLine" class="mt-1 text-xs font-semibold text-neutral-500 @5xs:mt-1.5 @4xs:mt-2 @2xs:mt-2.5 @2xs:text-lg">{{ metaLine }}</div>
+            <div v-if="metaLine" class="mt-1 text-3xs font-semibold text-neutral-500 @5xs:mt-1.5 @5xs:text-2xs @4xs:mt-2 @4xs:text-xs @xs:mt-2.5 @xs:text-lg">{{ metaLine }}</div>
         </div>
 
         <div class="absolute -bottom-1/56 left-1/28 z-2 h-53/112 w-17/28">
             <div v-for="host in hosts" :key="host.initial" class="absolute bottom-0 h-full w-11/17" :class="host.position">
                 <span class="absolute bottom-3/40 left-1/2 z-1 aspect-square w-10/11 -translate-x-1/2 rounded-full bg-linear-150" :class="host.bubble" />
-                <span class="absolute bottom-17/50 left-1/2 z-2 -translate-x-1/2 text-base font-extrabold text-neutral-900 @5xs:text-lg @4xs:text-2xl @2xs:text-3xl">
+                <span class="absolute bottom-17/50 left-1/2 z-2 -translate-x-1/2 text-base font-extrabold text-neutral-900 @5xs:text-lg @4xs:text-2xl @xs:text-3xl">
                     {{ host.initial }}
                 </span>
                 <img

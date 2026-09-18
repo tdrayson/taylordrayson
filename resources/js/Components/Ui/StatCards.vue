@@ -41,7 +41,7 @@ const columns = computed(() => COLUMNS[props.stats.length] ?? 'grid-cols-2 sm:gr
              its figure clear of the ones beside it. -->
         <div v-for="(stat, index) in stats" :key="index" class="flex flex-col-reverse justify-end px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
             <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
-            <dd class="font-display text-stat leading-none tnum">{{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ stat.unit }}</abbr></dd>
+            <dd class="font-display text-stat leading-none tabular-nums">{{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ stat.unit }}</abbr></dd>
         </div>
     </dl>
 </template>

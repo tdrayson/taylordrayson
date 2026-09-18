@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
                                 ]"
                                 @click="onItemClick($event, item.id)"
                             >
-                                <span v-if="item.number" class="text-label tnum text-neutral-400">{{ item.number }}</span>
+                                <span v-if="item.number" class="text-label tabular-nums text-neutral-400">{{ item.number }}</span>
                                 <span class="text-meta" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
                             </a>
                         </li>

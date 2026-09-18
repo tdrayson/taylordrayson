@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
         <img v-else-if="cover" :src="cover" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
         <p v-if="durationLabel" class="text-meta text-neutral-500">
-            Duration: <span class="tnum text-neutral-700">{{ durationLabel }}</span>
+            Duration: <span class="tabular-nums text-neutral-700">{{ durationLabel }}</span>
         </p>
 
         <div class="flex flex-wrap items-center gap-4">

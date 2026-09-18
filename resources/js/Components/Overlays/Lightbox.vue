@@ -307,7 +307,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                 >
                     <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
                     <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
-                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
+                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tabular-nums">{{ index + 1 }} / {{ photos.length }}</span>
                 </div>
             </div>
         </Transition>

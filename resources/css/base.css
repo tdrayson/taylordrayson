@@ -107,16 +107,6 @@
     }
 }
 
-@layer utilities {
-    .font-display {
-        font-family: var(--font-display);
-    }
-
-    .tnum {
-        font-variant-numeric: tabular-nums;
-    }
-}
-
 /* iOS Safari zooms the page when a focused control's font-size is under 16px.
    Hold a 16px floor on touch devices; unlayered so it beats text-size utilities.
 

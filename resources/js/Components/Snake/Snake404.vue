@@ -267,11 +267,11 @@ onMounted(() => {
                 <div class="flex items-start gap-9">
                     <div>
                         <p class="text-label uppercase text-neutral-500">Score</p>
-                        <p class="tnum mt-1 font-display text-stat-lg text-accent-500">{{ currentScore }}</p>
+                        <p class="tabular-nums mt-1 font-display text-stat-lg text-accent-500">{{ currentScore }}</p>
                     </div>
                     <div v-if="showBest">
                         <p class="text-label uppercase text-neutral-500">Your best</p>
-                        <p class="tnum mt-1 font-display text-stat-lg text-neutral-700">{{ bestScore }}</p>
+                        <p class="tabular-nums mt-1 font-display text-stat-lg text-neutral-700">{{ bestScore }}</p>
                     </div>
                 </div>
 

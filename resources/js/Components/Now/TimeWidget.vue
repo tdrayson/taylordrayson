@@ -13,6 +13,14 @@ const gmtStr = ref('');
 const leftPct = ref(9);
 let timer = null;
 
+const RULER_MARKS = [
+    { label: '12', position: 'left-0' },
+    { label: '6', position: 'left-1/4' },
+    { label: '12', position: 'left-1/2' },
+    { label: '6', position: 'left-3/4' },
+    { label: '12', position: 'left-full' },
+];
+
 const pad = (n) => String(n).padStart(2, '0');
 
 function computeGmt() {
@@ -51,142 +59,32 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="clock rounded-3xl">
-        <div class="clock__header">
-            <h2 class="clock__location">{{ location }}</h2>
-            <div class="clock__offset">{{ gmtStr }}</div>
+    <div class="@container relative aspect-square overflow-hidden rounded-3xl bg-neutral-0 text-neutral-900 shadow-card">
+        <div class="absolute top-2/25 left-9/100 z-3">
+            <h2 class="text-base leading-tight font-extrabold tracking-tight @5xs:text-xl @4xs:text-2xl @xs:text-3xl">{{ location }}</h2>
+            <div class="mt-0.5 text-3xs font-medium text-neutral-400 @5xs:text-2xs @4xs:text-sm @xs:mt-1 @xs:text-lg">{{ gmtStr }}</div>
         </div>
 
-        <div class="clock__baseline" />
-        <div class="clock__now-line" :style="{ left: `${leftPct}%` }" />
-        <div class="clock__marker" :style="{ left: `${leftPct}%` }" />
-        <div class="clock__ruler">
-            <span class="clock__ruler-mark" style="left: 0%">12</span>
-            <span class="clock__ruler-mark" style="left: 25%">6</span>
-            <span class="clock__ruler-mark" style="left: 50%">12</span>
-            <span class="clock__ruler-mark" style="left: 75%">6</span>
-            <span class="clock__ruler-mark" style="left: 100%">12</span>
+        <div class="absolute right-9/100 bottom-13/100 left-9/100 z-1 h-0.5 bg-neutral-50" />
+        <div class="absolute top-27/100 bottom-13/100 z-1 w-0.5 -translate-x-1/2 bg-neutral-100" :style="{ left: `${leftPct}%` }" />
+        <div
+            class="absolute top-2/5 z-2 size-1.5 -translate-1/2 rounded-full bg-accent-500 shadow-sm shadow-accent-500/40 @5xs:size-2 @4xs:size-2.5 @xs:size-3.5 @xs:shadow-md"
+            :style="{ left: `${leftPct}%` }"
+        />
+        <div class="absolute right-9/100 bottom-13/200 left-9/100 z-1 h-1/20">
+            <span
+                v-for="(mark, index) in RULER_MARKS"
+                :key="index"
+                class="absolute -translate-x-1/2 text-3xs font-medium text-neutral-400 @4xs:text-2xs @xs:text-xs"
+                :class="mark.position"
+            >
+                {{ mark.label }}
+            </span>
         </div>
 
-        <div class="clock__time">
-            <span class="clock__time-value">{{ timeStr }}</span>
-            <span class="clock__time-meridiem">{{ meridiem }}</span>
+        <div class="absolute bottom-33/200 left-9/100 z-2 flex items-baseline gap-1 @4xs:gap-1.5 @xs:gap-2">
+            <span class="text-2xl leading-normal font-extrabold tracking-tight tabular-nums @5xs:text-3xl @4xs:text-4xl @xs:text-5xl">{{ timeStr }}</span>
+            <span class="text-lg leading-normal font-extrabold tracking-tight text-neutral-400 @5xs:text-xl @4xs:text-2xl @xs:text-4xl">{{ meridiem }}</span>
         </div>
     </div>
 </template>
-
-<style scoped>
-/* The card is the query container; text sizes in cqw (1cqw ≈ reference px ÷ 3.6)
-   so the whole composition scales with the grid cell. Positions use % of the
-   square card. */
-.clock {
-    container-type: inline-size;
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    background: var(--color-neutral-0);
-    color: var(--color-neutral-900);
-    box-shadow: var(--shadow-card);
-}
-
-.clock__header {
-    position: absolute;
-    top: 8%;
-    left: 9%;
-    z-index: 3;
-}
-
-.clock__location {
-    font-family: var(--font-sans);
-    font-size: 10cqw;
-    line-height: 1.12;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--color-neutral-900);
-}
-
-.clock__offset {
-    margin-top: 1cqw;
-    font-size: 5.5cqw;
-    font-weight: 500;
-    color: var(--color-neutral-400);
-}
-
-.clock__baseline {
-    position: absolute;
-    left: 9%;
-    right: 9%;
-    bottom: 13%;
-    /* Floor the thickness so the line never rounds away when the card is
-       narrow on small screens; it still scales up with the card above that. */
-    height: max(1.5px, 0.5cqw);
-    background: var(--color-neutral-50);
-    z-index: 1;
-}
-
-.clock__now-line {
-    position: absolute;
-    top: 27%;
-    bottom: 13%;
-    /* Same minimum thickness as the baseline, so the current-time bar stays
-       visible on narrow cards instead of collapsing to a sub-pixel width. */
-    width: max(1.5px, 0.5cqw);
-    background: var(--color-neutral-100);
-    transform: translateX(-50%);
-    z-index: 1;
-}
-
-.clock__marker {
-    position: absolute;
-    top: 40%;
-    width: 4.2cqw;
-    height: 4.2cqw;
-    border-radius: 50%;
-    background: var(--color-accent-500);
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0.6cqw 2cqw rgba(56, 88, 233, 0.4);
-    z-index: 2;
-}
-
-.clock__ruler {
-    position: absolute;
-    left: 9%;
-    right: 9%;
-    bottom: 6.5%;
-    height: 5cqw;
-    z-index: 1;
-}
-
-.clock__ruler-mark {
-    position: absolute;
-    transform: translateX(-50%);
-    font-size: 3.9cqw;
-    font-weight: 500;
-    color: var(--color-neutral-400);
-}
-
-.clock__time {
-    position: absolute;
-    left: 9%;
-    bottom: 16.5%;
-    display: flex;
-    align-items: baseline;
-    gap: 2.5cqw;
-    z-index: 2;
-}
-
-.clock__time-value {
-    font-size: 15.5cqw;
-    font-weight: 800;
-    letter-spacing: -0.035em;
-    color: var(--color-neutral-900);
-    font-variant-numeric: tabular-nums;
-}
-
-.clock__time-meridiem {
-    font-size: 11cqw;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--color-neutral-400);
-}
-</style>

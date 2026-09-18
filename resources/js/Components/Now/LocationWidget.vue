@@ -62,16 +62,16 @@ onBeforeUnmount(() => {
         <div class="absolute top-47/100 left-1/2 z-4 size-3/14 -translate-1/2">
             <span class="pointer-events-none absolute inset-0 animate-location-pulse rounded-full bg-accent-500 opacity-0 group-hover:animate-location-pulse-hover motion-reduce:hidden" />
             <span class="pointer-events-none absolute inset-0 animate-location-pulse-late rounded-full bg-accent-500 opacity-0 group-hover:animate-location-pulse-hover-late motion-reduce:hidden" />
-            <div class="relative size-full overflow-hidden rounded-full border-2 border-white bg-accent-100 shadow-lg shadow-black/30 @4xs:border-3 @2xs:border-4 @2xs:shadow-xl">
+            <div class="relative size-full overflow-hidden rounded-full border-2 border-white bg-accent-100 shadow-lg shadow-black/30 @4xs:border-3 @xs:border-4 @xs:shadow-xl">
                 <img class="size-full object-cover object-top" :src="avatar" :alt="name" />
             </div>
         </div>
 
         <div class="absolute bottom-7/100 left-1/13 z-5">
-            <div class="text-lg leading-none font-extrabold tracking-tight text-neutral-900 text-shadow-lg text-shadow-neutral-0/70 @5xs:text-xl @4xs:text-2xl @2xs:text-4xl">
+            <div class="text-lg leading-none font-extrabold tracking-tight text-neutral-900 text-shadow-lg text-shadow-neutral-0/70 @5xs:text-xl @4xs:text-2xl @xs:text-4xl">
                 {{ name }}
             </div>
-            <div class="mt-1 text-xs font-semibold text-neutral-500 text-shadow-lg text-shadow-neutral-0/70 @4xs:mt-1.5 @4xs:text-sm @2xs:mt-2 @2xs:text-lg">
+            <div class="mt-1 text-2xs font-semibold text-neutral-500 text-shadow-lg text-shadow-neutral-0/70 @5xs:text-xs @4xs:mt-1.5 @4xs:text-sm @xs:mt-2 @xs:text-lg">
                 {{ city }}
             </div>
         </div>
