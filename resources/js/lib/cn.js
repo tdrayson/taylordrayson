@@ -2,21 +2,14 @@ import { clsx } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 
 /**
- * tailwind-merge doesn't know our custom font-size tokens (text-meta, text-label,
- * ...), so without this it mistakes them for text-*colour* utilities and strips a
- * real colour like `text-white`. Register them as the font-size group.
+ * tailwind-merge reads `text-unit` as a text-*colour* utility and strips a real
+ * colour alongside it, so register our one remaining bespoke font size. The
+ * t-shirt sizes (`text-2xs`, `text-3xs`) it already understands.
  */
 const twMerge = extendTailwindMerge({
     extend: {
         classGroups: {
-            'font-size': [
-                {
-                    text: [
-                        'eyebrow', 'label', 'caption', 'meta', 'nav', 'body',
-                        'section', 'item-title', 'name', 'stat', 'stat-lg', 'display', 'display-xl',
-                    ],
-                },
-            ],
+            'font-size': [{ text: ['unit'] }],
         },
     },
 });

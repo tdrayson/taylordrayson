@@ -7,6 +7,7 @@ import Button from '../Ui/Button.vue';
 import Pill from '../Ui/Pill.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
+import Heading from '../Ui/Heading.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
@@ -223,7 +224,7 @@ function openLightbox(index) {
                 <component
                     :is="typeHref ? Link : 'div'"
                     :href="typeHref || undefined"
-                    class="p-category text-label uppercase text-(--type-color)"
+                    class="p-category text-2xs font-semibold uppercase tracking-wider text-(--type-color)"
                     :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
                 >{{ displayType }}</component>
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
@@ -238,7 +239,7 @@ function openLightbox(index) {
         </div>
         <NoteBody v-if="hasBody" :document="body" />
         <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
-        <h3 v-else class="mt-1 max-w-md font-display text-item-title">
+        <Heading v-else as="h3" size="title" class="mt-1 max-w-md">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji
@@ -247,20 +248,20 @@ function openLightbox(index) {
                 class="p-name"
                 :class="url ? 'u-url underline-offset-4 transition-colors hover:text-(--type-color) hover:underline focus-visible:text-(--type-color) focus-visible:underline' : ''"
             >{{ title }}</component>
-        </h3>
-        <p v-if="category" class="mt-1.5 text-caption text-neutral-500">{{ category }}</p>
-        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+        </Heading>
+        <p v-if="category" class="mt-1.5 text-xs text-neutral-500">{{ category }}</p>
+        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
             <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
                 <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
             </span>
             <span v-if="brand">{{ brand }} garage</span>
         </div>
-        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>
             <span v-if="airline.number" class="text-neutral-400 tabular-nums">{{ airline.number }}</span>
         </div>
-        <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
+        <span v-if="range" class="mt-1.5 block text-xs text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
         <FlightRoute
             v-if="routeView"
             compact
@@ -272,7 +273,7 @@ function openLightbox(index) {
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
              and the `dark:` class picks the right one, no JS needed. -->
         <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
@@ -322,7 +323,7 @@ function openLightbox(index) {
             <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                 <ZoomButton />
             </button>
-            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
+            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
         </div>
 
         <!-- A wide route map beside a square cover on lg+, sharing one fixed height
@@ -356,12 +357,12 @@ function openLightbox(index) {
                 <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
                     <ZoomButton />
                 </button>
-                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
+                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
             </div>
         </div>
         <!-- Check-in's full address, shown beneath the map/photos whether or not
              the card carries a note. -->
-        <p v-if="address" class="mt-3 text-caption text-neutral-500">{{ address }}</p>
+        <p v-if="address" class="mt-3 text-xs text-neutral-500">{{ address }}</p>
 
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div

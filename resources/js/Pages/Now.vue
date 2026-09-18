@@ -8,6 +8,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import { setupWidgetTilt } from '../lib/widgetTilt.js';
 import Button from '../Components/Ui/Button.vue';
 import Icon from '../Components/Ui/Icon.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import ChargingWidget from '../Components/Now/ChargingWidget.vue';
 import ActivityWidget from '../Components/Now/ActivityWidget.vue';
 import WeatherWidget from '../Components/Now/WeatherWidget.vue';
@@ -228,8 +229,8 @@ onBeforeUnmount(() => {
     <div class="breakout mx-auto w-full max-w-5xl">
         <header class="flex items-start justify-between gap-4">
             <div>
-                <h1 class="font-display text-display">Now</h1>
-                <p class="mt-2 text-meta text-neutral-500">A live snapshot of my world, ticking away right this second.</p>
+                <Heading as="h1" size="display">Now</Heading>
+                <p class="mt-2 text-sm text-neutral-500">A live snapshot of my world, ticking away right this second.</p>
             </div>
             <div class="flex shrink-0 items-center gap-2">
                 <Button v-if="editing" variant="ghost" size="sm" @click="resetLayout">

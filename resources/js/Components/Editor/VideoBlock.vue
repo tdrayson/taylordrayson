@@ -50,7 +50,7 @@ function useTypedUrl() {
                 :poster="node.attrs.poster"
             />
 
-            <p v-else class="flex items-center gap-2 rounded-lg border border-dashed border-neutral-100 p-4 text-meta text-neutral-500">
+            <p v-else class="flex items-center gap-2 rounded-lg border border-dashed border-neutral-100 p-4 text-sm text-neutral-500">
                 <Icon name="Alert02Icon" class="size-4 shrink-0" />
                 <span>Not a YouTube, Vimeo or video-file URL, so this will not play.</span>
             </p>
@@ -71,13 +71,13 @@ function useTypedUrl() {
                     v-model="typedUrl"
                     type="url"
                     placeholder="Paste a YouTube, Vimeo or video-file URL"
-                    class="min-w-0 flex-1 bg-transparent text-meta text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+                    class="min-w-0 flex-1 bg-transparent text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
                     @keydown.enter.prevent="useTypedUrl"
                 >
 
                 <button
                     type="button"
-                    class="rounded px-2 py-1 text-caption text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="rounded px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="useTypedUrl"
                 >Use</button>
             </div>

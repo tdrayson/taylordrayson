@@ -43,8 +43,8 @@ const boxedSize = computed(() => (props.size === 'sm'
 // Final class list for the <select>, merged so a caller's class can override ours.
 const selectClasses = computed(() => cn(
     isBare.value
-        ? 'appearance-none bg-transparent pr-5 text-meta font-medium focus:outline-none focus-visible:underline focus-visible:underline-offset-4'
-        : cn('w-full appearance-none bg-neutral-0 text-meta transition-colors focus:outline-none', boxedBorder.value, boxedSize.value),
+        ? 'appearance-none bg-transparent pr-5 text-sm font-medium focus:outline-none focus-visible:underline focus-visible:underline-offset-4'
+        : cn('w-full appearance-none bg-neutral-0 text-sm transition-colors focus:outline-none', boxedBorder.value, boxedSize.value),
     props.placeholder && props.modelValue === '' ? 'text-neutral-500' : 'text-neutral-900',
     isBare.value && ! props.readonly && 'cursor-pointer transition-colors hover:text-accent-500',
     props.readonly && (isBare.value ? 'cursor-default' : READONLY),

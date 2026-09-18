@@ -121,8 +121,8 @@ function rowSpan(photo) {
                 >
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover/photo:opacity-100 group-focus-within/photo:opacity-100">
-                    <p class="truncate text-meta font-medium text-white">{{ photo.caption }}</p>
-                    <p class="text-caption text-white/80">{{ photo.date }}</p>
+                    <p class="truncate text-sm font-medium text-white">{{ photo.caption }}</p>
+                    <p class="text-xs text-white/80">{{ photo.date }}</p>
                 </div>
             </button>
             <Link

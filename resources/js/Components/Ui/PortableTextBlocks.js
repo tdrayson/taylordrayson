@@ -328,8 +328,8 @@ function renderListRun(run, favicons, previews) {
     return vnodes;
 }
 
-// Type scale per heading level: a clean 30/24/20/18/16px ladder so every
-// level sits clearly above body text (15px).
+// Type scale per heading level: a clean 30/24/20/18/16px ladder. h6 meets body
+// text at 16px, so weight alone separates it.
 const HEADING_CLASSES = {
     h2: 'text-3xl font-bold',
     h3: 'text-2xl font-semibold',
@@ -405,7 +405,7 @@ function renderImage(node, onImageClick) {
             }, [h(ZoomButton)]),
         ]),
         node.caption
-            ? h('figcaption', { class: 'mt-2 text-left text-meta text-neutral-500' }, node.caption)
+            ? h('figcaption', { class: 'mt-2 text-left text-sm text-neutral-500' }, node.caption)
             : null,
     ]);
 }
@@ -434,7 +434,7 @@ function renderCallout(node, favicons, previews) {
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),
-            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
+            h('p', { class: 'text-base leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
         ]),
     ]);
 }

@@ -154,7 +154,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
     <div ref="root" class="relative" @keydown.esc="open = false">
         <button
             type="button"
-            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="display ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
@@ -168,7 +168,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
                     <button type="button" aria-label="Previous month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(-1)">
                         <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="pickerView = 'months'">
+                    <button type="button" class="rounded px-2 py-0.5 text-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="pickerView = 'months'">
                         {{ monthNames[view.month] }} {{ view.year }}
                     </button>
                     <button type="button" aria-label="Next month" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepMonth(1)">
@@ -176,12 +176,12 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
                     </button>
                 </div>
                 <div class="mt-3 grid grid-cols-7 gap-1 text-center">
-                    <span v-for="(weekday, index) in weekdays" :key="index" class="text-label text-neutral-500">{{ weekday }}</span>
+                    <span v-for="(weekday, index) in weekdays" :key="index" class="text-2xs font-semibold text-neutral-500">{{ weekday }}</span>
                     <template v-for="(cell, index) in days" :key="index">
                         <button
                             v-if="cell"
                             type="button"
-                            class="rounded border-2 border-transparent py-1 text-caption tabular-nums transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                            class="rounded border-2 border-transparent py-1 text-xs tabular-nums transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
                             :class="isSelectedDay(cell) ? 'bg-accent-500 text-neutral-0' : isToday(cell) ? 'font-semibold text-accent-500 hover:border-accent-500' : 'text-neutral-700 hover:border-accent-500'"
                             @click="pickDay(cell)"
                         >
@@ -197,7 +197,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
                     <button type="button" aria-label="Previous year" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepYear(-1)">
                         <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <button type="button" class="rounded px-2 py-0.5 text-meta font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="pickerView = 'years'">
+                    <button type="button" class="rounded px-2 py-0.5 text-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="pickerView = 'years'">
                         {{ view.year }}
                     </button>
                     <button type="button" aria-label="Next year" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepYear(1)">
@@ -209,7 +209,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
                         v-for="(month, index) in monthsShort"
                         :key="index"
                         type="button"
-                        class="rounded border-2 border-transparent py-2 text-caption transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                        class="rounded border-2 border-transparent py-2 text-xs transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
                         :class="isSelectedMonth(index) ? 'bg-accent-500 text-neutral-0' : 'text-neutral-700 hover:border-accent-500'"
                         @click="pickMonth(index)"
                     >
@@ -223,7 +223,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
                     <button type="button" aria-label="Previous years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(-1)">
                         <Icon name="ArrowLeft01Icon" class="size-4" />
                     </button>
-                    <span class="text-meta font-semibold text-neutral-900 tabular-nums">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
+                    <span class="text-sm font-semibold text-neutral-900 tabular-nums">{{ yearRange[0] }} – {{ yearRange[11] }}</span>
                     <button type="button" aria-label="Next years" class="rounded p-1 text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none" @click="stepDecade(1)">
                         <Icon name="ArrowRight01Icon" class="size-4" />
                     </button>
@@ -233,7 +233,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
                         v-for="year in yearRange"
                         :key="year"
                         type="button"
-                        class="rounded border-2 border-transparent py-2 text-caption tabular-nums transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
+                        class="rounded border-2 border-transparent py-2 text-xs tabular-nums transition-colors focus-visible:border-accent-500 focus-visible:outline-none"
                         :class="isSelectedYear(year) ? 'bg-accent-500 text-neutral-0' : 'text-neutral-700 hover:border-accent-500'"
                         @click="pickYear(year)"
                     >

@@ -375,7 +375,7 @@ const seatsOptions = baseOptions({
             { label: 'More data stories', href: '/stories' },
         ]" />
 
-        <p class="mt-10 text-meta text-neutral-400">Last updated {{ story.kpis.updated }}.</p>
+        <p class="mt-10 text-sm text-neutral-400">Last updated {{ story.kpis.updated }}.</p>
 
         <StoryAuthor />
 

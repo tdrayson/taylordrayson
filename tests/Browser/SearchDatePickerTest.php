@@ -12,8 +12,8 @@ it('drills from days to months to years without closing', function () {
     $page = visit('/search?filter='.urlencode($filter))->resize(1280, 800);
 
     // The header naming the month and year is the popover's only bold control:
-    // today's date is bold too, but at caption size.
-    $header = '.shadow-card button.text-meta.font-semibold';
+    // today's date is bold too, but a size down.
+    $header = '.shadow-card button.text-sm.font-semibold';
 
     $page->click('button:has-text("Pick a date")')
         ->assertScript("!! document.querySelector('.grid-cols-7')", true);

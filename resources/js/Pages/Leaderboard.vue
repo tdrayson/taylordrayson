@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Leaderboard from '../Components/Snake/Leaderboard.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -28,8 +29,8 @@ onMounted(() => {
     <AppHead :og="og" />
 
     <div class="mx-auto max-w-lg">
-        <h1 class="font-display text-display">Leaderboard</h1>
-        <p class="mt-4 text-body text-neutral-500">
+        <Heading as="h1" size="display">Leaderboard</Heading>
+        <p class="mt-4 text-base text-neutral-500">
             Every player who found the gap and logged a streak. {{ entries.length }} {{ entries.length === 1 ? 'name' : 'names' }} so far.
         </p>
 
@@ -39,10 +40,10 @@ onMounted(() => {
 
         <div class="mt-9 flex gap-6">
             <!-- Full load so the 404 status page (the game) renders reliably. -->
-            <a href="/404" class="text-meta font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
+            <a href="/404" class="text-sm font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
                 Back to the game
             </a>
-            <Link href="/" class="text-meta font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
+            <Link href="/" class="text-sm font-medium text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-neutral-500">
                 Back to the timeline
             </Link>
         </div>

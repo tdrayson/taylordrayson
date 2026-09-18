@@ -57,7 +57,7 @@ function dayUrl(day) {
 
 <template>
     <div class="mt-6 grid grid-cols-7 gap-2">
-        <div v-for="weekday in weekdays" :key="weekday" class="px-1 pb-1 text-label uppercase text-neutral-500">
+        <div v-for="weekday in weekdays" :key="weekday" class="px-1 pb-1 text-2xs font-semibold uppercase tracking-wider text-neutral-500">
             {{ weekday }}
         </div>
 
