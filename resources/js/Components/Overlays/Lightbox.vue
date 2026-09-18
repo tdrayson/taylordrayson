@@ -243,7 +243,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     <Link
                         v-if="link && current?.url"
                         :href="current.url"
-                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-meta text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-sm text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
@@ -306,9 +306,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     v-if="(caption && current?.caption) || (counter && hasMultiple)"
                     class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"
                 >
-                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
-                    <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
-                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tabular-nums">{{ index + 1 }} / {{ photos.length }}</span>
+                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-sm font-medium text-white">{{ current.caption }}</p>
+                    <p v-if="caption && current?.date" class="text-xs text-white/70">{{ current.date }}</p>
+                    <span v-if="counter && hasMultiple" class="mt-1 text-xs text-white/60 tabular-nums">{{ index + 1 }} / {{ photos.length }}</span>
                 </div>
             </div>
         </Transition>

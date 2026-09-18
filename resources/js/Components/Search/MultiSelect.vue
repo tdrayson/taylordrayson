@@ -71,12 +71,12 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             type="button"
             aria-haspopup="true"
             :aria-expanded="open"
-            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="summary ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
             <span class="flex-1 truncate">{{ summary ?? placeholder }}</span>
-            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-label text-accent-700 tabular-nums">{{ modelValue.length }}</span>
+            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-2xs font-semibold text-accent-700 tabular-nums">{{ modelValue.length }}</span>
             <Icon name="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
         </button>
 
@@ -88,7 +88,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     type="text"
                     placeholder="Search…"
                     aria-label="Search options"
-                    class="w-full bg-transparent py-2.5 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+                    class="w-full bg-transparent py-2.5 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 >
             </div>
             <ul class="max-h-56 overflow-y-auto py-1">
@@ -96,7 +96,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     <button
                         type="button"
                         :aria-pressed="isSelected(option)"
-                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
+                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
                         :class="[
                             isSelected(option) ? 'text-neutral-900' : 'text-neutral-700',
                             index === active ? 'bg-neutral-25' : '',
@@ -112,7 +112,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         <span class="flex-1 truncate">{{ option.label }}</span>
                     </button>
                 </li>
-                <li v-if="!filtered.length" class="px-3 py-3 text-center text-caption text-neutral-500">No matches</li>
+                <li v-if="!filtered.length" class="px-3 py-3 text-center text-xs text-neutral-500">No matches</li>
             </ul>
         </div>
     </div>

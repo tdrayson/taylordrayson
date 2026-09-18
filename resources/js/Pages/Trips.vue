@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import FeedRail from '../Components/Timeline/FeedRail.vue';
 import TripCard from '../Components/Trips/TripCard.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -38,12 +39,12 @@ const byYear = computed(() => {
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">Trips</h1>
+        <Heading as="h1" size="display">Trips</Heading>
     </header>
 
     <div v-if="trips.length" class="mt-10 flex flex-col gap-14">
         <section v-for="group in byYear" :key="group.year">
-            <h2 class="mb-6 font-display text-item-title">{{ group.year }}</h2>
+            <Heading size="title" class="mb-6">{{ group.year }}</Heading>
 
             <FeedRail>
                 <TripCard
@@ -59,5 +60,5 @@ const byYear = computed(() => {
         </section>
     </div>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">No trips yet.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">No trips yet.</p>
 </template>

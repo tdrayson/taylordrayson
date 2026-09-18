@@ -81,6 +81,6 @@ const hint = computed(() => {
             placeholder="2h 15m"
             @update:model-value="text = $event; emit('update:modelValue', parse($event))"
         />
-        <p v-if="hint && hint !== text" class="mt-1 text-caption text-neutral-500">{{ hint }}</p>
+        <p v-if="hint && hint !== text" class="mt-1 text-xs text-neutral-500">{{ hint }}</p>
     </div>
 </template>

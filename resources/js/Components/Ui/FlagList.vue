@@ -29,7 +29,7 @@ const sortedCodes = computed(() => [...props.codes].sort((a, b) => name(a).local
 
 <template>
     <ul class="my-7 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
-        <li v-for="code in sortedCodes" :key="code" class="flex items-center gap-2.5 text-meta text-neutral-700">
+        <li v-for="code in sortedCodes" :key="code" class="flex items-center gap-2.5 text-sm text-neutral-700">
             <span :class="['fi', `fi-${code.toLowerCase()}`]" class="story-flag aspect-4/3 shrink-0 rounded-xs inset-ring inset-ring-black/8" aria-hidden="true" />
             <span class="truncate">{{ name(code) }}</span>
         </li>

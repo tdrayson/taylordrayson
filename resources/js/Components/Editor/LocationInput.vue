@@ -135,7 +135,7 @@ function useMyLocation() {
             </button>
         </div>
 
-        <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
-        <p v-else-if="resolvedAddress" class="mt-1 text-caption text-neutral-500">{{ resolvedAddress }}</p>
+        <p v-if="error" class="mt-1 text-xs text-red-600">{{ error }}</p>
+        <p v-else-if="resolvedAddress" class="mt-1 text-xs text-neutral-500">{{ resolvedAddress }}</p>
     </div>
 </template>
