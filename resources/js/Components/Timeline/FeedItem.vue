@@ -474,13 +474,4 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         transition: none;
     }
 }
-
-.type-color {
-    color: var(--type-color);
-}
-
-.type-link:hover,
-.type-link:focus-visible {
-    color: var(--type-color);
-}
 </style>

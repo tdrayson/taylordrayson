@@ -297,7 +297,7 @@ function press() {
             >
                 <Tooltip :label="responsesLabel" placement="top" :class="['items-center', sizes.gap]">
                     <Icon name="Comment01Icon" :class="sizes.icon" />
-                    <span class="tnum">{{ replyCount }}</span>
+                    <span class="tabular-nums">{{ replyCount }}</span>
                 </Tooltip>
             </CountSegment>
 
@@ -309,7 +309,7 @@ function press() {
             >
                 <Tooltip :label="gestureLabel(gesture)" placement="top" :class="['items-center', sizes.gap]">
                     <Icon :name="gesture.icon" :class="sizes.icon" />
-                    <span class="tnum">{{ gesture.count }}</span>
+                    <span class="tabular-nums">{{ gesture.count }}</span>
                 </Tooltip>
             </CountSegment>
             </CountGroup>

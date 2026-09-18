@@ -235,7 +235,7 @@ function swatchInk(step) {
                 <CountGroup v-for="size in ['md', 'sm']" :key="size" :size="size">
                     <CountSegment v-for="item in countSample" :key="item.key" :class="size === 'sm' ? 'text-caption' : 'text-meta'">
                         <Icon :name="item.icon" :class="size === 'sm' ? 'size-3.5' : 'size-4'" />
-                        <span class="tnum">{{ item.count }}</span>
+                        <span class="tabular-nums">{{ item.count }}</span>
                     </CountSegment>
                 </CountGroup>
             </div>

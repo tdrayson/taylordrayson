@@ -139,9 +139,9 @@ it('keeps the reaction count the colour of its kind, whichever reaction you chos
         ]);
     }
 
-    $colour = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tnum')).color";
+    $colour = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tabular-nums')).color";
 
-    $theirs = visit($untouched->url())->assertPresent('[data-testid="reaction-bar"] .tnum')->script($colour);
+    $theirs = visit($untouched->url())->assertPresent('[data-testid="reaction-bar"] .tabular-nums')->script($colour);
 
     visit($reacted->url())
         ->assertScript("document.querySelector('[data-testid=\"reaction-bar\"] button').getAttribute('aria-pressed')", 'true')
