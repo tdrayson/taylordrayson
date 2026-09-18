@@ -5,7 +5,7 @@ import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
-    options: { type: Array, default: () => [] },
+    options: { type: Array, default: () => [] }, // [{ value, label }]
     placeholder: { type: String, default: 'Select…' },
 });
 
@@ -18,14 +18,24 @@ const query = ref('');
 const filtered = computed(() => {
     const term = query.value.trim().toLowerCase();
 
-    return term ? props.options.filter((option) => String(option).toLowerCase().includes(term)) : props.options;
+    return term ? props.options.filter((option) => option.label.toLowerCase().includes(term)) : props.options;
 });
 
-const summary = computed(() => (props.modelValue.length ? props.modelValue.join(', ') : null));
-const isSelected = (option) => props.modelValue.includes(option);
+// The trigger reads back what was picked by label, so it matches the list it
+// came from rather than showing the stored values.
+const summary = computed(() => {
+    const chosen = props.options.filter((option) => props.modelValue.includes(option.value));
+
+    return chosen.length ? chosen.map((option) => option.label).join(', ') : null;
+});
+
+const isSelected = (option) => props.modelValue.includes(option.value);
 
 function toggleOption(option) {
-    const next = isSelected(option) ? props.modelValue.filter((value) => value !== option) : [...props.modelValue, option];
+    const next = isSelected(option)
+        ? props.modelValue.filter((value) => value !== option.value)
+        : [...props.modelValue, option.value];
+
     emit('update:modelValue', next);
 }
 
@@ -82,7 +92,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 >
             </div>
             <ul class="max-h-56 overflow-y-auto py-1">
-                <li v-for="(option, index) in filtered" :key="option">
+                <li v-for="(option, index) in filtered" :key="option.value">
                     <button
                         type="button"
                         :aria-pressed="isSelected(option)"
@@ -99,7 +109,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         >
                             <Icon v-if="isSelected(option)" name="Tick02Icon" class="size-3" :stroke-width="2.5" />
                         </span>
-                        <span class="flex-1 truncate">{{ option }}</span>
+                        <span class="flex-1 truncate">{{ option.label }}</span>
                     </button>
                 </li>
                 <li v-if="!filtered.length" class="px-3 py-3 text-center text-caption text-neutral-500">No matches</li>

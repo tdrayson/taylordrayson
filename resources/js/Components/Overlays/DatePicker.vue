@@ -137,14 +137,17 @@ function toggle() {
     }
 }
 
-function onDocumentClick(event) {
-    if (root.value && !root.value.contains(event.target)) {
+// Captured on pointerdown, before Vue patches: a click that swaps days for
+// months detaches the button it was on, and a bubbled click would then see a
+// target outside the picker and close it.
+function onDocumentPointerDown(event) {
+    if (open.value && root.value && !root.value.contains(event.target)) {
         open.value = false;
     }
 }
 
-onMounted(() => document.addEventListener('click', onDocumentClick));
-onUnmounted(() => document.removeEventListener('click', onDocumentClick));
+onMounted(() => document.addEventListener('pointerdown', onDocumentPointerDown, true));
+onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerDown, true));
 </script>
 
 <template>
