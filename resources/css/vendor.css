@@ -21,6 +21,13 @@
     width: 100%;
 }
 
+/* Contains every z-index inside a map (MapLibre's own, plus the two below), so
+   none of them is measured against the page and painted over a page-level
+   overlay such as the lightbox. */
+.maplibregl-map {
+    isolation: isolate;
+}
+
 /* Above every marker, raised or not. MapLibre numbers its markers itself and
    ships the controls at 2, so a raised marker would sit over the zoom buttons.
    Qualified by the map class to beat MapLibre's own rule, whose stylesheet is

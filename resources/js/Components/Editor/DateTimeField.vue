@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as chrono from 'chrono-node';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Input from '../Ui/Input.vue';
 import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
@@ -199,11 +200,11 @@ function setTimePart(value) {
                 <li v-for="option in relativeOptions" :key="option.label">
                     <button
                         type="button"
-                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-sm text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(option.date)"
                     >
                         <span>{{ option.label }}</span>
-                        <span class="text-caption text-neutral-500">
+                        <span class="text-xs text-neutral-500">
                             {{ option.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
                             {{ String(option.date.getHours()).padStart(2, '0') }}:{{ String(option.date.getMinutes()).padStart(2, '0') }}
                         </span>
@@ -215,11 +216,11 @@ function setTimePart(value) {
                 <li v-for="shortcut in shortcuts" :key="shortcut.label">
                     <button
                         type="button"
-                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-sm text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(shortcut.date)"
                     >
                         <span>{{ shortcut.label }}</span>
-                        <span class="text-caption text-neutral-500">
+                        <span class="text-xs text-neutral-500">
                             {{ shortcut.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }}
                         </span>
                     </button>
@@ -227,7 +228,7 @@ function setTimePart(value) {
             </ul>
 
             <div class="grid grid-cols-1 gap-2 sm:grid-cols-5">
-                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-3">
+                <Eyebrow as="label" class="min-w-0 text-neutral-500 sm:col-span-3">
                     Date
                     <input
                         type="date"
@@ -235,9 +236,9 @@ function setTimePart(value) {
                         :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                         @input="setDatePart($event.target.value)"
                     >
-                </label>
+                </Eyebrow>
 
-                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-2">
+                <Eyebrow as="label" class="min-w-0 text-neutral-500 sm:col-span-2">
                     Time
                     <input
                         type="time"
@@ -245,14 +246,14 @@ function setTimePart(value) {
                         :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                         @input="setTimePart($event.target.value)"
                     >
-                </label>
+                </Eyebrow>
             </div>
 
             <div class="mt-2 flex gap-2">
                 <button
                     v-if="parts.date"
                     type="button"
-                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-xs text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="clear"
                 >
                     Clear
@@ -260,7 +261,7 @@ function setTimePart(value) {
 
                 <button
                     type="button"
-                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-xs text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="close"
                 >
                     Done

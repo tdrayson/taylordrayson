@@ -123,7 +123,7 @@ function onBackspace() {
             <span
                 v-for="tag in tags"
                 :key="tag"
-                class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700"
+                class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-sm text-accent-700"
                 :class="readonly && 'pr-2'"
             >
                 {{ tag }}
@@ -142,7 +142,7 @@ function onBackspace() {
                 :value="query"
                 type="text"
                 :placeholder="tags.length ? '' : 'Add a tag'"
-                class="min-w-24 flex-1 border-none bg-transparent p-0 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+                class="min-w-24 flex-1 border-none bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 autocomplete="off"
                 @input="onInput($event.target.value)"
                 @focus="search"
@@ -164,12 +164,12 @@ function onBackspace() {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-sm transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(suggestion)"
                 >
                     <span class="min-w-0 truncate">{{ suggestion.label }}</span>
-                    <span v-if="suggestion.detail" class="shrink-0 text-caption text-neutral-500">{{ suggestion.detail }}</span>
+                    <span v-if="suggestion.detail" class="shrink-0 text-xs text-neutral-500">{{ suggestion.detail }}</span>
                 </button>
             </li>
         </ul>

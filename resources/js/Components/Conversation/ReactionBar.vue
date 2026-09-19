@@ -45,8 +45,8 @@ const compact = computed(() => props.variant === 'compact');
 
 /** One place for every size that differs, rather than a ternary per element. */
 const sizes = computed(() => (compact.value
-    ? { row: 'gap-4', text: 'text-meta', icon: 'size-4', disc: 'size-5', discIcon: 'size-3.5', pip: 'size-5', pipIcon: 'size-3.5' }
-    : { row: 'gap-5', text: 'text-body', icon: 'size-5', disc: 'size-6', discIcon: 'size-4', pip: 'size-6', pipIcon: 'size-4' }));
+    ? { row: 'gap-4', text: 'text-sm', icon: 'size-4', disc: 'size-5', discIcon: 'size-3.5', pip: 'size-5', pipIcon: 'size-3.5' }
+    : { row: 'gap-5', text: 'text-base', icon: 'size-5', disc: 'size-6', discIcon: 'size-4', pip: 'size-6', pipIcon: 'size-4' }));
 
 /**
  * A white glyph on a coloured disc rather than an emoji glyph: an emoji is drawn
@@ -328,7 +328,7 @@ function press() {
                         :style="glyph(bucket) ? discOf(glyph(bucket)) : { background: 'var(--color-neutral-25)' }"
                     >
                         <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" :class="sizes.pipIcon" />
-                        <span v-else v-twemoji class="text-caption text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
+                        <span v-else v-twemoji class="text-xs text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
                     </span>
 
                     <!-- Its own count, revealed with the spread so each disc can
@@ -339,7 +339,7 @@ function press() {
             </ul>
         </div>
 
-        <p v-if="failed" class="mt-2 text-caption text-red-600">
+        <p v-if="failed" class="mt-2 text-xs text-red-600">
             That did not save. Try again in a moment.
         </p>
     </div>

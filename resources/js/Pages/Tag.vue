@@ -4,6 +4,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -22,7 +23,7 @@ setLayoutProps({
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">Tagged {{ name }}</h1>
+        <Heading as="h1" size="display">Tagged {{ name }}</Heading>
     </header>
 
     <div v-if="groups.length" class="h-feed mt-10 flex flex-col gap-14">
@@ -37,5 +38,5 @@ setLayoutProps({
         />
     </div>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">Nothing here yet.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">Nothing here yet.</p>
 </template>

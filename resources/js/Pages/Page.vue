@@ -67,12 +67,12 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
          nested elements cannot reach the named columns. -->
     <article v-else class="full-width content-grid">
         <header>
-            <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
-            <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
+            <h1 v-twemoji class="max-w-2xl font-display text-5xl font-extrabold tracking-tight">{{ title }}</h1>
+            <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-lg text-neutral-700">{{ excerpt }}</p>
 
             <!-- Owner-only, so it sits below the page rather than interrupting the title. -->
             <div v-if="signedIn" class="mt-3 flex flex-wrap items-center gap-3">
-                <Link :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
+                <Link :href="`?edit`" class="text-sm text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
                     Edit this page
                 </Link>
             </div>

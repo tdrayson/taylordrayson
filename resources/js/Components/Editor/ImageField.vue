@@ -201,7 +201,7 @@ function move(index, by) {
              natively, and the sr-only input keeps its own keyboard focus. -->
         <label
             v-if="! full && ! readonly"
-            class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-6 text-meta transition-colors focus-within:ring-2 focus-within:ring-accent-500"
+            class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-6 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent-500"
             :class="[
                 dragging ? 'border-accent-500 bg-accent-50 text-accent-700' : 'text-neutral-500 hover:border-accent-500 hover:text-accent-700',
                 invalid ? 'border-red-500' : CONTROL_BORDER,
@@ -229,6 +229,6 @@ function move(index, by) {
             <slot name="actions" />
         </div>
 
-        <p v-if="error" class="text-caption text-red-600">{{ error }}</p>
+        <p v-if="error" class="text-xs text-red-600">{{ error }}</p>
     </div>
 </template>

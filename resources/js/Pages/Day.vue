@@ -96,6 +96,6 @@ setLayoutProps({
         <StatGrid v-if="summaryStats.length" :stats="summaryStats" class="mt-8" />
 
         <TimelineFeed v-if="items.length" :items="items" class="mt-10" />
-        <p v-else class="mt-10 text-meta text-neutral-500">No entries for this day.</p>
+        <p v-else class="mt-10 text-sm text-neutral-500">No entries for this day.</p>
     </template>
 </template>

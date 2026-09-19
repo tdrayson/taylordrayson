@@ -2,6 +2,9 @@
 import { computed } from 'vue';
 import DetailList from '../Ui/DetailList.vue';
 import SectionHead from '../Ui/SectionHead.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Heading from '../Ui/Heading.vue';
+import Stat from '../Ui/Stat.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -64,7 +67,7 @@ function quantity(item) {
                 <span class="absolute inline-flex size-full animate-ping-slow rounded-full bg-food opacity-75" />
                 <span class="relative inline-flex size-2 rounded-full bg-food" />
             </span>
-            <span class="text-label uppercase tracking-wide text-food">Still logging today</span>
+            <Eyebrow as="span" class="tracking-wide text-food">Still logging today</Eyebrow>
         </div>
 
         <div v-if="macros.length">
@@ -75,8 +78,8 @@ function quantity(item) {
                 <div v-for="macro in macros" :key="macro.key" class="flex items-center gap-2.5">
                     <span class="size-2.5 rounded-full" :style="{ background: macro.color }" />
                     <div>
-                        <div class="font-display text-stat leading-none tabular-nums">{{ number(macro.grams) }}<span class="ml-0.5 text-base font-semibold text-neutral-500">g</span></div>
-                        <div class="mt-1 text-label uppercase text-neutral-500">{{ macro.label }}, {{ Math.round(macro.percent) }}%</div>
+                        <Stat as="div">{{ number(macro.grams) }}<span class="ml-0.5 text-base font-semibold text-neutral-500">g</span></Stat>
+                        <Eyebrow class="mt-1 text-neutral-500">{{ macro.label }}, {{ Math.round(macro.percent) }}%</Eyebrow>
                     </div>
                 </div>
             </div>
@@ -87,16 +90,16 @@ function quantity(item) {
             <div v-twemoji class="space-y-3">
                 <div v-for="meal in meals" :key="meal.meal" class="overflow-hidden rounded-lg border border-neutral-50">
                     <div class="flex items-baseline justify-between bg-neutral-25 px-4 py-2.5">
-                        <span class="font-display text-section">{{ titleCase(meal.meal) }}</span>
-                        <span class="text-meta font-semibold text-neutral-700 tabular-nums">{{ number(meal.calories) }} kcal</span>
+                        <Heading as="span" size="section">{{ titleCase(meal.meal) }}</Heading>
+                        <span class="text-sm font-semibold text-neutral-700 tabular-nums">{{ number(meal.calories) }} kcal</span>
                     </div>
                     <div class="divide-y divide-neutral-50">
                         <div v-for="(item, index) in meal.items" :key="index" class="flex items-center justify-between gap-4 px-4 py-2.5">
                             <div class="min-w-0">
-                                <div class="text-meta text-neutral-900">{{ item.name }}</div>
-                                <div class="text-caption text-neutral-500">{{ quantity(item) }}</div>
+                                <div class="text-sm text-neutral-900">{{ item.name }}</div>
+                                <div class="text-xs text-neutral-500">{{ quantity(item) }}</div>
                             </div>
-                            <div class="shrink-0 text-meta font-semibold text-neutral-900 tabular-nums">{{ number(item.calories) }}</div>
+                            <div class="shrink-0 text-sm font-semibold text-neutral-900 tabular-nums">{{ number(item.calories) }}</div>
                         </div>
                     </div>
                 </div>

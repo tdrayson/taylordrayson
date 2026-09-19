@@ -5,7 +5,7 @@ import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
-    options: { type: Array, default: () => [] },
+    options: { type: Array, default: () => [] }, // [{ value, label }]
     placeholder: { type: String, default: 'Select…' },
 });
 
@@ -18,14 +18,24 @@ const query = ref('');
 const filtered = computed(() => {
     const term = query.value.trim().toLowerCase();
 
-    return term ? props.options.filter((option) => String(option).toLowerCase().includes(term)) : props.options;
+    return term ? props.options.filter((option) => option.label.toLowerCase().includes(term)) : props.options;
 });
 
-const summary = computed(() => (props.modelValue.length ? props.modelValue.join(', ') : null));
-const isSelected = (option) => props.modelValue.includes(option);
+// The trigger reads back what was picked by label, so it matches the list it
+// came from rather than showing the stored values.
+const summary = computed(() => {
+    const chosen = props.options.filter((option) => props.modelValue.includes(option.value));
+
+    return chosen.length ? chosen.map((option) => option.label).join(', ') : null;
+});
+
+const isSelected = (option) => props.modelValue.includes(option.value);
 
 function toggleOption(option) {
-    const next = isSelected(option) ? props.modelValue.filter((value) => value !== option) : [...props.modelValue, option];
+    const next = isSelected(option)
+        ? props.modelValue.filter((value) => value !== option.value)
+        : [...props.modelValue, option.value];
+
     emit('update:modelValue', next);
 }
 
@@ -61,12 +71,12 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             type="button"
             aria-haspopup="true"
             :aria-expanded="open"
-            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-meta transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             :class="summary ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
             <span class="flex-1 truncate">{{ summary ?? placeholder }}</span>
-            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-label text-accent-700 tabular-nums">{{ modelValue.length }}</span>
+            <span v-if="modelValue.length" class="shrink-0 rounded-full bg-accent-50 px-1.5 text-2xs font-semibold text-accent-700 tabular-nums">{{ modelValue.length }}</span>
             <Icon name="ArrowDown01Icon" class="size-3.5 shrink-0 text-neutral-500" />
         </button>
 
@@ -78,15 +88,15 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     type="text"
                     placeholder="Search…"
                     aria-label="Search options"
-                    class="w-full bg-transparent py-2.5 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+                    class="w-full bg-transparent py-2.5 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 >
             </div>
             <ul class="max-h-56 overflow-y-auto py-1">
-                <li v-for="(option, index) in filtered" :key="option">
+                <li v-for="(option, index) in filtered" :key="option.value">
                     <button
                         type="button"
                         :aria-pressed="isSelected(option)"
-                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-meta transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
+                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
                         :class="[
                             isSelected(option) ? 'text-neutral-900' : 'text-neutral-700',
                             index === active ? 'bg-neutral-25' : '',
@@ -99,10 +109,10 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                         >
                             <Icon v-if="isSelected(option)" name="Tick02Icon" class="size-3" :stroke-width="2.5" />
                         </span>
-                        <span class="flex-1 truncate">{{ option }}</span>
+                        <span class="flex-1 truncate">{{ option.label }}</span>
                     </button>
                 </li>
-                <li v-if="!filtered.length" class="px-3 py-3 text-center text-caption text-neutral-500">No matches</li>
+                <li v-if="!filtered.length" class="px-3 py-3 text-center text-xs text-neutral-500">No matches</li>
             </ul>
         </div>
     </div>

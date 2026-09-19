@@ -70,6 +70,11 @@ class Connector extends ApiConnector
         return $data['access_token'];
     }
 
+    protected function canAuthenticate(): bool
+    {
+        return $this->token() !== null;
+    }
+
     /**
      * A 401 means the cached token died early, so drop it and let the retry
      * re-authenticate through boot(). Everything else follows the base policy.

@@ -139,18 +139,18 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
                     <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
                         <Icon :icon="meta.icon" class="size-6" />
                     </span>
-                    <Link :href="meta.href" class="text-eyebrow uppercase underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
+                    <Link :href="meta.href" class="text-2xs font-semibold uppercase tracking-wider underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl p-name font-display text-display">{{ title }}</h1>
+                <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">{{ title }}</h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->
                 <h1 v-else class="sr-only">{{ meta.label }}, {{ fullOccurredLabel }}</h1>
-                <Link v-if="dayUrl" :href="dayUrl" class="mt-2 inline-block text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
+                <Link v-if="dayUrl" :href="dayUrl" class="mt-2 inline-block text-sm font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
                     <time :datetime="occurredAt" class="dt-published">{{ occurredLabel }} {{ occurredOffset }}</time>
                 </Link>
-                <p v-if="trip" class="mt-1 text-meta text-neutral-500">
+                <p v-if="trip" class="mt-1 text-sm text-neutral-500">
                     Part of
                     <Link :href="trip.url" class="font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ trip.title }}</Link>
                 </p>
@@ -172,7 +172,7 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
             class="mt-10"
         />
 
-        <Link v-if="signedIn && editAction" :href="`?edit`" class="mt-6 inline-block text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
+        <Link v-if="signedIn && editAction" :href="`?edit`" class="mt-6 inline-block text-sm text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">Edit this entry</Link>
 
         <EntryFooter
             :source="source"

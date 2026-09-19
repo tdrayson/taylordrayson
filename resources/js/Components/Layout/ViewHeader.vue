@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Icon from '../Ui/Icon.vue';
 
 defineProps({
@@ -14,9 +15,9 @@ defineProps({
 <template>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <div v-if="eyebrow" class="text-eyebrow uppercase text-neutral-500">{{ eyebrow }}</div>
-            <h1 class="font-display text-display" v-html="title" />
-            <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
+            <Eyebrow v-if="eyebrow" class="text-neutral-500">{{ eyebrow }}</Eyebrow>
+            <h1 class="font-display text-5xl font-extrabold tracking-tight" v-html="title" />
+            <p v-if="subtitle" class="mt-2 text-sm text-neutral-500">{{ subtitle }}</p>
         </div>
         <div class="flex gap-4 text-sm font-semibold text-neutral-500">
             <Link v-if="prev" :href="prev.href" class="inline-flex items-center gap-1 hover:text-accent-500 focus-visible:text-accent-500">

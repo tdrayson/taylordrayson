@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
 
                 <p
                     v-else
-                    class="url-preview rounded-lg border border-neutral-100 bg-neutral-0 px-2.5 py-1.5 font-mono text-caption text-neutral-500 shadow-card"
+                    class="url-preview rounded-lg border border-neutral-100 bg-neutral-0 px-2.5 py-1.5 font-mono text-xs text-neutral-500 shadow-card"
                 >{{ active.url }}</p>
 
                 <!-- Last in the DOM so it paints over the card's own border,
