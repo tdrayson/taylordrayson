@@ -1,9 +1,11 @@
 <?php
 
+use App\Enums\ExportFormat;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntryExportController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
@@ -161,6 +163,14 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
 // never shadows another dated entry.
 Route::get('/{year}/{month}/{day}/calories', CaloriesRedirectController::class)
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('calories.redirect');
+
+// Entry exports. Above the entry route, whose unconstrained {slug} would
+// otherwise swallow "krk-lgw.json" whole and 404 on it.
+Route::get('/{year}/{month}/{day}/{slug}.{format}', EntryExportController::class)
+    ->where([
+        'year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}',
+        'format' => ExportFormat::pattern(),
+    ])->name('entry.export');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 

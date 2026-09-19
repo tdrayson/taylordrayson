@@ -23,7 +23,6 @@ use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Scopes\ListedScope;
 use App\Models\Tag;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
@@ -31,6 +30,7 @@ use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\EntryArtwork;
+use App\Queries\EntryAtUrl;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
@@ -47,31 +47,20 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
-    public function __construct(private readonly TripForEntry $tripForEntry) {}
+    public function __construct(
+        private readonly TripForEntry $tripForEntry,
+        private readonly EntryAtUrl $entryAtUrl,
+    ) {}
 
     public function show(int $year, int $month, int $day, string $slug): SymfonyResponse
     {
-        $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
-
-        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
-            ->with('entry')
-            ->whereDate('occurred_at', $date)
-            ->where('url_slug', $slug)
-            ->first();
-
-        $model = $entry?->entry;
-        $model?->setRelation('timelineEntry', $entry);
-
-        // Drafts have no spine row, so the owner reaches a dated one directly.
-        if ($model === null && Auth::check()) {
-            $model = $this->draftAt($date, $slug);
-        }
+        $model = ($this->entryAtUrl)($year, $month, $day, $slug);
 
         if ($model === null) {
             throw new NotFoundHttpException;
         }
 
-        return $this->render($model, $entry, sprintf('/%04d/%02d/%02d', $year, $month, $day));
+        return $this->render($model, $model->relationLoaded('timelineEntry') ? $model->timelineEntry : null, sprintf('/%04d/%02d/%02d', $year, $month, $day));
     }
 
     /** An owner's draft at its own address, dated or not. */
@@ -191,28 +180,6 @@ class EntryController extends Controller
                 ])
                 : null,
         ];
-    }
-
-    /** The owner's draft at a dated address; drafts have no spine row, so each draftable type is checked by date and slug. */
-    private function draftAt(string $date, string $slug): ?Model
-    {
-        foreach (Datasets::all() as $dataset) {
-            if (! $dataset->draftable()) {
-                continue;
-            }
-
-            $draft = $dataset->model()::query()
-                ->where('status', EntryStatus::Draft)
-                ->whereDate('occurred_at', $date)
-                ->get()
-                ->first(fn (Model $model): bool => $model->slug() === $slug);
-
-            if ($draft !== null) {
-                return $draft;
-            }
-        }
-
-        return null;
     }
 
     /**
