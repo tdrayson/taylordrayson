@@ -227,7 +227,8 @@ it('publishes header level properties only for a locked export, regardless of wh
         locked: true,
     );
 
-    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
+    $mf2 = json_decode((new Mf2Format)->render($data), true);
+    $properties = $mf2['items'][0]['properties'];
 
     expect($properties['url'][0])->toBe($data->url)
         ->and($properties['uid'][0])->toBe($data->url)
@@ -238,6 +239,16 @@ it('publishes header level properties only for a locked export, regardless of wh
         ->and($properties)->not->toHaveKey('content')
         ->and($properties)->not->toHaveKey('category')
         ->and($properties)->not->toHaveKey('syndication');
+
+    // The representative h-card identifies the site, not the locked entry, so
+    // withholding it would tell a reader nothing about who publishes this: it
+    // and the rel="me" links publish unconditionally, even here.
+    $card = $mf2['items'][1];
+
+    expect($card['type'])->toBe(['h-card'])
+        ->and($card['properties']['name'][0])->toBe(config('identity.name'))
+        ->and($card['properties']['note'][0])->toBe(config('identity.bio'))
+        ->and($mf2['rels']['me'])->toBe(['https://github.com/tdrayson']);
 });
 
 it('withholds the vocabulary extension for a locked export even with a matching aspect', function () {
