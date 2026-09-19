@@ -253,8 +253,8 @@ function press() {
                     <span class="tabular-nums" :class="mine ? 'font-bold' : 'font-medium'">{{ total }}</span>
                 </button>
 
-                <Transition name="picker-pop">
-                <div v-show="picking" class="absolute bottom-full left-0 z-20 pb-1">
+                <Transition name="pop">
+                <div v-show="picking" class="picker-origin absolute bottom-full left-0 z-20 pb-1">
                     <ul class="flex gap-1 rounded-full border border-neutral-50 bg-neutral-0 px-2 py-1.5 shadow-lg">
                         <li v-for="bucket in buckets.filter(isOurs)" :key="bucket.key">
                             <Tooltip :label="bucket.label" placement="top">
@@ -346,85 +346,10 @@ function press() {
 </template>
 
 <style scoped>
-/* The same curve and distance as the tooltip and the link preview, so every
-   popup on the site arrives the same way. Grown from the bottom edge, which is
-   the one anchored to the control. */
-.picker-pop-enter-active,
-.picker-pop-leave-active {
-    transition:
-        opacity 0.14s ease,
-        scale 0.19s cubic-bezier(0.16, 1, 0.3, 1),
-        translate 0.19s cubic-bezier(0.16, 1, 0.3, 1);
+/* Anchored to the button it springs from. The motion itself is the shared
+   `pop` family; only where it grows from is local to this picker. */
+.picker-origin {
     transform-origin: bottom left;
 }
 
-.picker-pop-enter-from,
-.picker-pop-leave-to {
-    opacity: 0;
-    scale: 0.92;
-    translate: 0 8px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .picker-pop-enter-active,
-    .picker-pop-leave-active {
-        transition: opacity 0.14s ease;
-    }
-
-    .picker-pop-enter-from,
-    .picker-pop-leave-to {
-        scale: 1;
-        translate: none;
-    }
-}
-
-/* Overlapped at rest so a handful of kinds stay one short mark, and spread on
-   hover so each is a target of its own and its title can be read. The overlap
-   is barely more than the ring: a disc is 1.5rem and the glyph fills it, so
-   anything deeper clips the glyph rather than just the disc, and the row reads
-   as one smudge instead of as several things. */
-.reaction-item {
-    margin-left: -0.1875rem;
-    transition: margin-left 150ms ease;
-}
-
-.reaction-item:first-child {
-    margin-left: 0;
-}
-
-.reaction-pile:not(.is-static):hover .reaction-item,
-.reaction-pile:not(.is-static):focus-within .reaction-item,
-.reaction-pile:not(.is-static):focus .reaction-item {
-    margin-left: 0.375rem;
-}
-
-.reaction-pile:not(.is-static):hover .reaction-item:first-child,
-.reaction-pile:not(.is-static):focus-within .reaction-item:first-child,
-.reaction-pile:not(.is-static):focus .reaction-item:first-child {
-    margin-left: 0;
-}
-
-/* Hidden by width rather than display, so the reveal can be animated and the
-   discs slide apart instead of jumping. */
-.reaction-count {
-    max-width: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-width 150ms ease, opacity 150ms ease, margin-left 150ms ease;
-}
-
-.reaction-pile:not(.is-static):hover .reaction-count,
-.reaction-pile:not(.is-static):focus-within .reaction-count,
-.reaction-pile:not(.is-static):focus .reaction-count {
-    max-width: 2rem;
-    margin-left: 0.25rem;
-    opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .reaction-item,
-    .reaction-count {
-        transition: none;
-    }
-}
 </style>
