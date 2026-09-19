@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Webmentions\DecideMentionStatus;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Jobs\VerifyWebmention;
@@ -129,6 +130,9 @@ it('shows a nested response indented under the mention that carried it', functio
 
     $parent = recheck($note, theirPost(salmentionTarget($note), nestedCite('chris', 'Agreed.', 'https://chris.example.com/1')));
 
+    // Held on arrival, so approve it: what is asserted here is where it renders.
+    nestedRows()->each->update(['status' => CommentStatus::Approved]);
+
     $items = collect(Conversation::for($note)->responses)->keyBy('sourceUrl');
 
     expect($items['https://chris.example.com/1']->parentItemId)->toBe('mention-'.$parent->id)
@@ -236,4 +240,30 @@ it('leaves a response alone when its author already sent it here themselves', fu
 
     expect(nestedRows())->toHaveCount(0)
         ->and(Webmention::query()->where('source_url', 'https://chris.example.com/1')->sole()->parent_source_url)->toBeNull();
+});
+
+// chris.example.com is trusted throughout this file and has an approved mention
+// of its own, so this is the one case where the old code handed a stranger an
+// approval: the citation is markup on their page, and nothing here has ever
+// spoken to chris.example.com.
+it('holds a nested response even when it claims an author we already trust', function () {
+    $note = Note::factory()->create();
+
+    Webmention::query()->create([
+        'source_url' => 'https://chris.example.com/earlier',
+        'target_url' => salmentionTarget($note),
+        'kind' => WebmentionKind::Reply->value,
+        'author_url' => 'https://chris.example.com/',
+        'author_host' => 'chris.example.com',
+        'status' => CommentStatus::Approved,
+    ]);
+
+    expect(app(DecideMentionStatus::class)('https://chris.example.com/'))
+        ->toBe(CommentStatus::Approved);
+
+    recheck($note, theirPost(salmentionTarget($note), nestedCite('chris', 'Words I never wrote.', 'https://chris.example.com/2')));
+
+    expect(nestedRows()->sole())
+        ->source_url->toBe('https://chris.example.com/2')
+        ->status->toBe(CommentStatus::Pending);
 });

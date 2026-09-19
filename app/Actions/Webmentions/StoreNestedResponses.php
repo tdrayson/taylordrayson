@@ -3,6 +3,7 @@
 namespace App\Actions\Webmentions;
 
 use App\Data\MentionData;
+use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Models\Webmention;
 use App\Support\PortableText;
@@ -31,7 +32,6 @@ final class StoreNestedResponses
     public function __construct(
         private readonly ParseMentionSource $parse,
         private readonly StoreAuthorPhoto $storePhoto,
-        private readonly DecideMentionStatus $decideStatus,
     ) {}
 
     /**
@@ -164,16 +164,21 @@ final class StoreNestedResponses
             'content' => $response->content,
             'published_at' => $response->publishedAt,
             'timezone' => $response->publishedTimezone,
-            // Verified by the page it was read from being verified: we fetched
-            // that page ourselves and confirmed it links here.
+            // Verified only in the sense that the page carrying it was: we
+            // fetched that page and confirmed it links here. Nothing here
+            // verifies who wrote this citation, which is why it is held below.
             'verified_at' => now(),
             'last_checked_at' => now(),
         ]);
 
-        // Decided once. Re-fetching the thread must not undo a moderation call
-        // already made, in either direction.
+        // Always held, however trusted the author claims to be. The claim is
+        // markup on somebody else's page: a source that genuinely links here
+        // verifies honestly and can still carry a citation naming any author it
+        // likes, so inheriting a trusted host's approval would let a stranger
+        // publish words here in that person's name. Set once, so re-fetching
+        // the thread never undoes a moderation call already made.
         if (! $mention->exists) {
-            $mention->status = ($this->decideStatus)($response->authorUrl);
+            $mention->status = CommentStatus::Pending;
         }
 
         $mention->save();
