@@ -36,7 +36,7 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="space-y-8">
-        <p v-if="range" class="text-meta text-neutral-500">
+        <p v-if="range" class="text-sm text-neutral-500">
             {{ range.long }} ({{ range.days }} days)
         </p>
 
@@ -48,7 +48,7 @@ const lightboxIndex = ref(null);
                 color="var(--color-event)"
             />
             <div class="flex flex-col gap-y-2 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4 sm:gap-y-1">
-                <p class="text-meta text-neutral-600">
+                <p class="text-sm text-neutral-600">
                     <span v-if="entry.venue_name" class="font-medium text-neutral-900">{{ entry.venue_name }}</span><span v-if="entry.city">{{ entry.venue_name ? ', ' : '' }}{{ entry.city }}</span><span v-if="entry.country">, {{ entry.country }}</span>
                 </p>
                 <ExternalLink :href="location.mapsUrl" label="View on Google Maps" />
@@ -66,7 +66,7 @@ const lightboxIndex = ref(null);
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p v-twemoji class="text-body text-neutral-700">{{ entry.description }}</p>
+            <p v-twemoji class="text-base text-neutral-700">{{ entry.description }}</p>
         </div>
 
         <div v-if="entry.url">

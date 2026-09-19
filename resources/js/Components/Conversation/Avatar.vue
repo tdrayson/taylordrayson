@@ -10,8 +10,8 @@ const props = defineProps({
 });
 
 const SIZES = {
-    sm: 'size-8 text-caption',
-    md: 'size-9 text-caption',
+    sm: 'size-8 text-xs',
+    md: 'size-9 text-xs',
 };
 
 /** Two letters is enough to tell people apart when there is no photo. */

@@ -52,7 +52,7 @@ const label = computed(() => `${props.used.toLocaleString()} of ${props.max.toLo
         <!-- Tabular figures, or the count jogs left and right as it climbs. -->
         <span
             v-if="counting"
-            class="text-label tabular-nums"
+            class="text-2xs font-semibold tabular-nums"
             :class="over ? 'font-semibold' : ''"
             aria-hidden="true"
         >{{ used.toLocaleString() }} / {{ max.toLocaleString() }}</span>

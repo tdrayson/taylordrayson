@@ -51,6 +51,10 @@ const origin = computed(() => {
 // only thing that makes a scraper fetch the new design.
 const ogVersion = computed(() => page.props.ogVersion);
 
+// Feed links narrowed to the current view's timeline type, built server-side by
+// App\Support\FeedDiscovery and empty on any view that isn't type-scoped.
+const contextualFeeds = computed(() => page.props.contextualFeeds ?? []);
+
 const canonical = computed(() => `${origin.value}${page.url}`);
 const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME}` : SITE_NAME));
 
@@ -92,6 +96,15 @@ const imageUrl = computed(() => {
     <Head :title="meta.title">
         <meta head-key="description" name="description" :content="meta.description" />
         <link head-key="canonical" rel="canonical" :href="canonical" />
+        <link
+            v-for="feed in contextualFeeds"
+            :key="feed.type"
+            :head-key="`feed:${feed.type}`"
+            rel="alternate"
+            :type="feed.type"
+            :title="feed.title"
+            :href="feed.href"
+        />
         <meta v-if="meta.noindex" head-key="robots" name="robots" content="noindex, nofollow" />
 
         <meta head-key="og:type" property="og:type" :content="meta.type" />

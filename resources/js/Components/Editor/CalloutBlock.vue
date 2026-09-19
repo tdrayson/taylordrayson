@@ -51,7 +51,7 @@ function choose(value) {
                 <li v-for="option in options" :key="option.value">
                     <button
                         type="button"
-                        class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(option.value)"
                     >
                         <span :class="['size-2.5 shrink-0 rounded-full', option.chip]" />

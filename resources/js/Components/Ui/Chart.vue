@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Chart } from '../../lib/chart.js';
 import { useTheme } from '../../useTheme.js';
+import Eyebrow from './Eyebrow.vue';
 
 const props = defineProps({
     type: { type: String, required: true },
@@ -63,7 +64,7 @@ onBeforeUnmount(() => {
 
 <template>
     <figure class="my-7">
-        <figcaption v-if="label" class="mb-3 text-label uppercase text-neutral-500">{{ label }}</figcaption>
+        <Eyebrow v-if="label" as="figcaption" class="mb-3 text-neutral-500">{{ label }}</Eyebrow>
         <div class="relative w-full" :style="{ height: `${height}px` }">
             <canvas ref="canvas" role="img" :aria-label="summary || label || 'Chart'" />
         </div>

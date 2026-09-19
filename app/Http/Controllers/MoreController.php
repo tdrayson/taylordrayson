@@ -33,6 +33,7 @@ class MoreController extends Controller
 
         return Inertia::render('More', [
             'tracked' => $tracked,
+            'total' => (int) $counts->sum(),
             'og' => OgMeta::more(),
         ]);
     }

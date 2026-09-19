@@ -12,13 +12,13 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
     <div class="max-w-2xl">
         <h1 class="font-display text-display">Unsubscribed</h1>
 
-        <p class="mt-3 text-body text-neutral-700">
+        <p class="mt-3 text-base text-neutral-700">
             You will not get any more emails about replies to that comment. Your
             comment is still there, and your address is not used for anything else.
         </p>
 
         <p class="mt-6">
-            <Link href="/" class="text-meta text-accent-500 underline underline-offset-2">Back to the timeline</Link>
+            <Link href="/" class="text-sm text-accent-500 underline underline-offset-2">Back to the timeline</Link>
         </p>
     </div>
 </template>

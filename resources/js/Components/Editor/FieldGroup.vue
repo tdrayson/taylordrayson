@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
 
 /**
  * A set of fields shown as one summary line until opened. The address a lookup
@@ -33,14 +34,14 @@ const open = computed({
     <div class="rounded-lg border bg-neutral-25 p-3" :class="invalid ? 'border-red-500' : 'border-neutral-50'">
         <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
-                <p class="text-label uppercase text-neutral-500">{{ label }}</p>
-                <p v-if="summary" class="mt-0.5 text-meta text-neutral-900">{{ summary }}</p>
-                <p v-else class="mt-0.5 text-meta text-neutral-500">Not set</p>
+                <Eyebrow as="p" class="text-neutral-500">{{ label }}</Eyebrow>
+                <p v-if="summary" class="mt-0.5 text-sm text-neutral-900">{{ summary }}</p>
+                <p v-else class="mt-0.5 text-sm text-neutral-500">Not set</p>
             </div>
 
             <button
                 type="button"
-                class="min-h-11 shrink-0 px-2 text-meta text-accent-500 underline underline-offset-2 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="min-h-11 shrink-0 px-2 text-sm text-accent-500 underline underline-offset-2 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 :aria-expanded="open"
                 @click="open = ! open"
             >

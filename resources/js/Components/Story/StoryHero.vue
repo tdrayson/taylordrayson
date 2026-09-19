@@ -1,6 +1,9 @@
 <script setup>
 import { computed } from 'vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Heading from '../Ui/Heading.vue';
 import Icon from '../Ui/Icon.vue';
+import Stat from '../Ui/Stat.vue';
 
 const props = defineProps({
     // A dateline shown under the lead; a string is one line, an array is one
@@ -33,13 +36,13 @@ const metaLines = computed(() => {
     <header data-story-hero class="relative -mt-8 full-width overflow-hidden bg-neutral-900 text-neutral-0 md:mt-0 md:px-8 md:full-width-inset md:rounded-xl">
         <Icon v-if="icon" :name="icon" :stroke-width="1.2" class="pointer-events-none absolute -right-10 top-1/2 size-96 -translate-y-1/2 -rotate-12 scale-150 text-neutral-800/40 md:text-neutral-800/80" />
         <div class="relative mx-auto max-w-4xl px-5 py-16 sm:py-20 md:px-0">
-            <h1 class="mt-5 max-w-2xl font-display text-display-xl text-neutral-0">
+            <Heading as="h1" size="display-xl" class="mt-5 max-w-2xl text-neutral-0">
                 <slot name="title" />
-            </h1>
-            <p class="mt-5 max-w-xl text-body text-neutral-300">
+            </Heading>
+            <p class="mt-5 max-w-xl text-base text-neutral-300">
                 <slot name="lead" />
             </p>
-            <div v-if="metaLines.length" class="mt-6 space-y-0.5 text-meta text-neutral-400">
+            <div v-if="metaLines.length" class="mt-6 space-y-0.5 text-sm text-neutral-400">
                 <p v-for="(line, index) in metaLines" :key="index">{{ line }}</p>
             </div>
         </div>
@@ -47,8 +50,8 @@ const metaLines = computed(() => {
         <div v-if="kpis.length" class="relative border-t border-neutral-800">
             <dl class="mx-auto grid max-w-4xl grid-cols-2 gap-px bg-neutral-800 lg:grid-cols-4">
                 <div v-for="(kpi, index) in kpis" :key="index" class="flex flex-col-reverse bg-neutral-900 px-5 py-5 sm:px-10 lg:first:pl-0 lg:last:pr-0">
-                    <dt class="mt-1 text-label uppercase text-neutral-400">{{ kpi.label }}</dt>
-                    <dd class="font-display text-stat tabular-nums" :style="{ color: accent }">{{ kpi.value }}</dd>
+                    <Eyebrow as="dt" class="mt-1 text-neutral-400">{{ kpi.label }}</Eyebrow>
+                    <Stat as="dd" :style="{ color: accent }">{{ kpi.value }}</Stat>
                 </div>
             </dl>
         </div>

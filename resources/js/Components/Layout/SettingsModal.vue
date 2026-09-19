@@ -1,6 +1,7 @@
 <script setup>
 import ThemeCards from './ThemeCards.vue';
 import SettingToggle from './SettingToggle.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Modal from '../Ui/Modal.vue';
 import { useSettings } from '../../useSettings';
 import { useFormat } from '../../composables/useFormat';
@@ -31,15 +32,15 @@ function onOpenChange(open) {
     <Modal :open="settingsOpen" title="Settings" close-label="Close settings" @update:open="onOpenChange">
         <div class="space-y-6">
             <section class="space-y-3">
-                <h3 class="text-label uppercase tracking-wide text-neutral-500">Appearance</h3>
+                <Eyebrow as="h3" class="tracking-wide text-neutral-500">Appearance</Eyebrow>
                 <div class="space-y-2">
-                    <span class="text-body text-neutral-900">Theme</span>
+                    <span class="text-base text-neutral-900">Theme</span>
                     <ThemeCards />
                 </div>
             </section>
 
             <section class="space-y-3">
-                <h3 class="text-label uppercase tracking-wide text-neutral-500">Formatting</h3>
+                <Eyebrow as="h3" class="tracking-wide text-neutral-500">Formatting</Eyebrow>
                 <div class="space-y-3">
                     <SettingToggle
                         :model-value="distanceUnit"

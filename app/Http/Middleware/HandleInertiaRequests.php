@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Fields\AuthorableTypes;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
+use App\Support\FeedDiscovery;
 use App\Support\OgRenderer;
 use App\Support\Preferences;
 use App\Support\StateStore;
@@ -50,6 +51,12 @@ class HandleInertiaRequests extends Middleware
             // served immutable, so without it a redesign is invisible to anyone
             // holding the old one.
             'ogVersion' => OgRenderer::generation(),
+            // Type-narrowed feed links for the current route, rendered by
+            // AppHead rather than the Blade root: the root is only rendered on a
+            // cold load, so after a client-side visit its links would still
+            // advertise the previous page's type. The site-wide feeds stay in
+            // the Blade partial, being the same on every view.
+            'contextualFeeds' => FeedDiscovery::forRoute($request->route()),
             // Colour scheme and unit choices, read from cookies so the first
             // render already matches what the visitor picked.
             'preferences' => Preferences::for($request),

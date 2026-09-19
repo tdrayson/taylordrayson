@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Heading from '../Ui/Heading.vue';
 import { titleCase, time, duration, flightDurationLabel } from '../../lib/format.js';
 import { metresToMiles } from '../../lib/distance.js';
 import { useFormat } from '../../composables/useFormat';
@@ -57,10 +59,10 @@ const stats = computed(() => [
                 :title="airline.name"
                 class="h-8 w-auto object-contain"
             >
-            <span v-else-if="airline" class="font-display text-section">{{ airline.name }}</span>
+            <Heading v-else-if="airline" as="span" size="section">{{ airline.name }}</Heading>
             <div v-if="flightNumber" class="ml-auto text-right">
-                <div class="text-label uppercase text-neutral-500">Flight</div>
-                <div class="text-section text-neutral-700 tabular-nums">{{ flightNumber }}</div>
+                <Eyebrow class="text-neutral-500">Flight</Eyebrow>
+                <div class="text-lg font-bold leading-tight tracking-tight text-neutral-700 tabular-nums">{{ flightNumber }}</div>
             </div>
         </div>
 

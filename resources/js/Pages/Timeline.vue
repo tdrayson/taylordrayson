@@ -90,7 +90,7 @@ const currentYear = computed(() => {
         />
     </div>
 
-    <p v-else class="text-meta text-neutral-500">No entries yet.</p>
+    <p v-else class="text-sm text-neutral-500">No entries yet.</p>
 
     <div v-if="olderUrl || newerUrl" class="mt-14">
         <Pagination

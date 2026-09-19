@@ -37,7 +37,7 @@ const article = computed(() => ('aeiou'.includes(props.convertTo[0]) ? 'an' : 'a
 <template>
     <p
         v-if="shown"
-        class="mt-2 flex items-start gap-2 text-meta"
+        class="mt-2 flex items-start gap-2 text-sm"
         :class="over ? 'text-neutral-900' : 'text-neutral-500'"
         :role="over ? 'alert' : 'status'"
     >
