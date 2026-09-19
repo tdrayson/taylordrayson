@@ -137,6 +137,22 @@ function microformatItem(array $parsed, string $type): ?array
 }
 
 /**
+ * The page's rendered DOM, parsed as microformats.
+ *
+ * Waits on the root element first: script() reads the DOM immediately, so
+ * capturing without waiting races Vue and parses an empty shell.
+ */
+function microformatsOf(string $path, string $root = '.h-entry'): array
+{
+    $page = visit($path)->assertPresent($root);
+
+    return parseMicroformats(
+        $page->script('document.documentElement.outerHTML'),
+        config('app.url').$path,
+    );
+}
+
+/**
  * A JS expression evaluating to one cookie's value, or null when it is unset.
  *
  * Display preferences are cookies rather than local storage, so the server can
