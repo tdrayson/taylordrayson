@@ -11,6 +11,7 @@ use App\Enums\TimelineType;
 use App\Models\Appearance;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\AppearanceSheet;
 use App\Support\Units;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,11 @@ use Illuminate\Support\Str;
  */
 final class AppearanceExport
 {
+    public function sheet(): AppearanceSheet
+    {
+        return new AppearanceSheet;
+    }
+
     public function present(Appearance $model): ExportData
     {
         $card = CardPresenter::for($model);
