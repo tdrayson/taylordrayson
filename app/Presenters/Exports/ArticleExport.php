@@ -9,6 +9,7 @@ use App\Enums\TimelineType;
 use App\Models\Article;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\ArticleSheet;
 
 /**
  * An article as an export: its title and excerpt, with the Portable Text
@@ -17,6 +18,11 @@ use App\Presenters\EntryDescription;
  */
 final class ArticleExport
 {
+    public function sheet(): ArticleSheet
+    {
+        return new ArticleSheet;
+    }
+
     public function present(Article $model): ExportData
     {
         $card = CardPresenter::for($model);
