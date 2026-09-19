@@ -49,11 +49,12 @@ final class FlightExport
                 ExportField::maybe('cabin', 'Cabin', $model->cabin_class?->label(), $model->cabin_class?->value),
                 ExportField::maybe('reason', 'Reason', $model->reason?->label(), $model->reason?->value),
             ])),
-            links: array_values(array_filter([
-                $model->airline === null ? null : ExportLink::make('airline', 'Airline', $model->airline->name, '/flights/'.Str::slug($model->airline->name)),
-                ExportLink::make('type', 'All flights', 'Flights', '/flights'),
-                $model->occurred_at === null ? null : ExportLink::make('day', 'That day', $model->occurred_at->format('j F Y'), $model->occurred_at->format('/Y/m/d')),
-            ])),
+            links: [
+                ...array_values(array_filter([
+                    $model->airline === null ? null : ExportLink::make('airline', 'Airline', $model->airline->name, '/flights/'.Str::slug($model->airline->name)),
+                ])),
+                ...CommonLinks::for($model),
+            ],
             aspects: array_filter([
                 Geometry::class => $this->route($model),
                 Span::class => $departed === null || $arrived === null ? null : Span::across($departed, $arrived, $model->destination?->name),
