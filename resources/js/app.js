@@ -1,14 +1,21 @@
 import '../css/app.css';
 
 import { createApp, createSSRApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, usePage } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { applyTheme } from './useTheme';
 import { seedPreferences } from './useSettings';
 import { twemojiDirective } from './directives/twemoji';
 
 createInertiaApp({
-    title: (title) => (title ? `${title} | Taylor Drayson` : 'Taylor Drayson'),
+    // Called while rendering <Head>, by which point Inertia's App component
+    // has already set the current page's props, so the shared identity is
+    // readable here despite running outside a component's own setup().
+    title: (title) => {
+        const { name } = usePage().props.identity;
+
+        return title ? `${title} | ${name}` : name;
+    },
     // Resolved lazily (no `eager: true`) so Vite splits each page into its own
     // chunk. Eager loading put every page in one 1.7MB file, so a visitor
     // reading a note also downloaded the stats charts and the 404 Snake game.

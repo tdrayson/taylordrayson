@@ -10,7 +10,9 @@
     @include('partials.pwa')
     @include('partials.feeds')
 
-    <link rel="me" href="https://github.com/tdrayson">
+    @foreach (config('identity.profiles') as $profile)
+        <link rel="me" href="{{ $profile['href'] }}">
+    @endforeach
 
     @vite(['resources/js/app.js'])
     @inertiaHead
