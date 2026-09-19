@@ -5,6 +5,8 @@ namespace App\Presenters\Exports\Formats;
 use App\Data\ExportData;
 use App\Datasets\Datasets;
 use App\Enums\ExportFormat;
+use App\Presenters\Exports\NowExport;
+use App\Presenters\Exports\PageExport;
 use App\Presenters\Exports\Sheets\Sheet;
 
 /**
@@ -26,13 +28,18 @@ final class TextFormat extends Format
     }
 
     /**
-     * The type's sheet, resolved the same way a dataset resolves its export
-     * presenter: Datasets::for() to the type, then a method on its *Export.
-     * A type with no sheet yet, or no dataset at all, falls through to null.
+     * The type's sheet: Datasets::for() to the type, then a method on its
+     * *Export, mirroring the explicit Page carve-out in
+     * ExportPresenter::export(). Page and Now carry no Dataset, so they
+     * resolve by type string instead; Now has no model at all.
      */
     private function sheetFor(ExportData $data): ?object
     {
-        $export = Datasets::for($data->typeValue())?->export();
+        $export = match ($data->typeValue()) {
+            'page' => new PageExport,
+            'now' => new NowExport,
+            default => Datasets::for($data->typeValue())?->export(),
+        };
 
         return $export !== null && method_exists($export, 'sheet') ? $export->sheet() : null;
     }
