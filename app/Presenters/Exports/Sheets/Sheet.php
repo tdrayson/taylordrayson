@@ -71,6 +71,22 @@ final class Sheet
     }
 
     /**
+     * A decorative barcode, deterministic from a seed (an entry id) so the
+     * same entry always renders the same bars rather than a fresh random one
+     * per request.
+     */
+    public static function barcode(int $seed, int $groups = 6, int $max = 5): string
+    {
+        $bars = [];
+
+        for ($i = 0; $i < $groups; $i++) {
+            $bars[] = str_repeat('|', 1 + abs(($seed + $i * 97) % $max));
+        }
+
+        return '['.implode(' ', $bars).']';
+    }
+
+    /**
      * A rating drawn as filled and empty stars against a five-star scale.
      * The empty character is a hyphen, not a dot, so an unfilled star does
      * not read as a fractional one.

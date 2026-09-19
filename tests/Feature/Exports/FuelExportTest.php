@@ -7,6 +7,7 @@ use App\Presenters\Exports\Formats\Formats;
 it('publishes a fuel fill-up as labelled fields in order', function () {
     $fuel = Fuel::factory()->create([
         'occurred_at' => '2026-09-13 08:00:00',
+        'vehicle_id' => 'hn14wxp',
         'station_name' => 'Beddington Lane Service Station',
         'brand' => 'BP',
         'address' => '1 Beddington Lane',
@@ -24,14 +25,32 @@ it('publishes a fuel fill-up as labelled fields in order', function () {
     $export = ExportPresenter::for($fuel);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['station', 'location', 'litres', 'price_per_litre', 'cost', 'odometer'])
-        ->and($export->field('station')->display)->toBe('Beddington Lane Service Station (BP)')
-        ->and($export->field('station')->raw)->toBe('Beddington Lane Service Station')
+        ->toBe(['station', 'brand', 'fuel_type', 'locality', 'location', 'receipt_time', 'receipt_number', 'litres', 'price_per_litre', 'cost', 'odometer'])
+        ->and($export->field('station')->display)->toBe('Beddington Lane Service Station')
+        ->and($export->field('brand')->display)->toBe('BP')
+        ->and($export->field('fuel_type')->display)->toBe('Petrol (E10)')
+        ->and($export->field('locality')->display)->toBe('Croydon, CR0 4TQ')
         ->and($export->field('location')->display)->toBe('1 Beddington Lane, Croydon, CR0 4TQ')
+        ->and($export->field('receipt_time')->display)->toBe('13-SEP-2026 08:00')
+        ->and($export->field('receipt_number')->display)->toBe(str_pad((string) $fuel->id, 4, '0', STR_PAD_LEFT))
         ->and($export->field('litres')->display)->toBe('42.50 L')
         ->and($export->field('price_per_litre')->display)->toBe('161.9p per litre')
         ->and($export->field('cost')->display)->toBe('£68.81')
         ->and($export->field('odometer')->display)->toBe('45,231 miles');
+});
+
+it('grades petrol E5 before the UK E10 switch and E10 after it', function () {
+    $before = Fuel::factory()->create(['occurred_at' => '2021-08-31 08:00:00', 'vehicle_id' => 'hn14wxp', 'status' => 'published']);
+    $after = Fuel::factory()->create(['occurred_at' => '2021-09-01 08:00:00', 'vehicle_id' => 'hn14wxp', 'status' => 'published']);
+
+    expect(ExportPresenter::for($before)->field('fuel_type')->display)->toBe('Petrol (E5)')
+        ->and(ExportPresenter::for($after)->field('fuel_type')->display)->toBe('Petrol (E10)');
+});
+
+it('omits the fuel type row for an unrecognised vehicle', function () {
+    $fuel = Fuel::factory()->create(['occurred_at' => '2026-09-13 08:00:00', 'vehicle_id' => 'unknown-plate', 'status' => 'published']);
+
+    expect(ExportPresenter::for($fuel)->field('fuel_type'))->toBeNull();
 });
 
 it('offers geojson for a fuel stop only when it was geocoded', function () {

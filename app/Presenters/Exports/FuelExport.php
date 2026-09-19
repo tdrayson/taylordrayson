@@ -6,6 +6,7 @@ use App\Data\Aspects\Geometry;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
+use App\Enums\FuelType;
 use App\Enums\TimelineType;
 use App\Models\Fuel;
 use App\Presenters\CardPresenter;
@@ -19,6 +20,9 @@ use App\Support\Money;
  */
 final class FuelExport
 {
+    /** UK pump petrol moved from grade E5 to E10 on this date; see {@see petrolGrade()}. */
+    private const E10_CUTOVER = '2021-09-01';
+
     public function sheet(): FuelSheet
     {
         return new FuelSheet;
@@ -35,8 +39,13 @@ final class FuelExport
             summary: EntryDescription::for($model, $card),
             occurred: $model->occurred_at === null ? null : ExportInstant::for($model->occurred_at, $model->timezone()),
             fields: array_values(array_filter([
-                ExportField::maybe('station', 'Station', $this->station($model), $model->station_name),
+                ExportField::maybe('station', 'Station', $model->station_name),
+                ExportField::maybe('brand', 'Brand', $model->brand),
+                ExportField::maybe('fuel_type', 'Fuel type', $this->fuelType($model)),
+                ExportField::maybe('locality', 'Locality', $this->locality($model)),
                 $this->location($model),
+                ExportField::maybe('receipt_time', 'Time', $this->receiptTime($model), $model->occurred_at?->toIso8601String()),
+                ExportField::make('receipt_number', 'Receipt no.', str_pad((string) $model->id, 4, '0', STR_PAD_LEFT), $model->id),
                 ExportField::maybe('litres', 'Fuel', $model->litres === null ? null : number_format((float) $model->litres, 2).' L', $model->litres === null ? null : (float) $model->litres),
                 ExportField::maybe('price_per_litre', 'Price', $model->price_per_litre === null ? null : Money::pencePerLitre($model->price_per_litre).' per litre', $model->price_per_litre === null ? null : (float) $model->price_per_litre),
                 ExportField::maybe('cost', 'Cost', Money::gbp($model->cost), $model->cost === null ? null : (float) $model->cost),
@@ -47,16 +56,6 @@ final class FuelExport
                 Geometry::class => $model->latitude === null ? null : Geometry::point((float) $model->latitude, (float) $model->longitude),
             ]),
         );
-    }
-
-    /** The station name, with its brand alongside when known: "Beddington Lane (BP)". */
-    private function station(Fuel $model): ?string
-    {
-        if ($model->station_name === null) {
-            return null;
-        }
-
-        return $model->brand === null ? $model->station_name : "{$model->station_name} ({$model->brand})";
     }
 
     private function location(Fuel $model): ?ExportField
@@ -72,5 +71,50 @@ final class FuelExport
             'lng' => $model->longitude === null ? null : (float) $model->longitude,
             'address' => $display,
         ]);
+    }
+
+    /** The town and postcode alone, short enough never to wrap mid-postcode the way the full address can. */
+    private function locality(Fuel $model): ?string
+    {
+        $display = collect([$model->city, $model->postcode])->filter()->implode(', ');
+
+        return $display === '' ? null : $display;
+    }
+
+    /**
+     * The vehicle's fuel type from config, petrol refined to its pump grade.
+     * Null when the vehicle or its fuel type is unrecognised, so the row is
+     * dropped rather than guessing.
+     */
+    private function fuelType(Fuel $model): ?string
+    {
+        $vehicle = $model->vehicle;
+        $type = FuelType::tryFrom((string) (is_array($vehicle) ? ($vehicle['fuel_type'] ?? '') : ''));
+
+        return match ($type) {
+            FuelType::Petrol => "{$type->label()} ({$this->petrolGrade($model)})",
+            FuelType::Diesel => $type->label(),
+            null => null,
+        };
+    }
+
+    /**
+     * Standard-grade petrol only (E5 before the UK's E10 switch, E10 after):
+     * the owner has confirmed he has never bought premium/Super Unleaded,
+     * which stayed E5 after the cutover. A future per-fill grade field
+     * replaces this derivation.
+     */
+    private function petrolGrade(Fuel $model): string
+    {
+        return $model->occurred_at !== null && $model->occurred_at->toDateString() >= self::E10_CUTOVER ? 'E10' : 'E5';
+    }
+
+    private function receiptTime(Fuel $model): ?string
+    {
+        if ($model->occurred_at === null) {
+            return null;
+        }
+
+        return mb_strtoupper($model->occurred_at->format('d-M-Y')).' '.$model->occurred_at->format('H:i');
     }
 }
