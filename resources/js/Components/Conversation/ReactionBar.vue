@@ -3,6 +3,8 @@ import { Link } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
+import CountGroup from '../Ui/CountGroup.vue';
+import CountSegment from '../Ui/CountSegment.vue';
 import Icon from '../Ui/Icon.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 
@@ -45,8 +47,8 @@ const compact = computed(() => props.variant === 'compact');
 
 /** One place for every size that differs, rather than a ternary per element. */
 const sizes = computed(() => (compact.value
-    ? { row: 'gap-4', text: 'text-sm', icon: 'size-4', disc: 'size-5', discIcon: 'size-3.5', pip: 'size-5', pipIcon: 'size-3.5' }
-    : { row: 'gap-5', text: 'text-base', icon: 'size-5', disc: 'size-6', discIcon: 'size-4', pip: 'size-6', pipIcon: 'size-4' }));
+    ? { row: 'gap-3', text: 'text-sm', icon: 'size-4', pip: 'size-5', pipIcon: 'size-3.5', group: 'sm', gap: 'gap-1', segment: 'gap-1 px-2 py-0.5' }
+    : { row: 'gap-4', text: 'text-sm', icon: 'size-4', pip: 'size-5', pipIcon: 'size-3.5', group: 'md', gap: 'gap-1.5', segment: 'gap-1.5 px-2.5 py-1' }));
 
 /**
  * A white glyph on a coloured disc rather than an emoji glyph: an emoji is drawn
@@ -134,7 +136,7 @@ const responsesLabel = computed(() => {
 
 /** The optional gesture counts, each one only there when it happened. */
 const gestures = computed(() => [
-    { key: 'repost', icon: 'RepeatIcon', count: props.repostCount, one: 'repost', many: 'reposts' },
+    { key: 'repost', icon: 'ArrowReloadHorizontalIcon', count: props.repostCount, one: 'repost', many: 'reposts' },
     { key: 'bookmark', icon: 'Bookmark01Icon', count: props.bookmarkCount, one: 'bookmark', many: 'bookmarks' },
     { key: 'rsvp', icon: 'Calendar01Icon', count: props.rsvpCount, one: 'RSVP', many: 'RSVPs' },
     { key: 'mention', icon: 'Link02Icon', count: props.mentionCount, one: 'mention', many: 'mentions' },
@@ -204,11 +206,15 @@ function press() {
 <template>
     <div data-testid="reaction-bar">
         <div :class="['flex items-center', sizes.row]">
+            <!-- One joined grey box for the counts, answered or not, so the row keeps
+                 its shape when the first response arrives. -->
+            <CountGroup :size="sizes.group">
+            <CountSegment :padded="false">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
             <div
                 ref="group"
-                class="relative"
+                class="relative flex"
                 @mouseenter="picking = true"
                 @mouseleave="leave"
                 @focusin="picking = true"
@@ -222,29 +228,26 @@ function press() {
                     :aria-pressed="mine !== null"
                     :aria-label="mine ? `You reacted ${mine.label}` : 'React to this'"
                     :class="cn(
-                        'inline-flex items-center gap-1.5 rounded-full py-1 transition-colors',
+                        'inline-flex items-center',
+                        sizes.segment,
                         sizes.text,
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                        // The same grey as the counts beside it, whether or not
-                        // you have reacted. Tinting it to the chosen reaction
-                        // fails text contrast on four of the six, and the
-                        // accent fought whatever colour the disc happened to
-                        // be. The disc is what says you reacted.
-                        'text-neutral-500 hover:text-accent-700',
+                        // Inset, so the ring stays inside the segment rather than
+                        // spilling over its neighbour's edge. The ink comes from
+                        // the segment; the disc is what says you reacted.
+                        'rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500',
                         busy !== null && 'opacity-50',
                     )"
                     @click="press"
                 >
-                    <span
-                        v-if="mine && glyph(mine)"
-                        :class="['flex items-center justify-center rounded-full', sizes.disc]"
-                        :style="discOf(glyph(mine))"
-                        aria-hidden="true"
-                    >
-                        <Icon :name="glyph(mine).icon" :class="sizes.discIcon" />
-                    </span>
-                    <span v-else-if="mine" v-twemoji aria-hidden="true">{{ mine.emoji }}</span>
-                    <Icon v-else name="ThumbsUpIcon" :class="sizes.icon" />
+                    <!-- Your own reaction's glyph in its colour, at the same size as
+                         the icons beside it: a disc crammed into the box outweighed
+                         them. Every reaction hue clears the 3:1 an icon needs on both
+                         themes; the count stays grey, since text is where they fail. -->
+                    <Icon
+                        :name="mine && glyph(mine) ? glyph(mine).icon : 'ThumbsUpIcon'"
+                        :class="sizes.icon"
+                        :style="mine && glyph(mine) ? { color: glyph(mine).colour } : null"
+                    />
                     <!-- Zero is shown too. A count that appears only once it
                          is non-zero makes the line a different shape on every
                          entry, and a lone number reads as a stray mark.
@@ -282,31 +285,34 @@ function press() {
                 </div>
                 </Transition>
             </div>
+            </CountSegment>
 
-            <!-- Not a link any more: the heading it used to jump to now sits
-                 directly above this line. -->
-            <Tooltip :label="responsesLabel" placement="top">
-            <component
-                :is="compact && url ? Link : 'span'"
+            <!-- On the feed this jumps to the entry's responses; on the entry
+                 the heading it would jump to already sits above the line. -->
+            <CountSegment
+                :as="compact && url ? Link : 'span'"
                 :href="compact && url ? `${url}#responses` : undefined"
-                :class="[
-                    'inline-flex items-center gap-1.5 text-neutral-500',
-                    sizes.text,
-                    compact && url && 'rounded-sm transition-colors hover:text-accent-700 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                ]"
                 :aria-label="responsesLabel"
+                :class="[sizes.text, compact && url && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500']"
             >
-                <Icon name="Comment01Icon" :class="sizes.icon" />
-                <span class="tabular-nums font-medium">{{ replyCount }}</span>
-            </component>
-            </Tooltip>
+                <Tooltip :label="responsesLabel" placement="top" :class="['items-center', sizes.gap]">
+                    <Icon name="Comment01Icon" :class="sizes.icon" />
+                    <span class="tabular-nums">{{ replyCount }}</span>
+                </Tooltip>
+            </CountSegment>
 
-            <Tooltip v-for="gesture in gestures" :key="gesture.key" :label="gestureLabel(gesture)" placement="top">
-                <span :class="['inline-flex items-center gap-1.5 text-neutral-500', sizes.text]" :aria-label="gestureLabel(gesture)">
+            <CountSegment
+                v-for="gesture in gestures"
+                :key="gesture.key"
+                :aria-label="gestureLabel(gesture)"
+                :class="sizes.text"
+            >
+                <Tooltip :label="gestureLabel(gesture)" placement="top" :class="['items-center', sizes.gap]">
                     <Icon :name="gesture.icon" :class="sizes.icon" />
-                    <span class="tabular-nums font-medium">{{ gesture.count }}</span>
-                </span>
-            </Tooltip>
+                    <span class="tabular-nums">{{ gesture.count }}</span>
+                </Tooltip>
+            </CountSegment>
+            </CountGroup>
 
             <!-- Which reactions people actually picked. Overlapped so the row
                  stays short, and spread on hover so each can be pointed at for
