@@ -222,7 +222,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
 
 <template>
     <Teleport v-if="mounted" to="body">
-        <Transition name="lightbox">
+        <Transition name="fade">
             <div
                 v-if="isOpen"
                 ref="panelEl"
@@ -314,22 +314,3 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
         </Transition>
     </Teleport>
 </template>
-
-<style scoped>
-.lightbox-enter-active,
-.lightbox-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.lightbox-enter-from,
-.lightbox-leave-to {
-    opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .lightbox-enter-active,
-    .lightbox-leave-active {
-        transition: none;
-    }
-}
-</style>
