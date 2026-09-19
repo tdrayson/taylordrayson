@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Airline;
+use App\Models\Airport;
+use App\Models\Flight;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
@@ -203,6 +206,35 @@ function noisyJpeg(int $width = 2400, int $height = 1600): string
     imagedestroy($image);
 
     return $bytes;
+}
+
+/** A published KRK-LGW flight, with its airline and both airports loaded, for the export tests. */
+function krkToLgw(): Flight
+{
+    Airline::factory()->create(['icao_code' => 'EZY', 'iata_code' => 'U2', 'name' => 'easyJet UK']);
+    Airport::factory()->create([
+        'iata_code' => 'KRK', 'icao_code' => 'EPKK', 'name' => 'Kraków John Paul II International Airport',
+        'city' => 'Kraków', 'latitude' => 50.077702, 'longitude' => 19.7848,
+    ]);
+    Airport::factory()->create([
+        'iata_code' => 'LGW', 'icao_code' => 'EGKK', 'name' => 'London Gatwick Airport',
+        'city' => 'London', 'latitude' => 51.148771, 'longitude' => -0.192089,
+    ]);
+
+    return Flight::factory()->create([
+        'occurred_at' => '2026-06-08 22:15:00',
+        'flight_number' => '8824',
+        'airline_icao' => 'EZY',
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'distance' => 1409785,
+        'duration' => 8820,
+        'departure_timezone' => 'Europe/Warsaw',
+        'arrival_timezone' => 'Europe/London',
+        'cabin_class' => 'economy',
+        'reason' => 'business',
+        'status' => 'published',
+    ])->load('airline', 'origin', 'destination');
 }
 
 /** An activity carrying one photo, for the conversion and prune tests. */

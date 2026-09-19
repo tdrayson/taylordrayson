@@ -99,6 +99,19 @@ it('yields no between span when there is no end, so an open entry has no ics', f
         ->and(Span::between($start, $start->addHour(), 'Europe/London'))->not->toBeNull();
 });
 
+it('keeps a start and an end in their own distinct timezones, for a flight landing in another one', function () {
+    $departed = CarbonImmutable::parse('2026-06-08 22:15:00', 'Europe/Warsaw');
+    $arrived = CarbonImmutable::parse('2026-06-09 00:42:00', 'Europe/London');
+
+    $span = Span::across($departed, $arrived, 'London Gatwick Airport');
+
+    expect($span->start->timezoneName)->toBe('Europe/Warsaw')
+        ->and($span->end->timezoneName)->toBe('Europe/London')
+        ->and($span->start->eq($departed))->toBeTrue()
+        ->and($span->end->eq($arrived))->toBeTrue()
+        ->and($span->location)->toBe('London Gatwick Airport');
+});
+
 it('hides fields and links from a locked entry, leaking only the header', function () {
     $data = new ExportData(
         type: TimelineType::Note,
