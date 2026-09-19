@@ -7,9 +7,7 @@ use App\Data\ExportData;
 /**
  * A This Week With episode printed as its rundown. Reads the export only:
  * every string here is a field's display value, so this layout cannot drift
- * from the data. Listen and watch are not printed: a real episode URL is far
- * longer than 46 characters and would only mangle mid-word; the .md and .json
- * formats carry those links intact.
+ * from the data.
  */
 final class ThisWeekWithSheet
 {
