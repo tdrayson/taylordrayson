@@ -233,6 +233,39 @@ it('falls back to what a page without microformats calls itself', function () {
     expect($note->fresh()->response_title)->toBe('A Plain Old Page');
 });
 
+// A fresh row reports no change of its own, so the common case, writing a
+// response with its target already on it, is the one most easily missed.
+it('asks for the target name when a post is created pointing at one', function () {
+    Queue::fake();
+
+    Note::factory()->create([
+        'response_kind' => ResponseKind::Like,
+        'response_url' => 'https://example.com/liked',
+    ]);
+
+    Queue::assertPushed(FetchResponseTitle::class);
+});
+
+it('asks again when an existing post is pointed somewhere new', function () {
+    $note = Note::factory()->create(['content' => []]);
+
+    Queue::fake();
+    $note->update([
+        'response_kind' => ResponseKind::Like,
+        'response_url' => 'https://example.com/liked',
+    ]);
+
+    Queue::assertPushed(FetchResponseTitle::class);
+});
+
+it('asks for nothing when there is no target to name', function () {
+    Queue::fake();
+
+    Note::factory()->create();
+
+    Queue::assertNotPushed(FetchResponseTitle::class);
+});
+
 // A name belongs to the URL it was read from.
 it('drops the fetched name when the post is pointed somewhere else', function () {
     $note = Note::factory()->create([
