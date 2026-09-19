@@ -13,21 +13,59 @@ final class FuelSheet
 {
     private const WIDTH = 46;
 
+    private const INNER = self::WIDTH - 4;
+
     public function render(ExportData $data): string
     {
-        $lines = [
-            Sheet::rule(self::WIDTH, '='),
-            ...$this->centredBlock($this->value($data, 'station')),
-            ...$this->centredBlock($this->value($data, 'location')),
-            Sheet::rule(self::WIDTH, '-'),
-            Sheet::leader('Litres', $this->value($data, 'litres'), self::WIDTH),
-            Sheet::leader('Price', $this->value($data, 'price_per_litre'), self::WIDTH),
-            Sheet::leader('Cost', $this->value($data, 'cost'), self::WIDTH),
-            Sheet::rule(self::WIDTH, '-'),
-            Sheet::row('ODOMETER', $this->value($data, 'odometer'), self::WIDTH),
-        ];
+        return Sheet::join([
+            Sheet::box([
+                '',
+                ...$this->centredBlock($this->value($data, 'station')),
+                '',
+                ...$this->centredBlock($this->value($data, 'location')),
+                '',
+                ...$this->item($data),
+                '',
+                ...$this->maybeRow($data, 'TOTAL', 'cost'),
+                '',
+                ...$this->maybeRow($data, 'ODOMETER', 'odometer'),
+            ], self::WIDTH),
+        ]);
+    }
 
-        return Sheet::join($lines);
+    /**
+     * The fill as one item line: the quantity, at its unit price when known,
+     * left, the amount actually charged, right. Dropped when there is
+     * neither a quantity nor a cost to show.
+     *
+     * @return list<string>
+     */
+    private function item(ExportData $data): array
+    {
+        $litres = $data->field('litres');
+        $cost = $data->field('cost');
+
+        if ($litres === null || $cost === null) {
+            return [];
+        }
+
+        $price = $data->field('price_per_litre');
+        $label = $price === null ? $litres->display : "{$litres->display} @ {$price->display}";
+
+        return [Sheet::row($label, $cost->display, self::INNER)];
+    }
+
+    /**
+     * A label/value row, dropped entirely rather than printed empty when
+     * the field carries no value.
+     *
+     * @return list<string>
+     */
+    private function maybeRow(ExportData $data, string $label, string $key): array
+    {
+        $field = $data->field($key);
+
+        return $field === null ? [] : [Sheet::row($label, $field->display, self::INNER)];
     }
 
     /**
@@ -42,7 +80,7 @@ final class FuelSheet
             return [];
         }
 
-        return array_map(fn (string $line): string => Sheet::centre($line, self::WIDTH), Sheet::wrap($value, self::WIDTH));
+        return array_map(fn (string $line): string => Sheet::centre($line, self::INNER), Sheet::wrap($value, self::INNER));
     }
 
     /** A field's display string, or an empty one. Never a raw value. */
