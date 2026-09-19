@@ -8,6 +8,7 @@ use App\Enums\TimelineType;
 use App\Models\Note;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\NoteSheet;
 
 /**
  * A note as an export: no fields of its own, only the Portable Text document
@@ -15,6 +16,11 @@ use App\Presenters\EntryDescription;
  */
 final class NoteExport
 {
+    public function sheet(): NoteSheet
+    {
+        return new NoteSheet;
+    }
+
     public function present(Note $model): ExportData
     {
         $card = CardPresenter::for($model);
