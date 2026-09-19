@@ -66,6 +66,17 @@ final class Sheet
         return str_repeat('#', $filled).str_repeat('.', $width - $filled);
     }
 
+    /**
+     * A percentage display ("94%") back to its 0-1 fraction. The export
+     * publishes the ratio a bar needs as a display string, same as any other
+     * field; this undoes that formatting so bar() can draw it, without a
+     * sheet ever touching the field's raw value.
+     */
+    public static function fraction(string $percent): float
+    {
+        return ((float) rtrim($percent, '%')) / 100;
+    }
+
     public static function heading(string $text, int $width = self::WIDTH): string
     {
         return mb_strtoupper(self::clip($text, $width))."\n".self::rule($width, '=');

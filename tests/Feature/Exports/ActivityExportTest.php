@@ -21,14 +21,31 @@ it('publishes an activity as labelled fields in order', function () {
     $export = ExportPresenter::for($activity);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['activity', 'name', 'distance', 'duration', 'calories', 'average_heart_rate', 'max_heart_rate'])
+        ->toBe(['activity', 'name', 'distance', 'duration', 'pace', 'calories', 'average_heart_rate', 'max_heart_rate', 'heart_rate_effort'])
         ->and($export->field('activity')->display)->toBe('Walk')
         ->and($export->field('distance')->display)->toBe('1.0 miles')
         ->and($export->field('distance')->raw)->toBe(1677)
         ->and($export->field('duration')->display)->toBe('24m')
+        ->and($export->field('pace')->display)->toBe('23:52 /mi')
         ->and($export->field('calories')->display)->toBe('107 kcal')
         ->and($export->field('average_heart_rate')->display)->toBe('99 bpm')
-        ->and($export->field('max_heart_rate')->display)->toBe('142 bpm');
+        ->and($export->field('max_heart_rate')->display)->toBe('142 bpm')
+        ->and($export->field('heart_rate_effort')->display)->toBe('69%');
+});
+
+it('drops pace and heart rate effort when the readings behind them are missing', function () {
+    $activity = Activity::factory()->create([
+        'occurred_at' => '2026-09-13 13:16:01',
+        'distance' => null,
+        'average_heart_rate' => null,
+        'max_heart_rate' => null,
+        'status' => 'published',
+    ]);
+
+    $export = ExportPresenter::for($activity);
+
+    expect($export->field('pace'))->toBeNull()
+        ->and($export->field('heart_rate_effort'))->toBeNull();
 });
 
 it('offers ics for an activity but geojson only with a track', function () {

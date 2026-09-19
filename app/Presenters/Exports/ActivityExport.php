@@ -11,6 +11,7 @@ use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\ActivitySheet;
 use App\Support\Distance;
 use App\Support\Units;
 use Illuminate\Support\Str;
@@ -22,6 +23,11 @@ use Illuminate\Support\Str;
  */
 final class ActivityExport
 {
+    public function sheet(): ActivitySheet
+    {
+        return new ActivitySheet;
+    }
+
     public function present(Activity $model): ExportData
     {
         $card = CardPresenter::for($model);
@@ -37,9 +43,11 @@ final class ActivityExport
                 ExportField::maybe('name', 'Name', $model->name, $model->name),
                 ExportField::maybe('distance', 'Distance', $model->distance === null ? null : number_format(Distance::miles($model->distance, 1), 1).' miles', $model->distance),
                 ExportField::maybe('duration', 'Duration', $model->duration === null ? null : Units::humanDuration($model->duration), $model->duration),
+                $this->pace($model),
                 ExportField::maybe('calories', 'Calories', $model->calories === null ? null : number_format($model->calories).' kcal', $model->calories),
                 ExportField::maybe('average_heart_rate', 'Average heart rate', $model->average_heart_rate === null ? null : round($model->average_heart_rate).' bpm', $model->average_heart_rate),
                 ExportField::maybe('max_heart_rate', 'Max heart rate', $model->max_heart_rate === null ? null : $model->max_heart_rate.' bpm', $model->max_heart_rate),
+                $this->heartRateEffort($model),
             ])),
             links: CommonLinks::for($model),
             aspects: array_filter([
@@ -65,5 +73,38 @@ final class ActivityExport
             fn (array $point): array => [(float) $point['lat'], (float) $point['lng']],
             $points,
         ));
+    }
+
+    /** Minutes per mile, e.g. "6:37 /mi". Null for anything with no recorded distance. */
+    private function pace(Activity $model): ?ExportField
+    {
+        if ($model->distance === null || $model->distance <= 0 || $model->duration === null) {
+            return null;
+        }
+
+        $secondsPerMile = (int) round($model->duration / ($model->distance / Distance::METRES_PER_MILE));
+
+        return ExportField::make(
+            'pace',
+            'Pace',
+            sprintf('%d:%02d /mi', intdiv($secondsPerMile, 60), $secondsPerMile % 60),
+            $secondsPerMile,
+        );
+    }
+
+    /**
+     * Average heart rate as a percentage of max, the fraction the stats card
+     * draws as a bar: a sheet may only read a field's display, so the ratio
+     * itself has to be published rather than divided out in the layout.
+     */
+    private function heartRateEffort(Activity $model): ?ExportField
+    {
+        if ($model->average_heart_rate === null || $model->max_heart_rate === null || $model->max_heart_rate <= 0) {
+            return null;
+        }
+
+        $fraction = $model->average_heart_rate / $model->max_heart_rate;
+
+        return ExportField::make('heart_rate_effort', 'Effort', round($fraction * 100).'%', $fraction);
     }
 }
