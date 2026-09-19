@@ -9,6 +9,7 @@
 @import './theme.css';
 @import './dark.css';
 @import './base.css';
+@import './transitions.css';
 @import './layout.css';
 @import './vendor.css';
 @import './editor.css';

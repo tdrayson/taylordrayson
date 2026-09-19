@@ -20,8 +20,7 @@ class CheckinsRequest extends Request implements Paginatable
     public function __construct(
         private readonly string $token,
         private readonly ?int $afterTimestamp = null,
-    ) {
-    }
+    ) {}
 
     public function resolveEndpoint(): string
     {

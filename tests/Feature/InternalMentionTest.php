@@ -150,7 +150,10 @@ it('shows the mention in the linked entry\'s conversation', function () {
             // A path, not a host: the source is a page on this site, so there
             // is no "via somewhere-else" to close the byline with.
             ->where('conversation.responses.0.sourceHost', null)
-            ->where('conversation.responses.0.body', null));
+            ->where('conversation.responses.0.body', null)
+            // Marked as mine like a comment of mine is, without an address to
+            // match on: the source is an entry of mine.
+            ->where('conversation.responses.0.mine', true));
 });
 
 it('records a mention on an unlisted entry', function () {

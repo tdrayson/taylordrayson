@@ -217,11 +217,11 @@ onBeforeUnmount(() => {
 
 <template>
     <Teleport v-if="mounted" to="body">
-        <Transition name="fade">
+        <Transition name="pop">
             <div
                 v-if="active"
                 ref="popEl"
-                class="fixed z-50 motion-reduce:transition-none"
+                class="fixed z-50"
                 :class="active.kind === 'url' ? 'w-fit max-w-90' : 'w-80'"
                 :style="{
                     top: `${pos.top}px`,
@@ -259,34 +259,5 @@ onBeforeUnmount(() => {
    past its own width. */
 .url-preview {
     overflow-wrap: anywhere;
-}
-
-/* `scale` and `translate` as their own properties, not `transform`: the wrapper
-   sets transform inline to flip itself above the link, and animating that would
-   fight the placement. These compose with it instead. */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.14s ease, scale 0.19s cubic-bezier(0.16, 1, 0.3, 1),
-        translate 0.19s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Deliberately past the point of subtlety: at 4px and 0.96 over 140ms the pop
-   measured correctly but could not be seen, arriving after a 350ms hover
-   delay when the eye has already settled on the card. */
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-    scale: 0.92;
-    translate: 0 8px;
-}
-
-/* The wrapper's motion-reduce:transition-none stops the tween, but the card
-   would still start scaled and snap. Nothing to grow from at all here. */
-@media (prefers-reduced-motion: reduce) {
-    .fade-enter-from,
-    .fade-leave-to {
-        scale: 1;
-        translate: none;
-    }
 }
 </style>
