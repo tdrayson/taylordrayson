@@ -52,7 +52,12 @@ final class TextFormat extends Format
         $lines[] = '';
 
         foreach ($data->fields as $field) {
-            $lines[] = '  '.Sheet::row($field->label, $field->display, 44);
+            // A field can print as two lines (label, then a wrapped value)
+            // rather than one, so every physical line gets the indent, not
+            // just the row's first.
+            foreach (explode("\n", Sheet::row($field->label, $field->display, 44)) as $line) {
+                $lines[] = '  '.$line;
+            }
         }
 
         return implode("\n", $lines)."\n";

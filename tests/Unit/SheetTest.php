@@ -41,20 +41,31 @@ it('wraps a body to the sheet width without splitting words', function () {
     }
 });
 
-it('truncates rather than overflowing the width, measuring by character not by byte', function () {
-    // "Kraków" is seven bytes but six characters: a byte-based clip would cut
-    // mid-character and misalign the row instead of landing on width exactly.
-    $row = Sheet::row('Kraków John Paul II International Airport', 'KRK', 20);
+it('measures a single-line row by character, not by byte', function () {
+    // "Kraków" is seven bytes but six characters: a byte-based gap
+    // calculation would misalign the row instead of landing on width exactly.
+    $row = Sheet::row('Kraków', 'KRK', 20);
 
     expect(mb_strlen($row))->toBe(20)
         ->and($row)->toEndWith('KRK');
 });
 
-it('drops the label entirely rather than pushing the row past its width when the value alone fills it', function () {
-    // A value long enough to consume the whole row leaves no room for the
-    // guaranteed one-character gap; the row must still land on width exactly.
-    $row = Sheet::row('From', 'Kraków John Paul II International Airport (KRK)', 44);
+it('stacks the value on an indented line beneath the label rather than dropping either', function () {
+    // The real KRK airport name: too long to share a row with its "From"
+    // label at the field width every flight row renders at.
+    $value = 'Kraków John Paul II International Airport (KRK)';
+    $lines = explode("\n", Sheet::row('From', $value, 44));
 
-    expect(mb_strlen($row))->toBe(44)
-        ->and($row)->toBe(mb_substr('Kraków John Paul II International Airport (KRK)', 0, 44));
+    expect($lines[0])->toBe('From')
+        ->and($lines)->toHaveCount(3);
+
+    foreach ($lines as $line) {
+        expect(mb_strlen($line))->toBeLessThanOrEqual(44);
+    }
+
+    // Every continuation line is indented two spaces; stripping that and
+    // rejoining with a single space must reconstruct the value untruncated.
+    $recovered = implode(' ', array_map(fn (string $line): string => ltrim($line), array_slice($lines, 1)));
+
+    expect($recovered)->toBe($value);
 });

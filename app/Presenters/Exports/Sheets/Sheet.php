@@ -24,7 +24,12 @@ final class Sheet
         return str_repeat(' ', $left).$text.str_repeat(' ', $width - $left - mb_strlen($text));
     }
 
-    /** Label left, value hard right, spaces between. */
+    /**
+     * Label left, value hard right, spaces between. When the two cannot
+     * share a line within the width, the return value carries a second
+     * line, newline-joined: the label alone, then the value wrapped and
+     * indented beneath it, as a receipt breaks a long address.
+     */
     public static function row(string $label, string $value, int $width = self::WIDTH): string
     {
         return self::fill($label, $value, ' ', $width);
@@ -78,26 +83,34 @@ final class Sheet
     }
 
     /**
-     * Both ends of a row, separated by enough fill to reach the width. The
-     * value wins when the two cannot both fit: it is the fact, the label is
-     * only what it is called.
+     * Both ends of a row, separated by enough fill to reach the width. Losing
+     * the label costs more than losing part of the value, so once the two
+     * cannot share a line with at least a one-character gap, neither is
+     * clipped: the label takes the line to itself and the value wraps,
+     * indented, beneath it.
      */
     private static function fill(string $label, string $value, string $char, int $width): string
     {
-        $value = self::clip($value, $width);
-        $remaining = $width - mb_strlen($value);
-
-        // A value that already fills the width (a long airport name clipped
-        // to its limit) leaves no room for a gap: the label drops rather
-        // than forcing the row a character past its fixed width.
-        if ($remaining <= 0) {
-            return $value;
+        if (mb_strlen($label) + 1 + mb_strlen($value) > $width) {
+            return self::stacked($label, $value, $width);
         }
 
-        $label = self::clip($label, max(0, $remaining - 1));
-        $gap = $remaining - mb_strlen($label);
+        $gap = $width - mb_strlen($label) - mb_strlen($value);
 
         return $label.str_repeat($char, $gap).$value;
+    }
+
+    /** The label alone, then the value wrapped and indented two spaces beneath it. */
+    private static function stacked(string $label, string $value, int $width): string
+    {
+        $indent = '  ';
+        $lines = [self::clip($label, $width)];
+
+        foreach (self::wrap($value, max(1, $width - mb_strlen($indent))) as $wrapped) {
+            $lines[] = $indent.$wrapped;
+        }
+
+        return implode("\n", $lines);
     }
 
     private static function clip(string $text, int $width): string
