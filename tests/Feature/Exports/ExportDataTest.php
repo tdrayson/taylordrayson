@@ -7,17 +7,6 @@ use App\Data\ExportField;
 use App\Data\ExportLink;
 use App\Enums\TimelineType;
 use Carbon\CarbonImmutable;
-use Illuminate\Config\Repository;
-use Illuminate\Container\Container;
-
-// This suite is Unit, which runs without the framework booted (see
-// tests/Pest.php), but ExportLink and Span read config('app.url') and
-// config('app.home_timezone'). A bare container with a config repository
-// gives the helper something to resolve without paying for a full boot.
-beforeEach(function () {
-    Container::setInstance($container = new Container);
-    $container->instance('config', new Repository(['app' => ['home_timezone' => 'Europe/London']]));
-});
 
 function exportFixture(array $overrides = []): ExportData
 {
