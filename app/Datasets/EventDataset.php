@@ -7,6 +7,7 @@ use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Event;
 use App\Presenters\Cards\EventCard;
+use App\Presenters\Exports\EventExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -57,6 +58,11 @@ final class EventDataset extends BaseDataset
     public function card(): EventCard
     {
         return new EventCard;
+    }
+
+    public function export(): object
+    {
+        return new EventExport;
     }
 
     /**
