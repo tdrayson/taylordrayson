@@ -15,9 +15,9 @@ Enable the repo's git hooks once per clone:
 git config core.hooksPath .githooks
 ```
 
-The pre-push hook runs Pint on dirty files and the Unit and Feature suites, and
-blocks the push if either fails. Worktrees share config with the clone they were
-made from, so one run covers them all. Skip a push with `git push --no-verify`.
+The pre-push hook runs Pint across the project and the Unit and Feature suites,
+and blocks the push if either fails. Worktrees share config with the clone they
+were made from, so one run covers them all. Skip a push with `git push --no-verify`.
 
 ## About Laravel
 

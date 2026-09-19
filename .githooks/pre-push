@@ -7,7 +7,7 @@ fail() {
     exit 1
 }
 
-vendor/bin/pint --test --dirty || fail 'Pint (fix with: vendor/bin/pint --dirty)'
+vendor/bin/pint --test || fail 'Pint (fix with: vendor/bin/pint)'
 
 # Browser tests want a Vite build and Playwright, too slow for a push gate.
 php artisan test --compact --testsuite=Unit,Feature || fail 'Tests'
