@@ -19,10 +19,10 @@ final class ActivitySheet
             ...$this->centredBlock($this->value($data, 'name') ?: $this->value($data, 'activity')),
             Sheet::rule(self::WIDTH, '='),
             '',
-            Sheet::row('DISTANCE', $this->value($data, 'distance'), self::WIDTH),
-            Sheet::row('DURATION', $this->value($data, 'duration'), self::WIDTH),
-            Sheet::row('PACE', $this->value($data, 'pace'), self::WIDTH),
-            Sheet::row('CALORIES', $this->value($data, 'calories'), self::WIDTH),
+            ...$this->maybeRow($data, 'DISTANCE', 'distance'),
+            ...$this->maybeRow($data, 'DURATION', 'duration'),
+            ...$this->maybeRow($data, 'PACE', 'pace'),
+            ...$this->maybeRow($data, 'CALORIES', 'calories'),
             ...$this->heartRate($data),
         ];
 
@@ -49,6 +49,19 @@ final class ActivitySheet
             Sheet::row('HEART RATE', $this->value($data, 'average_heart_rate').' of '.$this->value($data, 'max_heart_rate'), self::WIDTH),
             Sheet::centre(Sheet::bar((float) $effort->raw).' '.$effort->display, self::WIDTH),
         ];
+    }
+
+    /**
+     * A label/value row, dropped entirely rather than printed empty when
+     * the field carries no value.
+     *
+     * @return list<string>
+     */
+    private function maybeRow(ExportData $data, string $label, string $key): array
+    {
+        $field = $data->field($key);
+
+        return $field === null ? [] : [Sheet::row($label, $field->display, self::WIDTH)];
     }
 
     /**

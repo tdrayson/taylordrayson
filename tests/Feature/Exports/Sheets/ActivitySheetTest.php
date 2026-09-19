@@ -30,6 +30,27 @@ it('prints an activity as a stats card, with a bar for effort against max heart 
         ->and($txt)->not->toContain('0.789');
 });
 
+it('omits the distance and pace rows when an activity carries no distance', function () {
+    $activity = Activity::factory()->create([
+        'occurred_at' => '2026-09-13 19:00:00',
+        'type' => 'workout',
+        'name' => 'Evening Tennis',
+        'duration' => 3900,
+        'distance' => null,
+        'calories' => 433,
+        'meta' => [],
+        'status' => 'published',
+    ]);
+
+    $data = ExportPresenter::for($activity);
+    $txt = Formats::find($data, ExportFormat::Txt)->render($data);
+
+    expect($txt)->toContain('DURATION')
+        ->and($txt)->toContain('CALORIES')
+        ->and($txt)->not->toContain('DISTANCE')
+        ->and($txt)->not->toContain('PACE');
+});
+
 it('omits the heart rate bar when an activity carries no heart rate readings', function () {
     $activity = Activity::factory()->create([
         'occurred_at' => '2026-09-13 13:16:01',
