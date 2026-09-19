@@ -46,8 +46,8 @@ final class FlightExport
             occurred: $model->occurred_at === null ? null : ExportInstant::for($model->occurred_at, $model->timezone()),
             fields: array_values(array_filter([
                 ExportField::maybe('flight', 'Flight', $this->flightIdentifier($model), $this->flightCode($model)),
-                $this->airport($model, 'origin', 'From'),
-                $this->airport($model, 'destination', 'To'),
+                ...$this->airport($model, 'origin', 'From'),
+                ...$this->airport($model, 'destination', 'To'),
                 ExportField::maybe('departed', 'Departed', $this->localTime($departed, $model->origin?->city ?? $model->origin_iata), $departed?->toIso8601String()),
                 ExportField::maybe('arrived', 'Arrived', $this->localTime($arrived, $model->destination?->city ?? $model->destination_iata), $arrived?->toIso8601String()),
                 ExportField::maybe('duration', 'Duration', $model->duration === null ? null : Units::humanDuration($model->duration), $model->duration),
@@ -92,21 +92,38 @@ final class FlightExport
         return $instant === null ? null : $instant->format('H:i').' '.$place;
     }
 
-    private function airport(Flight $model, string $relation, string $label): ?ExportField
+    /**
+     * An airport as three fields: the full name and code together (for other
+     * formats), the bare code alone, and the city alone. The boarding pass
+     * leads with the code, large, so it needs that on its own rather than
+     * parsed back out of the combined display.
+     *
+     * @return list<ExportField>
+     */
+    private function airport(Flight $model, string $relation, string $label): array
     {
         $airport = $model->{$relation};
         $iata = $relation === 'origin' ? $model->origin_iata : $model->destination_iata;
+        $codeKey = "{$relation}_code";
+        $cityKey = "{$relation}_city";
 
         if ($airport === null) {
-            return ExportField::maybe($relation, $label, $iata, $iata);
+            return array_values(array_filter([
+                ExportField::maybe($relation, $label, $iata, $iata),
+                ExportField::maybe($codeKey, 'Code', $iata, $iata),
+            ]));
         }
 
-        return ExportField::make($relation, $label, "{$airport->name} ({$airport->iata_code})", [
-            'iata' => $airport->iata_code,
-            'icao' => $airport->icao_code,
-            'lat' => (float) $airport->latitude,
-            'lng' => (float) $airport->longitude,
-        ]);
+        return array_values(array_filter([
+            ExportField::make($relation, $label, "{$airport->name} ({$airport->iata_code})", [
+                'iata' => $airport->iata_code,
+                'icao' => $airport->icao_code,
+                'lat' => (float) $airport->latitude,
+                'lng' => (float) $airport->longitude,
+            ]),
+            ExportField::maybe($codeKey, 'Code', $airport->iata_code ?: $airport->icao_code, $airport->iata_code ?: $airport->icao_code),
+            ExportField::maybe($cityKey, 'City', $airport->city, $airport->city),
+        ]));
     }
 
     private function route(Flight $model): ?Geometry

@@ -31,23 +31,31 @@ final class FlightSheet
             Sheet::rule(self::WIDTH, '-'),
         ];
 
-        return implode("\n", $lines)."\n";
+        return implode("\n", array_map('rtrim', $lines))."\n";
     }
 
     /**
-     * Origin and destination centred as their own block rather than paired
-     * in one row: full airport names routinely exceed the width between
-     * them, and a paired row silently clips the losing side.
+     * The two IATA codes, the biggest thing on a real boarding pass, with
+     * each city underneath. A sheet may only read display strings, so the
+     * export publishes the bare code and city as their own fields rather
+     * than this splitting them back out of the combined "name (code)" one.
      *
      * @return list<string>
      */
     private function route(ExportData $data): array
     {
-        return [
-            ...array_map(fn (string $line): string => Sheet::centre($line, self::WIDTH), Sheet::wrap($this->value($data, 'origin'), self::WIDTH)),
-            Sheet::centre('to', self::WIDTH),
-            ...array_map(fn (string $line): string => Sheet::centre($line, self::WIDTH), Sheet::wrap($this->value($data, 'destination'), self::WIDTH)),
-        ];
+        $originCode = $this->value($data, 'origin_code');
+        $destinationCode = $this->value($data, 'destination_code');
+        $originCity = $this->value($data, 'origin_city');
+        $destinationCity = $this->value($data, 'destination_city');
+
+        $lines = [Sheet::centre(trim("{$originCode}  ->  {$destinationCode}"), self::WIDTH)];
+
+        if ($originCity !== '' && $destinationCity !== '') {
+            $lines[] = Sheet::row($originCity, $destinationCity, self::WIDTH);
+        }
+
+        return $lines;
     }
 
     /** A field's display string, or an empty one. Never a raw value. */

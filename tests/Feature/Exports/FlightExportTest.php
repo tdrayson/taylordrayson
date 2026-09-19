@@ -6,7 +6,7 @@ it('publishes a flight as labelled fields in order', function () {
     $export = ExportPresenter::for(krkToLgw());
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['flight', 'origin', 'destination', 'departed', 'arrived', 'duration', 'distance', 'cabin', 'reason']);
+        ->toBe(['flight', 'origin', 'origin_code', 'origin_city', 'destination', 'destination_code', 'destination_city', 'departed', 'arrived', 'duration', 'distance', 'cabin', 'reason']);
 });
 
 it('formats each flight field for a reader and keeps the machine value in raw', function () {
@@ -19,7 +19,11 @@ it('formats each flight field for a reader and keeps the machine value in raw', 
         ->and($export->field('duration')->raw)->toBe(8820)
         ->and($export->field('cabin')->display)->toBe('Economy')
         ->and($export->field('cabin')->raw)->toBe('economy')
-        ->and($export->field('origin')->raw)->toMatchArray(['iata' => 'KRK', 'icao' => 'EPKK']);
+        ->and($export->field('origin')->raw)->toMatchArray(['iata' => 'KRK', 'icao' => 'EPKK'])
+        ->and($export->field('origin_code')->display)->toBe('KRK')
+        ->and($export->field('origin_city')->display)->toBe('Kraków')
+        ->and($export->field('destination_code')->display)->toBe('LGW')
+        ->and($export->field('destination_city')->display)->toBe('London');
 });
 
 it('never leaks an id, a timestamp or a password', function () {
