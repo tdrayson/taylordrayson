@@ -46,7 +46,7 @@ function toggle() {
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                     quiet
                         ? 'gap-1.5 rounded-sm py-2 text-base text-neutral-700 hover:text-accent-700'
-                        : 'justify-between gap-4 py-4 font-display text-lg font-bold leading-tight tracking-tight',
+                        : 'justify-between gap-4 py-4 font-display text-lg font-bold leading-tight tracking-tight hover:text-accent-500',
                 )"
                 :aria-expanded="expanded"
                 :aria-controls="contentId"
