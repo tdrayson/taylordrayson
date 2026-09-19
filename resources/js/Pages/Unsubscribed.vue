@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 </script>
@@ -10,7 +11,7 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
     <AppHead :og="{ title: 'Unsubscribed' }" />
 
     <div class="max-w-2xl">
-        <h1 class="font-display text-display">Unsubscribed</h1>
+        <Heading as="h1" size="display">Unsubscribed</Heading>
 
         <p class="mt-3 text-base text-neutral-700">
             You will not get any more emails about replies to that comment. Your

@@ -4,6 +4,7 @@ import { Link, router, setLayoutProps } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Button from '../Components/Ui/Button.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -28,7 +29,7 @@ function act(item, action) {
     <AppHead :og="{ title: 'Moderation' }" />
 
     <div class="max-w-2xl">
-        <h1 class="font-display text-display">Moderation</h1>
+        <Heading as="h1" size="display">Moderation</Heading>
 
         <section class="mt-8">
             <h2 class="text-2xs font-semibold uppercase tracking-wider text-neutral-500">
