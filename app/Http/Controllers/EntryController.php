@@ -29,6 +29,7 @@ use App\Models\TimelineEntry;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\Entries\FuelEntry;
+use App\Queries\DayFood;
 use App\Queries\EntryArtwork;
 use App\Queries\EntryAtUrl;
 use App\Queries\TripForEntry;
@@ -50,6 +51,7 @@ class EntryController extends Controller
     public function __construct(
         private readonly TripForEntry $tripForEntry,
         private readonly EntryAtUrl $entryAtUrl,
+        private readonly DayFood $dayFood,
     ) {}
 
     public function show(int $year, int $month, int $day, string $slug): SymfonyResponse
@@ -140,7 +142,7 @@ class EntryController extends Controller
 
         return [
             'entry' => $model instanceof Food
-                ? $this->foodDay($model)
+                ? ($this->dayFood)($model)
                 : $this->entryPayload($model),
             'polyline' => data_get($model, 'meta.polyline'),
             'editing' => Auth::check() && request()->has('edit'),
@@ -341,53 +343,6 @@ class EntryController extends Controller
     {
         return data_get($event->meta, 'address')
             ?: collect([$event->venue_name, $event->city, $event->country])->filter()->implode(', ');
-    }
-
-    /**
-     * A food entry represents a whole day's eating, so aggregate every calorie
-     * row for the date into day totals plus a per-meal breakdown.
-     *
-     * @return array{totals: array<string, float|int>, meals: array<int, array<string, mixed>>}
-     */
-    private function foodDay(Food $model): array
-    {
-        $items = Food::query()
-            ->whereDate('occurred_at', $model->occurred_at->toDateString())
-            ->orderBy('occurred_at')
-            ->get();
-
-        $mealOrder = ['breakfast' => 0, 'lunch' => 1, 'dinner' => 2, 'snacks' => 3];
-
-        return [
-            'status' => $model->status->value,
-            // True while the day is still today, so the page can flag that more
-            // food may yet be logged. Computed server-side to avoid client tz math.
-            'inProgress' => $model->occurred_at->isToday(),
-            'totals' => [
-                'calories' => (int) $items->sum('calories'),
-                'protein' => round((float) $items->sum('protein'), 1),
-                'carbs' => round((float) $items->sum('carbs'), 1),
-                'fat' => round((float) $items->sum('fat'), 1),
-                'saturated_fat' => round((float) $items->sum('saturated_fat'), 1),
-                'sugars' => round((float) $items->sum('sugars'), 1),
-                'fibre' => round((float) $items->sum('fibre'), 1),
-                'sodium' => (int) round((float) $items->sum('sodium')),
-            ],
-            'meals' => $items->groupBy('meal')
-                ->map(fn ($group, string $meal): array => [
-                    'meal' => $meal,
-                    'calories' => (int) $group->sum('calories'),
-                    'items' => $group->map(fn (Food $item): array => [
-                        'name' => $item->name,
-                        'calories' => (int) $item->calories,
-                        'quantity' => (float) $item->quantity,
-                        'units' => $item->units,
-                    ])->values()->all(),
-                ])
-                ->sortBy(fn (array $meal): int => $mealOrder[$meal['meal']] ?? 99)
-                ->values()
-                ->all(),
-        ];
     }
 
     /**
