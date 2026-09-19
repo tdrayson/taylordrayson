@@ -57,19 +57,19 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
             <!-- Route and its two figures. Both sides are short, fixed-shape and
                  tabular, so this is the one row that can safely be two columns. -->
             <div class="flex items-baseline justify-between gap-3">
-                <div class="flex items-center gap-1.5 text-meta font-semibold text-neutral-900 tabular-nums">
+                <div class="flex items-center gap-1.5 text-sm font-semibold text-neutral-900 tabular-nums">
                     <span>{{ entry.origin.iata }}</span>
                     <Icon name="ArrowRight01Icon" class="size-3.5 text-neutral-400" />
                     <span>{{ entry.destination.iata }}</span>
                 </div>
-                <span v-if="distanceLabel" class="shrink-0 text-label text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
+                <span v-if="distanceLabel" class="shrink-0 text-2xs font-semibold text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
             </div>
 
             <!-- Place names get the full width and truncate. Sitting them beside
                  the date left both to wrap mid-phrase in a panel this narrow. -->
-            <p v-if="places" class="mt-1 truncate text-label text-neutral-500">{{ places }}</p>
+            <p v-if="places" class="mt-1 truncate text-2xs font-semibold text-neutral-500">{{ places }}</p>
 
-            <div class="mt-1.5 flex items-baseline justify-between gap-3 text-label text-neutral-500">
+            <div class="mt-1.5 flex items-baseline justify-between gap-3 text-2xs font-semibold text-neutral-500">
                 <span class="flex min-w-0 items-center gap-1.5">
                     <!-- The logo replaces the name rather than joining it, so
                          without a title the airline is only readable to whoever
@@ -88,7 +88,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
             </div>
         </button>
 
-        <div v-if="selected" class="space-y-1.5 border-t border-neutral-50 bg-accent-50 px-4 py-3 text-label text-neutral-500">
+        <div v-if="selected" class="space-y-1.5 border-t border-neutral-50 bg-accent-50 px-4 py-3 text-2xs font-semibold text-neutral-500">
             <div v-if="durationLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Duration</span>
                 <span class="text-neutral-700 tabular-nums">{{ durationLabel }}</span>

@@ -124,6 +124,6 @@ setLayoutProps({
             />
         </section>
 
-        <p v-if="!entriesCount" class="mt-10 text-meta text-neutral-500">Nothing logged in {{ monthName }} {{ year }}.</p>
+        <p v-if="!entriesCount" class="mt-10 text-sm text-neutral-500">Nothing logged in {{ monthName }} {{ year }}.</p>
     </template>
 </template>

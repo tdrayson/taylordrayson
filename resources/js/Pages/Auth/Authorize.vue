@@ -2,6 +2,7 @@
 import AppHead from '../../Components/AppHead.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import Button from '../../Components/Ui/Button.vue';
+import Heading from '../../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -18,20 +19,20 @@ defineProps({
     <AppHead :og="{ title: 'Authorise' }" />
 
     <div class="mx-auto w-full max-w-sm py-12">
-        <h1 class="font-display text-section text-neutral-900">Authorise</h1>
+        <Heading as="h1" size="section" class="text-neutral-900">Authorise</Heading>
 
-        <p class="mt-1 text-meta text-neutral-500">
+        <p class="mt-1 text-sm text-neutral-500">
             <span class="font-semibold text-neutral-900">{{ client }}</span>
             is asking to connect to your site.
         </p>
 
         <ul v-if="scopes.length" class="mt-6 space-y-2 border-y border-neutral-50 py-4">
-            <li v-for="scope in scopes" :key="scope.id" class="text-meta text-neutral-700">
+            <li v-for="scope in scopes" :key="scope.id" class="text-sm text-neutral-700">
                 {{ scope.description }}
             </li>
         </ul>
 
-        <p class="mt-4 text-caption text-neutral-500">
+        <p class="mt-4 text-xs text-neutral-500">
             This grants read-only access. Nothing behind it can change your data.
         </p>
 

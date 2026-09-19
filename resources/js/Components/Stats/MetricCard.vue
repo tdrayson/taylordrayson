@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { unitTitle } from '../../lib/units.js';
 import { useFormat } from '../../composables/useFormat';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Stat from '../Ui/Stat.vue';
 
 const props = defineProps({
     value: { type: [String, Number], default: null },
@@ -50,18 +52,18 @@ const up = computed(() => (props.delta ?? 0) >= 0);
 <template>
     <div class="flex flex-col gap-3 rounded-lg border border-neutral-50 bg-neutral-0 p-4">
         <div class="flex items-center justify-between gap-2">
-            <dt class="text-label uppercase text-neutral-500">{{ label }}</dt>
+            <Eyebrow as="dt" class="text-neutral-500">{{ label }}</Eyebrow>
             <!-- Comparison vs the previous period: accent for up, muted for down. -->
             <span
                 v-if="delta !== null"
-                class="text-label font-semibold tabular-nums"
+                class="text-2xs font-semibold tabular-nums"
                 :style="up ? { color: accent } : null"
                 :class="up ? '' : 'text-neutral-400'"
             >{{ up ? '↑' : '↓' }} {{ Math.abs(delta) }}%</span>
         </div>
-        <dd class="font-display text-stat leading-none tabular-nums text-neutral-900">
+        <Stat as="dd" class="text-neutral-900">
             {{ display.value }}<abbr v-if="display.unit" :title="unitTitle(display.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ display.unit }}</abbr>
-        </dd>
+        </Stat>
         <svg v-if="sparkPath" class="h-6 w-full" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
             <path :d="sparkPath" fill="none" :stroke="accent" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
         </svg>

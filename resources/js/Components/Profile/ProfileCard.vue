@@ -2,6 +2,7 @@
 import { ref, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
+import Heading from '../Ui/Heading.vue';
 import { identityProfiles } from '../../lib/identity.js';
 import { useMounted } from '../../composables/useMounted';
 
@@ -190,10 +191,10 @@ onBeforeUnmount(() => {
                 :class="['group-hover:animate-avatar-boop', { 'opacity-0': flying }]"
             />
         </Link>
-        <p class="mb-2 font-display text-name">
+        <Heading as="p" size="title" class="mb-2">
             <Link href="/" class="p-name u-url u-uid">{{ name }}</Link>
-        </p>
-        <p class="mb-4 max-w-50 p-note text-caption text-neutral-500">{{ bio }}</p>
+        </Heading>
+        <p class="mb-4 max-w-50 p-note text-xs text-neutral-500">{{ bio }}</p>
 
         <!-- Hidden, not dropped: microformats and IndieAuth read the DOM and
              ignore CSS, so identity survives without the icons being on screen. -->

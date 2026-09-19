@@ -219,7 +219,7 @@ function cancelLink() {
                 v-model="href"
                 type="url"
                 placeholder="https://"
-                class="w-56 rounded px-2 py-1 text-meta text-neutral-900 focus:outline-none"
+                class="w-56 rounded px-2 py-1 text-sm text-neutral-900 focus:outline-none"
                 autofocus
                 @keydown.enter.prevent="applyLink"
                 @keydown.esc.prevent="cancelLink"

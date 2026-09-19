@@ -54,7 +54,7 @@ async function copy() {
     <div class="mt-10">
         <Accordion ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
             <template #default="{ expanded }">
-                <p class="mb-3 text-meta text-neutral-500">
+                <p class="mb-3 text-sm text-neutral-500">
                     Send me the link and your
                     <a
                         href="https://indieweb.org/responses"
@@ -70,7 +70,7 @@ async function copy() {
         </Accordion>
 
         <Accordion variant="quiet" title="Reference this post">
-            <p class="mb-3 text-meta text-neutral-500">
+            <p class="mb-3 text-sm text-neutral-500">
                 Link back to this page if you write about it.
             </p>
 
@@ -84,12 +84,12 @@ async function copy() {
                     :value="url"
                     type="text"
                     readonly
-                    class="min-w-0 flex-1 rounded-md border border-neutral-100 bg-neutral-25 px-3 py-2 text-meta text-neutral-700 focus:border-accent-500 focus:outline-none"
+                    class="min-w-0 flex-1 rounded-md border border-neutral-100 bg-neutral-25 px-3 py-2 text-sm text-neutral-700 focus:border-accent-500 focus:outline-none"
                     @focus="$event.target.select()"
                 >
                 <button
                     type="button"
-                    class="shrink-0 rounded-md border border-neutral-100 px-4 py-2 text-meta font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="shrink-0 rounded-md border border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                     @click="copy"
                 >
                     {{ copied ? 'Copied' : 'Copy' }}
@@ -98,7 +98,7 @@ async function copy() {
         </Accordion>
 
         <Accordion v-if="og.image" variant="quiet" title="Sharing this?">
-            <p class="mb-3 text-meta text-neutral-500">
+            <p class="mb-3 text-sm text-neutral-500">
                 This is what shows up when you post the link somewhere.
             </p>
 
@@ -115,13 +115,13 @@ async function copy() {
                     class="block aspect-og w-full border-b border-neutral-50 bg-neutral-50 object-cover"
                 >
                 <figcaption class="space-y-1 p-4">
-                    <p v-if="host" class="text-label uppercase text-neutral-500">{{ host }}</p>
-                    <p v-if="og.title" class="text-body font-semibold text-neutral-900">{{ og.title }}</p>
-                    <p v-if="og.description" class="text-meta text-neutral-500">{{ og.description }}</p>
+                    <p v-if="host" class="text-2xs font-semibold uppercase tracking-wider text-neutral-500">{{ host }}</p>
+                    <p v-if="og.title" class="text-base font-semibold text-neutral-900">{{ og.title }}</p>
+                    <p v-if="og.description" class="text-sm text-neutral-500">{{ og.description }}</p>
                 </figcaption>
             </figure>
 
-            <p class="mt-3 text-meta text-neutral-500">
+            <p class="mt-3 text-sm text-neutral-500">
                 Want to see how it is made?
                 <a
                     :href="og.image"

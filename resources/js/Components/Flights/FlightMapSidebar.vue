@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import Heading from '../Ui/Heading.vue';
 import Icon from '../Ui/Icon.vue';
 import FlightMapStats from './FlightMapStats.vue';
 import FlightMapYears from './FlightMapYears.vue';
@@ -46,7 +47,7 @@ defineEmits(['update:year', 'select', 'hover']);
                 >
                     <Icon name="ArrowLeft01Icon" class="size-4" />
                 </Link>
-                <h1 class="font-display text-section text-neutral-900">Flight map</h1>
+                <Heading as="h1" size="section" class="text-neutral-900">Flight map</Heading>
             </div>
 
             <FlightMapYears :years="years" :model-value="year" @update:model-value="$emit('update:year', $event)" />

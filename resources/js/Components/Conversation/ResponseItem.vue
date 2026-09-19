@@ -126,7 +126,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                  and an SVG has no baseline of its own, so the browser synthesises
                  one from its bottom edge and sits it on the line. Centring holds
                  the name, the marker and the date on one optical line. -->
-            <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta">
+            <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
                 <!-- Same tab: an author's own site is a normal onward link,
                      not an aside, so it needs no new-tab announcement. -->
                 <a
@@ -185,7 +185,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
 
             <!-- Only when the byline is not already naming the source, which
                  links to the same place and would give it two u-urls. -->
-            <p v-if="item.body && item.sourceUrl && ! showTitle" class="mt-2 text-caption">
+            <p v-if="item.body && item.sourceUrl && ! showTitle" class="mt-2 text-xs">
                 <a
                     :href="item.sourceUrl"
                     rel="ugc nofollow noopener noreferrer"
@@ -196,7 +196,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
             <button
                 v-if="item.commentId"
                 type="button"
-                class="mt-2 rounded-sm text-caption text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                class="mt-2 rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                 @click="$emit('reply', item)"
             >
                 Reply
@@ -229,7 +229,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
        this avatar's centre. With the avatar centred on its name line, that
        centre sits half a line box below the article top. */
     top: -1.5rem;
-    height: calc(1.5rem + (var(--text-meta) * var(--text-meta--line-height)) / 2);
+    height: calc(1.5rem + (var(--text-sm) * var(--text-sm--line-height)) / 2);
 
     border-left: 1px solid var(--color-neutral-100);
     border-bottom: 1px solid var(--color-neutral-100);
@@ -243,7 +243,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
     content: '';
     position: absolute;
     left: -1rem;
-    top: calc((var(--text-meta) * var(--text-meta--line-height)) / 2);
+    top: calc((var(--text-sm) * var(--text-sm--line-height)) / 2);
     bottom: -1.5rem;
     border-left: 1px solid var(--color-neutral-100);
 }
@@ -252,7 +252,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
    difference between the avatar and that line's box lifts it into place. Derived
    from the type tokens so it follows if the scale changes. */
 .response-avatar {
-    margin-top: calc((var(--text-meta) * var(--text-meta--line-height) - 2.25rem) / 2);
+    margin-top: calc((var(--text-sm) * var(--text-sm--line-height) - 2.25rem) / 2);
 
     /* Positioned so it paints over the elbow running under it, the same way the
        main rail passes behind the avatars rather than stopping at them. */

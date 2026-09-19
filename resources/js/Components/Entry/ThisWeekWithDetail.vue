@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
         </div>
         <img v-else-if="cover" :src="cover" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
-        <p v-if="durationLabel" class="text-meta text-neutral-500">
+        <p v-if="durationLabel" class="text-sm text-neutral-500">
             Duration: <span class="tabular-nums text-neutral-700">{{ durationLabel }}</span>
         </p>
 
@@ -111,11 +111,11 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.topic">
             <SectionHead title="This Week's Topics" />
-            <p v-twemoji class="max-w-prose text-body text-neutral-700">{{ entry.topic }}</p>
+            <p v-twemoji class="max-w-prose text-base text-neutral-700">{{ entry.topic }}</p>
         </div>
 
         <Accordion v-if="entry.show_notes" title="Show Notes">
-            <div v-twemoji class="show-notes max-w-prose whitespace-pre-line text-body text-neutral-700" v-html="entry.show_notes"></div>
+            <div v-twemoji class="show-notes max-w-prose whitespace-pre-line text-base text-neutral-700" v-html="entry.show_notes"></div>
         </Accordion>
     </div>
 </template>

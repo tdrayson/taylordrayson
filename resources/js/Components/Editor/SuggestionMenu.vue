@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
 
 /**
  * The menu behind both suggestion triggers, @-mentions and the "/" block list.
@@ -125,12 +126,12 @@ const style = computed(() => {
         :style="style"
         role="listbox"
     >
-        <p v-if="! items.length" class="px-3 py-2 text-meta text-neutral-500">
+        <p v-if="! items.length" class="px-3 py-2 text-sm text-neutral-500">
             {{ emptyLabel }}
         </p>
 
         <div v-for="group in groups" :key="group.name">
-            <p class="px-3 pb-1 pt-3 text-label uppercase text-neutral-500 first:pt-2">{{ group.name }}</p>
+            <Eyebrow as="p" class="px-3 pb-1 pt-3 text-neutral-500 first:pt-2">{{ group.name }}</Eyebrow>
 
             <button
                 v-for="row in group.rows"
@@ -138,7 +139,7 @@ const style = computed(() => {
                 type="button"
                 role="option"
                 :aria-selected="row.index === active"
-                class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-sm transition-colors"
                 :class="row.index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-neutral-25'"
                 @mousedown.prevent="$emit('pick', row)"
             >
