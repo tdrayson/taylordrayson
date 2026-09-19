@@ -24,14 +24,18 @@ final class PullStravaResponses
         private readonly ReconcileResponses $reconcile,
     ) {}
 
-    public function __invoke(Activity $activity): void
+    /**
+     * @param  bool  $withComments  False to leave the comments endpoint alone, when the caller already knows from
+     *                              the summary that there are none. Replies are then reconciled as unvouched.
+     */
+    public function __invoke(Activity $activity, bool $withComments = true): void
     {
         if ($activity->source !== Source::Strava->value || blank($activity->source_id)) {
             return;
         }
 
         $kudos = $this->strava->kudos($activity->source_id);
-        $comments = $this->strava->comments($activity->source_id);
+        $comments = $withComments ? $this->strava->comments($activity->source_id) : [];
 
         // Null is a failed request, not an empty list. Treating it as empty
         // would wipe the responses we already hold.
@@ -43,13 +47,16 @@ final class PullStravaResponses
 
         // A page returned at its ceiling is as much as Strava will say in one
         // request, not necessarily all there is. There is no paging loop here
-        // on purpose: the command budgets exactly two requests per activity to
-        // stay inside the rate limit, and an unbounded walk would break that
+        // on purpose: the command budgets its requests per activity to stay
+        // inside the rate limit, and an unbounded walk would break that
         // accounting. So a full page buys safety instead, holding back the
         // deletions rather than reading a truncated list as the whole truth.
+        //
+        // An unfetched comments endpoint is the same problem in its strongest
+        // form: an empty list we never asked for proves nothing at all.
         $unvouched = [
             ...(count($kudos) >= Client::RESPONSES_PER_PAGE ? [WebmentionKind::Like] : []),
-            ...(count($comments) >= Client::RESPONSES_PER_PAGE ? [WebmentionKind::Reply] : []),
+            ...(! $withComments || count($comments) >= Client::RESPONSES_PER_PAGE ? [WebmentionKind::Reply] : []),
         ];
 
         // occurred_at is a wall-clock reading, not an instant: a kudo has no

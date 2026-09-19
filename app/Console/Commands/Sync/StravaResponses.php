@@ -84,20 +84,28 @@ class StravaResponses extends Command
                 continue;
             }
 
-            if ($this->skippable($summary, $held->get($activity->id, ['like' => 0, 'reply' => 0]), $all)) {
+            $heldFor = $held->get($activity->id, ['like' => 0, 'reply' => 0]);
+
+            if ($this->skippable($summary, $heldFor, $all)) {
                 continue;
             }
 
-            // Two requests per activity. Stopping mid-list is fine as long as
-            // we say where we stopped, or the next --all starts over and never
-            // reaches the older half.
-            if ($spent + 2 > self::MAX_REQUESTS) {
+            // Kudos always, comments only where there are any to find. Costing
+            // the activity before committing to it is what keeps the ceiling
+            // honest: assuming two would stop the walk early and strand a
+            // cursor on an activity there was budget for.
+            $withComments = $this->needsComments($summary, $heldFor);
+            $cost = $withComments ? 2 : 1;
+
+            // Stopping mid-list is fine as long as we say where we stopped, or
+            // the next --all starts over and never reaches the older half.
+            if ($spent + $cost > self::MAX_REQUESTS) {
                 $stoppedAt = $sourceId;
                 break;
             }
 
-            $pull($activity);
-            $spent += 2;
+            $pull($activity, $withComments);
+            $spent += $cost;
             $pulled++;
         }
 
@@ -216,6 +224,22 @@ class StravaResponses extends Command
             && (int) ($summary['comment_count'] ?? 0) === 0
             && $held['like'] === 0
             && $held['reply'] === 0;
+    }
+
+    /**
+     * Whether this activity's comments endpoint is worth a request.
+     *
+     * Kudos are near-universal and comments are rare, so this is where the
+     * backfill's cost actually sits. Strava's summary count is authoritative
+     * for "are there any", and a count of zero against replies we still hold
+     * is a withdrawal that has to be fetched so the reconcile can clear them.
+     *
+     * @param  array<string, mixed>  $summary
+     * @param  array{like: int, reply: int}  $held
+     */
+    private function needsComments(array $summary, array $held): bool
+    {
+        return (int) ($summary['comment_count'] ?? 0) > 0 || $held['reply'] > 0;
     }
 
     /**
