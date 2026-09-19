@@ -105,8 +105,9 @@ class VerifyWebmention implements ShouldQueue
         ])->save();
 
         // The responses their page carries under the post that mentioned us.
-        // Read on every check, not just the first: the whole point of a
-        // salmention is that this thread grows after we were told about it.
+        // Re-read each time they notify us again, which is the only way a
+        // thread that grew since the first mention reaches this page: the
+        // source is fetched when a mention arrives, never on a timer.
         $storeNested($mention, $entry ?? []);
 
         $this->notify($mention);
