@@ -25,10 +25,8 @@ final class Sheet
     }
 
     /**
-     * Label left, value hard right, spaces between. When the two cannot
-     * share a line within the width, the return value carries a second
-     * line, newline-joined: the label alone, then the value wrapped and
-     * indented beneath it, as a receipt breaks a long address.
+     * Label left, value hard right. When the two cannot share the width,
+     * the label takes its own line and the value wraps, indented, beneath it.
      */
     public static function row(string $label, string $value, int $width = self::WIDTH): string
     {
@@ -67,25 +65,9 @@ final class Sheet
     }
 
     /**
-     * A percentage display ("94%") back to its 0-1 fraction. The export
-     * publishes the ratio a bar needs as a display string, same as any other
-     * field; this undoes that formatting so bar() can draw it, without a
-     * sheet ever touching the field's raw value.
-     */
-    public static function fraction(string $percent): float
-    {
-        return ((float) rtrim($percent, '%')) / 100;
-    }
-
-    /**
-     * A sheet's lines joined into its final text, every physical line
-     * right-trimmed. A centred or padded line carries real trailing spaces
-     * up to the width; nothing about the sheet needs them once it is the
-     * last thing on the line, and left in place they are only a diff smell
-     * in a plain-text document. Splits each entry on its own newlines first,
-     * so a helper that already returned several lines in one string (a
-     * stacked row, a whole box) gets every one of them trimmed, not just the
-     * last.
+     * A sheet's lines joined into its final text, each physical line
+     * right-trimmed (splitting multi-line entries first, so a stacked row
+     * or a whole box gets every line trimmed, not just its last).
      *
      * @param  list<string>  $lines
      */
@@ -117,11 +99,8 @@ final class Sheet
     }
 
     /**
-     * Both ends of a row, separated by enough fill to reach the width. Losing
-     * the label costs more than losing part of the value, so once the two
-     * cannot share a line with at least a one-character gap, neither is
-     * clipped: the label takes the line to itself and the value wraps,
-     * indented, beneath it.
+     * Both ends of a row, filled to the width. Once they cannot share a
+     * line, the label takes its own and the value wraps, indented, beneath it.
      */
     private static function fill(string $label, string $value, string $char, int $width): string
     {

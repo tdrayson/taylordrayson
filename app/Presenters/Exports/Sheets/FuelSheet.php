@@ -31,9 +31,8 @@ final class FuelSheet
     }
 
     /**
-     * A value centred, wrapped across as many lines as it needs: a station
-     * name or address routinely exceeds the width, and centre() alone clips
-     * rather than wraps.
+     * A value wrapped to the width, each line centred, so a long station
+     * name or address is not clipped mid-word.
      *
      * @return list<string>
      */

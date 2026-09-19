@@ -35,10 +35,8 @@ final class FlightSheet
     }
 
     /**
-     * The two IATA codes, the biggest thing on a real boarding pass, with
-     * each city underneath. A sheet may only read display strings, so the
-     * export publishes the bare code and city as their own fields rather
-     * than this splitting them back out of the combined "name (code)" one.
+     * The two IATA codes, large, with each city underneath when both are
+     * published.
      *
      * @return list<string>
      */

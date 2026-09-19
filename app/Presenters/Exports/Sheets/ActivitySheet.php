@@ -30,9 +30,8 @@ final class ActivitySheet
     }
 
     /**
-     * Average heart rate against max, as a labelled row plus a bar. Dropped
-     * entirely when either reading is missing, rather than drawing an empty
-     * bar with nothing behind it.
+     * Average heart rate against max, as a row plus a bar. Dropped entirely
+     * when either reading is missing.
      *
      * @return list<string>
      */
@@ -44,10 +43,11 @@ final class ActivitySheet
             return [];
         }
 
+        // Geometry (the bar's width) reads raw for precision; the printed percentage still comes from display.
         return [
             '',
             Sheet::row('HEART RATE', $this->value($data, 'average_heart_rate').' of '.$this->value($data, 'max_heart_rate'), self::WIDTH),
-            Sheet::centre(Sheet::bar(Sheet::fraction($effort->display)).' '.$effort->display, self::WIDTH),
+            Sheet::centre(Sheet::bar((float) $effort->raw).' '.$effort->display, self::WIDTH),
         ];
     }
 

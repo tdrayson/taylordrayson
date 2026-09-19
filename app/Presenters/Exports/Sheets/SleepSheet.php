@@ -52,7 +52,8 @@ final class SleepSheet
         $percentColumn = str_pad($share->display, 4, ' ', STR_PAD_LEFT);
         $barWidth = self::WIDTH - mb_strlen($labelColumn) - mb_strlen($percentColumn) - 2;
 
-        return $labelColumn.' '.Sheet::bar(Sheet::fraction($share->display), $barWidth).' '.$percentColumn;
+        // Geometry (the bar's width) reads raw for precision; the printed percentage still comes from display.
+        return $labelColumn.' '.Sheet::bar((float) $share->raw, $barWidth).' '.$percentColumn;
     }
 
     /**
