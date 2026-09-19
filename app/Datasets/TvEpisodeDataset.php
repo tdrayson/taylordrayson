@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\TvEpisode;
 use App\Presenters\Cards\TvEpisodeCard;
+use App\Presenters\Exports\TvEpisodeExport;
 
 /**
  * TV episodes logged as watched, synced from Trakt.
@@ -64,6 +65,11 @@ final class TvEpisodeDataset extends BaseDataset
     public function card(): TvEpisodeCard
     {
         return new TvEpisodeCard;
+    }
+
+    public function export(): object
+    {
+        return new TvEpisodeExport;
     }
 
     /**
