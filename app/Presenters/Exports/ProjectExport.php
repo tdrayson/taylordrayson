@@ -10,6 +10,7 @@ use App\Enums\TimelineType;
 use App\Models\Project;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\ProjectSheet;
 
 /**
  * A project as an export: its stage plus links to the live site and the
@@ -17,6 +18,11 @@ use App\Presenters\EntryDescription;
  */
 final class ProjectExport
 {
+    public function sheet(): ProjectSheet
+    {
+        return new ProjectSheet;
+    }
+
     public function present(Project $model): ExportData
     {
         $card = CardPresenter::for($model);
