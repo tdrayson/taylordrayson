@@ -69,3 +69,57 @@ it('returns an empty string for a null document', function () {
     expect(PortableText::markdown(null))->toBe('')
         ->and(PortableText::html(null))->toBe('');
 });
+
+it('closes an open list at the end of the document', function () {
+    $doc = [
+        PortableText::block('Intro'),
+        ['_type' => 'block', '_key' => 'c', 'style' => 'normal', 'listItem' => 'bullet', 'level' => 1, 'children' => [
+            ['_type' => 'span', '_key' => 'c1', 'text' => 'First', 'marks' => []],
+        ], 'markDefs' => []],
+        ['_type' => 'block', '_key' => 'd', 'style' => 'normal', 'listItem' => 'bullet', 'level' => 1, 'children' => [
+            ['_type' => 'span', '_key' => 'd1', 'text' => 'Second', 'marks' => []],
+        ], 'markDefs' => []],
+    ];
+
+    expect(PortableText::html($doc))->toBe('<p>Intro</p><ul><li>First</li><li>Second</li></ul>');
+});
+
+it('closes and reopens a list when a non-list block of the same kind splits it', function () {
+    $doc = [
+        ['_type' => 'block', '_key' => 'a', 'style' => 'normal', 'listItem' => 'bullet', 'level' => 1, 'children' => [
+            ['_type' => 'span', '_key' => 'a1', 'text' => 'First', 'marks' => []],
+        ], 'markDefs' => []],
+        PortableText::block('Middle'),
+        ['_type' => 'block', '_key' => 'b', 'style' => 'normal', 'listItem' => 'bullet', 'level' => 1, 'children' => [
+            ['_type' => 'span', '_key' => 'b1', 'text' => 'Second', 'marks' => []],
+        ], 'markDefs' => []],
+    ];
+
+    expect(PortableText::html($doc))->toBe('<ul><li>First</li></ul><p>Middle</p><ul><li>Second</li></ul>');
+});
+
+it('nests a style mark inside a link when a span carries both', function () {
+    $doc = [[
+        '_type' => 'block', '_key' => 'a', 'style' => 'normal',
+        'markDefs' => [['_key' => 'lnk', '_type' => 'link', 'href' => 'https://example.test']],
+        'children' => [
+            ['_type' => 'span', '_key' => 'a1', 'text' => 'bold link', 'marks' => ['strong', 'lnk']],
+        ],
+    ]];
+
+    expect(PortableText::html($doc))->toBe('<p><a href="https://example.test"><strong>bold link</strong></a></p>')
+        ->and(PortableText::markdown($doc))->toBe('[**bold link**](https://example.test)');
+});
+
+it('silently ignores a mark key with no matching markDef', function () {
+    $doc = [[
+        '_type' => 'block', '_key' => 'a', 'style' => 'normal', 'markDefs' => [],
+        'children' => [
+            ['_type' => 'span', '_key' => 'a1', 'text' => 'Plain text', 'marks' => ['orphan']],
+        ],
+    ]];
+
+    expect(PortableText::html($doc))->toBe('<p>Plain text</p>')
+        ->and(PortableText::markdown($doc))->toBe('Plain text')
+        ->and(PortableText::html($doc))->not->toContain('orphan');
+});
