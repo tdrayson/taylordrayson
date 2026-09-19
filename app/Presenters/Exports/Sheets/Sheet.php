@@ -87,17 +87,16 @@ final class Sheet
         $out = ['.'.str_repeat('-', $inner + 2).'.'];
 
         foreach ($ordered as $index => $line) {
-            if ($line === null) {
-                $out[] = ' )'.str_repeat('=', $inner).'((';
+            // Every line takes the shape its position demands, rules included,
+            // so the tear edge zigzags unbroken down the side.
+            $odd = ($index + 1) % 2 === 1;
+            $budget = $odd ? $inner + 2 : $inner;
 
-                continue;
-            }
+            $body = $line === null
+                ? str_repeat('=', $budget)
+                : self::pad($line, $budget);
 
-            // Content lines alternate shape by their position in the whole
-            // stub (rules included), so the tear edge zigzags down the side.
-            $out[] = ($index + 1) % 2 === 1
-                ? '('.self::pad($line, $inner + 2).')'
-                : ' )'.self::pad($line, $inner).'((';
+            $out[] = $odd ? '('.$body.')' : ' )'.$body.'((';
         }
 
         $out[] = "'".str_repeat('-', $inner + 2)."'";

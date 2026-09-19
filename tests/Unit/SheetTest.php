@@ -39,10 +39,25 @@ it('draws a perforated ticket stub with alternating tear edges and a section rul
         ' )========((',
         '(Line one  )',
         ' )Line two((',
-        ' )========((',
+        '(==========)',
         ' )Footer  ((',
         "'----------'",
     ]);
+});
+
+it('never repeats a tear edge, whichever row a section rule lands on', function () {
+    // A rule used to be drawn ')====((' wherever it fell, so a stub with an
+    // even number of body rows put two ')' edges in a row. See the event stub.
+    foreach (range(1, 6) as $rows) {
+        $body = array_map(fn (int $n): string => "Row {$n}", range(1, $rows));
+        $lines = explode("\n", Sheet::ticket(['Header', null, ...$body, null, 'Footer'], 12));
+        $edges = array_map(fn (string $l): string => mb_substr($l, 0, 1), array_slice($lines, 1, -1));
+
+        expect($edges)->toBe(array_map(
+            fn (int $i): string => $i % 2 === 0 ? '(' : ' ',
+            range(0, count($edges) - 1),
+        ), "stub with {$rows} body rows");
+    }
 });
 
 it('widens a ticket to fit a line wider than its floor, keeping every row the same width', function () {
