@@ -10,17 +10,15 @@ use App\Presenters\Exports\Formats\Formats;
 use App\Presenters\Exports\Formats\MarkdownFormat;
 use App\Support\PortableText;
 
-it('renders a flight as markdown with front matter, fields and a trail', function () {
+it('renders a flight as markdown with front matter and fields', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $md = Formats::find($data, ExportFormat::Md)->render($data, ['json' => 'https://example.test/x.json']);
+    $md = Formats::find($data, ExportFormat::Md)->render($data);
 
     expect($md)->toStartWith('---')
         ->and($md)->toContain('type: flight')
         ->and($md)->toContain("Distance: '876 miles'")
         ->and($md)->toContain('## See also')
-        ->and($md)->toContain('## Other formats')
-        ->and($md)->toContain('- [json](https://example.test/x.json)')
-        ->and($md)->not->toContain('[https://example.test/x.json](json)');
+        ->and($md)->not->toContain('## Other formats');
 });
 
 it('renders a locked entry as header only, with no fields, body or links', function () {
@@ -36,13 +34,13 @@ it('renders a locked entry as header only, with no fields, body or links', funct
         locked: true,
     );
 
-    $md = (new MarkdownFormat)->render($data, ['json' => 'https://example.test/secret.json']);
+    $md = (new MarkdownFormat)->render($data);
 
     expect($md)->toContain('# A private note')
-        ->and($md)->toContain('[json](https://example.test/secret.json)')
         ->and($md)->not->toContain('Word count')
         ->and($md)->not->toContain('42')
         ->and($md)->not->toContain('## See also')
+        ->and($md)->not->toContain('## Other formats')
         ->and($md)->not->toContain('Secret tag')
         ->and($md)->not->toContain('https://example.test/tags/secret')
         ->and($md)->not->toContain('confidential')

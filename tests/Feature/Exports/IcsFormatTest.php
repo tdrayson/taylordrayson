@@ -9,7 +9,7 @@ use App\Presenters\Exports\Formats\IcsFormat;
 
 it('renders a cross timezone flight with both zones named', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $ics = Formats::find($data, ExportFormat::Ics)->render($data, []);
+    $ics = Formats::find($data, ExportFormat::Ics)->render($data);
 
     expect($ics)->toContain('BEGIN:VCALENDAR')
         ->and($ics)->toContain('BEGIN:VEVENT')
@@ -20,7 +20,7 @@ it('renders a cross timezone flight with both zones named', function () {
 
 it('folds long lines and ends them with crlf', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $ics = (new IcsFormat)->render($data, []);
+    $ics = (new IcsFormat)->render($data);
 
     expect($ics)->toContain("\r\n");
 
@@ -31,7 +31,7 @@ it('folds long lines and ends them with crlf', function () {
 
 it('gives the event a stable uid derived from the entry url', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $ics = (new IcsFormat)->render($data, []);
+    $ics = (new IcsFormat)->render($data);
 
     // RFC 5545 folds long lines at 75 octets; unfold before asserting the UID's content.
     $unfolded = str_replace("\r\n ", '', $ics);

@@ -21,7 +21,7 @@ final class IcsFormat extends Format
         return ! $data->locked && $data->aspect(Span::class) !== null;
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data): string
     {
         $span = $data->aspect(Span::class);
 

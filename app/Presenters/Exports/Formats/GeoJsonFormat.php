@@ -19,7 +19,7 @@ final class GeoJsonFormat extends Format
         return ! $data->locked && $data->aspect(Geometry::class) !== null;
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data): string
     {
         $properties = [
             'type' => $data->typeValue(),
@@ -34,7 +34,7 @@ final class GeoJsonFormat extends Format
         return json_encode([
             'type' => 'Feature',
             'geometry' => $data->aspect(Geometry::class)->toArray(),
-            'properties' => [...$properties, 'formats' => $trail],
+            'properties' => $properties,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 }

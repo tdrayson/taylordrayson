@@ -34,7 +34,7 @@ it('offers no sql for a note, since an empty field list has no row to print', fu
 it('withholds p-name from a note in mf2, since a note has no title of its own', function () {
     $note = Note::factory()->create(['occurred_at' => '2026-09-13 07:00:00', 'status' => 'published']);
 
-    $mf2 = json_decode(Formats::for(ExportPresenter::for($note))['mf2']->render(ExportPresenter::for($note), []), true);
+    $mf2 = json_decode(Formats::for(ExportPresenter::for($note))['mf2']->render(ExportPresenter::for($note)), true);
 
     expect($mf2['items'][0]['properties'])->not->toHaveKey('name');
 });

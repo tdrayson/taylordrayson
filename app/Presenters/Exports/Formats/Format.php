@@ -14,10 +14,7 @@ abstract class Format
 {
     abstract public function format(): ExportFormat;
 
-    /**
-     * @param  array<string, string>  $trail  The other formats for this resource, extension to absolute URL.
-     */
-    abstract public function render(ExportData $data, array $trail): string;
+    abstract public function render(ExportData $data): string;
 
     /**
      * Must be side-effect-free and cheap: Formats::for() calls it once per

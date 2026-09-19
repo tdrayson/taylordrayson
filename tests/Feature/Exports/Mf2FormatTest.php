@@ -15,11 +15,10 @@ use Carbon\CarbonImmutable;
 
 it('renders an h-entry with the properties a parser expects', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $mf2 = json_decode(Formats::find($data, ExportFormat::Mf2)->render($data, [
-        'json' => 'https://example.test/x.json',
-    ]), true);
+    $mf2 = json_decode(Formats::find($data, ExportFormat::Mf2)->render($data), true);
 
     $item = $mf2['items'][0];
+    $jsonUrl = $data->url.'.json';
 
     expect($item['type'])->toBe(['h-entry'])
         ->and($item['properties']['name'][0])->toBe($data->title)
@@ -28,8 +27,10 @@ it('renders an h-entry with the properties a parser expects', function () {
         ->and($item['properties']['published'][0])->toStartWith('2026-06-08')
         ->and($item['properties']['author'][0]['type'])->toBe(['h-card'])
         ->and($item['properties']['author'][0]['properties']['name'][0])->toBe('Taylor Drayson')
-        ->and($mf2['rels']['alternate'])->toContain('https://example.test/x.json')
-        ->and($mf2['rel-urls']['https://example.test/x.json']['type'])->toBe('application/json; charset=utf-8');
+        // Self-computed from the export's own supported formats, so a parse of
+        // this must agree with the page's own <link rel="alternate"> set.
+        ->and($mf2['rels']['alternate'])->toContain($jsonUrl)
+        ->and($mf2['rel-urls'][$jsonUrl]['type'])->toBe('application/json; charset=utf-8');
 });
 
 // The distinction a parser uses to tell a note from an article: Entry.vue
@@ -46,7 +47,7 @@ it('omits p-name for a note, matching the page', function () {
         body: [PortableText::block('Just a thought, logged.')],
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties)->not->toHaveKey('name')
         ->and($properties['content'][0]['value'])->toContain('Just a thought, logged.')
@@ -69,7 +70,7 @@ it('takes p-category from category links and u-syndication from syndication link
         ],
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties['category'])->toBe(['Travel', 'Poland'])
         ->and($properties['syndication'])->toBe(['https://example.test/swarm/1']);
@@ -90,7 +91,7 @@ it('adds a nested h-event with start, end and location for an event or appearanc
         aspects: [Span::class => Span::across($start, $end, 'The venue')],
     );
 
-    $event = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties']['event'][0];
+    $event = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties']['event'][0];
 
     expect($event['type'])->toBe(['h-event'])
         ->and($event['properties']['start'][0])->toBe($start->toIso8601String())
@@ -109,7 +110,7 @@ it('adds no h-event for an event with no span aspect', function () {
         links: [],
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties)->not->toHaveKey('event');
 });
@@ -125,7 +126,7 @@ it('adds a p-checkin h-card with latitude and longitude for a place', function (
         links: [],
     );
 
-    $checkin = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties']['checkin'][0];
+    $checkin = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties']['checkin'][0];
 
     expect($checkin['type'])->toBe(['h-card'])
         ->and($checkin['properties']['latitude'][0])->toBe('51.5')
@@ -143,7 +144,7 @@ it('adds u-watch-of and p-rating for a film or tv episode', function (TimelineTy
         links: [],
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties['watch-of'][0]['type'])->toBe(['h-cite'])
         ->and($properties['watch-of'][0]['properties']['name'][0])->toBe('A film')
@@ -161,7 +162,7 @@ it('adds u-read-of and p-rating for a book', function () {
         links: [],
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties['read-of'][0]['type'])->toBe(['h-cite'])
         ->and($properties['read-of'][0]['properties']['name'][0])->toBe('A book')
@@ -179,7 +180,7 @@ it('adds no vocabulary extension for a type with no established one', function (
         links: [],
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties)->not->toHaveKey('event')
         ->and($properties)->not->toHaveKey('checkin')
@@ -203,7 +204,7 @@ it('publishes header level properties only for a locked export, regardless of wh
         locked: true,
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties['url'][0])->toBe($data->url)
         ->and($properties['uid'][0])->toBe($data->url)
@@ -229,7 +230,7 @@ it('withholds the vocabulary extension for a locked export even with a matching 
         locked: true,
     );
 
-    $properties = json_decode((new Mf2Format)->render($data, []), true)['items'][0]['properties'];
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties)->not->toHaveKey('event');
 });

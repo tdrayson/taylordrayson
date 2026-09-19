@@ -10,8 +10,8 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * The export as a markdown document: front matter carrying the fields, the
- * title, the body, then the links and the trail. A locked export renders
- * header only: front matter without fields, the title, and the trail.
+ * title, the body, then the links. A locked export renders header only:
+ * front matter without fields, and the title.
  */
 final class MarkdownFormat extends Format
 {
@@ -20,7 +20,7 @@ final class MarkdownFormat extends Format
         return ExportFormat::Md;
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data): string
     {
         $parts = [$this->frontMatter($data), "# {$data->title}"];
 
@@ -41,14 +41,6 @@ final class MarkdownFormat extends Format
                     $data->links,
                 ));
             }
-        }
-
-        if ($trail !== []) {
-            $parts[] = "## Other formats\n\n".implode("\n", array_map(
-                fn (string $url, string $ext): string => "- [{$ext}]({$url})",
-                $trail,
-                array_keys($trail),
-            ));
         }
 
         return implode("\n\n", $parts)."\n";

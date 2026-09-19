@@ -13,10 +13,10 @@ final class JsonFormat extends Format
         return ExportFormat::Json;
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data): string
     {
         return json_encode(
-            [...$data->toArray(), 'formats' => $trail],
+            $data->toArray(),
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
         );
     }

@@ -14,8 +14,8 @@ final class YamlFormat extends Format
         return ExportFormat::Yaml;
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data): string
     {
-        return Yaml::dump([...$data->toArray(), 'formats' => $trail], 6, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
+        return Yaml::dump($data->toArray(), 6, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
     }
 }

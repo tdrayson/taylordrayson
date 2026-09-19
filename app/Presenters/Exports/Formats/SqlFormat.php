@@ -24,7 +24,7 @@ final class SqlFormat extends Format
         return ! $data->locked && $data->fields !== [];
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data, array $trail = []): string
     {
         $table = $this->table($data);
         $columns = array_map(fn (ExportField $field): string => $field->key, $data->fields);

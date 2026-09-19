@@ -52,14 +52,12 @@ it('serves yaml and sql as readable text, not a download', function () {
     $this->get($flight->url().'.sql')->assertOk()->assertHeader('content-type', 'text/x-sql; charset=UTF-8');
 });
 
-it('lists the other formats as a trail', function () {
+it('no longer lists other formats in the response, since the head and footer alternates cover that', function () {
     $flight = krkToLgw();
 
     $response = $this->get($flight->url().'.json')->json();
 
-    expect($response['formats'])->toHaveKeys(['yaml', 'md', 'mf2', 'sql', 'ics', 'geojson'])
-        ->and($response['formats'])->not->toHaveKey('json')
-        ->and($response['formats']['yaml'])->toStartWith('http');
+    expect($response)->not->toHaveKey('formats');
 });
 
 it('404s an extension the entry does not support', function () {

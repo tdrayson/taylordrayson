@@ -18,20 +18,21 @@ it('offers only the formats built so far for a flight', function () {
 
 it('renders a flight as json carrying both display and raw', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $json = json_decode(Formats::find($data, ExportFormat::Json)->render($data, ['md' => 'https://example.test/x.md']), true);
+    $json = json_decode(Formats::find($data, ExportFormat::Json)->render($data), true);
 
     expect($json['type'])->toBe('flight')
         ->and($json['url'])->toStartWith('http')
         ->and($json['fields'][0])->toHaveKeys(['key', 'label', 'display', 'raw'])
-        ->and($json['formats'])->toBe(['md' => 'https://example.test/x.md']);
+        ->and($json)->not->toHaveKey('formats');
 });
 
 it('renders the same object as yaml', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $yaml = Formats::find($data, ExportFormat::Yaml)->render($data, []);
+    $yaml = Formats::find($data, ExportFormat::Yaml)->render($data);
 
     expect($yaml)->toContain('type: flight')
-        ->and(Yaml::parse($yaml)['fields'][0]['key'])->toBe('flight');
+        ->and(Yaml::parse($yaml)['fields'][0]['key'])->toBe('flight')
+        ->and($yaml)->not->toContain('formats:');
 });
 
 function lockedNoteWithFieldsAndLinks(): ExportData
@@ -50,7 +51,7 @@ function lockedNoteWithFieldsAndLinks(): ExportData
 
 it('renders a locked entry as json with no fields or links', function () {
     $data = lockedNoteWithFieldsAndLinks();
-    $rendered = Formats::find($data, ExportFormat::Json)->render($data, []);
+    $rendered = Formats::find($data, ExportFormat::Json)->render($data);
     $json = json_decode($rendered, true);
 
     expect($json)->not->toHaveKey('fields')
@@ -62,7 +63,7 @@ it('renders a locked entry as json with no fields or links', function () {
 
 it('renders a locked entry as yaml with no fields or links', function () {
     $data = lockedNoteWithFieldsAndLinks();
-    $yaml = Formats::find($data, ExportFormat::Yaml)->render($data, []);
+    $yaml = Formats::find($data, ExportFormat::Yaml)->render($data);
     $parsed = Yaml::parse($yaml);
 
     expect($parsed)->not->toHaveKey('fields')

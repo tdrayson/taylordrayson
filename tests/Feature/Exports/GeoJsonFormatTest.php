@@ -9,7 +9,7 @@ use App\Presenters\Exports\Formats\GeoJsonFormat;
 
 it('renders a flight route as a linestring, longitude first', function () {
     $data = ExportPresenter::for(krkToLgw());
-    $geo = json_decode(Formats::find($data, ExportFormat::GeoJson)->render($data, []), true);
+    $geo = json_decode(Formats::find($data, ExportFormat::GeoJson)->render($data), true);
 
     expect($geo['type'])->toBe('Feature')
         ->and($geo['geometry']['type'])->toBe('LineString')

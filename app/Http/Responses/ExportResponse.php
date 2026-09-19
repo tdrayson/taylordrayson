@@ -8,7 +8,7 @@ use App\Presenters\Exports\Formats\Formats;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-/** Renders an export in one format, with the trail listing the others. */
+/** Renders an export in one format. */
 final class ExportResponse
 {
     public static function make(ExportData $data, string $extension, bool $private = false): Response
@@ -17,15 +17,7 @@ final class ExportResponse
         $available = Formats::for($data);
         $renderer = $available[$format->value] ?? throw new NotFoundHttpException;
 
-        $trail = [];
-
-        foreach (array_keys($available) as $key) {
-            if ($key !== $format->value) {
-                $trail[$key] = $data->url.'.'.$key;
-            }
-        }
-
-        $response = response($renderer->render($data, $trail), 200, [
+        $response = response($renderer->render($data), 200, [
             'Content-Type' => $format->contentType(),
         ]);
 

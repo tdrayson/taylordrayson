@@ -20,8 +20,10 @@ final class Mf2Format extends Format
         return ExportFormat::Mf2;
     }
 
-    public function render(ExportData $data, array $trail): string
+    public function render(ExportData $data): string
     {
+        $trail = $this->trail($data);
+
         return json_encode([
             'items' => [['type' => ['h-entry'], 'properties' => $this->properties($data)]],
             'rels' => ['alternate' => array_values($trail)],
@@ -186,6 +188,26 @@ final class Mf2Format extends Format
             ]],
             'rating' => $rating === null ? null : [$rating->display],
         ]);
+    }
+
+    /**
+     * Every other format this export supports, extension to absolute url:
+     * the alternates a microformats2 parser is pointed at. Self-computed
+     * rather than handed in, since mf2 is now the only format that needs one.
+     *
+     * @return array<string, string>
+     */
+    private function trail(ExportData $data): array
+    {
+        $trail = [];
+
+        foreach (Formats::for($data) as $key => $format) {
+            if (! $format instanceof self) {
+                $trail[$key] = $data->url.'.'.$key;
+            }
+        }
+
+        return $trail;
     }
 
     /**
