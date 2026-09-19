@@ -55,13 +55,10 @@ final class Mf2Format extends Format
             'author' => [$this->bareAuthor()],
         ];
 
-        // A note has neither a name nor a summary of its own: its body is the
-        // entry, so a generated title or standfirst would just restate it.
-        // Entry.vue withholds both p-name and p-summary for the same reason,
-        // and the two must not disagree.
-        $isNote = $data->type === TimelineType::Note;
-
-        if (! $isNote) {
+        // A note has no name of its own: its body is the entry, so a
+        // generated title would just restate it. Entry.vue withholds p-name
+        // for the same reason, and the two must not disagree.
+        if ($data->type !== TimelineType::Note) {
             $properties['name'] = [$data->title];
         }
 
@@ -73,8 +70,12 @@ final class Mf2Format extends Format
             return $properties;
         }
 
-        if ($data->summary !== null && ! $isNote) {
-            $properties['summary'] = [$data->summary];
+        // Not $data->summary: that falls back to a generated description for
+        // formats that always want one. p-summary publishes only a genuine
+        // standfirst, because that is the only kind the page itself ever
+        // shows (see ExportData's docblock for the distinction).
+        if ($data->standfirst !== null) {
+            $properties['summary'] = [$data->standfirst];
         }
 
         $html = $this->contentHtml($data);

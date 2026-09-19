@@ -57,6 +57,10 @@ it('publishes the same h-entry, author and representative h-card through .mf2 as
         ->and($exportEntry['properties']['url'])->toBe($pageEntry['properties']['url'])
         ->and($exportEntry['properties']['uid'])->toBe($pageEntry['properties']['uid']);
 
+    // A genuine standfirst (a hand-written excerpt) publishes on both: it's
+    // the one case where a type does have real text distinct from its body.
+    expect($exportEntry['properties']['summary'])->toBe($pageEntry['properties']['summary']);
+
     // published: the page renders a local offset string, the export an ISO
     // instant. Comparing the date portion checks they name the same moment
     // without requiring one side's formatting to match the other's.
@@ -70,6 +74,26 @@ it('publishes the same h-entry, author and representative h-card through .mf2 as
     // semantic HTML deliberately doesn't reproduce.
     expect($exportEntry['properties']['content'][0]['value'])
         ->toBe($pageEntry['properties']['content'][0]['value']);
+});
+
+// The factory always writes an excerpt, but real articles don't: six of six
+// published articles have none. ArticleDetail.vue's p-summary is gated on
+// entry.excerpt, so a real article renders no summary at all, and the export
+// must not paper over the gap with a generated one.
+it('withholds p-summary from an article with no excerpt in both, matching real data', function () {
+    $article = Article::factory()->create([
+        'status' => 'published',
+        'title' => 'A titled piece with nothing written up front',
+        'occurred_at' => '2024-03-03 09:00:00',
+        'excerpt' => null,
+        'content' => PortableText::fromPlainText('The body carries the whole thing.'),
+    ]);
+
+    $pageEntry = microformatItem(microformatsOf($article->url()), 'h-entry');
+    $exportEntry = json_decode($this->get($article->url().'.mf2')->getContent(), true)['items'][0];
+
+    expect($pageEntry['properties'])->not->toHaveKey('summary')
+        ->and($exportEntry['properties'])->not->toHaveKey('summary');
 });
 
 // A note is content with no title and no standfirst of its own: its body is

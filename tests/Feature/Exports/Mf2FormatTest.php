@@ -30,7 +30,10 @@ it('renders an h-entry with the properties a parser expects', function () {
         // Self-computed from the export's own supported formats, so a parse of
         // this must agree with the page's own <link rel="alternate"> set.
         ->and($mf2['rels']['alternate'])->toContain($jsonUrl)
-        ->and($mf2['rel-urls'][$jsonUrl]['type'])->toBe('application/json; charset=utf-8');
+        ->and($mf2['rel-urls'][$jsonUrl]['type'])->toBe('application/json; charset=utf-8')
+        // A flight's page has no p-summary anywhere, so the export must not
+        // invent one from the generated meta description either.
+        ->and($item['properties'])->not->toHaveKey('summary');
 });
 
 // AuthorRef.vue renders a bare h-card (name + site root, nothing else) inside
@@ -80,6 +83,43 @@ it('omits p-name and p-summary for a note, matching the page', function () {
         ->and($properties)->not->toHaveKey('summary')
         ->and($properties['content'][0]['value'])->toContain('Just a thought, logged.')
         ->and($properties['content'][0]['html'])->toContain('<p>');
+});
+
+// The rule is generic, not a type check: p-summary tracks $standfirst, not
+// $summary. $summary here is deliberately populated (the way EntryDescription
+// generates one for every type, for formats that always want a description)
+// to prove a generated description alone is not enough to publish p-summary.
+it('omits p-summary for any type with no standfirst, even with a generated summary present', function () {
+    $data = new ExportData(
+        type: TimelineType::Activity,
+        url: 'https://example.test/activities/1',
+        title: 'A run',
+        summary: 'I ran 3 miles in 28 minutes.',
+        occurred: null,
+        fields: [],
+        links: [],
+    );
+
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
+
+    expect($properties)->not->toHaveKey('summary');
+});
+
+it('publishes p-summary from standfirst, not from the generated summary, when both are set', function () {
+    $data = new ExportData(
+        type: TimelineType::Article,
+        url: 'https://example.test/articles/1',
+        title: 'An article',
+        summary: 'A generated meta description nobody wrote by hand.',
+        occurred: null,
+        fields: [],
+        links: [],
+        standfirst: 'The hand-written excerpt.',
+    );
+
+    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
+
+    expect($properties['summary'])->toBe(['The hand-written excerpt.']);
 });
 
 it('takes p-category from category links and u-syndication from syndication links', function () {

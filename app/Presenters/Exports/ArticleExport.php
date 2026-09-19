@@ -39,6 +39,10 @@ final class ArticleExport
             ])),
             links: CommonLinks::for($model),
             body: $model->content,
+            // The same field ArticleDetail.vue's p-summary reads (entry.excerpt):
+            // null on most real articles, which is why mf2 must not fall back to
+            // a generated one for those.
+            standfirst: $model->excerpt,
         );
     }
 }

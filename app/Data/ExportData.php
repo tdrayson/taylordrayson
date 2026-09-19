@@ -22,6 +22,10 @@ final readonly class ExportData implements Arrayable, JsonSerializable
      * @param  list<ExportLink>  $links
      * @param  array<int, array<string, mixed>>|string|null  $body  A Portable Text document, plain text, or nothing.
      * @param  array<class-string, object>  $aspects  Keyed by class so a format can ask for exactly what it needs.
+     * @param  ?string  $standfirst  A genuine summary distinct from the body, only when a presenter set one because
+     *                               the page itself shows one (an article's hand-written excerpt). Deliberately not
+     *                               $summary: that field falls back to a generated description for formats that
+     *                               always want one, which is exactly the text a page-parity check must not publish.
      */
     public function __construct(
         public TimelineType|string $type,
@@ -34,6 +38,7 @@ final readonly class ExportData implements Arrayable, JsonSerializable
         public mixed $body = null,
         public array $aspects = [],
         public bool $locked = false,
+        public ?string $standfirst = null,
     ) {}
 
     public function typeValue(): string
