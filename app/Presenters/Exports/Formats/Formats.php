@@ -17,6 +17,7 @@ final class Formats
             new JsonFormat,
             new YamlFormat,
             new MarkdownFormat,
+            new SqlFormat,
         ];
     }
 
