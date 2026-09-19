@@ -3,10 +3,12 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\File;
+use Uri\WhatWg\Url;
 
 /**
  * Shared helpers for the links inside a Portable Text document: which hosts a
- * document points at, and where that host's favicon lives once stored.
+ * document points at, where that host's favicon lives once stored, and how a
+ * URL somebody else wrote resolves against the page that carried it.
  */
 final class Links
 {
@@ -18,6 +20,60 @@ final class Links
     public static function key(string $host): string
     {
         return preg_replace('/[^a-z0-9.-]/', '', strtolower($host)) ?? '';
+    }
+
+    /**
+     * Every external URL a Portable Text document links to, deduplicated and in
+     * document order.
+     *
+     * Sibling of hostsIn(): favicons only need the host, but a webmention has
+     * to be sent to the exact URL that was linked.
+     *
+     * @param  ?array<int, mixed>  $blocks
+     * @return list<string>
+     */
+    public static function urlsIn(?array $blocks): array
+    {
+        $urls = [];
+
+        foreach ($blocks ?? [] as $block) {
+            foreach ($block['markDefs'] ?? [] as $def) {
+                $href = $def['href'] ?? null;
+
+                if (($def['_type'] ?? null) !== 'link' || ! is_string($href) || ! str_starts_with($href, 'http')) {
+                    continue;
+                }
+
+                // Our own URLs are skipped: an internal link already renders as
+                // a link preview, so mentioning ourselves would duplicate it.
+                if (self::internalPath($href) !== null) {
+                    continue;
+                }
+
+                $urls[$href] = true;
+            }
+        }
+
+        return array_keys($urls);
+    }
+
+    /**
+     * An absolute form of $url, which may be relative to $base, or null when
+     * the pair resolves to nothing usable.
+     *
+     * Resolved by the WHATWG URL parser rather than by hand: it covers the dot
+     * segments and the query-only and fragment-only forms a hand-rolled version
+     * quietly gets wrong, and strips the newlines a header can smuggle in.
+     */
+    public static function absolute(string $base, string $url): ?string
+    {
+        $resolved = rescue(
+            fn (): ?Url => Url::parse($base)?->resolve($url),
+            null,
+            report: false,
+        );
+
+        return $resolved?->toAsciiString();
     }
 
     /**

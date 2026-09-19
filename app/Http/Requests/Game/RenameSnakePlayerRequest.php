@@ -36,7 +36,7 @@ class RenameSnakePlayerRequest extends FormRequest
                 'min:1',
                 'max:20',
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    if (ProfanityFilter::contains((string) $value)) {
+                    if (ProfanityFilter::blocksName((string) $value)) {
                         $fail('Please choose a different name.');
                     }
                 },
