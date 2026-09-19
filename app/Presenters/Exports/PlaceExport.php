@@ -11,6 +11,7 @@ use App\Enums\TimelineType;
 use App\Models\Place;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\PlaceSheet;
 use App\Timeline\TypeRegistry;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,11 @@ use Illuminate\Support\Str;
  */
 final class PlaceExport
 {
+    public function sheet(): PlaceSheet
+    {
+        return new PlaceSheet;
+    }
+
     public function present(Place $model): ExportData
     {
         $card = CardPresenter::for($model);
