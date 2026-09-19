@@ -5,6 +5,7 @@ namespace App\Presenters\Exports;
 use App\Data\ExportData;
 use App\Data\ExportLink;
 use App\Models\Page;
+use App\Presenters\Exports\Sheets\PageSheet;
 
 /**
  * A content page as an export: no fields of its own, only the Portable Text
@@ -12,6 +13,11 @@ use App\Models\Page;
  */
 final class PageExport
 {
+    public function sheet(): PageSheet
+    {
+        return new PageSheet;
+    }
+
     public function present(Page $model): ExportData
     {
         return new ExportData(
