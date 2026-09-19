@@ -1,21 +1,24 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import Source from '../Profile/Source.vue';
+import ExportMenu from './ExportMenu.vue';
 
 const props = defineProps({
     // The data source, e.g. { platform: 'swarm', url }, or null for first-party entries.
     source: { type: Object, default: null },
     // Linkable tags [{ name, slug, url }]; only taggable types (notes, articles, projects, events) carry any.
     tags: { type: Array, default: () => [] },
+    // [{ extension, type, label, purpose, url }] this entry can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
-// The whole block collapses when an entry has neither tags nor a source, so
-// untaggable, first-party entries render no empty rule.
-const hasContent = () => props.tags.length > 0 || Boolean(props.source);
+// The whole block collapses when an entry has neither tags, a source, nor any
+// export formats, so a bare first-party entry renders no empty rule.
+const hasContent = () => props.tags.length > 0 || Boolean(props.source) || props.formats.length > 0;
 </script>
 
 <template>
-    <!-- Tags and source are independent lines, so a type gets whichever it has. -->
+    <!-- Tags, source and formats are independent lines, so a type gets whichever it has. -->
     <div v-if="hasContent()" class="space-y-2 border-t border-neutral-50 pt-4">
         <p v-if="tags.length" class="text-xs text-neutral-500">
             Tagged
@@ -23,5 +26,7 @@ const hasContent = () => props.tags.length > 0 || Boolean(props.source);
         </p>
 
         <Source v-if="source" :platform="source.platform" :url="source.url" />
+
+        <ExportMenu :formats="formats" />
     </div>
 </template>
