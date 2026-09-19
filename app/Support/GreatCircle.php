@@ -127,9 +127,7 @@ final class GreatCircle
 
     /**
      * The exact latitude where the great circle crosses longitude ±180,
-     * found by bisecting the two samples straddling it. The crossing is where
-     * the slerp's y-component (east/west component in Cartesian space) is
-     * zero, since near ±180 that component alone changes sign.
+     * found by bisecting the two samples straddling it.
      */
     private static function crossingLatitude(float $fractionA, float $fractionB, float $lat1, float $lng1, float $lat2, float $lng2, float $delta): float
     {

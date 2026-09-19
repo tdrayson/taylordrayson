@@ -63,6 +63,30 @@ it('splits into segments that meet exactly at the antimeridian, not a sampled po
         ->and(end($segments[1]))->toBe([0.0, -170.0]);
 });
 
+it('splits into segments that meet exactly at the antimeridian travelling west, not a sampled point short of it', function () {
+    $segments = GreatCircle::segments(0.0, -170.0, 0.0, 170.0);
+
+    expect($segments)->toHaveCount(2);
+
+    foreach ($segments as $segment) {
+        foreach ($segment as $point) {
+            expect(abs($point[0]))->toBeLessThan(0.0001);
+        }
+    }
+
+    $firstSegmentEnd = end($segments[0]);
+    $secondSegmentStart = $segments[1][0];
+
+    // Travelling from -170 to 170 the short way is westward, the mirror of
+    // the eastward case above: the first segment lands exactly on -180 and
+    // the second resumes exactly on +180.
+    expect($firstSegmentEnd[1])->toBe(-180.0)
+        ->and($secondSegmentStart[1])->toBe(180.0)
+        ->and($firstSegmentEnd[0])->toBe($secondSegmentStart[0])
+        ->and($segments[0][0])->toBe([0.0, -170.0])
+        ->and(end($segments[1]))->toBe([0.0, 170.0]);
+});
+
 it('does not split a route that never crosses the antimeridian', function () {
     $segments = GreatCircle::segments(50.077702, 19.7848, 51.148771, -0.192089);
 
@@ -75,4 +99,13 @@ it('falls back to a plain two-point line for coincident or antipodal inputs, sin
 
     expect($coincident)->toBe([[[51.5, -0.1], [51.5, -0.1]]])
         ->and($antipodal)->toBe([[[0.0, 0.0], [0.0, 180.0]]]);
+});
+
+it('also falls back for a pair that only just misses being exactly antipodal', function () {
+    // 0.000001 degree short of the exact antipode (180.0): real coordinates
+    // rounded to a handful of decimal places land here far more often than
+    // on the exact antipode, and the guard has to catch this too.
+    $nearAntipodal = GreatCircle::segments(0.0, 0.0, 0.0, 179.999999);
+
+    expect($nearAntipodal)->toBe([[[0.0, 0.0], [0.0, 179.999999]]]);
 });
