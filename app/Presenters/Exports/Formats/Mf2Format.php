@@ -23,11 +23,19 @@ final class Mf2Format extends Format
     public function render(ExportData $data): string
     {
         $trail = $this->trail($data);
+        $profiles = $this->meProfiles();
+        $meUrls = array_values(array_map(fn (array $profile): string => $profile['href'], $profiles));
 
         return json_encode([
-            'items' => [['type' => ['h-entry'], 'properties' => $this->properties($data)]],
-            'rels' => ['alternate' => array_values($trail)],
-            'rel-urls' => $this->relUrls($trail),
+            'items' => [
+                ['type' => ['h-entry'], 'properties' => $this->properties($data)],
+                $this->representativeCard(),
+            ],
+            'rels' => array_filter([
+                'alternate' => array_values($trail),
+                'me' => $meUrls,
+            ]),
+            'rel-urls' => [...$this->relUrls($trail), ...$this->meRelUrls($profiles)],
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
@@ -44,7 +52,7 @@ final class Mf2Format extends Format
         $properties = [
             'url' => [$data->url],
             'uid' => [$data->url],
-            'author' => [$this->author()],
+            'author' => [$this->representativeCard()],
         ];
 
         // A note is content with no name of its own, which is how a reader
@@ -91,17 +99,68 @@ final class Mf2Format extends Format
     }
 
     /**
-     * @return array{type: array<int, string>, properties: array<string, array<int, string>>}
+     * The owner's h-card, read from config/identity.php: the same source
+     * ProfileCard.vue and app.blade.php render from, so a parse of the page
+     * and this export describe one identity. Used both as the entry's
+     * p-author and as a second top-level item, matching the sidebar
+     * ProfileCard a page parse also yields.
+     *
+     * @return array{type: array<int, string>, properties: array<string, array<int, mixed>>}
      */
-    private function author(): array
+    private function representativeCard(): array
     {
+        $url = $this->siteUrl();
+        $urls = [$url, ...array_map(fn (array $profile): string => $profile['href'], $this->meProfiles())];
+
         return [
             'type' => ['h-card'],
             'properties' => [
-                'name' => [config('app.cp.name')],
-                'url' => [url('/')],
+                'photo' => [['value' => url(config('identity.avatar')), 'alt' => config('identity.name')]],
+                'name' => [config('identity.name')],
+                'url' => $urls,
+                'uid' => [$url],
+                'note' => [config('identity.bio')],
             ],
         ];
+    }
+
+    /** The site root, with the trailing slash a browser normalises href="/" to. */
+    private function siteUrl(): string
+    {
+        return url('/').'/';
+    }
+
+    /**
+     * rel="me" profiles with somewhere to point: a '#' placeholder is not yet
+     * claimed, and asserting rel="me" to it would be a claim about nothing.
+     * Mirrors identityProfiles in resources/js/lib/identity.js.
+     *
+     * @return list<array{label: string, href: string}>
+     */
+    private function meProfiles(): array
+    {
+        return array_values(array_filter(
+            config('identity.profiles'),
+            fn (array $profile): bool => $profile['href'] !== '#',
+        ));
+    }
+
+    /**
+     * @param  list<array{label: string, href: string}>  $profiles
+     * @return array<string, array<string, mixed>>
+     */
+    private function meRelUrls(array $profiles): array
+    {
+        $urls = [];
+
+        foreach ($profiles as $profile) {
+            $urls[$profile['href']] = [
+                'rels' => ['me'],
+                'text' => $profile['label'],
+            ];
+        }
+
+        return $urls;
     }
 
     private function contentHtml(ExportData $data): string
