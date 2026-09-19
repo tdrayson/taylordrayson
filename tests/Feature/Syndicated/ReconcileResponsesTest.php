@@ -128,3 +128,37 @@ it('leaves stored responses untouched when a write fails partway through', funct
 
     expect($note->syndicatedResponses()->sole()->author_name)->toBe('Existing');
 });
+
+// A truncated page says "not on this page", not "withdrawn". Reading its
+// absences as deletions destroys real comments and churns on every run.
+it('keeps stored comments the source could not fit on one page', function () {
+    $note = Note::factory()->create();
+    $reconcile = app(ReconcileResponses::class);
+
+    $reconcile($note, Source::Strava, [remoteComment('1', 'First'), remoteComment('2', 'Second')]);
+    $reconcile($note, Source::Strava, [remoteComment('2', 'Second')], [WebmentionKind::Reply]);
+
+    expect($note->syndicatedResponses()->pluck('source_id')->all())->toBe(['1', '2']);
+});
+
+// Held back from deleting, but still authoritative row by row: prose is keyed
+// on its own id, so what did arrive is safe to write.
+it('still updates a comment that arrived on a truncated page', function () {
+    $note = Note::factory()->create();
+    $reconcile = app(ReconcileResponses::class);
+
+    $reconcile($note, Source::Strava, [remoteComment('1', 'First')]);
+    $reconcile($note, Source::Strava, [remoteComment('1', 'Edited')], [WebmentionKind::Reply]);
+
+    expect(PortableText::plainText($note->syndicatedResponses()->sole()->body))->toBe('Edited');
+});
+
+it('keeps stored gestures when the payload could not vouch for them', function () {
+    $note = Note::factory()->create();
+    $reconcile = app(ReconcileResponses::class);
+
+    $reconcile($note, Source::Strava, [kudo('Justin M.'), kudo('Clare A.')]);
+    $reconcile($note, Source::Strava, [], [WebmentionKind::Like]);
+
+    expect($note->syndicatedResponses()->count())->toBe(2);
+});

@@ -22,33 +22,37 @@ final class ReconcileResponses
 
     /**
      * @param  list<SyndicatedResponseData>  $responses  Everything this source holds for this entry.
-     * @param  list<WebmentionKind>  $skipKinds  Gesture kinds this call can't vouch for and must leave untouched,
-     *                                           rather than reading their absence from $responses as "cleared".
+     * @param  list<WebmentionKind>  $unvouchedKinds  Kinds whose absence from $responses proves nothing, because
+     *                                                the payload was partial. Their stored rows survive untouched.
      */
-    public function __invoke(Model $target, Source $source, array $responses, array $skipKinds = []): void
+    public function __invoke(Model $target, Source $source, array $responses, array $unvouchedKinds = []): void
     {
         $incoming = collect($responses);
 
         // Delete-then-rewrite spans a third-party fetch per row (StoreAuthorPhoto),
         // so a failure partway through must not leave the entry's responses gone.
-        DB::transaction(function () use ($target, $source, $incoming, $skipKinds): void {
-            $this->replaceGestures($target, $source, $incoming, $skipKinds);
-            $this->upsertProse($target, $source, $incoming);
+        DB::transaction(function () use ($target, $source, $incoming, $unvouchedKinds): void {
+            $this->replaceGestures($target, $source, $incoming, $unvouchedKinds);
+            $this->upsertProse($target, $source, $incoming, $unvouchedKinds);
         });
     }
 
     /**
+     * A gesture has no id, so the stored set can only be replaced wholesale.
+     * An unvouched kind therefore has to be left alone entirely: rewriting
+     * what we did receive without clearing first would double it.
+     *
      * @param  Collection<int, SyndicatedResponseData>  $incoming
-     * @param  list<WebmentionKind>  $skipKinds
+     * @param  list<WebmentionKind>  $unvouchedKinds
      */
-    private function replaceGestures(Model $target, Source $source, Collection $incoming, array $skipKinds): void
+    private function replaceGestures(Model $target, Source $source, Collection $incoming, array $unvouchedKinds): void
     {
         $gestures = $incoming->reject(fn (SyndicatedResponseData $data): bool => $this->isProse($data));
 
         // Kinds absent from the payload are cleared too: a repost withdrawn
         // leaves no row to compare against, only a missing one.
         foreach (WebmentionKind::cases() as $kind) {
-            if ($this->isProseKind($kind) || in_array($kind, $skipKinds, true)) {
+            if ($this->isProseKind($kind) || in_array($kind, $unvouchedKinds, true)) {
                 continue;
             }
 
@@ -56,7 +60,7 @@ final class ReconcileResponses
         }
 
         foreach ($gestures as $data) {
-            if (in_array($data->kind, $skipKinds, true)) {
+            if (in_array($data->kind, $unvouchedKinds, true)) {
                 continue;
             }
 
@@ -65,12 +69,31 @@ final class ReconcileResponses
     }
 
     /**
+     * Prose is keyed on the source's own id, so a partial payload can still be
+     * written row by row. Only the deletion has to be held back: absence from a
+     * truncated page means "not on this page", not "withdrawn".
+     *
      * @param  Collection<int, SyndicatedResponseData>  $incoming
+     * @param  list<WebmentionKind>  $unvouchedKinds
      */
-    private function upsertProse(Model $target, Source $source, Collection $incoming): void
+    private function upsertProse(Model $target, Source $source, Collection $incoming, array $unvouchedKinds): void
     {
         $prose = $incoming->filter(fn (SyndicatedResponseData $data): bool => $this->isProse($data));
 
+        if (! in_array(WebmentionKind::Reply, $unvouchedKinds, true)) {
+            $this->deleteStaleProse($target, $source, $prose);
+        }
+
+        foreach ($prose as $data) {
+            $this->write($target, $source, $data);
+        }
+    }
+
+    /**
+     * @param  Collection<int, SyndicatedResponseData>  $prose
+     */
+    private function deleteStaleProse(Model $target, Source $source, Collection $prose): void
+    {
         $keptIds = $prose->pluck('sourceId')->filter()->all();
 
         $stale = $this->rowsFor($target, $source)->where('kind', WebmentionKind::Reply);
@@ -80,10 +103,6 @@ final class ReconcileResponses
         }
 
         $stale->delete();
-
-        foreach ($prose as $data) {
-            $this->write($target, $source, $data);
-        }
     }
 
     private function write(Model $target, Source $source, SyndicatedResponseData $data): void
