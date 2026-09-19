@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title inertia>{{ config('app.name', 'Taylor Drayson') }}</title>
+    <title inertia>{{ config('identity.name') }}</title>
 
     @include('partials.theme')
     @include('partials.pwa')

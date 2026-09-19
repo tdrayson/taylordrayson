@@ -13,6 +13,8 @@ const props = defineProps({
     og: { type: Object, default: () => ({}) },
 });
 
+// SEO copy for pages with no page-specific description, not the profile bio:
+// intentionally its own wording, not identity.bio.
 const DEFAULT_DESCRIPTION =
     'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
 
