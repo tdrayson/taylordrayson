@@ -29,6 +29,8 @@ const props = defineProps({
     linkFavicons: { type: Object, default: () => ({}) },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
+    // [{ extension, type, label, purpose, url }] this page can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
@@ -44,7 +46,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead :og="og" :formats="formats" />
 
     <!-- Editing uses the same surface as every other type, so the page does
          not drift into having its own editor. -->

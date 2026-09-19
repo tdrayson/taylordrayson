@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\ExportData;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Presenters\Exports\Formats\Format;
+use App\Presenters\Exports\Formats\Formats;
+use App\Presenters\Exports\NowExport;
 use App\Queries\CurrentlyReading;
 use App\Queries\LastNightSleep;
 use App\Queries\LatestEpisode;
@@ -29,6 +33,7 @@ class NowController extends Controller
             'entryDays' => fn (): array => $this->entryDays(),
             'photos' => fn (): array => $this->recentPhotos(),
             'reading' => fn (): ?array => app(CurrentlyReading::class)()?->toArray(),
+            'formats' => fn (): array => $this->formats((new NowExport)->present()),
         ]);
     }
 
@@ -167,5 +172,24 @@ class NowController extends Controller
                 'caption' => $photo['caption'] ?? null,
             ])
             ->all();
+    }
+
+    /**
+     * Every format the /now export supports, shaped for AppHead's alternate links.
+     *
+     * @return list<array{extension: string, type: string, label: string, purpose: string, url: string}>
+     */
+    private function formats(ExportData $export): array
+    {
+        return array_values(array_map(
+            fn (Format $format): array => [
+                'extension' => $format->format()->value,
+                'type' => $format->format()->contentType(),
+                'label' => $format->format()->label(),
+                'purpose' => $format->format()->purpose(),
+                'url' => $export->url.'.'.$format->format()->value,
+            ],
+            Formats::for($export),
+        ));
     }
 }

@@ -11,6 +11,10 @@ import { Head, usePage } from '@inertiajs/vue3';
  */
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
+    // [{ extension, type, label, purpose, url }] for the resource this view
+    // shows, built server-side from Formats::for() so the head only ever
+    // advertises a format the resource can actually be rendered as.
+    formats: { type: Array, default: () => [] },
 });
 
 const SITE_NAME = 'Taylor Drayson';
@@ -104,6 +108,15 @@ const imageUrl = computed(() => {
             :type="feed.type"
             :title="feed.title"
             :href="feed.href"
+        />
+        <link
+            v-for="format in formats"
+            :key="format.extension"
+            :head-key="`format:${format.extension}`"
+            rel="alternate"
+            :type="format.type"
+            :title="`${meta.title ?? SITE_NAME} (${format.label})`"
+            :href="format.url"
         />
         <meta v-if="meta.noindex" head-key="robots" name="robots" content="noindex, nofollow" />
 

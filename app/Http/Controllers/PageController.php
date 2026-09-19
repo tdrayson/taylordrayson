@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Data\ExportData;
 use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
+use App\Presenters\ExportPresenter;
+use App\Presenters\Exports\Formats\Format;
+use App\Presenters\Exports\Formats\Formats;
 use App\Support\OgMeta;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +46,7 @@ class PageController extends Controller
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
+            'formats' => $this->formats($this->exportFor($page, $locked)),
             ...($locked ? [] : [
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a
@@ -68,5 +73,50 @@ class PageController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * This page's export payload, reduced to a header-only copy while
+     * locked so the formats built from it stop advertising a body a locked
+     * visitor cannot actually fetch.
+     */
+    private function exportFor(Page $page, bool $locked): ExportData
+    {
+        $export = ExportPresenter::for($page);
+
+        if (! $locked) {
+            return $export;
+        }
+
+        return new ExportData(
+            type: $export->type,
+            url: $export->url,
+            title: $export->title,
+            summary: null,
+            occurred: $export->occurred,
+            fields: [],
+            links: [],
+            locked: true,
+        );
+    }
+
+    /**
+     * Every format this export supports, shaped for AppHead's alternate
+     * links and the footer's export menu.
+     *
+     * @return list<array{extension: string, type: string, label: string, purpose: string, url: string}>
+     */
+    private function formats(ExportData $export): array
+    {
+        return array_values(array_map(
+            fn (Format $format): array => [
+                'extension' => $format->format()->value,
+                'type' => $format->format()->contentType(),
+                'label' => $format->format()->label(),
+                'purpose' => $format->format()->purpose(),
+                'url' => $export->url.'.'.$format->format()->value,
+            ],
+            Formats::for($export),
+        ));
     }
 }

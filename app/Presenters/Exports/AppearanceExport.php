@@ -54,7 +54,7 @@ final class AppearanceExport
             ],
             body: $model->description,
             aspects: array_filter([
-                Span::class => Span::moment($model->occurred_at, $model->duration, $model->timezone()),
+                Span::class => $model->occurred_at === null ? null : Span::moment($model->occurred_at, $model->duration, $model->timezone()),
             ]),
         );
     }

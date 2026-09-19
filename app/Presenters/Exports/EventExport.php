@@ -53,7 +53,7 @@ final class EventExport
             body: $model->description,
             aspects: array_filter([
                 Geometry::class => $model->latitude === null ? null : Geometry::point((float) $model->latitude, (float) $model->longitude),
-                Span::class => Span::between($model->occurred_at, $model->ends_at ?? $model->occurred_at, $model->timezone(), $address === '' ? null : $address, (bool) $model->all_day),
+                Span::class => $model->occurred_at === null ? null : Span::between($model->occurred_at, $model->ends_at ?? $model->occurred_at, $model->timezone(), $address === '' ? null : $address, (bool) $model->all_day),
             ]),
         );
     }
