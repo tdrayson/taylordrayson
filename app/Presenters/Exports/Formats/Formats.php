@@ -19,6 +19,7 @@ final class Formats
             new MarkdownFormat,
             new SqlFormat,
             new GeoJsonFormat,
+            new IcsFormat,
         ];
     }
 
