@@ -10,6 +10,7 @@ use App\Enums\TimelineType;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\TvEpisodeSheet;
 use App\Support\ShowTitle;
 
 /**
@@ -18,6 +19,11 @@ use App\Support\ShowTitle;
  */
 final class TvEpisodeExport
 {
+    public function sheet(): TvEpisodeSheet
+    {
+        return new TvEpisodeSheet;
+    }
+
     public function present(TvEpisode $model): ExportData
     {
         $model->loadMissing('tvShow');
