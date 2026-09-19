@@ -5,6 +5,7 @@ namespace App\Presenters\Exports;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportLink;
+use App\Presenters\Exports\Sheets\NowSheet;
 use App\Queries\CurrentlyReading;
 use App\Queries\LastNightSleep;
 use App\Queries\LatestEpisode;
@@ -17,6 +18,11 @@ use App\Support\Units;
  */
 final class NowExport
 {
+    public function sheet(): NowSheet
+    {
+        return new NowSheet;
+    }
+
     public function present(): ExportData
     {
         $sleep = app(LastNightSleep::class)();
