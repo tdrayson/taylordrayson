@@ -2,6 +2,9 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\MealBreakdown;
+use App\Data\Aspects\MealBreakdownItem;
+use App\Data\Aspects\MealBreakdownMeal;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
@@ -15,8 +18,9 @@ use Illuminate\Support\Str;
 
 /**
  * A food day as an export: a whole day's eating aggregated into macro totals
- * plus a per-meal breakdown, not the single row behind it. No aspects: a food
- * day has neither a place nor a span.
+ * plus a per-meal breakdown, not the single row behind it. A MealBreakdown
+ * aspect carries that breakdown pre-formatted, which is what lets the sheet
+ * print item rows without reading raw item data itself.
  */
 final class FoodExport
 {
@@ -30,6 +34,7 @@ final class FoodExport
         $day = app(DayFood::class)($model);
         $card = CardPresenter::for($model);
         $totals = $day['totals'];
+        $itemCount = $this->itemCount($day['meals']);
 
         return new ExportData(
             type: TimelineType::Food,
@@ -47,9 +52,88 @@ final class FoodExport
                 ExportField::make('fibre', 'Fibre', $this->grams($totals['fibre']), $totals['fibre']),
                 ExportField::make('sodium', 'Sodium', number_format($totals['sodium']).'mg', $totals['sodium']),
                 ExportField::maybe('meals', 'Meals', $this->mealsDisplay($day['meals']), $day['meals']),
+                ExportField::make('items_logged', 'Items logged', (string) $itemCount, $itemCount),
+                ExportField::maybe('owner', 'Name', config('identity.name')),
+                ExportField::maybe('receipt_date', 'Date', $this->receiptDate($model)),
+                ExportField::make('receipt_number', 'Receipt no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
             ])),
             links: CommonLinks::for($model),
+            aspects: array_filter([
+                MealBreakdown::class => $this->mealBreakdown($day['meals']),
+            ]),
         );
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $meals
+     */
+    private function mealBreakdown(array $meals): ?MealBreakdown
+    {
+        return MealBreakdown::make(array_map(
+            fn (array $meal): MealBreakdownMeal => new MealBreakdownMeal(
+                Str::headline($meal['meal']),
+                array_map(
+                    fn (array $item): MealBreakdownItem => new MealBreakdownItem(
+                        $this->itemName($item),
+                        number_format((int) $item['calories']).' kcal',
+                    ),
+                    $meal['items'],
+                ),
+            ),
+            $meals,
+        ));
+    }
+
+    /**
+     * An item as a receipt line: its quantity, then its name. The unit is
+     * dropped for a bare "serving", which says nothing a receipt needs.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function itemName(array $item): string
+    {
+        $quantity = $this->itemQuantity($item);
+
+        return $quantity === '' ? $item['name'] : "{$quantity} {$item['name']}";
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function itemQuantity(array $item): string
+    {
+        $quantity = (float) $item['quantity'];
+
+        if ($quantity <= 0) {
+            return '';
+        }
+
+        $number = rtrim(rtrim(number_format($quantity, 1), '0'), '.');
+        $units = $item['units'];
+
+        if ($units === null || $units === '' || in_array(mb_strtolower($units), ['serving', 'servings'], true)) {
+            return $number;
+        }
+
+        return "{$number} {$units}";
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $meals
+     */
+    private function itemCount(array $meals): int
+    {
+        return array_sum(array_map(fn (array $meal): int => count($meal['items']), $meals));
+    }
+
+    /**
+     * The day alone, no time: a food entry has no real clock time (Rovi
+     * gives a date and a meal label, never a time), so the receipt shows the
+     * date where a shop receipt would print its address.
+     */
+    private function receiptDate(Food $model): ?string
+    {
+        return $model->occurred_at?->format('d M Y');
     }
 
     /**
