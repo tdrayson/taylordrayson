@@ -19,9 +19,11 @@
         "saloonphp/pagination-plugin": "^2.3",
         "saloonphp/saloon": "^4.0",
         "spatie/browsershot": "^5.4",
+        "spatie/icalendar-generator": "^3.3",
         "spatie/laravel-backup": "^10.3",
         "spatie/laravel-feed": "^4.5",
-        "spatie/laravel-medialibrary": "^11.23"
+        "spatie/laravel-medialibrary": "^11.23",
+        "symfony/yaml": "^8.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
