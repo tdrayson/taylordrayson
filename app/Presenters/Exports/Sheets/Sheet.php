@@ -4,8 +4,9 @@ namespace App\Presenters\Exports\Sheets;
 
 /**
  * Drawing primitives shared by every typed sheet: rules, centred text, aligned
- * rows, dotted leaders, boxes and bars. Measured in characters rather than
- * bytes, because an accented place name would otherwise skew its own row.
+ * rows, dotted leaders, boxes and bars. Measured in display columns rather
+ * than bytes or code points, because an accented place name or an emoji
+ * would otherwise skew its own row.
  */
 final class Sheet
 {
@@ -19,9 +20,9 @@ final class Sheet
     public static function centre(string $text, int $width = self::WIDTH): string
     {
         $text = self::clip($text, $width);
-        $left = intdiv($width - mb_strlen($text), 2);
+        $left = intdiv($width - mb_strwidth($text), 2);
 
-        return str_repeat(' ', $left).$text.str_repeat(' ', $width - $left - mb_strlen($text));
+        return str_repeat(' ', $left).$text.str_repeat(' ', $width - $left - mb_strwidth($text));
     }
 
     /**
@@ -48,7 +49,7 @@ final class Sheet
      */
     public static function box(array $lines, int $width = self::WIDTH): string
     {
-        $inner = max($width - 4, $lines === [] ? 0 : max(array_map('mb_strlen', $lines)));
+        $inner = max($width - 4, $lines === [] ? 0 : max(array_map('mb_strwidth', $lines)));
         $border = '+'.str_repeat('-', $inner + 2).'+';
         $out = [$border];
 
@@ -106,14 +107,92 @@ final class Sheet
 
     /**
      * Wrap a body to the sheet's width, so an article or a note prints as a
-     * column rather than one very long line.
+     * column rather than one very long line. Existing newlines are kept as
+     * hard breaks; each paragraph between them is wrapped independently.
+     *
+     * `wordwrap()` is not used here: it measures bytes, so a line carrying an
+     * accented character or an emoji would wrap in the wrong place. Width is
+     * measured in display columns throughout instead.
      *
      * @param  bool  $cut  Whether a token wider than $width is cut mid-character.
      * @return list<string>
      */
     public static function wrap(string $text, int $width = self::WIDTH, bool $cut = true): array
     {
-        return explode("\n", wordwrap($text, $width, "\n", $cut));
+        $lines = [];
+
+        foreach (explode("\n", $text) as $paragraph) {
+            array_push($lines, ...self::wrapParagraph($paragraph, $width, $cut));
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function wrapParagraph(string $paragraph, int $width, bool $cut): array
+    {
+        if ($paragraph === '') {
+            return [''];
+        }
+
+        $lines = [];
+        $current = '';
+
+        foreach (array_filter(explode(' ', $paragraph), fn (string $word): bool => $word !== '') as $word) {
+            foreach (self::pieces($word, $width, $cut) as $piece) {
+                $candidate = $current === '' ? $piece : $current.' '.$piece;
+
+                if (mb_strwidth($candidate) <= $width) {
+                    $current = $candidate;
+
+                    continue;
+                }
+
+                if ($current !== '') {
+                    $lines[] = $current;
+                }
+
+                $current = $piece;
+            }
+        }
+
+        if ($current !== '') {
+            $lines[] = $current;
+        }
+
+        return $lines;
+    }
+
+    /**
+     * A word split into width-sized chunks when it is wider than the line
+     * and cutting is allowed; otherwise the word is returned whole, so it
+     * overflows its line rather than being cut mid-character.
+     *
+     * @return list<string>
+     */
+    private static function pieces(string $word, int $width, bool $cut): array
+    {
+        if (! $cut || mb_strwidth($word) <= $width) {
+            return [$word];
+        }
+
+        $pieces = [];
+
+        while ($word !== '') {
+            $chunk = mb_strimwidth($word, 0, $width, '');
+
+            // A single double-width character wider than $width has no chunk that fits; take it anyway.
+            if ($chunk === '') {
+                $chunk = mb_substr($word, 0, 1);
+            }
+
+            $pieces[] = $chunk;
+            $word = mb_substr($word, mb_strlen($chunk));
+        }
+
+        return $pieces;
     }
 
     /**
@@ -122,11 +201,11 @@ final class Sheet
      */
     private static function fill(string $label, string $value, string $char, int $width): string
     {
-        if (mb_strlen($label) + 1 + mb_strlen($value) > $width) {
+        if (mb_strwidth($label) + 1 + mb_strwidth($value) > $width) {
             return self::stacked($label, $value, $width);
         }
 
-        $gap = $width - mb_strlen($label) - mb_strlen($value);
+        $gap = $width - mb_strwidth($label) - mb_strwidth($value);
 
         return $label.str_repeat($char, $gap).$value;
     }
@@ -137,7 +216,7 @@ final class Sheet
         $indent = '  ';
         $lines = [self::clip($label, $width)];
 
-        foreach (self::wrap($value, max(1, $width - mb_strlen($indent))) as $wrapped) {
+        foreach (self::wrap($value, max(1, $width - mb_strwidth($indent))) as $wrapped) {
             $lines[] = $indent.$wrapped;
         }
 
@@ -146,11 +225,11 @@ final class Sheet
 
     private static function clip(string $text, int $width): string
     {
-        return mb_strlen($text) > $width ? mb_substr($text, 0, $width) : $text;
+        return mb_strwidth($text) > $width ? mb_strimwidth($text, 0, $width, '') : $text;
     }
 
     private static function pad(string $text, int $width): string
     {
-        return $text.str_repeat(' ', max(0, $width - mb_strlen($text)));
+        return $text.str_repeat(' ', max(0, $width - mb_strwidth($text)));
     }
 }
