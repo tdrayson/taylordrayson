@@ -12,6 +12,7 @@ use App\Enums\TimelineType;
 use App\Models\Event;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\EventSheet;
 
 /**
  * An event as an export: what it was and where, with a span honouring
@@ -20,6 +21,11 @@ use App\Presenters\EntryDescription;
  */
 final class EventExport
 {
+    public function sheet(): EventSheet
+    {
+        return new EventSheet;
+    }
+
     public function present(Event $model): ExportData
     {
         $card = CardPresenter::for($model);
