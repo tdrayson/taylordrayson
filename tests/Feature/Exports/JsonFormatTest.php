@@ -9,11 +9,11 @@ use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 use Symfony\Component\Yaml\Yaml;
 
-it('offers only the formats built so far for a flight', function () {
+it('offers every format for a flight, which carries both a route and a span', function () {
     $available = array_keys(Formats::for(ExportPresenter::for(krkToLgw())));
 
-    expect($available)->toContain('json', 'yaml')
-        ->and($available)->not->toContain('txt', 'md', 'mf2', 'ics', 'geojson');
+    expect($available)->toContain('json', 'yaml', 'txt', 'md', 'mf2', 'ics', 'geojson')
+        ->and($available)->not->toContain('sql');
 });
 
 it('renders a flight as json carrying both display and raw', function () {
