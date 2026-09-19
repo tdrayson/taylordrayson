@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sleep;
-use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Queries\CurrentlyReading;
+use App\Queries\LastNightSleep;
+use App\Queries\LatestEpisode;
 use App\Queries\PhotoStream;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
@@ -38,7 +39,7 @@ class NowController extends Controller
      */
     private function latestEpisode(): ?array
     {
-        $episode = ThisWeekWith::query()->listed()->latest('occurred_at')->first();
+        $episode = app(LatestEpisode::class)();
 
         if ($episode === null) {
             return null;
@@ -101,10 +102,9 @@ class NowController extends Controller
             })
             ->all();
 
-        // The night just gone, or the one before it. Beyond that there is
-        // nothing recent enough to call last night, and the widget says so.
-        $headline = $byDate->get($today->toDateString())
-            ?? $byDate->get($today->copy()->subDay()->toDateString());
+        // The same headline the export publishes: both read LastNightSleep
+        // rather than each picking their own row when a date has more than one.
+        $headline = app(LastNightSleep::class)();
 
         return [
             'nights' => $nights,

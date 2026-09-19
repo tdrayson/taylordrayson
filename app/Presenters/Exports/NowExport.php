@@ -5,12 +5,11 @@ namespace App\Presenters\Exports;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportLink;
-use App\Models\Sleep;
-use App\Models\ThisWeekWith;
 use App\Queries\CurrentlyReading;
+use App\Queries\LastNightSleep;
+use App\Queries\LatestEpisode;
 use App\Queries\PhotoStream;
 use App\Support\Units;
-use Illuminate\Support\Carbon;
 
 /**
  * The /now dashboard as an export: the same widgets NowController reads,
@@ -20,9 +19,9 @@ final class NowExport
 {
     public function present(): ExportData
     {
-        $sleep = $this->lastNight();
+        $sleep = app(LastNightSleep::class)();
         $book = app(CurrentlyReading::class)->book();
-        $episode = ThisWeekWith::query()->listed()->latest('occurred_at')->first();
+        $episode = app(LatestEpisode::class)();
         $photos = count(app(PhotoStream::class)(6));
 
         return new ExportData(
@@ -43,14 +42,5 @@ final class NowExport
                 $episode === null ? null : ExportLink::make('episode', 'Episode', $episode->title, $episode->url()),
             ])),
         );
-    }
-
-    /** The night just gone, or the one before it, matching the /now widget's own headline. */
-    private function lastNight(): ?Sleep
-    {
-        $today = Carbon::today();
-
-        return Sleep::query()->listed()->whereDate('occurred_at', $today)->first()
-            ?? Sleep::query()->listed()->whereDate('occurred_at', $today->copy()->subDay())->first();
     }
 }
