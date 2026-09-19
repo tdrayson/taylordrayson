@@ -11,6 +11,7 @@ use App\Enums\TimelineType;
 use App\Models\ThisWeekWith;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\ThisWeekWithSheet;
 use App\Support\Units;
 
 /**
@@ -19,6 +20,11 @@ use App\Support\Units;
  */
 final class ThisWeekWithExport
 {
+    public function sheet(): ThisWeekWithSheet
+    {
+        return new ThisWeekWithSheet;
+    }
+
     public function present(ThisWeekWith $model): ExportData
     {
         $card = CardPresenter::for($model);
