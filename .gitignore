@@ -57,9 +57,13 @@ storage/backups/
 # costs nothing. They survive a deploy because a deploy updates this checkout
 # in place rather than building a fresh one; run the fetch commands after
 # deploying to refill anything missing.
+#
+# Only these two subdirectories of public/logos/ are fetched. The hand-authored
+# logos sitting beside them stay tracked, because nothing can refill those.
 /public/avatars/
 /public/favicons/
-/public/logos/
+/public/logos/airlines/
+/public/logos/brands/
 
 # Bloom's workspace identifier, written into the checkout by the local tooling.
 /.bloom-site
