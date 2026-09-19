@@ -67,20 +67,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($response->getStatusCode() === 404 && ! $request->expectsJson()) {
                 $entries = Cache::remember('error.entry_count', now()->addHour(), fn (): int => TimelineEntry::count());
-                $days = Cache::remember('error.day_count', now()->addHour(), fn (): int => TimelineEntry::query()
-                    ->selectRaw('date(occurred_at) as day')
-                    ->distinct()
-                    ->pluck('day')
-                    ->count());
 
-                // Cast: the Redis cache store hands numeric values back as
-                // strings, and the page formats these with toLocaleString(),
-                // which is a no-op on a string.
+                // Cast: the Redis cache store hands a numeric value back as a
+                // string, and the page formats it with toLocaleString(), which
+                // is a no-op on a string.
                 return Inertia::render('Error', [
                     'og' => OgMeta::error(404),
                     'status' => 404,
                     'entries' => (int) $entries,
-                    'days' => (int) $days,
                     'leaderboard' => LeaderboardEntry::topEntries(5),
                 ])
                     ->toResponse($request)

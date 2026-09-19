@@ -2,7 +2,6 @@
 
 namespace App\Services\LogoDev;
 
-
 /**
  * Client for the logo.dev image API, fetching a brand logo by web domain.
  */
