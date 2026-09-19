@@ -26,4 +26,8 @@ it('prints a place check-in as a boxed passport stamp', function () {
         ->and($txt)->toContain('CR0 1AB')
         // "coffee-shop" is the raw category slug; the sheet must print "Coffee Shop".
         ->and($txt)->not->toContain('coffee-shop');
+
+    $addressLine = collect(explode("\n", $txt))->first(fn (string $line): bool => str_contains($line, '12 High Street'));
+
+    expect($addressLine)->toStartWith('|')->and($addressLine)->toEndWith('|');
 });
