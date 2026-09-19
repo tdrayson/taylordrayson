@@ -9,7 +9,6 @@ use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Queries\DayFoodTotals;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
-use App\Support\FeedDiscovery;
 use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
@@ -19,7 +18,6 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Passport\Passport;
@@ -105,10 +103,6 @@ class AppServiceProvider extends ServiceProvider
             'authToken' => $parameters['authToken'],
             'csrf' => csrf_token(),
         ]));
-
-        View::composer('app', function (\Illuminate\View\View $view): void {
-            $view->with('contextualFeeds', FeedDiscovery::forRoute(request()->route()));
-        });
 
         // Failures that otherwise only ever reached the log.
         Event::listen(ScheduledTaskFailed::class, AlertOnScheduledTaskFailure::class);
