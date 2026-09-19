@@ -72,9 +72,11 @@ it('publishes the same h-entry, author and representative h-card through .mf2 as
         ->toBe($pageEntry['properties']['content'][0]['value']);
 });
 
-// A note is content with no name of its own, which is how a reader tells it
-// from an article. This is the single most valuable assertion in this file.
-it('withholds p-name from a note in both, so neither parses as an article', function () {
+// A note is content with no title and no standfirst of its own: its body is
+// the entry. That is how a reader tells it from an article, and it is the
+// single most valuable assertion in this file, because it is what stops a
+// reader treating a note as a titled, summarised article.
+it('withholds p-name and p-summary from a note in both, so neither parses as an article', function () {
     $note = Note::factory()->create([
         'occurred_at' => '2024-03-02 09:00:00',
         'content' => PortableText::fromPlainText('Just a thought.'),
@@ -84,5 +86,7 @@ it('withholds p-name from a note in both, so neither parses as an article', func
     $exportEntry = json_decode($this->get($note->url().'.mf2')->getContent(), true)['items'][0];
 
     expect($pageEntry['properties'])->not->toHaveKey('name')
-        ->and($exportEntry['properties'])->not->toHaveKey('name');
+        ->and($pageEntry['properties'])->not->toHaveKey('summary')
+        ->and($exportEntry['properties'])->not->toHaveKey('name')
+        ->and($exportEntry['properties'])->not->toHaveKey('summary');
 });

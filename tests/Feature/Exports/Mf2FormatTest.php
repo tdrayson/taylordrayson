@@ -58,12 +58,16 @@ it('nests a bare author on the h-entry, with the full card only as a second top-
 
 // The distinction a parser uses to tell a note from an article: Entry.vue
 // withholds p-name for the same reason, and the two must not disagree.
-it('omits p-name for a note, matching the page', function () {
+// EntryDescription derives a note's summary from its own body (there is
+// nothing else to write one from), so a populated summary here stands in for
+// what the real export presenter would hand this format: a restatement of
+// e-content, which withholding proves doesn't leak through.
+it('omits p-name and p-summary for a note, matching the page', function () {
     $data = new ExportData(
         type: TimelineType::Note,
         url: 'https://example.test/notes/1',
         title: 'Just a thought',
-        summary: null,
+        summary: 'Just a thought, logged.',
         occurred: null,
         fields: [],
         links: [],
@@ -73,6 +77,7 @@ it('omits p-name for a note, matching the page', function () {
     $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
 
     expect($properties)->not->toHaveKey('name')
+        ->and($properties)->not->toHaveKey('summary')
         ->and($properties['content'][0]['value'])->toContain('Just a thought, logged.')
         ->and($properties['content'][0]['html'])->toContain('<p>');
 });

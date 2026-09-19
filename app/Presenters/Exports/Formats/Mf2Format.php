@@ -55,10 +55,13 @@ final class Mf2Format extends Format
             'author' => [$this->bareAuthor()],
         ];
 
-        // A note is content with no name of its own, which is how a reader
-        // tells it from an article. Entry.vue withholds p-name for the same
-        // reason, and the two must not disagree.
-        if ($data->type !== TimelineType::Note) {
+        // A note has neither a name nor a summary of its own: its body is the
+        // entry, so a generated title or standfirst would just restate it.
+        // Entry.vue withholds both p-name and p-summary for the same reason,
+        // and the two must not disagree.
+        $isNote = $data->type === TimelineType::Note;
+
+        if (! $isNote) {
             $properties['name'] = [$data->title];
         }
 
@@ -70,7 +73,7 @@ final class Mf2Format extends Format
             return $properties;
         }
 
-        if ($data->summary !== null) {
+        if ($data->summary !== null && ! $isNote) {
             $properties['summary'] = [$data->summary];
         }
 
