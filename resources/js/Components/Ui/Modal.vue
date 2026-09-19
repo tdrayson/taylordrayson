@@ -73,22 +73,3 @@ const titleId = useId();
         </Transition>
     </Teleport>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.15s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .fade-enter-active,
-    .fade-leave-active {
-        transition: none;
-    }
-}
-</style>

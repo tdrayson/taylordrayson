@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
     <!-- Smaller screens: a floating glass pill (top + contents) that slides up
          once the reader has scrolled a way down, and back down at the top. -->
     <div class="fixed bottom-5 left-1/2 z-30 -translate-x-1/2 toc:hidden">
-        <Transition name="pill">
+        <Transition name="rise">
             <div
                 v-if="items.length && scrolled"
                 class="flex items-stretch overflow-hidden rounded-full bg-black/60 text-white shadow-card ring-1 ring-white/10 backdrop-blur-xl"
@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
     </div>
 
     <Teleport v-if="mounted" to="body">
-        <Transition name="sheet">
+        <Transition name="fade">
             <div
                 v-if="open"
                 ref="panelEl"
@@ -234,53 +234,28 @@ onBeforeUnmount(() => {
     overscroll-behavior: contain;
 }
 
-.pill-enter-active,
-.pill-leave-active {
-    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* The shared fade carries the scrim; the panel slides up as a bottom sheet.
+   Held to the root's duration, since the root is the only element Vue times
+   off, and the old 0.25s was being cut short at 0.2s. */
+.fade-enter-active > div:last-child,
+.fade-leave-active > div:last-child {
+    transition: transform var(--duration-fade) var(--ease-out-expo);
 }
 
-.pill-enter-from,
-.pill-leave-to {
-    opacity: 0;
-    transform: translateY(1rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .pill-enter-active,
-    .pill-leave-active {
-        transition: opacity 0.2s ease;
-    }
-
-    .pill-enter-from,
-    .pill-leave-to {
-        transform: none;
-    }
-}
-
-.sheet-enter-active,
-.sheet-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.sheet-enter-active > div:last-child,
-.sheet-leave-active > div:last-child {
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sheet-enter-from,
-.sheet-leave-to {
-    opacity: 0;
-}
-
-.sheet-enter-from > div:last-child,
-.sheet-leave-to > div:last-child {
+.fade-enter-from > div:last-child,
+.fade-leave-to > div:last-child {
     transform: translateY(100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .sheet-enter-active > div:last-child,
-    .sheet-leave-active > div:last-child {
+    .fade-enter-active > div:last-child,
+    .fade-leave-active > div:last-child {
         transition: none;
+    }
+
+    .fade-enter-from > div:last-child,
+    .fade-leave-to > div:last-child {
+        transform: none;
     }
 }
 </style>
