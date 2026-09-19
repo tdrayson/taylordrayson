@@ -41,6 +41,17 @@ final class PullStravaResponses
 
         $url = $activity->platform_url;
 
+        // A page returned at its ceiling is as much as Strava will say in one
+        // request, not necessarily all there is. There is no paging loop here
+        // on purpose: the command budgets exactly two requests per activity to
+        // stay inside the rate limit, and an unbounded walk would break that
+        // accounting. So a full page buys safety instead, holding back the
+        // deletions rather than reading a truncated list as the whole truth.
+        $unvouched = [
+            ...(count($kudos) >= Client::RESPONSES_PER_PAGE ? [WebmentionKind::Like] : []),
+            ...(count($comments) >= Client::RESPONSES_PER_PAGE ? [WebmentionKind::Reply] : []),
+        ];
+
         // occurred_at is a wall-clock reading, not an instant: a kudo has no
         // timestamp of its own, so it borrows the activity's, converted via
         // the activity's own timezone.
@@ -62,7 +73,7 @@ final class PullStravaResponses
                 body: PortableText::fromPlainText((string) ($comment['text'] ?? '')),
                 url: $url,
             ), $comments),
-        ]);
+        ], $unvouched);
     }
 
     /** Strava gives a first name and an initial, and nothing else. */

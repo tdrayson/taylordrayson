@@ -41,7 +41,7 @@ const shortcuts = [
                 <Link
                     :href="shortcut.href"
                     role="menuitem"
-                    class="flex min-h-11 items-center gap-3 px-3 text-meta font-medium text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:bg-accent-50 focus-visible:text-accent-700 focus-visible:outline-none"
+                    class="flex min-h-11 items-center gap-3 px-3 text-sm font-medium text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:bg-accent-50 focus-visible:text-accent-700 focus-visible:outline-none"
                     @click="close"
                 >
                     <Icon :icon="shortcut.icon" class="size-5 text-neutral-500" />

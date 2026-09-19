@@ -13,7 +13,7 @@ defineProps({
 
 <template>
     <section :id="anchor" class="mt-8 first:mt-0">
-        <p class="text-caption font-medium text-neutral-500">{{ dateLongFromYmd(date) }}</p>
+        <p class="text-xs font-medium text-neutral-500">{{ dateLongFromYmd(date) }}</p>
         <div class="mt-2">
             <TvEpisodeRow
                 v-for="episode in episodes"

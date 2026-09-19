@@ -2,6 +2,7 @@
 
 namespace App\Datasets;
 
+use App\Enums\ActivityDiscipline;
 use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Activity;
@@ -65,7 +66,7 @@ final class ActivityDataset extends BaseDataset
     {
         return [
             'name' => ['label' => 'Name', 'dataType' => 'text', 'column' => 'name', 'category' => 'Activity'],
-            'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Activity'],
+            'kind' => ['label' => 'Type', 'dataType' => 'enum', 'column' => 'type', 'category' => 'Activity', 'enum' => ActivityDiscipline::class],
             'distance' => ['label' => 'Distance', 'dataType' => 'number', 'column' => 'distance', 'category' => 'Metrics', 'measure' => 'distance', 'store' => 'm'],
             'duration' => ['label' => 'Duration', 'dataType' => 'duration', 'column' => 'duration', 'category' => 'Metrics'],
             'calories' => ['label' => 'Calories', 'dataType' => 'number', 'column' => 'calories', 'category' => 'Metrics', 'suffix' => 'kcal'],

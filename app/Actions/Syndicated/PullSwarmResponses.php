@@ -28,6 +28,11 @@ final class PullSwarmResponses
         $likers = self::likers($item);
         $likesAmbiguous = self::likesAmbiguous($item, $likers);
 
+        $unvouched = [
+            ...($likesAmbiguous ? [WebmentionKind::Like] : []),
+            ...(self::commentsTruncated($item) ? [WebmentionKind::Reply] : []),
+        ];
+
         // occurred_at is a wall-clock reading, not an instant: a like has no
         // timestamp of its own, so it borrows the check-in's, converted via
         // the check-in's own timezone. A comment missing its own createdAt
@@ -55,7 +60,19 @@ final class PullSwarmResponses
             ), self::comments($item)),
         ];
 
-        ($this->reconcile)($place, Source::Swarm, $responses, $likesAmbiguous ? [WebmentionKind::Like] : []);
+        ($this->reconcile)($place, Source::Swarm, $responses, $unvouched);
+    }
+
+    /**
+     * Swarm says how many comments a check-in has as well as listing them, so
+     * a short list against a larger count is a truncated payload rather than
+     * comments withdrawn, and must not drive deletions.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private static function commentsTruncated(array $item): bool
+    {
+        return ($item['comments']['count'] ?? 0) > count($item['comments']['items'] ?? []);
     }
 
     /**

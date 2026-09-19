@@ -52,6 +52,12 @@ class WebmentionController extends Controller
             $source === '' || $target === '' => 'Both source and target are required.',
             ! filter_var($source, FILTER_VALIDATE_URL) => 'source is not a valid URL.',
             ! filter_var($target, FILTER_VALIDATE_URL) => 'target is not a valid URL.',
+
+            // FILTER_VALIDATE_URL passes ftp:// and friends, which the verifier
+            // can never fetch, so without this a row and a queued job are made
+            // for something that is certain to fail.
+            ! self::isHttp($source) => 'source must be an http or https URL.',
+            ! self::isHttp($target) => 'target must be an http or https URL.',
             $source === $target => 'source and target cannot be the same.',
 
             // Internal links already render as link previews, so a self-ping
@@ -61,5 +67,10 @@ class WebmentionController extends Controller
             WebmentionTarget::resolve($target) === null => 'target is not a page that accepts webmentions.',
             default => null,
         };
+    }
+
+    private static function isHttp(string $url): bool
+    {
+        return in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true);
     }
 }

@@ -234,10 +234,10 @@ watch(() => [props.modelValue, editing.value], fitQuote, { flush: 'post' });
                     />
                 </template>
             </ReplyContext>
-            <p v-else-if="failed" class="text-caption text-neutral-500">Could not read that page. It will be tried again when you save.</p>
+            <p v-else-if="failed" class="text-xs text-neutral-500">Could not read that page. It will be tried again when you save.</p>
         </div>
 
-        <p v-if="preview || failed" class="flex gap-4 text-caption text-neutral-500">
+        <p v-if="preview || failed" class="flex gap-4 text-xs text-neutral-500">
             <template v-if="responseKind === 'reply'">
                 <button v-if="! editing" type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="editQuote">{{ excerpt || modelValue ? 'Edit quote' : 'Add quote' }}</button>
                 <button v-else type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="doneEditing">Done</button>

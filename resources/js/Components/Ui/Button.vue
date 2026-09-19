@@ -27,9 +27,9 @@ const VARIANTS = {
 
 // md and lg share the form-control height (CONTROL) so a button lines up beside an input or select.
 const SIZES = {
-    sm: 'gap-1.5 px-3 py-1.5 text-label',
-    md: 'min-h-11 gap-1.5 px-4 py-2 text-meta',
-    lg: 'min-h-11 gap-2 px-5 py-2.5 text-meta',
+    sm: 'gap-1.5 px-3 py-1.5 text-2xs',
+    md: 'min-h-11 gap-1.5 px-4 py-2 text-sm',
+    lg: 'min-h-11 gap-2 px-5 py-2.5 text-sm',
     icon: 'p-2',
 };
 

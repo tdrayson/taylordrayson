@@ -96,3 +96,64 @@ it('leaves stored responses untouched when the kudos request fails', function ()
 
     expect($activity->syndicatedResponses()->sole()->author_name)->toBe('Existing');
 });
+
+// Strava sends at most one page and says nothing about there being more, so a
+// page filled to the ceiling cannot be read as the whole list. Deleting on its
+// absences would destroy real comments and re-fetch them on every run.
+it('keeps stored comments when Strava fills a whole page', function () {
+    $activity = stravaActivity();
+
+    $page = collect(range(1, 200))->map(fn (int $n): array => [
+        'id' => $n,
+        'text' => "Comment {$n}",
+        'created_at' => '2025-08-27T09:44:33Z',
+        'athlete' => ['firstname' => 'Clare', 'lastname' => 'A.'],
+    ])->all();
+
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value,
+        'source_id' => 'held-over-from-an-earlier-page',
+        'kind' => WebmentionKind::Reply,
+    ]);
+
+    fakeStravaResponses([], $page);
+
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->where('kind', WebmentionKind::Reply)->count())->toBe(201);
+});
+
+it('keeps stored kudos when Strava fills a whole page', function () {
+    $activity = stravaActivity();
+
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value,
+        'kind' => WebmentionKind::Like,
+        'author_name' => 'Held over',
+    ]);
+
+    fakeStravaResponses(collect(range(1, 200))->map(fn (int $n): array => [
+        'firstname' => 'Athlete', 'lastname' => (string) $n,
+    ])->all(), []);
+
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->where('author_name', 'Held over')->count())->toBe(1);
+});
+
+// A short page is the whole list, so the usual reconciliation still applies.
+it('still removes a comment that has gone when the page is not full', function () {
+    $activity = stravaActivity();
+
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value,
+        'source_id' => 'withdrawn',
+        'kind' => WebmentionKind::Reply,
+    ]);
+
+    fakeStravaResponses([], []);
+
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->count())->toBe(0);
+});

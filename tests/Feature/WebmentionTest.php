@@ -132,3 +132,16 @@ it('is exempt from CSRF, because the senders are other people\'s sites', functio
     // the receiver is unreachable to everyone but this site's own form.
     expect(app(PreventRequestForgery::class)->getExcludedPaths())->toContain('webmention');
 });
+
+it('refuses a scheme the verifier could never fetch', function (string $scheme) {
+    $note = Note::factory()->create();
+    $target = mentionUrl($note);
+
+    post(route('webmention'), ['source' => "{$scheme}://elsewhere.example/post", 'target' => $target])
+        ->assertStatus(400);
+
+    // The point of rejecting here is that no row and no job are made for
+    // something certain to fail, so a stranger cannot fill the table with them.
+    expect(Webmention::query()->count())->toBe(0);
+    Queue::assertNotPushed(VerifyWebmention::class);
+})->with(['ftp', 'file', 'gopher', 'javascript']);

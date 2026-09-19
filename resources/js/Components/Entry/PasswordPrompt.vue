@@ -18,8 +18,8 @@ function unlock() {
 
 <template>
     <form data-password-prompt class="max-w-md" @submit.prevent="unlock">
-        <h2 class="text-section text-neutral-900">Password protected</h2>
-        <p class="mt-1 text-meta text-neutral-500">This one's private. If you've been given the password, pop it in below.</p>
+        <h2 class="text-lg font-bold leading-tight tracking-tight text-neutral-900">Password protected</h2>
+        <p class="mt-1 text-sm text-neutral-500">This one's private. If you've been given the password, pop it in below.</p>
 
         <div class="mt-4 flex flex-col gap-2 sm:flex-row">
             <label for="entry-password" class="sr-only">Password</label>
@@ -27,6 +27,6 @@ function unlock() {
             <Button type="submit" variant="primary" class="shrink-0" :disabled="form.processing || ! form.password">Unlock</Button>
         </div>
 
-        <p v-if="form.errors.password" class="mt-2 text-caption text-red-600">{{ form.errors.password }}</p>
+        <p v-if="form.errors.password" class="mt-2 text-xs text-red-600">{{ form.errors.password }}</p>
     </form>
 </template>

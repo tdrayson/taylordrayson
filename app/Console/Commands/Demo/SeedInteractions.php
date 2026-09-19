@@ -38,6 +38,14 @@ class SeedInteractions extends Command
 
     public function handle(): int
     {
+        // Writes rows that look like real traffic, which is the last thing
+        // production wants.
+        if (app()->isProduction()) {
+            $this->components->error('demo:interactions does not run in production.');
+
+            return self::FAILURE;
+        }
+
         $this->clear();
 
         if ($this->option('clear')) {

@@ -48,7 +48,7 @@ const headingCount = computed(() => contentNodes.value.filter(
         <!-- Above the cover, matching a page: the standfirst introduces the
              piece, so it belongs with the headline rather than under the image
              it is introducing. -->
-        <p v-if="entry.excerpt" v-twemoji class="p-summary max-w-prose text-body text-lg text-neutral-700">{{ entry.excerpt }}</p>
+        <p v-if="entry.excerpt" v-twemoji class="p-summary max-w-prose text-lg text-neutral-700">{{ entry.excerpt }}</p>
 
         <!-- The wrapper, not the img, is the grid item: replaced elements don't
              stretch to their grid area, block boxes do. -->

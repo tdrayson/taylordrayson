@@ -73,7 +73,7 @@ function useTypedUrl() {
                 @click="deleteNode()"
             ><Icon name="Delete02Icon" class="size-4" /></button>
 
-            <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-caption text-neutral-500">
+            <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-xs text-neutral-500">
                 {{ node.attrs.caption }}
             </figcaption>
         </figure>
@@ -87,7 +87,7 @@ function useTypedUrl() {
             @dragleave.prevent="dragging = false"
             @drop.prevent="dragging = false; upload($event.dataTransfer?.files?.[0])"
         >
-            <label class="flex min-h-11 cursor-pointer items-center justify-center gap-2 text-meta text-neutral-500 transition-colors hover:text-accent-700">
+            <label class="flex min-h-11 cursor-pointer items-center justify-center gap-2 text-sm text-neutral-500 transition-colors hover:text-accent-700">
                 <Icon name="Image01Icon" class="size-4 shrink-0" />
                 <span v-if="uploading">Uploading...</span>
                 <span v-else>Drop an image here, or choose one</span>
@@ -100,18 +100,18 @@ function useTypedUrl() {
                     v-model="typedUrl"
                     type="url"
                     placeholder="or paste an image URL"
-                    class="min-w-0 flex-1 bg-transparent text-meta text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+                    class="min-w-0 flex-1 bg-transparent text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
                     @keydown.enter.prevent="useTypedUrl"
                 >
 
                 <button
                     type="button"
-                    class="rounded px-2 py-1 text-caption text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="rounded px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="useTypedUrl"
                 >Use</button>
             </div>
 
-            <p v-if="error" class="mt-2 text-caption text-red-600">{{ error }}</p>
+            <p v-if="error" class="mt-2 text-xs text-red-600">{{ error }}</p>
         </div>
     </NodeViewWrapper>
 </template>

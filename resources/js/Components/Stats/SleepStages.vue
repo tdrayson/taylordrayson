@@ -177,7 +177,7 @@ const cursor = computed(() => {
         </div>
 
         <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
-            <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-meta text-neutral-700">
+            <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-sm text-neutral-700">
                 <span class="size-2.5 rounded-full" :style="{ background: total.color }" />
                 {{ total.label }} <span class="text-neutral-500 tabular-nums">{{ total.duration }}</span>
             </div>

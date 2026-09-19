@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { unitTitle } from '../../lib/units.js';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Stat from '../Ui/Stat.vue';
 
 const props = defineProps({
     value: { type: [String, Number], required: true },
@@ -32,10 +34,10 @@ const sparkPath = computed(() => {
 
 <template>
     <div class="flex flex-col justify-between rounded-lg border border-neutral-50 bg-neutral-0 p-4">
-        <dt class="text-label uppercase text-neutral-500">{{ label }}</dt>
-        <dd class="mt-2 font-display text-stat leading-none tabular-nums text-neutral-900">
+        <Eyebrow as="dt" class="text-neutral-500">{{ label }}</Eyebrow>
+        <Stat as="dd" class="mt-2 text-neutral-900">
             {{ value }}<abbr v-if="unit" :title="unitTitle(unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ unit }}</abbr>
-        </dd>
+        </Stat>
         <svg v-if="sparkPath" class="mt-3 h-7 w-full" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
             <path :d="sparkPath" fill="none" :stroke="accent" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
         </svg>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Icon from '../Ui/Icon.vue';
 import Button from '../Ui/Button.vue';
 import FilterValue from './FilterValue.vue';
@@ -218,13 +219,15 @@ function clearFilter() {
 <template>
     <div class="flex flex-col gap-5">
         <template v-for="(group, groupIndex) in groups" :key="groupIndex">
-            <div class="rounded-lg border border-neutral-50">
+            <!-- The builder sits in a content column the sidebar and the window both
+                 narrow, so the rows lay out against the card's own width. -->
+            <div class="@container rounded-lg border border-neutral-50">
                 <div
                     class="flex items-center gap-3 bg-neutral-25 px-5 py-4"
                     :class="group.type ? 'rounded-t-lg border-b border-neutral-50' : 'rounded-lg'"
                 >
-                    <span class="shrink-0 whitespace-nowrap text-label uppercase text-neutral-500">Show me</span>
-                    <div class="min-w-0 flex-1 sm:w-56 sm:flex-none">
+                    <Eyebrow as="span" class="shrink-0 whitespace-nowrap text-neutral-500">Show me</Eyebrow>
+                    <div class="min-w-0 flex-1 @xl:w-56 @xl:flex-none">
                         <Select
                             :model-value="group.type"
                             :options="typeOptions"
@@ -236,10 +239,13 @@ function clearFilter() {
 
                 <div v-if="group.type" class="rounded-b-lg bg-neutral-0 px-5 py-5">
                 <div class="flex flex-col gap-3">
-                    <div v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex" class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                        <span class="text-label uppercase text-neutral-500 sm:w-16 sm:shrink-0">{{ conditionIndex === 0 ? 'Where' : 'And' }}</span>
+                    <!-- Three deliberate shapes, never a ragged half-wrap: stacked;
+                         then Where/And as a caption over one row of controls; then
+                         the caption back in its gutter once the row has the width. -->
+                    <div v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex" class="flex flex-col gap-2 @xl:flex-row @xl:flex-wrap @xl:items-center @xl:gap-3">
+                        <Eyebrow as="span" class="text-neutral-500 @xl:basis-full @3xl:w-16 @3xl:shrink-0 @3xl:basis-auto">{{ conditionIndex === 0 ? 'Where' : 'And' }}</Eyebrow>
 
-                        <div class="w-full sm:w-56 sm:shrink-0">
+                        <div class="w-full @xl:w-48 @xl:shrink-0 @3xl:w-56">
                             <FieldPicker
                                 :fields="fieldsOf(group.type)"
                                 :model-value="condition.field"
@@ -247,7 +253,7 @@ function clearFilter() {
                             />
                         </div>
 
-                        <div class="w-full sm:w-40 sm:shrink-0">
+                        <div class="w-full @xl:w-36 @xl:shrink-0 @3xl:w-40">
                             <Select
                                 :model-value="condition.operator"
                                 :options="operatorOptions(group.type, condition.field)"
@@ -255,32 +261,36 @@ function clearFilter() {
                             />
                         </div>
 
-                        <div v-if="valueShape(condition.operator) !== 'none'" class="w-full min-w-0 sm:flex-1">
-                            <FilterValue
-                                v-model="condition.value"
-                                :data-type="fieldDef(group.type, condition.field)?.dataType"
-                                :operator="condition.operator"
-                                :options="fieldDef(group.type, condition.field)?.options"
-                                :prefix="fieldDef(group.type, condition.field)?.prefix"
-                                :suffix="suffixFor(group.type, condition.field)"
-                            />
-                        </div>
-                        <div v-else class="hidden sm:block sm:flex-1"></div>
+                        <!-- Full width until the widest shape, so the value and its
+                             remove button move together and never strand the button. -->
+                        <div class="flex w-full min-w-0 items-center gap-2 @xl:w-auto @xl:flex-1 @xl:gap-3">
+                            <div v-if="valueShape(condition.operator) !== 'none'" class="min-w-0 flex-1">
+                                <FilterValue
+                                    v-model="condition.value"
+                                    :data-type="fieldDef(group.type, condition.field)?.dataType"
+                                    :operator="condition.operator"
+                                    :options="fieldDef(group.type, condition.field)?.options"
+                                    :prefix="fieldDef(group.type, condition.field)?.prefix"
+                                    :suffix="suffixFor(group.type, condition.field)"
+                                />
+                            </div>
+                            <div v-else class="flex-1"></div>
 
-                        <button
-                            type="button"
-                            class="-mt-1 self-end rounded-md p-2 text-neutral-500 transition-colors hover:text-accent-500 sm:mt-0 sm:shrink-0 sm:self-auto"
-                            aria-label="Remove condition"
-                            @click="removeCondition(group, conditionIndex)"
-                        >
-                            <Icon name="Delete02Icon" class="size-4" />
-                        </button>
+                            <button
+                                type="button"
+                                class="shrink-0 rounded-md p-2 text-neutral-500 transition-colors hover:text-accent-500"
+                                aria-label="Remove condition"
+                                @click="removeCondition(group, conditionIndex)"
+                            >
+                                <Icon name="Delete02Icon" class="size-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <button
                     type="button"
-                    class="mt-4 inline-flex items-center gap-1.5 rounded-md border border-neutral-100 px-3 py-1.5 text-label uppercase text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-500"
+                    class="mt-4 inline-flex items-center gap-1.5 rounded-md border border-neutral-100 px-3 py-1.5 text-2xs font-semibold uppercase tracking-wider text-neutral-700 transition-colors hover:border-accent-500 hover:text-accent-500"
                     @click="addCondition(group)"
                 >
                     <Icon name="PlusSignIcon" class="size-3.5" /> Add
@@ -292,7 +302,7 @@ function clearFilter() {
                 <span class="or-line h-0.5 flex-1" />
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-label uppercase text-accent-500 transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
+                    class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-2xs font-semibold uppercase tracking-wider text-accent-500 transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
                     @click="addGroupAt(groupIndex + 1)"
                 >
                     <Icon name="PlusSignIcon" class="size-3.5" /> Or
@@ -303,7 +313,7 @@ function clearFilter() {
 
         <div class="mt-2 flex items-center gap-4">
             <Button variant="primary" size="lg" :disabled="!canFilter" @click="applyFilter">Search</Button>
-            <button type="button" class="text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" @click="clearFilter">
+            <button type="button" class="text-sm text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" @click="clearFilter">
                 Clear
             </button>
         </div>

@@ -1,4 +1,6 @@
 <script setup>
+import Eyebrow from './Eyebrow.vue';
+
 defineProps({
     // One preview: { url, title, excerpt, type, accent, date, cover, coverDark }.
     preview: { type: Object, required: true },
@@ -27,13 +29,13 @@ defineProps({
             class="hidden aspect-video w-full object-cover dark:block"
         >
         <div class="space-y-1.5 p-3">
-            <div class="flex items-center gap-2 text-label uppercase tracking-wide">
+            <Eyebrow class="flex items-center gap-2 tracking-wide">
                 <span class="inline-block size-2 rounded-full" :style="{ backgroundColor: 'var(--type-color)' }" />
                 <span class="text-neutral-500">{{ preview.type }}</span>
                 <span v-if="preview.date" class="text-neutral-400">{{ preview.date }}</span>
-            </div>
-            <p class="text-section font-bold leading-tight text-neutral-900">{{ preview.title }}</p>
-            <p v-if="preview.excerpt" class="line-clamp-2 text-caption text-neutral-600">{{ preview.excerpt }}</p>
+            </Eyebrow>
+            <p class="text-lg font-bold leading-tight tracking-tight text-neutral-900">{{ preview.title }}</p>
+            <p v-if="preview.excerpt" class="line-clamp-2 text-xs text-neutral-600">{{ preview.excerpt }}</p>
         </div>
     </article>
 </template>
