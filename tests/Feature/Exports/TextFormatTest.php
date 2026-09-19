@@ -5,15 +5,17 @@ use App\Data\ExportField;
 use App\Data\ExportLink;
 use App\Enums\ExportFormat;
 use App\Enums\TimelineType;
+use App\Models\Book;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 
 it('falls back to an aligned table for a type with no sheet', function () {
-    $data = ExportPresenter::for(krkToLgw());
+    $book = Book::factory()->create(['occurred_at' => '2026-09-13 22:00:00', 'pages' => 476, 'status' => 'published']);
+    $data = ExportPresenter::for($book);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    expect($txt)->toContain('Distance')
-        ->and($txt)->toContain('876 miles');
+    expect($txt)->toContain('Pages')
+        ->and($txt)->toContain('476');
 });
 
 it('does not print a trail of other formats', function () {
@@ -25,11 +27,11 @@ it('does not print a trail of other formats', function () {
         ->and($txt)->not->toContain('.mf2');
 });
 
-it('prints only display strings, never a raw value', function () {
+it('prints only display strings, never a raw value, for a flight sheet', function () {
     $data = ExportPresenter::for(krkToLgw());
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    // 1409785 is the raw metres; the table must print "876 miles".
+    // 1409785 is the raw metres; the sheet must print "876 miles".
     expect($txt)->not->toContain('1409785');
 });
 

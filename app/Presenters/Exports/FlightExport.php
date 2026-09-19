@@ -12,6 +12,7 @@ use App\Enums\TimelineType;
 use App\Models\Flight;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\FlightSheet;
 use App\Support\Distance;
 use App\Support\Units;
 use Carbon\CarbonImmutable;
@@ -24,6 +25,11 @@ use Illuminate\Support\Str;
  */
 final class FlightExport
 {
+    public function sheet(): FlightSheet
+    {
+        return new FlightSheet;
+    }
+
     public function present(Flight $model): ExportData
     {
         $model->loadMissing('airline', 'origin', 'destination');
