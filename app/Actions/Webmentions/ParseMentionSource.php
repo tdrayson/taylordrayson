@@ -76,6 +76,7 @@ final class ParseMentionSource
             authorPhoto: $this->authorField($properties, 'photo'),
             content: $content,
             publishedAt: $this->published($properties),
+            publishedTimezone: $this->publishedTimezone($properties),
             emoji: $kind === WebmentionKind::Reply ? $this->emojiIn(PortableText::plainText($content ?? [])) : null,
         );
     }
@@ -317,5 +318,23 @@ final class ParseMentionSource
         return is_string($published)
             ? rescue(fn (): Carbon => Carbon::parse($published), null, report: false)
             : null;
+    }
+
+    /**
+     * The offset dt-published carried, captured here because Carbon::parse
+     * keeps only the instant: a value with no offset at all would otherwise
+     * be indistinguishable from one that meant UTC.
+     *
+     * @param  array<string, mixed>  $properties
+     */
+    private function publishedTimezone(array $properties): ?string
+    {
+        $published = $properties['published'][0] ?? null;
+
+        if (! is_string($published) || ! preg_match('/(?:Z|[+-]\d{2}:?\d{2})$/', trim($published))) {
+            return null;
+        }
+
+        return rescue(fn (): ?string => Carbon::parse($published)->format('P'), null, report: false);
     }
 }

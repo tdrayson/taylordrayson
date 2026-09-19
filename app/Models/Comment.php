@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'parent_id',
     'ip_hash',
     'user_agent',
+    'timezone',
 ])]
 class Comment extends Model
 {

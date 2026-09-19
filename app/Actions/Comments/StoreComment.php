@@ -70,6 +70,7 @@ final class StoreComment
             'status' => $this->statusFor($submission),
             'ip_hash' => $submission->ipHash,
             'user_agent' => $submission->userAgent,
+            'timezone' => $submission->timezone,
         ]);
     }
 

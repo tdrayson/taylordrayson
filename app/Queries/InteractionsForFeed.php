@@ -8,6 +8,7 @@ use App\Enums\ReactionType;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Reaction;
+use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use App\Support\InteractionTarget;
 use App\Support\VisitorIdentity;
@@ -56,6 +57,7 @@ final class InteractionsForFeed
         $mine = $this->myReactions($classes, $ids, $identities);
         $comments = $this->commentCounts($classes, $ids);
         $mentions = $this->mentionCounts($classes, $ids);
+        $syndicated = $this->syndicatedCounts($classes, $ids);
 
         $rows = [];
 
@@ -71,10 +73,15 @@ final class InteractionsForFeed
                 ),
                 // Counted by kind, matching the entry page: every interaction
                 // lands in exactly one figure, so the parts sum to the whole.
-                'replyCount' => (int) ($comments[$pair] ?? 0) + (int) ($mentions[$pair][WebmentionKind::Reply->value] ?? 0),
+                'replyCount' => (int) ($comments[$pair] ?? 0)
+                    + (int) ($mentions[$pair][WebmentionKind::Reply->value] ?? 0)
+                    + (int) ($syndicated[$pair][WebmentionKind::Reply->value] ?? 0),
                 'likeCount' => (int) ($mentions[$pair][WebmentionKind::Like->value] ?? 0)
-                    + (int) ($mentions[$pair][WebmentionKind::Reacji->value] ?? 0),
-                'repostCount' => (int) ($mentions[$pair][WebmentionKind::Repost->value] ?? 0),
+                    + (int) ($mentions[$pair][WebmentionKind::Reacji->value] ?? 0)
+                    + (int) ($syndicated[$pair][WebmentionKind::Like->value] ?? 0)
+                    + (int) ($syndicated[$pair][WebmentionKind::Reacji->value] ?? 0),
+                'repostCount' => (int) ($mentions[$pair][WebmentionKind::Repost->value] ?? 0)
+                    + (int) ($syndicated[$pair][WebmentionKind::Repost->value] ?? 0),
                 'bookmarkCount' => (int) ($mentions[$pair][WebmentionKind::Bookmark->value] ?? 0),
                 'rsvpCount' => (int) ($mentions[$pair][WebmentionKind::Rsvp->value] ?? 0),
                 'mentionCount' => (int) ($mentions[$pair][WebmentionKind::Mention->value] ?? 0),
@@ -172,6 +179,34 @@ final class InteractionsForFeed
     private function mentionCounts(array $classes, array $ids): array
     {
         $rows = Webmention::query()
+            ->toBase()
+            ->selectRaw('target_type, target_id, kind, count(*) as total')
+            ->where('status', CommentStatus::Approved->value)
+            ->whereIn('target_type', $classes)
+            ->whereIn('target_id', $ids)
+            ->groupBy('target_type', 'target_id', 'kind')
+            ->get();
+
+        $out = [];
+
+        foreach ($rows as $row) {
+            $out[$row->target_type.':'.$row->target_id][(string) $row->kind] = (int) $row->total;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Responses pulled from another service, counted by kind exactly as the
+     * webmention kinds are, so a kudo lands in the same figure as a like.
+     *
+     * @param  list<string>  $classes
+     * @param  list<int|string>  $ids
+     * @return array<string, array<string, int>>
+     */
+    private function syndicatedCounts(array $classes, array $ids): array
+    {
+        $rows = SyndicatedResponse::query()
             ->toBase()
             ->selectRaw('target_type, target_id, kind, count(*) as total')
             ->where('status', CommentStatus::Approved->value)

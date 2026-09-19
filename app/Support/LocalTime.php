@@ -28,4 +28,23 @@ class LocalTime
             'iso' => $local->toIso8601String(),
         ];
     }
+
+    /**
+     * Render a true instant (a UTC timestamp, not a stored wall-clock reading)
+     * by converting it into the given timezone before formatting.
+     *
+     * @return array{time: string, label: string, offset: string, iso: string}
+     */
+    public static function forInstant(CarbonInterface $instant, ?string $timezone): array
+    {
+        $zone = $timezone ?: (string) config('app.home_timezone');
+        $local = CarbonImmutable::instance($instant)->setTimezone($zone);
+
+        return [
+            'time' => $local->format('g:ia'),
+            'label' => $local->format('D j M Y, g:ia'),
+            'offset' => $local->format('P'),
+            'iso' => $local->toIso8601String(),
+        ];
+    }
 }

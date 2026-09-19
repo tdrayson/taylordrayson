@@ -8,6 +8,8 @@ use App\Support\PortableText;
 use App\Support\ProfanityFilter;
 use App\Support\VisitorIdentity;
 use Closure;
+use DateTimeZone;
+use Exception;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -27,12 +29,17 @@ class StoreCommentRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $body = $this->input('body');
+        $timezone = $this->input('timezone');
 
         $this->merge([
             'author_name' => trim(strip_tags((string) $this->input('author_name'))),
             // Only a string is stripped. Casting a document to a string to run
             // strip_tags over it would flatten the whole comment to "Array".
             'body' => is_string($body) ? trim(strip_tags($body)) : $body,
+            // Discarded here rather than failed by a rule: the field carries
+            // no error in the form, so rejecting the whole comment over it
+            // would reopen the form with nothing telling the visitor why.
+            'timezone' => is_string($timezone) && strlen($timezone) <= 40 ? $timezone : null,
         ]);
     }
 
@@ -62,6 +69,10 @@ class StoreCommentRequest extends FormRequest
             'body' => $this->bodyRules(),
             'parent_id' => ['nullable', 'integer'],
             'nonce' => ['required', 'string', 'uuid'],
+            // Never rejected on shape: prepareForValidation() already
+            // discarded anything that would fail this, so a bad browser
+            // reading never costs somebody their comment.
+            'timezone' => ['nullable', 'string', 'max:40'],
             self::HONEYPOT => ['nullable', 'string'],
         ];
     }
@@ -128,6 +139,44 @@ class StoreCommentRequest extends FormRequest
             honeypotFilled: filled($this->input(self::HONEYPOT)),
             ipHash: VisitorIdentity::reputation($this),
             userAgent: $this->userAgent(),
+            timezone: $this->timezone(),
         );
+    }
+
+    /**
+     * The browser's own timezone, kept only when it is a real IANA name or a
+     * strict fixed offset.
+     *
+     * This is unauthenticated public input, so it is never trusted into a
+     * date function unvalidated: anything else, junk or missing, is dropped
+     * to null and the entry's own timezone takes over at render time.
+     */
+    private function timezone(): ?string
+    {
+        $value = $this->validated('timezone');
+
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        if (in_array($value, timezone_identifiers_list(), strict: true)) {
+            return $value;
+        }
+
+        if (preg_match('/^[+-]\d{2}:\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        // The pattern alone accepts an offset with no real timezone behind
+        // it, e.g. "+99:99", which later throws InvalidTimeZoneException at
+        // render time and 500s the entry page for good. Building the real
+        // thing here is the only way to know it will actually resolve.
+        try {
+            new DateTimeZone($value);
+        } catch (Exception) {
+            return null;
+        }
+
+        return $value;
     }
 }

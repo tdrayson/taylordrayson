@@ -23,6 +23,8 @@ final readonly class CommentSubmission
         /** Hashed IP, for recognising a name that has been approved before. */
         public string $ipHash,
         public ?string $userAgent,
+        /** The commenter's own browser timezone, validated; null renders as the entry's. */
+        public ?string $timezone = null,
     ) {}
 
     /** The readable text, for the checks and notices that cannot read a document. */
