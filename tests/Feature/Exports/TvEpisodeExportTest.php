@@ -20,12 +20,15 @@ it('publishes a tv episode as labelled fields in order', function () {
     $export = ExportPresenter::for($episode);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['episode', 'show', 'season', 'number', 'rating'])
+        ->toBe(['episode', 'show', 'date', 'season', 'number', 'rating', 'owner', 'ticket_number'])
         ->and($export->field('episode')->display)->toBe('Dulcinea')
         ->and($export->field('show')->display)->toBe('The Expanse')
+        ->and($export->field('date')->display)->toBe('13 Sep 2026')
         ->and($export->field('season')->display)->toBe('1')
         ->and($export->field('number')->display)->toBe('1')
-        ->and($export->field('rating')->display)->toBe('9 out of 10');
+        ->and($export->field('rating')->display)->toBe('9 out of 10')
+        ->and($export->field('owner')->display)->toBe(config('identity.name'))
+        ->and($export->field('ticket_number')->raw)->toBe($episode->id);
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 

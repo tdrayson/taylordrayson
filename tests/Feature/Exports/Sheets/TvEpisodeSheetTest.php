@@ -5,8 +5,9 @@ use App\Models\TvEpisode;
 use App\Models\TvShow;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
+use App\Presenters\Exports\Sheets\TvEpisodeSheet;
 
-it('prints a TV episode as its ticket stub, banner as the show and title centred', function () {
+it('prints a TV episode as a perforated ticket stub, headed by the show and paired season/number and date/rated rows', function () {
     $show = TvShow::factory()->create(['title' => 'Crime Scene: The Vanishing at the Cecil Hotel']);
     $episode = TvEpisode::factory()->create([
         'tv_show_id' => $show->id,
@@ -20,16 +21,43 @@ it('prints a TV episode as its ticket stub, banner as the show and title centred
     $data = ExportPresenter::for($episode);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    expect($txt)->toContain('Crime Scene: The Vanishing at the Cecil Hotel')
-        ->and($txt)->toContain('Down the Rabbit Hole')
-        ->and($txt)->toContain('SEASON')
-        ->and($txt)->toContain('1')
-        ->and($txt)->toContain('NUMBER')
-        ->and($txt)->toContain('3')
-        ->and($txt)->toContain('8 out of 10');
+    expect($txt)->toContain('CRIME SCENE: THE VANISHING AT THE CECIL HOTEL')
+        ->and($txt)->not->toContain('ADMIT ONE')
+        ->and($txt)->toContain('EPISODE: Down the Rabbit Hole')
+        ->and($txt)->toContain('SEASON: 1')
+        ->and($txt)->toContain('NUMBER: 3')
+        ->and($txt)->toContain('DATE  : 13 Sep 2026')
+        ->and($txt)->toContain('RATED: 8 out of 10')
+        ->and($txt)->toContain('No. '.str_pad((string) $episode->id, 10, '0', STR_PAD_LEFT))
+        ->and($txt)->toContain('TAYLORDRAYSON');
 });
 
-it('omits the rating row when a TV episode carries no rating', function () {
+it('keeps every line the same width as its declared ticket width', function () {
+    $episode = TvEpisode::factory()->create(['occurred_at' => '2026-09-13 20:00:00', 'status' => 'published']);
+
+    $data = ExportPresenter::for($episode);
+    $txt = Formats::find($data, ExportFormat::Txt)->render($data);
+
+    $widths = array_map('mb_strwidth', explode("\n", trim($txt)));
+
+    expect(array_unique($widths))->toHaveCount(1);
+});
+
+it('widens the ticket rather than truncating a show name too long for the default width', function () {
+    $show = TvShow::factory()->create(['title' => 'A Show With A Genuinely Very Long Title That Keeps On Going']);
+    $episode = TvEpisode::factory()->create(['tv_show_id' => $show->id, 'occurred_at' => '2026-09-13 20:00:00', 'status' => 'published']);
+
+    $data = ExportPresenter::for($episode);
+    $txt = Formats::find($data, ExportFormat::Txt)->render($data);
+
+    $widths = array_map('mb_strwidth', explode("\n", trim($txt)));
+
+    expect($txt)->toContain(mb_strtoupper($show->title))
+        ->and(array_unique($widths))->toHaveCount(1)
+        ->and($widths[0])->toBeGreaterThan(TvEpisodeSheet::WIDTH);
+});
+
+it('omits the rating from the paired row, but keeps the date, when a TV episode carries no rating', function () {
     $episode = TvEpisode::factory()->create([
         'occurred_at' => '2026-09-13 20:00:00',
         'rating' => null,
@@ -39,5 +67,16 @@ it('omits the rating row when a TV episode carries no rating', function () {
     $data = ExportPresenter::for($episode);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    expect($txt)->not->toContain('RATING');
+    expect($txt)->not->toContain('out of 10')
+        ->and($txt)->toContain('DATE  :');
+});
+
+it('renders the same barcode for the same episode every time', function () {
+    $episode = TvEpisode::factory()->create(['occurred_at' => '2026-09-13 20:00:00', 'status' => 'published']);
+
+    $data = ExportPresenter::for($episode);
+    $first = Formats::find($data, ExportFormat::Txt)->render($data);
+    $second = Formats::find($data, ExportFormat::Txt)->render($data);
+
+    expect($first)->toBe($second);
 });

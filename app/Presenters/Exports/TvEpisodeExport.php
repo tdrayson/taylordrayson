@@ -40,9 +40,12 @@ final class TvEpisodeExport
             fields: array_values(array_filter([
                 ExportField::maybe('episode', 'Episode', $model->title, $model->title),
                 ExportField::maybe('show', 'Show', $show, $show),
+                ExportField::maybe('date', 'Date', $model->occurred_at?->format('d M Y')),
                 ExportField::maybe('season', 'Season', $model->meta->season === null ? null : (string) $model->meta->season, $model->meta->season),
                 ExportField::maybe('number', 'Number', $model->meta->episode === null ? null : (string) $model->meta->episode, $model->meta->episode),
                 ExportField::maybe('rating', 'Rating', $model->rating === null ? null : "{$model->rating} out of 10", $model->rating),
+                ExportField::maybe('owner', 'Name', config('identity.name')),
+                ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
             ])),
             links: [
                 ...array_values(array_filter([
