@@ -25,12 +25,7 @@ class EntryExportController extends Controller
             throw new NotFoundHttpException;
         }
 
-        $dataset = Datasets::forModel($model);
-
-        // Not every type has an export presenter yet; a type without one is
-        // no different from an unsupported extension, so it 404s rather than
-        // reaching ExportPresenter's undefined-method error.
-        if ($dataset === null || ! method_exists($dataset, 'export')) {
+        if (Datasets::forModel($model) === null) {
             throw new NotFoundHttpException;
         }
 
