@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { cn } from '../../lib/cn.js';
-import { READONLY } from '../../lib/editor/control.js';
+import { CONTROL, READONLY } from '../../lib/editor/control.js';
 import Icon from './Icon.vue';
 
 defineOptions({ inheritAttrs: false });
@@ -10,10 +10,15 @@ const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
     options: { type: Array, required: true }, // [{ value, label }]
     placeholder: { type: String, default: null },
-    // 'boxed' is the form control. 'bare' drops the border, background and
-    // width so the select sits in a line of text as just a word and a chevron.
+    // 'boxed' is the form control, shaped like every other one. 'bare' drops
+    // the border, background and width so the select sits in a line of text as
+    // just a word and a chevron.
     variant: { type: String, default: 'boxed' },
+    // The server refused this field, so it is drawn the way a bad input is.
     invalid: { type: Boolean, default: false },
+    // Whether the placeholder row can be chosen again, which is how an
+    // optional field is emptied after something has been picked.
+    clearable: { type: Boolean, default: false },
     readonly: { type: Boolean, default: false },
     // 'md' is the current boxed control. 'sm' is a compact toolbar variant; ignored by 'bare'.
     size: { type: String, default: 'md' },
@@ -24,6 +29,11 @@ const emit = defineEmits(['update:modelValue']);
 
 // True for the inline, chrome-free variant used inside a line of text.
 const isBare = computed(() => props.variant === 'bare');
+
+// Nothing chosen yet reads as the placeholder row, greyed like a placeholder. An
+// empty value with no placeholder is a real option, so it stays dark.
+const showsPlaceholder = computed(() => Boolean(props.placeholder)
+    && (props.modelValue === null || props.modelValue === undefined || props.modelValue === ''));
 
 // Boxed border colour swaps to red when the field failed validation, or stays neutral when read-only.
 const boxedBorder = computed(() => {
@@ -37,15 +47,15 @@ const boxedBorder = computed(() => {
 // Boxed sizing: 'sm' sizes to its content for toolbars and keeps a focus ring,
 // red when invalid, since a border-colour change alone is too subtle at that size.
 const boxedSize = computed(() => (props.size === 'sm'
-    ? cn('w-auto rounded-md border py-1 pl-2 pr-7 focus-visible:ring-2', props.invalid ? 'focus-visible:ring-red-500' : 'focus-visible:ring-accent-500')
-    : 'w-full min-h-11 rounded-md border py-2.5 pl-3 pr-9'));
+    ? cn('w-auto rounded-md border bg-neutral-0 py-1 pl-2 pr-7 text-sm transition-colors focus-visible:ring-2', props.invalid ? 'focus-visible:ring-red-500' : 'focus-visible:ring-accent-500')
+    : cn(CONTROL, 'pr-9')));
 
 // Final class list for the <select>, merged so a caller's class can override ours.
 const selectClasses = computed(() => cn(
     isBare.value
         ? 'appearance-none bg-transparent pr-5 text-sm font-medium focus:outline-none focus-visible:underline focus-visible:underline-offset-4'
-        : cn('w-full appearance-none bg-neutral-0 text-sm transition-colors focus:outline-none', boxedBorder.value, boxedSize.value),
-    props.placeholder && props.modelValue === '' ? 'text-neutral-500' : 'text-neutral-900',
+        : cn('appearance-none focus:outline-none', boxedSize.value, boxedBorder.value),
+    showsPlaceholder.value ? 'text-neutral-500' : 'text-neutral-900',
     isBare.value && ! props.readonly && 'cursor-pointer transition-colors hover:text-accent-500',
     props.readonly && (isBare.value ? 'cursor-default' : READONLY),
     props.class,
@@ -93,7 +103,7 @@ const iconClass = computed(() => {
             @keydown="guardInteraction"
             @change="onChange"
         >
-            <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
+            <option v-if="placeholder" value="" :disabled="! clearable">{{ placeholder }}</option>
             <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
         </select>
         <Icon name="ArrowDown01Icon" :class="iconClass" />
