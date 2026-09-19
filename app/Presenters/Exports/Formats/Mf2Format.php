@@ -52,7 +52,7 @@ final class Mf2Format extends Format
         $properties = [
             'url' => [$data->url],
             'uid' => [$data->url],
-            'author' => [$this->representativeCard()],
+            'author' => [$this->bareAuthor()],
         ];
 
         // A note is content with no name of its own, which is how a reader
@@ -99,11 +99,30 @@ final class Mf2Format extends Format
     }
 
     /**
+     * The entry's nested p-author, matching AuthorRef.vue exactly: a bare
+     * h-card carrying only a name and the site root, nothing else. The full
+     * details live once, on the representative h-card below; a parser
+     * resolves this to that card by matching the url, the same IndieWeb
+     * authorship pattern the page itself uses.
+     *
+     * @return array{type: array<int, string>, properties: array<string, array<int, string>>}
+     */
+    private function bareAuthor(): array
+    {
+        return [
+            'type' => ['h-card'],
+            'properties' => [
+                'name' => [config('identity.name')],
+                'url' => [$this->siteUrl()],
+            ],
+        ];
+    }
+
+    /**
      * The owner's h-card, read from config/identity.php: the same source
      * ProfileCard.vue and app.blade.php render from, so a parse of the page
-     * and this export describe one identity. Used both as the entry's
-     * p-author and as a second top-level item, matching the sidebar
-     * ProfileCard a page parse also yields.
+     * and this export describe one identity. The only place the full
+     * details (photo, note) appear; the entry's nested author stays bare.
      *
      * @return array{type: array<int, string>, properties: array<string, array<int, mixed>>}
      */

@@ -33,6 +33,29 @@ it('renders an h-entry with the properties a parser expects', function () {
         ->and($mf2['rel-urls'][$jsonUrl]['type'])->toBe('application/json; charset=utf-8');
 });
 
+// AuthorRef.vue renders a bare h-card (name + site root, nothing else) inside
+// the entry; the full details live once, on the representative h-card below.
+// Carrying both would put the same card in the document twice.
+it('nests a bare author on the h-entry, with the full card only as a second top-level item', function () {
+    $data = ExportPresenter::for(krkToLgw());
+    $mf2 = json_decode(Formats::find($data, ExportFormat::Mf2)->render($data), true);
+
+    $author = $mf2['items'][0]['properties']['author'][0];
+    $card = $mf2['items'][1];
+
+    expect($author['type'])->toBe(['h-card'])
+        ->and($author['properties'])->toBe([
+            'name' => ['Taylor Drayson'],
+            'url' => [config('app.url').'/'],
+        ])
+        ->and($card['type'])->toBe(['h-card'])
+        ->and($card['properties']['photo'][0]['value'])->toContain('taylor-cutout.png')
+        ->and($card['properties']['name'][0])->toBe('Taylor Drayson')
+        ->and($card['properties']['url'])->toBe([config('app.url').'/', 'https://github.com/tdrayson'])
+        ->and($card['properties']['uid'][0])->toBe(config('app.url').'/')
+        ->and($card['properties']['note'][0])->toBe(config('identity.bio'));
+});
+
 // The distinction a parser uses to tell a note from an article: Entry.vue
 // withholds p-name for the same reason, and the two must not disagree.
 it('omits p-name for a note, matching the page', function () {
