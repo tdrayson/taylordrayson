@@ -38,13 +38,12 @@ it('publishes a page with no fields, only its title, excerpt and body', function
         ->and($export->body)->toBe($page->content);
 });
 
-it('offers neither sql, geojson nor ics for a page, since it has no fields or aspects', function () {
+it('offers neither geojson nor ics for a page, since it has no aspects', function () {
     $page = Page::factory()->create(['status' => 'published']);
 
     $formats = array_keys(Formats::for(ExportPresenter::for($page)));
 
-    expect($formats)->not->toContain('sql')
-        ->not->toContain('geojson')
+    expect($formats)->not->toContain('geojson')
         ->not->toContain('ics');
 });
 

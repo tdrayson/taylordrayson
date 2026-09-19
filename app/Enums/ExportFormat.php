@@ -13,16 +13,15 @@ enum ExportFormat: string
     case Txt = 'txt';
     case Md = 'md';
     case Mf2 = 'mf2';
-    case Sql = 'sql';
     case Ics = 'ics';
     case GeoJson = 'geojson';
 
     /**
-     * A `text/*` subtype for `.yaml` and `.sql`, not `application/*`: a
-     * browser renders any `text/*` response inline rather than downloading
-     * it, the same reason `.md` is `text/markdown` rather than
-     * `application/markdown`. Neither has a consumer that dispatches on its
-     * type, so being readable in a browser is the whole point.
+     * A `text/*` subtype for `.yaml`, not `application/*`: a browser renders
+     * any `text/*` response inline rather than downloading it, the same
+     * reason `.md` is `text/markdown` rather than `application/markdown`.
+     * Neither has a consumer that dispatches on its type, so being readable
+     * in a browser is the whole point.
      *
      * Every entry declares `charset=utf-8` explicitly, even where a spec
      * (RFC 8259 for JSON) already implies it: without it a browser guesses
@@ -36,7 +35,6 @@ enum ExportFormat: string
             self::Txt => 'text/plain; charset=utf-8',
             self::Md => 'text/markdown; charset=utf-8',
             self::Mf2 => 'application/mf2+json; charset=utf-8',
-            self::Sql => 'text/x-sql; charset=utf-8',
             self::Ics => 'text/calendar; charset=utf-8',
             self::GeoJson => 'application/geo+json; charset=utf-8',
         };
@@ -50,7 +48,6 @@ enum ExportFormat: string
             self::Txt => 'Plain text',
             self::Md => 'Markdown',
             self::Mf2 => 'Microformats',
-            self::Sql => 'SQL',
             self::Ics => 'Calendar',
             self::GeoJson => 'GeoJSON',
         };
@@ -65,7 +62,6 @@ enum ExportFormat: string
             self::Txt => 'Printed',
             self::Md => 'The source',
             self::Mf2 => 'Microformats',
-            self::Sql => 'The INSERT that made it',
             self::Ics => 'Add to calendar',
             self::GeoJson => 'The route',
         };

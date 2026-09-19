@@ -17,7 +17,6 @@ final class Formats
             new JsonFormat,
             new YamlFormat,
             new MarkdownFormat,
-            new SqlFormat,
             new GeoJsonFormat,
             new IcsFormat,
             new Mf2Format,

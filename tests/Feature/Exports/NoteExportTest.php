@@ -21,13 +21,12 @@ it('publishes a note with no fields, only its body', function () {
     expect($links)->toContain('type', 'day');
 });
 
-it('offers no sql for a note, since an empty field list has no row to print', function () {
+it('offers neither geojson nor ics for a note, since it has no aspects', function () {
     $note = Note::factory()->create(['occurred_at' => '2026-09-13 07:00:00', 'status' => 'published']);
 
     $formats = array_keys(Formats::for(ExportPresenter::for($note)));
 
-    expect($formats)->not->toContain('sql')
-        ->not->toContain('geojson')
+    expect($formats)->not->toContain('geojson')
         ->not->toContain('ics');
 });
 

@@ -13,7 +13,7 @@ it('offers only the formats built so far for a flight', function () {
     $available = array_keys(Formats::for(ExportPresenter::for(krkToLgw())));
 
     expect($available)->toContain('json', 'yaml')
-        ->and($available)->not->toContain('txt', 'md', 'mf2', 'sql', 'ics', 'geojson');
+        ->and($available)->not->toContain('txt', 'md', 'mf2', 'ics', 'geojson');
 });
 
 it('renders a flight as json carrying both display and raw', function () {

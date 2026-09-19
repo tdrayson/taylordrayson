@@ -45,11 +45,16 @@ it('serves an entry as json at its own url plus an extension', function () {
         ->assertJsonPath('type', 'flight');
 });
 
-it('serves yaml and sql as readable text, not a download', function () {
+it('serves yaml as readable text, not a download', function () {
     $flight = krkToLgw();
 
     $this->get($flight->url().'.yaml')->assertOk()->assertHeader('content-type', 'text/yaml; charset=UTF-8');
-    $this->get($flight->url().'.sql')->assertOk()->assertHeader('content-type', 'text/x-sql; charset=UTF-8');
+});
+
+it('404s a sql export, since the format has been dropped', function () {
+    $flight = krkToLgw();
+
+    $this->get($flight->url().'.sql')->assertNotFound();
 });
 
 it('no longer lists other formats in the response, since the head and footer alternates cover that', function () {
@@ -99,12 +104,6 @@ it('404s a locked geojson and ics export rather than carrying the aspects throug
 
     $this->get($flight->url().'.geojson')->assertNotFound();
     $this->get($flight->url().'.ics')->assertNotFound();
-});
-
-it('404s a locked sql export', function () {
-    $flight = privateKrkToLgw();
-
-    $this->get($flight->url().'.sql')->assertNotFound();
 });
 
 it('keeps a private entry export out of shared caches', function () {
