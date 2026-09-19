@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Support\LookupCsv;
+use App\Models\Concerns\HasLookupCsv;
 use Database\Factories\AirportFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Sushi\Sushi;
 
 #[Fillable([
     'iata_code',
@@ -24,7 +23,7 @@ class Airport extends Model
     /** @use HasFactory<AirportFactory> */
     use HasFactory;
 
-    use Sushi;
+    use HasLookupCsv;
 
     public $timestamps = false;
 
@@ -49,35 +48,14 @@ class Airport extends Model
      */
     protected $appends = ['place'];
 
-    /**
-     * @return list<array<string, string|null>>
-     */
-    public function getRows(): array
-    {
-        if (app()->environment('testing')) {
-            return [];
-        }
-
-        return LookupCsv::from($this->lookupPath());
-    }
-
-    /**
-     * Caching stays off under test. A cached empty row set would be written to
-     * the shared cache file and later served to dev as real data.
-     */
-    protected function sushiShouldCache(): bool
-    {
-        return ! app()->environment('testing');
-    }
-
-    protected function sushiCacheReferencePath(): string
-    {
-        return $this->lookupPath();
-    }
-
-    private function lookupPath(): string
+    protected function lookupPath(): string
     {
         return database_path('lookups/airports.csv');
+    }
+
+    protected function lookupKey(): string
+    {
+        return 'iata_code';
     }
 
     /**
