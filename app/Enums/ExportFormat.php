@@ -35,7 +35,7 @@ enum ExportFormat: string
             self::Txt => 'text/plain; charset=utf-8',
             self::Md => 'text/markdown; charset=utf-8',
             self::Mf2 => 'application/mf2+json; charset=utf-8',
-            self::Ics => 'text/calendar; charset=utf-8',
+            self::Ics => 'text/plain; charset=utf-8',
             self::GeoJson => 'application/geo+json; charset=utf-8',
         };
     }

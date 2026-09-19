@@ -8,7 +8,7 @@ it('advertises every supported format in the head', function () {
     $page = visit($flight->url())->assertPresent('link[rel="alternate"][type="application/json; charset=utf-8"]');
 
     $page->assertPresent('link[rel="alternate"][type="application/geo+json; charset=utf-8"]')
-        ->assertPresent('link[rel="alternate"][type="text/calendar; charset=utf-8"]');
+        ->assertPresent('link[rel="alternate"][type="text/plain; charset=utf-8"]');
 });
 
 it('does not advertise a format the entry cannot serve', function () {
