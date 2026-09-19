@@ -28,7 +28,7 @@ final class SqlFormat extends Format
     {
         $table = $this->table($data);
         $columns = array_map(fn (ExportField $field): string => $field->key, $data->fields);
-        $values = array_map(fn (ExportField $field): string => $this->literal($field->raw), $data->fields);
+        $values = array_map(fn (ExportField $field): string => $this->value($field), $data->fields);
 
         $lines = ["-- {$data->url}"];
 
@@ -37,6 +37,7 @@ final class SqlFormat extends Format
         }
 
         $lines[] = '';
+        $lines[] = "-- columns are the export's published fields, not the {$table} table's schema";
         $lines[] = "INSERT INTO {$table} (".implode(', ', $columns).')';
         $lines[] = 'VALUES ('.implode(', ', $values).');';
 
@@ -50,13 +51,18 @@ final class SqlFormat extends Format
         return $model === null ? $data->typeValue() : (new $model)->getTable();
     }
 
+    /** A structured `raw` (an airport, a route) is not a plausible column value, so the display string stands in for it. */
+    private function value(ExportField $field): string
+    {
+        return $this->literal(is_array($field->raw) ? $field->display : $field->raw);
+    }
+
     private function literal(mixed $raw): string
     {
         return match (true) {
             $raw === null => 'NULL',
             is_bool($raw) => $raw ? 'TRUE' : 'FALSE',
             is_int($raw), is_float($raw) => (string) $raw,
-            is_array($raw) => "'".str_replace("'", "''", json_encode($raw, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))."'",
             default => "'".str_replace("'", "''", (string) $raw)."'",
         };
     }

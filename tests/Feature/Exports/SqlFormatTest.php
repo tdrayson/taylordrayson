@@ -15,7 +15,30 @@ it('renders a flight as the insert that made it', function () {
     expect($sql)->toContain('INSERT INTO flights')
         ->and($sql)->toContain('distance')
         ->and($sql)->toContain('1409785')
-        ->and($sql)->not->toContain('password');
+        ->and($sql)->not->toContain('password')
+        ->and($sql)->toContain("-- columns are the export's published fields, not the flights table's schema");
+});
+
+it('renders a structured field by its display string, not a json blob', function () {
+    $data = new ExportData(
+        type: TimelineType::Note,
+        url: 'https://example.test/x',
+        title: 'A note',
+        summary: null,
+        occurred: null,
+        fields: [
+            ExportField::make('place', 'Place', 'Kraków John Paul II International Airport (KRK)', ['iata' => 'KRK', 'lat' => 50.077702]),
+            ExportField::make('distance', 'Distance', '876 miles', 1409785),
+        ],
+        links: [],
+    );
+
+    $sql = (new SqlFormat)->render($data, []);
+
+    expect($sql)->toContain("'Kraków John Paul II International Airport (KRK)'")
+        ->and($sql)->not->toContain('"iata"')
+        ->and($sql)->toContain('1409785')
+        ->and($sql)->not->toContain('876 miles');
 });
 
 it('escapes a quote rather than breaking out of the string', function () {
