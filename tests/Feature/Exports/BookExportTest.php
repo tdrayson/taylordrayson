@@ -29,6 +29,19 @@ it('publishes a book as labelled fields in order', function () {
         ->and($export->field('started')->raw)->toBe('2026-08-01T09:00:00+00:00');
 });
 
+it('rounds progress to a whole percent for display while raw keeps the exact float', function () {
+    $book = Book::factory()->create([
+        'occurred_at' => '2026-09-13 22:00:00',
+        'progress_percent' => 12.287,
+        'status' => 'published',
+    ]);
+
+    $field = ExportPresenter::for($book)->field('progress');
+
+    expect($field->display)->toBe('12%')
+        ->and($field->raw)->toBe(12.287);
+});
+
 it('offers neither geojson nor ics for a book', function () {
     $book = Book::factory()->create(['occurred_at' => '2026-09-13 22:00:00', 'status' => 'published']);
 
