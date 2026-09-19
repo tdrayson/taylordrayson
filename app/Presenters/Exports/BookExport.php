@@ -9,6 +9,7 @@ use App\Enums\TimelineType;
 use App\Models\Book;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\BookSheet;
 
 /**
  * A book as an export: what was read, its rating and progress. No aspects: a
@@ -16,6 +17,11 @@ use App\Presenters\EntryDescription;
  */
 final class BookExport
 {
+    public function sheet(): BookSheet
+    {
+        return new BookSheet;
+    }
+
     public function present(Book $model): ExportData
     {
         $card = CardPresenter::for($model);
