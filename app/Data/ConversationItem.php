@@ -125,6 +125,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: null,
             sourceUrl: $source->url(),
             emoji: null,
+            // Not matched on an address like a comment is: the source is an
+            // entry of mine, so there is no other author it could have.
+            mine: true,
         );
     }
 

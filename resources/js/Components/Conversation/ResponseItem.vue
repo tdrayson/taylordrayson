@@ -17,10 +17,6 @@ const props = defineProps({
 defineEmits(['reply']);
 
 /**
- * What each kind did, as an icon and a phrase. A comment gets no phrase: it is
- * the ordinary case, and saying "commented" under every one is noise.
- */
-/**
  * Each kind finishes the sentence its byline starts: "Jo Bloggs replied on
  * Thursday 3 September", with the source's title sitting between the two when
  * there is one.
