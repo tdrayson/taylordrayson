@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
-import { useDismissable } from '../../lib/editor/dismissable';
+import { useDismissable } from '../../composables/useDismissable.js';
 
 /**
  * A callout while the editor is open. Draws the panel the reader will see, and

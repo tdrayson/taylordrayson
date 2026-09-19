@@ -2,8 +2,8 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 /**
  * One popup open at a time, closing on outside click and on Escape. Shared by
- * every field that opens something, which would otherwise stack panels with no
- * way to tell which one the keyboard is talking to.
+ * every trigger that opens a panel, which would otherwise stack with no way to
+ * tell which one the keyboard is talking to.
  */
 let openId = ref(null);
 let nextId = 0;
