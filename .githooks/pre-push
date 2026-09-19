@@ -1,0 +1,13 @@
+#!/bin/sh
+# Enable once per clone: git config core.hooksPath .githooks
+# Skip a single push with: git push --no-verify
+
+fail() {
+    printf '\npre-push: %s failed. Push aborted, or repush with --no-verify.\n' "$1" >&2
+    exit 1
+}
+
+vendor/bin/pint --test --dirty || fail 'Pint (fix with: vendor/bin/pint --dirty)'
+
+# Browser tests want a Vite build and Playwright, too slow for a push gate.
+php artisan test --compact --testsuite=Unit,Feature || fail 'Tests'

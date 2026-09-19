@@ -22,6 +22,9 @@
         </include>
     </source>
     <php>
+        <!-- The suite exhausts PHP's default 128M partway through tests/Feature;
+             image work (Intervention, spatie/image-optimizer) is the peak. -->
+        <ini name="memory_limit" value="2G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
