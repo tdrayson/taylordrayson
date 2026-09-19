@@ -15,6 +15,7 @@ use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
+use App\Http\Controllers\NowExportController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PageExportController;
@@ -114,6 +115,11 @@ Route::get('/stories/{story}', [StoryController::class, 'show'])->name('stories.
 
 // Now
 Route::get('/now', [NowController::class, 'index'])->name('now');
+
+// /now's export, registered directly above it and above the page catch-all:
+// a content page slugged "now" would otherwise shadow this route.
+Route::get('/now.{format}', NowExportController::class)
+    ->where('format', ExportFormat::pattern())->name('now.export');
 
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
