@@ -1,4 +1,6 @@
 <script setup>
+import Eyebrow from '../Ui/Eyebrow.vue';
+
 defineProps({
     fill: { type: Boolean, default: false },
     title: { type: String, required: true },
@@ -16,15 +18,15 @@ const onCoverError = (event) => {
 
 <template>
     <div class="@container relative overflow-hidden rounded-3xl bg-neutral-0 shadow-card" :class="{ 'aspect-2/1': !fill }">
-        <div class="absolute left-1/20 -bottom-1/10 z-2 aspect-2/3 w-1/3 origin-bottom -rotate-5 animate-book-in overflow-hidden rounded shadow-2xl motion-reduce:animate-none @xl:rounded-sm">
-            <div class="absolute inset-0 flex items-center justify-center bg-linear-150 from-neutral-100 to-neutral-50 p-2 text-center">
-                <span class="text-eyebrow uppercase text-neutral-400">Cover</span>
+        <div class="absolute left-1/20 -bottom-1/10 z-2 aspect-2/3 w-3/10 origin-bottom -rotate-5 animate-book-in rounded-sm shadow-2xl motion-reduce:animate-none">
+            <div class="absolute inset-0 flex items-center justify-center rounded-sm bg-linear-150 from-neutral-100 to-neutral-50 p-2 text-center">
+                <Eyebrow as="span" class="text-neutral-400">Cover</Eyebrow>
             </div>
-            <img v-if="cover" class="absolute inset-0 z-1 size-full object-cover" :src="cover" alt="" @error="onCoverError" />
+            <img v-if="cover" class="absolute inset-0 z-1 size-full rounded-sm object-cover" :src="cover" alt="" @error="onCoverError" />
         </div>
 
         <div class="absolute inset-y-0 right-1/20 left-9/20 z-3 flex flex-col justify-center">
-            <div class="text-eyebrow tracking-wide text-neutral-500 @md:text-xs @xl:text-sm">
+            <div class="text-2xs font-bold tracking-wide text-neutral-500 @md:text-xs @xl:text-sm">
                 {{ finished ? 'Last read' : 'Currently reading' }}
             </div>
             <h2 class="mt-1 line-clamp-2 text-base leading-tight font-extrabold tracking-tight text-neutral-900 @sm:text-xl @md:mt-2 @md:line-clamp-3 @md:text-2xl @xl:mt-2.5 @xl:text-3xl">

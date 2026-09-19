@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import Eyebrow from './Eyebrow.vue';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 import { useMounted } from '../../composables/useMounted';
@@ -152,7 +153,7 @@ onBeforeUnmount(() => {
             <li v-for="item in items" :key="item.id">
                 <a
                     :href="`#${item.id}`"
-                    class="-ml-px block w-full border-l-2 py-1.5 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
+                    class="-ml-px block w-full border-l-2 py-1.5 text-left text-xs transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
                     :class="[
                         activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
                         item.level >= 3 ? 'pl-8' : 'pl-4',
@@ -171,11 +172,11 @@ onBeforeUnmount(() => {
                 v-if="items.length && scrolled"
                 class="flex items-stretch overflow-hidden rounded-full bg-black/60 text-white shadow-card ring-1 ring-white/10 backdrop-blur-xl"
             >
-                <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="toTop">
+                <button type="button" class="flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-white/10" @click="toTop">
                     <Icon name="ArrowUp01Icon" class="size-4" /> Top
                 </button>
                 <span class="w-px bg-white/15" />
-                <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="open = true">
+                <button type="button" class="flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-white/10" @click="open = true">
                     <Icon name="Menu01Icon" class="size-4" /> Contents
                 </button>
             </div>
@@ -197,7 +198,7 @@ onBeforeUnmount(() => {
                 <div class="absolute inset-0 bg-black/50" @click="open = false" />
                 <div class="relative max-h-svh overflow-y-auto rounded-t-2xl bg-neutral-0 p-5 pb-8">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-label uppercase text-neutral-500">Contents</h2>
+                        <Eyebrow as="h2" class="text-neutral-500">Contents</Eyebrow>
                         <button type="button" class="text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close contents" @click="open = false">
                             <Icon name="Cancel01Icon" class="size-5" />
                         </button>
@@ -213,8 +214,8 @@ onBeforeUnmount(() => {
                                 ]"
                                 @click="onItemClick($event, item.id)"
                             >
-                                <span v-if="item.number" class="text-label tabular-nums text-neutral-400">{{ item.number }}</span>
-                                <span class="text-meta" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
+                                <span v-if="item.number" class="text-2xs font-semibold tabular-nums text-neutral-400">{{ item.number }}</span>
+                                <span class="text-sm" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
                             </a>
                         </li>
                     </ul>

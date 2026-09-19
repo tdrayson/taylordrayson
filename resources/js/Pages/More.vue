@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
 import SectionHead from '../Components/Ui/SectionHead.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import { entryTypes, timelineTypes } from '../entryTypes.js';
 import { number } from '../lib/format.js';
 
@@ -13,6 +14,7 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 defineProps({
     // [{ type, label, href, count }] straight from the TypeRegistry.
     tracked: { type: Array, default: () => [] },
+    total: { type: Number, default: 0 },
     og: { type: Object, default: () => ({}) },
 });
 
@@ -41,14 +43,14 @@ const site = [
     <AppHead title="More" :og="og" />
 
     <header>
-        <h1 class="max-w-2xl font-display text-display">More</h1>
-        <p class="mt-3 max-w-prose text-body text-lg text-neutral-700">
+        <Heading as="h1" size="display" class="max-w-2xl">More</Heading>
+        <p class="mt-3 max-w-prose text-lg text-neutral-700">
             Everything on this site that doesn't live in the sidebar: the full index of what I track, and the pages around it.
         </p>
     </header>
 
     <section>
-        <SectionHead title="What I track" :meta="`${tracked.length} types`" />
+        <SectionHead title="What I track" :meta="`${tracked.length} types, ${number(total)} entries`" />
         <ul class="grid gap-x-24 sm:grid-cols-2">
             <li v-for="item in tracked" :key="item.type">
                 <Link
@@ -60,7 +62,7 @@ const site = [
                         <Icon :icon="entryTypes[item.type]?.icon" class="size-5" />
                     </span>
                     <span class="font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ item.label }}</span>
-                    <span class="ml-auto text-meta text-neutral-500 tabular-nums">{{ countLabel(item) }}</span>
+                    <span class="ml-auto text-sm text-neutral-500 tabular-nums">{{ countLabel(item) }}</span>
                 </Link>
             </li>
         </ul>
@@ -79,7 +81,7 @@ const site = [
                     </span>
                     <span class="min-w-0">
                         <span class="block font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ item.label }}</span>
-                        <span class="block truncate text-meta text-neutral-500">{{ item.description }}</span>
+                        <span class="block truncate text-sm text-neutral-500">{{ item.description }}</span>
                     </span>
                 </Link>
             </li>

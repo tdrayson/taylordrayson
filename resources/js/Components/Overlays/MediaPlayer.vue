@@ -308,11 +308,11 @@ onBeforeUnmount(() => {
                     <component
                         :is="player.track.url ? Link : 'div'"
                         :href="player.track.url || undefined"
-                        class="block truncate text-meta font-semibold text-neutral-900"
+                        class="block truncate text-sm font-semibold text-neutral-900"
                         :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
                     <div class="mt-1 flex items-center gap-2">
-                        <span class="text-label text-neutral-500 tabular-nums">{{ clock(currentTime) }}</span>
+                        <span class="text-2xs font-semibold text-neutral-500 tabular-nums">{{ clock(currentTime) }}</span>
                         <div
                             class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 transition-colors hover:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
                             role="slider"
@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
                         >
                             <div class="absolute inset-y-0 left-0 rounded-full bg-accent-500" :style="{ width: progress + '%' }" />
                         </div>
-                        <span class="text-label text-neutral-500 tabular-nums">{{ clock(duration) }}</span>
+                        <span class="text-2xs font-semibold text-neutral-500 tabular-nums">{{ clock(duration) }}</span>
                     </div>
                 </div>
                 <button type="button" class="shrink-0 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close player" @click="closePlayer">
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
                     <component
                         :is="player.track.url ? Link : 'span'"
                         :href="player.track.url || undefined"
-                        class="truncate text-caption font-semibold text-neutral-900"
+                        class="truncate text-xs font-semibold text-neutral-900"
                         :class="player.track.url ? 'transition-colors hover:text-accent-500 focus-visible:text-accent-500' : ''"
                     >{{ player.track.title }}</component>
                 </div>

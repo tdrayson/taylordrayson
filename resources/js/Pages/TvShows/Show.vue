@@ -10,6 +10,8 @@ import SectionHead from '../../Components/Ui/SectionHead.vue';
 import TvShowStats from '../../Components/Ui/TvShowStats.vue';
 import WatchDateGroup from '../../Components/Ui/WatchDateGroup.vue';
 import EntryHero from '../../Components/Ui/EntryHero.vue';
+import Eyebrow from '../../Components/Ui/Eyebrow.vue';
+import Stat from '../../Components/Ui/Stat.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -71,10 +73,10 @@ setLayoutProps({
         </div>
 
         <div class="min-w-0 flex-1">
-            <span class="text-eyebrow uppercase" :style="accentStyle">TV</span>
-            <h1 :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-display'">{{ show.title }}</h1>
+            <Eyebrow as="span" :style="accentStyle">TV</Eyebrow>
+            <h1 :class="titleInHero ? 'sr-only' : 'mt-1 max-w-2xl font-display text-5xl font-extrabold tracking-tight'">{{ show.title }}</h1>
 
-            <div v-if="show.year || show.network" class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-neutral-500">
+            <div v-if="show.year || show.network" class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-500">
                 <span v-if="show.year">{{ show.year }}</span>
                 <span v-if="show.network">{{ show.network }}</span>
             </div>
@@ -92,23 +94,23 @@ setLayoutProps({
 
     <div v-if="show.rating" data-testid="tv-show-rating" class="mt-8 flex items-center gap-2">
         <Icon :icon="StarIcon" class="size-5 text-accent-500" />
-        <span class="font-display text-stat tabular-nums">{{ show.rating }}</span>
-        <span class="text-meta text-neutral-500">/ 10</span>
+        <Stat>{{ show.rating }}</Stat>
+        <span class="text-sm text-neutral-500">/ 10</span>
     </div>
 
     <ExternalLink v-if="show.platformUrl" :href="show.platformUrl" label="View on Trakt" class="mt-6" />
 
     <TvShowStats :stats="stats" class="mt-10" />
 
-    <p v-if="show.overview" class="mt-6 max-w-prose text-body text-neutral-700">{{ show.overview }}</p>
+    <p v-if="show.overview" class="mt-6 max-w-prose text-base text-neutral-700">{{ show.overview }}</p>
 
     <section v-if="seasonList.length" data-testid="season-overview" class="mt-4">
         <SectionHead title="Seasons" />
 
         <div class="flex flex-wrap gap-3">
             <div v-for="item in seasonList" :key="item.number" class="w-36 rounded-lg border border-neutral-50 bg-neutral-25 p-3">
-                <p class="truncate text-meta font-medium text-neutral-900">{{ item.name || `Season ${item.number}` }}</p>
-                <p v-if="seasonMeta(item)" class="mt-0.5 text-caption text-neutral-500">{{ seasonMeta(item) }}</p>
+                <p class="truncate text-sm font-medium text-neutral-900">{{ item.name || `Season ${item.number}` }}</p>
+                <p v-if="seasonMeta(item)" class="mt-0.5 text-xs text-neutral-500">{{ seasonMeta(item) }}</p>
             </div>
         </div>
     </section>
@@ -125,5 +127,5 @@ setLayoutProps({
         />
     </section>
 
-    <p v-if="!seasons.length" class="mt-10 text-meta text-neutral-500">No episodes watched yet.</p>
+    <p v-if="!seasons.length" class="mt-10 text-sm text-neutral-500">No episodes watched yet.</p>
 </template>

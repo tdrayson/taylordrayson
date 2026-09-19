@@ -118,11 +118,11 @@ function pick(result) {
             class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             role="listbox"
         >
-            <li v-if="searching && ! results.length" role="presentation" class="px-3 py-2 text-meta text-neutral-500">
+            <li v-if="searching && ! results.length" role="presentation" class="px-3 py-2 text-sm text-neutral-500">
                 Searching...
             </li>
 
-            <li v-else-if="failed" role="presentation" class="px-3 py-2 text-meta text-red-600">
+            <li v-else-if="failed" role="presentation" class="px-3 py-2 text-sm text-red-600">
                 Search is unavailable, so type it in by hand.
             </li>
 
@@ -131,12 +131,12 @@ function pick(result) {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-meta transition-colors"
+                    class="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(result)"
                 >
                     <span class="w-full truncate font-medium">{{ result.label }}</span>
-                    <span v-if="result.detail" class="w-full truncate text-caption text-neutral-500">{{ result.detail }}</span>
+                    <span v-if="result.detail" class="w-full truncate text-xs text-neutral-500">{{ result.detail }}</span>
                 </button>
             </li>
         </ul>

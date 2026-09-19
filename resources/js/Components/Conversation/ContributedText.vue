@@ -111,7 +111,7 @@ const Rendered = () => {
 </script>
 
 <template>
-    <div class="e-content text-body text-neutral-900">
+    <div class="e-content text-base text-neutral-900">
         <Rendered />
     </div>
 </template>

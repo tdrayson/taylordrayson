@@ -3,6 +3,7 @@
 namespace App\Services\Tmdb;
 
 use App\Services\ApiConnector;
+use RuntimeException;
 
 /**
  * The TMDB API v3, used for enrichment only.
@@ -26,6 +27,12 @@ class Connector extends ApiConnector
     /** @return array<string, mixed> */
     protected function defaultQuery(): array
     {
-        return ['api_key' => config('services.tmdb.key')];
+        $key = config('services.tmdb.key');
+
+        if (! is_string($key) || $key === '') {
+            throw new RuntimeException('TMDB key is not configured (TMDB_API_KEY).');
+        }
+
+        return ['api_key' => $key];
     }
 }

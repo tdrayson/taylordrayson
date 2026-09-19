@@ -58,7 +58,7 @@ const lines = computed(() => Math.max(1, props.node.textContent.split('\n').leng
         <div
             v-if="filename || language"
             contenteditable="false"
-            class="flex items-center justify-between gap-3 border-b border-neutral-50 px-4 py-2 text-caption"
+            class="flex items-center justify-between gap-3 border-b border-neutral-50 px-4 py-2 text-xs"
         >
             <span class="min-w-0 truncate text-neutral-700">{{ filename }}</span>
             <span class="shrink-0 uppercase tracking-wide text-neutral-500">

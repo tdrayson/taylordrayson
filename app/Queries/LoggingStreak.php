@@ -8,11 +8,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * How many days in a row I have logged what I ate, counting back from today.
+ * How many days in a row I have logged what I ate, counting back from the most
+ * recent logged day.
  *
- * Today is allowed to be empty without breaking the run: the count is a
- * property of the days already finished, and a streak should not appear to
- * reset every midnight and restore itself at breakfast.
+ * The count is a property of the days already logged, so neither an empty
+ * today nor a sync running days behind reads as a broken streak.
  */
 final class LoggingStreak
 {
@@ -41,21 +41,20 @@ final class LoggingStreak
             ->toBase()
             ->selectRaw(SqlDate::date('occurred_at').' as day')
             ->distinct()
-            ->pluck('day')
-            ->flip();
+            ->pluck('day');
 
-        if ($logged->isEmpty()) {
+        $today = Carbon::today()->toDateString();
+
+        // The run starts at the last day actually logged, not at today, so a
+        // late sync holds the streak. A future-dated row cannot inflate it.
+        $latest = $logged->filter(fn (string $day): bool => $day <= $today)->max();
+
+        if ($latest === null) {
             return 0;
         }
 
-        $cursor = Carbon::today();
-
-        // Yesterday is the last day that can be judged complete, so an empty
-        // today leaves the run intact rather than ending it.
-        if (! $logged->has($cursor->toDateString())) {
-            $cursor->subDay();
-        }
-
+        $logged = $logged->flip();
+        $cursor = Carbon::parse($latest);
         $days = 0;
 
         while ($logged->has($cursor->toDateString())) {

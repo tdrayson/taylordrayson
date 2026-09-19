@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Support\PortableText;
 use Illuminate\Support\Str;
 
 /**
@@ -160,7 +161,7 @@ final class MentionSearch
                 'group' => 'Notes',
                 'id' => $note->id,
                 'url' => $note->url(),
-                'label' => Str::limit(strip_tags((string) $note->content), 60),
+                'label' => Str::limit(PortableText::plainText($note->content), 60),
                 'detail' => $note->occurred_at?->format('j M Y'),
             ])
             ->all();

@@ -57,7 +57,7 @@ const editor = useEditor({
             'aria-labelledby': props.labelledBy,
             role: 'textbox',
             'aria-multiline': 'true',
-            class: 'prose-comment min-h-24 w-full px-3 py-2 text-meta text-neutral-900 focus:outline-none',
+            class: 'prose-comment min-h-24 w-full px-3 py-2 text-sm text-neutral-900 focus:outline-none',
         },
     },
     onUpdate: ({ editor: instance }) => emit('update:document', fromProseMirror(instance.getJSON())),
@@ -148,11 +148,11 @@ function applyLink() {
                 v-model="href"
                 type="url"
                 placeholder="https://example.com"
-                class="min-w-0 flex-1 rounded border border-neutral-100 bg-neutral-0 px-2 py-1 text-caption text-neutral-900 focus:border-accent-500 focus:outline-none"
+                class="min-w-0 flex-1 rounded border border-neutral-100 bg-neutral-0 px-2 py-1 text-xs text-neutral-900 focus:border-accent-500 focus:outline-none"
                 @keydown.enter.prevent="applyLink"
                 @keydown.escape="linking = false"
             >
-            <button type="button" class="shrink-0 rounded px-2 text-caption text-neutral-700 hover:text-accent-500" @click="applyLink">
+            <button type="button" class="shrink-0 rounded px-2 text-xs text-neutral-700 hover:text-accent-500" @click="applyLink">
                 Apply
             </button>
         </div>
