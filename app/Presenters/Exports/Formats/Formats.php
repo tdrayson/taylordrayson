@@ -18,6 +18,7 @@ final class Formats
             new YamlFormat,
             new MarkdownFormat,
             new SqlFormat,
+            new GeoJsonFormat,
         ];
     }
 
