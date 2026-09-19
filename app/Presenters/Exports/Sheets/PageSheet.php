@@ -6,9 +6,9 @@ use App\Data\ExportData;
 use App\Support\PortableText;
 
 /**
- * A page printed as its typeset page, the same treatment as an article.
- * Reads the export only: title and summary come from the export itself, the
- * body from its Portable Text, so this layout cannot drift from the model.
+ * A page printed as its typeset page: title, a rule, then the body, the
+ * same treatment as an article. Reads the export only: title comes from
+ * the export itself, the body from its Portable Text.
  */
 final class PageSheet
 {
@@ -20,22 +20,8 @@ final class PageSheet
             ...$this->centredBlock($data->title),
             Sheet::rule(self::WIDTH, '='),
             '',
-            ...$this->wrappedBlock($data->summary ?? ''),
-            ...$this->bodyBlock($data),
+            ...$this->wrappedBlock($this->bodyText($data)),
         ]);
-    }
-
-    /**
-     * The body, on a blank line of its own beneath the summary, dropped
-     * entirely when there is nothing to print.
-     *
-     * @return list<string>
-     */
-    private function bodyBlock(ExportData $data): array
-    {
-        $body = $this->wrappedBlock($this->bodyText($data));
-
-        return $body === [] ? [] : ['', ...$body];
     }
 
     private function bodyText(ExportData $data): string
