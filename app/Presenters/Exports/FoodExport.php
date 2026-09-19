@@ -9,6 +9,7 @@ use App\Enums\TimelineType;
 use App\Models\Food;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\FoodSheet;
 use App\Queries\DayFood;
 use Illuminate\Support\Str;
 
@@ -19,6 +20,11 @@ use Illuminate\Support\Str;
  */
 final class FoodExport
 {
+    public function sheet(): FoodSheet
+    {
+        return new FoodSheet;
+    }
+
     public function present(Food $model): ExportData
     {
         $day = app(DayFood::class)($model);
