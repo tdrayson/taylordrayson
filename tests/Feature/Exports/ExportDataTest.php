@@ -83,6 +83,28 @@ it('yields no line string for fewer than two points, so a one-point track has no
         ->and(Geometry::lineString([]))->toBeNull();
 });
 
+it('builds a multi line string from several segments, flipping each to lng, lat', function () {
+    $multi = Geometry::multiLineString([
+        [[0.0, 170.0], [0.0, 179.0]],
+        [[0.0, -179.0], [0.0, -170.0]],
+    ]);
+
+    expect($multi?->toArray())->toBe([
+        'type' => 'MultiLineString',
+        'coordinates' => [
+            [[170.0, 0.0], [179.0, 0.0]],
+            [[-179.0, 0.0], [-170.0, 0.0]],
+        ],
+    ]);
+});
+
+it('drops a degenerate segment from a multi line string and yields null once none are left', function () {
+    expect(Geometry::multiLineString([[[51.5, -0.1], [48.8, 2.3]], [[1.0, 1.0]]]))
+        ->not->toBeNull()
+        ->and(Geometry::multiLineString([[[51.5, -0.1]]]))->toBeNull()
+        ->and(Geometry::multiLineString([]))->toBeNull();
+});
+
 it('yields no moment span when the duration is null or non-positive', function () {
     $start = CarbonImmutable::parse('2026-06-08 10:00:00');
 

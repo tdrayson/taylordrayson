@@ -10,10 +10,13 @@ use App\Presenters\Exports\Formats\GeoJsonFormat;
 it('renders a flight route as a linestring, longitude first', function () {
     $data = ExportPresenter::for(krkToLgw());
     $geo = json_decode(Formats::find($data, ExportFormat::GeoJson)->render($data), true);
+    $coordinates = $geo['geometry']['coordinates'];
 
     expect($geo['type'])->toBe('Feature')
         ->and($geo['geometry']['type'])->toBe('LineString')
-        ->and($geo['geometry']['coordinates'][0])->toBe([19.7848, 50.077702])
+        ->and($coordinates[0])->toBe([19.7848, 50.077702])
+        ->and(end($coordinates))->toBe([-0.192089, 51.148771])
+        ->and(count($coordinates))->toBeGreaterThan(2)
         ->and($geo['properties']['title'])->not->toBeEmpty();
 });
 

@@ -14,6 +14,7 @@ use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\FlightSheet;
 use App\Support\Distance;
+use App\Support\GreatCircle;
 use App\Support\Units;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
@@ -126,16 +127,21 @@ final class FlightExport
         ]));
     }
 
+    /** The great-circle path between the airports, not a straight line, since that's the route actually flown. */
     private function route(Flight $model): ?Geometry
     {
         if ($model->origin?->latitude === null || $model->destination?->latitude === null) {
             return null;
         }
 
-        return Geometry::lineString([
-            [(float) $model->origin->latitude, (float) $model->origin->longitude],
-            [(float) $model->destination->latitude, (float) $model->destination->longitude],
-        ]);
+        $segments = GreatCircle::segments(
+            (float) $model->origin->latitude, (float) $model->origin->longitude,
+            (float) $model->destination->latitude, (float) $model->destination->longitude,
+        );
+
+        return count($segments) === 1
+            ? Geometry::lineString($segments[0])
+            : Geometry::multiLineString($segments);
     }
 
     /** A stored wall-clock string read in its own zone, so the offset is right and DST-aware. */
