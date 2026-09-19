@@ -4,6 +4,7 @@ import { Link, setLayoutProps, usePage } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import Icon from '../Components/Ui/Icon.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
@@ -54,13 +55,13 @@ setLayoutProps({
             <Icon :icon="meta.icon" class="size-6" />
         </span>
         <div class="min-w-0">
-            <Link v-if="parent" :href="parent.href" class="text-eyebrow uppercase transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
-            <h1 class="mt-1 font-display text-display">{{ title }}</h1>
-            <p v-if="subtitle" class="mt-2 text-meta text-neutral-500">{{ subtitle }}</p>
+            <Link v-if="parent" :href="parent.href" class="text-2xs font-semibold uppercase tracking-wider transition-colors hover:text-accent-500 focus-visible:text-accent-500" :style="accentStyle">{{ parent.label }}</Link>
+            <Heading as="h1" size="display" class="mt-1">{{ title }}</Heading>
+            <p v-if="subtitle" class="mt-2 text-sm text-neutral-500">{{ subtitle }}</p>
             <Link
                 v-if="tagLink"
                 :href="tagLink.url"
-                class="mt-3 inline-flex items-center gap-1 text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
+                class="mt-3 inline-flex items-center gap-1 text-sm text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
             >
                 See everything tagged {{ tagLink.name }}
                 <Icon name="ArrowRight01Icon" class="size-4" />
@@ -70,7 +71,7 @@ setLayoutProps({
 
     <template v-if="type === 'flight' && map.length">
         <FlightsMap :routes="map" class="mt-8" />
-        <Link href="/flights/map" class="mt-3 inline-flex items-center gap-1 text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900">
+        <Link href="/flights/map" class="mt-3 inline-flex items-center gap-1 text-sm text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900">
             View on the globe
             <Icon name="ArrowRight01Icon" class="size-4" />
         </Link>
@@ -92,7 +93,7 @@ setLayoutProps({
         />
     </div>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">Nothing here yet.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">Nothing here yet.</p>
 
     <Pagination
         v-if="lastPage > 1"

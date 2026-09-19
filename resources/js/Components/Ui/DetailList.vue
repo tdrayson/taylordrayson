@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import Eyebrow from './Eyebrow.vue';
 
 const props = defineProps({
     rows: { type: Array, default: () => [] },
@@ -30,8 +31,8 @@ const filled = computed(() => props.rows.filter(
             class="flex items-baseline justify-between"
             :class="variant === 'plain' ? 'gap-3' : 'gap-6 py-3'"
         >
-            <dt class="text-label uppercase text-neutral-500" :class="[{ 'pl-4 text-neutral-400': row.sub }, variant === 'plain' ? 'whitespace-nowrap' : '']">{{ row.label }}</dt>
-            <dd class="text-right text-neutral-900 tabular-nums" :class="variant === 'plain' ? 'text-caption' : 'text-meta'">
+            <Eyebrow as="dt" class="text-neutral-500" :class="[{ 'pl-4 text-neutral-400': row.sub }, variant === 'plain' ? 'whitespace-nowrap' : '']">{{ row.label }}</Eyebrow>
+            <dd class="text-right text-neutral-900 tabular-nums" :class="variant === 'plain' ? 'text-xs' : 'text-sm'">
                 <Link
                     v-if="row.href"
                     :href="row.href"

@@ -8,6 +8,7 @@ import { shiftWallClock } from '../../lib/editor/wallClock.js';
 import { hiddenNames, revealed } from '../../lib/editor/visibility.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
+import Heading from '../Ui/Heading.vue';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
 import LengthNotice from './LengthNotice.vue';
@@ -348,7 +349,7 @@ function submit() {
         <!-- The page still needs exactly one h1 for the outline, and the title
              here is an input rather than a heading. Same fallback Entry.vue
              uses for the types that show no headline. -->
-        <h1 v-if="heading && ! titleField && ! bodyField" v-twemoji class="max-w-2xl font-display text-display">{{ heading }}</h1>
+        <Heading v-if="heading && ! titleField && ! bodyField" v-twemoji as="h1" size="display" class="max-w-2xl">{{ heading }}</Heading>
         <h1 v-else class="sr-only">{{ (titleField ? form[titleField.name] : '') || heading || 'Untitled' }}</h1>
 
         <!-- The heading: an input that reads as the title it will become, not a
@@ -359,10 +360,10 @@ function submit() {
             v-model="form[titleField.name]"
             :placeholder="titleField.label"
             data-text-size
-            class="w-full border-none bg-transparent p-0 font-display text-display text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
+            class="w-full border-none bg-transparent p-0 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
         >
 
-        <p v-if="titleField && form.errors[titleField.name]" class="mt-1 text-caption text-red-600">{{ form.errors[titleField.name] }}</p>
+        <p v-if="titleField && form.errors[titleField.name]" class="mt-1 text-xs text-red-600">{{ form.errors[titleField.name] }}</p>
 
         <FieldInput
             v-if="bodyField"
@@ -440,7 +441,7 @@ function submit() {
         <!-- Sticky rather than fixed, so it needs no bottom padding on the form
              and settles at the end of the page on desktop. -->
         <div class="sticky bottom-0 z-10 mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4">
-            <p class="text-caption text-neutral-500 sm:text-meta">{{ status }}</p>
+            <p class="text-xs text-neutral-500 sm:text-sm">{{ status }}</p>
 
             <Button variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit || needsPassword" @click="submit">
                 {{ method === 'post' ? submitLabel : 'Save' }}

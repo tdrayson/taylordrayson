@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import SleepStages from '../Stats/SleepStages.vue';
 import SleepScoreRing from '../Stats/SleepScoreRing.vue';
 import StageBar from '../Stats/StageBar.vue';
@@ -32,14 +33,14 @@ const fallbackSegments = computed(() =>
 <template>
     <div class="space-y-8">
         <div v-if="hasScore" class="animate-rise space-y-3 motion-reduce:animate-none">
-            <p class="text-eyebrow uppercase text-sleep">Sleep score</p>
+            <Eyebrow as="p" class="text-sleep">Sleep score</Eyebrow>
             <SleepScoreRing
                 :score="entry.score"
                 :duration-score="entry.duration_score"
                 :bedtime-score="entry.bedtime_score"
                 :interruption-score="entry.interruption_score"
             />
-            <Link href="/sleep-score" class="inline-block text-meta text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900">
+            <Link href="/sleep-score" class="inline-block text-sm text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900">
                 How the score is calculated
             </Link>
         </div>

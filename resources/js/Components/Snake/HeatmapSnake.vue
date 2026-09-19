@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import Button from '../Ui/Button.vue';
+import Heading from '../Ui/Heading.vue';
 
 /**
  * Snake played on a contribution-heatmap grid, where each pellet eaten stays lit
@@ -316,8 +317,8 @@ onBeforeUnmount(() => {
 
         <div v-if="state !== 'running'" class="snake-overlay">
             <div class="snake-prompt">
-                <span class="font-display text-section text-neutral-900">{{ prompt.heading }}</span>
-                <span class="text-meta text-neutral-500">{{ prompt.hint }}</span>
+                <Heading as="span" size="section" class="text-neutral-900">{{ prompt.heading }}</Heading>
+                <span class="text-sm text-neutral-500">{{ prompt.hint }}</span>
                 <Button
                     variant="primary"
                     size="lg"

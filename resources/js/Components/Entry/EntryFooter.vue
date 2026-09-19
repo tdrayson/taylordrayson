@@ -19,7 +19,7 @@ const hasContent = () => props.tags.length > 0 || Boolean(props.source);
          No rule: the entry's metadata and the responses under it are one quiet
          block, separated from the entry by space rather than by a line. -->
     <div v-if="hasContent()" class="space-y-2">
-        <p v-if="tags.length" class="text-caption text-neutral-500">
+        <p v-if="tags.length" class="text-xs text-neutral-500">
             Tagged
             <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="tag.url" class="p-category font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ tag.name }}</Link><span v-if="index < tags.length - 1">, </span></template>
         </p>

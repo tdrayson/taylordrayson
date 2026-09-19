@@ -86,9 +86,9 @@ function choose(url) {
         </ImageField>
 
         <Modal v-model:open="open" title="Choose a cover" close-label="Close covers" panel-class="max-w-3xl">
-            <p v-if="loading" class="text-meta text-neutral-500">Finding covers...</p>
-            <p v-else-if="failed" class="text-meta text-red-600">Covers are unavailable right now, so upload one instead.</p>
-            <p v-else-if="! covers.length" class="text-meta text-neutral-500">No covers found for this book.</p>
+            <p v-if="loading" class="text-sm text-neutral-500">Finding covers...</p>
+            <p v-else-if="failed" class="text-sm text-red-600">Covers are unavailable right now, so upload one instead.</p>
+            <p v-else-if="! covers.length" class="text-sm text-neutral-500">No covers found for this book.</p>
 
             <ul v-else class="grid grid-cols-3 gap-4 sm:grid-cols-5">
                 <li v-for="(url, index) in covers" :key="url">

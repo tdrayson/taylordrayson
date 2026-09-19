@@ -2,9 +2,6 @@
 
 namespace App\Services\Strava;
 
-use App\Services\GetRequest;
-use Saloon\Http\Request;
-
 /**
  * Client for the Strava API. The OAuth refresh-token flow, token caching and
  * the re-authenticate-on-401 retry all live on {@see Connector}.
@@ -12,6 +9,9 @@ use Saloon\Http\Request;
  */
 class Client
 {
+    /** Strava's own ceiling for a page of kudos or comments. */
+    public const RESPONSES_PER_PAGE = 200;
+
     public function __construct(private readonly Connector $connector) {}
 
     /**
@@ -32,7 +32,11 @@ class Client
      */
     public function activitiesPage(int $page, int $perPage, ?int $after = null): ?array
     {
-        return $this->json(new ActivitiesRequest($page, $perPage, $after));
+        return $this->connector->json('/api/v3/athlete/activities', array_filter([
+            'after' => $after,
+            'per_page' => $perPage,
+            'page' => $page,
+        ], fn (mixed $value): bool => $value !== null));
     }
 
     /**
@@ -42,7 +46,7 @@ class Client
      */
     public function activity(int|string $id): ?array
     {
-        return $this->json(new GetRequest("/api/v3/activities/{$id}"));
+        return $this->connector->json("/api/v3/activities/{$id}");
     }
 
     /**
@@ -52,27 +56,29 @@ class Client
      */
     public function activityPhotos(int|string $id, int $size = 2048): ?array
     {
-        return $this->json(new ActivityPhotosRequest($id, $size));
+        return $this->connector->json("/api/v3/activities/{$id}/photos", ['size' => $size]);
     }
 
     /**
-     * The athletes who gave an activity kudos.
+     * The athletes who gave an activity kudos, one page of them.
      *
+     * @param  int  $perPage  Strava sends 30 without it, silently truncating a popular activity.
      * @return array<int, array<string, mixed>>|null Null on a request failure.
      */
-    public function kudos(int|string $id): ?array
+    public function kudos(int|string $id, int $perPage = self::RESPONSES_PER_PAGE): ?array
     {
-        return $this->json(new KudosRequest($id));
+        return $this->connector->json("/api/v3/activities/{$id}/kudos", ['per_page' => $perPage]);
     }
 
     /**
-     * The comments left on an activity.
+     * The comments left on an activity, one page of them.
      *
+     * @param  int  $perPage  Strava sends 30 without it, silently truncating a popular activity.
      * @return array<int, array<string, mixed>>|null Null on a request failure.
      */
-    public function comments(int|string $id): ?array
+    public function comments(int|string $id, int $perPage = self::RESPONSES_PER_PAGE): ?array
     {
-        return $this->json(new CommentsRequest($id));
+        return $this->connector->json("/api/v3/activities/{$id}/comments", ['per_page' => $perPage]);
     }
 
     /**
@@ -83,25 +89,9 @@ class Client
      */
     public function activityStreams(int|string $id, array $keys = ['time', 'latlng']): ?array
     {
-        return $this->json(new ActivityStreamsRequest($id, $keys));
-    }
-
-    /**
-     * Send a request and decode it, treating any failure as no data.
-     *
-     * @return array<array-key, mixed>|null
-     */
-    private function json(Request $request): ?array
-    {
-        // Checked here rather than left to the connector: with no token there is
-        // nothing to authenticate with, and an unauthenticated call to Strava is
-        // just a slower way of getting null.
-        if ($this->connector->token() === null) {
-            return null;
-        }
-
-        $response = $this->connector->send($request);
-
-        return $response->failed() ? null : $response->json();
+        return $this->connector->json("/api/v3/activities/{$id}/streams", [
+            'keys' => implode(',', $keys),
+            'key_by_type' => 'true',
+        ]);
     }
 }

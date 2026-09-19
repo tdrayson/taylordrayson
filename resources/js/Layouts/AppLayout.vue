@@ -25,7 +25,7 @@ const page = usePage();
              users jump straight past the sidebar/mobile nav to the page content. -->
         <a
             href="#main-content"
-            class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-meta focus:font-medium focus:text-neutral-0 focus:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-neutral-0 focus:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
         >Skip to content</a>
         <AppSidebar />
         <div class="flex min-w-0 flex-1 flex-col">

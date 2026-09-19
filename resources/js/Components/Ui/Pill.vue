@@ -21,7 +21,7 @@ const VARIANTS = {
 // no underline of their own.
 const classes = computed(() =>
     cn(
-        'inline-flex items-center rounded-full px-2.5 py-1 text-label uppercase',
+        'inline-flex items-center rounded-full px-2.5 py-1 text-2xs font-semibold uppercase tracking-wider',
         VARIANTS[props.variant] ?? VARIANTS.default,
         props.href
             ? 'transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:bg-accent-50 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-1'

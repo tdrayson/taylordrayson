@@ -1,5 +1,6 @@
 <script setup>
 import Card from './Card.vue';
+import Heading from './Heading.vue';
 import Pill from './Pill.vue';
 
 const props = defineProps({
@@ -37,10 +38,10 @@ function onClick() {
             ]"
         >
             <div class="flex items-start justify-between gap-3">
-                <p class="font-display text-item-title text-neutral-900">{{ label }}</p>
+                <Heading as="p" size="title" class="text-neutral-900">{{ label }}</Heading>
                 <Pill v-if="recommended" variant="accent" label="Recommended" />
             </div>
-            <p class="mt-1.5 text-meta text-neutral-500">{{ description }}</p>
+            <p class="mt-1.5 text-sm text-neutral-500">{{ description }}</p>
         </Card>
     </button>
 </template>

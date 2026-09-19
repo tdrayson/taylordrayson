@@ -42,8 +42,17 @@ trait HasResponse
         });
 
         static::saved(function (self $model): void {
-            if ($model->wasChanged('response_url') && filled($model->response_url)) {
-                FetchResponseTitle::dispatch($model);
+            // A fresh row reports no change, so a post created with a target
+            // already on it has to be asked for separately, or the title is
+            // only ever fetched for one that is edited afterwards.
+            $pointedSomewhere = $model->wasRecentlyCreated || $model->wasChanged('response_url');
+
+            if ($pointedSomewhere && filled($model->response_url)) {
+                // The job writes back by key, so a worker reaching the row
+                // before the transaction commits would match nothing and lose
+                // the title for good. The queue connections all set
+                // after_commit false.
+                FetchResponseTitle::dispatch($model)->afterCommit();
             }
         });
     }

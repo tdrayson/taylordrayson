@@ -5,6 +5,7 @@ import LocationMap from '../Maps/LocationMap.vue';
 import DetailList from '../Ui/DetailList.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 import Icon from '../Ui/Icon.vue';
+import Heading from '../Ui/Heading.vue';
 import { number, money, pencePerLitre } from '../../lib/format.js';
 import { milesToMetres } from '../../lib/distance.js';
 import { useFormat } from '../../composables/useFormat';
@@ -70,13 +71,13 @@ const location = computed(() => props.entry.location ?? null);
             <span v-if="entry.logo_url" class="inline-flex size-12 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
                 <img :src="entry.logo_url" :alt="entry.brand ? `${entry.brand} logo` : ''" class="size-full object-contain p-1.5">
             </span>
-            <span v-if="entry.brand" class="font-display text-section">{{ entry.brand }} garage</span>
-            <span v-if="entry.vehicle" class="ms-8 inline-flex items-center gap-3 font-display text-section">
+            <Heading v-if="entry.brand" as="span" size="section">{{ entry.brand }} garage</Heading>
+            <Heading v-if="entry.vehicle" as="span" size="section" class="ms-8 inline-flex items-center gap-3">
                 <span class="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
                     <Icon name="Car03Icon" class="size-6 text-neutral-500" />
                 </span>
                 {{ entry.vehicle }}
-            </span>
+            </Heading>
         </div>
 
         <div v-if="location" class="space-y-3">
@@ -88,8 +89,8 @@ const location = computed(() => props.entry.location ?? null);
             />
             <div class="flex flex-col gap-y-2 sm:flex-row sm:items-start sm:justify-between sm:gap-x-4 sm:gap-y-1">
                 <div v-if="entry.station_name || addressLine" class="min-w-0">
-                    <p v-if="entry.station_name" class="text-meta font-medium text-neutral-900">{{ entry.station_name }}</p>
-                    <p v-if="addressLine" class="text-meta text-neutral-600">{{ addressLine }}</p>
+                    <p v-if="entry.station_name" class="text-sm font-medium text-neutral-900">{{ entry.station_name }}</p>
+                    <p v-if="addressLine" class="text-sm text-neutral-600">{{ addressLine }}</p>
                 </div>
                 <ExternalLink :href="location.mapsUrl" label="View on Google Maps" class="shrink-0" />
             </div>

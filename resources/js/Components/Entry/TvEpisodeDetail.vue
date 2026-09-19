@@ -4,6 +4,7 @@ import DetailList from '../Ui/DetailList.vue';
 import Icon from '../Ui/Icon.vue';
 import EntryHero from '../Ui/EntryHero.vue';
 import Pill from '../Ui/Pill.vue';
+import Stat from '../Ui/Stat.vue';
 import { number, titleCase } from '../../lib/format.js';
 
 const props = defineProps({
@@ -42,8 +43,8 @@ const rows = computed(() => [
 
         <div v-if="entry.rating" class="flex items-center gap-2">
             <Icon name="StarIcon" class="size-5 text-accent-500" />
-            <span class="font-display text-stat tabular-nums">{{ entry.rating }}</span>
-            <span class="text-meta text-neutral-500">/ 10</span>
+            <Stat>{{ entry.rating }}</Stat>
+            <span class="text-sm text-neutral-500">/ 10</span>
         </div>
 
         <div v-if="genres.length" class="flex flex-wrap gap-2">

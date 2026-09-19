@@ -3,6 +3,9 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import Tooltip from '../Ui/Tooltip.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Heading from '../Ui/Heading.vue';
+import Stat from '../Ui/Stat.vue';
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -29,7 +32,7 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
 
         <div class="flex min-h-9 items-center">
             <div class="flex items-baseline gap-2.5">
-                <Link :href="href" class="text-label uppercase text-(--type-color) underline-offset-2 hover:underline focus-visible:underline">Trip</Link>
+                <Link :href="href" class="text-2xs font-semibold uppercase tracking-wider text-(--type-color) underline-offset-2 hover:underline focus-visible:underline">Trip</Link>
                 <Tooltip :label="fullTimestamp" placement="top">
                     <Link :href="href" :aria-label="fullTimestamp" class="underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
                         <time :datetime="start.iso" class="text-xs text-neutral-500 tabular-nums transition-colors hover:text-accent-500">{{ start.time }}</time>
@@ -38,23 +41,23 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
             </div>
         </div>
 
-        <h3 class="mt-1 font-display text-item-title">
+        <Heading as="h3" size="title" class="mt-1">
             <Link :href="href" class="transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ title }}</Link>
-        </h3>
+        </Heading>
 
         <!-- Each end carries its own full date, since a trip title names a place
              and never the year. -->
         <div class="mt-3 flex max-w-md items-center gap-4">
             <div class="flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border border-(--type-color)">
-                <div class="bg-(--type-color) py-1 text-center text-label uppercase text-white">{{ start.month }}</div>
+                <Eyebrow class="bg-(--type-color) py-1 text-center text-white">{{ start.month }}</Eyebrow>
                 <div class="flex flex-col items-center justify-center gap-0.5 p-2">
-                    <time :datetime="start.iso" class="font-display text-stat leading-none text-(--type-color) tabular-nums">{{ start.day }}</time>
-                    <span class="text-caption text-neutral-400 tabular-nums">{{ start.year }}</span>
+                    <Stat as="time" :datetime="start.iso" class="text-(--type-color)">{{ start.day }}</Stat>
+                    <span class="text-xs text-neutral-400 tabular-nums">{{ start.year }}</span>
                 </div>
             </div>
 
             <div class="flex flex-1 flex-col items-center gap-1">
-                <span class="text-label uppercase text-neutral-500 tabular-nums">{{ days }} {{ days === 1 ? 'day' : 'days' }}</span>
+                <Eyebrow as="span" class="text-neutral-500 tabular-nums">{{ days }} {{ days === 1 ? 'day' : 'days' }}</Eyebrow>
                 <div class="relative flex w-full items-center justify-center">
                     <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
                     <span class="relative bg-neutral-0 px-2 text-neutral-500">
@@ -64,10 +67,10 @@ const fullTimestamp = computed(() => `${props.start.full} ${props.start.offset}`
             </div>
 
             <div class="flex w-20 shrink-0 flex-col overflow-hidden rounded-xl border border-(--type-color)">
-                <div class="bg-(--type-color) py-1 text-center text-label uppercase text-white">{{ end.month }}</div>
+                <Eyebrow class="bg-(--type-color) py-1 text-center text-white">{{ end.month }}</Eyebrow>
                 <div class="flex flex-col items-center justify-center gap-0.5 p-2">
-                    <time :datetime="end.iso" class="font-display text-stat leading-none text-(--type-color) tabular-nums">{{ end.day }}</time>
-                    <span class="text-caption text-neutral-400 tabular-nums">{{ end.year }}</span>
+                    <Stat as="time" :datetime="end.iso" class="text-(--type-color)">{{ end.day }}</Stat>
+                    <span class="text-xs text-neutral-400 tabular-nums">{{ end.year }}</span>
                 </div>
             </div>
         </div>
