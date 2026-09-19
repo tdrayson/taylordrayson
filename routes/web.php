@@ -17,6 +17,7 @@ use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PageExportController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
@@ -189,6 +190,11 @@ Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show')
 foreach (config('redirects') as $from => $to) {
     Route::redirect("/{$from}", "/{$to}", 301);
 }
+
+// Page exports, above the page catch-all for the same reason the entry export
+// sits above the entry route.
+Route::get('/{slug}.{format}', PageExportController::class)
+    ->where(['slug' => '[a-z][a-z0-9-]*', 'format' => ExportFormat::pattern()])->name('page.export');
 
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.

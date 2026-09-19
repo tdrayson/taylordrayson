@@ -4,6 +4,8 @@ namespace App\Presenters;
 
 use App\Data\ExportData;
 use App\Datasets\Datasets;
+use App\Models\Page;
+use App\Presenters\Exports\PageExport;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
@@ -21,6 +23,11 @@ final class ExportPresenter
 
     public static function export(Model $model): object
     {
+        // Page carries no Dataset, so it never resolves through Datasets::forModel().
+        if ($model instanceof Page) {
+            return new PageExport;
+        }
+
         return Datasets::forModel($model)?->export()
             ?? throw new LogicException('No export presenter registered for '.$model::class);
     }
