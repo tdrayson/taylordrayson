@@ -30,7 +30,15 @@ const shortcuts = [
 
 <template>
     <div v-if="signedIn" class="relative">
-        <DropdownMenu :items="shortcuts" label="Add an entry" align="right" width-class="w-48" panel-class="bottom-full mb-3">
+        <DropdownMenu
+            :items="shortcuts"
+            label="Add an entry"
+            align="right"
+            width-class="w-48"
+            panel-class="bottom-full mb-3 animate-fade-in rounded-lg"
+            item-class="min-h-11 gap-3 px-3 font-medium text-neutral-900 hover:bg-accent-50 hover:text-accent-700 focus-visible:bg-accent-50 focus-visible:text-accent-700"
+            icon-class="size-5"
+        >
             <template #trigger="{ open, toggle }">
                 <button
                     type="button"

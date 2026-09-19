@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
+import { cn } from '../../lib/cn.js';
 import { useDismissable } from '../../composables/useDismissable.js';
 import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 
@@ -20,7 +21,30 @@ const props = defineProps({
     widthClass: { type: String, default: 'w-44' },
     // Where the panel sits relative to the trigger, e.g. 'bottom-full mb-3' for a trigger it must open above.
     panelClass: { type: String, default: 'mt-2' },
+    // Merged over the default row classes via cn(), so a consumer can override colour, size, or spacing.
+    itemClass: { type: String, default: '' },
+    iconClass: { type: String, default: 'size-4' },
 });
+
+// cn() (tailwind-merge) resolves conflicting utilities so a consumer's override
+// genuinely wins rather than depending on stylesheet order.
+const panelClasses = computed(() =>
+    cn(
+        'absolute z-50 overflow-hidden rounded-md border border-neutral-100 bg-neutral-0 py-1 shadow-card',
+        props.widthClass,
+        props.align === 'right' ? 'right-0' : 'left-0',
+        props.panelClass,
+    ),
+);
+
+const itemClasses = computed(() =>
+    cn(
+        'flex items-center gap-3 px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900 focus-visible:outline-none data-[active=true]:bg-neutral-25',
+        props.itemClass,
+    ),
+);
+
+const iconClasses = computed(() => cn('text-neutral-500', props.iconClass));
 
 const { isOpen, root, close, toggle } = useDismissable();
 const listEl = ref(null);
@@ -57,8 +81,7 @@ function accessibleName(item) {
             ref="listEl"
             role="menu"
             :aria-label="label"
-            class="absolute z-50 overflow-hidden rounded-md border border-neutral-100 bg-neutral-0 py-1 shadow-card"
-            :class="[widthClass, panelClass, align === 'right' ? 'right-0' : 'left-0']"
+            :class="panelClasses"
             @keydown="onKeydown"
         >
             <component
@@ -71,10 +94,10 @@ function accessibleName(item) {
                 :rel="item.external ? 'noopener' : undefined"
                 :aria-label="accessibleName(item)"
                 :data-active="index === activeIndex"
-                class="flex items-center gap-3 px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900 focus-visible:outline-none data-[active=true]:bg-neutral-25"
+                :class="itemClasses"
                 @click="close"
             >
-                <Icon v-if="item.icon" :icon="item.icon" class="size-4 text-neutral-500" />
+                <Icon v-if="item.icon" :icon="item.icon" :class="iconClasses" />
                 <span class="min-w-0 flex-1">{{ item.label }}</span>
                 <span v-if="item.description" class="shrink-0 text-xs text-neutral-500">{{ item.description }}</span>
             </component>
