@@ -541,3 +541,18 @@ it('announces a verified mention, the way a new comment already is', function ()
         ->and($sent[0][1])->toContain('Jan')
         ->and($sent[0][1])->toContain('Thoughts on slow software');
 });
+
+it('keeps a mention the moderator marked as spam when the sender re-sends it', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $mention = verify($note, null);
+    $mention->update(['status' => CommentStatus::Spam]);
+
+    // A re-send reuses the row rather than making a new one, so without this
+    // the sender gets an undo button for a decision that was not theirs.
+    Http::fake([SOURCE => Http::response(mentionSource($target, 'in-reply-to', 'Nice one.'), 200)]);
+    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+
+    expect($mention->fresh()->status)->toBe(CommentStatus::Spam);
+});
