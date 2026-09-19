@@ -54,16 +54,24 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $source = null,
         /** The same service, as it is said out loud ("Strava"); null for everything else. */
         public ?string $sourceName = null,
+        /** Whether I wrote this, which the page marks rather than states. */
+        public bool $mine = false,
     ) {}
 
     public static function fromComment(Comment $comment, ?string $timezone): self
     {
+        // Matched on the address rather than the name: a name is public and
+        // anyone can type mine, an address is only ever seen by the form. A
+        // stranger claiming it still lands in moderation like any new name.
+        $mine = $comment->author_email !== null
+            && $comment->author_email === config('feed.author_email');
+
         return new self(
             id: $comment->fragment(),
             kind: 'comment',
             authorName: $comment->author_name,
             authorUrl: null,
-            authorPhoto: null,
+            authorPhoto: $mine ? (string) config('feed.author_photo') : null,
             title: null,
             body: $comment->body,
             occurredAt: $comment->created_at,
@@ -74,6 +82,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             // The commenter's own browser timezone, when one was captured;
             // otherwise the entry's, same as before.
             timezone: $comment->timezone ?? $timezone,
+            mine: $mine,
         );
     }
 
@@ -174,6 +183,9 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             // This is my own entry talking, so it renders in its own
             // timezone, not the target's; only a source with none falls back.
             timezone: $sourceTimezone ?? $timezone,
+            // Not matched on an address like a comment is: the source is an
+            // entry of mine, so there is no other author it could have.
+            mine: true,
         );
     }
 
@@ -241,6 +253,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'emoji' => $this->emoji,
             'source' => $this->source,
             'sourceName' => $this->sourceName,
+            'mine' => $this->mine,
         ];
     }
 

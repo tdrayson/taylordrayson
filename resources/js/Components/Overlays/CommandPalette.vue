@@ -359,7 +359,7 @@ onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown));
 
 <template>
     <Teleport v-if="mounted" to="body">
-        <Transition name="palette">
+        <Transition name="fade">
             <div
                 v-if="isOpen"
                 class="fixed inset-0 z-100 flex items-start justify-center px-4 pt-palette"
@@ -442,33 +442,27 @@ kbd {
     background: var(--color-neutral-25);
 }
 
-/* Root anchors Vue's transition timing (and fades opacity). */
-.palette-enter-active,
-.palette-leave-active {
-    transition: opacity 0.28s ease;
+/* The shared fade carries the scrim; the panel drops in on top of it. Held to
+   the root's duration, since the root is the only element Vue times off. */
+.fade-enter-active .panel,
+.fade-leave-active .panel {
+    transition: transform var(--duration-fade) ease;
 }
 
-.palette-enter-from,
-.palette-leave-to {
-    opacity: 0;
-}
-
-.palette-enter-active .panel,
-.palette-leave-active .panel {
-    transition: transform 0.28s ease;
-}
-
-.palette-enter-from .panel,
-.palette-leave-to .panel {
+.fade-enter-from .panel,
+.fade-leave-to .panel {
     transform: translateY(-8px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .palette-enter-active,
-    .palette-leave-active,
-    .palette-enter-active .panel,
-    .palette-leave-active .panel {
+    .fade-enter-active .panel,
+    .fade-leave-active .panel {
         transition: none;
+    }
+
+    .fade-enter-from .panel,
+    .fade-leave-to .panel {
+        transform: none;
     }
 }
 </style>
