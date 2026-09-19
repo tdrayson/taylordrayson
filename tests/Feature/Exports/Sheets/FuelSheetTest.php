@@ -24,8 +24,11 @@ it('prints a fuel fill-up as a till receipt', function () {
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
     expect($txt)->toContain('Beddington Lane Service Station (BP)')
+        ->and($txt)->toContain('Cost')
         ->and($txt)->toContain('£68.81')
         ->and($txt)->toContain('45,231 miles')
         // 45231 is the raw odometer reading; the sheet must print "45,231".
-        ->and($txt)->not->toContain('45231');
+        ->and($txt)->not->toContain('45231')
+        // A single-item receipt does not need its one cost repeated as a total.
+        ->and($txt)->not->toContain('TOTAL');
 });

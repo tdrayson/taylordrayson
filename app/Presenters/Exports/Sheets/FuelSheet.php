@@ -22,14 +22,12 @@ final class FuelSheet
             Sheet::rule(self::WIDTH, '-'),
             Sheet::leader('Litres', $this->value($data, 'litres'), self::WIDTH),
             Sheet::leader('Price', $this->value($data, 'price_per_litre'), self::WIDTH),
-            Sheet::leader('Fuel', $this->value($data, 'cost'), self::WIDTH),
+            Sheet::leader('Cost', $this->value($data, 'cost'), self::WIDTH),
             Sheet::rule(self::WIDTH, '-'),
-            Sheet::row('TOTAL', $this->value($data, 'cost'), self::WIDTH),
-            '',
             Sheet::row('ODOMETER', $this->value($data, 'odometer'), self::WIDTH),
         ];
 
-        return implode("\n", $lines)."\n";
+        return implode("\n", array_map('rtrim', $lines))."\n";
     }
 
     /**
