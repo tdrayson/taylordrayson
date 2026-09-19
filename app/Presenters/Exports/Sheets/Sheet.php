@@ -64,12 +64,16 @@ final class Sheet
         return str_repeat('#', $filled).str_repeat('.', $width - $filled);
     }
 
-    /** A rating drawn as filled and empty stars against a five-star scale. */
+    /**
+     * A rating drawn as filled and empty stars against a five-star scale.
+     * The empty character is a hyphen, not a dot, so an unfilled star does
+     * not read as a fractional one.
+     */
     public static function stars(float $fraction, int $max = 5): string
     {
         $filled = (int) round(max(0.0, min(1.0, $fraction)) * $max);
 
-        return str_repeat('*', $filled).str_repeat('.', $max - $filled);
+        return str_repeat('*', $filled).str_repeat('-', $max - $filled);
     }
 
     /**

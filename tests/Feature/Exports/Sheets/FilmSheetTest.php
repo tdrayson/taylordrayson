@@ -19,7 +19,7 @@ it('prints a film as its ticket stub, with the rating sized as stars', function 
 
     expect($txt)->toContain('The Hunger Games: The Ballad of Songbirds')
         ->and($txt)->toContain('6 out of 10')
-        ->and($txt)->toContain('***..')
+        ->and($txt)->toContain('***--')
         ->and($txt)->toContain('2023')
         ->and($txt)->toContain('2h 37m');
 });

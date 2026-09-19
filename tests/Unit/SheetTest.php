@@ -28,8 +28,8 @@ it('draws a proportional bar', function () {
 });
 
 it('draws a rating as filled and empty stars', function () {
-    expect(Sheet::stars(0.8))->toBe('****.')
-        ->and(Sheet::stars(0))->toBe('.....')
+    expect(Sheet::stars(0.8))->toBe('****-')
+        ->and(Sheet::stars(0))->toBe('-----')
         ->and(Sheet::stars(1))->toBe('*****');
 });
 
