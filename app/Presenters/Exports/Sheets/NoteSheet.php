@@ -18,7 +18,7 @@ final class NoteSheet
 
     public function render(ExportData $data): string
     {
-        return Sheet::join([Sheet::box($this->wrappedLines($this->bodyText($data)), self::WIDTH)]);
+        return Sheet::join([Sheet::box($this->wrappedLines($this->bodyText($data)), self::WIDTH, cut: false)]);
     }
 
     private function bodyText(ExportData $data): string
@@ -34,6 +34,7 @@ final class NoteSheet
      */
     private function wrappedLines(string $value): array
     {
-        return $value === '' ? [] : Sheet::wrap($value, self::INNER);
+        // A pasted link overflows its line rather than being cut mid-character.
+        return $value === '' ? [] : Sheet::wrap($value, self::INNER, cut: false);
     }
 }

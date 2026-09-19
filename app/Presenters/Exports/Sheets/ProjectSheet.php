@@ -42,8 +42,7 @@ final class ProjectSheet
 
     /**
      * A label/url row, dropped when there is no link or the url is too long
-     * to share the row: printing it anyway would hard-wrap it mid-character,
-     * as an earlier batch did to a podcast link.
+     * to share the row without wrapping it mid-character.
      *
      * @return list<string>
      */

@@ -41,14 +41,16 @@ final class Sheet
 
     /**
      * @param  list<string>  $lines
+     * @param  bool  $cut  Whether a line wider than the box is cut mid-character.
      */
-    public static function box(array $lines, int $width = self::WIDTH): string
+    public static function box(array $lines, int $width = self::WIDTH, bool $cut = true): string
     {
         $inner = $width - 4;
         $out = ['+'.str_repeat('-', $width - 2).'+'];
 
         foreach ($lines as $line) {
-            $out[] = '| '.self::pad(self::clip($line, $inner), $inner).' |';
+            $content = $cut ? self::clip($line, $inner) : $line;
+            $out[] = '| '.self::pad($content, $inner).' |';
         }
 
         $out[] = '+'.str_repeat('-', $width - 2).'+';
@@ -103,11 +105,12 @@ final class Sheet
      * Wrap a body to the sheet's width, so an article or a note prints as a
      * column rather than one very long line.
      *
+     * @param  bool  $cut  Whether a token wider than $width is cut mid-character.
      * @return list<string>
      */
-    public static function wrap(string $text, int $width = self::WIDTH): array
+    public static function wrap(string $text, int $width = self::WIDTH, bool $cut = true): array
     {
-        return explode("\n", wordwrap($text, $width, "\n", true));
+        return explode("\n", wordwrap($text, $width, "\n", $cut));
     }
 
     /**

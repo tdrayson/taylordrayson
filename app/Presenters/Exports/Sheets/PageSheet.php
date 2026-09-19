@@ -37,7 +37,8 @@ final class PageSheet
      */
     private function wrappedBlock(string $value): array
     {
-        return $value === '' ? [] : Sheet::wrap($value, self::WIDTH);
+        // A pasted link overflows its line rather than being cut mid-character.
+        return $value === '' ? [] : Sheet::wrap($value, self::WIDTH, cut: false);
     }
 
     /**
