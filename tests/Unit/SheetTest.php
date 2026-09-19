@@ -21,6 +21,15 @@ it('draws a box around a list of lines', function () {
     expect($box)->toBe(implode("\n", [$border, $line('Line one'), $line('Line two'), $border]));
 });
 
+it('widens a box to fit a line wider than its floor, keeping every row the same width', function () {
+    $long = str_repeat('x', 30);
+    $lines = explode("\n", Sheet::box(['short', $long], 20));
+
+    expect(array_map('mb_strlen', $lines))->toBe([34, 34, 34, 34])
+        ->and($lines[0])->toBe($lines[3])
+        ->and($lines[2])->toContain($long);
+});
+
 it('draws a proportional bar', function () {
     expect(Sheet::bar(0.5, 10))->toBe('#####.....')
         ->and(Sheet::bar(0, 10))->toBe('..........')

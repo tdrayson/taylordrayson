@@ -40,20 +40,23 @@ final class Sheet
     }
 
     /**
+     * A box sized to its content: $width is the floor every ordinary box
+     * still renders at, not a clip point, so a line wider than it widens
+     * the whole box instead of being cut mid-character.
+     *
      * @param  list<string>  $lines
-     * @param  bool  $cut  Whether a line wider than the box is cut mid-character.
      */
-    public static function box(array $lines, int $width = self::WIDTH, bool $cut = true): string
+    public static function box(array $lines, int $width = self::WIDTH): string
     {
-        $inner = $width - 4;
-        $out = ['+'.str_repeat('-', $width - 2).'+'];
+        $inner = max($width - 4, $lines === [] ? 0 : max(array_map('mb_strlen', $lines)));
+        $border = '+'.str_repeat('-', $inner + 2).'+';
+        $out = [$border];
 
         foreach ($lines as $line) {
-            $content = $cut ? self::clip($line, $inner) : $line;
-            $out[] = '| '.self::pad($content, $inner).' |';
+            $out[] = '| '.self::pad($line, $inner).' |';
         }
 
-        $out[] = '+'.str_repeat('-', $width - 2).'+';
+        $out[] = $border;
 
         return implode("\n", $out);
     }

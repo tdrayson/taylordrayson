@@ -18,7 +18,7 @@ final class NoteSheet
 
     public function render(ExportData $data): string
     {
-        return Sheet::join([Sheet::box($this->wrappedLines($this->bodyText($data)), self::WIDTH, cut: false)]);
+        return Sheet::join([Sheet::box($this->wrappedLines($this->bodyText($data)), self::WIDTH)]);
     }
 
     private function bodyText(ExportData $data): string
