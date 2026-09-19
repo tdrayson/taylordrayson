@@ -3,12 +3,13 @@
 namespace App\Presenters\Exports\Sheets;
 
 use App\Data\ExportData;
-use App\Data\ExportLink;
 
 /**
  * A This Week With episode printed as its rundown. Reads the export only:
  * every string here is a field's display value, so this layout cannot drift
- * from the data.
+ * from the data. Listen and watch are not printed: a real episode URL is far
+ * longer than 46 characters and would only mangle mid-word; the .md and .json
+ * formats carry those links intact.
  */
 final class ThisWeekWithSheet
 {
@@ -24,33 +25,7 @@ final class ThisWeekWithSheet
             ...$this->wrappedBlock($this->value($data, 'topic')),
             '',
             ...$this->maybeRow($data, 'DURATION', 'duration'),
-            ...$this->linkRow($data, 'LISTEN', 'listen'),
-            ...$this->linkRow($data, 'WATCH', 'watch'),
         ]);
-    }
-
-    /**
-     * A link's URL as a row, dropped entirely rather than printed empty
-     * when the episode carries no link for that key.
-     *
-     * @return list<string>
-     */
-    private function linkRow(ExportData $data, string $label, string $key): array
-    {
-        $link = $this->link($data, $key);
-
-        return $link === null ? [] : [Sheet::row($label, $link->url, self::WIDTH)];
-    }
-
-    private function link(ExportData $data, string $key): ?ExportLink
-    {
-        foreach ($data->links as $link) {
-            if ($link->key === $key) {
-                return $link;
-            }
-        }
-
-        return null;
     }
 
     /**

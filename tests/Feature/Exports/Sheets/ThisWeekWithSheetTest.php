@@ -5,7 +5,7 @@ use App\Models\ThisWeekWith;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 
-it('prints a This Week With episode as its rundown, with the SxxEyy banner and both links', function () {
+it('prints a This Week With episode as its rundown, with the SxxEyy banner', function () {
     $episode = ThisWeekWith::factory()->create([
         'occurred_at' => '2026-09-13 20:00:00',
         'season_number' => 6,
@@ -24,22 +24,20 @@ it('prints a This Week With episode as its rundown, with the SxxEyy banner and b
         ->and($txt)->toContain('New Flat & Setup')
         ->and($txt)->toContain('DURATION')
         ->and($txt)->toContain('20m')
-        ->and($txt)->toContain('LISTEN')
-        ->and($txt)->toContain('WATCH')
-        ->and($txt)->toContain('https://www.youtube.com/live/kaBebzaWJw8');
+        // A real episode URL is far longer than the 46-character sheet width
+        // and would only mangle mid-word; .md and .json carry the real links.
+        ->and($txt)->not->toContain('https://');
 });
 
-it('omits listen and watch rows when an episode carries no links', function () {
+it('omits the duration row when an episode carries no duration', function () {
     $episode = ThisWeekWith::factory()->create([
         'occurred_at' => '2026-09-13 20:00:00',
-        'audio_url' => null,
-        'video_url' => null,
+        'duration' => null,
         'status' => 'published',
     ]);
 
     $data = ExportPresenter::for($episode);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    expect($txt)->not->toContain('LISTEN')
-        ->and($txt)->not->toContain('WATCH');
+    expect($txt)->not->toContain('DURATION');
 });
