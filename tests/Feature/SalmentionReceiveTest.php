@@ -242,23 +242,14 @@ it('leaves a response alone when its author already sent it here themselves', fu
         ->and(Webmention::query()->where('source_url', 'https://chris.example.com/1')->sole()->parent_source_url)->toBeNull();
 });
 
-// chris.example.com is trusted throughout this file and has an approved mention
-// of its own, so this is the one case where the old code handed a stranger an
-// approval: the citation is markup on their page, and nothing here has ever
-// spoken to chris.example.com.
-it('holds a nested response even when it claims an author we already trust', function () {
+// chris.example.com is in trusted_hosts for this file, so under the host-keyed
+// rule a nested citation carrying that source url would otherwise be waved
+// straight through. Nothing here ever fetched chris.example.com: the citation
+// is markup on somebody else's page, and its url is a claim like any other.
+it('holds a nested response even when its source host is trusted', function () {
     $note = Note::factory()->create();
 
-    Webmention::query()->create([
-        'source_url' => 'https://chris.example.com/earlier',
-        'target_url' => salmentionTarget($note),
-        'kind' => WebmentionKind::Reply->value,
-        'author_url' => 'https://chris.example.com/',
-        'author_host' => 'chris.example.com',
-        'status' => CommentStatus::Approved,
-    ]);
-
-    expect(app(DecideMentionStatus::class)('https://chris.example.com/'))
+    expect(app(DecideMentionStatus::class)('https://chris.example.com/2'))
         ->toBe(CommentStatus::Approved);
 
     recheck($note, theirPost(salmentionTarget($note), nestedCite('chris', 'Words I never wrote.', 'https://chris.example.com/2')));

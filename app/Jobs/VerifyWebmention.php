@@ -103,7 +103,7 @@ class VerifyWebmention implements ShouldQueue
             // would hand a spammer an undo button for the moderator's decision.
             'status' => $mention->status === CommentStatus::Spam
                 ? CommentStatus::Spam
-                : app(DecideMentionStatus::class)($parsed->authorUrl),
+                : app(DecideMentionStatus::class)($mention->source_url),
             'verified_at' => now(),
             'last_checked_at' => now(),
         ])->save();

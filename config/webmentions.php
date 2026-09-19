@@ -26,6 +26,10 @@ return [
     | Matched on the whole host, so "example.com" never admits
     | "example.com.evil.tld" or "notexample.com".
     |
+    | This is the host of the page we fetch, not the author that page claims to
+    | be by. Anyone can publish a page naming any author, so trusting the claim
+    | would let a stranger post here under a trusted person's name.
+    |
     | A subdomain is its own host: trusting "example.com" does not trust
     | "blog.example.com". List both if you mean both.
     |
