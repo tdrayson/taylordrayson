@@ -13,7 +13,7 @@ const props = defineProps({
 const ICONS = {
     reply: 'MailReply01Icon',
     like: 'FavouriteIcon',
-    repost: 'RepeatIcon',
+    repost: 'ArrowReloadHorizontalIcon',
     rsvp: 'Calendar01Icon',
 };
 
