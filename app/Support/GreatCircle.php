@@ -18,7 +18,13 @@ final class GreatCircle
 
     private const MAX_POINTS = 128;
 
-    /** Radians (~6mm at Earth's surface); guards both coincident and antipodal inputs, where sin(delta) collapses toward zero. */
+    /**
+     * Radians (~6mm at Earth's surface); guards both coincident and antipodal
+     * inputs, where sin(delta) collapses toward zero. In double precision no
+     * input lands strictly inside this band around pi: delta is either
+     * bit-identical to M_PI or already ~1e-7 away, so the guard catches
+     * exactly-pi in practice.
+     */
     private const DEGENERATE_EPSILON = 1e-9;
 
     /**

@@ -101,10 +101,12 @@ it('falls back to a plain two-point line for coincident or antipodal inputs, sin
         ->and($antipodal)->toBe([[[0.0, 0.0], [0.0, 180.0]]]);
 });
 
-it('also falls back for a pair that only just misses being exactly antipodal', function () {
+it('also falls back for a second antipodal-in-practice input, rounded short of the exact antipode', function () {
     // 0.000001 degree short of the exact antipode (180.0): real coordinates
     // rounded to a handful of decimal places land here far more often than
-    // on the exact antipode, and the guard has to catch this too.
+    // on the exact antipode. In double precision this still computes a delta
+    // bit-identical to M_PI, so it exercises the same branch as the exact
+    // antipodal case above rather than the epsilon band itself.
     $nearAntipodal = GreatCircle::segments(0.0, 0.0, 0.0, 179.999999);
 
     expect($nearAntipodal)->toBe([[[0.0, 0.0], [0.0, 179.999999]]]);
