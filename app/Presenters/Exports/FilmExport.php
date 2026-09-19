@@ -35,9 +35,12 @@ final class FilmExport
             occurred: $model->occurred_at === null ? null : ExportInstant::for($model->occurred_at, $model->timezone()),
             fields: array_values(array_filter([
                 ExportField::maybe('film', 'Film', $model->title, $model->title),
+                ExportField::maybe('date', 'Date', $model->occurred_at?->format('d M Y')),
                 ExportField::maybe('rating', 'Rating', $model->rating === null ? null : "{$model->rating} out of 10", $model->rating),
                 ExportField::maybe('year', 'Released', $model->meta->year === null ? null : (string) $model->meta->year, $model->meta->year),
                 ExportField::maybe('runtime', 'Runtime', $model->meta->runtime === null ? null : Units::humanDuration($model->meta->runtime * 60), $model->meta->runtime === null ? null : $model->meta->runtime * 60),
+                ExportField::maybe('owner', 'Name', config('identity.name')),
+                ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
             ])),
             links: CommonLinks::for($model),
         );

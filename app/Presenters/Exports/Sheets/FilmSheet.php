@@ -6,85 +6,93 @@ use App\Data\ExportData;
 use App\Data\ExportField;
 
 /**
- * A film printed as its ticket stub. Reads the export only: every string
- * here is a field's display value, so this layout cannot drift from the data.
+ * A film printed as a perforated cinema ticket stub. Reads the export only:
+ * every string here is a field's display value, so this layout cannot drift
+ * from the data. `->raw` is read once, for the ticket number, purely as the
+ * seed for the decorative barcode's bar widths.
  */
 final class FilmSheet
 {
-    private const WIDTH = 46;
+    public const WIDTH = 46;
 
-    private const INNER = self::WIDTH - 4;
+    private const INNER = self::WIDTH - 2;
+
+    /** Where a paired row's second label starts, so DATE/RATED and YEAR/RUNTIME line up. */
+    private const COLUMN = 22;
+
+    /** Left margin for every content row, so text doesn't sit flush against the tear edge. */
+    private const MARGIN = '  ';
 
     public function render(ExportData $data): string
     {
         return Sheet::join([
-            Sheet::box($this->titleLines($data), self::WIDTH),
-            '',
-            ...$this->rating($data),
-            ...$this->maybeRow($data, 'YEAR', 'year'),
-            ...$this->maybeRow($data, 'RUNTIME', 'runtime'),
+            Sheet::ticket([
+                Sheet::centre('CINEMA TICKET * ADMIT ONE *', self::INNER),
+                null,
+                ...array_map(fn (string $line): string => self::MARGIN.$line, $this->details($data)),
+                null,
+                Sheet::centre(Sheet::barcode($this->seed($data)), self::INNER),
+                self::MARGIN.$this->footer($data),
+            ], self::WIDTH),
         ]);
     }
 
     /**
-     * The film title, wrapped and centred inside the box so a long title is
-     * not clipped mid-word.
+     * The film title, then its date and rating paired on one row, then its
+     * year and runtime paired on the next. A row drops entirely only when
+     * both of its fields are absent; either side alone still prints.
      *
      * @return list<string>
      */
-    private function titleLines(ExportData $data): array
+    private function details(ExportData $data): array
     {
-        $title = $this->value($data, 'film');
+        return array_values(array_filter([
+            $this->labelled('FILM', $data->field('film')),
+            $this->pair('DATE', $data->field('date'), 'RATED', $data->field('rating')),
+            $this->pair('YEAR', $data->field('year'), 'RUNTIME', $data->field('runtime')),
+        ]));
+    }
 
-        if ($title === '') {
-            return [];
-        }
-
-        return array_map(fn (string $line): string => Sheet::centre($line, self::INNER), Sheet::wrap($title, self::INNER));
+    private function labelled(string $label, ?ExportField $field): ?string
+    {
+        return $field === null ? null : str_pad($label, 6).': '.$field->display;
     }
 
     /**
-     * The rating as a row of stars, sized from raw against a five-star
-     * scale. Dropped entirely when there is no rating.
-     *
-     * @return list<string>
+     * Two fields on one row, the second under its own literal label since a
+     * ticket abbreviates it ("Rating" the field, "RATED" the row). Either
+     * side is dropped when its field is absent; the row drops when both are.
      */
-    private function rating(ExportData $data): array
+    private function pair(string $leftLabel, ?ExportField $left, string $rightLabel, ?ExportField $right): ?string
     {
-        $field = $this->field($data, 'rating');
+        $leftText = $left === null ? '' : str_pad($leftLabel, 6).': '.$left->display;
+        $rightText = $right === null ? '' : $rightLabel.': '.$right->display;
 
-        if ($field === null) {
-            return [];
-        }
-
-        // Geometry (the star count) reads raw for precision; the printed rating still comes from display.
-        return [
-            Sheet::centre(Sheet::stars((float) $field->raw / 10).'  '.$field->display, self::WIDTH),
-            '',
-        ];
+        return match (true) {
+            $leftText === '' && $rightText === '' => null,
+            $rightText === '' => $leftText,
+            $leftText === '' => $rightText,
+            default => str_pad($leftText, self::COLUMN).$rightText,
+        };
     }
 
-    private function field(ExportData $data, string $key): ?ExportField
+    /** The ticket number and the ticket holder, paired on the stub's last row. */
+    private function footer(ExportData $data): string
     {
-        return $data->field($key);
+        $number = $data->field('ticket_number');
+        $owner = $data->field('owner');
+
+        $left = $number === null ? '' : 'No. '.$number->display;
+        $right = $owner === null ? '' : str_replace(' ', '', mb_strtoupper($owner->display));
+
+        return $right === '' ? $left : str_pad($left, self::COLUMN).$right;
     }
 
-    /**
-     * A label/value row, dropped entirely rather than printed empty when
-     * the field carries no value.
-     *
-     * @return list<string>
-     */
-    private function maybeRow(ExportData $data, string $label, string $key): array
+    /** The ticket number's raw id, the only `->raw` read: it seeds the barcode's bar widths, not its content. */
+    private function seed(ExportData $data): int
     {
-        $field = $this->field($data, $key);
+        $raw = $data->field('ticket_number')?->raw;
 
-        return $field === null ? [] : [Sheet::row($label, $field->display, self::WIDTH)];
-    }
-
-    /** A field's display string, or an empty one. Never a raw value. */
-    private function value(ExportData $data, string $key): string
-    {
-        return $data->field($key)?->display ?? '';
+        return is_int($raw) ? $raw : 0;
     }
 }

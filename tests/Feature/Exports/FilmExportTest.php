@@ -16,12 +16,15 @@ it('publishes a film as labelled fields in order', function () {
     $export = ExportPresenter::for($film);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['film', 'rating', 'year', 'runtime'])
+        ->toBe(['film', 'date', 'rating', 'year', 'runtime', 'owner', 'ticket_number'])
         ->and($export->field('film')->display)->toBe('Arrival')
+        ->and($export->field('date')->display)->toBe('13 Sep 2026')
         ->and($export->field('rating')->display)->toBe('8 out of 10')
         ->and($export->field('year')->display)->toBe('2016')
         ->and($export->field('year')->raw)->toBe(2016)
-        ->and($export->field('runtime')->display)->toBe('1h 56m');
+        ->and($export->field('runtime')->display)->toBe('1h 56m')
+        ->and($export->field('owner')->display)->toBe(config('identity.name'))
+        ->and($export->field('ticket_number')->raw)->toBe($film->id);
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 

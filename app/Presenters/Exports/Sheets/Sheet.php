@@ -62,6 +62,49 @@ final class Sheet
         return implode("\n", $out);
     }
 
+    /**
+     * A perforated ticket stub: alternating '(' / ')' tear edges down the
+     * sides, '.'/"'" corners, and a ')====((' rule between sections. Auto-
+     * widens to its longest line, the same way box() does. A null entry
+     * draws a section rule instead of a content line.
+     *
+     * @param  list<string|null>  $lines
+     */
+    public static function ticket(array $lines, int $width = self::WIDTH): string
+    {
+        $ordered = array_values($lines);
+        $inner = $width - 4;
+
+        // A line's own width only tells us its *shape's* content budget: an
+        // odd-shape line carries two more chrome characters than an even one,
+        // so its width converts back to inner two less than an even line's would.
+        foreach ($ordered as $index => $line) {
+            if ($line !== null) {
+                $inner = max($inner, mb_strwidth($line) - (($index + 1) % 2 === 1 ? 2 : 0));
+            }
+        }
+
+        $out = ['.'.str_repeat('-', $inner + 2).'.'];
+
+        foreach ($ordered as $index => $line) {
+            if ($line === null) {
+                $out[] = ' )'.str_repeat('=', $inner).'((';
+
+                continue;
+            }
+
+            // Content lines alternate shape by their position in the whole
+            // stub (rules included), so the tear edge zigzags down the side.
+            $out[] = ($index + 1) % 2 === 1
+                ? '('.self::pad($line, $inner + 2).')'
+                : ' )'.self::pad($line, $inner).'((';
+        }
+
+        $out[] = "'".str_repeat('-', $inner + 2)."'";
+
+        return implode("\n", $out);
+    }
+
     /** A proportional bar, for a sleep stage or a heart rate against its max. */
     public static function bar(float $fraction, int $width = 20): string
     {

@@ -30,6 +30,28 @@ it('widens a box to fit a line wider than its floor, keeping every row the same 
         ->and($lines[2])->toContain($long);
 });
 
+it('draws a perforated ticket stub with alternating tear edges and a section rule', function () {
+    $ticket = Sheet::ticket(['Header', null, 'Line one', 'Line two', null, 'Footer'], 12);
+
+    expect(explode("\n", $ticket))->toBe([
+        '.----------.',
+        '(Header    )',
+        ' )========((',
+        '(Line one  )',
+        ' )Line two((',
+        ' )========((',
+        ' )Footer  ((',
+        "'----------'",
+    ]);
+});
+
+it('widens a ticket to fit a line wider than its floor, keeping every row the same width', function () {
+    $long = str_repeat('x', 20);
+    $lines = explode("\n", Sheet::ticket(['short', $long], 12));
+
+    expect(array_map('mb_strwidth', $lines))->toBe(array_fill(0, 4, 24));
+});
+
 it('draws a proportional bar', function () {
     expect(Sheet::bar(0.5, 10))->toBe('#####.....')
         ->and(Sheet::bar(0, 10))->toBe('..........')
