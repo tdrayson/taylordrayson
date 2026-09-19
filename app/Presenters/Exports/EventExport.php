@@ -43,6 +43,8 @@ final class EventExport
                 $this->location($model),
                 ExportField::maybe('organiser', 'Organiser', $model->organiser, $model->organiser),
                 ExportField::maybe('ends', 'Ends', $model->ends_at?->format('j F Y \a\t H:i'), $model->ends_at?->toIso8601String()),
+                ExportField::maybe('owner', 'Name', config('identity.name')),
+                ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
             ])),
             links: [
                 // getAttributeValue(), not ->url: the model's inherited url() page-address

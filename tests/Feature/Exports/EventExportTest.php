@@ -25,12 +25,14 @@ it('publishes an event as labelled fields in order', function () {
     $export = ExportPresenter::for($event);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['event', 'venue', 'location', 'organiser', 'ends'])
+        ->toBe(['event', 'venue', 'location', 'organiser', 'ends', 'owner', 'ticket_number'])
         ->and($export->field('event')->display)->toBe('Arctic Monkeys')
         ->and($export->field('venue')->display)->toBe('O2 Arena')
         ->and($export->field('location')->display)->toBe('Peninsula Square, London, United Kingdom')
         ->and($export->field('organiser')->display)->toBe('AEG Presents')
-        ->and($export->field('ends')->display)->toBe('13 September 2026 at 22:00');
+        ->and($export->field('ends')->display)->toBe('13 September 2026 at 22:00')
+        ->and($export->field('owner')->display)->toBe(config('identity.name'))
+        ->and($export->field('ticket_number')->raw)->toBe($event->id);
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 
