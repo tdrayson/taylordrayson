@@ -7,6 +7,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Presenters\Cards\ActivityCard;
+use App\Presenters\Exports\ActivityExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -57,6 +58,11 @@ final class ActivityDataset extends BaseDataset
     public function card(): ActivityCard
     {
         return new ActivityCard;
+    }
+
+    public function export(): object
+    {
+        return new ActivityExport;
     }
 
     /**
