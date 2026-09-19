@@ -40,7 +40,9 @@ final class AppearanceExport
                 ...array_values(array_filter([
                     ExportLink::maybe('listen', 'Listen', 'Listen', $model->audio_url),
                     ExportLink::maybe('watch', 'Watch', 'Watch on YouTube', $model->video_url),
-                    ExportLink::maybe('source', 'Source', 'Show page', $this->url($model), 'syndication'),
+                    // getAttributeValue(), not ->url: the model's inherited url() page-address
+                    // method collides with this column's name. See #473.
+                    ExportLink::maybe('source', 'Source', 'Show page', $model->getAttributeValue('url'), 'syndication'),
                 ])),
                 ...CommonLinks::for($model),
             ],
@@ -49,15 +51,5 @@ final class AppearanceExport
                 Span::class => Span::moment($model->occurred_at, $model->duration, $model->timezone()),
             ]),
         );
-    }
-
-    /**
-     * The `url` column read raw: the model also has a `url()` method building
-     * its own page address, so `$model->url` resolves as that relation lookup
-     * and throws whenever the column was never set.
-     */
-    private function url(Appearance $model): ?string
-    {
-        return $model->getAttributes()['url'] ?? null;
     }
 }

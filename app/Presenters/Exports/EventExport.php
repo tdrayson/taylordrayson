@@ -39,7 +39,9 @@ final class EventExport
                 ExportField::maybe('ends', 'Ends', $model->ends_at?->format('j F Y, H:i'), $model->ends_at?->toIso8601String()),
             ])),
             links: [
-                ...array_values(array_filter([ExportLink::maybe('tickets', 'Tickets', 'More about this event', $this->url($model))])),
+                // getAttributeValue(), not ->url: the model's inherited url() page-address
+                // method collides with this column's name. See #473.
+                ...array_values(array_filter([ExportLink::maybe('tickets', 'Tickets', 'More about this event', $model->getAttributeValue('url'))])),
                 ...CommonLinks::for($model),
             ],
             body: $model->description,
@@ -48,16 +50,6 @@ final class EventExport
                 Span::class => Span::between($model->occurred_at, $model->ends_at ?? $model->occurred_at, $model->timezone(), $address === '' ? null : $address, (bool) $model->all_day),
             ]),
         );
-    }
-
-    /**
-     * The `url` column read raw: the model also has a `url()` method building
-     * its own page address, so `$model->url` resolves as that relation lookup
-     * and throws whenever the column was never set.
-     */
-    private function url(Event $model): ?string
-    {
-        return $model->getAttributes()['url'] ?? null;
     }
 
     private function location(Event $model): ?ExportField

@@ -28,7 +28,7 @@ it('publishes a fuel fill-up as labelled fields in order', function () {
         ->and($export->field('station')->display)->toBe('Beddington Lane Service Station (BP)')
         ->and($export->field('station')->raw)->toBe('Beddington Lane Service Station')
         ->and($export->field('location')->display)->toBe('1 Beddington Lane, Croydon, CR0 4TQ')
-        ->and($export->field('litres')->display)->toBe('42.500 L')
+        ->and($export->field('litres')->display)->toBe('42.50 L')
         ->and($export->field('price_per_litre')->display)->toBe('161.9p per litre')
         ->and($export->field('cost')->display)->toBe('£68.81')
         ->and($export->field('odometer')->display)->toBe('45,231 miles');

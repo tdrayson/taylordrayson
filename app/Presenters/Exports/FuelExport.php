@@ -31,7 +31,7 @@ final class FuelExport
             fields: array_values(array_filter([
                 ExportField::maybe('station', 'Station', $this->station($model), $model->station_name),
                 $this->location($model),
-                ExportField::maybe('litres', 'Fuel', $model->litres === null ? null : number_format((float) $model->litres, 3).' L', $model->litres === null ? null : (float) $model->litres),
+                ExportField::maybe('litres', 'Fuel', $model->litres === null ? null : number_format((float) $model->litres, 2).' L', $model->litres === null ? null : (float) $model->litres),
                 ExportField::maybe('price_per_litre', 'Price', $model->price_per_litre === null ? null : Money::pencePerLitre($model->price_per_litre).' per litre', $model->price_per_litre === null ? null : (float) $model->price_per_litre),
                 ExportField::maybe('cost', 'Cost', Money::gbp($model->cost), $model->cost === null ? null : (float) $model->cost),
                 ExportField::maybe('odometer', 'Odometer', $model->odometer === null ? null : number_format($model->odometer).' miles', $model->odometer),
