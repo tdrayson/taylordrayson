@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Support\LookupCsv;
+use App\Models\Concerns\HasLookupCsv;
 use Database\Factories\AirlineFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Sushi\Sushi;
 
 #[Fillable([
     'iata_code',
@@ -21,7 +20,7 @@ class Airline extends Model
     /** @use HasFactory<AirlineFactory> */
     use HasFactory;
 
-    use Sushi;
+    use HasLookupCsv;
 
     public $timestamps = false;
 
@@ -43,35 +42,18 @@ class Airline extends Model
      */
     protected $appends = ['icon_url', 'logo_url'];
 
-    /**
-     * @return list<array<string, string|null>>
-     */
-    public function getRows(): array
-    {
-        if (app()->environment('testing')) {
-            return [];
-        }
-
-        return LookupCsv::from($this->lookupPath());
-    }
-
-    /**
-     * Caching stays off under test. A cached empty row set would be written to
-     * the shared cache file and later served to dev as real data.
-     */
-    protected function sushiShouldCache(): bool
-    {
-        return ! app()->environment('testing');
-    }
-
-    protected function sushiCacheReferencePath(): string
-    {
-        return $this->lookupPath();
-    }
-
-    private function lookupPath(): string
+    protected function lookupPath(): string
     {
         return database_path('lookups/airlines.csv');
+    }
+
+    /**
+     * ICAO, not IATA: it is the column Flight::airline() keys on, and the only
+     * one of the two that is unique in the CSV (4,608 rows carry no IATA code).
+     */
+    protected function lookupKey(): string
+    {
+        return 'icao_code';
     }
 
     /**
