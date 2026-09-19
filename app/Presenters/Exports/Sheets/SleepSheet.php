@@ -36,7 +36,7 @@ final class SleepSheet
             Sheet::row('SCORE', $this->value($data, 'score'), self::WIDTH),
         ];
 
-        return implode("\n", $lines)."\n";
+        return Sheet::join($lines);
     }
 
     /** A stage's proportion of the night, drawn as a label, a bar and its percentage. */

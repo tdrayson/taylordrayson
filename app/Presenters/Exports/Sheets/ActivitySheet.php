@@ -26,7 +26,7 @@ final class ActivitySheet
             ...$this->heartRate($data),
         ];
 
-        return implode("\n", $lines)."\n";
+        return Sheet::join($lines);
     }
 
     /**

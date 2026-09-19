@@ -77,6 +77,29 @@ final class Sheet
         return ((float) rtrim($percent, '%')) / 100;
     }
 
+    /**
+     * A sheet's lines joined into its final text, every physical line
+     * right-trimmed. A centred or padded line carries real trailing spaces
+     * up to the width; nothing about the sheet needs them once it is the
+     * last thing on the line, and left in place they are only a diff smell
+     * in a plain-text document. Splits each entry on its own newlines first,
+     * so a helper that already returned several lines in one string (a
+     * stacked row, a whole box) gets every one of them trimmed, not just the
+     * last.
+     *
+     * @param  list<string>  $lines
+     */
+    public static function join(array $lines): string
+    {
+        $physical = [];
+
+        foreach ($lines as $line) {
+            array_push($physical, ...explode("\n", $line));
+        }
+
+        return implode("\n", array_map('rtrim', $physical))."\n";
+    }
+
     public static function heading(string $text, int $width = self::WIDTH): string
     {
         return mb_strtoupper(self::clip($text, $width))."\n".self::rule($width, '=');

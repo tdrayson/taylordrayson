@@ -27,7 +27,7 @@ final class FuelSheet
             Sheet::row('ODOMETER', $this->value($data, 'odometer'), self::WIDTH),
         ];
 
-        return implode("\n", array_map('rtrim', $lines))."\n";
+        return Sheet::join($lines);
     }
 
     /**

@@ -17,15 +17,15 @@ final class PlaceSheet
 
     public function render(ExportData $data): string
     {
-        $box = Sheet::box([
-            ...$this->wrappedLines($this->value($data, 'venue'), self::INNER),
-            '',
-            Sheet::centre($this->value($data, 'category'), self::INNER),
-            '',
-            ...$this->wrappedLines($this->value($data, 'location'), self::INNER),
-        ], self::WIDTH);
-
-        return implode("\n", array_map('rtrim', explode("\n", $box)))."\n";
+        return Sheet::join([
+            Sheet::box([
+                ...$this->wrappedLines($this->value($data, 'venue'), self::INNER),
+                '',
+                Sheet::centre($this->value($data, 'category'), self::INNER),
+                '',
+                ...$this->wrappedLines($this->value($data, 'location'), self::INNER),
+            ], self::WIDTH),
+        ]);
     }
 
     /**

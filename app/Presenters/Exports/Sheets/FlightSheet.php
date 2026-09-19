@@ -31,7 +31,7 @@ final class FlightSheet
             Sheet::rule(self::WIDTH, '-'),
         ];
 
-        return implode("\n", array_map('rtrim', $lines))."\n";
+        return Sheet::join($lines);
     }
 
     /**

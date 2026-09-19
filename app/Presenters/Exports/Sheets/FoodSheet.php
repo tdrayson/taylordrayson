@@ -20,13 +20,15 @@ final class FoodSheet
 
     public function render(ExportData $data): string
     {
-        return Sheet::box([
-            'NUTRITION FACTS',
-            '',
-            Sheet::centre($this->value($data, 'calories'), self::INNER),
-            Sheet::rule(self::INNER, '-'),
-            ...array_map(fn (string $key): string => $this->macro($data, $key), self::MACROS),
-        ], self::WIDTH)."\n";
+        return Sheet::join([
+            Sheet::box([
+                'NUTRITION FACTS',
+                '',
+                Sheet::centre($this->value($data, 'calories'), self::INNER),
+                Sheet::rule(self::INNER, '-'),
+                ...array_map(fn (string $key): string => $this->macro($data, $key), self::MACROS),
+            ], self::WIDTH),
+        ]);
     }
 
     private function macro(ExportData $data, string $key): string
