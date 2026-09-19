@@ -5,8 +5,8 @@ namespace App\Data;
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
 use App\Models\Mention;
-use App\Models\Note;
 use App\Models\Webmention;
+use App\Support\EntryName;
 use App\Support\LocalTime;
 use App\Support\PortableText;
 use Carbon\CarbonInterface;
@@ -120,16 +120,15 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
     }
 
     /**
-     * What to call the entry a mention came from, or null for one that has no
-     * name of its own.
+     * What to call the entry a mention came from.
      *
-     * A note is the only source without a title, and its first eighty
-     * characters are not one: printed after "in" they read as a quotation of
-     * something nobody said. The byline names it by what it is instead.
+     * Not possessive: this byline already names who wrote it, so "Taylor
+     * Drayson mentioned this in my note" would be talking about himself in two
+     * voices at once.
      */
-    private static function titleOf(Model $source): ?string
+    private static function titleOf(Model $source): string
     {
-        return $source instanceof Note ? null : (string) $source->title;
+        return EntryName::for($source);
     }
 
     /**
