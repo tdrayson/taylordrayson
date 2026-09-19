@@ -20,6 +20,7 @@ final class Formats
             new SqlFormat,
             new GeoJsonFormat,
             new IcsFormat,
+            new Mf2Format,
         ];
     }
 

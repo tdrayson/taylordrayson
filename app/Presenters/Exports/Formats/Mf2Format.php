@@ -1,0 +1,208 @@
+<?php
+
+namespace App\Presenters\Exports\Formats;
+
+use App\Data\Aspects\Span;
+use App\Data\ExportData;
+use App\Data\ExportLink;
+use App\Enums\ExportFormat;
+use App\Enums\TimelineType;
+use App\Support\PortableText;
+
+/**
+ * The export as microformats2 JSON. Must agree with the h-entry Entry.vue
+ * renders: a parser reading both must get one answer, not two.
+ */
+final class Mf2Format extends Format
+{
+    public function format(): ExportFormat
+    {
+        return ExportFormat::Mf2;
+    }
+
+    public function render(ExportData $data, array $trail): string
+    {
+        return json_encode([
+            'items' => [['type' => ['h-entry'], 'properties' => $this->properties($data)]],
+            'rels' => ['alternate' => array_values($trail)],
+            'rel-urls' => $this->relUrls($trail),
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Header properties (url, uid, author, name, published) publish
+     * regardless of lock state, matching the page: Entry.vue keeps its
+     * header while the body is locked. Everything else is withheld for a
+     * locked export, checked here rather than trusted from the caller.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function properties(ExportData $data): array
+    {
+        $properties = [
+            'url' => [$data->url],
+            'uid' => [$data->url],
+            'author' => [$this->author()],
+        ];
+
+        // A note is content with no name of its own, which is how a reader
+        // tells it from an article. Entry.vue withholds p-name for the same
+        // reason, and the two must not disagree.
+        if ($data->type !== TimelineType::Note) {
+            $properties['name'] = [$data->title];
+        }
+
+        if ($data->occurred !== null) {
+            $properties['published'] = [$data->occurred->iso];
+        }
+
+        if ($data->locked) {
+            return $properties;
+        }
+
+        if ($data->summary !== null) {
+            $properties['summary'] = [$data->summary];
+        }
+
+        $html = $this->contentHtml($data);
+
+        if ($html !== '') {
+            $properties['content'] = [[
+                'html' => $html,
+                'value' => $this->contentText($data),
+            ]];
+        }
+
+        $categories = array_map(fn (ExportLink $link): string => $link->title, $data->linksWithRel('category'));
+
+        if ($categories !== []) {
+            $properties['category'] = $categories;
+        }
+
+        $syndication = array_map(fn (ExportLink $link): string => $link->url, $data->linksWithRel('syndication'));
+
+        if ($syndication !== []) {
+            $properties['syndication'] = $syndication;
+        }
+
+        return [...$properties, ...$this->vocabulary($data)];
+    }
+
+    /**
+     * @return array{type: array<int, string>, properties: array<string, array<int, string>>}
+     */
+    private function author(): array
+    {
+        return [
+            'type' => ['h-card'],
+            'properties' => [
+                'name' => [config('app.cp.name')],
+                'url' => [url('/')],
+            ],
+        ];
+    }
+
+    private function contentHtml(ExportData $data): string
+    {
+        return is_string($data->body) ? e($data->body) : PortableText::html($data->body);
+    }
+
+    private function contentText(ExportData $data): string
+    {
+        return is_string($data->body) ? $data->body : PortableText::text($data->body);
+    }
+
+    /**
+     * The IndieWeb extension for a type that has one. Nothing is invented for a
+     * type that does not.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function vocabulary(ExportData $data): array
+    {
+        return match ($data->type) {
+            TimelineType::Event, TimelineType::Appearance => $this->event($data),
+            TimelineType::Place => $this->checkin($data),
+            TimelineType::Film, TimelineType::TvEpisode => $this->cite($data, 'watch-of'),
+            TimelineType::Book => $this->cite($data, 'read-of'),
+            default => [],
+        };
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    private function event(ExportData $data): array
+    {
+        $span = $data->aspect(Span::class);
+
+        if ($span === null) {
+            return [];
+        }
+
+        return ['event' => [[
+            'type' => ['h-event'],
+            'properties' => array_filter([
+                'name' => [$data->title],
+                'start' => [$span->start->toIso8601String()],
+                'end' => [$span->end->toIso8601String()],
+                'location' => $span->location === null ? null : [$span->location],
+            ]),
+        ]]];
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    private function checkin(ExportData $data): array
+    {
+        $location = $data->field('location');
+
+        if ($location === null || ! is_array($location->raw)) {
+            return [];
+        }
+
+        return ['checkin' => [[
+            'type' => ['h-card'],
+            'properties' => array_filter([
+                'name' => [$data->title],
+                'latitude' => isset($location->raw['lat']) ? [(string) $location->raw['lat']] : null,
+                'longitude' => isset($location->raw['lng']) ? [(string) $location->raw['lng']] : null,
+            ]),
+        ]]];
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    private function cite(ExportData $data, string $property): array
+    {
+        $rating = $data->field('rating');
+
+        return array_filter([
+            $property => [[
+                'type' => ['h-cite'],
+                'properties' => ['name' => [$data->title]],
+            ]],
+            'rating' => $rating === null ? null : [$rating->display],
+        ]);
+    }
+
+    /**
+     * @param  array<string, string>  $trail
+     * @return array<string, array<string, mixed>>
+     */
+    private function relUrls(array $trail): array
+    {
+        $urls = [];
+
+        foreach ($trail as $extension => $url) {
+            $urls[$url] = [
+                'rels' => ['alternate'],
+                'type' => ExportFormat::from($extension)->contentType(),
+            ];
+        }
+
+        return $urls;
+    }
+}
