@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, useId, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
 import { cn } from '../../lib/cn.js';
@@ -70,6 +70,35 @@ const { activeIndex, onKeydown } = useListboxNavigation(navigable, {
 function accessibleName(item) {
     return item.external ? `${item.label}, opens in a new tab` : item.label;
 }
+
+const baseId = useId();
+const rowId = (index) => `${baseId}-item-${index}`;
+
+// Roving tabindex: DOM focus follows the highlighted row, so a keyboard user
+// never sees the focus ring and the highlight disagree. @keydown needs focus
+// inside listEl to bubble there at all, which a sibling trigger never gives it.
+watch([isOpen, activeIndex], ([open, index]) => {
+    if (!open) {
+        return;
+    }
+
+    nextTick(() => {
+        listEl.value?.querySelectorAll('[role="menuitem"]')[index]?.focus();
+    });
+});
+
+// Closing (Escape, outside click, selection) must not strand focus on a
+// removed row or on <body>; the trigger is the one element guaranteed to
+// still be there, identified by the aria-expanded every trigger must carry.
+watch(isOpen, (open) => {
+    if (open) {
+        return;
+    }
+
+    nextTick(() => {
+        root.value?.querySelector('[aria-expanded]')?.focus();
+    });
+});
 </script>
 
 <template>
@@ -81,12 +110,14 @@ function accessibleName(item) {
             ref="listEl"
             role="menu"
             :aria-label="label"
+            :aria-activedescendant="rowId(activeIndex)"
             :class="panelClasses"
             @keydown="onKeydown"
         >
             <component
                 :is="item.external ? 'a' : Link"
                 v-for="(item, index) in items"
+                :id="rowId(index)"
                 :key="item.href"
                 role="menuitem"
                 :href="item.href"
@@ -94,6 +125,7 @@ function accessibleName(item) {
                 :rel="item.external ? 'noopener' : undefined"
                 :aria-label="accessibleName(item)"
                 :data-active="index === activeIndex"
+                :tabindex="index === activeIndex ? 0 : -1"
                 :class="itemClasses"
                 @click="close"
             >
