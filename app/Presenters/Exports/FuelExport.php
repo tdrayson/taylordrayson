@@ -10,6 +10,7 @@ use App\Enums\TimelineType;
 use App\Models\Fuel;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\FuelSheet;
 use App\Support\Money;
 
 /**
@@ -18,6 +19,11 @@ use App\Support\Money;
  */
 final class FuelExport
 {
+    public function sheet(): FuelSheet
+    {
+        return new FuelSheet;
+    }
+
     public function present(Fuel $model): ExportData
     {
         $card = CardPresenter::for($model);
