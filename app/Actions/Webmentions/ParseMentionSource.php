@@ -56,19 +56,36 @@ final class ParseMentionSource
 
     public function __invoke(string $html, string $sourceUrl, string $targetUrl): MentionData
     {
-        $parsed = rescue(fn (): array => Microformats::fromString($html, 'text/html', $sourceUrl), [], report: false);
-
-        $entry = $this->entryAbout($parsed['items'] ?? [], $targetUrl);
+        $entry = $this->entryIn($html, $sourceUrl, $targetUrl);
 
         return $entry === null ? MentionData::bare() : $this->fromEntry($entry, $targetUrl);
+    }
+
+    /**
+     * The h-entry on the page that is about our URL, as mf2 items.
+     *
+     * Handed back whole rather than read straight into a MentionData, because
+     * the responses nested inside it are read from the same item.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function entryIn(string $html, string $sourceUrl, string $targetUrl): ?array
+    {
+        $parsed = rescue(fn (): array => Microformats::fromString($html, 'text/html', $sourceUrl), [], report: false);
+
+        return $this->entryAbout($parsed['items'] ?? [], $targetUrl);
     }
 
     /**
      * What an already chosen h-entry says, read against one target URL.
      *
      * @param  array<string, mixed>  $entry
+     * @param  string|null  $targetUrl  Null for a response nested inside another
+     *                                  page's thread, which answers that page rather
+     *                                  than us: its kind is whichever response
+     *                                  property it carries.
      */
-    public function fromEntry(array $entry, string $targetUrl): MentionData
+    public function fromEntry(array $entry, ?string $targetUrl): MentionData
     {
         $properties = $entry['properties'] ?? [];
         $kind = $this->kindOf($properties, $targetUrl);
@@ -153,23 +170,35 @@ final class ParseMentionSource
      *
      * @param  array<string, mixed>  $properties
      */
-    private function kindOf(array $properties, string $targetUrl): WebmentionKind
+    private function kindOf(array $properties, ?string $targetUrl): WebmentionKind
     {
         // An RSVP is an in-reply-to carrying a p-rsvp value, so it has to be
         // recognised before the reply it would otherwise read as. Still only
         // when the reply points here: an RSVP to someone else's event that
         // happens to link here is a mention.
-        if (isset($properties['rsvp']) && $this->contains($properties['in-reply-to'] ?? [], $targetUrl)) {
+        if (isset($properties['rsvp']) && $this->names($properties['in-reply-to'] ?? [], $targetUrl)) {
             return WebmentionKind::Rsvp;
         }
 
         foreach (self::RESPONSE_PROPERTIES as $property => $kind) {
-            if ($this->contains($properties[$property] ?? [], $targetUrl)) {
+            if ($this->names($properties[$property] ?? [], $targetUrl)) {
                 return $kind;
             }
         }
 
         return WebmentionKind::Mention;
+    }
+
+    /**
+     * Whether a response property counts. With a target it has to point at it,
+     * or a reply to somebody else that links here reads as a reply to us. With
+     * none, carrying the property at all is the answer.
+     */
+    private function names(mixed $values, ?string $targetUrl): bool
+    {
+        return $targetUrl === null
+            ? Arr::wrap($values) !== []
+            : $this->contains($values, $targetUrl);
     }
 
     /**

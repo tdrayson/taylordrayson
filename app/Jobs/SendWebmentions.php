@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\WebmentionSend;
 use App\Support\OutboundLinks;
 use App\Support\WebmentionEndpoint;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Queue\Queueable;
@@ -25,14 +26,35 @@ use Illuminate\Support\Facades\Http;
  * The second half of that is why the sends are stored rather than diffed off
  * the model: without a record there is no way to tell "already told them" from
  * "tried and it failed", and a 5xx would be mistaken for a delivery.
+ *
+ * Unique per entry, which is what debounces a salmention. A thread that picks
+ * up five replies in a minute must not fire five rounds of webmentions at every
+ * site the entry links to, and the lock is held until the delayed job runs, so
+ * the burst collapses into the one send. The model is re-read at that point, so
+ * whatever the lock swallowed is in the payload anyway.
  */
-class SendWebmentions implements ShouldQueue
+class SendWebmentions implements ShouldBeUnique, ShouldQueue
 {
     use Queueable, SerializesModels;
 
     private const TIMEOUT_SECONDS = 15;
 
+    /**
+     * How long a response waits before the world is told, so a conversation
+     * settles first. Long enough to swallow a burst, short enough that an
+     * upstream author re-fetches while the thread is still live.
+     */
+    public const RESPONSE_DELAY_MINUTES = 3;
+
+    /** Released when the job runs, so the lock cannot outlive a dead worker. */
+    public int $uniqueFor = 900;
+
     public function __construct(private readonly Model $source) {}
+
+    public function uniqueId(): string
+    {
+        return $this->source::class.':'.$this->source->getKey();
+    }
 
     public function handle(): void
     {

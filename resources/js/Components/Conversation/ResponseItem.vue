@@ -7,10 +7,11 @@ import Icon from '../Ui/Icon.vue';
 
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
-    // title, body, occurredAt, parentId, commentId, sourceUrl, sourceHost,
-    // emoji, source, sourceName }.
+    // title, body, occurredAt, parentId, parentItemId, commentId, sourceUrl,
+    // sourceHost, emoji, source, sourceName }.
     item: { type: Object, required: true },
-    // Rendered as a reply to somebody, one level deep only.
+    // Rendered as a reply to somebody, one level deep only. Also how a response
+    // read out of another site's thread hangs off the mention that carried it.
     nested: { type: Boolean, default: false },
 });
 
@@ -108,100 +109,108 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
         :id="item.id"
         v-twemoji
         :class="[
-            'relative flex gap-3',
+            'relative',
             ! isInternal && 'h-cite',
             property,
             nested && 'response-nested ml-16',
             nested && ! item.lastNested && 'response-continues',
         ]"
     >
-        <Avatar
-            class="response-avatar"
-            :name="item.authorName"
-            :photo="item.authorPhoto"
-        />
+        <!-- The row, held apart from the article itself so the responses read out
+             of this one's source can sit inside its h-cite rather than beside the
+             avatar. A parser then sees their thread with the shape it has on their
+             own site, and a reply to a reply is not published as a reply to me. -->
+        <div class="flex gap-3">
+            <Avatar
+                class="response-avatar"
+                :name="item.authorName"
+                :photo="item.authorPhoto"
+            />
 
-        <div class="min-w-0 flex-1">
-            <!-- Centred, not baselined: the row mixes two type sizes with an icon,
-                 and an SVG has no baseline of its own, so the browser synthesises
-                 one from its bottom edge and sits it on the line. Centring holds
-                 the name, the marker and the date on one optical line. -->
-            <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
-                <!-- Same tab: an author's own site is a normal onward link,
-                     not an aside, so it needs no new-tab announcement. -->
-                <a
-                    v-if="item.authorUrl"
-                    :href="item.authorUrl"
-                    rel="ugc nofollow noopener noreferrer"
-                    class="p-author h-card rounded-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
-                >{{ item.authorName }}</a>
-                <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
+            <div class="min-w-0 flex-1">
+                <!-- Centred, not baselined: the row mixes two type sizes with an icon,
+                     and an SVG has no baseline of its own, so the browser synthesises
+                     one from its bottom edge and sits it on the line. Centring holds
+                     the name, the marker and the date on one optical line. -->
+                <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
+                    <!-- Same tab: an author's own site is a normal onward link,
+                         not an aside, so it needs no new-tab announcement. -->
+                    <a
+                        v-if="item.authorUrl"
+                        :href="item.authorUrl"
+                        rel="ugc nofollow noopener noreferrer"
+                        class="p-author h-card rounded-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    >{{ item.authorName }}</a>
+                    <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
 
-                <span class="inline-flex flex-wrap items-center gap-x-1.5 text-neutral-500">
-                    <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
-                    <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
-                    <!-- Wrapped, so the flex gap sits between the marker and the
-                         phrase whether the marker is an SVG or an emoji glyph. -->
-                    <!-- Where it came from, only when the name is not already a
-                         link to it. A webmention author's name carries their site,
-                         so repeating the host says it twice; a syndicated gesture
-                         has no profile to link, so the platform is named instead. -->
-                    <span>{{ did }}</span>
+                    <span class="inline-flex flex-wrap items-center gap-x-1.5 text-neutral-500">
+                        <span v-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
+                        <Icon v-else-if="kind.icon" :name="kind.icon" class="size-3.5" />
+                        <!-- Wrapped, so the flex gap sits between the marker and the
+                             phrase whether the marker is an SVG or an emoji glyph. -->
+                        <!-- Where it came from, only when the name is not already a
+                             link to it. A webmention author's name carries their site,
+                             so repeating the host says it twice; a syndicated gesture
+                             has no profile to link, so the platform is named instead. -->
+                        <span>{{ did }}</span>
 
-                    <!-- "in" and the title share one element so the space
-                         between them is real text rather than a flex gap,
-                         which copies and reads back correctly. -->
-                    <span v-if="showTitle">in{{ ' ' }}<component
-                        :is="isInternal ? Link : 'a'"
+                        <!-- "in" and the title share one element so the space
+                             between them is real text rather than a flex gap,
+                             which copies and reads back correctly. -->
+                        <span v-if="showTitle">in{{ ' ' }}<component
+                            :is="isInternal ? Link : 'a'"
+                            :href="item.sourceUrl"
+                            :rel="isInternal ? null : 'ugc nofollow noopener noreferrer'"
+                            :class="[
+                                'rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                                ! isInternal && 'p-name u-url',
+                            ]"
+                        ><cite v-if="item.title" class="not-italic">{{ item.title }}</cite><template v-else>{{ sourceLabel }}</template></component></span>
+
+                        <span>on</span>
+                    </span>
+
+                    <time class="dt-published text-neutral-500" :datetime="item.occurredAt.iso">
+                        {{ item.occurredAt.label }} {{ item.occurredAt.offset }}
+                    </time>
+
+                    <!-- Where it came from, closing the sentence rather than
+                         interrupting it. A platform names itself; a webmention names
+                         the site it was published on. A comment left here has no
+                         elsewhere, so it says nothing. -->
+                    <a
+                        v-if="via && item.sourceUrl"
                         :href="item.sourceUrl"
-                        :rel="isInternal ? null : 'ugc nofollow noopener noreferrer'"
-                        :class="[
-                            'rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                            ! isInternal && 'p-name u-url',
-                        ]"
-                    ><cite v-if="item.title" class="not-italic">{{ item.title }}</cite><template v-else>{{ sourceLabel }}</template></component></span>
+                        rel="ugc nofollow noopener noreferrer"
+                        class="rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    >via {{ via }}</a>
+                    <span v-else-if="via" class="text-neutral-500">via {{ via }}</span>
+                </p>
 
-                    <span>on</span>
-                </span>
+                <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-2" />
 
-                <time class="dt-published text-neutral-500" :datetime="item.occurredAt.iso">
-                    {{ item.occurredAt.label }} {{ item.occurredAt.offset }}
-                </time>
+                <!-- Only when the byline is not already naming the source, which
+                     links to the same place and would give it two u-urls. -->
+                <p v-if="item.body && item.sourceUrl && ! showTitle" class="mt-2 text-xs">
+                    <a
+                        :href="item.sourceUrl"
+                        rel="ugc nofollow noopener noreferrer"
+                        class="u-url rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    >Read it on {{ item.sourceHost }}</a>
+                </p>
 
-                <!-- Where it came from, closing the sentence rather than
-                     interrupting it. A platform names itself; a webmention names
-                     the site it was published on. A comment left here has no
-                     elsewhere, so it says nothing. -->
-                <a
-                    v-if="via && item.sourceUrl"
-                    :href="item.sourceUrl"
-                    rel="ugc nofollow noopener noreferrer"
-                    class="rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                >via {{ via }}</a>
-                <span v-else-if="via" class="text-neutral-500">via {{ via }}</span>
-            </p>
-
-            <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-2" />
-
-            <!-- Only when the byline is not already naming the source, which
-                 links to the same place and would give it two u-urls. -->
-            <p v-if="item.body && item.sourceUrl && ! showTitle" class="mt-2 text-xs">
-                <a
-                    :href="item.sourceUrl"
-                    rel="ugc nofollow noopener noreferrer"
-                    class="u-url rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
-                >Read it on {{ item.sourceHost }}</a>
-            </p>
-
-            <button
-                v-if="item.commentId"
-                type="button"
-                class="mt-2 rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
-                @click="$emit('reply', item)"
-            >
-                Reply
-            </button>
+                <button
+                    v-if="item.commentId"
+                    type="button"
+                    class="mt-2 rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    @click="$emit('reply', item)"
+                >
+                    Reply
+                </button>
+            </div>
         </div>
+
+        <slot />
     </article>
 </template>
 
