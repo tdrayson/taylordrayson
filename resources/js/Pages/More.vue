@@ -14,6 +14,7 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 defineProps({
     // [{ type, label, href, count }] straight from the TypeRegistry.
     tracked: { type: Array, default: () => [] },
+    total: { type: Number, default: 0 },
     og: { type: Object, default: () => ({}) },
 });
 
@@ -49,7 +50,7 @@ const site = [
     </header>
 
     <section>
-        <SectionHead title="What I track" :meta="`${tracked.length} types`" />
+        <SectionHead title="What I track" :meta="`${tracked.length} types, ${number(total)} entries`" />
         <ul class="grid gap-x-24 sm:grid-cols-2">
             <li v-for="item in tracked" :key="item.type">
                 <Link
