@@ -40,7 +40,7 @@ it('bows the midpoint off the straight line for a long route', function () {
     expect(abs($middle[0] - $naiveMidpoint[0]))->toBeGreaterThan(10.0);
 });
 
-it('splits into a segment either side of the antimeridian instead of wrapping the wrong way round', function () {
+it('splits into segments that meet exactly at the antimeridian, not a sampled point short of it', function () {
     $segments = GreatCircle::segments(0.0, 170.0, 0.0, -170.0);
 
     expect($segments)->toHaveCount(2);
@@ -54,10 +54,11 @@ it('splits into a segment either side of the antimeridian instead of wrapping th
     $firstSegmentEnd = end($segments[0]);
     $secondSegmentStart = $segments[1][0];
 
-    expect($firstSegmentEnd[1])->toBeGreaterThan(170.0)
-        ->and($firstSegmentEnd[1])->toBeLessThanOrEqual(180.0)
-        ->and($secondSegmentStart[1])->toBeLessThan(-170.0)
-        ->and($secondSegmentStart[1])->toBeGreaterThanOrEqual(-180.0)
+    // Travelling from 170 to -170 the short way is eastward, so the first
+    // segment must land exactly on +180 and the second resume exactly on -180.
+    expect($firstSegmentEnd[1])->toBe(180.0)
+        ->and($secondSegmentStart[1])->toBe(-180.0)
+        ->and($firstSegmentEnd[0])->toBe($secondSegmentStart[0])
         ->and($segments[0][0])->toBe([0.0, 170.0])
         ->and(end($segments[1]))->toBe([0.0, -170.0]);
 });
@@ -66,4 +67,12 @@ it('does not split a route that never crosses the antimeridian', function () {
     $segments = GreatCircle::segments(50.077702, 19.7848, 51.148771, -0.192089);
 
     expect($segments)->toHaveCount(1);
+});
+
+it('falls back to a plain two-point line for coincident or antipodal inputs, since no unique arc exists', function () {
+    $coincident = GreatCircle::segments(51.5, -0.1, 51.5, -0.1);
+    $antipodal = GreatCircle::segments(0.0, 0.0, 0.0, 180.0);
+
+    expect($coincident)->toBe([[[51.5, -0.1], [51.5, -0.1]]])
+        ->and($antipodal)->toBe([[[0.0, 0.0], [0.0, 180.0]]]);
 });
