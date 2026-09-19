@@ -157,3 +157,24 @@ it('still removes a comment that has gone when the page is not full', function (
 
     expect($activity->syndicatedResponses()->count())->toBe(0);
 });
+
+// A comments endpoint that was never called returns an empty list that proves
+// nothing, unlike one that was asked and answered. Reading it as "every
+// comment withdrawn" would make the cheap path delete what the expensive path
+// preserves. Only reachable here: the command always fetches when replies are
+// held, so this guard protects any other caller of the action.
+it('keeps stored replies when asked not to fetch comments', function () {
+    $activity = stravaActivity();
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value,
+        'source_id' => 'kept',
+        'kind' => WebmentionKind::Reply,
+    ]);
+
+    fakeStravaResponses([], []);
+
+    app(PullStravaResponses::class)($activity, withComments: false);
+
+    Saloon::assertNotSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/comments'));
+    expect($activity->syndicatedResponses()->where('kind', WebmentionKind::Reply)->count())->toBe(1);
+});
