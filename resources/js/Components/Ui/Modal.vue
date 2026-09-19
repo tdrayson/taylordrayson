@@ -1,5 +1,6 @@
 <script setup>
 import { useId } from 'vue';
+import Heading from './Heading.vue';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 import { useMounted } from '../../composables/useMounted';
@@ -52,7 +53,7 @@ const titleId = useId();
                 >
                     <div v-if="title || $slots.header" class="flex shrink-0 items-center justify-between border-b border-neutral-50 px-5 py-4">
                         <slot name="header">
-                            <h2 :id="titleId" class="font-display text-section">{{ title }}</h2>
+                            <Heading :id="titleId" size="section">{{ title }}</Heading>
                         </slot>
                         <button
                             type="button"

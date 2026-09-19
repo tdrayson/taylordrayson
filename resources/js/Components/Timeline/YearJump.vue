@@ -33,7 +33,7 @@ function go(year) {
 
 <template>
     <div v-if="years.length" class="mt-4 flex items-baseline justify-center gap-2">
-        <label for="year-jump" class="text-meta text-neutral-500">Jump to</label>
+        <label for="year-jump" class="text-sm text-neutral-500">Jump to</label>
 
         <Select
             id="year-jump"

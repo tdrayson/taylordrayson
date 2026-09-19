@@ -34,7 +34,7 @@ const cards = [
                 </span>
             </span>
             <span
-                class="text-caption font-semibold"
+                class="text-xs font-semibold"
                 :class="theme === card.value ? 'text-neutral-900' : 'text-neutral-500'"
             >{{ card.label }}</span>
         </button>

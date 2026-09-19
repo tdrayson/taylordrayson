@@ -16,13 +16,17 @@ it('renders the custom 404 page for an unknown url', function () {
         );
 });
 
-it('sends the counts as numbers even when the cache hands back numeric strings', function () {
+it('sends the entry count as a number even when the cache hands back a numeric string', function () {
     Cache::put('error.entry_count', '10354', now()->addHour());
-    Cache::put('error.day_count', '2983', now()->addHour());
 
     get('/this-page-does-not-exist')
+        ->assertInertia(fn (Assert $page) => $page->whereType('entries', 'integer'));
+});
+
+it('takes the streak from the shared prop rather than a days prop of its own', function () {
+    get('/this-page-does-not-exist')
         ->assertInertia(fn (Assert $page) => $page
-            ->whereType('entries', 'integer')
-            ->whereType('days', 'integer')
+            ->missing('days')
+            ->whereType('streakDays', 'integer')
         );
 });

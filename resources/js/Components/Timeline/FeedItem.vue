@@ -9,6 +9,7 @@ import Button from '../Ui/Button.vue';
 import Pill from '../Ui/Pill.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
+import Heading from '../Ui/Heading.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
@@ -19,6 +20,7 @@ import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { useFormat } from '../../composables/useFormat';
+import { useTheme } from '../../useTheme';
 
 const props = defineProps({
     // Registry name string (from entryTypes) or a raw hugeicons object.
@@ -208,13 +210,36 @@ const routeImageDarkUrl = computed(() => props.mapDark ?? null);
 const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
 
 // Activity photos: the cover sits beside the route map, with a "+N" badge for
-// any extras. A hover zoom icon opens the photos in a lightbox in place; the map
-// is not lightboxed (clicking the card opens the entry's interactive map).
+// any extras. Clicking any of the card's media opens the lightbox in place
+// rather than navigating; the entry is still one click away from the title, the
+// timestamp, and the lightbox's own "View entry" link.
 const coverPhoto = computed(() => props.photos?.[0] ?? null);
 const extraPhotos = computed(() => (props.photos ? props.photos.length - 1 : 0));
 
 const lightboxIndex = ref(null);
-const lightboxItems = computed(() => props.photos ?? []);
+
+// The map trails the photos, matching CardMediaCarousel's slide order, so one
+// index addresses both.
+const mapLightboxIndex = computed(() => props.photos?.length ?? 0);
+
+// The card renders both map PNGs and lets `dark:` pick one, but the lightbox
+// shows a single image, so the active scheme chooses it here instead.
+const { resolved } = useTheme();
+
+// Lightbox slides: the photos, then the map. Each carries the entry permalink so
+// the lightbox offers the link the image itself used to be.
+const lightboxItems = computed(() => {
+    const items = (props.photos ?? []).map((photo) => ({ ...photo, url: props.url }));
+
+    if (routeImageUrl.value) {
+        items.push({
+            full: resolved.value === 'dark' && routeImageDarkUrl.value ? routeImageDarkUrl.value : routeImageUrl.value,
+            url: props.url,
+        });
+    }
+
+    return items;
+});
 
 function openLightbox(index) {
     lightboxIndex.value = index;
@@ -238,7 +263,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 <component
                     :is="typeHref ? Link : 'div'"
                     :href="typeHref || undefined"
-                    class="p-category text-label uppercase text-(--type-color)"
+                    class="p-category text-2xs font-semibold uppercase tracking-wider text-(--type-color)"
                     :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
                 >{{ displayType }}</component>
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
@@ -258,7 +283,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         <!-- A real h3: each card is a subsection of its DateGroup's h2/h3
              heading. A gesture has none, because the line above is the card:
              its title only restates that line in a display face. -->
-        <h3 v-else-if="! response?.namedInTitle" class="mt-1 max-w-md font-display text-item-title">
+        <Heading v-else-if="! response?.namedInTitle" as="h3" size="title" class="mt-1 max-w-md">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji
@@ -267,20 +292,20 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 class="p-name"
                 :class="url ? 'u-url underline-offset-4 transition-colors hover:text-(--type-color) hover:underline focus-visible:text-(--type-color) focus-visible:underline' : ''"
             >{{ title }}</component>
-        </h3>
-        <p v-if="category" class="mt-1.5 text-caption text-neutral-500">{{ category }}</p>
-        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+        </Heading>
+        <p v-if="category" class="mt-1.5 text-xs text-neutral-500">{{ category }}</p>
+        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
             <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
                 <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
             </span>
             <span v-if="brand">{{ brand }} garage</span>
         </div>
-        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>
             <span v-if="airline.number" class="text-neutral-400 tabular-nums">{{ airline.number }}</span>
         </div>
-        <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
+        <span v-if="range" class="mt-1.5 block text-xs text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
         <FlightRoute
             v-if="routeView"
             compact
@@ -292,11 +317,23 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :note="routeView.note"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
-        <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
-             and the `dark:` class picks the right one, no JS needed. -->
-        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
-        <img v-if="routeImageDarkUrl && !coverPhoto" :src="routeImageDarkUrl" alt="" class="mt-3 hidden aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover dark:block">
+        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <!-- Map alone when there is no photo, and it opens the lightbox like a
+             photo would. Light/dark PNGs are both rendered and the `dark:` class
+             picks the right one, no JS needed. -->
+        <button
+            v-if="routeImageUrl && !coverPhoto"
+            type="button"
+            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            aria-label="View map"
+            @click="openLightbox(mapLightboxIndex)"
+        >
+            <img :src="routeImageUrl" alt="" class="size-full object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+            <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden size-full object-cover dark:block">
+            <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                <ZoomButton />
+            </span>
+        </button>
 
         <!-- Small screens with both a map and photos get a swipeable carousel;
              the lg+ layout below keeps them side by side. -->
@@ -305,7 +342,6 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :map="routeImageUrl"
             :map-dark="routeImageDarkUrl"
             :photos="photos"
-            :url="url"
             class="lg:hidden"
             @open="openLightbox"
         />
@@ -324,25 +360,24 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             <img :src="backdrop" alt="" loading="lazy" decoding="async" class="size-full object-cover">
         </component>
 
-        <!-- Image link and zoom button are siblings, not nested; the image link
-             duplicates the text permalink, so it is aria-hidden. -->
+        <!-- The cover is the lightbox trigger; the zoom chip and the "+N" badge
+             ride inside it as decoration, so the whole image is one hit target. -->
         <div
             v-if="coverPhoto && !routeImageUrl"
             class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
         >
-            <component
-                :is="url ? Link : 'div'"
-                :href="url || undefined"
-                :tabindex="url ? -1 : undefined"
-                :aria-hidden="url ? 'true' : undefined"
-                class="block size-full"
+            <button
+                type="button"
+                class="block size-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+                aria-label="View photos"
+                @click="openLightbox(0)"
             >
                 <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
-            </component>
-            <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
-                <ZoomButton />
             </button>
-            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
+            <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                <ZoomButton />
+            </span>
+            <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
         </div>
 
         <!-- A wide route map beside a square cover on lg+, sharing one fixed height
@@ -353,35 +388,38 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             v-if="routeImageUrl && coverPhoto"
             class="mt-3 hidden gap-2 lg:flex"
         >
-            <component
-                :is="url ? Link : 'div'"
-                :href="url || undefined"
-                :tabindex="url ? -1 : undefined"
-                :aria-hidden="url ? 'true' : undefined"
-                class="block min-w-0 max-w-lg flex-1"
-            >
-                <img :src="routeImageUrl" alt="" class="h-72 w-full rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
-                <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden h-72 w-full rounded-lg border border-neutral-50 object-cover dark:block">
-            </component>
+            <div class="group/zoom relative min-w-0 max-w-lg flex-1">
+                <button
+                    type="button"
+                    class="block w-full cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="View map"
+                    @click="openLightbox(mapLightboxIndex)"
+                >
+                    <img :src="routeImageUrl" alt="" class="h-72 w-full rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+                    <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden h-72 w-full rounded-lg border border-neutral-50 object-cover dark:block">
+                </button>
+                <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                    <ZoomButton />
+                </span>
+            </div>
             <div class="group/zoom relative shrink-0">
-                <component
-                    :is="url ? Link : 'div'"
-                    :href="url || undefined"
-                    :tabindex="url ? -1 : undefined"
-                    :aria-hidden="url ? 'true' : undefined"
-                    class="block"
+                <button
+                    type="button"
+                    class="block cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    aria-label="View photos"
+                    @click="openLightbox(0)"
                 >
                     <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
-                </component>
-                <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
-                    <ZoomButton />
                 </button>
-                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
+                <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                    <ZoomButton />
+                </span>
+                <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
             </div>
         </div>
         <!-- Check-in's full address, shown beneath the map/photos whether or not
              the card carries a note. -->
-        <p v-if="address" class="mt-3 text-caption text-neutral-500">{{ address }}</p>
+        <p v-if="address" class="mt-3 text-xs text-neutral-500">{{ address }}</p>
 
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div

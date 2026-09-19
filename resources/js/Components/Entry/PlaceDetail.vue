@@ -47,8 +47,8 @@ const lightboxIndex = ref(null);
             />
             <div class="flex flex-col gap-y-2 sm:flex-row sm:items-start sm:justify-between sm:gap-x-4 sm:gap-y-1">
                 <div v-if="entry.venue_name || addressLine" class="min-w-0">
-                    <p v-if="entry.venue_name" class="text-meta font-medium text-neutral-900">{{ entry.venue_name }}</p>
-                    <p v-if="addressLine" class="text-meta text-neutral-600">{{ addressLine }}</p>
+                    <p v-if="entry.venue_name" class="text-sm font-medium text-neutral-900">{{ entry.venue_name }}</p>
+                    <p v-if="addressLine" class="text-sm text-neutral-600">{{ addressLine }}</p>
                 </div>
                 <ExternalLink :href="location.mapsUrl" label="View on Google Maps" class="shrink-0" />
             </div>

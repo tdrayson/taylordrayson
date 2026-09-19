@@ -26,7 +26,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 
 <template>
     <div>
-        <div class="mb-2 flex items-center gap-2 text-meta font-semibold text-neutral-700">
+        <div class="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-700">
             <Icon v-if="icon" :name="icon" class="size-4 text-accent-500" />
             {{ label }}
         </div>
@@ -36,12 +36,12 @@ onBeforeUnmount(() => clearTimeout(timer));
                 type="text"
                 readonly
                 :title="url"
-                class="min-w-0 flex-1 rounded-md border border-neutral-50 bg-neutral-25 px-3 py-2.5 font-mono text-meta text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="min-w-0 flex-1 rounded-md border border-neutral-50 bg-neutral-25 px-3 py-2.5 font-mono text-sm text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 @focus="$event.target.select()"
             />
             <button
                 type="button"
-                class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-neutral-100 px-3 text-meta font-semibold text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-neutral-100 px-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                 :aria-label="copied ? 'Copied' : 'Copy feed URL'"
                 @click="copy"
             >

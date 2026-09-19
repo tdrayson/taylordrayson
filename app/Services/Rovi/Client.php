@@ -2,9 +2,7 @@
 
 namespace App\Services\Rovi;
 
-use App\Services\GetRequest;
 use Carbon\CarbonImmutable;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 /**
  * Read-only client for the Rovi personal API, authenticated with a static
@@ -185,17 +183,7 @@ class Client
      */
     public function get(string $path, array $query = []): ?array
     {
-        $key = config('services.rovi.key');
-
-        if (! $key) {
-            return null;
-        }
-
-        $response = $this->connector->send(
-            (new GetRequest($path, $query))->authenticate(new TokenAuthenticator($key)),
-        );
-
-        return $response->failed() ? null : $response->json();
+        return $this->connector->json($path, $query);
     }
 
     /**

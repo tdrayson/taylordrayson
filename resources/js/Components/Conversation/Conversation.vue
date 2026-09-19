@@ -211,7 +211,7 @@ async function reply(item) {
              entry that opened straight onto a summary line and a text box had
              nothing naming what any of it was for, which read as debris at the
              bottom of the page rather than as a section. -->
-        <h2 id="responses" class="scroll-mt-8 font-display text-section text-neutral-900">{{ heading }}</h2>
+        <h2 id="responses" class="scroll-mt-8 font-display text-lg font-bold leading-tight tracking-tight text-neutral-900">{{ heading }}</h2>
 
         <div class="mt-4 space-y-8">
             <!-- A summary line, not a labelled section: the counts read as part
@@ -273,7 +273,7 @@ async function reply(item) {
             <!-- Above the box in every state, because the two ways to answer
                  are not both visible: one is a text field and the other is a
                  panel further down that nobody would think to open. -->
-            <p class="mb-3 text-body text-neutral-500">
+            <p class="mb-3 text-base text-neutral-500">
                 Add a comment, or
                 <button
                     type="button"

@@ -13,7 +13,7 @@ const props = defineProps({
 const ICONS = {
     reply: 'MailReply01Icon',
     like: 'FavouriteIcon',
-    repost: 'RepeatIcon',
+    repost: 'ArrowReloadHorizontalIcon',
     rsvp: 'Calendar01Icon',
 };
 
@@ -32,7 +32,7 @@ const property = computed(() => `u-${props.response.property}`);
 <template>
     <!-- One line, built like a conversation byline: the marker, what I did, and
          the thing I did it to. Whatever the post says follows underneath. -->
-    <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta text-neutral-500">
+    <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-neutral-500">
         <Icon :name="icon" class="size-3.5 shrink-0" />
         <!-- An RSVP's answer is the verb, so it is the label, and the element
              carries the machine-readable value the wording spells out. -->

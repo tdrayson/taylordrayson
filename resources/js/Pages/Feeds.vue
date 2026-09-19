@@ -7,6 +7,8 @@ import Icon from '../Components/Ui/Icon.vue';
 import OptionCard from '../Components/Ui/OptionCard.vue';
 import FeedTypeToggle from '../Components/Feeds/FeedTypeToggle.vue';
 import FeedUrlField from '../Components/Feeds/FeedUrlField.vue';
+import Eyebrow from '../Components/Ui/Eyebrow.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -79,8 +81,8 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
                 <Icon name="RssIcon" class="size-6" />
             </span>
             <div class="min-w-0">
-                <h1 class="font-display text-display">Feeds</h1>
-                <p class="mt-2 max-w-prose text-meta text-neutral-500">
+                <Heading as="h1" size="display">Feeds</Heading>
+                <p class="mt-2 max-w-prose text-sm text-neutral-500">
                     Pop me in your feed reader. Grab one of my ready-made mixes, or flip the switches below
                     and build a feed of exactly the bits you care about.
                 </p>
@@ -88,7 +90,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         </header>
 
         <section class="mb-10">
-            <h2 class="mb-3 text-label uppercase text-neutral-500">Ready-made mixes</h2>
+            <Eyebrow as="h2" class="mb-3 text-neutral-500">Ready-made mixes</Eyebrow>
             <div class="grid gap-3 sm:grid-cols-2">
                 <OptionCard
                     v-for="preset in presets"
@@ -103,8 +105,8 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         </section>
 
         <section class="mb-10">
-            <h2 class="mb-1 text-label uppercase text-neutral-500">Build your own</h2>
-            <p class="mb-4 text-meta text-neutral-500">Flip on whatever you fancy. Mix and match to taste.</p>
+            <Eyebrow as="h2" class="mb-1 text-neutral-500">Build your own</Eyebrow>
+            <p class="mb-4 text-sm text-neutral-500">Flip on whatever you fancy. Mix and match to taste.</p>
             <div class="flex flex-wrap gap-2">
                 <FeedTypeToggle
                     v-for="type in types"
@@ -118,16 +120,16 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
         </section>
 
         <section>
-            <h2 class="mb-4 text-label uppercase text-neutral-500">Your feed URLs</h2>
+            <Eyebrow as="h2" class="mb-4 text-neutral-500">Your feed URLs</Eyebrow>
             <div v-if="hasFeed" class="space-y-5">
                 <FeedUrlField label="RSS Feed" icon="RssIcon" :url="rssUrl" />
                 <FeedUrlField label="JSON Feed" icon="SourceCodeIcon" :url="jsonUrl" />
-                <p class="text-caption text-neutral-500">
+                <p class="text-xs text-neutral-500">
                     Team Atom? Swap <code class="text-neutral-700">/feed/rss</code> for
                     <code class="text-neutral-700">/feed/atom</code> and you're sorted.
                 </p>
             </div>
-            <p v-else class="text-meta text-neutral-500">Flip at least one switch and your feed will appear here.</p>
+            <p v-else class="text-sm text-neutral-500">Flip at least one switch and your feed will appear here.</p>
         </section>
     </div>
 </template>

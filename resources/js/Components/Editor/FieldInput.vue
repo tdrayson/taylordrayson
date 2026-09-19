@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { cn } from '../../lib/cn.js';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Input from '../Ui/Input.vue';
 import Select from '../Ui/Select.vue';
 import Switch from '../Ui/Switch.vue';
@@ -108,7 +109,7 @@ function textToTags(value) {
         <!-- A citation field with nothing but a preview to show (a like, repost
              or RSVP has no quote of its own) draws no label above it. -->
         <div v-if="! hideLabel && field.type !== 'boolean' && (field.type !== 'citation' || responseKind === 'reply')" class="mb-1 flex items-center justify-between gap-3">
-            <label :for="field.name" class="block text-label uppercase text-neutral-500">{{ field.label }}</label>
+            <Eyebrow as="label" :for="field.name" class="block text-neutral-500">{{ field.label }}</Eyebrow>
 
             <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
         </div>
@@ -298,10 +299,10 @@ function textToTags(value) {
             class="mt-3 overflow-hidden rounded-lg"
         />
 
-        <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
+        <p v-if="error" class="mt-1 text-xs text-red-600">{{ error }}</p>
 
-        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
+        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-xs text-neutral-500">Settled when this was first saved.</p>
 
-        <p v-else-if="hint" class="mt-1 truncate text-caption text-neutral-500">{{ hint }}</p>
+        <p v-else-if="hint" class="mt-1 truncate text-xs text-neutral-500">{{ hint }}</p>
     </div>
 </template>

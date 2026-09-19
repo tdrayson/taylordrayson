@@ -58,14 +58,18 @@ trait HasResponse
 
         static::created(function (self $model): void {
             if (self::needsCitationFetch($model)) {
-                FetchCitationFor::dispatch($model);
+                // The job links the reply back by key, so a worker reaching the
+                // row before the transaction commits would match nothing and
+                // lose the citation. The queue connections all set
+                // after_commit false.
+                FetchCitationFor::dispatch($model)->afterCommit();
             }
         });
 
         // Only a new URL fetches: bulk resaves (timezone backfills) would otherwise retry every dead link.
         static::updated(function (self $model): void {
             if ($model->wasChanged('response_url') && self::needsCitationFetch($model)) {
-                FetchCitationFor::dispatch($model);
+                FetchCitationFor::dispatch($model)->afterCommit();
             }
         });
     }

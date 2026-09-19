@@ -53,7 +53,10 @@ trait SendsWebmentions
     private static function queueWebmentions(Model $model): void
     {
         if (InteractionTarget::sendsMentions($model)) {
-            SendWebmentions::dispatch($model);
+            // Telling another site about a post is not undoable, so it waits for
+            // the transaction the sync commands and imports write inside. The
+            // queue connections all set after_commit false.
+            SendWebmentions::dispatch($model)->afterCommit();
         }
     }
 }

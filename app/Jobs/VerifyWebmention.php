@@ -99,7 +99,11 @@ class VerifyWebmention implements ShouldQueue
             'content' => $parsed->content,
             'published_at' => $parsed->publishedAt,
             'timezone' => $parsed->publishedTimezone,
-            'status' => app(DecideMentionStatus::class)($parsed->authorUrl),
+            // A re-send reuses the row, so recomputing this unconditionally
+            // would hand a spammer an undo button for the moderator's decision.
+            'status' => $mention->status === CommentStatus::Spam
+                ? CommentStatus::Spam
+                : app(DecideMentionStatus::class)($parsed->authorUrl),
             'verified_at' => now(),
             'last_checked_at' => now(),
         ])->save();

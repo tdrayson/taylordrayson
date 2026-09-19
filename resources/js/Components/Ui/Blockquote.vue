@@ -1,4 +1,7 @@
 <script setup>
+import Eyebrow from './Eyebrow.vue';
+import Heading from './Heading.vue';
+
 defineProps({
     // Optional citation shown beneath the quote.
     cite: { type: String, default: null },
@@ -18,9 +21,9 @@ const TONES = {
 
 <template>
     <figure class="my-8 border-l-2 pl-5" :class="TONES[tone] ?? TONES.default">
-        <blockquote class="max-w-2xl font-display text-item-title text-neutral-900">
+        <Heading as="blockquote" size="title" class="max-w-2xl text-neutral-900">
             <slot />
-        </blockquote>
-        <figcaption v-if="cite" class="mt-3 text-label uppercase text-neutral-500">{{ cite }}</figcaption>
+        </Heading>
+        <Eyebrow v-if="cite" as="figcaption" class="mt-3 text-neutral-500">{{ cite }}</Eyebrow>
     </figure>
 </template>

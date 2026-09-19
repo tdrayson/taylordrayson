@@ -33,7 +33,7 @@ const property = computed(() => `u-${props.response.property}`);
 </script>
 
 <template>
-    <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta text-neutral-500">
+    <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-neutral-500">
         <Icon :name="icon" class="size-3.5 shrink-0" />
         <data v-if="response.rsvp" class="p-rsvp" :value="response.rsvp">{{ response.label }}</data>
         <span v-else>{{ response.label }}</span>
@@ -84,7 +84,7 @@ const property = computed(() => `u-${props.response.property}`);
                     <slot name="quote" />
                 </div>
                 <p v-else-if="cited.quote" :class="['p-content text-neutral-600', cited.title && 'mt-1']">{{ cited.quote }}</p>
-                <a v-if="cited?.published" :href="response.url" class="u-url mt-2 inline-block text-caption text-neutral-500 hover:text-accent-700">
+                <a v-if="cited?.published" :href="response.url" class="u-url mt-2 inline-block text-xs text-neutral-500 hover:text-accent-700">
                     <time class="dt-published" :datetime="cited.published.iso">{{ cited.published.label }} {{ cited.published.offset }}</time>
                 </a>
             </div>
