@@ -88,7 +88,7 @@ it('resumes the backfill where the request ceiling stopped it', function () {
     expect(Cache::get('strava:responses:cursor'))->toBeNull();
 });
 
-it('asks about every activity when --all is passed, however the counts look', function () {
+it('still fetches under --all when the counts agree but are not zero', function () {
     $activity = Activity::factory()->create([
         'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subYears(3),
     ]);
@@ -197,4 +197,39 @@ it('caps the self-heal at 90 days when the gap is much longer than that', functi
 
     Saloon::assertSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/athlete/activities')
         && (int) $request->query()->get('after') === $expected);
+});
+
+// Production holds ~1,500 activities and most have nothing on them. Asking
+// Strava about each costs two requests against a 150 ceiling, which is hours
+// of waiting to be told twice over that there is nothing there.
+it('skips an activity under --all when both sides are empty', function () {
+    Activity::factory()->create([
+        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subYears(3),
+    ]);
+
+    fakeSummaries([['id' => 100, 'kudos_count' => 0, 'comment_count' => 0]]);
+
+    $this->artisan('strava:responses --all')->assertSuccessful();
+
+    Saloon::assertNotSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/activities/100/'));
+});
+
+// A 0/0 summary against rows we still hold is a withdrawal, not a no-op: the
+// fetch is what lets the reconcile clear them.
+it('still fetches under --all when the summary is empty but rows are held', function () {
+    $activity = Activity::factory()->create([
+        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subYears(3),
+    ]);
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value, 'kind' => WebmentionKind::Like, 'author_name' => 'Took it back A.',
+    ]);
+
+    fakeSummaries([['id' => 100, 'kudos_count' => 0, 'comment_count' => 0]], [
+        '/api/v3/activities/100/kudos' => MockResponse::make([]),
+        '/api/v3/activities/100/comments' => MockResponse::make([]),
+    ]);
+
+    $this->artisan('strava:responses --all')->assertSuccessful();
+
+    expect(SyndicatedResponse::query()->count())->toBe(0);
 });

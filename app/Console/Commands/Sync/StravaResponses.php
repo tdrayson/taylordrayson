@@ -80,7 +80,7 @@ class StravaResponses extends Command
                 continue;
             }
 
-            if (! $all && ! $this->differs($summary, $held->get($activity->id, ['like' => 0, 'reply' => 0]))) {
+            if ($this->skippable($summary, $held->get($activity->id, ['like' => 0, 'reply' => 0]), $all)) {
                 continue;
             }
 
@@ -182,6 +182,36 @@ class StravaResponses extends Command
                 'like' => (int) ($rows->firstWhere('kind', WebmentionKind::Like->value)?->total ?? 0),
                 'reply' => (int) ($rows->firstWhere('kind', WebmentionKind::Reply->value)?->total ?? 0),
             ]);
+    }
+
+    /**
+     * Whether this activity can be passed over without spending its two
+     * detail requests.
+     *
+     * A windowed run trusts the counts: matching them means nothing has
+     * happened since the last run. --all deliberately does not, because
+     * content changes without the counts moving, an edited comment or a
+     * renamed athlete, and repairing exactly that is what it is for.
+     *
+     * The one thing --all can still skip is a provable no-op: Strava reports
+     * nothing and we hold nothing, so there is no content to refresh and no
+     * stale row to clear. Fetching it can only ever confirm two empty sets.
+     * Anything else, including a 0/0 summary against rows we still hold, must
+     * be fetched so the reconcile can delete them.
+     *
+     * @param  array<string, mixed>  $summary
+     * @param  array{like: int, reply: int}  $held
+     */
+    private function skippable(array $summary, array $held, bool $all): bool
+    {
+        if (! $all) {
+            return ! $this->differs($summary, $held);
+        }
+
+        return (int) ($summary['kudos_count'] ?? 0) === 0
+            && (int) ($summary['comment_count'] ?? 0) === 0
+            && $held['like'] === 0
+            && $held['reply'] === 0;
     }
 
     /**
