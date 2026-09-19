@@ -95,6 +95,33 @@ it('omits the fuel type row for an unrecognised vehicle', function () {
     expect($txt)->not->toContain('FUEL TYPE');
 });
 
+it('opens on a bare FUEL heading rather than an empty frame when the vendor is unknown', function () {
+    $fuel = Fuel::factory()->create([
+        'occurred_at' => '2021-08-26 23:00:00',
+        'vehicle_id' => 'hn14wxp',
+        'station_name' => null,
+        'brand' => null,
+        'address' => null,
+        'city' => null,
+        'postcode' => null,
+        'litres' => 30.0,
+        'price_per_litre' => 1.2,
+        'cost' => 36.0,
+        'odometer' => 40000,
+        'status' => 'published',
+    ]);
+
+    $data = ExportPresenter::for($fuel);
+    $txt = Formats::find($data, ExportFormat::Txt)->render($data);
+
+    expect($txt)->toContain('FUEL')
+        ->and($txt)->not->toContain('==============================================
+==============================================')
+        ->and($txt)->toContain('No. '.str_pad((string) $fuel->id, 4, '0', STR_PAD_LEFT))
+        ->and($txt)->toContain('TOTAL FUEL')
+        ->and($txt)->not->toContain('UNKNOWN');
+});
+
 it('renders the same barcode for the same fill every time', function () {
     $fuel = Fuel::factory()->create(['occurred_at' => '2026-09-13 08:00:00', 'status' => 'published']);
 

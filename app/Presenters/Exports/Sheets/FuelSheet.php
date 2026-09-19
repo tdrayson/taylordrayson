@@ -19,10 +19,7 @@ final class FuelSheet
     public function render(ExportData $data): string
     {
         return Sheet::join([
-            Sheet::rule(self::WIDTH, '='),
-            ...$this->centredBlock($this->value($data, 'station')),
-            ...$this->centredBlock($this->value($data, 'locality')),
-            Sheet::rule(self::WIDTH, '='),
+            ...$this->header($data),
             $this->transaction($data),
             Sheet::rule(self::WIDTH, '-'),
             ...$this->maybeLabelled($data, 'BRAND', 'brand'),
@@ -39,6 +36,28 @@ final class FuelSheet
             Sheet::centre(Sheet::barcode($this->seed($data)), self::WIDTH),
             Sheet::rule(self::WIDTH, '='),
         ]);
+    }
+
+    /**
+     * The rule-framed vendor block: the station and locality when either is
+     * known, or a bare "FUEL" so the receipt still announces itself rather
+     * than framing an empty gap. Most fills carry no station at all, so this
+     * fallback is the common case, not the rare one.
+     *
+     * @return list<string>
+     */
+    private function header(ExportData $data): array
+    {
+        $vendor = [
+            ...$this->centredBlock($this->value($data, 'station')),
+            ...$this->centredBlock($this->value($data, 'locality')),
+        ];
+
+        return [
+            Sheet::rule(self::WIDTH, '='),
+            ...($vendor === [] ? [Sheet::centre('FUEL', self::WIDTH)] : $vendor),
+            Sheet::rule(self::WIDTH, '='),
+        ];
     }
 
     /** The date/time left, the receipt number right, both already field displays. */
