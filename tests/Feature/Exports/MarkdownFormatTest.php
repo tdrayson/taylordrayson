@@ -18,7 +18,8 @@ it('renders a flight as markdown with front matter, fields and a trail', functio
         ->and($md)->toContain('type: flight')
         ->and($md)->toContain("Distance: '876 miles'")
         ->and($md)->toContain('## See also')
-        ->and($md)->toContain('[json](https://example.test/x.json)')
+        ->and($md)->toContain('## Other formats')
+        ->and($md)->toContain('- [json](https://example.test/x.json)')
         ->and($md)->not->toContain('[https://example.test/x.json](json)');
 });
 

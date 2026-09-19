@@ -41,8 +41,15 @@ it('serves an entry as json at its own url plus an extension', function () {
 
     $this->get($flight->url().'.json')
         ->assertOk()
-        ->assertHeader('content-type', 'application/json')
+        ->assertHeader('content-type', 'application/json; charset=UTF-8')
         ->assertJsonPath('type', 'flight');
+});
+
+it('serves yaml and sql as readable text, not a download', function () {
+    $flight = krkToLgw();
+
+    $this->get($flight->url().'.yaml')->assertOk()->assertHeader('content-type', 'text/yaml; charset=UTF-8');
+    $this->get($flight->url().'.sql')->assertOk()->assertHeader('content-type', 'text/x-sql; charset=UTF-8');
 });
 
 it('lists the other formats as a trail', function () {
@@ -73,7 +80,7 @@ it('404s an unknown slug and an unpublished entry', function () {
 it('does not let an extension fall through to the entry page', function () {
     krkToLgw();
 
-    $this->get('/2026/06/08/krk-lgw.json')->assertHeader('content-type', 'application/json');
+    $this->get('/2026/06/08/krk-lgw.json')->assertHeader('content-type', 'application/json; charset=UTF-8');
 });
 
 it('publishes only the header for a private entry the request has not unlocked', function () {

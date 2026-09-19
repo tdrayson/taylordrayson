@@ -9,20 +9,19 @@ it('publishes a film as labelled fields in order', function () {
         'occurred_at' => '2026-09-13 20:00:00',
         'title' => 'Arrival',
         'rating' => 8,
-        'meta' => ['year' => 2016, 'runtime' => 116, 'director' => 'Denis Villeneuve'],
+        'meta' => ['year' => 2016, 'runtime' => 116],
         'status' => 'published',
     ]);
 
     $export = ExportPresenter::for($film);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['film', 'rating', 'year', 'runtime', 'director'])
+        ->toBe(['film', 'rating', 'year', 'runtime'])
         ->and($export->field('film')->display)->toBe('Arrival')
         ->and($export->field('rating')->display)->toBe('8 out of 10')
         ->and($export->field('year')->display)->toBe('2016')
         ->and($export->field('year')->raw)->toBe(2016)
-        ->and($export->field('runtime')->display)->toBe('1h 56m')
-        ->and($export->field('director')->display)->toBe('Denis Villeneuve');
+        ->and($export->field('runtime')->display)->toBe('1h 56m');
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 

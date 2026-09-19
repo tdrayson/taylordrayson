@@ -29,7 +29,7 @@ it('renders an h-entry with the properties a parser expects', function () {
         ->and($item['properties']['author'][0]['type'])->toBe(['h-card'])
         ->and($item['properties']['author'][0]['properties']['name'][0])->toBe('Taylor Drayson')
         ->and($mf2['rels']['alternate'])->toContain('https://example.test/x.json')
-        ->and($mf2['rel-urls']['https://example.test/x.json']['type'])->toBe('application/json');
+        ->and($mf2['rel-urls']['https://example.test/x.json']['type'])->toBe('application/json; charset=utf-8');
 });
 
 // The distinction a parser uses to tell a note from an article: Entry.vue

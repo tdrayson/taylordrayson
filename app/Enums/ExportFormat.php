@@ -17,17 +17,28 @@ enum ExportFormat: string
     case Ics = 'ics';
     case GeoJson = 'geojson';
 
+    /**
+     * A `text/*` subtype for `.yaml` and `.sql`, not `application/*`: a
+     * browser renders any `text/*` response inline rather than downloading
+     * it, the same reason `.md` is `text/markdown` rather than
+     * `application/markdown`. Neither has a consumer that dispatches on its
+     * type, so being readable in a browser is the whole point.
+     *
+     * Every entry declares `charset=utf-8` explicitly, even where a spec
+     * (RFC 8259 for JSON) already implies it: without it a browser guesses
+     * Latin-1 and mangles every non-ASCII byte the export writes out.
+     */
     public function contentType(): string
     {
         return match ($this) {
-            self::Json => 'application/json',
-            self::Yaml => 'application/yaml',
+            self::Json => 'application/json; charset=utf-8',
+            self::Yaml => 'text/yaml; charset=utf-8',
             self::Txt => 'text/plain; charset=utf-8',
             self::Md => 'text/markdown; charset=utf-8',
-            self::Mf2 => 'application/mf2+json',
-            self::Sql => 'application/sql',
+            self::Mf2 => 'application/mf2+json; charset=utf-8',
+            self::Sql => 'text/x-sql; charset=utf-8',
             self::Ics => 'text/calendar; charset=utf-8',
-            self::GeoJson => 'application/geo+json',
+            self::GeoJson => 'application/geo+json; charset=utf-8',
         };
     }
 

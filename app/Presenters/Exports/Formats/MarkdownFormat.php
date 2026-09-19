@@ -44,11 +44,11 @@ final class MarkdownFormat extends Format
         }
 
         if ($trail !== []) {
-            $parts[] = 'Also as '.implode(', ', array_map(
-                fn (string $url, string $ext): string => "[{$ext}]({$url})",
+            $parts[] = "## Other formats\n\n".implode("\n", array_map(
+                fn (string $url, string $ext): string => "- [{$ext}]({$url})",
                 $trail,
                 array_keys($trail),
-            )).'.';
+            ));
         }
 
         return implode("\n\n", $parts)."\n";

@@ -9,8 +9,18 @@ it('gives every format a distinct extension and content type', function () {
     expect($extensions)->toHaveCount(8)
         ->and(array_unique($extensions))->toHaveCount(8)
         ->and(array_unique($types))->toHaveCount(8)
-        ->and(ExportFormat::Json->contentType())->toBe('application/json')
+        ->and(ExportFormat::Json->contentType())->toBe('application/json; charset=utf-8')
+        ->and(ExportFormat::Yaml->contentType())->toBe('text/yaml; charset=utf-8')
+        ->and(ExportFormat::Sql->contentType())->toBe('text/x-sql; charset=utf-8')
+        ->and(ExportFormat::Mf2->contentType())->toBe('application/mf2+json; charset=utf-8')
+        ->and(ExportFormat::GeoJson->contentType())->toBe('application/geo+json; charset=utf-8')
         ->and(ExportFormat::GeoJson->value)->toBe('geojson');
+});
+
+it('declares a charset on every format, so a browser never guesses the encoding', function () {
+    foreach (ExportFormat::cases() as $format) {
+        expect($format->contentType())->toContain('charset=utf-8');
+    }
 });
 
 it('builds a route constraint from its own cases', function () {

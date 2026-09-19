@@ -32,7 +32,6 @@ final class FilmExport
                 ExportField::maybe('rating', 'Rating', $model->rating === null ? null : "{$model->rating} out of 10", $model->rating),
                 ExportField::maybe('year', 'Released', $model->meta->year === null ? null : (string) $model->meta->year, $model->meta->year),
                 ExportField::maybe('runtime', 'Runtime', $model->meta->runtime === null ? null : Units::humanDuration($model->meta->runtime * 60), $model->meta->runtime === null ? null : $model->meta->runtime * 60),
-                ExportField::maybe('director', 'Director', data_get($model->meta->extra, 'director'), data_get($model->meta->extra, 'director')),
             ])),
             links: CommonLinks::for($model),
         );
