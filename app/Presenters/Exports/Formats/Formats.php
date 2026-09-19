@@ -16,6 +16,7 @@ final class Formats
         return [
             new JsonFormat,
             new YamlFormat,
+            new MarkdownFormat,
         ];
     }
 

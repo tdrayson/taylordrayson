@@ -19,6 +19,10 @@ abstract class Format
      */
     abstract public function render(ExportData $data, array $trail): string;
 
+    /**
+     * Must be side-effect-free and cheap: Formats::for() calls it once per
+     * format per request, and later formats do aspect lookups here.
+     */
     public function supports(ExportData $data): bool
     {
         return true;
