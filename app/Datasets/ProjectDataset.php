@@ -3,6 +3,7 @@
 namespace App\Datasets;
 
 use App\Enums\DatasetKind;
+use App\Enums\ProjectStage;
 use App\Enums\TimelineType;
 use App\Models\Project;
 use App\Presenters\Cards\ProjectCard;
@@ -65,7 +66,7 @@ final class ProjectDataset extends BaseDataset
     {
         return [
             'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Project'],
-            'stage' => ['label' => 'Stage', 'dataType' => 'enum', 'column' => 'stage', 'category' => 'Project'],
+            'stage' => ['label' => 'Stage', 'dataType' => 'enum', 'column' => 'stage', 'category' => 'Project', 'enum' => ProjectStage::class],
             'description' => ['label' => 'Description', 'dataType' => 'text', 'column' => 'description', 'category' => 'Project'],
             'long_description' => ['label' => 'Long description', 'dataType' => 'text', 'column' => 'long_description', 'category' => 'Project'],
             'photos' => ['label' => 'Photos', 'dataType' => 'media', 'column' => null, 'category' => 'Media', 'suffix' => 'photos'],

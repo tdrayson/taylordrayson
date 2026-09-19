@@ -45,8 +45,8 @@ function toggle() {
                     'flex w-full items-center text-left transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                     quiet
-                        ? 'gap-1.5 rounded-sm py-2 text-body text-neutral-700 hover:text-accent-700'
-                        : 'justify-between gap-4 py-4 font-display text-section',
+                        ? 'gap-1.5 rounded-sm py-2 text-base text-neutral-700 hover:text-accent-700'
+                        : 'justify-between gap-4 py-4 font-display text-lg font-bold leading-tight tracking-tight',
                 )"
                 :aria-expanded="expanded"
                 :aria-controls="contentId"

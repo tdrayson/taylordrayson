@@ -7,6 +7,7 @@ import ViewHeader from '../Components/Layout/ViewHeader.vue';
 import TimelineFeed from '../Components/Timeline/TimelineFeed.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pill from '../Components/Ui/Pill.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -57,7 +58,7 @@ setLayoutProps({
     <div v-if="groups.length" class="h-feed mt-10 flex flex-col gap-14">
         <AuthorRef />
         <section v-for="group in groups" :key="group.date">
-            <h2 class="mb-6 flex items-center gap-3 font-display text-item-title">
+            <Heading size="title" class="mb-6 flex items-center gap-3">
                 <Link
                     :href="group.href"
                     class="underline-offset-4 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline"
@@ -65,10 +66,10 @@ setLayoutProps({
                     <time :datetime="group.date">{{ group.date.slice(0, 4) }}</time>
                 </Link>
                 <Pill :label="relativeLabel(group.date)" />
-            </h2>
+            </Heading>
             <TimelineFeed :items="group.items" />
         </section>
     </div>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">Nothing logged on {{ date }} in any other year yet.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">Nothing logged on {{ date }} in any other year yet.</p>
 </template>

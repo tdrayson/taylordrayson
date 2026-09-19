@@ -150,13 +150,13 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
 </script>
 
 <template>
-    <div v-if="done" class="rounded-lg bg-neutral-25 p-4 text-body text-neutral-700">
+    <div v-if="done" class="rounded-lg bg-neutral-25 p-4 text-base text-neutral-700">
         <p v-if="done === 'approved'">Posted. Thanks for joining in.</p>
         <p v-else>Thanks. I read every first comment before it appears, so this one will show up shortly.</p>
     </div>
 
     <form v-else class="space-y-3" novalidate @submit.prevent="submit">
-        <p v-if="replyingTo" class="text-meta text-neutral-500">
+        <p v-if="replyingTo" class="text-sm text-neutral-500">
             Replying to {{ replyingTo }}.
             <button type="button" class="underline underline-offset-2 hover:text-accent-500" @click="emit('cancel')">
                 Cancel
@@ -184,24 +184,24 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
                 :invalid="Boolean(errorFor('body'))"
                 @update:document="document = $event"
             />
-            <span v-if="errorFor('body') || errorFor('nonce')" class="mt-1 block text-meta text-red-600">
+            <span v-if="errorFor('body') || errorFor('nonce')" class="mt-1 block text-sm text-red-600">
                 {{ errorFor('body') ?? errorFor('nonce') }}
             </span>
         </div>
 
         <div v-if="revealed" class="grid gap-3 sm:grid-cols-2">
-            <label class="block text-label uppercase text-neutral-500">
+            <label class="block text-2xs font-semibold uppercase tracking-wider text-neutral-500">
                 Name
                 <Input v-model="name" class="mt-1" placeholder="Marty McFly" :invalid="Boolean(errorFor('author_name'))" autocomplete="name" />
-                <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-meta text-red-600">
+                <span v-if="errorFor('author_name')" class="mt-1 block normal-case text-sm text-red-600">
                     {{ errorFor('author_name') }}
                 </span>
             </label>
 
-            <label class="block text-label uppercase text-neutral-500">
+            <label class="block text-2xs font-semibold uppercase tracking-wider text-neutral-500">
                 Email <span class="normal-case text-neutral-500">(optional)</span>
                 <Input v-model="email" type="email" class="mt-1" placeholder="marty@mcfly.com" :invalid="Boolean(errorFor('author_email'))" autocomplete="email" />
-                <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-meta text-red-600">
+                <span v-if="errorFor('author_email')" class="mt-1 block normal-case text-sm text-red-600">
                     {{ errorFor('author_email') }}
                 </span>
             </label>
@@ -209,7 +209,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             <!-- Only offered once there is an address to send to, so the tick
                  box never asks for something it cannot do. Never restored from
                  storage: an opt-in somebody did not just make is not one. -->
-            <label v-if="email" class="flex items-center gap-2 text-body text-neutral-700 sm:col-span-2">
+            <label v-if="email" class="flex items-center gap-2 text-base text-neutral-700 sm:col-span-2">
                 <Checkbox v-model="notify" />
                 Email me if somebody replies
             </label>
@@ -232,7 +232,7 @@ const errorFor = (field) => errors.value[field]?.[0] ?? null;
             <Button type="submit" variant="primary" :disabled="sending || ! canPost">
                 {{ sending ? 'Posting...' : 'Post comment' }}
             </Button>
-            <p v-if="revealed" class="flex items-center gap-1.5 text-meta text-neutral-500">
+            <p v-if="revealed" class="flex items-center gap-1.5 text-sm text-neutral-500">
                 <Icon name="SecurityLockIcon" class="size-5 shrink-0 text-green-600" />
                 Your email is never shown, and only used for replies.
             </p>

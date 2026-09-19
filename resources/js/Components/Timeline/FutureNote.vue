@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
+import Stat from '../Ui/Stat.vue';
 
 defineProps({
     unit: { type: String, default: 'page' }, // 'day' | 'month' | 'year'
@@ -88,7 +89,7 @@ onMounted(() => {
             @click="autoPlay"
         />
         <div class="max-w-xl space-y-4">
-            <p class="font-display text-stat">Hold your horses, I'm not a time traveller.</p>
+            <Stat as="p">Hold your horses, I'm not a time traveller.</Stat>
             <p class="text-lg text-neutral-500">
                 This {{ unit }} hasn't happened yet, and my flux capacitor's on the fritz. I only log life as
                 it actually happens, so there's genuinely nothing here. Come back once we've hit 88&nbsp;mph.
@@ -96,7 +97,7 @@ onMounted(() => {
         </div>
         <Link
             href="/"
-            class="inline-flex items-center gap-1.5 text-meta font-semibold text-accent-500 transition-colors hover:text-accent-700 focus-visible:text-accent-700"
+            class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-500 transition-colors hover:text-accent-700 focus-visible:text-accent-700"
         >
             <Icon name="ArrowLeft01Icon" class="size-4" />
             Back to the present

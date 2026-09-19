@@ -6,6 +6,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
 import PhotoGridSkeleton from '../Components/Ui/PhotoGridSkeleton.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -30,8 +31,8 @@ const lightboxIndex = ref(null);
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">Photos</h1>
-        <p class="mt-2 text-meta text-neutral-500">
+        <Heading as="h1" size="display">Photos</Heading>
+        <p class="mt-2 text-sm text-neutral-500">
             {{ total }} photos from everything I've logged, newest first.
         </p>
     </header>
@@ -48,7 +49,7 @@ const lightboxIndex = ref(null);
             </template>
         </InfiniteScroll>
 
-        <p v-else class="text-meta text-neutral-500">No photos yet.</p>
+        <p v-else class="text-sm text-neutral-500">No photos yet.</p>
     </div>
 
     <Lightbox v-model:index="lightboxIndex" :photos="photos" />

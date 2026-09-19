@@ -29,7 +29,7 @@ function choose(mode) {
     <div class="relative">
         <button
             type="button"
-            class="inline-flex items-center gap-2 rounded-lg border border-neutral-50 px-3 py-2 text-nav font-medium text-neutral-700 transition-colors hover:border-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="inline-flex items-center gap-2 rounded-lg border border-neutral-50 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             @click="open = !open"
         >
             <template v-if="mode === 'none'">No comparison</template>
@@ -39,7 +39,7 @@ function choose(mode) {
 
         <template v-if="open">
             <div class="fixed inset-0 z-30" @click="open = false" />
-            <ul class="absolute right-0 z-40 mt-2 w-52 rounded-lg border border-neutral-50 bg-neutral-0 p-2 text-nav shadow-card">
+            <ul class="absolute right-0 z-40 mt-2 w-52 rounded-lg border border-neutral-50 bg-neutral-0 p-2 text-sm font-medium shadow-card">
                 <li v-for="option in options" :key="option.mode">
                     <button
                         type="button"

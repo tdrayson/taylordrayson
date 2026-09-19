@@ -48,7 +48,7 @@ async function submit() {
 </script>
 
 <template>
-    <div v-if="sent" class="rounded-lg bg-neutral-25 p-4 text-meta text-neutral-700">
+    <div v-if="sent" class="rounded-lg bg-neutral-25 p-4 text-sm text-neutral-700">
         Got it. I will fetch your post shortly, and it will appear here once I have read it.
     </div>
 
@@ -71,7 +71,7 @@ async function submit() {
             </Button>
         </div>
 
-        <p class="mt-2 text-meta text-neutral-500">Your post needs to link back to this page.</p>
-        <p v-if="error" class="mt-2 text-meta text-red-600">{{ error }}</p>
+        <p class="mt-2 text-sm text-neutral-500">Your post needs to link back to this page.</p>
+        <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
     </form>
 </template>

@@ -2,6 +2,7 @@
 
 namespace App\Services\GoogleFavicons;
 
+use App\Services\GetRequest;
 
 /**
  * Google's favicon service. Given a domain it returns that site's icon, having
@@ -13,6 +14,9 @@ namespace App\Services\GoogleFavicons;
  */
 class Client
 {
+    /** Retina-friendly and still small; the service only serves fixed sizes. */
+    private const SIZE = 64;
+
     public function __construct(private readonly Connector $connector) {}
 
     /**
@@ -22,7 +26,7 @@ class Client
      */
     public function icon(string $domain): array
     {
-        $response = $this->connector->send(new IconRequest($domain));
+        $response = $this->connector->send(new GetRequest('', ['domain' => $domain, 'sz' => self::SIZE]));
 
         if ($response->status() === 404) {
             return ['status' => 'unavailable', 'body' => null];

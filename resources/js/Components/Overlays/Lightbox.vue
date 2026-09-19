@@ -243,7 +243,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     <Link
                         v-if="link && current?.url"
                         :href="current.url"
-                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-meta text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-sm text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
@@ -261,11 +261,12 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     </button>
                 </div>
 
-                <!-- Image region: fills the space between the bars; clicking the
-                     empty area around the image closes. -->
+                <!-- Image region: fills the space between the bars. Every dark
+                     surface closes on a click and says so with the zoom-out
+                     cursor; only a carousel photo overrides it, to grab. -->
                 <div
-                    class="relative flex min-h-0 flex-1 touch-none overflow-hidden"
-                    :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-out items-center justify-center'"
+                    class="relative flex min-h-0 flex-1 cursor-zoom-out touch-none overflow-hidden"
+                    :class="{ 'items-center justify-center': ! hasMultiple }"
                     @click.self="closeUnlessDrag"
                 >
                     <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">
@@ -275,11 +276,11 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                             class="flex h-full w-1/3 shrink-0 items-center justify-center px-2 sm:px-3"
                             @click.self="closeUnlessDrag"
                         >
-                            <img :src="slide.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                            <img :src="slide.full" draggable="false" alt="" class="max-h-full max-w-full cursor-grab select-none rounded-lg object-contain shadow-card active:cursor-grabbing">
                         </div>
                     </div>
 
-                    <img v-else-if="current" :src="current.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card">
+                    <img v-else-if="current" :src="current.full" draggable="false" alt="" class="max-h-full max-w-full select-none rounded-lg object-contain shadow-card" @click="closeUnlessDrag">
 
                     <button
                         v-if="hasMultiple"
@@ -305,9 +306,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     v-if="(caption && current?.caption) || (counter && hasMultiple)"
                     class="relative flex shrink-0 flex-col items-center gap-0.5 text-center"
                 >
-                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
-                    <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
-                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tabular-nums">{{ index + 1 }} / {{ photos.length }}</span>
+                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-sm font-medium text-white">{{ current.caption }}</p>
+                    <p v-if="caption && current?.date" class="text-xs text-white/70">{{ current.date }}</p>
+                    <span v-if="counter && hasMultiple" class="mt-1 text-xs text-white/60 tabular-nums">{{ index + 1 }} / {{ photos.length }}</span>
                 </div>
             </div>
         </Transition>
