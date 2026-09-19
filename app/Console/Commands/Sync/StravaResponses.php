@@ -56,8 +56,8 @@ class StravaResponses extends Command
         // Where the last backfill ran out of requests. Only --all uses it: a
         // windowed run is small enough to finish, and would otherwise skip the
         // newest activities to resume an old walk.
-        $resumeAfter = $all ? Cache::get(self::CURSOR) : null;
-        $resuming = $resumeAfter !== null;
+        $resumeAt = $all ? Cache::get(self::CURSOR) : null;
+        $resuming = $resumeAt !== null;
 
         $spent = 0;
         $pulled = 0;
@@ -66,12 +66,16 @@ class StravaResponses extends Command
         foreach ($this->summaries($strava, $after, $spent) as $summary) {
             $sourceId = (string) $summary['id'];
 
-            // Summaries come back newest first, so everything down to the
-            // cursor was done on an earlier run.
+            // Summaries come back newest first, so everything above the cursor
+            // was done on an earlier run. The cursor itself is the activity
+            // that run stopped at without pulling, so it is where this one
+            // starts rather than the last one to skip.
             if ($resuming) {
-                $resuming = $sourceId !== $resumeAfter;
+                if ($sourceId !== $resumeAt) {
+                    continue;
+                }
 
-                continue;
+                $resuming = false;
             }
 
             $activity = $stored->get($sourceId);
@@ -80,27 +84,35 @@ class StravaResponses extends Command
                 continue;
             }
 
-            if (! $all && ! $this->differs($summary, $held->get($activity->id, ['like' => 0, 'reply' => 0]))) {
+            $heldFor = $held->get($activity->id, ['like' => 0, 'reply' => 0]);
+
+            if ($this->skippable($summary, $heldFor, $all)) {
                 continue;
             }
 
-            // Two requests per activity. Stopping mid-list is fine as long as
-            // we say where we stopped, or the next --all starts over and never
-            // reaches the older half.
-            if ($spent + 2 > self::MAX_REQUESTS) {
+            // Kudos always, comments only where there are any to find. Costing
+            // the activity before committing to it is what keeps the ceiling
+            // honest: assuming two would stop the walk early and strand a
+            // cursor on an activity there was budget for.
+            $withComments = $this->needsComments($summary, $heldFor);
+            $cost = $withComments ? 2 : 1;
+
+            // Stopping mid-list is fine as long as we say where we stopped, or
+            // the next --all starts over and never reaches the older half.
+            if ($spent + $cost > self::MAX_REQUESTS) {
                 $stoppedAt = $sourceId;
                 break;
             }
 
-            $pull($activity);
-            $spent += 2;
+            $pull($activity, $withComments);
+            $spent += $cost;
             $pulled++;
         }
 
         // The stream ended without ever meeting the id we were told to resume
-        // past: it's gone, or the walk changed shape. Holding onto it would
+        // at: it's gone, or the walk changed shape. Holding onto it would
         // stall every future backfill, so it is dropped rather than kept.
-        if ($resumeAfter !== null && $resuming) {
+        if ($resumeAt !== null && $resuming) {
             $stoppedAt = null;
             $this->warn('The stored cursor never turned up; found nothing to resume from. Starting from the top next run.');
         }
@@ -182,6 +194,52 @@ class StravaResponses extends Command
                 'like' => (int) ($rows->firstWhere('kind', WebmentionKind::Like->value)?->total ?? 0),
                 'reply' => (int) ($rows->firstWhere('kind', WebmentionKind::Reply->value)?->total ?? 0),
             ]);
+    }
+
+    /**
+     * Whether this activity can be passed over without spending its two
+     * detail requests.
+     *
+     * A windowed run trusts the counts: matching them means nothing has
+     * happened since the last run. --all deliberately does not, because
+     * content changes without the counts moving, an edited comment or a
+     * renamed athlete, and repairing exactly that is what it is for.
+     *
+     * The one thing --all can still skip is a provable no-op: Strava reports
+     * nothing and we hold nothing, so there is no content to refresh and no
+     * stale row to clear. Fetching it can only ever confirm two empty sets.
+     * Anything else, including a 0/0 summary against rows we still hold, must
+     * be fetched so the reconcile can delete them.
+     *
+     * @param  array<string, mixed>  $summary
+     * @param  array{like: int, reply: int}  $held
+     */
+    private function skippable(array $summary, array $held, bool $all): bool
+    {
+        if (! $all) {
+            return ! $this->differs($summary, $held);
+        }
+
+        return (int) ($summary['kudos_count'] ?? 0) === 0
+            && (int) ($summary['comment_count'] ?? 0) === 0
+            && $held['like'] === 0
+            && $held['reply'] === 0;
+    }
+
+    /**
+     * Whether this activity's comments endpoint is worth a request.
+     *
+     * Kudos are near-universal and comments are rare, so this is where the
+     * backfill's cost actually sits. Strava's summary count is authoritative
+     * for "are there any", and a count of zero against replies we still hold
+     * is a withdrawal that has to be fetched so the reconcile can clear them.
+     *
+     * @param  array<string, mixed>  $summary
+     * @param  array{like: int, reply: int}  $held
+     */
+    private function needsComments(array $summary, array $held): bool
+    {
+        return (int) ($summary['comment_count'] ?? 0) > 0 || $held['reply'] > 0;
     }
 
     /**
