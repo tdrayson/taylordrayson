@@ -34,6 +34,22 @@ it('publishes a food day as its aggregated totals, not one row', function () {
         ->and($export->field('meals')->display)->toBe('Breakfast (220 kcal), Lunch (250 kcal)');
 });
 
+it('renders an absurdly large macro as a plain number rather than scientific notation', function () {
+    $food = Food::factory()->create([
+        'occurred_at' => '2026-09-13 08:00:00', 'name' => 'Junk data', 'meal' => 'breakfast',
+        'calories' => 220, 'protein' => 100000000000000, 'carbs' => 35, 'fat' => 5,
+        'saturated_fat' => 1.5, 'sugars' => 6, 'fibre' => 4, 'sodium' => 100000000000000,
+        'status' => 'published',
+    ]);
+
+    $export = ExportPresenter::for($food);
+
+    expect($export->field('protein')->display)->toBe('100,000,000,000,000g')
+        ->and($export->field('protein')->display)->not->toContain('E+')
+        ->and($export->field('sodium')->display)->toBe('100,000,000,000,000mg')
+        ->and($export->field('sodium')->display)->not->toContain('E+');
+});
+
 it('offers neither geojson nor ics for a food day', function () {
     $food = Food::factory()->create(['occurred_at' => '2026-09-13 08:00:00', 'status' => 'published']);
 

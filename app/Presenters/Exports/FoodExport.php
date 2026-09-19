@@ -39,17 +39,27 @@ final class FoodExport
             occurred: $model->occurred_at === null ? null : ExportInstant::for($model->occurred_at, $model->timezone()),
             fields: array_values(array_filter([
                 ExportField::make('calories', 'Calories', number_format($totals['calories']).' kcal', $totals['calories']),
-                ExportField::make('protein', 'Protein', round($totals['protein'], 1).'g', $totals['protein']),
-                ExportField::make('carbs', 'Carbohydrate', round($totals['carbs'], 1).'g', $totals['carbs']),
-                ExportField::make('fat', 'Fat', round($totals['fat'], 1).'g', $totals['fat']),
-                ExportField::make('saturated_fat', 'Saturates', round($totals['saturated_fat'], 1).'g', $totals['saturated_fat']),
-                ExportField::make('sugars', 'Sugars', round($totals['sugars'], 1).'g', $totals['sugars']),
-                ExportField::make('fibre', 'Fibre', round($totals['fibre'], 1).'g', $totals['fibre']),
-                ExportField::make('sodium', 'Sodium', round($totals['sodium']).'mg', $totals['sodium']),
+                ExportField::make('protein', 'Protein', $this->grams($totals['protein']), $totals['protein']),
+                ExportField::make('carbs', 'Carbohydrate', $this->grams($totals['carbs']), $totals['carbs']),
+                ExportField::make('fat', 'Fat', $this->grams($totals['fat']), $totals['fat']),
+                ExportField::make('saturated_fat', 'Saturates', $this->grams($totals['saturated_fat']), $totals['saturated_fat']),
+                ExportField::make('sugars', 'Sugars', $this->grams($totals['sugars']), $totals['sugars']),
+                ExportField::make('fibre', 'Fibre', $this->grams($totals['fibre']), $totals['fibre']),
+                ExportField::make('sodium', 'Sodium', number_format($totals['sodium']).'mg', $totals['sodium']),
                 ExportField::maybe('meals', 'Meals', $this->mealsDisplay($day['meals']), $day['meals']),
             ])),
             links: CommonLinks::for($model),
         );
+    }
+
+    /**
+     * A macro in grams to one decimal place, trimmed of a redundant ".0".
+     * `number_format` rather than `round()`, so an implausible value (junk
+     * data) renders as a plain number rather than scientific notation.
+     */
+    private function grams(float $value): string
+    {
+        return rtrim(rtrim(number_format($value, 1), '0'), '.').'g';
     }
 
     /**
