@@ -31,6 +31,7 @@ enum FieldType: string
     case Image = 'image';
     case BookCover = 'book-cover';
     case Gallery = 'gallery';
+    case Citation = 'citation';
 
     public function label(): string
     {
@@ -56,6 +57,7 @@ enum FieldType: string
             self::Image => 'Image',
             self::BookCover => 'Book cover',
             self::Gallery => 'Photos',
+            self::Citation => 'Quote',
         };
     }
 

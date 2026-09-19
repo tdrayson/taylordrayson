@@ -70,6 +70,19 @@ enum ResponseKind: string
     }
 
     /**
+     * The values of every kind that needs no words of its own.
+     *
+     * @return list<string>
+     */
+    public static function gestureValues(): array
+    {
+        return array_values(array_map(
+            fn (self $kind): string => $kind->value,
+            array_filter(self::cases(), fn (self $kind): bool => $kind->isGesture()),
+        ));
+    }
+
+    /**
      * The choices the editor offers.
      *
      * @return list<array{value: string, label: string}>

@@ -13,7 +13,8 @@ use App\Models\Note;
  * A note is a quick capture: the body is the whole point, and capped, because
  * past Note::MAX_LENGTH it is an article. The slug is offered rather than
  * demanded, since a note has no title to derive one from; left blank it comes
- * from the note's opening words (see Note::slugFrom).
+ * from the note's opening words (see Note::slugFrom). A like, repost or RSVP
+ * may go without a body: the target is the whole post.
  */
 final class NoteFields
 {
@@ -23,9 +24,10 @@ final class NoteFields
     public static function fields(): array
     {
         return [
-            FieldData::primary('content', 'Note', FieldType::Prose, required: true, max: Note::MAX_LENGTH),
+            FieldData::primary('content', 'Note', FieldType::Prose, required: true, max: Note::MAX_LENGTH, requiredUnless: ['response_kind' => ResponseKind::gestureValues()]),
             FieldData::optional('response_kind', 'Response', FieldType::Select, ResponseKind::options()),
             FieldData::optional('response_url', 'Responding to', FieldType::Url, showWhen: ['response_kind' => []]),
+            FieldData::optional('response_quote', 'Quote', FieldType::Citation, showWhen: ['response_url' => []]),
             FieldData::optional('rsvp_value', 'Answer', FieldType::Select, RsvpValue::options(), showWhen: ['response_kind' => ['rsvp']]),
             FieldData::primary('tags', 'Tags', FieldType::Tags),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),

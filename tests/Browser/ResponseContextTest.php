@@ -18,7 +18,7 @@ it('marks the target link with the property its kind publishes', function () {
     ]);
 
     visit($note->url())
-        ->assertPresent('a.h-cite.u-in-reply-to[href="https://example.com/a-post"]')
+        ->assertPresent('.h-cite.u-in-reply-to a[href="https://example.com/a-post"]')
         ->assertNoJavascriptErrors();
 });
 
@@ -30,7 +30,7 @@ it('publishes a like as like-of rather than a reply', function () {
         'response_url' => 'https://example.com/liked',
     ]);
 
-    visit($note->url())->assertPresent('a.h-cite.u-like-of[href="https://example.com/liked"]');
+    visit($note->url())->assertPresent('.h-cite.u-like-of a[href="https://example.com/liked"]');
 });
 
 // An RSVP is an in-reply-to plus an answer, and the answer is the half that
@@ -44,14 +44,17 @@ it('publishes an rsvp answer as a p-rsvp value beside the reply property', funct
     ]);
 
     visit($note->url())
-        ->assertPresent('a.h-cite.u-in-reply-to[href="https://example.com/event"]')
-        ->assertPresent('data.p-rsvp[value="yes"]');
+        ->assertPresent('.h-cite.u-in-reply-to a[href="https://example.com/event"]')
+        ->assertPresent('data.p-rsvp[value="yes"]')
+        // The answer is mine, not the target's: folding it inside h-cite would
+        // have a parser read the RSVP as something the cited post said.
+        ->assertScript("document.querySelector('.p-rsvp').closest('.h-cite') === null");
 });
 
 it('draws no context card on a note that answers nobody', function () {
     $note = Note::factory()->create(['occurred_at' => now()->subHour()]);
 
-    visit($note->url())->assertMissing('a.h-cite');
+    visit($note->url())->assertMissing('.h-cite');
 });
 
 // A gesture is the one line and nothing else, so the display-font title, which

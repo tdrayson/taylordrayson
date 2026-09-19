@@ -3,7 +3,9 @@
 namespace App\Models\Concerns;
 
 use App\Enums\ResponseKind;
-use App\Jobs\FetchResponseTitle;
+use App\Jobs\FetchCitationFor;
+use App\Models\Citation;
+use App\Support\Links;
 use App\Support\PostType;
 
 /**
@@ -32,29 +34,52 @@ trait HasResponse
                 $model->rsvp_value = null;
             }
 
-            // A title belongs to the URL it was read from, so pointing the post
-            // somewhere else drops it rather than mislabelling the new target
-            // until the fetch comes back. Unless a title is being written in the
-            // same breath, which is somebody supplying one, not a stale one.
-            if ($model->isDirty('response_url') && ! $model->isDirty('response_title')) {
-                $model->response_title = null;
+            // A gesture has no words of its own: only a reply carries a quote,
+            // whichever kind it arrived as and whatever wrote it.
+            if ($model->response_kind !== ResponseKind::Reply) {
+                $model->response_quote = null;
+            }
+
+            // A citation and a quote belong to the post they were taken from, so
+            // pointing the reply elsewhere drops both, unless a quote is being
+            // written in the same breath.
+            if ($model->isDirty('response_url')) {
+                $model->citation_id = null;
+
+                if (! $model->isDirty('response_quote')) {
+                    $model->response_quote = null;
+                }
+            }
+
+            if (self::needsCitationFetch($model)) {
+                $model->citation_id = Citation::query()->where('url', $model->response_url)->value('id');
             }
         });
 
-        static::saved(function (self $model): void {
-            // A fresh row reports no change, so a post created with a target
-            // already on it has to be asked for separately, or the title is
-            // only ever fetched for one that is edited afterwards.
-            $pointedSomewhere = $model->wasRecentlyCreated || $model->wasChanged('response_url');
-
-            if ($pointedSomewhere && filled($model->response_url)) {
-                // The job writes back by key, so a worker reaching the row
-                // before the transaction commits would match nothing and lose
-                // the title for good. The queue connections all set
+        static::created(function (self $model): void {
+            if (self::needsCitationFetch($model)) {
+                // The job links the reply back by key, so a worker reaching the
+                // row before the transaction commits would match nothing and
+                // lose the citation. The queue connections all set
                 // after_commit false.
-                FetchResponseTitle::dispatch($model)->afterCommit();
+                FetchCitationFor::dispatch($model)->afterCommit();
             }
         });
+
+        // Only a new URL fetches: bulk resaves (timezone backfills) would otherwise retry every dead link.
+        static::updated(function (self $model): void {
+            if ($model->wasChanged('response_url') && self::needsCitationFetch($model)) {
+                FetchCitationFor::dispatch($model)->afterCommit();
+            }
+        });
+    }
+
+    /** Whether this replies to somebody else's post with no stored copy linked yet. */
+    private static function needsCitationFetch(self $model): bool
+    {
+        return filled($model->response_url)
+            && $model->citation_id === null
+            && Links::internalPath($model->response_url) === null;
     }
 
     /** What a parser will call this post, or null for a plain one. */

@@ -32,7 +32,7 @@ final class WebmentionTarget
 
         $model = self::routeTo($url);
 
-        return $model !== null && InteractionTarget::accepts($model) ? $model : null;
+        return $model !== null && InteractionTarget::takesMentions($model) ? $model : null;
     }
 
     /**

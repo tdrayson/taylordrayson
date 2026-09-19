@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { hiddenNames, revealed } from '../../resources/js/lib/editor/visibility.js';
+import { hiddenNames, required, revealed } from '../../resources/js/lib/editor/visibility.js';
 
 const kind = { name: 'response_kind', showWhen: null };
 const url = { name: 'response_url', showWhen: { response_kind: [] } };
@@ -42,5 +42,20 @@ describe('conditional field visibility', () => {
         assert.deepEqual(hiddenNames(fields, { response_kind: 'rsvp' }), []);
         assert.deepEqual(hiddenNames(fields, { response_kind: 'like' }), ['rsvp_value']);
         assert.deepEqual(hiddenNames(fields, { response_kind: null }), ['response_url', 'rsvp_value']);
+    });
+});
+
+describe('conditional required', () => {
+    const content = { name: 'content', required: true, requiredUnless: { response_kind: ['like', 'repost', 'rsvp'] } };
+
+    it('holds a required field to it until its condition excuses it', () => {
+        assert.equal(required(content, { response_kind: '' }), true);
+        assert.equal(required(content, { response_kind: 'reply' }), true);
+        assert.equal(required(content, { response_kind: 'like' }), false);
+    });
+
+    it('never requires a field that is not required', () => {
+        assert.equal(required({ name: 'x', required: false }, {}), false);
+        assert.equal(required({ name: 'x', required: true }, {}), true);
     });
 });

@@ -30,17 +30,29 @@ trait SendsWebmentions
         });
 
         static::updated(function (Model $model): void {
-            // Nothing else can add or remove a link, so nothing else can need a
-            // send. This is also what keeps the sync commands quiet.
-            if ($model->wasChanged(OutboundLinks::SOURCES)) {
+            // Only a link changing, or links held back while unpublished going
+            // out, can need a send. This is also what keeps the sync commands quiet.
+            if ($model->wasChanged(OutboundLinks::SOURCES) || self::startedSending($model)) {
                 self::queueWebmentions($model);
             }
         });
     }
 
+    /** Whether this save moved the model from a status that sends nothing into one that sends. */
+    private static function startedSending(Model $model): bool
+    {
+        if (! $model->wasChanged('status')) {
+            return false;
+        }
+
+        $before = (clone $model)->setRawAttributes($model->getRawOriginal());
+
+        return ! InteractionTarget::sendsMentions($before) && InteractionTarget::sendsMentions($model);
+    }
+
     private static function queueWebmentions(Model $model): void
     {
-        if (InteractionTarget::accepts($model)) {
+        if (InteractionTarget::sendsMentions($model)) {
             // Telling another site about a post is not undoable, so it waits for
             // the transaction the sync commands and imports write inside. The
             // queue connections all set after_commit false.

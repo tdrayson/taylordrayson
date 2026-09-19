@@ -11,7 +11,6 @@ use App\Models\Page;
 use App\Presenters\Conversation;
 use App\Support\OgMeta;
 use App\Support\PortableText;
-use App\Support\VisitorIdentity;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -48,7 +47,7 @@ class PageController extends Controller
                 // Same as an entry: server-rendered so it is readable and
                 // parseable without JS. This is also what makes a guestbook page
                 // work, being a page like any other.
-                'conversation' => Conversation::shownFor($page, VisitorIdentity::onTarget(request(), $page)),
+                'conversation' => Conversation::shownFor($page, request()),
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a
                 // field the editor offers but has no value for saves back as

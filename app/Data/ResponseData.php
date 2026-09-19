@@ -36,6 +36,8 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
         public ?string $favicon,
         /** Whether the target is an entry here, which decides how it is linked. */
         public bool $internal,
+        /** The stored copy of the target, or null when none was kept. */
+        public ?CitedPostData $cited = null,
     ) {}
 
     /**
@@ -65,6 +67,7 @@ final readonly class ResponseData implements Arrayable, JsonSerializable
             'host' => $this->host,
             'favicon' => $this->favicon,
             'internal' => $this->internal,
+            'cited' => $this->cited?->toArray(),
         ];
     }
 

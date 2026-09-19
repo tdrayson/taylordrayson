@@ -91,7 +91,7 @@ class SeedInteractions extends Command
             $found = $class::query()
                 ->latest($class === Page::class ? 'created_at' : 'occurred_at')
                 ->get()
-                ->filter(fn (Model $model): bool => InteractionTarget::accepts($model))
+                ->filter(fn (Model $model): bool => InteractionTarget::takesMentions($model))
                 ->take(2)
                 ->values();
 

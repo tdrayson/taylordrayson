@@ -18,15 +18,16 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class ResolveInternalTarget
 {
+    /**
+     * The entry or page at a path, only when it takes mentions.
+     *
+     * @param  string  $path  A site-relative path.
+     */
     public function __invoke(string $path): ?Model
     {
         $model = $this->entry($path) ?? $this->page($path);
 
-        // Visibility is the interaction allowlist's job, so a draft and a type
-        // that takes no responses are refused by the same rule the webmention
-        // endpoint uses. Recording a mention on either would put a response on
-        // a page that cannot show one.
-        return $model !== null && InteractionTarget::accepts($model) ? $model : null;
+        return $model !== null && InteractionTarget::takesMentions($model) ? $model : null;
     }
 
     /** An entry permalink, /YYYY/MM/DD/slug. */

@@ -2,10 +2,10 @@
 import { computed, provide, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
-import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { noteSlug, plainTextOf, responseSlug, slugify, slugifyInput } from '../../lib/editor/defaults.js';
 import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
-import { hiddenNames, revealed } from '../../lib/editor/visibility.js';
+import { hiddenNames, required, revealed } from '../../lib/editor/visibility.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import Heading from '../Ui/Heading.vue';
@@ -181,6 +181,9 @@ function onFieldInput(field, value) {
     form[field.name] = value;
 }
 
+/** The response context CitationField last loaded, which a response's slug is named from. */
+const responsePreview = ref(null);
+
 /**
  * What the slug will be if the field is left empty. Only types that declare a
  * fallback derive one; elsewhere the slug follows the title and is never blank.
@@ -188,6 +191,21 @@ function onFieldInput(field, value) {
 const derivedSlug = computed(() => {
     if (! slugField.value?.fallback) {
         return '';
+    }
+
+    // A response's slug is stored when it is first posted, so an edit keeps
+    // whatever it got then, and only a new one previews it.
+    const response = props.method === 'post'
+        ? responseSlug({
+            kind: form.response_kind,
+            url: form.response_url,
+            rsvp: form.rsvp_value,
+            preview: responsePreview.value,
+        })
+        : null;
+
+    if (response) {
+        return response;
     }
 
     // A note's body is a Prose field, which isBody does not mark: that flag is
@@ -402,12 +420,16 @@ function submit() {
                         :password="form.password ?? ''"
                         :latitude="form.latitude ?? null"
                         :longitude="form.longitude ?? null"
+                        :response-url="form.response_url ?? null"
+                        :response-kind="form.response_kind ?? null"
                         :error="form.errors[row.field.name]"
                         :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
                         :hint="row.field.type === 'slug' ? slugPreview : null"
+                        :excused="row.field.required && ! required(row.field, form)"
                         @update:model-value="onFieldInput(row.field, $event)"
                         @fill="applyFill"
+                        @preview="responsePreview = $event"
                     />
 
                     <LengthNotice
