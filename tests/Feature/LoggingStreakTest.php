@@ -33,6 +33,28 @@ it('holds the streak on a day not yet logged', function () {
     expect(app(LoggingStreak::class)())->toBe(2);
 });
 
+it('holds the streak when the sync is several days behind', function () {
+    Carbon::setTestNow('2026-08-24 09:00:00');
+
+    // Nothing has arrived since the 21st. The run in the table is intact, so
+    // the badge must show it rather than dropping to zero.
+    foreach (['2026-08-19', '2026-08-20', '2026-08-21'] as $date) {
+        logDay($date);
+    }
+
+    expect(app(LoggingStreak::class)())->toBe(3);
+});
+
+it('ignores a future-dated day', function () {
+    Carbon::setTestNow('2026-08-24 09:00:00');
+
+    foreach (['2026-08-22', '2026-08-23', '2026-08-29'] as $date) {
+        logDay($date);
+    }
+
+    expect(app(LoggingStreak::class)())->toBe(2);
+});
+
 it('stops at a missed day', function () {
     Carbon::setTestNow('2026-08-24 09:00:00');
 
