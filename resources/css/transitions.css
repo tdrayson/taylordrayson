@@ -1,0 +1,78 @@
+/* Shared <Transition> families. Global on purpose: `<Transition name="fade">`
+   resolves the class by name at runtime, so a `scoped` block would never match.
+   Unlayered on purpose too, so a `transition-*` utility on the element cannot
+   outrank the family. Timings live in theme.css. Three families only:
+
+     fade  opacity, for overlays and anything already in its final position
+     pop   opacity + scale + travel, for something appearing beside a trigger
+     rise  opacity + travel, for a floating control entering from below
+
+   A component that needs a child panel to move as well keeps that rule local
+   and hangs it off the family class, at the family's duration. */
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity var(--duration-fade) ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* `scale` and `translate` as their own properties, not `transform`: a popover
+   wrapper sets transform inline to place itself, and animating that would
+   fight the placement. These compose with it instead. */
+.pop-enter-active,
+.pop-leave-active {
+    transition: opacity var(--duration-pop-fade) ease,
+        scale var(--duration-pop) var(--ease-out-expo),
+        translate var(--duration-pop) var(--ease-out-expo);
+}
+
+/* Deliberately past the point of subtlety: at 4px and 0.96 over 140ms the pop
+   measured correctly but could not be seen, arriving after a hover delay when
+   the eye has already settled on the card. */
+.pop-enter-from,
+.pop-leave-to {
+    opacity: 0;
+    scale: 0.92;
+    translate: 0 8px;
+}
+
+.rise-enter-active,
+.rise-leave-active {
+    transition: opacity var(--duration-rise-fade) ease,
+        transform var(--duration-rise) var(--ease-out-expo);
+}
+
+.rise-enter-from,
+.rise-leave-to {
+    opacity: 0;
+    transform: translateY(1rem);
+}
+
+/* The fade stays: opacity is not a vestibular trigger, and an overlay that
+   blinks in is worse. Everything that moves or scales goes, including the
+   start state, or the element begins transformed and snaps. */
+@media (prefers-reduced-motion: reduce) {
+    .fade-enter-active,
+    .fade-leave-active,
+    .pop-enter-active,
+    .pop-leave-active,
+    .rise-enter-active,
+    .rise-leave-active {
+        transition: opacity var(--duration-fade) ease;
+    }
+
+    .pop-enter-from,
+    .pop-leave-to {
+        scale: 1;
+        translate: none;
+    }
+
+    .rise-enter-from,
+    .rise-leave-to {
+        transform: none;
+    }
+}

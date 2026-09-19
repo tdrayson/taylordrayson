@@ -8,7 +8,7 @@ import Icon from '../Ui/Icon.vue';
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
     // title, body, occurredAt, parentId, parentItemId, commentId, sourceUrl,
-    // sourceHost, emoji, source, sourceName }.
+    // sourceHost, emoji, source, sourceName, mine }.
     item: { type: Object, required: true },
     // Rendered as a reply to somebody, one level deep only. Also how a response
     // read out of another site's thread hangs off the mention that carried it.
@@ -17,10 +17,6 @@ const props = defineProps({
 
 defineEmits(['reply']);
 
-/**
- * What each kind did, as an icon and a phrase. A comment gets no phrase: it is
- * the ordinary case, and saying "commented" under every one is noise.
- */
 /**
  * Each kind finishes the sentence its byline starts: "Jo Bloggs replied on
  * Thursday 3 September", with the source's title sitting between the two when
@@ -116,11 +112,14 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
             nested && ! item.lastNested && 'response-continues',
         ]"
     >
-        <!-- The row, held apart from the article itself so the responses read out
-             of this one's source can sit inside its h-cite rather than beside the
-             avatar. A parser then sees their thread with the shape it has on their
-             own site, and a reply to a reply is not published as a reply to me. -->
-        <div class="flex gap-3">
+        <!-- The row is a box of its own for two reasons. Responses read out of
+             this one's source sit after it, inside the h-cite rather than beside
+             the avatar, so a reply to a reply is not published as a reply to me.
+             And one of mine can carry a surface without moving the article: the
+             elbow and the branch line are positioned against it, and a nested row
+             already carries ml-16, which beats -mx-3 in the cascade, so padding
+             the article would walk the avatar right and leave the line behind. -->
+        <div :class="['flex gap-3', item.mine && 'bg-neutral-25 rounded-lg px-3 py-2 -mx-3']">
             <Avatar
                 class="response-avatar"
                 :name="item.authorName"
