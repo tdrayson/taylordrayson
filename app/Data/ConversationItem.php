@@ -41,16 +41,24 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $sourceUrl,
         /** The emoji actually sent, for a reacji; null for everything else. */
         public ?string $emoji,
+        /** Whether I wrote this, which the page marks rather than states. */
+        public bool $mine = false,
     ) {}
 
     public static function fromComment(Comment $comment): self
     {
+        // Matched on the address rather than the name: a name is public and
+        // anyone can type mine, an address is only ever seen by the form. A
+        // stranger claiming it still lands in moderation like any new name.
+        $mine = $comment->author_email !== null
+            && $comment->author_email === config('feed.author_email');
+
         return new self(
             id: $comment->fragment(),
             kind: 'comment',
             authorName: $comment->author_name,
             authorUrl: null,
-            authorPhoto: null,
+            authorPhoto: $mine ? (string) config('feed.author_photo') : null,
             title: null,
             body: $comment->body,
             occurredAt: $comment->created_at,
@@ -58,6 +66,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             commentId: $comment->id,
             sourceUrl: null,
             emoji: null,
+            mine: $mine,
         );
     }
 
@@ -122,6 +131,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             // than the full URL, which the link itself carries anyway.
             'sourceHost' => $this->sourceUrl === null ? null : self::hostOf($this->sourceUrl),
             'emoji' => $this->emoji,
+            'mine' => $this->mine,
         ];
     }
 

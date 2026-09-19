@@ -10,6 +10,7 @@ $language = 'en-GB';
 return [
     'author_name' => 'Taylor Drayson',
     'author_email' => 'hello@taylordrayson.com',
+    'author_photo' => '/headshot-taylor.jpg',
 
     'feeds' => [
         'atom' => [

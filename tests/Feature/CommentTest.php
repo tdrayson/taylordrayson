@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Comments\StoreComment;
+use App\Data\ConversationItem;
 use App\Enums\CommentStatus;
 use App\Http\Requests\Interactions\StoreCommentRequest;
 use App\Models\Comment;
@@ -216,4 +217,63 @@ it('emails the person a reply answers, even when it skips the queue', function (
         ->assertJsonPath('status', 'approved');
 
     Notification::assertSentOnDemand(ReplyPosted::class);
+});
+
+it('quotes the comment itself in the reply email, not the word Array', function () {
+    $note = Note::factory()->create();
+
+    $parent = $note->comments()->create([
+        'author_name' => 'Jo',
+        'author_email' => 'jo@example.com',
+        'notify_replies' => true,
+        'body' => 'The original comment.',
+        'status' => CommentStatus::Approved,
+    ]);
+
+    $reply = $note->comments()->create([
+        'author_name' => 'Sam',
+        'parent_id' => $parent->id,
+        // Portable Text, which is what the endpoint actually stores. The rest
+        // of this file uses plain strings, which is how the bug survived.
+        'body' => [[
+            '_type' => 'block',
+            'children' => [['_type' => 'span', 'text' => "Shorter warm up, yes.\nMade a real difference."]],
+        ]],
+        'status' => CommentStatus::Approved,
+    ]);
+
+    // Rendered rather than merely dispatched: a body is Portable Text, and
+    // assertSentOnDemand never calls toMail, so it cannot see what was written.
+    $mail = (new ReplyPosted($reply, $parent))->toMail($parent);
+    $lines = implode("\n", $mail->introLines);
+
+    expect($lines)->toContain('Shorter warm up, yes. Made a real difference.')
+        ->and($lines)->not->toContain('Array')
+        // Collapsed onto one line, or the rest escapes the markdown blockquote.
+        ->and($mail->outroLines)->toHaveCount(1);
+});
+
+it('marks a comment as mine by the address, never by the name anyone can type', function () {
+    $note = Note::factory()->create();
+
+    $mine = $note->comments()->create([
+        'author_name' => 'Taylor Drayson',
+        'author_email' => config('feed.author_email'),
+        'body' => [['_type' => 'block', 'children' => [['_type' => 'span', 'text' => 'Mine.']]]],
+        'status' => CommentStatus::Approved,
+    ]);
+
+    // Same name, different address: the name is public and free to claim.
+    $impostor = $note->comments()->create([
+        'author_name' => 'Taylor Drayson',
+        'author_email' => 'not-me@example.com',
+        'body' => [['_type' => 'block', 'children' => [['_type' => 'span', 'text' => 'Not mine.']]]],
+        'status' => CommentStatus::Approved,
+    ]);
+
+    expect(ConversationItem::fromComment($mine)->mine)->toBeTrue()
+        ->and(ConversationItem::fromComment($impostor)->mine)->toBeFalse()
+        // The avatar rides on the same decision, so a claimed name gets initials.
+        ->and(ConversationItem::fromComment($mine)->authorPhoto)->toBe(config('feed.author_photo'))
+        ->and(ConversationItem::fromComment($impostor)->authorPhoto)->toBeNull();
 });
