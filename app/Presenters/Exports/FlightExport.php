@@ -47,14 +47,21 @@ final class FlightExport
             occurred: $model->occurred_at === null ? null : ExportInstant::for($model->occurred_at, $model->timezone()),
             fields: array_values(array_filter([
                 ExportField::maybe('flight', 'Flight', $this->flightIdentifier($model), $this->flightCode($model)),
+                ExportField::maybe('flight_code', 'Flight no.', $this->flightCode($model), $this->flightCode($model)),
+                ExportField::maybe('airline', 'Airline', $model->airline?->name),
                 ...$this->airport($model, 'origin', 'From'),
                 ...$this->airport($model, 'destination', 'To'),
                 ExportField::maybe('departed', 'Departed', $this->localTime($departed, $model->origin?->city ?? $model->origin_iata), $departed?->toIso8601String()),
                 ExportField::maybe('arrived', 'Arrived', $this->localTime($arrived, $model->destination?->city ?? $model->destination_iata), $arrived?->toIso8601String()),
+                ExportField::maybe('departs_time', 'Departs', $departed?->format('H:i')),
+                ExportField::maybe('arrives_time', 'Arrives', $arrived?->format('H:i')),
+                ExportField::maybe('date', 'Date', $model->occurred_at?->format('d M Y')),
                 ExportField::maybe('duration', 'Duration', $model->duration === null ? null : Units::humanDuration($model->duration), $model->duration),
                 ExportField::maybe('distance', 'Distance', $model->distance === null ? null : number_format(Distance::miles($model->distance)).' miles', $model->distance),
                 ExportField::maybe('cabin', 'Cabin', $model->cabin_class?->label(), $model->cabin_class?->value),
                 ExportField::maybe('reason', 'Reason', $model->reason?->label(), $model->reason?->value),
+                ExportField::maybe('passenger', 'Passenger', $this->passenger()),
+                ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
             ])),
             links: [
                 ...array_values(array_filter([
@@ -91,6 +98,15 @@ final class FlightExport
     private function localTime(?CarbonImmutable $instant, ?string $place): ?string
     {
         return $instant === null ? null : $instant->format('H:i').' '.$place;
+    }
+
+    /** The owner's name in airline surname-first form, e.g. "DRAYSON / TAYLOR" for the boarding pass. */
+    private function passenger(): string
+    {
+        $parts = explode(' ', trim((string) config('identity.name')));
+        $surname = array_pop($parts);
+
+        return mb_strtoupper(trim("{$surname} / ".implode(' ', $parts)));
     }
 
     /**

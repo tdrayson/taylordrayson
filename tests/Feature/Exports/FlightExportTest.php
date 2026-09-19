@@ -6,13 +6,21 @@ it('publishes a flight as labelled fields in order', function () {
     $export = ExportPresenter::for(krkToLgw());
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['flight', 'origin', 'origin_code', 'origin_city', 'destination', 'destination_code', 'destination_city', 'departed', 'arrived', 'duration', 'distance', 'cabin', 'reason']);
+        ->toBe([
+            'flight', 'flight_code', 'airline', 'origin', 'origin_code', 'origin_city',
+            'destination', 'destination_code', 'destination_city', 'departed', 'arrived',
+            'departs_time', 'arrives_time', 'date', 'duration', 'distance', 'cabin', 'reason',
+            'passenger', 'ticket_number',
+        ]);
 });
 
 it('formats each flight field for a reader and keeps the machine value in raw', function () {
-    $export = ExportPresenter::for(krkToLgw());
+    $flight = krkToLgw();
+    $export = ExportPresenter::for($flight);
 
     expect($export->field('flight')->display)->toBe('easyJet UK U2 8824')
+        ->and($export->field('flight_code')->display)->toBe('U2 8824')
+        ->and($export->field('airline')->display)->toBe('easyJet UK')
         ->and($export->field('distance')->display)->toBe('876 miles')
         ->and($export->field('distance')->raw)->toBe(1409785)
         ->and($export->field('duration')->display)->toBe('2h 27m')
@@ -23,7 +31,11 @@ it('formats each flight field for a reader and keeps the machine value in raw', 
         ->and($export->field('origin_code')->display)->toBe('KRK')
         ->and($export->field('origin_city')->display)->toBe('Kraków')
         ->and($export->field('destination_code')->display)->toBe('LGW')
-        ->and($export->field('destination_city')->display)->toBe('London');
+        ->and($export->field('destination_city')->display)->toBe('London')
+        ->and($export->field('departs_time')->display)->toBe('22:15')
+        ->and($export->field('arrives_time')->display)->toBe('23:42')
+        ->and($export->field('passenger')->display)->toBe('DRAYSON / TAYLOR')
+        ->and($export->field('ticket_number')->raw)->toBe($flight->id);
 });
 
 it('never leaks an id, a timestamp or a password', function () {
