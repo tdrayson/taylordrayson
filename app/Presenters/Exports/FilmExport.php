@@ -9,6 +9,7 @@ use App\Enums\TimelineType;
 use App\Models\Film;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
+use App\Presenters\Exports\Sheets\FilmSheet;
 use App\Support\Units;
 
 /**
@@ -17,6 +18,11 @@ use App\Support\Units;
  */
 final class FilmExport
 {
+    public function sheet(): FilmSheet
+    {
+        return new FilmSheet;
+    }
+
     public function present(Film $model): ExportData
     {
         $card = CardPresenter::for($model);

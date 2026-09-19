@@ -64,6 +64,14 @@ final class Sheet
         return str_repeat('#', $filled).str_repeat('.', $width - $filled);
     }
 
+    /** A rating drawn as filled and empty stars against a five-star scale. */
+    public static function stars(float $fraction, int $max = 5): string
+    {
+        $filled = (int) round(max(0.0, min(1.0, $fraction)) * $max);
+
+        return str_repeat('*', $filled).str_repeat('.', $max - $filled);
+    }
+
     /**
      * A sheet's lines joined into its final text, each physical line
      * right-trimmed (splitting multi-line entries first, so a stacked row

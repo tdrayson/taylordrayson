@@ -27,6 +27,12 @@ it('draws a proportional bar', function () {
         ->and(Sheet::bar(1, 10))->toBe('##########');
 });
 
+it('draws a rating as filled and empty stars', function () {
+    expect(Sheet::stars(0.8))->toBe('****.')
+        ->and(Sheet::stars(0))->toBe('.....')
+        ->and(Sheet::stars(1))->toBe('*****');
+});
+
 it('draws an uppercased heading with a rule beneath it', function () {
     expect(Sheet::heading('Flight', 10))->toBe('FLIGHT'."\n".str_repeat('=', 10));
 });
