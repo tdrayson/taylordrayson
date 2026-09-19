@@ -9,6 +9,9 @@ namespace App\Services\Strava;
  */
 class Client
 {
+    /** Strava's own ceiling for a page of kudos or comments. */
+    public const RESPONSES_PER_PAGE = 200;
+
     public function __construct(private readonly Connector $connector) {}
 
     /**
@@ -57,23 +60,25 @@ class Client
     }
 
     /**
-     * The athletes who gave an activity kudos.
+     * The athletes who gave an activity kudos, one page of them.
      *
+     * @param  int  $perPage  Strava sends 30 without it, silently truncating a popular activity.
      * @return array<int, array<string, mixed>>|null Null on a request failure.
      */
-    public function kudos(int|string $id): ?array
+    public function kudos(int|string $id, int $perPage = self::RESPONSES_PER_PAGE): ?array
     {
-        return $this->json(new KudosRequest($id));
+        return $this->connector->json("/api/v3/activities/{$id}/kudos", ['per_page' => $perPage]);
     }
 
     /**
-     * The comments left on an activity.
+     * The comments left on an activity, one page of them.
      *
+     * @param  int  $perPage  Strava sends 30 without it, silently truncating a popular activity.
      * @return array<int, array<string, mixed>>|null Null on a request failure.
      */
-    public function comments(int|string $id): ?array
+    public function comments(int|string $id, int $perPage = self::RESPONSES_PER_PAGE): ?array
     {
-        return $this->json(new CommentsRequest($id));
+        return $this->connector->json("/api/v3/activities/{$id}/comments", ['per_page' => $perPage]);
     }
 
     /**
