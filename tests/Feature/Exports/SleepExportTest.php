@@ -21,9 +21,13 @@ it('publishes a sleep session as labelled fields in order', function () {
     $export = ExportPresenter::for($sleep);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['duration', 'deep', 'core', 'rem', 'awake', 'score', 'source'])
+        ->toBe(['duration', 'deep', 'deep_share', 'core', 'core_share', 'rem', 'rem_share', 'awake', 'awake_share', 'score', 'source'])
         ->and($export->field('duration')->display)->toBe('7h 30m')
         ->and($export->field('deep')->display)->toBe('1h 30m')
+        ->and($export->field('deep_share')->display)->toBe('20%')
+        ->and($export->field('core_share')->display)->toBe('53%')
+        ->and($export->field('rem_share')->display)->toBe('23%')
+        ->and($export->field('awake_share')->display)->toBe('3%')
         ->and($export->field('score')->display)->toBe('82 out of 100')
         ->and($export->field('source')->display)->toBe('Apple Watch')
         ->and($export->field('source')->raw)->toBe('apple_watch');
