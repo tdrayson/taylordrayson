@@ -62,29 +62,37 @@ it('spends a detail request only where the count disagrees with what we hold', f
 });
 
 // Without a cursor a second backfill would re-walk the newest activities and
-// never reach the older half.
-it('resumes the backfill where the request ceiling stopped it', function () {
-    Cache::put('strava:responses:cursor', '100', now()->addWeek());
+// never reach the older half. The cursor is the activity the last run stopped
+// at without pulling, so the resume has to start there and not after it.
+it('resumes the backfill at the activity the request ceiling stopped it on', function () {
+    Cache::put('strava:responses:cursor', '200', now()->addWeek());
 
-    Activity::factory()->create([
-        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subDay(),
-    ]);
-    Activity::factory()->create([
-        'source' => Source::Strava->value, 'source_id' => '200', 'occurred_at' => now()->subDays(2),
-    ]);
+    foreach ([100, 200, 300] as $offset => $id) {
+        Activity::factory()->create([
+            'source' => Source::Strava->value,
+            'source_id' => (string) $id,
+            'occurred_at' => now()->subDays($offset + 1),
+        ]);
+    }
 
     fakeSummaries([
         ['id' => 100, 'kudos_count' => 5, 'comment_count' => 0],
         ['id' => 200, 'kudos_count' => 1, 'comment_count' => 0],
+        ['id' => 300, 'kudos_count' => 1, 'comment_count' => 0],
     ], [
-        '/api/v3/activities/200/kudos' => MockResponse::make([['firstname' => 'Justin', 'lastname' => 'M.']]),
-        '/api/v3/activities/200/comments' => MockResponse::make([]),
+        '/api/v3/activities/*/kudos' => MockResponse::make([['firstname' => 'Justin', 'lastname' => 'M.']]),
+        '/api/v3/activities/*/comments' => MockResponse::make([]),
     ]);
 
     $this->artisan('strava:responses --all')->assertSuccessful();
 
+    // Above the cursor: done last run, not paid for again.
     Saloon::assertNotSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/activities/100/'));
-    expect(SyndicatedResponse::query()->count())->toBe(1);
+
+    // The cursor itself and everything below it: this run's work. Skipping the
+    // cursor would silently drop one activity per interruption.
+    expect(Activity::query()->whereHas('syndicatedResponses')->pluck('source_id')->sort()->values()->all())
+        ->toBe(['200', '300']);
     expect(Cache::get('strava:responses:cursor'))->toBeNull();
 });
 
@@ -232,4 +240,42 @@ it('still fetches under --all when the summary is empty but rows are held', func
     $this->artisan('strava:responses --all')->assertSuccessful();
 
     expect(SyndicatedResponse::query()->count())->toBe(0);
+});
+
+// The property the whole backfill rests on: interrupted by the request
+// ceiling and run again, every activity is covered exactly once. An
+// off-by-one in the cursor silently drops one activity per interruption,
+// which no single-run assertion would catch.
+it('covers every activity across a backfill the ceiling interrupts', function () {
+    for ($i = 1; $i <= 80; $i++) {
+        Activity::factory()->create([
+            'source' => Source::Strava->value,
+            'source_id' => (string) (1000 + $i),
+            'occurred_at' => now()->subDays($i),
+        ]);
+    }
+
+    $summaries = collect(range(1, 80))
+        ->map(fn (int $i): array => ['id' => 1000 + $i, 'kudos_count' => 1, 'comment_count' => 0])
+        ->all();
+
+    $details = [
+        '/api/v3/activities/*/kudos' => MockResponse::make([['firstname' => 'Justin', 'lastname' => 'M.']]),
+        '/api/v3/activities/*/comments' => MockResponse::make([]),
+    ];
+
+    fakeSummaries($summaries, $details);
+    $this->artisan('strava:responses --all')
+        ->expectsOutputToContain('Run again to continue')
+        ->assertSuccessful();
+
+    // The ceiling really did stop it partway, or the rest proves nothing.
+    expect(Activity::query()->whereHas('syndicatedResponses')->count())->toBeLessThan(80);
+
+    fakeSummaries($summaries, $details);
+    $this->artisan('strava:responses --all')->assertSuccessful();
+
+    expect(Activity::query()->whereHas('syndicatedResponses')->count())->toBe(80)
+        ->and(SyndicatedResponse::query()->count())->toBe(80)
+        ->and(Cache::get('strava:responses:cursor'))->toBeNull();
 });

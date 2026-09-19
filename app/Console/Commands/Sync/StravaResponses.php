@@ -56,8 +56,8 @@ class StravaResponses extends Command
         // Where the last backfill ran out of requests. Only --all uses it: a
         // windowed run is small enough to finish, and would otherwise skip the
         // newest activities to resume an old walk.
-        $resumeAfter = $all ? Cache::get(self::CURSOR) : null;
-        $resuming = $resumeAfter !== null;
+        $resumeAt = $all ? Cache::get(self::CURSOR) : null;
+        $resuming = $resumeAt !== null;
 
         $spent = 0;
         $pulled = 0;
@@ -66,12 +66,16 @@ class StravaResponses extends Command
         foreach ($this->summaries($strava, $after, $spent) as $summary) {
             $sourceId = (string) $summary['id'];
 
-            // Summaries come back newest first, so everything down to the
-            // cursor was done on an earlier run.
+            // Summaries come back newest first, so everything above the cursor
+            // was done on an earlier run. The cursor itself is the activity
+            // that run stopped at without pulling, so it is where this one
+            // starts rather than the last one to skip.
             if ($resuming) {
-                $resuming = $sourceId !== $resumeAfter;
+                if ($sourceId !== $resumeAt) {
+                    continue;
+                }
 
-                continue;
+                $resuming = false;
             }
 
             $activity = $stored->get($sourceId);
@@ -98,9 +102,9 @@ class StravaResponses extends Command
         }
 
         // The stream ended without ever meeting the id we were told to resume
-        // past: it's gone, or the walk changed shape. Holding onto it would
+        // at: it's gone, or the walk changed shape. Holding onto it would
         // stall every future backfill, so it is dropped rather than kept.
-        if ($resumeAfter !== null && $resuming) {
+        if ($resumeAt !== null && $resuming) {
             $stoppedAt = null;
             $this->warn('The stored cursor never turned up; found nothing to resume from. Starting from the top next run.');
         }
