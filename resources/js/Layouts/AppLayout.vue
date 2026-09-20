@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import AppSidebar from '../Components/Layout/AppSidebar.vue';
 import AppTopbar from '../Components/Layout/AppTopbar.vue';
@@ -8,6 +9,7 @@ import Breadcrumb from '../Components/Layout/Breadcrumb.vue';
 import CommandPalette from '../Components/Overlays/CommandPalette.vue';
 import SettingsModal from '../Components/Layout/SettingsModal.vue';
 import FloatingActions from '../Components/Layout/FloatingActions.vue';
+import { provideInteractions } from '../lib/interactionContext.js';
 
 defineProps({
     breadcrumb: { type: Array, default: () => [] },
@@ -17,6 +19,11 @@ defineProps({
 });
 
 const page = usePage();
+
+// Provided here rather than per page: every view that draws feed cards sends
+// the same deferred `interactions` prop, and the cards are several components
+// below whichever page is in the slot.
+provideInteractions(computed(() => page.props.interactions ?? {}));
 </script>
 
 <template>
