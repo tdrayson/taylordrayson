@@ -4,6 +4,8 @@ use App\Enums\EntryStatus;
 use App\Models\Article;
 use App\Models\Mention;
 use App\Models\Note;
+use App\Models\Place;
+use App\Models\Project;
 use App\Models\Sleep;
 use App\Support\PortableText;
 
@@ -154,6 +156,51 @@ it('shows the mention in the linked entry\'s conversation', function () {
             // Marked as mine like a comment of mine is, without an address to
             // match on: the source is an entry of mine.
             ->where('conversation.responses.0.mine', true));
+});
+
+/**
+ * The types that send webmentions record mentions too, from the same fields.
+ * A check-in's note or a Strava description is as much a link to a post of mine
+ * as one typed into an article, and it used to be the only kind that counted.
+ */
+it('records a mention from a description, not just from a written body', function () {
+    $sleep = Sleep::factory()->create(['occurred_at' => now()->subDay()]);
+
+    $place = Place::factory()->create([
+        'occurred_at' => now(),
+        'description' => 'Slept badly before this one: '.config('app.url').$sleep->url(),
+    ]);
+
+    $mention = Mention::query()->sole();
+
+    expect($mention->source_id)->toBe($place->id)
+        ->and($mention->target_type)->toBe($sleep->getMorphClass())
+        ->and($mention->target_id)->toBe($sleep->id);
+
+    // And it is kept in step from there, the same as a body is.
+    $place->update(['description' => 'Nothing linked here now.']);
+
+    expect(Mention::query()->count())->toBe(0);
+});
+
+/**
+ * A project is standing content that describes a thing, so it links to the
+ * posts about that thing more than most types do. It used to record nothing,
+ * because the source was held to the same allowlist as the target.
+ */
+it('records a mention from a project, which links out more than most', function () {
+    $article = Article::factory()->create(['status' => EntryStatus::Published]);
+
+    // A project's prose is a plain description, which is autolinked on the way
+    // in, so the link has to be written out in full.
+    $project = Project::factory()->create([
+        'description' => 'Written up at '.config('app.url').$article->url(),
+    ]);
+
+    $mention = Mention::query()->sole();
+
+    expect($mention->source_id)->toBe($project->id)
+        ->and($mention->target_type)->toBe($article->getMorphClass());
 });
 
 it('records a mention on an unlisted entry', function () {
