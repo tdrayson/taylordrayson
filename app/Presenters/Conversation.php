@@ -73,7 +73,7 @@ final class Conversation
     }
 
     /**
-     * Every response in one list, newest first, whatever kind it is and
+     * Every response in one list, oldest first, whatever kind it is and
      * whichever table it came from. Rendered in the entry's own timezone, so a
      * response can never sort or display ahead of what it responded to.
      *
@@ -101,7 +101,7 @@ final class Conversation
             ...$target->syndicatedResponses()->approved()->get()->map(fn (SyndicatedResponse $response): ConversationItem => ConversationItem::fromSyndicated($response, $timezone))->all(),
         ];
 
-        usort($items, fn (ConversationItem $a, ConversationItem $b): int => $b->occurredAt <=> $a->occurredAt);
+        usort($items, fn (ConversationItem $a, ConversationItem $b): int => $a->occurredAt <=> $b->occurredAt);
 
         return $items;
     }
