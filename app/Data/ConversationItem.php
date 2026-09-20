@@ -58,7 +58,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             kind: 'comment',
             authorName: $comment->author_name,
             authorUrl: null,
-            authorPhoto: $mine ? (string) config('feed.author_photo') : null,
+            authorPhoto: $mine ? (string) config('identity.avatar') : null,
             title: null,
             body: $comment->body,
             occurredAt: $comment->created_at,

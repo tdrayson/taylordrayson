@@ -274,6 +274,6 @@ it('marks a comment as mine by the address, never by the name anyone can type', 
     expect(ConversationItem::fromComment($mine)->mine)->toBeTrue()
         ->and(ConversationItem::fromComment($impostor)->mine)->toBeFalse()
         // The avatar rides on the same decision, so a claimed name gets initials.
-        ->and(ConversationItem::fromComment($mine)->authorPhoto)->toBe(config('feed.author_photo'))
+        ->and(ConversationItem::fromComment($mine)->authorPhoto)->toBe(config('identity.avatar'))
         ->and(ConversationItem::fromComment($impostor)->authorPhoto)->toBeNull();
 });
