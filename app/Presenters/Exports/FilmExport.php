@@ -10,6 +10,7 @@ use App\Models\Film;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\FilmSheet;
+use App\Support\SerialNumber;
 use App\Support\Units;
 
 /**
@@ -40,7 +41,7 @@ final class FilmExport
                 ExportField::maybe('year', 'Released', $model->meta->year === null ? null : (string) $model->meta->year, $model->meta->year),
                 ExportField::maybe('runtime', 'Runtime', $model->meta->runtime === null ? null : Units::humanDuration($model->meta->runtime * 60), $model->meta->runtime === null ? null : $model->meta->runtime * 60),
                 ExportField::maybe('owner', 'Name', config('identity.name')),
-                ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
+                ExportField::make('ticket_number', 'Ticket no.', SerialNumber::for($model->occurred_at, $model->id), $model->id),
             ])),
             links: CommonLinks::for($model),
         );

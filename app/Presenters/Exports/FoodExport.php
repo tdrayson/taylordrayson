@@ -14,6 +14,7 @@ use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\FoodSheet;
 use App\Queries\DayFood;
+use App\Support\SerialNumber;
 use Illuminate\Support\Str;
 
 /**
@@ -55,7 +56,7 @@ final class FoodExport
                 ExportField::make('items_logged', 'Items logged', (string) $itemCount, $itemCount),
                 ExportField::maybe('owner', 'Name', config('identity.name')),
                 ExportField::maybe('receipt_date', 'Date', $this->receiptDate($model)),
-                ExportField::make('receipt_number', 'Receipt no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
+                ExportField::make('receipt_number', 'Receipt no.', SerialNumber::for($model->occurred_at, $model->id), $model->id),
             ])),
             links: CommonLinks::for($model),
             aspects: array_filter([

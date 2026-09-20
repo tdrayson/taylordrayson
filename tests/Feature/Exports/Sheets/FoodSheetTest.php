@@ -4,6 +4,7 @@ use App\Enums\ExportFormat;
 use App\Models\Food;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
+use App\Support\SerialNumber;
 
 it('prints a food day as a supermarket receipt', function () {
     $breakfast = Food::factory()->create([
@@ -40,7 +41,7 @@ it('prints a food day as a supermarket receipt', function () {
         ->and($txt)->toContain('830 kcal')
         ->and($txt)->toContain('ITEMS LOGGED: 2')
         ->and($txt)->toContain('THANK YOU FOR EATING!')
-        ->and($txt)->toContain('No. '.str_pad((string) $breakfast->id, 10, '0', STR_PAD_LEFT));
+        ->and($txt)->toContain('No. '.SerialNumber::for($breakfast->occurred_at, $breakfast->id));
 
     foreach (explode("\n", $txt) as $line) {
         expect(mb_strwidth($line))->toBeLessThanOrEqual(46);

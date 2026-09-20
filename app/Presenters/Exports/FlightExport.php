@@ -15,6 +15,7 @@ use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\FlightSheet;
 use App\Support\Distance;
 use App\Support\GreatCircle;
+use App\Support\SerialNumber;
 use App\Support\Units;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
@@ -61,7 +62,7 @@ final class FlightExport
                 ExportField::maybe('cabin', 'Cabin', $model->cabin_class?->label(), $model->cabin_class?->value),
                 ExportField::maybe('reason', 'Reason', $model->reason?->label(), $model->reason?->value),
                 ExportField::maybe('passenger', 'Passenger', $this->passenger()),
-                ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
+                ExportField::make('ticket_number', 'Ticket no.', SerialNumber::for($model->occurred_at, $model->id), $model->id),
             ])),
             links: [
                 ...array_values(array_filter([

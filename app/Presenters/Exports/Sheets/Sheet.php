@@ -35,6 +35,13 @@ final class Sheet
     }
 
     /**
+     * The clear space held between a wrapped label and its value. Wider than
+     * the one column that would technically fit, because a title that ends
+     * three characters from its label reads as one run-on string.
+     */
+    private const GAP = 8;
+
+    /**
      * Label left, value hard right, the value wrapping within its own column
      * rather than dropping underneath the label. For free text (a book title)
      * too long to share one line but which should still read as a value
@@ -42,7 +49,7 @@ final class Sheet
      */
     public static function wrapped(string $label, string $value, int $width = self::WIDTH): string
     {
-        $column = $width - mb_strwidth($label) - 2;
+        $column = $width - mb_strwidth($label) - self::GAP;
 
         if ($column < 8) {
             return self::stacked($label, $value, $width);

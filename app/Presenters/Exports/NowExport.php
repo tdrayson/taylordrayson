@@ -51,6 +51,7 @@ final class NowExport
                 ...$this->rings($ambient['rings'] ?? null),
                 ...$this->battery($ambient['battery'] ?? null),
                 $sleep === null ? null : ExportField::make('slept', 'Slept', Units::humanDuration($sleep->duration), $sleep->duration),
+                $sleep?->score === null ? null : ExportField::make('sleep_score', 'Score', $sleep->score.' out of 100', $sleep->score),
                 $book === null ? null : ExportField::make('reading', 'Book', $book->title, $book->title),
                 $book?->meta->author === null ? null : ExportField::make('reading_author', 'Author', (string) $book->meta->author, (string) $book->meta->author),
             ])),

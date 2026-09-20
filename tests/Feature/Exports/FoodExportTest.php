@@ -4,6 +4,7 @@ use App\Data\Aspects\MealBreakdown;
 use App\Models\Food;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
+use App\Support\SerialNumber;
 
 it('publishes a food day as its aggregated totals, not one row', function () {
     Food::factory()->create([
@@ -38,7 +39,7 @@ it('publishes a food day as its aggregated totals, not one row', function () {
         ->and($export->field('items_logged')->display)->toBe('2')
         ->and($export->field('owner')->display)->toBe(config('identity.name'))
         ->and($export->field('receipt_date')->display)->toBe('13 Sep 2026')
-        ->and($export->field('receipt_number')->display)->toBe(str_pad((string) $lunch->id, 10, '0', STR_PAD_LEFT));
+        ->and($export->field('receipt_number')->display)->toBe(SerialNumber::for($lunch->occurred_at, $lunch->id));
 });
 
 it('publishes a MealBreakdown aspect with every item already formatted', function () {

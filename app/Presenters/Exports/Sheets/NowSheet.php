@@ -28,7 +28,7 @@ final class NowSheet
         'WHERE' => ['location', 'country', 'timezone'],
         'WEATHER' => ['conditions', 'temperature', 'humidity', 'wind'],
         'ACTIVITY' => ['move', 'exercise', 'stand', 'steps'],
-        'SLEEP' => ['slept'],
+        'SLEEP' => ['slept', 'sleep_score'],
         'READING' => ['reading', 'reading_author'],
         'DEVICE' => ['device', 'battery', 'charging'],
     ];

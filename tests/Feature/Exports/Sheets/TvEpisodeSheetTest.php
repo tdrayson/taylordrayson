@@ -6,6 +6,7 @@ use App\Models\TvShow;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 use App\Presenters\Exports\Sheets\TvEpisodeSheet;
+use App\Support\SerialNumber;
 
 it('prints a TV episode as a perforated ticket stub, headed by the show and paired season/number and date/rated rows', function () {
     $show = TvShow::factory()->create(['title' => 'Crime Scene: The Vanishing at the Cecil Hotel']);
@@ -25,7 +26,7 @@ it('prints a TV episode as a perforated ticket stub, headed by the show and pair
 
     expect($txt)->toContain('CRIME SCENE: THE VANISHING AT THE CECIL HOTEL')
         ->and($txt)->not->toContain('ADMIT ONE')
-        ->and($txt)->toContain('No. '.str_pad((string) $episode->id, 10, '0', STR_PAD_LEFT))
+        ->and($txt)->toContain('No. '.SerialNumber::for($episode->occurred_at, $episode->id))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and($rows)->toContain(
             ['EPISODE', 'Down the Rabbit Hole'],

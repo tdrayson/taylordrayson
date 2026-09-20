@@ -5,6 +5,7 @@ use App\Models\Film;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 use App\Presenters\Exports\Sheets\FilmSheet;
+use App\Support\SerialNumber;
 
 it('prints a film as a perforated cinema ticket stub, one field per row', function () {
     $film = Film::factory()->create([
@@ -22,7 +23,7 @@ it('prints a film as a perforated cinema ticket stub, one field per row', functi
 
     expect($txt)->toContain('CINEMA TICKET')
         ->and($txt)->toContain('ADMIT ONE')
-        ->and($txt)->toContain('No. '.str_pad((string) $film->id, 10, '0', STR_PAD_LEFT))
+        ->and($txt)->toContain('No. '.SerialNumber::for($film->occurred_at, $film->id))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and(array_map(fn (array $r): array => [$r[0], $r[1]], $rows))
         ->toContain(

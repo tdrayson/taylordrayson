@@ -5,6 +5,7 @@ use App\Models\Event;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 use App\Presenters\Exports\Sheets\EventSheet;
+use App\Support\SerialNumber;
 
 it('prints an event as a perforated ticket stub, with doors from the occurred instant and ends from the field', function () {
     $event = Event::factory()->create([
@@ -26,7 +27,7 @@ it('prints an event as a perforated ticket stub, with doors from the occurred in
 
     expect($txt)->toContain('EVENT TICKET')
         ->and($txt)->toContain('ADMIT ONE')
-        ->and($txt)->toContain('No. '.str_pad((string) $event->id, 10, '0', STR_PAD_LEFT))
+        ->and($txt)->toContain('No. '.SerialNumber::for($event->occurred_at, $event->id))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and($rows)->toContain(
             ['START', '13 Sep 2026 19:30'],
