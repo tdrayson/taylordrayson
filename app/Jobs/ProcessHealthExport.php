@@ -2,18 +2,22 @@
 
 namespace App\Jobs;
 
+use App\Support\Health\HealthPayloadSummary;
 use App\Support\Health\HealthProcessor;
-use App\Support\Health\HeartRateProcessor;
-use App\Support\Health\SleepProcessor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
-use Throwable;
 
+/**
+ * Run one Health Auto Export send through the processor its endpoint chose.
+ *
+ * The route decides which processor applies, so there is no metric routing
+ * here: a payload reaching this job has already been validated as belonging to
+ * that processor.
+ */
 class ProcessHealthExport implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -22,47 +26,16 @@ class ProcessHealthExport implements ShouldQueue
 
     /**
      * @param  array<string, mixed>  $payload
+     * @param  class-string<HealthProcessor>  $processor
      */
-    public function __construct(public array $payload) {}
+    public function __construct(public array $payload, public string $processor) {}
 
     public function handle(): void
     {
-        /** @var list<HealthProcessor> $processors */
-        $processors = [app(SleepProcessor::class), app(HeartRateProcessor::class)];
+        // These sends are processed out of band, so the structural summary is the
+        // only record of what actually arrived when a night comes out wrong.
+        Log::info('health export received', HealthPayloadSummary::for($this->payload));
 
-        $metricNames = array_values(array_filter(array_map(
-            fn ($metric): ?string => is_array($metric) ? ($metric['name'] ?? null) : null,
-            $this->payload['data']['metrics'] ?? [],
-        )));
-
-        $claimed = [];
-        $failures = [];
-
-        foreach ($processors as $processor) {
-            $matched = array_intersect($processor->handles(), $metricNames);
-
-            if ($matched === []) {
-                continue;
-            }
-
-            $claimed = array_merge($claimed, $matched);
-
-            try {
-                $processor->process($this->payload);
-            } catch (Throwable $exception) {
-                report($exception);
-                $failures[] = $processor::class;
-            }
-        }
-
-        $unhandled = array_values(array_diff($metricNames, $claimed));
-
-        if ($unhandled !== []) {
-            Log::info('health.export unhandled metrics', ['metrics' => $unhandled]);
-        }
-
-        if ($failures !== []) {
-            throw new RuntimeException('Health processors failed: '.implode(', ', $failures));
-        }
+        app($this->processor)->process($this->payload);
     }
 }
