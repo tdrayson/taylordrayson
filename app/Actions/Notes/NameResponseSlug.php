@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * The slug a response note is stored with when none was written: what it did,
- * then what it answered, e.g. `reply-to-sending-your-first-webmention`, or
+ * then what it answered, e.g. `replied-to-sending-your-first-webmention`, or
  * `liked-back-under-the-bar` for one of my own entries.
  *
  * The editor previews this, so responseSlug() in resources/js/lib/editor/defaults.js
@@ -73,10 +73,10 @@ final class NameResponseSlug
     private static function prefix(ResponseKind $kind): string
     {
         return match ($kind) {
-            ResponseKind::Reply => 'reply-to',
+            ResponseKind::Reply => 'replied-to',
             ResponseKind::Like => 'liked',
             ResponseKind::Repost => 'reposted',
-            ResponseKind::Rsvp => 'rsvp',
+            ResponseKind::Rsvp => 'rsvp-to',
         };
     }
 

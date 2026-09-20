@@ -33,7 +33,7 @@ it('previews the stored copy and saves a trimmed quote', function () {
     $page->assertScript("document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()", 'Just this bit.');
 
     // The slug left blank is named after the post the preview loaded.
-    $page->assertScript("document.querySelector('#slug').getAttribute('placeholder')", 'reply-to-sending-your-first-webmention');
+    $page->assertScript("document.querySelector('#slug').getAttribute('placeholder')", 'replied-to-sending-your-first-webmention');
 
     $page->fill('#slug', 'agreed');
     $page->click('button:has-text("Post")');

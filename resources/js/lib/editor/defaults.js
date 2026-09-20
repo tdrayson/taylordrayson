@@ -146,15 +146,15 @@ function ownSlug(url) {
 
 /** What a response slug says I did. Mirrors NameResponseSlug::prefix(). */
 const RESPONSE_PREFIXES = {
-    reply: 'reply-to',
+    reply: 'replied-to',
     like: 'liked',
     repost: 'reposted',
-    rsvp: 'rsvp',
+    rsvp: 'rsvp-to',
 };
 
 /**
  * The slug a response note is stored with when none is written, e.g.
- * `reply-to-sending-your-first-webmention`, or `liked-back-under-the-bar` for
+ * `replied-to-sending-your-first-webmention`, or `liked-back-under-the-bar` for
  * one of my own entries. Mirrors NameResponseSlug.
  *
  * @param {{kind: string, url: string, rsvp?: string, preview?: object|null}} response The
