@@ -24,7 +24,7 @@ it('prints a book as its library card, with progress sized as a bar from raw', f
         ->and($txt)->toContain('291')
         ->and($txt)->toContain('60%')
         ->and($txt)->toContain(str_repeat('#', 15))
-        ->and($txt)->toContain('2 September 2026');
+        ->and($txt)->toContain('2 Sep 2026');
 });
 
 it('omits pages and progress rows when a book carries neither', function () {

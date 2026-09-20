@@ -31,7 +31,7 @@ it('prints a fuel fill-up as a forecourt receipt', function () {
         ->and($txt)->not->toContain("CR0\n")
         ->and($txt)->toContain('28-AUG-2026 15:37')
         ->and($txt)->toContain('No. '.str_pad((string) $fuel->id, 4, '0', STR_PAD_LEFT))
-        ->and($txt)->toContain('BRAND: BP')
+        ->and($txt)->toContain('BP GARAGE')
         ->and($txt)->toContain('FUEL TYPE: PETROL (E10)')
         ->and($txt)->toContain('31.28 L')
         ->and($txt)->toContain('161.9p per litre')

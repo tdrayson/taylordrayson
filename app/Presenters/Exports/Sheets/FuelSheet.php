@@ -22,7 +22,6 @@ final class FuelSheet
             ...$this->header($data),
             $this->transaction($data),
             Sheet::rule(self::WIDTH, '-'),
-            ...$this->maybeLabelled($data, 'BRAND', 'brand'),
             ...$this->fuelType($data),
             '',
             ...$this->fuelLines($data),
@@ -48,8 +47,13 @@ final class FuelSheet
      */
     private function header(ExportData $data): array
     {
+        $brand = $this->value($data, 'brand');
+
         $vendor = [
             ...$this->centredBlock($this->value($data, 'station')),
+            // The brand belongs with the forecourt's name, not filed as a
+            // detail row beside the fuel grade.
+            ...$this->centredBlock($brand === '' ? '' : mb_strtoupper($brand).' GARAGE'),
             ...$this->centredBlock($this->value($data, 'locality')),
         ];
 

@@ -89,8 +89,9 @@ final class FoodSheet
 
     /**
      * One item's row. A name too long to share the line wraps across as many
-     * lines as it needs, with the calories always hard right on the last of
-     * them: on a receipt the price column never moves.
+     * lines as it needs, with the calories hard right on the *first* of them,
+     * level with where the item starts: on a receipt the price sits against
+     * the item, not against the end of its description.
      *
      * @return list<string>
      */
@@ -108,13 +109,10 @@ final class FoodSheet
         // Continuations are indented so a wrapped name reads as one item
         // rather than two.
         $first = array_shift($wrapped);
-        $indented = array_map(fn (string $line): string => '  '.$line, $wrapped);
-        $last = array_pop($indented) ?? $first;
 
         return [
-            ...($indented === [] && $wrapped === [] ? [] : [' '.$first]),
-            ...array_map(fn (string $line): string => ' '.$line, $indented),
-            ' '.Sheet::row($last, $calories, self::CONTENT),
+            ' '.Sheet::row($first, $calories, self::CONTENT),
+            ...array_map(fn (string $line): string => '   '.$line, $wrapped),
         ];
     }
 

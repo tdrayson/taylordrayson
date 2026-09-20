@@ -29,8 +29,8 @@ it('prints an event as a perforated ticket stub, with doors from the occurred in
         ->and($txt)->toContain('No. '.str_pad((string) $event->id, 10, '0', STR_PAD_LEFT))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and($rows)->toContain(
-            ['START', '13 September 2026 at 19:30'],
-            ['END', '13 September 2026 at 22:15'],
+            ['START', '13 Sep 2026 19:30'],
+            ['END', '13 Sep 2026 22:15'],
         )
         ->and(array_column($rows, 0))->toContain('EVENT', 'VENUE');
 });

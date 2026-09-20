@@ -42,7 +42,7 @@ final class EventExport
                 ExportField::maybe('venue', 'Venue', $model->venue_name, $model->venue_name),
                 $this->location($model),
                 ExportField::maybe('organiser', 'Organiser', $model->organiser, $model->organiser),
-                ExportField::maybe('ends', 'Ends', $model->ends_at?->format('j F Y \a\t H:i'), $model->ends_at?->toIso8601String()),
+                ExportField::maybe('ends', 'Ends', $model->ends_at?->format('j M Y H:i'), $model->ends_at?->toIso8601String()),
                 ExportField::maybe('owner', 'Name', config('identity.name')),
                 ExportField::make('ticket_number', 'Ticket no.', str_pad((string) $model->id, 10, '0', STR_PAD_LEFT), $model->id),
             ])),

@@ -22,7 +22,10 @@ final readonly class ExportInstant implements Arrayable, JsonSerializable
         $local = LocalTime::for($occurredAt, $zone);
 
         return new self(
-            display: $occurredAt->format('j F Y').' at '.$occurredAt->format('H:i'),
+            // "5 Sep 2026 15:00", not "5 September 2026 at 15:00": the long
+            // form eats a third of a 46-column sheet. `iso` still carries the
+            // exact instant for anything parsing this.
+            display: $occurredAt->format('j M Y H:i'),
             iso: $local['iso'],
             timezone: $zone,
         );

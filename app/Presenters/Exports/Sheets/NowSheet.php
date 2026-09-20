@@ -34,8 +34,8 @@ final class NowSheet
     ];
 
     /**
-     * Keys whose value is free text rather than a reading, so it wraps under
-     * its label instead of being squeezed onto the same line.
+     * Keys whose value is free text rather than a reading, so it wraps in
+     * its own column instead of being squeezed onto one line.
      *
      * @var list<string>
      */
@@ -79,7 +79,7 @@ final class NowSheet
                 }
 
                 $rows[] = in_array($key, self::WRAPPED, true)
-                    ? Sheet::block(mb_strtoupper($field->label), $field->display, self::WIDTH)
+                    ? Sheet::wrapped(mb_strtoupper($field->label), $field->display, self::WIDTH)
                     : Sheet::row(mb_strtoupper($field->label), $field->display, self::WIDTH);
             }
 

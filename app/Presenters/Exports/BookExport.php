@@ -38,7 +38,7 @@ final class BookExport
                 ExportField::maybe('rating', 'Rating', $model->rating === null ? null : "{$model->rating} out of 10", $model->rating),
                 ExportField::maybe('pages', 'Pages', $model->pages === null ? null : number_format($model->pages), $model->pages),
                 ExportField::maybe('progress', 'Progress', $model->progress_percent === null ? null : round($model->progress_percent).'%', $model->progress_percent),
-                ExportField::maybe('started', 'Started', $model->started_at?->format('j F Y'), $model->started_at?->toIso8601String()),
+                ExportField::maybe('started', 'Started', $model->started_at?->format('j M Y'), $model->started_at?->toIso8601String()),
             ])),
             links: CommonLinks::for($model),
             body: $model->overview,

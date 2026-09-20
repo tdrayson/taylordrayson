@@ -25,7 +25,7 @@ it('publishes a book as labelled fields in order', function () {
         ->and($export->field('rating')->display)->toBe('9 out of 10')
         ->and($export->field('pages')->display)->toBe('476')
         ->and($export->field('progress')->display)->toBe('100%')
-        ->and($export->field('started')->display)->toBe('1 August 2026')
+        ->and($export->field('started')->display)->toBe('1 Aug 2026')
         ->and($export->field('started')->raw)->toBe('2026-08-01T09:00:00+00:00');
 });
 

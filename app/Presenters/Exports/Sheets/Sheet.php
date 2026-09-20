@@ -35,13 +35,27 @@ final class Sheet
     }
 
     /**
-     * The label on its own line, the value wrapped and indented beneath it.
-     * For free text (a book title) where squeezing the value onto the label's
-     * line leaves it crammed against it, however technically it fits.
+     * Label left, value hard right, the value wrapping within its own column
+     * rather than dropping underneath the label. For free text (a book title)
+     * too long to share one line but which should still read as a value
+     * against its label.
      */
-    public static function block(string $label, string $value, int $width = self::WIDTH): string
+    public static function wrapped(string $label, string $value, int $width = self::WIDTH): string
     {
-        return self::stacked($label, $value, $width);
+        $column = $width - mb_strwidth($label) - 2;
+
+        if ($column < 8) {
+            return self::stacked($label, $value, $width);
+        }
+
+        $lines = self::wrap($value, $column);
+        $first = array_shift($lines) ?? '';
+
+        return implode("\n", [
+            self::fill($label, $first, ' ', $width),
+            // Continuations carry no label, so they are simply set right.
+            ...array_map(fn (string $line): string => self::fill('', $line, ' ', $width), $lines),
+        ]);
     }
 
     /** The same, with dots between, for a receipt. */
