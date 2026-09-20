@@ -384,3 +384,66 @@ it('spends its budget to the request on a mix of one and two cost activities', f
         ->and($comments)->toBeGreaterThan(0)
         ->and($kudos)->toBeGreaterThan($comments);
 });
+
+// The failure this whole distinction exists for: reads have their own ceiling
+// of 100 per 15 minutes, so a page can come back 429 rather than empty. Ending
+// the walk on it the way an empty page ends it reported "Pulled responses for 0
+// activities" and exited clean, which is indistinguishable from being up to
+// date and let a rate-limited cron run look like a successful one.
+it('fails rather than reporting nothing to do when the activity list cannot be read', function () {
+    Activity::factory()->create([
+        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subDay(),
+    ]);
+
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/api/v3/athlete/activities*' => MockResponse::make(['message' => 'Rate Limit Exceeded'], 429),
+    ]);
+
+    $this->artisan('strava:responses')
+        ->expectsOutputToContain('this run is incomplete')
+        ->assertFailed();
+});
+
+// A walk cut short tells us nothing about what lay beyond the page that failed,
+// so the resume point has to survive it. Clearing it would record a backfill
+// that reached the end when it never got past the first page.
+it('keeps the backfill cursor when a page fails', function () {
+    Cache::put('strava:responses:cursor', '200', now()->addWeek());
+
+    Saloon::fake([
+        '/oauth/token*' => MockResponse::make(['access_token' => 'token', 'expires_in' => 3600]),
+        '/api/v3/athlete/activities*' => MockResponse::make(['message' => 'Rate Limit Exceeded'], 429),
+    ]);
+
+    $this->artisan('strava:responses --all')->assertFailed();
+
+    // And the cursor is not reported missing on the strength of a list we
+    // never actually read.
+    $this->artisan('strava:responses --all')->doesntExpectOutputToContain('found nothing to resume from');
+
+    expect(Cache::get('strava:responses:cursor'))->toBe('200');
+});
+
+// The pull already refuses to treat a failed request as an empty list, so the
+// rows survive. What it could not do was say so: counted as work done, a run
+// whose every detail request was refused still reported them all as pulled.
+it('counts an activity Strava refused to answer for as unpulled', function () {
+    $activity = Activity::factory()->create([
+        'source' => Source::Strava->value, 'source_id' => '100', 'occurred_at' => now()->subDay(),
+    ]);
+    SyndicatedResponse::factory()->for($activity, 'target')->create([
+        'source' => Source::Strava->value, 'kind' => WebmentionKind::Like, 'author_name' => 'Justin M.',
+    ]);
+
+    fakeSummaries([['id' => 100, 'kudos_count' => 3, 'comment_count' => 0]], [
+        '/api/v3/activities/100/kudos' => MockResponse::make(['message' => 'Rate Limit Exceeded'], 429),
+    ]);
+
+    $this->artisan('strava:responses')
+        ->expectsOutputToContain('did not answer for 1 activities')
+        ->expectsOutputToContain('Pulled responses for 0 activities')
+        ->assertFailed();
+
+    expect(SyndicatedResponse::query()->sole()->author_name)->toBe('Justin M.');
+});
