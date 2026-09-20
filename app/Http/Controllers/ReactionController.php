@@ -17,7 +17,7 @@ class ReactionController extends Controller
      */
     public function store(StoreReactionRequest $request, string $type, int $id): JsonResponse
     {
-        $target = InteractionTarget::resolve($type, $id);
+        $target = InteractionTarget::resolveFor($request, $type, $id);
 
         abort_if($target === null, 404);
 

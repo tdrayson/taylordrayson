@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
@@ -27,9 +28,10 @@ use Spatie\MediaLibrary\HasMedia;
     'content',
     'response_kind',
     'response_url',
-    'response_title',
     'rsvp_value',
     'timezone',
+    'citation_id',
+    'response_quote',
     'status',
     'password',
 ])]
@@ -74,5 +76,11 @@ class Article extends Model implements HasMedia, Timelineable
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
         ];
+    }
+
+    /** @return BelongsTo<Citation, $this> */
+    public function citation(): BelongsTo
+    {
+        return $this->belongsTo(Citation::class);
     }
 }

@@ -7,23 +7,28 @@ use App\Models\Concerns\Timelineable;
 use App\Models\Page;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 /**
- * Resolves what a comment, reaction or webmention is allowed to be attached to.
+ * Resolves what a comment, reaction or webmention is allowed to be attached to,
+ * and in which direction.
  *
  * An allowlist rather than "any model with an id", because the webmention spec
  * requires an endpoint to reject a target it does not accept mentions for, and
  * the same rule should decide what the on-site form can post at. Listings
  * (archives, tags, trips, the timeline itself) are deliberately absent: a
  * response to a filtered view has nobody to notify and nothing to thread under.
+ *
+ * A private entry takes comments and reactions once unlocked, and receives
+ * mentions, but sends none: nobody else could verify a link behind the password.
  */
 final class InteractionTarget
 {
     /**
-     * A model that accepts interactions, or null when the type is not on the
-     * allowlist, the row is missing, or it is not publicly visible.
+     * The model a comment or reaction from this request may be left on, or null
+     * when the type is not on the allowlist, the row is missing, or it takes none.
      */
-    public static function resolve(string $type, int $id): ?Model
+    public static function resolveFor(Request $request, string $type, int $id): ?Model
     {
         $class = self::types()[$type] ?? null;
 
@@ -33,13 +38,42 @@ final class InteractionTarget
 
         $model = $class::query()->find($id);
 
-        return $model !== null && self::isVisible($model) ? $model : null;
+        return $model !== null && self::takesCommentsAndReactionsFrom($model, $request) ? $model : null;
     }
 
-    /** Whether this model takes comments, reactions and mentions right now. */
-    public static function accepts(Model $model): bool
+    /**
+     * Whether this request may comment on, react to, or read the conversation of this model.
+     *
+     * @param  Request|null  $request  Null when nobody is asking, which unlocks nothing.
+     */
+    public static function takesCommentsAndReactionsFrom(Model $model, ?Request $request): bool
     {
-        return self::keyFor($model) !== null && self::isVisible($model);
+        if (! self::isRespondable($model)) {
+            return false;
+        }
+
+        return match ($model->status ?? null) {
+            EntryStatus::Published, EntryStatus::Unlisted => true,
+            EntryStatus::Private => $request !== null && $model->isUnlockedFor($request),
+            default => false,
+        };
+    }
+
+    /**
+     * Whether incoming webmentions, and mentions from my own entries, may land on
+     * this model. A draft is refused, or a mention could confirm its URL exists.
+     */
+    public static function takesMentions(Model $model): bool
+    {
+        return self::isRespondable($model)
+            && in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted, EntryStatus::Private], strict: true);
+    }
+
+    /** Whether this model sends webmentions for its links and records mentions on my own entries. */
+    public static function sendsMentions(Model $model): bool
+    {
+        return self::isRespondable($model)
+            && in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted], strict: true);
     }
 
     /** The public type key for a model, or null when it accepts no interactions. */
@@ -71,19 +105,10 @@ final class InteractionTarget
         return $types + ['page' => Page::class];
     }
 
-    /**
-     * Whether the public can see this right now. A draft must be rejected
-     * rather than 404'd on write alone, or a mention could confirm that an
-     * unpublished URL exists. A private entry is refused too: its body sits
-     * behind a password, so neither a reply nor a mention has anything to cite.
-     */
-    private static function isVisible(Model $model): bool
+    /** Whether this is a kind of thing anybody could respond to, whatever its status. */
+    private static function isRespondable(Model $model): bool
     {
-        if (! in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted], strict: true)) {
-            return false;
-        }
-
-        return $model instanceof Page
-            || ($model instanceof Timelineable && $model->shouldAppearOnTimeline());
+        return self::keyFor($model) !== null
+            && ($model instanceof Page || ($model instanceof Timelineable && $model->shouldAppearOnTimeline()));
     }
 }

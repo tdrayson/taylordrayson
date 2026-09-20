@@ -60,10 +60,16 @@ final class ParseMentionSource
 
         $entry = $this->entryAbout($parsed['items'] ?? [], $targetUrl);
 
-        if ($entry === null) {
-            return MentionData::bare();
-        }
+        return $entry === null ? MentionData::bare() : $this->fromEntry($entry, $targetUrl);
+    }
 
+    /**
+     * What an already chosen h-entry says, read against one target URL.
+     *
+     * @param  array<string, mixed>  $entry
+     */
+    public function fromEntry(array $entry, string $targetUrl): MentionData
+    {
         $properties = $entry['properties'] ?? [];
         $kind = $this->kindOf($properties, $targetUrl);
         $content = $this->content($properties, $kind);
@@ -316,7 +322,7 @@ final class ParseMentionSource
         $published = $properties['published'][0] ?? null;
 
         return is_string($published)
-            ? rescue(fn (): Carbon => Carbon::parse($published), null, report: false)
+            ? rescue(fn (): Carbon => Carbon::parse($published)->utc(), null, report: false)
             : null;
     }
 
