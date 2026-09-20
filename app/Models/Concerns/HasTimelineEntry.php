@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 trait HasTimelineEntry
 {
+    use HasInteractions;
+    use RecordsMentions;
+    use SendsWebmentions;
+
     /**
      * Stamp an entry arriving without a zone with where it can be placed: the
      * phone's last reading, or failing that where flights say you were. On

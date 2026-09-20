@@ -3,6 +3,8 @@ import { ref, computed, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import ReactionBar from '../Conversation/ReactionBar.vue';
+import { useInteractions } from '../../lib/interactionContext.js';
 import Button from '../Ui/Button.vue';
 import Pill from '../Ui/Pill.vue';
 import Tooltip from '../Ui/Tooltip.vue';
@@ -13,6 +15,7 @@ import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import CardMediaCarousel from './CardMediaCarousel.vue';
 import NoteBody from '../Ui/NoteBody.vue';
+import ResponseContext from '../Entry/ResponseContext.vue';
 import { entryType } from '../../entryTypes.js';
 import { clock, duration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
@@ -25,6 +28,8 @@ const props = defineProps({
     iconKey: { type: String, default: null },
     accent: { type: String, default: null },
     type: { type: String, default: '' },
+    // The entry's own key, for addressing the reaction endpoint.
+    id: { type: [Number, String], default: null },
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
@@ -46,6 +51,9 @@ const props = defineProps({
     // Wide artwork for a film or episode (an episode borrows its show's). Shown
     // as context, so unlike `photos` it has no lightbox.
     backdrop: { type: String, default: null },
+    // What this post responds to, for a note or article that answers somebody.
+    // The same ResponseData the entry page draws, in its compact form.
+    response: { type: Object, default: null },
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
@@ -236,6 +244,13 @@ const lightboxItems = computed(() => {
 function openLightbox(index) {
     lightboxIndex.value = index;
 }
+
+// Deferred, so absent on first paint and present on the second request. A card
+// whose type takes no interactions never gets a row at all.
+const interactions = useInteractions();
+// Keyed on iconKey: that is the timeline type value the reaction endpoint is
+// addressed by. The `type` prop is the display label and is empty in the feed.
+const row = computed(() => (props.id === null ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
 </script>
 
 <template>
@@ -261,9 +276,14 @@ function openLightbox(index) {
                 <Pill v-if="statusLabel" :label="statusLabel" />
             </div>
         </div>
+        <!-- Above the words, the same order the entry page reads in. -->
+        <ResponseContext v-if="response" :response="response" class="mt-1.5" />
+
         <NoteBody v-if="hasBody" :document="body" />
-        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
-        <Heading v-else as="h3" size="title" class="mt-1 max-w-md">
+        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3
+             heading. A gesture has none, because the line above is the card:
+             its title only restates that line in a display face. -->
+        <Heading v-else-if="! response?.namedInTitle" as="h3" size="title" class="mt-1 max-w-md">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji
@@ -452,5 +472,25 @@ function openLightbox(index) {
             {{ mediaPlaying ? 'Pause' : 'Listen' }}
         </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
+
+        <!-- The counts arrive on a second request, so the row fades in rather than
+             appearing all at once. -->
+        <Transition name="fade">
+        <ReactionBar
+            v-if="row"
+            variant="compact"
+            class="mt-3"
+            :type="iconKey"
+            :id="Number(id)"
+            :url="url"
+            :reactions="row.reactions"
+            :like-count="row.likeCount"
+            :reply-count="row.replyCount"
+            :repost-count="row.repostCount"
+            :bookmark-count="row.bookmarkCount"
+            :rsvp-count="row.rsvpCount"
+            :mention-count="row.mentionCount"
+        />
+        </Transition>
     </div>
 </template>

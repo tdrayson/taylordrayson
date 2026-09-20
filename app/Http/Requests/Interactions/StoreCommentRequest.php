@@ -1,0 +1,182 @@
+<?php
+
+namespace App\Http\Requests\Interactions;
+
+use App\Data\CommentSubmission;
+use App\Rules\ContributedDocument;
+use App\Support\PortableText;
+use App\Support\ProfanityFilter;
+use App\Support\VisitorIdentity;
+use Closure;
+use DateTimeZone;
+use Exception;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreCommentRequest extends FormRequest
+{
+    /**
+     * The field a real browser hides and never fills. Named for something a
+     * form-filling bot expects to see rather than anything obviously a trap.
+     */
+    public const HONEYPOT = 'website';
+
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $body = $this->input('body');
+        $timezone = $this->input('timezone');
+
+        $this->merge([
+            'author_name' => trim(strip_tags((string) $this->input('author_name'))),
+            // Only a string is stripped. Casting a document to a string to run
+            // strip_tags over it would flatten the whole comment to "Array".
+            'body' => is_string($body) ? trim(strip_tags($body)) : $body,
+            // Discarded here rather than failed by a rule: the field carries
+            // no error in the form, so rejecting the whole comment over it
+            // would reopen the form with nothing telling the visitor why.
+            'timezone' => is_string($timezone) && strlen($timezone) <= 40 ? $timezone : null,
+        ]);
+    }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'author_name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:60',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (ProfanityFilter::blocksName((string) $value)) {
+                        $fail('Please use a different name.');
+                    }
+                },
+            ],
+
+            // Optional and never a spam control: an unverified address stops
+            // no bots, and is the field they fill most reliably.
+            'author_email' => ['nullable', 'email:rfc', 'max:255'],
+            'notify_replies' => ['boolean'],
+
+            'body' => $this->bodyRules(),
+            'parent_id' => ['nullable', 'integer'],
+            'nonce' => ['required', 'string', 'uuid'],
+            // Never rejected on shape: prepareForValidation() already
+            // discarded anything that would fail this, so a bad browser
+            // reading never costs somebody their comment.
+            'timezone' => ['nullable', 'string', 'max:40'],
+            self::HONEYPOT => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * A document from the editor, or a plain string from a client without one.
+     * Both are stored as Portable Text; only the document has a shape worth
+     * checking, and it is checked against a narrower allowlist than anything
+     * the site itself publishes.
+     *
+     * @return array<int, ValidationRule|string>
+     */
+    private function bodyRules(): array
+    {
+        return is_array($this->input('body'))
+            ? ['required', 'array', new ContributedDocument]
+            : ['required', 'string', 'min:2', 'max:4000'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'author_name.required' => 'Add a name so people know who replied.',
+            'author_name.min' => 'That is too short to be a name.',
+            'author_name.max' => 'That is longer than a name needs to be.',
+
+            // Laravel's own would call the field "author email", which is a
+            // column name rather than anything the person filling it in typed.
+            'author_email.email' => 'That does not look like an email address.',
+            'author_email.max' => 'That address is too long.',
+
+            'body.required' => 'Write something first.',
+            'body.min' => 'That is a little short to post.',
+            'body.max' => 'That is longer than a comment box can take.',
+
+            'nonce.required' => 'This form went stale. Reload the page and try again.',
+        ];
+    }
+
+    /**
+     * The comment as Portable Text, whatever shape it arrived in.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function document(): array
+    {
+        $body = $this->validated('body');
+
+        return is_array($body) ? $body : PortableText::fromPlainText($body);
+    }
+
+    public function submission(): CommentSubmission
+    {
+        return new CommentSubmission(
+            authorName: $this->validated('author_name'),
+            authorEmail: $this->validated('author_email'),
+            notifyReplies: $this->boolean('notify_replies'),
+            body: $this->document(),
+            parentId: $this->validated('parent_id'),
+            nonce: $this->validated('nonce'),
+            honeypotFilled: filled($this->input(self::HONEYPOT)),
+            ipHash: VisitorIdentity::reputation($this),
+            userAgent: $this->userAgent(),
+            timezone: $this->timezone(),
+        );
+    }
+
+    /**
+     * The browser's own timezone, kept only when it is a real IANA name or a
+     * strict fixed offset.
+     *
+     * This is unauthenticated public input, so it is never trusted into a
+     * date function unvalidated: anything else, junk or missing, is dropped
+     * to null and the entry's own timezone takes over at render time.
+     */
+    private function timezone(): ?string
+    {
+        $value = $this->validated('timezone');
+
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        if (in_array($value, timezone_identifiers_list(), strict: true)) {
+            return $value;
+        }
+
+        if (preg_match('/^[+-]\d{2}:\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        // The pattern alone accepts an offset with no real timezone behind
+        // it, e.g. "+99:99", which later throws InvalidTimeZoneException at
+        // render time and 500s the entry page for good. Building the real
+        // thing here is the only way to know it will actually resolve.
+        try {
+            new DateTimeZone($value);
+        } catch (Exception) {
+            return null;
+        }
+
+        return $value;
+    }
+}

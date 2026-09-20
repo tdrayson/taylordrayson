@@ -24,6 +24,10 @@ Schedule::command('strava:sync --days=2')->everyFiveMinutes()->withoutOverlappin
 // activity in the last two days: a handful, and only once an hour.
 Schedule::command('strava:sync --days=2 --refresh')->hourly()->withoutOverlapping();
 
+// Kudos and comments left on an activity after it published. Only the
+// summary counts are checked each run, so a quiet activity costs nothing.
+Schedule::command('strava:responses')->hourly()->withoutOverlapping();
+
 // Keep the recent food diary fresh in near real time, re-checking the last few
 // days so food logged late for an earlier day is picked up.
 Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping();
@@ -35,6 +39,9 @@ Schedule::command('rovi:sync-steps')->everyFifteenMinutes()->withoutOverlapping(
 
 // Swarm check-ins, asking only for what postdates the newest stored one.
 Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
+
+// Likes and comments left on check-ins after they were synced.
+Schedule::command('swarm:responses')->hourly()->withoutOverlapping();
 
 // Episodes publish weekly, so once a day is ample. It used to run every half
 // hour, and because the sync re-fetches all 43 pages each time (see #85), that
@@ -89,3 +96,11 @@ Schedule::command('backup:monitor')->dailyAt('09:00')->when($mirrorReady);
 
 // Originals only; conversions and responsive images rebuild from them.
 Schedule::command('assets:mirror')->dailyAt('04:40')->when($mirrorReady)->withoutOverlapping();
+
+// Cached faces and favicons, refreshed on a slow cycle. Both are written once
+// when the thing that needs them arrives and never revisited, so a changed
+// avatar or a rebranded site keeps its old image indefinitely, and a directory
+// lost to a deploy stays lost. Monthly is enough for both: they are cosmetic,
+// and each run re-downloads every file, which is not something to do often.
+Schedule::command('webmentions:avatars')->monthlyOn(1, '04:20')->withoutOverlapping();
+Schedule::command('links:favicons --force')->monthlyOn(1, '04:50')->withoutOverlapping();

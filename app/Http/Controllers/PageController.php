@@ -8,6 +8,7 @@ use App\Actions\BuildLinkPreviews;
 use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
+use App\Presenters\Conversation;
 use App\Support\OgMeta;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,10 @@ class PageController extends Controller
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
             ...($locked ? [] : [
+                // Same as an entry: server-rendered so it is readable and
+                // parseable without JS. This is also what makes a guestbook page
+                // work, being a page like any other.
+                'conversation' => Conversation::shownFor($page, request()),
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a
                 // field the editor offers but has no value for saves back as

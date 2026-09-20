@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Actions\BuildResponseContext;
 use App\Data\TagLink;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
@@ -29,6 +30,7 @@ use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
+use App\Presenters\Conversation;
 use App\Presenters\Entries\FuelEntry;
 use App\Queries\EntryArtwork;
 use App\Queries\TripForEntry;
@@ -153,6 +155,11 @@ class EntryController extends Controller
             'entry' => $model instanceof Food
                 ? $this->foodDay($model)
                 : $this->entryPayload($model),
+            // Server-rendered, not fetched: the replies and mentions carry
+            // h-cite markup that other IndieWeb sites parse, and a reader with
+            // no JS should still see what people said. Only the reply *form*
+            // is loaded on demand.
+            'conversation' => Conversation::shownFor($model, request()),
             'polyline' => data_get($model, 'meta.polyline'),
             'editing' => Auth::check() && request()->has('edit'),
             // A synced type edits its status alone: a field the sync also writes
@@ -303,6 +310,12 @@ class EntryController extends Controller
 
         if ($model instanceof Article) {
             $data['cover'] = $model->coverPhoto();
+        }
+
+        // Notes and articles are the only types that answer somebody: every
+        // other one records something that happened.
+        if ($model instanceof Article || $model instanceof Note) {
+            $data['response'] = app(BuildResponseContext::class)($model)?->toArray();
         }
 
         if ($model instanceof Activity || $model instanceof Note || $model instanceof Event || $model instanceof Place) {

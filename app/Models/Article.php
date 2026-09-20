@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\ResponseKind;
+use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasResponse;
 use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -13,6 +16,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
@@ -22,13 +26,18 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
+    'response_kind',
+    'response_url',
+    'rsvp_value',
     'timezone',
+    'citation_id',
+    'response_quote',
     'status',
     'password',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasStatus, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -38,6 +47,8 @@ class Article extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'content' => 'array',
+            'response_kind' => ResponseKind::class,
+            'rsvp_value' => RsvpValue::class,
         ];
     }
 
@@ -65,5 +76,11 @@ class Article extends Model implements HasMedia, Timelineable
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
         ];
+    }
+
+    /** @return BelongsTo<Citation, $this> */
+    public function citation(): BelongsTo
+    {
+        return $this->belongsTo(Citation::class);
     }
 }
