@@ -5,7 +5,7 @@ use App\Models\Place;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
 
-it('prints a place check-in as the back of a postcard', function () {
+it('prints a place check-in as a ruled heading and a column of readings', function () {
     $place = Place::factory()->create([
         'occurred_at' => '2026-09-13 10:00:00',
         'venue_name' => 'Costa Coffee',
@@ -28,7 +28,7 @@ it('prints a place check-in as the back of a postcard', function () {
         ->and($txt)->not->toContain('coffee-shop');
 });
 
-it('keeps a long address inside the card rather than running it off the edge', function () {
+it('keeps a long address whole rather than clipping it to the sheet width', function () {
     $place = Place::factory()->create([
         'occurred_at' => '2026-09-13 10:00:00',
         'venue_name' => 'Costa Coffee',
@@ -42,20 +42,17 @@ it('keeps a long address inside the card rather than running it off the edge', f
     $data = ExportPresenter::for($place);
     $lines = explode("\n", trim(Formats::find($data, ExportFormat::Txt)->render($data)));
 
-    // The address is wider than the card, so it wraps across lines. Read the
-    // card back with its borders stripped: every part must survive the wrap.
-    $written = preg_replace('/\s+/', ' ', implode(' ', array_map(
-        fn (string $line): string => trim($line, '|+- '),
-        $lines,
-    )));
+    // The address is wider than the sheet, so it stacks under its label.
+    // Read it back as one string: every part must survive the wrap.
+    $written = preg_replace('/\s+/', ' ', implode(' ', $lines));
 
     expect($written)->toContain('12 High Street')
         ->and($written)->toContain('Croydon')
         ->and($written)->toContain('CR0 1AB')
         ->and($written)->toContain('United Kingdom');
 
-    // Nothing may spill past the border on the way.
+    // Nothing may run past the sheet's width on the way.
     foreach ($lines as $line) {
-        expect(mb_strwidth($line))->toBe(64);
+        expect(mb_strwidth($line))->toBeLessThanOrEqual(46);
     }
 });

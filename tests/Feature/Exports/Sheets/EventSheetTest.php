@@ -29,8 +29,8 @@ it('prints an event as a perforated ticket stub, with doors from the occurred in
         ->and($txt)->toContain('No. '.str_pad((string) $event->id, 10, '0', STR_PAD_LEFT))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and($rows)->toContain(
-            ['DOORS', '13 September 2026 at 19:30'],
-            ['ENDS', '13 September 2026 at 22:15'],
+            ['START', '13 September 2026 at 19:30'],
+            ['END', '13 September 2026 at 22:15'],
         )
         ->and(array_column($rows, 0))->toContain('EVENT', 'VENUE');
 });
@@ -77,9 +77,9 @@ it('omits the venue and ends rows when an event carries neither', function () {
 
     $labels = array_column(ticketRows($txt), 0);
 
-    expect($labels)->toContain('DOORS')
+    expect($labels)->toContain('START')
         ->and($labels)->not->toContain('VENUE')
-        ->and($labels)->not->toContain('ENDS');
+        ->and($labels)->not->toContain('END');
 });
 
 it('renders the same barcode for the same event every time', function () {

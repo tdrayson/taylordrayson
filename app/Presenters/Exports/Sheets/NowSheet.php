@@ -30,7 +30,6 @@ final class NowSheet
         'ACTIVITY' => ['move', 'exercise', 'stand', 'steps'],
         'SLEEP' => ['slept'],
         'READING' => ['reading', 'reading_author'],
-        'LISTENING' => ['season', 'episode', 'episode_duration'],
         'DEVICE' => ['device', 'battery', 'charging'],
     ];
 

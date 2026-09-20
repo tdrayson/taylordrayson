@@ -38,14 +38,31 @@ final class FilmSheet
      */
     private function details(ExportData $data): array
     {
+        // Only nulls drop: a blank spacer row is meaningful here, and a
+        // bare array_filter() would discard it as falsy.
         return array_values(array_filter([
             $this->labelled('FILM', $data->field('film')),
             $this->labelled('DATE', $data->field('date')),
             // RELEASE, not YEAR: the DATE row above it is when I watched it.
             $this->labelled('RELEASE', $data->field('year')),
-            $this->labelled('RATED', $data->field('rating')),
             $this->labelled('RUNTIME', $data->field('runtime')),
-        ]));
+            // The rating is mine, not the film's, so it sits below the facts
+            // with a gap between: RELEASE and RUNTIME are true of the film
+            // whoever is looking at it.
+            ...$this->rating($data),
+        ], fn (array|string|null $row): bool => $row !== null));
+    }
+
+    /**
+     * The rating, set apart from the film's own facts.
+     *
+     * @return list<array<string, string>|string>
+     */
+    private function rating(ExportData $data): array
+    {
+        $field = $data->field('rating');
+
+        return $field === null ? [] : ['', ['label' => 'RATED', 'value' => $field->display]];
     }
 
     /** @return array<string, string>|null */

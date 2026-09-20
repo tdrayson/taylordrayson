@@ -9,7 +9,6 @@ use App\Data\ExportLink;
 use App\Presenters\Exports\Sheets\NowSheet;
 use App\Queries\CurrentlyReading;
 use App\Queries\LastNightSleep;
-use App\Queries\LatestEpisode;
 use App\Queries\NowState;
 use App\Support\StateStore;
 use App\Support\Units;
@@ -35,7 +34,6 @@ final class NowExport
     {
         $sleep = app(LastNightSleep::class)();
         $book = app(CurrentlyReading::class)->book();
-        $episode = app(LatestEpisode::class)();
         $ambient = (new NowState(new StateStore))();
 
         return new ExportData(
@@ -55,14 +53,10 @@ final class NowExport
                 $sleep === null ? null : ExportField::make('slept', 'Slept', Units::humanDuration($sleep->duration), $sleep->duration),
                 $book === null ? null : ExportField::make('reading', 'Book', $book->title, $book->title),
                 $book?->meta->author === null ? null : ExportField::make('reading_author', 'Author', (string) $book->meta->author, (string) $book->meta->author),
-                $episode === null ? null : ExportField::make('season', 'Season', (string) $episode->season_number, $episode->season_number),
-                $episode === null ? null : ExportField::make('episode', 'Episode', (string) $episode->episode_number, $episode->episode_number),
-                $episode?->duration === null ? null : ExportField::make('episode_duration', 'Duration', Units::preciseDuration($episode->duration), $episode->duration),
             ])),
             links: array_values(array_filter([
                 $sleep === null ? null : ExportLink::make('sleep', 'Sleep', 'Sleep', '/sleep'),
                 $book === null ? null : ExportLink::make('reading', 'Reading', $book->title, $book->url()),
-                $episode === null ? null : ExportLink::make('episode', 'Episode', $episode->title, $episode->url()),
             ])),
         );
     }

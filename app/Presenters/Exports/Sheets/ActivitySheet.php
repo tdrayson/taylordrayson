@@ -13,6 +13,9 @@ final class ActivitySheet
 {
     private const WIDTH = 46;
 
+    /** The longest label in the heart-rate block, which sets its label column. */
+    private const EFFORT_LABEL = 'HEART RATE';
+
     public function render(ExportData $data): string
     {
         $lines = [
@@ -47,7 +50,7 @@ final class ActivitySheet
         // Geometry (the bar's width) reads raw for precision; the printed percentage still comes from display.
         return [
             '',
-            Sheet::row('HEART RATE', $this->value($data, 'average_heart_rate').' of '.$this->value($data, 'max_heart_rate'), self::WIDTH),
+            Sheet::row(self::EFFORT_LABEL, $this->value($data, 'average_heart_rate').' of '.$this->value($data, 'max_heart_rate'), self::WIDTH),
             $this->effortBar($effort),
         ];
     }
@@ -58,7 +61,9 @@ final class ActivitySheet
      */
     private function effortBar(ExportField $effort): string
     {
-        $labelColumn = str_pad('EFFORT', 6);
+        // Padded to the block's longest label, so the bar starts clear of
+        // "HEART RATE" above it rather than butting up under its text.
+        $labelColumn = str_pad('EFFORT', mb_strwidth(self::EFFORT_LABEL));
         $percentColumn = str_pad($effort->display, 4, ' ', STR_PAD_LEFT);
         $barWidth = self::WIDTH - mb_strwidth($labelColumn) - mb_strwidth($percentColumn) - 2;
 

@@ -81,10 +81,41 @@ final class FoodSheet
         $lines = [' '.mb_strtoupper($meal->label)];
 
         foreach ($meal->items as $item) {
-            $lines[] = ' '.Sheet::row($item->name, $item->calories, self::CONTENT);
+            array_push($lines, ...$this->itemLines($item->name, $item->calories));
         }
 
         return $lines;
+    }
+
+    /**
+     * One item's row. A name too long to share the line wraps across as many
+     * lines as it needs, with the calories always hard right on the last of
+     * them: on a receipt the price column never moves.
+     *
+     * @return list<string>
+     */
+    private function itemLines(string $name, string $calories): array
+    {
+        // Two spaces is the least gap that still reads as two columns, and
+        // the same again is held back for the continuation indent.
+        $nameWidth = self::CONTENT - mb_strwidth($calories) - 4;
+        $wrapped = Sheet::wrap($name, $nameWidth);
+
+        if ($wrapped === []) {
+            return [' '.Sheet::row('', $calories, self::CONTENT)];
+        }
+
+        // Continuations are indented so a wrapped name reads as one item
+        // rather than two.
+        $first = array_shift($wrapped);
+        $indented = array_map(fn (string $line): string => '  '.$line, $wrapped);
+        $last = array_pop($indented) ?? $first;
+
+        return [
+            ...($indented === [] && $wrapped === [] ? [] : [' '.$first]),
+            ...array_map(fn (string $line): string => ' '.$line, $indented),
+            ' '.Sheet::row($last, $calories, self::CONTENT),
+        ];
     }
 
     /**

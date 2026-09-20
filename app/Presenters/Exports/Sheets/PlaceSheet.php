@@ -5,118 +5,72 @@ namespace App\Presenters\Exports\Sheets;
 use App\Data\ExportData;
 
 /**
- * A check-in printed as the divided back of a postcard: the place written
- * on the left, a stamp in the top corner and the address on the right.
- * Reads the export only, so this layout cannot drift from the data.
- *
- * Wider than the 46 other sheets settle at, because two columns of address
- * cannot share 46 columns without wrapping every line of both.
+ * A check-in printed the way the book and sleep sheets are: a ruled heading
+ * and a column of readings, no enclosing frame. Reads the export only, so
+ * this layout cannot drift from the data.
  */
 final class PlaceSheet
 {
-    private const WIDTH = 64;
-
-    private const INNER = self::WIDTH - 2;
-
-    /** The message side, left of the divider. */
-    private const LEFT = self::INNER / 2;
-
-    /** The address side, right of it, one column narrower for the divider. */
-    private const RIGHT = self::INNER - self::LEFT - 1;
-
-    private const MARGIN = '  ';
-
-    private const STAMP = ['+-------+', '| *   * |', '|   *   |', '+-------+'];
+    private const WIDTH = 46;
 
     public function render(ExportData $data): string
     {
-        $border = '+'.str_repeat('-', self::INNER).'+';
-        $right = $this->address($data);
-        $left = $this->message($data, count($right));
-        $rows = max(count($left), count($right));
-
-        $lines = [$border];
-
-        for ($i = 0; $i < $rows; $i++) {
-            $lines[] = '|'
-                .$this->cell($left[$i] ?? '', self::LEFT)
-                .'|'
-                .$this->cell($right[$i] ?? '', self::RIGHT)
-                .'|';
-        }
-
-        $lines[] = $border;
-
-        return Sheet::join($lines);
-    }
-
-    /**
-     * The place and what kind of place it is, with the date on the card's
-     * last row the way a postcard is signed off. Padded out to whichever
-     * side runs longer, so the sign-off sits at the foot rather than
-     * directly under the heading.
-     *
-     * @return list<string>
-     */
-    private function message(ExportData $data, int $facing): array
-    {
-        $head = [
+        return Sheet::join([
+            Sheet::rule(self::WIDTH, '='),
+            ...$this->centredBlock($this->value($data, 'venue')),
+            Sheet::rule(self::WIDTH, '='),
+            ...$this->centredBlock($this->value($data, 'category')),
             '',
-            ...$this->wrap($this->value($data, 'venue'), self::LEFT),
-            ...$this->wrap($this->value($data, 'category'), self::LEFT),
-        ];
-
-        if ($data->occurred === null) {
-            return $head;
-        }
-
-        $rows = max(count($head) + 1, $facing);
-
-        return [...$head, ...array_fill(0, $rows - count($head) - 1, ''), mb_strtoupper($data->occurred->display)];
+            Sheet::rule(self::WIDTH, '-'),
+            ...$this->maybeRow($data, 'WHERE', 'location'),
+            ...$this->maybeRow($data, 'FOR', 'event'),
+            ...$this->checkedIn($data),
+            Sheet::rule(self::WIDTH, '-'),
+        ]);
     }
 
     /**
-     * The stamp in the corner, then the address beneath it.
+     * When the check-in happened, from the entry's occurred instant rather
+     * than a field: arriving somewhere is the whole of what a check-in is.
      *
      * @return list<string>
      */
-    private function address(ExportData $data): array
+    private function checkedIn(ExportData $data): array
     {
-        $stamp = array_map(
-            fn (string $line): string => str_repeat(' ', max(0, self::RIGHT - mb_strwidth($line) - 2)).$line,
-            self::STAMP,
+        return $data->occurred === null
+            ? []
+            : [Sheet::row('CHECKED IN', $data->occurred->display, self::WIDTH)];
+    }
+
+    /**
+     * A label/value row, dropped entirely rather than printed empty when
+     * the field carries no value.
+     *
+     * @return list<string>
+     */
+    private function maybeRow(ExportData $data, string $label, string $key): array
+    {
+        $field = $data->field($key);
+
+        return $field === null ? [] : [Sheet::row($label, $field->display, self::WIDTH)];
+    }
+
+    /**
+     * A value centred, wrapped across as many lines as it needs, so a long
+     * venue name is not clipped mid-word.
+     *
+     * @return list<string>
+     */
+    private function centredBlock(string $value): array
+    {
+        if ($value === '') {
+            return [];
+        }
+
+        return array_map(
+            fn (string $line): string => Sheet::centre($line, self::WIDTH),
+            Sheet::wrap($value, self::WIDTH),
         );
-
-        return [...$stamp, '', ...$this->addressBlock($data)];
-    }
-
-    /** @return list<string> */
-    private function addressBlock(ExportData $data): array
-    {
-        return $this->wrap($this->value($data, 'location'), self::RIGHT);
-    }
-
-    /**
-     * A value wrapped to a column, allowing for the margin either side.
-     *
-     * @return list<string>
-     */
-    private function wrap(string $value, int $column): array
-    {
-        return $value === '' ? [] : Sheet::wrap($value, $column - 4);
-    }
-
-    /** One cell of a row, indented and padded to its column's width. */
-    private function cell(string $text, int $width): string
-    {
-        $body = $text === '' ? '' : self::MARGIN.$text;
-
-        // A stamp line arrives pre-indented, so only pad what needs it.
-        if ($text !== '' && str_starts_with($text, ' ')) {
-            $body = $text;
-        }
-
-        return $body.str_repeat(' ', max(0, $width - mb_strwidth($body)));
     }
 
     /** A field's display string, or an empty one. Never a raw value. */

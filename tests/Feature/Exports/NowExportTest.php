@@ -18,7 +18,7 @@ it('reaches the now export rather than the page export', function () {
     expect($this->get('/now.json')->json('title'))->not->toBe('A page called now');
 });
 
-it('publishes last night and the latest episode as fields', function () {
+it('publishes last night as a field, and not the podcast episode', function () {
     Sleep::factory()->create(['occurred_at' => today(), 'duration' => 27300, 'status' => 'published']);
     ThisWeekWith::factory()->create([
         'occurred_at' => now()->subDay(), 'season_number' => 3, 'episode_number' => 12,
@@ -27,18 +27,17 @@ it('publishes last night and the latest episode as fields', function () {
 
     $export = (new NowExport)->present();
 
-    // The episode's topic is deliberately absent: a rundown runs to hundreds
-    // of characters and told a reader nothing the number does not.
+    // This Week With is published here, not listened to, so /now carries no
+    // episode at all.
     expect($export->type)->toBe('now')
         ->and($export->field('slept')->display)->toBe('7h 35m')
         ->and($export->field('slept')->raw)->toBe(27300)
-        ->and($export->field('season')->display)->toBe('3')
-        ->and($export->field('episode')->display)->toBe('12')
-        ->and($export->field('topic'))->toBeNull();
+        ->and($export->field('episode'))->toBeNull()
+        ->and($export->field('season'))->toBeNull();
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 
-    expect($links)->toContain('sleep', 'episode');
+    expect($links)->toContain('sleep')->and($links)->not->toContain('episode');
 });
 
 it('offers neither geojson nor ics for now, since it has no aspects', function () {

@@ -40,20 +40,21 @@ final class EventSheet
         return array_values(array_filter([
             $this->labelled('EVENT', $data->field('event')),
             $this->labelled('VENUE', $data->field('venue')),
-            $this->doors($data),
-            $this->labelled('ENDS', $data->field('ends')),
+            $this->start($data),
+            $this->labelled('END', $data->field('ends')),
         ]));
     }
 
     /**
-     * When doors opened, taken from the entry's occurred instant rather than
-     * a field: that is when an event begins.
+     * When it started, taken from the entry's occurred instant rather than a
+     * field. START rather than DOORS: an event here is anything attended,
+     * not only the sort of thing that has a foyer.
      *
      * @return array<string, string>|null
      */
-    private function doors(ExportData $data): ?array
+    private function start(ExportData $data): ?array
     {
-        return $data->occurred === null ? null : ['label' => 'DOORS', 'value' => $data->occurred->display];
+        return $data->occurred === null ? null : ['label' => 'START', 'value' => $data->occurred->display];
     }
 
     /** @return array<string, string>|null */

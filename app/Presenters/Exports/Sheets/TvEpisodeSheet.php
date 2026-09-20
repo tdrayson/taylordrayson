@@ -54,13 +54,29 @@ final class TvEpisodeSheet
      */
     private function details(ExportData $data): array
     {
+        // Only nulls drop: a blank spacer row is meaningful here, and a
+        // bare array_filter() would discard it as falsy.
         return array_values(array_filter([
             $this->labelled('EPISODE', $data->field('episode')),
             $this->labelled('SEASON', $data->field('season')),
             $this->labelled('NUMBER', $data->field('number')),
             $this->labelled('DATE', $data->field('date')),
-            $this->labelled('RATED', $data->field('rating')),
-        ]));
+            // The rating is mine, not the episode's, so it sits below the
+            // facts with a gap between.
+            ...$this->rating($data),
+        ], fn (array|string|null $row): bool => $row !== null));
+    }
+
+    /**
+     * The rating, set apart from the episode's own facts.
+     *
+     * @return list<array<string, string>|string>
+     */
+    private function rating(ExportData $data): array
+    {
+        $field = $data->field('rating');
+
+        return $field === null ? [] : ['', ['label' => 'RATED', 'value' => $field->display]];
     }
 
     /** @return array<string, string>|null */
