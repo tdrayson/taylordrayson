@@ -5,6 +5,7 @@ import { withMediaIds } from '../../lib/editor/media.js';
 import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
 import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
+import { hiddenNames, revealed } from '../../lib/editor/visibility.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
 import Heading from '../Ui/Heading.vue';
@@ -43,7 +44,27 @@ const page = usePage();
 
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
-const offered = computed(() => props.fields.filter((field) => !field.hidden));
+const offered = computed(() => props.fields.filter((field) => !field.hidden && revealed(field, form)));
+
+/**
+ * A field that stops being shown gives up its value.
+ *
+ * Choosing "RSVP", filling in the reply, then switching to "Like" would
+ * otherwise save the RSVP nobody can see any more, and a stray property is
+ * what post type discovery reads a post's whole type from.
+ */
+const hiddenByCondition = computed(() => hiddenNames(props.fields, form));
+
+// Keyed on the names rather than the array, which is rebuilt on every keystroke
+// and would otherwise fire this on all of them.
+watch(
+    () => hiddenByCondition.value.join(','),
+    () => hiddenByCondition.value.forEach((name) => {
+        if (form[name] !== null && form[name] !== undefined && form[name] !== '') {
+            form[name] = null;
+        }
+    }),
+);
 
 // The status is an ordinary row in the stack; the footer only saves.
 const statusField = computed(() => props.fields.find((field) => field.type === 'status') ?? null);

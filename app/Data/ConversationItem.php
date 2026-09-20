@@ -4,11 +4,14 @@ namespace App\Data;
 
 use App\Enums\WebmentionKind;
 use App\Models\Comment;
+use App\Models\Mention;
+use App\Models\Note;
 use App\Models\Webmention;
 use App\Support\LocalTime;
 use App\Support\PortableText;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use JsonSerializable;
 
@@ -97,6 +100,51 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
     }
 
     /**
+     * One of my own entries linking to another.
+     *
+     * Carries no body. The prose lives on the source, and copying it here would
+     * publish the same words on two pages and in two feeds; the title and the
+     * link are what the reader needs to get to it.
+     */
+    public static function fromMention(Mention $mention): self
+    {
+        $source = $mention->source;
+
+        return new self(
+            id: 'linked-'.$mention->id,
+            kind: 'mention-internal',
+            authorName: (string) config('identity.name'),
+            // No author URL: linking my own name back to my own site, from a
+            // page on it, gives the reader nowhere new to go.
+            authorUrl: null,
+            authorPhoto: (string) config('identity.avatar'),
+            title: self::titleOf($source),
+            body: null,
+            occurredAt: $source->occurred_at ?? $source->created_at,
+            parentId: null,
+            commentId: null,
+            sourceUrl: $source->url(),
+            emoji: null,
+            // Not matched on an address like a comment is: the source is an
+            // entry of mine, so there is no other author it could have.
+            mine: true,
+        );
+    }
+
+    /**
+     * What to call the entry a mention came from, or null for one that has no
+     * name of its own.
+     *
+     * A note is the only source without a title, and its first eighty
+     * characters are not one: printed after "in" they read as a quotation of
+     * something nobody said. The byline names it by what it is instead.
+     */
+    private static function titleOf(Model $source): ?string
+    {
+        return $source instanceof Note ? null : (string) $source->title;
+    }
+
+    /**
      * The site a response came from, as somebody would say it out loud. The
      * `www.` is dropped: it is how the URL is written, not what the site is
      * called, and "via www.strava.com" reads as an address rather than a place.
@@ -106,6 +154,22 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         $host = (string) (parse_url($url, PHP_URL_HOST) ?: $url);
 
         return Str::chopStart($host, 'www.');
+    }
+
+    /**
+     * The site to name a response by: "linked to this from robin.example" reads
+     * better than the full URL, which the link itself carries anyway.
+     *
+     * Null for one of my own entries, whose source URL is a path on this site.
+     * Naming the host there would close the sentence with my own address.
+     */
+    private function sourceHost(): ?string
+    {
+        if ($this->sourceUrl === null || parse_url($this->sourceUrl, PHP_URL_HOST) === null) {
+            return null;
+        }
+
+        return self::hostOf($this->sourceUrl);
     }
 
     /**
@@ -127,9 +191,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'parentId' => $this->parentId,
             'commentId' => $this->commentId,
             'sourceUrl' => $this->sourceUrl,
-            // The bare host: "linked to this from robin.example" reads better
-            // than the full URL, which the link itself carries anyway.
-            'sourceHost' => $this->sourceUrl === null ? null : self::hostOf($this->sourceUrl),
+            'sourceHost' => $this->sourceHost(),
             'emoji' => $this->emoji,
             'mine' => $this->mine,
         ];
