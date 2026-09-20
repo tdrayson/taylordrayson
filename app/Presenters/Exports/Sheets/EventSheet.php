@@ -70,11 +70,11 @@ final class EventSheet
      */
     private function footer(ExportData $data): array
     {
-        $number = $data->field('ticket_number');
+        $number = $data->field('ticket_ref');
         $owner = $data->field('owner');
 
         return [
-            'label' => $number === null ? '' : 'No. '.$number->display,
+            'label' => $number === null ? '' : 'Ref. '.$number->display,
             'value' => $owner === null ? '' : str_replace(' ', '', mb_strtoupper($owner->display)),
         ];
     }
@@ -82,7 +82,7 @@ final class EventSheet
     /** The ticket number's raw id, the only `->raw` read: it seeds the barcode's bar widths, not its content. */
     private function seed(ExportData $data): int
     {
-        $raw = $data->field('ticket_number')?->raw;
+        $raw = $data->field('ticket_ref')?->raw;
 
         return is_int($raw) ? $raw : 0;
     }

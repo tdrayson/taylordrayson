@@ -20,7 +20,7 @@ final class FlightSheet
     /** Floor widths for the grid's three columns; each widens to fit real content. */
     private const COLUMNS = [22, 26, 24];
 
-    /** Where the footer row's "Barcode No." starts. */
+    /** Where the footer row's "Ref." starts. */
     private const FOOTER_COLUMN = 44;
 
     public function render(ExportData $data): string
@@ -137,9 +137,9 @@ final class FlightSheet
     private function footer(ExportData $data): string
     {
         $barcode = '  '.Sheet::barcode($this->seed($data));
-        $number = $data->field('ticket_number');
+        $number = $data->field('ticket_ref');
 
-        return $number === null ? $barcode : $this->pad($barcode, self::FOOTER_COLUMN).'Barcode No. '.$number->display;
+        return $number === null ? $barcode : $this->pad($barcode, self::FOOTER_COLUMN).'Ref. '.$number->display;
     }
 
     private function wall(string $content): string
@@ -155,7 +155,7 @@ final class FlightSheet
     /** The ticket number's raw id, the only `->raw` read: it seeds the barcode's bar widths, not its content. */
     private function seed(ExportData $data): int
     {
-        $raw = $data->field('ticket_number')?->raw;
+        $raw = $data->field('ticket_ref')?->raw;
 
         return is_int($raw) ? $raw : 0;
     }

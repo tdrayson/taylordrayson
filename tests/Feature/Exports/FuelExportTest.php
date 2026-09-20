@@ -26,14 +26,14 @@ it('publishes a fuel fill-up as labelled fields in order', function () {
     $export = ExportPresenter::for($fuel);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['station', 'brand', 'fuel_type', 'locality', 'location', 'receipt_time', 'receipt_number', 'litres', 'price_per_litre', 'cost', 'odometer'])
+        ->toBe(['station', 'brand', 'fuel_type', 'locality', 'location', 'receipt_time', 'receipt_ref', 'litres', 'price_per_litre', 'cost', 'odometer'])
         ->and($export->field('station')->display)->toBe('Beddington Lane Service Station')
         ->and($export->field('brand')->display)->toBe('BP')
         ->and($export->field('fuel_type')->display)->toBe('Petrol (E10)')
         ->and($export->field('locality')->display)->toBe('Croydon, CR0 4TQ')
         ->and($export->field('location')->display)->toBe('1 Beddington Lane, Croydon, CR0 4TQ')
         ->and($export->field('receipt_time')->display)->toBe('13-SEP-2026 08:00')
-        ->and($export->field('receipt_number')->display)->toBe(SerialNumber::for($fuel->occurred_at))
+        ->and($export->field('receipt_ref')->display)->toBe(SerialNumber::for($fuel->occurred_at))
         ->and($export->field('litres')->display)->toBe('42.50 L')
         ->and($export->field('price_per_litre')->display)->toBe('161.9p per litre')
         ->and($export->field('cost')->display)->toBe('£68.81')

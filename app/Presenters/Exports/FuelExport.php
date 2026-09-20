@@ -46,7 +46,7 @@ final class FuelExport
                 ExportField::maybe('locality', 'Locality', $this->locality($model)),
                 $this->location($model),
                 ExportField::maybe('receipt_time', 'Time', $this->receiptTime($model), $model->occurred_at?->toIso8601String()),
-                ExportField::make('receipt_number', 'Receipt no.', SerialNumber::for($model->occurred_at), $model->id),
+                ExportField::make('receipt_ref', 'Receipt ref', SerialNumber::for($model->occurred_at), $model->id),
                 ExportField::maybe('litres', 'Fuel', $model->litres === null ? null : number_format((float) $model->litres, 2).' L', $model->litres === null ? null : (float) $model->litres),
                 ExportField::maybe('price_per_litre', 'Price', $model->price_per_litre === null ? null : Money::pencePerLitre($model->price_per_litre).' per litre', $model->price_per_litre === null ? null : (float) $model->price_per_litre),
                 ExportField::maybe('cost', 'Cost', Money::gbp($model->cost), $model->cost === null ? null : (float) $model->cost),

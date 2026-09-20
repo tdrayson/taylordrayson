@@ -25,7 +25,7 @@ it('publishes a food day as its aggregated totals, not one row', function () {
     $export = ExportPresenter::for($lunch);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['calories', 'protein', 'carbs', 'fat', 'saturated_fat', 'sugars', 'fibre', 'sodium', 'meals', 'items_logged', 'owner', 'receipt_date', 'receipt_number'])
+        ->toBe(['calories', 'protein', 'carbs', 'fat', 'saturated_fat', 'sugars', 'fibre', 'sodium', 'meals', 'items_logged', 'owner', 'receipt_date', 'receipt_ref'])
         ->and($export->field('calories')->display)->toBe('470 kcal')
         ->and($export->field('calories')->raw)->toBe(470)
         ->and($export->field('protein')->display)->toBe('23g')
@@ -39,7 +39,7 @@ it('publishes a food day as its aggregated totals, not one row', function () {
         ->and($export->field('items_logged')->display)->toBe('2')
         ->and($export->field('owner')->display)->toBe(config('identity.name'))
         ->and($export->field('receipt_date')->display)->toBe('13 Sep 2026')
-        ->and($export->field('receipt_number')->display)->toBe(SerialNumber::for($lunch->occurred_at));
+        ->and($export->field('receipt_ref')->display)->toBe(SerialNumber::for($lunch->occurred_at));
 });
 
 it('publishes a MealBreakdown aspect with every item already formatted', function () {

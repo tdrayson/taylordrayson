@@ -31,7 +31,7 @@ it('prints a fuel fill-up as a forecourt receipt', function () {
         // The postcode must never split across lines the way it did in the boxed version.
         ->and($txt)->not->toContain("CR0\n")
         ->and($txt)->toContain('28-AUG-2026 15:37')
-        ->and($txt)->toContain('No. '.SerialNumber::for($fuel->occurred_at))
+        ->and($txt)->toContain('Ref. '.SerialNumber::for($fuel->occurred_at))
         ->and($txt)->toContain('BP GARAGE')
         ->and($txt)->toContain('FUEL TYPE: PETROL (E10)')
         ->and($txt)->toContain('31.28 L')
@@ -118,7 +118,7 @@ it('opens on a bare FUEL heading rather than an empty frame when the vendor is u
     expect($txt)->toContain('FUEL')
         ->and($txt)->not->toContain('==============================================
 ==============================================')
-        ->and($txt)->toContain('No. '.SerialNumber::for($fuel->occurred_at))
+        ->and($txt)->toContain('Ref. '.SerialNumber::for($fuel->occurred_at))
         ->and($txt)->toContain('TOTAL FUEL')
         ->and($txt)->not->toContain('UNKNOWN');
 });

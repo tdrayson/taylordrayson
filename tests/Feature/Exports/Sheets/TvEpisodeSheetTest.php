@@ -26,7 +26,7 @@ it('prints a TV episode as a perforated ticket stub, headed by the show and pair
 
     expect($txt)->toContain('CRIME SCENE: THE VANISHING AT THE CECIL HOTEL')
         ->and($txt)->not->toContain('ADMIT ONE')
-        ->and($txt)->toContain('No. '.SerialNumber::for($episode->occurred_at, $episode->id))
+        ->and($txt)->toContain('Ref. '.SerialNumber::for($episode->occurred_at, $episode->id))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and($rows)->toContain(
             ['EPISODE', 'Down the Rabbit Hole'],

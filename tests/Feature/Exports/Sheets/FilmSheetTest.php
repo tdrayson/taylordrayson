@@ -23,7 +23,7 @@ it('prints a film as a perforated cinema ticket stub, one field per row', functi
 
     expect($txt)->toContain('CINEMA TICKET')
         ->and($txt)->toContain('ADMIT ONE')
-        ->and($txt)->toContain('No. '.SerialNumber::for($film->occurred_at, $film->id))
+        ->and($txt)->toContain('Ref. '.SerialNumber::for($film->occurred_at, $film->id))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and(array_map(fn (array $r): array => [$r[0], $r[1]], $rows))
         ->toContain(

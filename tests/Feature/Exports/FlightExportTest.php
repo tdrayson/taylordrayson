@@ -10,7 +10,7 @@ it('publishes a flight as labelled fields in order', function () {
             'flight', 'flight_code', 'airline', 'origin', 'origin_code', 'origin_city',
             'destination', 'destination_code', 'destination_city', 'departed', 'arrived',
             'departs_time', 'arrives_time', 'date', 'duration', 'distance', 'cabin', 'reason',
-            'passenger', 'ticket_number',
+            'passenger', 'ticket_ref',
         ]);
 });
 
@@ -35,7 +35,7 @@ it('formats each flight field for a reader and keeps the machine value in raw', 
         ->and($export->field('departs_time')->display)->toBe('22:15')
         ->and($export->field('arrives_time')->display)->toBe('23:42')
         ->and($export->field('passenger')->display)->toBe('DRAYSON / TAYLOR')
-        ->and($export->field('ticket_number')->raw)->toBe($flight->id);
+        ->and($export->field('ticket_ref')->raw)->toBe($flight->id);
 });
 
 it('never leaks an id, a timestamp or a password', function () {

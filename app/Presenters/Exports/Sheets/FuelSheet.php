@@ -67,7 +67,7 @@ final class FuelSheet
     /** The date/time left, the receipt number right, both already field displays. */
     private function transaction(ExportData $data): string
     {
-        return ' '.Sheet::row($this->value($data, 'receipt_time'), 'No. '.$this->value($data, 'receipt_number'), self::CONTENT);
+        return ' '.Sheet::row($this->value($data, 'receipt_time'), 'Ref. '.$this->value($data, 'receipt_ref'), self::CONTENT);
     }
 
     /**
@@ -155,7 +155,7 @@ final class FuelSheet
     /** The receipt number's raw id, the only `->raw` read: it seeds the barcode's bar widths, not its content. */
     private function seed(ExportData $data): int
     {
-        $raw = $data->field('receipt_number')?->raw;
+        $raw = $data->field('receipt_ref')?->raw;
 
         return is_int($raw) ? $raw : 0;
     }

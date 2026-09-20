@@ -41,7 +41,7 @@ it('prints a food day as a supermarket receipt', function () {
         ->and($txt)->toContain('830 kcal')
         ->and($txt)->toContain('ITEMS LOGGED: 2')
         ->and($txt)->toContain('THANK YOU FOR EATING!')
-        ->and($txt)->toContain('No. '.SerialNumber::for($breakfast->occurred_at));
+        ->and($txt)->toContain('Ref. '.SerialNumber::for($breakfast->occurred_at));
 
     foreach (explode("\n", $txt) as $line) {
         expect(mb_strwidth($line))->toBeLessThanOrEqual(46);

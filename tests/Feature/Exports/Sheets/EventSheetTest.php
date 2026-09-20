@@ -27,7 +27,7 @@ it('prints an event as a perforated ticket stub, with doors from the occurred in
 
     expect($txt)->toContain('EVENT TICKET')
         ->and($txt)->toContain('ADMIT ONE')
-        ->and($txt)->toContain('No. '.SerialNumber::for($event->occurred_at, $event->id))
+        ->and($txt)->toContain('Ref. '.SerialNumber::for($event->occurred_at, $event->id))
         ->and($txt)->toContain('TAYLORDRAYSON')
         ->and($rows)->toContain(
             ['START', '13 Sep 2026 19:30'],
