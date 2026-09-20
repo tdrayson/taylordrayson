@@ -41,3 +41,20 @@ it('publishes an article body with nothing in it but the article', function () u
     // Same for the lightbox, which is a viewer rather than anything written.
     visit($article->url())->assertPresent('.e-content')->assertScript($noComments, true);
 });
+
+it('publishes a link without the words that only describe it', function () {
+    $note = Note::factory()->create([
+        'status' => 'published',
+        'occurred_at' => now()->subHour(),
+        'content' => PortableText::fromPlainText('A note linking to https://indieweb.org/webmention in passing.'),
+    ]);
+
+    // An external link says it opens away, which is behaviour rather than
+    // words: as a hidden span it read back as part of the note's own text.
+    visit($note->url())
+        ->assertPresent('.e-content a[data-external]')
+        ->assertScript(
+            "document.querySelector('.e-content').textContent.includes('opens in a new tab')",
+            false,
+        );
+});
