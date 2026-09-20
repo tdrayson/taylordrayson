@@ -65,19 +65,32 @@ const sizes = computed(() => (compact.value
  * by whatever font the reader's platform ships, so it cannot be coloured, sized
  * or trusted to look the same twice.
  *
+ * `one` and `many` are the noun a count takes: the label from the server is the
+ * verb you press ("Love"), which does not survive being counted.
+ *
  * Keyed by our own reaction types. A key that is itself an emoji arrived by
  * webmention from somebody else's vocabulary, so that glyph is shown as sent.
  */
 const GLYPHS = {
-    like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)' },
-    love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)' },
-    celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)' },
-    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)' },
-    haha: { icon: 'HappyIcon', colour: 'var(--color-reaction-haha)' },
-    sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)' },
+    like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)', one: 'like', many: 'likes' },
+    love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)', one: 'heart', many: 'hearts' },
+    celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)', one: 'celebration', many: 'celebrations' },
+    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)', one: 'wow', many: 'wows' },
+    haha: { icon: 'HappyIcon', colour: 'var(--color-reaction-haha)', one: 'laugh', many: 'laughs' },
+    sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)', one: 'sad face', many: 'sad faces' },
 };
 
 const glyph = (bucket) => GLYPHS[bucket.key] ?? null;
+
+/**
+ * One bucket said out loud: "2 hearts". An emoji from somebody else's
+ * vocabulary has no name here but the one it was sent under.
+ */
+const tallyOf = (bucket) => {
+    const named = glyph(bucket);
+
+    return `${bucket.count} ${named ? (bucket.count === 1 ? named.one : named.many) : bucket.label}`;
+};
 
 /** A disc's fill. Every one is dark enough to carry the one glyph colour. */
 const discOf = (g) => ({ background: g.colour, color: 'var(--color-reaction-glyph)' });
@@ -163,7 +176,7 @@ const gestureLabel = (gesture) => `${gesture.count} ${gesture.count === 1 ? gest
 
 /** What the summary reads out, since a row of emoji says nothing on its own. */
 const summaryLabel = computed(() => {
-    const parts = chosen.value.map((bucket) => `${bucket.count} ${bucket.label}`);
+    const parts = chosen.value.map(tallyOf);
 
     if (props.likeCount) {
         parts.push(`${props.likeCount} liked from elsewhere`);
@@ -172,13 +185,30 @@ const summaryLabel = computed(() => {
     return parts.length ? parts.join(', ') : 'No reactions yet';
 });
 
-/** Just the figure: which kinds they were is what the pile beside it says. */
+/**
+ * The figure, named when nothing else names it: the pile beside it is only
+ * drawn for a mix, so a count that is all one kind would otherwise be a number
+ * with nothing to say which kind it was.
+ */
 const reactionsLabel = computed(() => {
     if (! total.value) {
         return 'No reactions yet';
     }
 
+    // Likes from elsewhere are folded into the figure but not into the pile, so
+    // one bucket plus those is a mix the bar cannot name.
+    if (chosen.value.length === 1 && ! props.likeCount) {
+        return tallyOf(chosen.value[0]);
+    }
+
     return `${total.value} ${total.value === 1 ? 'reaction' : 'reactions'}`;
+});
+
+/** The control's name: what pressing it does, and what the figure on it counts. */
+const controlLabel = computed(() => {
+    const action = mine.value ? `You reacted ${mine.value.label}` : 'React to this';
+
+    return total.value ? `${action}, ${reactionsLabel.value}` : action;
 });
 
 /**
@@ -253,7 +283,7 @@ function press() {
                     type="button"
                     :disabled="busy !== null"
                     :aria-pressed="mine !== null"
-                    :aria-label="mine ? `You reacted ${mine.label}` : 'React to this'"
+                    :aria-label="controlLabel"
                     :class="cn(
                         'inline-flex items-center',
                         sizes.segment,
@@ -368,7 +398,7 @@ function press() {
                     :key="bucket.key"
                     class="reaction-item flex items-center"
                 >
-                    <Tooltip :label="`${bucket.count} ${bucket.label}`" placement="top">
+                    <Tooltip :label="tallyOf(bucket)" placement="top">
                     <span
                         :class="['reaction-pip flex items-center justify-center rounded-full ring-2 ring-neutral-0', sizes.pip]"
                         :style="glyph(bucket) ? discOf(glyph(bucket)) : { background: 'var(--color-neutral-25)' }"
