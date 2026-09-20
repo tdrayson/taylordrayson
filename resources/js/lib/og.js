@@ -57,10 +57,12 @@ export function ogCardUrl(og, { origin, siteName, version }) {
 
     if (meta.variant) {
         params.set('variant', meta.variant);
+    }
 
-        // The home card has room for a standfirst, and the page's own
-        // description is what belongs there: a second hardcoded line on the
-        // renderer could drift from the one the page publishes.
+    // The standfirst, and the page's own description is what belongs there: a
+    // second line written on the renderer could drift from the one the page
+    // publishes. The card clamps it, so the meta-tag length is no problem.
+    if (meta.description) {
         params.set('description', meta.description);
     }
 

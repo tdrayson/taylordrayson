@@ -42,11 +42,11 @@ class OgImageController extends Controller
         $layout = $request->query('variant') === 'home' ? 'home' : 'text';
 
         // The page's own meta description, so the card and the tag beneath it in
-        // a share preview say the same thing. A card requested without one falls
-        // back to the tagline, since there is no page to read a description from.
-        $subtitle = $layout === 'home'
-            ? (Str::limit(trim((string) $request->query('description')), 200, '') ?: self::TAGLINE)
-            : null;
+        // a share preview say the same thing. The home card falls back to the
+        // tagline, having no page of its own to read a description from; every
+        // other card would rather show nothing than something generic.
+        $subtitle = Str::limit(trim((string) $request->query('description')), 200, '')
+            ?: ($layout === 'home' ? self::TAGLINE : null);
 
         $disk = Storage::disk('local');
         $directory = 'og/'.OgRenderer::generation();
