@@ -386,4 +386,50 @@ function press() {
     transform-origin: bottom left;
 }
 
+/* Overlapped at rest so a handful of kinds stay one short mark, and spread on
+   hover so each is a target of its own and its count can be read. */
+.reaction-item {
+    margin-left: -0.375rem;
+    transition: margin-left 150ms ease;
+}
+
+.reaction-item:first-child {
+    margin-left: 0;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-item,
+.reaction-pile:not(.is-static):focus-within .reaction-item,
+.reaction-pile:not(.is-static):focus .reaction-item {
+    margin-left: 0.375rem;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus-within .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus .reaction-item:first-child {
+    margin-left: 0;
+}
+
+/* Hidden by width rather than display, so the reveal can be animated and the
+   discs slide apart instead of jumping. */
+.reaction-count {
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 150ms ease, opacity 150ms ease, margin-left 150ms ease;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-count,
+.reaction-pile:not(.is-static):focus-within .reaction-count,
+.reaction-pile:not(.is-static):focus .reaction-count {
+    max-width: 2rem;
+    margin-left: 0.25rem;
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reaction-item,
+    .reaction-count {
+        transition: none;
+    }
+}
 </style>
