@@ -7,7 +7,7 @@ defineProps({
     links: {
         type: Array,
         default: () => [
-            ...profiles.map((profile) => ({ ...profile, rel: 'me' })),
+            ...profiles.value.map((profile) => ({ ...profile, rel: 'me' })),
             { icon: RssIcon, href: '/feeds', label: 'Feeds', rel: null },
         ],
     },

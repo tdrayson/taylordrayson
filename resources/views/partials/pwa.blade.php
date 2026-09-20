@@ -1,7 +1,9 @@
 {{-- Declared rather than left to the root-path convention, so the icon is known
-     from the markup instead of a 404 and a retry. --}}
-<link rel="icon" href="/favicon.ico" sizes="32x32">
-<link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192">
+     from the markup instead of a 404 and a retry. The tab icons are circular
+     with transparent corners; the home-screen ones are square, since iOS and
+     Android apply their own mask. --}}
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" href="/icons/favicon-192.png" type="image/png" sizes="192x192">
 
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
