@@ -144,9 +144,17 @@ function ownSlug(url) {
     }
 }
 
+/** What a response slug says I did. Mirrors NameResponseSlug::prefix(). */
+const RESPONSE_PREFIXES = {
+    reply: 'replied-to',
+    like: 'liked',
+    repost: 'reposted',
+    rsvp: 'rsvp-to',
+};
+
 /**
  * The slug a response note is stored with when none is written, e.g.
- * `reply-to-sending-your-first-webmention`, or `like-back-under-the-bar` for
+ * `replied-to-sending-your-first-webmention`, or `liked-back-under-the-bar` for
  * one of my own entries. Mirrors NameResponseSlug.
  *
  * @param {{kind: string, url: string, rsvp?: string, preview?: object|null}} response The
@@ -163,10 +171,7 @@ export function responseSlug({ kind, url, rsvp = null, preview = null }) {
     const context = preview?.url === url ? preview : null;
     const cited = context?.cited ?? null;
 
-    const candidates = {
-        reply: [cited?.title, cited?.authorName],
-        rsvp: [cited?.title],
-    }[kind] ?? [];
+    const candidates = kind === 'reply' ? [cited?.title, cited?.authorName] : [cited?.title];
 
     const name = context?.internal
         ? ownSlug(url)
@@ -176,7 +181,7 @@ export function responseSlug({ kind, url, rsvp = null, preview = null }) {
         return null;
     }
 
-    return `${kind === 'reply' ? 'reply-to' : kind}-${name}`;
+    return `${RESPONSE_PREFIXES[kind] ?? kind}-${name}`;
 }
 
 /**

@@ -85,7 +85,7 @@ it('lets a response be taken back after it has been chosen', function () {
     expect(Note::sole()->response_kind)->toBeNull();
 });
 
-it('names a like after its domain and posts it with no body', function () {
+it('names a like after the post it likes and posts it with no body', function () {
     // Stored so the preview answers without fetching the page.
     Citation::factory()->create(['url' => 'https://example.com', 'title' => 'Example Domain']);
 
@@ -94,14 +94,14 @@ it('names a like after its domain and posts it with no body', function () {
     $browser->fill('#response_url', 'https://example.com');
     $browser->click('#slug');
 
-    $browser->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('#slug').getAttribute('placeholder')), 1000))", 'like-example-com');
+    $browser->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('#slug').getAttribute('placeholder')), 1000))", 'liked-example-domain');
     $browser->assertScript(
-        "[...document.querySelectorAll('p')].some((p) => /^\\/\\d{4}\\/\\d{2}\\/\\d{2}\\/like-example-com$/.test(p.textContent.trim()))",
+        "[...document.querySelectorAll('p')].some((p) => /^\\/\\d{4}\\/\\d{2}\\/\\d{2}\\/liked-example-domain$/.test(p.textContent.trim()))",
         true,
     );
 
     $browser->click('button:has-text("Post")');
     $browser->assertScript("location.pathname !== '/new/note'", true);
 
-    expect(Note::sole()->getAttributes()['slug'])->toBe('like-example-com');
+    expect(Note::sole()->getAttributes()['slug'])->toBe('liked-example-domain');
 });
