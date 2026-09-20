@@ -165,9 +165,10 @@ it('answers for a whole page of entries in a fixed number of queries', function 
     $queries = count(DB::getQueryLog());
     DB::disableQueryLog();
 
-    // Reactions, this visitor's own, comments and mentions. Four whatever the
-    // page holds; the per-entry query would have been two dozen by now.
-    expect($queries)->toBe(4)
+    // Reactions, this visitor's own, comments, mentions and syndicated
+    // responses. Five whatever the page holds; the per-entry query would have
+    // been two dozen by now.
+    expect($queries)->toBe(5)
         ->and($rows)->toHaveCount(12)
         ->and($rows['note:'.$notes[0]->id]['reactions'][1]['count'])->toBe(1);
 });

@@ -96,6 +96,7 @@ class VerifyWebmention implements ShouldQueue
             'author_photo_url' => $parsed->authorPhoto,
             'content' => $parsed->content,
             'published_at' => $parsed->publishedAt,
+            'timezone' => $parsed->publishedTimezone,
             // A re-send reuses the row, so recomputing this unconditionally
             // would hand a spammer an undo button for the moderator's decision.
             'status' => $mention->status === CommentStatus::Spam

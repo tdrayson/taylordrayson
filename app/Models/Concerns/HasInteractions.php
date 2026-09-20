@@ -5,6 +5,7 @@ namespace App\Models\Concerns;
 use App\Models\Comment;
 use App\Models\Mention;
 use App\Models\Reaction;
+use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -32,6 +33,7 @@ trait HasInteractions
             $model->reactions()->delete();
             $model->webmentions()->delete();
             $model->mentions()->delete();
+            $model->syndicatedResponses()->delete();
         });
     }
 
@@ -64,5 +66,11 @@ trait HasInteractions
     public function mentions(): MorphMany
     {
         return $this->morphMany(Mention::class, 'target');
+    }
+
+    /** @return MorphMany<SyndicatedResponse, $this> */
+    public function syndicatedResponses(): MorphMany
+    {
+        return $this->morphMany(SyndicatedResponse::class, 'target');
     }
 }

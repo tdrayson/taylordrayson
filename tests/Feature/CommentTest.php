@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
+use function Pest\Laravel\get;
 use function Pest\Laravel\postJson;
 
 /**
@@ -192,6 +193,58 @@ it('spends the nonce it was given', function () {
         ->toBeGreaterThanOrEqual(0);
 });
 
+it('stores a valid browser timezone, whether an IANA name or a fixed offset', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => 'America/New_York'])->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBe('America/New_York');
+
+    comment($note->id, ['author_name' => 'Sam', 'timezone' => '+05:30'], ip: '198.51.100.7')->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBe('+05:30');
+});
+
+it('discards a junk or missing timezone rather than failing the comment', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => 'Not/AZone'])->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+
+    comment($note->id, ['author_name' => 'Sam'], ip: '198.51.100.7')->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+});
+
+it('never stores an offset that would blow up rendering the entry page', function (string $offset) {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => $offset])->assertCreated();
+
+    get($note->url())->assertOk();
+})->with([
+    'minutes out of range' => ['+99:99'],
+    'hours far past any real zone' => ['+99:00'],
+    'a negative offset past -12:00' => ['-24:00'],
+    'the largest valid-looking offset' => ['+23:59'],
+]);
+
+it('rejects the one offset above that a real DateTimeZone cannot construct', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => '+99:99'])->assertCreated();
+
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+});
+
+it('discards an array or oversized timezone rather than failing the whole comment', function () {
+    $note = Note::factory()->create();
+
+    comment($note->id, ['timezone' => ['not', 'a', 'string']])->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+
+    comment($note->id, ['author_name' => 'Sam', 'timezone' => str_repeat('a', 500)], ip: '198.51.100.7')
+        ->assertCreated();
+    expect(Comment::query()->latest('id')->value('timezone'))->toBeNull();
+});
+
 it('emails the person a reply answers, even when it skips the queue', function () {
     Notification::fake();
 
@@ -271,9 +324,9 @@ it('marks a comment as mine by the address, never by the name anyone can type', 
         'status' => CommentStatus::Approved,
     ]);
 
-    expect(ConversationItem::fromComment($mine)->mine)->toBeTrue()
-        ->and(ConversationItem::fromComment($impostor)->mine)->toBeFalse()
+    expect(ConversationItem::fromComment($mine, null)->mine)->toBeTrue()
+        ->and(ConversationItem::fromComment($impostor, null)->mine)->toBeFalse()
         // The avatar rides on the same decision, so a claimed name gets initials.
-        ->and(ConversationItem::fromComment($mine)->authorPhoto)->toBe(config('identity.avatar'))
-        ->and(ConversationItem::fromComment($impostor)->authorPhoto)->toBeNull();
+        ->and(ConversationItem::fromComment($mine, null)->authorPhoto)->toBe(config('identity.avatar'))
+        ->and(ConversationItem::fromComment($impostor, null)->authorPhoto)->toBeNull();
 });
