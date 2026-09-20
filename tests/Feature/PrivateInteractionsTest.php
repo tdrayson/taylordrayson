@@ -1,7 +1,6 @@
 <?php
 
 use App\Actions\Syndicated\PullStravaResponses;
-use App\Actions\Webmentions\ParseMentionSource;
 use App\Enums\CommentStatus;
 use App\Enums\EntryStatus;
 use App\Enums\Source;
@@ -124,7 +123,7 @@ it('accepts and verifies an incoming webmention for a private entry', function (
         "<html><body><div class=\"h-entry\"><a class=\"u-in-reply-to\" href=\"{$target}\">re</a><div class=\"e-content\">Nice.</div></div></body></html>",
     )]);
 
-    (new VerifyWebmention(Webmention::query()->sole()->id))->handle(app(ParseMentionSource::class));
+    app()->call([new VerifyWebmention(Webmention::query()->sole()->id), 'handle']);
 
     expect(Webmention::query()->sole())
         ->verified_at->not->toBeNull()

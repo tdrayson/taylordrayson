@@ -65,9 +65,19 @@ final class Conversation
      */
     private static function responses(Model $target, ?string $timezone): array
     {
+        $mentions = $target->webmentions()->approved()->get();
+
+        // A salmention names the page it was read from, not a row id, so the
+        // mention that carried it is looked up here rather than joined.
+        $carriedBy = $mentions->whereNull('parent_source_url')->pluck('id', 'source_url');
+
         $items = [
             ...$target->comments()->approved()->get()->map(fn (Comment $comment): ConversationItem => ConversationItem::fromComment($comment, $timezone))->all(),
-            ...$target->webmentions()->approved()->get()->map(fn (Webmention $mention): ConversationItem => ConversationItem::fromWebmention($mention, $timezone))->all(),
+            ...$mentions->map(fn (Webmention $mention): ConversationItem => ConversationItem::fromWebmention(
+                $mention,
+                $timezone,
+                $mention->parent_source_url === null ? null : $carriedBy[$mention->parent_source_url] ?? null,
+            ))->all(),
             // No moderation state to filter on: these are written by the same
             // person the page belongs to. A private source is named, as its title
             // already is publicly, and never quoted.

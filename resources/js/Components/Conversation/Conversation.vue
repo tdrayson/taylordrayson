@@ -34,6 +34,17 @@ const thread = computed(() => {
         all.filter((item) => item.commentId !== null).map((item) => [item.commentId, item]),
     );
 
+    const byItemId = new Map(all.map((item) => [item.id, item]));
+
+    /**
+     * What this response answers: a comment left here, or the mention it
+     * arrived nested inside when it was read out of somebody else's thread.
+     * Null when it stands on its own, or when its parent is not shown.
+     */
+    const parentOf = (item) => byItemId.get(item.parentItemId)
+        ?? (item.parentId === null ? null : byCommentId.get(item.parentId))
+        ?? null;
+
     /**
      * The response a reply ultimately hangs off, however deep it was left.
      * Grouping by the immediate parent instead dropped a reply to a reply
@@ -45,11 +56,13 @@ const thread = computed(() => {
         // Bounded: a parent chain that somehow looped would hang the page
         // rather than merely render it wrong.
         for (let hops = 0; hops < 100; hops += 1) {
-            if (current.parentId === null || ! byCommentId.has(current.parentId)) {
+            const parent = parentOf(current);
+
+            if (parent === null) {
                 break;
             }
 
-            current = byCommentId.get(current.parentId);
+            current = parent;
         }
 
         return current;
@@ -90,20 +103,30 @@ const thread = computed(() => {
         .flatMap((root) => {
             const replies = (children.get(root.id) ?? []).sort(byOldest);
 
+            // A response read out of another site's thread is published inside
+            // its parent's h-cite, so it is handed to the parent to render
+            // rather than listed beside it: flattened onto the entry it would
+            // parse as a direct reply to me. Everything else keeps its own row.
+            const carried = replies.filter((item) => item.parentItemId !== null);
+            const listed = replies.filter((item) => item.parentItemId === null);
+
+            const indented = (items) => items.map((child, index) => ({
+                ...child,
+                nested: true,
+                groupId: root.id,
+                lastNested: index === items.length - 1,
+                carried: [],
+            }));
+
             return [
                 // groupId marks everything belonging to one conversation, which
                 // is what the reply form is placed against: it opens at the end
                 // of the thread, wherever in it you pressed Reply.
-                { ...root, nested: false, groupId: root.id },
+                { ...root, nested: false, groupId: root.id, carried: indented(carried) },
                 // Every descendant sits at one indent, in time order. Depth is
                 // stored truthfully and flattened here: past the first step in,
                 // the indentation says less than the order does.
-                ...replies.map((child, index) => ({
-                    ...child,
-                    nested: true,
-                    groupId: root.id,
-                    lastNested: index === replies.length - 1,
-                })),
+                ...indented(listed),
             ];
         });
 });
@@ -132,7 +155,7 @@ const formFollows = computed(() => {
  * prose in the speech bubble and also in the mention tally, and left the
  * heading as a total nobody could reach by adding up what was beside it.
  */
-const countOf = (...kinds) => thread.value.filter((item) => kinds.includes(item.kind)).length;
+const countOf = (...kinds) => props.conversation.responses.filter((item) => kinds.includes(item.kind)).length;
 
 // On-site clicks plus the gestures that mean the same thing from somebody
 // else's site: a like sent by webmention, and a single-emoji reply.
@@ -209,10 +232,20 @@ async function reply(item) {
                 <!-- One stream, every kind. A gesture renders as a single line
                      and a written response as a block, so the weight difference
                      comes from the content rather than from separate lists. -->
-                <ol :class="['flex flex-col gap-6', thread.length > 1 && 'conversation-rail']">
+                <ol :class="['flex flex-col gap-6', conversation.responses.length > 1 && 'conversation-rail']">
                     <template v-for="item in thread" :key="item.id">
                         <li class="relative">
-                            <ResponseItem :item="item" :nested="item.nested" @reply="reply" />
+                            <ResponseItem :item="item" :nested="item.nested" @reply="reply">
+                                <!-- Inside the parent's article, so it is inside
+                                     its h-cite. The spacing matches the gap the
+                                     outer list uses, so the thread looks the same
+                                     as it did when every response was a sibling. -->
+                                <ol v-if="item.carried.length" class="mt-6 flex flex-col gap-6">
+                                    <li v-for="child in item.carried" :key="child.id" class="relative">
+                                        <ResponseItem :item="child" nested @reply="reply" />
+                                    </li>
+                                </ol>
+                            </ResponseItem>
                         </li>
 
                         <!-- Indented to where a reply's words start, not to its
@@ -265,7 +298,9 @@ async function reply(item) {
    matches FeedRail: a 36px avatar centres on 18px, so a 2px line sits at 17.
 
    Only drawn from two responses up: one response is not a thread, and the cap
-   below has nowhere to sit but on top of the single avatar. */
+   below has nowhere to sit but on top of the single avatar. Counted over the
+   whole conversation, not the rows in this list: a response read out of another
+   site's thread renders inside its parent and would otherwise not count. */
 .conversation-rail {
     position: relative;
 }

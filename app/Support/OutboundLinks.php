@@ -74,6 +74,11 @@ final class OutboundLinks
      *
      * The title counts: a receiver parses our `p-name` as well as the body, so
      * renaming a post leaves their copy stale and must re-notify.
+     *
+     * So do the responses under it. They are published as nested h-cites, which
+     * is the whole of a salmention: a new comment here changes what an upstream
+     * author's parser sees, and without it in the hash they would never be told
+     * to look again.
      */
     public static function fingerprint(Model $model): string
     {
@@ -85,7 +90,34 @@ final class OutboundLinks
             $parts[] = is_string($value) ? $value : json_encode($value);
         }
 
+        $parts[] = self::responseSignature($model);
+
         return hash('sha256', implode('|', $parts));
+    }
+
+    /**
+     * How many responses the entry shows and when the newest arrived.
+     *
+     * Count and arrival time rather than the responses themselves, so a resave
+     * that changes nothing reads as unchanged while a new comment does not.
+     * Deliberately not `updated_at`: a mention's row is touched on every
+     * re-check, and that would re-notify the world on a timer.
+     */
+    private static function responseSignature(Model $model): string
+    {
+        if (! method_exists($model, 'comments') || ! method_exists($model, 'webmentions')) {
+            return '';
+        }
+
+        $parts = [];
+
+        foreach (['comments', 'webmentions'] as $relation) {
+            $parts[] = $relation
+                .':'.$model->{$relation}()->approved()->count()
+                .':'.($model->{$relation}()->approved()->max('created_at') ?? '');
+        }
+
+        return implode(',', $parts);
     }
 
     /**

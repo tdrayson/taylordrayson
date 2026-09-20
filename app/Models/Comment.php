@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CommentStatus;
+use App\Models\Concerns\NotifiesUpstream;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 ])]
 class Comment extends Model
 {
-    use HasFactory;
+    use HasFactory, NotifiesUpstream;
 
     /**
      * @return array<string, string>
@@ -67,6 +68,18 @@ class Comment extends Model
     public function scopePending(Builder $query): Builder
     {
         return $query->where('status', CommentStatus::Pending);
+    }
+
+    /** The entry this comment was left on, which is what gets re-announced upstream. */
+    public function upstreamSubject(): ?Model
+    {
+        return $this->commentable;
+    }
+
+    /** Always: a comment is prose, and prose is published inside the entry's h-entry. */
+    public function isWrittenResponse(): bool
+    {
+        return true;
     }
 
     /** Where this comment sits on its entry's page. */

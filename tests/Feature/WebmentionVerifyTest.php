@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\Webmentions\ParseMentionSource;
+use App\Actions\Webmentions\DecideMentionStatus;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Jobs\VerifyWebmention;
@@ -47,16 +47,22 @@ function rsvpSource(string $target, string $answer = 'yes'): string
     HTML;
 }
 
-/** Receive and verify a mention from a source serving $html. */
-function verify(Note $note, ?string $html, int $status = 200): ?Webmention
+/**
+ * Receive and verify a mention from a source serving $html.
+ *
+ * $source has to be a host that really resolves, for the reason at the top of
+ * this file, so the host-keyed trust tests use example.org rather than a
+ * reserved TLD when they need a second one.
+ */
+function verify(Note $note, ?string $html, int $status = 200, string $source = SOURCE): ?Webmention
 {
     $target = rtrim(config('app.url'), '/').$note->url();
 
-    Http::fake([SOURCE => Http::response($html ?? mentionSource($target, 'in-reply-to', 'Nice one.'), $status)]);
+    Http::fake([$source => Http::response($html ?? mentionSource($target, 'in-reply-to', 'Nice one.'), $status)]);
 
-    $mention = Webmention::query()->create(['source_url' => SOURCE, 'target_url' => $target]);
+    $mention = Webmention::query()->create(['source_url' => $source, 'target_url' => $target]);
 
-    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+    app()->call([new VerifyWebmention($mention->id), 'handle']);
 
     return $mention->fresh();
 }
@@ -298,7 +304,7 @@ it('will not follow a redirect into a private address', function () {
 
     $mention = Webmention::query()->create(['source_url' => SOURCE, 'target_url' => $target]);
 
-    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+    app()->call([new VerifyWebmention($mention->id), 'handle']);
 
     // Nothing was fetched from the redirect target, so nothing was verified.
     expect($mention->fresh()?->verified_at)->toBeNull();
@@ -307,41 +313,79 @@ it('will not follow a redirect into a private address', function () {
 
 it('trusts a host only when it is the same host, not a substring of one', function () {
     // An approved mention from indieweb.org used to make dieweb.org trusted,
-    // because the check was `author_url like %dieweb.org%`.
+    // because the check was `like %dieweb.org%`.
+    Webmention::query()->create([
+        'source_url' => 'https://indieweb.org/a',
+        'target_url' => 'https://example.test/x',
+        'status' => CommentStatus::Approved,
+    ]);
+
+    expect(app(DecideMentionStatus::class)('https://dieweb.org/imposter'))->toBe(CommentStatus::Pending)
+        ->and(app(DecideMentionStatus::class)('https://indieweb.org/b'))->toBe(CommentStatus::Approved);
+});
+
+it('lets a configured host through without waiting to be approved', function () {
+    config(['webmentions.trusted_hosts' => ['example.com']]);
+
+    $note = Note::factory()->create();
+
+    expect(verify($note, null))->status->toBe(CommentStatus::Approved);
+});
+
+it('does not extend the allowlist to a host that merely starts with a trusted one', function () {
+    config(['webmentions.trusted_hosts' => ['known.example']]);
+
+    expect(app(DecideMentionStatus::class)('https://known.example.evil.tld/me'))->toBe(CommentStatus::Pending);
+});
+
+// The whole point of keying on the fetched host. Anybody can publish a page
+// that honestly links here and name whoever they like as its author, so an
+// approved host's trust must not be reachable through that claim.
+it('does not trust a source because of the author it claims to be', function () {
+    // author_url too, or the old rule would have nothing to inherit and this
+    // would pass whether or not the hole is closed.
     Webmention::query()->create([
         'source_url' => 'https://indieweb.org/a',
         'target_url' => 'https://example.test/x',
         'author_url' => 'https://indieweb.org/Jo',
-        'author_host' => 'indieweb.org',
         'status' => CommentStatus::Approved,
     ]);
 
     $note = Note::factory()->create();
     $target = rtrim(config('app.url'), '/').$note->url();
 
-    $html = str_replace('https://example.com/jo', 'https://dieweb.org/imposter', mentionSource($target, 'in-reply-to', 'Trust me.'));
+    // Fetched from example.com, but claiming to be written by indieweb.org.
+    $html = str_replace('https://example.com/jo', 'https://indieweb.org/Jo', mentionSource($target, 'in-reply-to', 'Trust me.'));
 
-    expect(verify($note, $html))->status->toBe(CommentStatus::Pending);
+    expect(verify($note, $html))
+        ->status->toBe(CommentStatus::Pending)
+        ->author_host->toBe('indieweb.org')
+        ->source_url->toStartWith('https://example.com/');
 });
 
-it('lets a configured host through without waiting to be approved', function () {
-    config(['webmentions.trusted_hosts' => ['known.example']]);
+it('trusts a source whose host it has approved before', function () {
+    Webmention::query()->create([
+        'source_url' => 'https://example.com/earlier',
+        'target_url' => 'https://example.test/x',
+        'status' => CommentStatus::Approved,
+    ]);
 
     $note = Note::factory()->create();
-    $target = rtrim(config('app.url'), '/').$note->url();
-    $html = str_replace('https://example.com/jo', 'https://known.example/me', mentionSource($target, 'in-reply-to', 'Hello.'));
 
-    expect(verify($note, $html))->status->toBe(CommentStatus::Approved);
+    expect(verify($note, null))->status->toBe(CommentStatus::Approved);
 });
 
-it('does not extend the allowlist to a host that merely starts with a trusted one', function () {
-    config(['webmentions.trusted_hosts' => ['known.example']]);
+// A nested response carries a url we never fetched, so approving one says
+// nothing about whether that host really sends what it appears to send.
+it('does not let an approved nested response vouch for its host', function () {
+    Webmention::query()->create([
+        'source_url' => 'https://example.org/nested',
+        'parent_source_url' => 'https://example.com/their-post',
+        'target_url' => 'https://example.test/x',
+        'status' => CommentStatus::Approved,
+    ]);
 
-    $note = Note::factory()->create();
-    $target = rtrim(config('app.url'), '/').$note->url();
-    $html = str_replace('https://example.com/jo', 'https://known.example.evil.tld/me', mentionSource($target, 'in-reply-to', 'Hello.'));
-
-    expect(verify($note, $html))->status->toBe(CommentStatus::Pending);
+    expect(app(DecideMentionStatus::class)('https://example.org/nested'))->toBe(CommentStatus::Pending);
 });
 
 it('keeps the links and quotes a reply was written with', function () {
@@ -588,7 +632,7 @@ it('keeps a mention the moderator marked as spam when the sender re-sends it', f
     // A re-send reuses the row rather than making a new one, so without this
     // the sender gets an undo button for a decision that was not theirs.
     Http::fake([SOURCE => Http::response(mentionSource($target, 'in-reply-to', 'Nice one.'), 200)]);
-    (new VerifyWebmention($mention->id))->handle(app(ParseMentionSource::class));
+    app()->call([new VerifyWebmention($mention->id), 'handle']);
 
     expect($mention->fresh()->status)->toBe(CommentStatus::Spam);
 });
