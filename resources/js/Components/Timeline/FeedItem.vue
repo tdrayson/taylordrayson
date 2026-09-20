@@ -473,6 +473,9 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
 
+        <!-- The counts arrive on a second request, so the row fades in rather than
+             appearing all at once. -->
+        <Transition name="fade">
         <ReactionBar
             v-if="row"
             variant="compact"
@@ -488,5 +491,6 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :rsvp-count="row.rsvpCount"
             :mention-count="row.mentionCount"
         />
+        </Transition>
     </div>
 </template>

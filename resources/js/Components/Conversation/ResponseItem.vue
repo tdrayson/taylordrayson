@@ -26,7 +26,7 @@ const KINDS = {
     reply: { icon: 'MailReply01Icon', did: 'replied' },
     rsvp: { icon: 'Calendar01Icon', did: 'RSVP’d' },
     like: { icon: 'FavouriteIcon', did: 'liked this' },
-    repost: { icon: 'RepeatIcon', did: 'reposted this' },
+    repost: { icon: 'ArrowReloadHorizontalIcon', did: 'reposted this' },
     bookmark: { icon: 'Bookmark01Icon', did: 'bookmarked this' },
     mention: { icon: 'Link02Icon', did: 'linked to this' },
     'mention-internal': { icon: 'Link02Icon', did: 'mentioned this' },
