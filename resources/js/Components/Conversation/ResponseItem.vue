@@ -111,6 +111,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                 class="response-avatar"
                 :name="item.authorName"
                 :photo="item.authorPhoto"
+                :mine="item.mine"
             />
 
             <div class="min-w-0 flex-1">
