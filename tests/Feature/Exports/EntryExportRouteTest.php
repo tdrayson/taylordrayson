@@ -86,30 +86,27 @@ it('does not let an extension fall through to the entry page', function () {
     $this->get('/2026/06/08/krk-lgw.json')->assertHeader('content-type', 'application/json; charset=UTF-8');
 });
 
-it('publishes only the header for a private entry the request has not unlocked', function () {
+it('404s every format for a private entry the request has not unlocked', function (string $format) {
     $flight = privateKrkToLgw();
 
-    $response = $this->get($flight->url().'.json');
+    $this->get($flight->url().'.'.$format)->assertNotFound();
+})->with(['json', 'yaml', 'txt', 'md', 'mf2', 'ics', 'geojson']);
 
-    $response->assertOk()
-        ->assertJsonPath('locked', true)
-        ->assertJsonMissingPath('fields')
-        ->assertJsonMissingPath('links')
-        ->assertDontSee('8824')
-        ->assertDontSee('easyJet');
+it('serves every format once the entry is unlocked', function () {
+    $flight = privateKrkToLgw();
+
+    $this->actingAs(User::factory()->create())
+        ->get($flight->url().'.json')
+        ->assertOk()
+        ->assertSee('8824');
 });
 
-it('404s a locked geojson and ics export rather than carrying the aspects through', function () {
+it('keeps an unlocked private entry export out of shared caches', function () {
     $flight = privateKrkToLgw();
 
-    $this->get($flight->url().'.geojson')->assertNotFound();
-    $this->get($flight->url().'.ics')->assertNotFound();
-});
-
-it('keeps a private entry export out of shared caches', function () {
-    $flight = privateKrkToLgw();
-
-    $this->get($flight->url().'.json')->assertHeader('Cache-Control', 'no-store, private');
+    $this->actingAs(User::factory()->create())
+        ->get($flight->url().'.json')
+        ->assertHeader('Cache-Control', 'no-store, private');
 });
 
 it('404s a draft export for a guest and serves it to its owner', function () {

@@ -31,16 +31,6 @@ it('is unavailable without a geometry aspect', function () {
         ->and(array_key_exists('geojson', Formats::for($withoutGeometry)))->toBeFalse();
 });
 
-it('refuses geojson for a locked export even if it carries a geometry aspect', function () {
-    $data = ExportPresenter::for(krkToLgw());
-    $locked = new ExportData(
-        type: $data->type, url: $data->url, title: $data->title, summary: null,
-        occurred: null, fields: $data->fields, links: [], aspects: $data->aspects, locked: true,
-    );
-
-    expect((new GeoJsonFormat)->supports($locked))->toBeFalse();
-});
-
 it('refuses geojson for a note with no geometry aspect at all', function () {
     $note = new ExportData(
         type: TimelineType::Note, url: 'https://example.test/x', title: 'A note',

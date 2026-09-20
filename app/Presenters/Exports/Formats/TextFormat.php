@@ -11,7 +11,7 @@ use App\Presenters\Exports\Sheets\Sheet;
 
 /**
  * The export printed. A type with a sheet gets its own layout; everything
- * else, and every locked export, gets the plain aligned table.
+ * else gets the plain aligned table.
  */
 final class TextFormat extends Format
 {
@@ -22,9 +22,7 @@ final class TextFormat extends Format
 
     public function render(ExportData $data): string
     {
-        $sheet = $data->locked ? null : $this->sheetFor($data);
-
-        return $sheet?->render($data) ?? $this->table($data);
+        return $this->sheetFor($data)?->render($data) ?? $this->table($data);
     }
 
     /**
@@ -50,10 +48,6 @@ final class TextFormat extends Format
 
         if ($data->occurred !== null) {
             $lines[] = $data->occurred->display;
-        }
-
-        if ($data->locked) {
-            return implode("\n", $lines)."\n";
         }
 
         $lines[] = '';

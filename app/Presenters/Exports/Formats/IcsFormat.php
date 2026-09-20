@@ -18,7 +18,7 @@ final class IcsFormat extends Format
 
     public function supports(ExportData $data): bool
     {
-        return ! $data->locked && $data->aspect(Span::class) !== null;
+        return $data->aspect(Span::class) !== null;
     }
 
     public function render(ExportData $data): string

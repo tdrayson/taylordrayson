@@ -40,10 +40,8 @@ final class Mf2Format extends Format
     }
 
     /**
-     * Header properties (url, uid, author, name, published) publish
-     * regardless of lock state, matching the page: Entry.vue keeps its
-     * header while the body is locked. Everything else is withheld for a
-     * locked export, checked here rather than trusted from the caller.
+     * Header properties first (url, uid, author, name, published), then
+     * the content properties.
      *
      * @return array<string, array<int, mixed>>
      */
@@ -64,10 +62,6 @@ final class Mf2Format extends Format
 
         if ($data->occurred !== null) {
             $properties['published'] = [$data->occurred->iso];
-        }
-
-        if ($data->locked) {
-            return $properties;
         }
 
         // Not $data->summary: that falls back to a generated description for

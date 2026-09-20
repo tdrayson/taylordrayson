@@ -10,8 +10,7 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * The export as a markdown document: front matter carrying the fields, the
- * title, the body, then the links. A locked export renders header only:
- * front matter without fields, and the title.
+ * title, the body, then the links.
  */
 final class MarkdownFormat extends Format
 {
@@ -24,29 +23,26 @@ final class MarkdownFormat extends Format
     {
         $parts = [$this->frontMatter($data), "# {$data->title}"];
 
-        if (! $data->locked) {
-            if ($data->summary !== null) {
-                $parts[] = $data->summary;
-            }
+        if ($data->summary !== null) {
+            $parts[] = $data->summary;
+        }
 
-            $body = is_string($data->body) ? $data->body : PortableText::markdown($data->body);
+        $body = is_string($data->body) ? $data->body : PortableText::markdown($data->body);
 
-            if ($body !== '') {
-                $parts[] = $body;
-            }
+        if ($body !== '') {
+            $parts[] = $body;
+        }
 
-            if ($data->links !== []) {
-                $parts[] = "## See also\n\n".implode("\n", array_map(
-                    fn (ExportLink $link): string => "- {$link->label}: [{$link->title}]({$link->url})",
-                    $data->links,
-                ));
-            }
+        if ($data->links !== []) {
+            $parts[] = "## See also\n\n".implode("\n", array_map(
+                fn (ExportLink $link): string => "- {$link->label}: [{$link->title}]({$link->url})",
+                $data->links,
+            ));
         }
 
         return implode("\n\n", $parts)."\n";
     }
 
-    /** No per-field entries for a locked export, matching the header-only page it mirrors. */
     private function frontMatter(ExportData $data): string
     {
         $matter = array_filter([
@@ -56,10 +52,8 @@ final class MarkdownFormat extends Format
             'date' => $data->occurred?->iso,
         ], fn (?string $value): bool => $value !== null);
 
-        if (! $data->locked) {
-            foreach ($data->fields as $field) {
-                $matter[$field->label] = $field->display;
-            }
+        foreach ($data->fields as $field) {
+            $matter[$field->label] = $field->display;
         }
 
         return "---\n".Yaml::dump($matter, 2, 2).'---';

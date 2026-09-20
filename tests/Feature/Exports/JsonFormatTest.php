@@ -48,27 +48,3 @@ function lockedNoteWithFieldsAndLinks(): ExportData
         locked: true,
     );
 }
-
-it('renders a locked entry as json with no fields or links', function () {
-    $data = lockedNoteWithFieldsAndLinks();
-    $rendered = Formats::find($data, ExportFormat::Json)->render($data);
-    $json = json_decode($rendered, true);
-
-    expect($json)->not->toHaveKey('fields')
-        ->and($json)->not->toHaveKey('links')
-        ->and($json['locked'])->toBeTrue()
-        ->and($rendered)->not->toContain('Word count')
-        ->and($rendered)->not->toContain('Secret tag');
-});
-
-it('renders a locked entry as yaml with no fields or links', function () {
-    $data = lockedNoteWithFieldsAndLinks();
-    $yaml = Formats::find($data, ExportFormat::Yaml)->render($data);
-    $parsed = Yaml::parse($yaml);
-
-    expect($parsed)->not->toHaveKey('fields')
-        ->and($parsed)->not->toHaveKey('links')
-        ->and($parsed['locked'])->toBeTrue()
-        ->and($yaml)->not->toContain('Word count')
-        ->and($yaml)->not->toContain('Secret tag');
-});

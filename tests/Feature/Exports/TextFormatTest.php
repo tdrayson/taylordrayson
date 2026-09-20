@@ -1,10 +1,6 @@
 <?php
 
-use App\Data\ExportData;
-use App\Data\ExportField;
-use App\Data\ExportLink;
 use App\Enums\ExportFormat;
-use App\Enums\TimelineType;
 use App\Models\Book;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
@@ -33,25 +29,4 @@ it('prints only display strings, never a raw value, for a flight sheet', functio
 
     // 1409785 is the raw metres; the sheet must print "876 miles".
     expect($txt)->not->toContain('1409785');
-});
-
-it('renders a locked entry as header only, with no fields or links', function () {
-    $data = new ExportData(
-        type: TimelineType::Note,
-        url: 'https://example.test/secret',
-        title: 'A private note',
-        summary: 'A summary that should not leak',
-        occurred: null,
-        fields: [ExportField::make('body_word_count', 'Word count', '42', 42)],
-        links: [ExportLink::make('tag', 'Tag', 'Secret tag', 'https://example.test/tags/secret')],
-        locked: true,
-    );
-
-    $txt = Formats::find($data, ExportFormat::Txt)->render($data);
-
-    expect($txt)->toContain('A PRIVATE NOTE')
-        ->and($txt)->not->toContain('Word count')
-        ->and($txt)->not->toContain('42')
-        ->and($txt)->not->toContain('Secret tag')
-        ->and($txt)->not->toContain('should not leak');
 });

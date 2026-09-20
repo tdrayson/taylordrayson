@@ -3,7 +3,6 @@
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportField;
-use App\Data\ExportInstant;
 use App\Data\ExportLink;
 use App\Enums\ExportFormat;
 use App\Enums\TimelineType;
@@ -254,62 +253,4 @@ it('adds no vocabulary extension for a type with no established one', function (
         ->and($properties)->not->toHaveKey('checkin')
         ->and($properties)->not->toHaveKey('watch-of')
         ->and($properties)->not->toHaveKey('read-of');
-});
-
-// A previous task shipped a Critical because a format trusted its caller to
-// have stripped locked data. This export must defend itself: the fields,
-// links and body below are deliberately left populated.
-it('publishes header level properties only for a locked export, regardless of what the caller left on it', function () {
-    $data = new ExportData(
-        type: TimelineType::Note,
-        url: 'https://example.test/secret',
-        title: 'A private note',
-        summary: 'A summary that should not leak',
-        occurred: ExportInstant::for(CarbonImmutable::parse('2026-06-08 09:00:00'), 'Europe/London'),
-        fields: [ExportField::make('rating', 'Rating', '5/5', 5)],
-        links: [ExportLink::make('tag', 'Tagged', 'Secret tag', 'https://example.test/tags/secret', 'category')],
-        body: [PortableText::block('The confidential contents of this note.')],
-        locked: true,
-    );
-
-    $mf2 = json_decode((new Mf2Format)->render($data), true);
-    $properties = $mf2['items'][0]['properties'];
-
-    expect($properties['url'][0])->toBe($data->url)
-        ->and($properties['uid'][0])->toBe($data->url)
-        ->and($properties['published'][0])->toStartWith('2026-06-08')
-        ->and($properties['author'][0]['type'])->toBe(['h-card'])
-        ->and($properties)->not->toHaveKey('name')
-        ->and($properties)->not->toHaveKey('summary')
-        ->and($properties)->not->toHaveKey('content')
-        ->and($properties)->not->toHaveKey('category')
-        ->and($properties)->not->toHaveKey('syndication');
-
-    // The representative h-card identifies the site, not the locked entry, so
-    // withholding it would tell a reader nothing about who publishes this: it
-    // and the rel="me" links publish unconditionally, even here.
-    $card = $mf2['items'][1];
-
-    expect($card['type'])->toBe(['h-card'])
-        ->and($card['properties']['name'][0])->toBe(config('identity.name'))
-        ->and($card['properties']['note'][0])->toBe(config('identity.bio'))
-        ->and($mf2['rels']['me'])->toBe(['https://github.com/tdrayson']);
-});
-
-it('withholds the vocabulary extension for a locked export even with a matching aspect', function () {
-    $data = new ExportData(
-        type: TimelineType::Event,
-        url: 'https://example.test/events/1',
-        title: 'A gig',
-        summary: null,
-        occurred: null,
-        fields: [],
-        links: [],
-        aspects: [Span::class => Span::across(CarbonImmutable::now(), CarbonImmutable::now()->addHour(), 'The venue')],
-        locked: true,
-    );
-
-    $properties = json_decode((new Mf2Format)->render($data), true)['items'][0]['properties'];
-
-    expect($properties)->not->toHaveKey('event');
 });

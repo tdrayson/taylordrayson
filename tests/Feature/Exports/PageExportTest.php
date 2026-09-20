@@ -53,24 +53,20 @@ it('resolves CommonLinks for a page without throwing, since a page is not Timeli
     expect(CommonLinks::for($page))->toBe([]);
 });
 
-it('publishes only the header for a private page the request has not unlocked', function () {
+it('404s every format for a private page the request has not unlocked', function (string $format) {
     $page = Page::factory()->create([
         'title' => 'Secret', 'status' => 'private', 'password' => 'hunter2',
     ]);
 
-    $response = $this->get('/'.$page->slug.'.json');
+    $this->get('/'.$page->slug.'.'.$format)->assertNotFound();
+})->with(['json', 'yaml', 'txt', 'md', 'mf2']);
 
-    $response->assertOk()
-        ->assertJsonPath('locked', true)
-        ->assertJsonMissingPath('fields')
-        ->assertJsonMissingPath('links')
-        ->assertDontSee('hunter2');
-});
-
-it('keeps a private page export out of shared caches', function () {
+it('keeps an unlocked private page export out of shared caches', function () {
     $page = Page::factory()->create(['status' => 'private', 'password' => 'hunter2']);
 
-    $this->get('/'.$page->slug.'.json')->assertHeader('Cache-Control', 'no-store, private');
+    $this->actingAs(User::factory()->create())
+        ->get('/'.$page->slug.'.json')
+        ->assertHeader('Cache-Control', 'no-store, private');
 });
 
 it('404s an unpublished page for a guest and serves it to its owner', function () {

@@ -46,7 +46,9 @@ class PageController extends Controller
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
-            'formats' => $this->formats($this->exportFor($page, $locked)),
+            // A locked page offers no formats: each would 404, and there is
+            // nothing left to put in one.
+            'formats' => $locked ? [] : $this->formats(ExportPresenter::for($page)),
             ...($locked ? [] : [
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a
@@ -73,31 +75,6 @@ class PageController extends Controller
         }
 
         return $response;
-    }
-
-    /**
-     * This page's export payload, reduced to a header-only copy while
-     * locked so the formats built from it stop advertising a body a locked
-     * visitor cannot actually fetch.
-     */
-    private function exportFor(Page $page, bool $locked): ExportData
-    {
-        $export = ExportPresenter::for($page);
-
-        if (! $locked) {
-            return $export;
-        }
-
-        return new ExportData(
-            type: $export->type,
-            url: $export->url,
-            title: $export->title,
-            summary: null,
-            occurred: $export->occurred,
-            fields: [],
-            links: [],
-            locked: true,
-        );
     }
 
     /**

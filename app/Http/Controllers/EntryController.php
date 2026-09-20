@@ -115,7 +115,9 @@ class EntryController extends Controller
             'unlockUrl' => $locked
                 ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
                 : null,
-            'formats' => $this->formats($this->exportFor($model, $locked)),
+            // A locked entry offers no formats: each would 404, and there is
+            // nothing left to put in one.
+            'formats' => $locked ? [] : $this->formats(ExportPresenter::for($model)),
         ];
 
         $response = Inertia::render('Entry', [
@@ -367,31 +369,6 @@ class EntryController extends Controller
             'platform' => $platform,
             'url' => $model->platform_url,
         ];
-    }
-
-    /**
-     * This entry's export payload, reduced to a header-only copy while
-     * locked so the formats built from it stop advertising fields and links
-     * a locked visitor cannot actually fetch.
-     */
-    private function exportFor(Model $model, bool $locked): ExportData
-    {
-        $export = ExportPresenter::for($model);
-
-        if (! $locked) {
-            return $export;
-        }
-
-        return new ExportData(
-            type: $export->type,
-            url: $export->url,
-            title: $export->title,
-            summary: null,
-            occurred: $export->occurred,
-            fields: [],
-            links: [],
-            locked: true,
-        );
     }
 
     /**

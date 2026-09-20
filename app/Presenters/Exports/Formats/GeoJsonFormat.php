@@ -16,7 +16,7 @@ final class GeoJsonFormat extends Format
 
     public function supports(ExportData $data): bool
     {
-        return ! $data->locked && $data->aspect(Geometry::class) !== null;
+        return $data->aspect(Geometry::class) !== null;
     }
 
     public function render(ExportData $data): string

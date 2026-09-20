@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Data\ExportData;
 use App\Enums\EntryStatus;
 use App\Http\Responses\ExportResponse;
 use App\Models\Page;
@@ -22,23 +21,16 @@ class PageExportController extends Controller
             throw new NotFoundHttpException;
         }
 
-        $data = ExportPresenter::for($page);
-
-        // A locked page publishes its header and nothing else, the same as
-        // the page it mirrors holds its body back.
+        // A locked page has nothing to say in any format: even the title is
+        // withheld on the page, so there is no header left to publish.
         if (! $page->isUnlockedFor(request())) {
-            $data = new ExportData(
-                type: $data->type,
-                url: $data->url,
-                title: $data->title,
-                summary: null,
-                occurred: $data->occurred,
-                fields: [],
-                links: [],
-                locked: true,
-            );
+            throw new NotFoundHttpException;
         }
 
-        return ExportResponse::make($data, $format, $page->status === EntryStatus::Private);
+        return ExportResponse::make(
+            ExportPresenter::for($page),
+            $format,
+            $page->status === EntryStatus::Private,
+        );
     }
 }

@@ -37,7 +37,6 @@ final readonly class ExportData implements Arrayable, JsonSerializable
         public array $links,
         public mixed $body = null,
         public array $aspects = [],
-        public bool $locked = false,
         public ?string $standfirst = null,
     ) {}
 
@@ -91,12 +90,6 @@ final readonly class ExportData implements Arrayable, JsonSerializable
             'summary' => $this->summary,
             'occurred' => $this->occurred?->toArray(),
         ];
-
-        if ($this->locked) {
-            $data['locked'] = true;
-
-            return $data;
-        }
 
         $data['fields'] = array_map(fn (ExportField $field): array => $field->toArray(), $this->fields);
         $data['links'] = array_map(fn (ExportLink $link): array => $link->toArray(), $this->links);

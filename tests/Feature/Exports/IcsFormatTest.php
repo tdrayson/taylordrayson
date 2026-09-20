@@ -50,16 +50,6 @@ it('is unavailable for an export with no span', function () {
         ->and(array_key_exists('ics', Formats::for($withoutSpan)))->toBeFalse();
 });
 
-it('refuses ics for a locked export even if it carries a span aspect', function () {
-    $data = ExportPresenter::for(krkToLgw());
-    $locked = new ExportData(
-        type: $data->type, url: $data->url, title: $data->title, summary: null,
-        occurred: null, fields: $data->fields, links: [], aspects: $data->aspects, locked: true,
-    );
-
-    expect((new IcsFormat)->supports($locked))->toBeFalse();
-});
-
 it('refuses ics for a note with no span aspect at all', function () {
     $note = new ExportData(
         type: TimelineType::Note, url: 'https://example.test/x', title: 'A note',
