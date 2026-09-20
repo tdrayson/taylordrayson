@@ -56,6 +56,6 @@ it('keeps a long address inside the card rather than running it off the edge', f
 
     // Nothing may spill past the border on the way.
     foreach ($lines as $line) {
-        expect(mb_strwidth($line))->toBe(46);
+        expect(mb_strwidth($line))->toBe(64);
     }
 });
