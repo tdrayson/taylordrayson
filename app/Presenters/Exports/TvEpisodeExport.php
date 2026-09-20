@@ -46,7 +46,7 @@ final class TvEpisodeExport
                 ExportField::maybe('number', 'Number', $model->meta->episode === null ? null : (string) $model->meta->episode, $model->meta->episode),
                 ExportField::maybe('rating', 'Rating', $model->rating === null ? null : "{$model->rating} out of 10", $model->rating),
                 ExportField::maybe('owner', 'Name', config('identity.name')),
-                ExportField::make('ticket_number', 'Ticket no.', SerialNumber::for($model->occurred_at, $model->id), $model->id),
+                ExportField::make('ticket_number', 'Ticket no.', SerialNumber::for($model->occurred_at), $model->id),
             ])),
             links: [
                 ...array_values(array_filter([

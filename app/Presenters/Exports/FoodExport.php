@@ -56,7 +56,7 @@ final class FoodExport
                 ExportField::make('items_logged', 'Items logged', (string) $itemCount, $itemCount),
                 ExportField::maybe('owner', 'Name', config('identity.name')),
                 ExportField::maybe('receipt_date', 'Date', $this->receiptDate($model)),
-                ExportField::make('receipt_number', 'Receipt no.', SerialNumber::forDay($model->occurred_at), $model->id),
+                ExportField::make('receipt_number', 'Receipt no.', SerialNumber::for($model->occurred_at), $model->id),
             ])),
             links: CommonLinks::for($model),
             aspects: array_filter([

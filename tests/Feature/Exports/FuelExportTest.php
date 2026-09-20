@@ -3,6 +3,7 @@
 use App\Models\Fuel;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Formats;
+use App\Support\SerialNumber;
 
 it('publishes a fuel fill-up as labelled fields in order', function () {
     $fuel = Fuel::factory()->create([
@@ -32,7 +33,7 @@ it('publishes a fuel fill-up as labelled fields in order', function () {
         ->and($export->field('locality')->display)->toBe('Croydon, CR0 4TQ')
         ->and($export->field('location')->display)->toBe('1 Beddington Lane, Croydon, CR0 4TQ')
         ->and($export->field('receipt_time')->display)->toBe('13-SEP-2026 08:00')
-        ->and($export->field('receipt_number')->display)->toBe(str_pad((string) $fuel->id, 4, '0', STR_PAD_LEFT))
+        ->and($export->field('receipt_number')->display)->toBe(SerialNumber::for($fuel->occurred_at))
         ->and($export->field('litres')->display)->toBe('42.50 L')
         ->and($export->field('price_per_litre')->display)->toBe('161.9p per litre')
         ->and($export->field('cost')->display)->toBe('£68.81')

@@ -62,7 +62,7 @@ final class FlightExport
                 ExportField::maybe('cabin', 'Cabin', $model->cabin_class?->label(), $model->cabin_class?->value),
                 ExportField::maybe('reason', 'Reason', $model->reason?->label(), $model->reason?->value),
                 ExportField::maybe('passenger', 'Passenger', $this->passenger()),
-                ExportField::make('ticket_number', 'Ticket no.', SerialNumber::for($model->occurred_at, $model->id), $model->id),
+                ExportField::make('ticket_number', 'Ticket no.', SerialNumber::for($model->occurred_at), $model->id),
             ])),
             links: [
                 ...array_values(array_filter([
