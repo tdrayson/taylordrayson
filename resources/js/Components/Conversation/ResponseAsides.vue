@@ -1,17 +1,23 @@
 <script setup>
 import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
 import { copyText } from '../../lib/clipboard.js';
+import { useOgCard } from '../../composables/useOgCard.js';
 import Accordion from '../Ui/Accordion.vue';
 
 const props = defineProps({
     // The canonical, absolute URL of the thing being responded to.
     url: { type: String, required: true },
-    // The page's Open Graph payload: { title, description, image }.
+    // The page's Open Graph payload, the same one AppHead publishes.
     og: { type: Object, default: () => ({}) },
 });
 
 // Only the handful of readers who open this panel need the form's chunk.
 const WebmentionForm = defineAsyncComponent(() => import('./WebmentionForm.vue'));
+
+// The card a scraper would fetch. Built the same way as the og:image tag
+// rather than read off og.image, which only an entry sets: a page's card is
+// composed from its heading and would otherwise have nothing to show.
+const cardUrl = useOgCard(() => props.og);
 
 const copied = ref(false);
 const sendingLink = ref(false);
@@ -97,7 +103,7 @@ async function copy() {
             </div>
         </Accordion>
 
-        <Accordion v-if="og.image" variant="quiet" title="Sharing this?">
+        <Accordion variant="quiet" title="Sharing this?">
             <p class="mb-3 text-sm text-neutral-500">
                 This is what shows up when you post the link somewhere.
             </p>
@@ -109,7 +115,7 @@ async function copy() {
                 <!-- The box is reserved at the card's own ratio so opening
                      this panel does not jump when the image arrives. -->
                 <img
-                    :src="og.image"
+                    :src="cardUrl"
                     alt=""
                     loading="lazy"
                     class="block aspect-og w-full border-b border-neutral-50 bg-neutral-50 object-cover"
@@ -124,7 +130,7 @@ async function copy() {
             <p class="mt-3 text-sm text-neutral-500">
                 Want to see how it is made?
                 <a
-                    :href="og.image"
+                    :href="cardUrl"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="the card on its own, opens in a new tab"
