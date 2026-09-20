@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Strava\WebhookController as StravaWebhookController;
 use App\Http\Controllers\Api\V1\FlightController;
 use App\Http\Controllers\Api\V1\HealthExport\ActivityRingsController;
 use App\Http\Controllers\Api\V1\HealthExport\HeartRateController;
@@ -41,4 +42,13 @@ Route::prefix('v1')->middleware('api.token')->name('api.v1.')->group(function ()
     // holds rather than for the app that sends it.
     Route::get('/now', [NowStateController::class, 'show'])->name('now.show');
     Route::post('/now', [NowStateController::class, 'store'])->name('now.store');
+});
+
+// Strava's push callback, outside v1 and outside the token middleware: the
+// payload shape and the handshake are Strava's contract, and it sends no
+// credential of ours. The unguessable path segment is the whole guard, so the
+// URL is a secret and belongs in the env rather than in a route list.
+Route::middleware('strava.webhook')->group(function (): void {
+    Route::get('/strava/webhook/{secret}', [StravaWebhookController::class, 'verify'])->name('strava.webhook.verify');
+    Route::post('/strava/webhook/{secret}', [StravaWebhookController::class, 'store'])->name('strava.webhook.store');
 });

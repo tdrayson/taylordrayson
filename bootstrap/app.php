@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\VerifyStravaWebhookSecret;
 use App\Models\LeaderboardEntry;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
@@ -58,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'api.token' => AuthenticateApiToken::class,
+            'strava.webhook' => VerifyStravaWebhookSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

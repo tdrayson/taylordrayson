@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\FetchStravaActivitySummaries;
+use App\Actions\Strava\FetchStravaActivitySummaries;
 use Illuminate\Support\Facades\Cache;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -14,23 +14,28 @@ beforeEach(function () {
     Cache::flush();
 });
 
-it('pages until exhausted and keys summaries by string id', function () {
+// A short page is the last page. Paging on until an empty one came back spent
+// a second read on every single run, against a 1,000-read daily budget.
+it('pages while a page comes back full and stops on a short one', function () {
+    $full = collect(range(1, 200))
+        ->map(fn (int $i): array => ['id' => $i, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 2])
+        ->all();
+
     Saloon::fake([
         '/oauth/token*' => MockResponse::make(['access_token' => 'token']),
         '/athlete/activities*' => mockSequence([
-            MockResponse::make([['id' => 100, 'start_date' => '2023-10-31T21:00:00Z', 'total_photo_count' => 2]]),
-            MockResponse::make([['id' => 200, 'start_date' => '2023-11-01T08:00:00Z', 'total_photo_count' => 0]]),
-            // The empty page that ends pagination.
-            MockResponse::make([]),
+            MockResponse::make($full),
+            MockResponse::make([['id' => 900, 'start_date' => '2023-11-01T08:00:00Z', 'total_photo_count' => 0]]),
         ]),
     ]);
 
     $summaries = app(FetchStravaActivitySummaries::class)();
 
-    expect($summaries)->toHaveKeys(['100', '200'])
-        ->and($summaries['100']['start_date'])->toBe('2023-10-31T21:00:00Z')
-        ->and($summaries['100']['total_photo_count'])->toBe(2)
-        ->and($summaries['200']['total_photo_count'])->toBe(0);
+    expect($summaries)->toHaveCount(201)
+        ->toHaveKeys(['1', '200', '900'])
+        ->and($summaries['1']['start_date'])->toBe('2023-10-31T21:00:00Z')
+        ->and($summaries['1']['total_photo_count'])->toBe(2)
+        ->and($summaries['900']['total_photo_count'])->toBe(0);
 });
 
 it('returns null when a page request fails', function () {
@@ -45,11 +50,7 @@ it('returns null when a page request fails', function () {
 it('leaves start_date null when the summary has none', function () {
     Saloon::fake([
         '/oauth/token*' => MockResponse::make(['access_token' => 'token']),
-        '/athlete/activities*' => mockSequence([
-            MockResponse::make([['id' => 777, 'total_photo_count' => 2]]),
-            // The empty page that ends pagination.
-            MockResponse::make([]),
-        ]),
+        '/athlete/activities*' => MockResponse::make([['id' => 777, 'total_photo_count' => 2]]),
     ]);
 
     $summaries = app(FetchStravaActivitySummaries::class)();

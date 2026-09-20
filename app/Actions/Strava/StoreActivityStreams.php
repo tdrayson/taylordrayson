@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions;
+namespace App\Actions\Strava;
 
 use App\Models\Activity;
 use App\Services\Strava\Client;

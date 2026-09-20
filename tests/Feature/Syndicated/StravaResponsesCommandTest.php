@@ -151,15 +151,19 @@ it('counts summary page fetches against the same budget as pulls', function () {
         '/api/v3/athlete/activities*' => function () use (&$calls): MockResponse {
             $calls++;
 
-            // An id nothing in the database will ever match: no pull is ever
-            // spent, so the only cost of paginating this far is the page itself.
-            return MockResponse::make([['id' => 900_000 + $calls, 'kudos_count' => 0, 'comment_count' => 0]]);
+            // Ids nothing in the database will ever match: no pull is ever
+            // spent, so the only cost of paginating this far is the page
+            // itself. A full page each time, since a short one now ends the
+            // walk rather than an empty one.
+            return MockResponse::make(collect(range(1, 100))
+                ->map(fn (int $i): array => ['id' => 900_000 + ($calls * 100) + $i, 'kudos_count' => 0, 'comment_count' => 0])
+                ->all());
         },
     ]);
 
     $this->artisan('strava:responses --all')->assertSuccessful();
 
-    expect($calls)->toBe(150);
+    expect($calls)->toBe(90);
 });
 
 // A missed run should not strand an activity's responses past --days: the
@@ -208,7 +212,7 @@ it('caps the self-heal at 90 days when the gap is much longer than that', functi
 });
 
 // Production holds ~1,500 activities and most have nothing on them. Asking
-// Strava about each costs two requests against a 150 ceiling, which is hours
+// Strava about each costs two requests against a 90-read ceiling, which is hours
 // of waiting to be told twice over that there is nothing there.
 it('skips an activity under --all when both sides are empty', function () {
     Activity::factory()->create([
@@ -248,7 +252,7 @@ it('still fetches under --all when the summary is empty but rows are held', func
 // which no single-run assertion would catch.
 //
 // 200 comment-free activities, the real production shape: one request each,
-// so the 150 ceiling lands partway through rather than at a round number.
+// so the 90 ceiling lands partway through rather than at a round number.
 it('covers every activity across a backfill the ceiling interrupts', function () {
     for ($i = 1; $i <= 200; $i++) {
         Activity::factory()->create([
@@ -270,10 +274,15 @@ it('covers every activity across a backfill the ceiling interrupts', function ()
         ->assertSuccessful();
 
     // One summary page plus one kudos request each, stopping on the ceiling.
-    expect(Activity::query()->whereHas('syndicatedResponses')->count())->toBe(149);
+    expect(Activity::query()->whereHas('syndicatedResponses')->count())->toBe(89);
 
-    fakeSummaries($summaries, $details);
-    $this->artisan('strava:responses --all')->assertSuccessful();
+    // Resume until the cursor clears. The property under test is that every
+    // activity is covered exactly once however many interruptions it takes,
+    // so the loop is bounded rather than counted.
+    for ($run = 0; $run < 10 && Cache::get('strava:responses:cursor') !== null; $run++) {
+        fakeSummaries($summaries, $details);
+        $this->artisan('strava:responses --all')->assertSuccessful();
+    }
 
     expect(Activity::query()->whereHas('syndicatedResponses')->count())->toBe(200)
         ->and(SyndicatedResponse::query()->count())->toBe(200)
@@ -370,8 +379,8 @@ it('spends its budget to the request on a mix of one and two cost activities', f
     // over the ceiling, and never stopping with room to spare.
     $spent = 1 + $kudos + $comments;
 
-    expect($spent)->toBeLessThanOrEqual(150)
-        ->and($spent)->toBeGreaterThan(148)
+    expect($spent)->toBeLessThanOrEqual(90)
+        ->and($spent)->toBeGreaterThan(88)
         ->and($comments)->toBeGreaterThan(0)
         ->and($kudos)->toBeGreaterThan($comments);
 });

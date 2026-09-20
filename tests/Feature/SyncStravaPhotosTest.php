@@ -2,7 +2,7 @@
 
 use App\Actions\LocatePhotoOnRoute;
 use App\Actions\ResolvePhotoCoordinate;
-use App\Actions\SyncStravaPhotos;
+use App\Actions\Strava\SyncStravaPhotos;
 use App\Models\Activity;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;

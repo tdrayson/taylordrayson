@@ -2,6 +2,8 @@
 
 namespace App\Services\Strava;
 
+use App\Data\StravaSubscriptionResult;
+
 /**
  * Client for the Strava API. The OAuth refresh-token flow, token caching and
  * the re-authenticate-on-401 retry all live on {@see Connector}.
@@ -93,5 +95,72 @@ class Client
             'keys' => implode(',', $keys),
             'key_by_type' => 'true',
         ]);
+    }
+
+    /**
+     * The application's push subscription, or a result carrying Strava's own
+     * refusal. Strava allows exactly one per client id, so this is a list of
+     * zero or one.
+     */
+    public function subscription(): StravaSubscriptionResult
+    {
+        $response = $this->connector->send(new PushSubscriptionsRequest);
+
+        if ($response->failed()) {
+            return new StravaSubscriptionResult(false, error: $this->errorFrom($response->json(), $response->status()));
+        }
+
+        $subscription = $response->json()[0] ?? null;
+
+        return new StravaSubscriptionResult(
+            true,
+            isset($subscription['id']) ? (int) $subscription['id'] : null,
+            $subscription['callback_url'] ?? null,
+        );
+    }
+
+    /**
+     * Subscribe to push events. Strava verifies the callback before accepting,
+     * so a failure here is usually the endpoint rather than the credentials,
+     * and its message says which.
+     */
+    public function createSubscription(string $callbackUrl, string $verifyToken): StravaSubscriptionResult
+    {
+        $response = $this->connector->send(new CreatePushSubscriptionRequest($callbackUrl, $verifyToken));
+
+        if ($response->failed()) {
+            return new StravaSubscriptionResult(false, error: $this->errorFrom($response->json(), $response->status()));
+        }
+
+        return new StravaSubscriptionResult(true, (int) $response->json('id'), $callbackUrl);
+    }
+
+    public function deleteSubscription(int $id): StravaSubscriptionResult
+    {
+        $response = $this->connector->send(new DeletePushSubscriptionRequest($id));
+
+        return $response->failed()
+            ? new StravaSubscriptionResult(false, $id, error: $this->errorFrom($response->json(), $response->status()))
+            : new StravaSubscriptionResult(true, $id);
+    }
+
+    /**
+     * Strava's refusals arrive as `errors: [{resource, field, code}]` with a
+     * `message` above them. Both matter: the message names the problem and the
+     * codes say which field caused it.
+     *
+     * @param  array<array-key, mixed>|null  $body
+     */
+    private function errorFrom(?array $body, int $status): string
+    {
+        $message = is_string($body['message'] ?? null) ? $body['message'] : "HTTP {$status}";
+
+        $fields = collect($body['errors'] ?? [])
+            ->filter(fn (mixed $error): bool => is_array($error))
+            ->map(fn (array $error): string => trim(($error['field'] ?? '').' '.($error['code'] ?? '')))
+            ->filter()
+            ->implode(', ');
+
+        return $fields === '' ? $message : "{$message} ({$fields})";
     }
 }

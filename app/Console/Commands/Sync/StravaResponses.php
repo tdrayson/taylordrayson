@@ -19,8 +19,13 @@ use Illuminate\Support\Facades\Cache;
 #[Description('Pull the kudos and comments left on Strava onto the activities they belong to')]
 class StravaResponses extends Command
 {
-    /** Strava allows 200 requests per 15 minutes, and the syncs want some too. */
-    private const MAX_REQUESTS = 150;
+    /**
+     * Every request here is a read, and reads have their own ceiling of 100 per
+     * 15 minutes, half the overall 200. The old 150 was measured against the
+     * wrong limit, so a backfill reliably 429'd the other syncs for the rest of
+     * the window. 90 matches {@see BackfillStravaDescriptions}.
+     */
+    private const MAX_REQUESTS = 90;
 
     /** Where the last unfinished backfill stopped. */
     private const CURSOR = 'strava:responses:cursor';
@@ -274,6 +279,12 @@ class StravaResponses extends Command
             }
 
             yield from $summaries;
+
+            // A short page is the last page. Waiting for an empty one instead
+            // spent a second read on every run.
+            if (count($summaries) < self::PER_PAGE) {
+                return;
+            }
         }
     }
 }

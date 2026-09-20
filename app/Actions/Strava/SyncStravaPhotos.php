@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Actions;
+namespace App\Actions\Strava;
 
+use App\Actions\ResolvePhotoCoordinate;
 use App\Models\Activity;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
