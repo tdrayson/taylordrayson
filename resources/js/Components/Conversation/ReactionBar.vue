@@ -1,5 +1,5 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
@@ -44,6 +44,12 @@ const props = defineProps({
 });
 
 const compact = computed(() => props.variant === 'compact');
+
+/**
+ * Signed in is me, and reacting to my own entry is not a gesture worth
+ * recording. Only the picker goes: the count stays and comments are untouched.
+ */
+const canReact = computed(() => usePage().props.signedIn !== true);
 
 /** One place for every size that differs, rather than a ternary per element. */
 const sizes = computed(() => (compact.value
@@ -155,6 +161,15 @@ const summaryLabel = computed(() => {
     return parts.length ? parts.join(', ') : 'No reactions yet';
 });
 
+/** Just the figure: which kinds they were is what the pile beside it says. */
+const reactionsLabel = computed(() => {
+    if (! total.value) {
+        return 'No reactions yet';
+    }
+
+    return `${total.value} ${total.value === 1 ? 'reaction' : 'reactions'}`;
+});
+
 /**
  * Toggle a reaction, replacing the whole bar with the server's answer so a
  * click that raced somebody else's still lands on the true counts.
@@ -209,7 +224,7 @@ function press() {
             <!-- One joined grey box for the counts, answered or not, so the row keeps
                  its shape when the first response arrives. -->
             <CountGroup :size="sizes.group">
-            <CountSegment :padded="false">
+            <CountSegment v-if="canReact" :padded="false">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
             <div
@@ -285,6 +300,15 @@ function press() {
                 </div>
                 </Transition>
             </div>
+            </CountSegment>
+
+            <!-- Signed in, the same figure reads as a count rather than a
+                 control, alongside the gesture segments it now matches. -->
+            <CountSegment v-else :aria-label="reactionsLabel" :class="sizes.text">
+                <Tooltip :label="reactionsLabel" placement="top" :class="['items-center', sizes.gap]">
+                    <Icon name="ThumbsUpIcon" :class="sizes.icon" />
+                    <span class="tabular-nums">{{ total }}</span>
+                </Tooltip>
             </CountSegment>
 
             <!-- On the feed this jumps to the entry's responses; on the entry
