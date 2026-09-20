@@ -1,6 +1,9 @@
 <?php
 
 use App\Actions\Webmentions\StoreAuthorPhoto;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
@@ -29,7 +32,7 @@ function servePhoto(string $url, array $thenReplyWith): void
 
 afterEach(function () {
     File::deleteDirectory(public_path('avatars'));
-    File::deleteDirectory(storage_path('app/avatar-validators'));
+    Cache::flush();
 });
 
 it('keeps the photo it has when a refresh cannot be fetched', function () {
@@ -62,6 +65,26 @@ it('asks with a validator and does no work when told nothing changed', function 
         ->and(File::lastModified(public_path($path)))->toBe($written);
 
     Http::assertSent(fn ($request) => $request->hasHeader('If-None-Match', '"abc123"'));
+});
+
+it('stores the photo even when the validator cannot be cached', function () {
+    $url = 'https://example.com/me.png';
+
+    servePhoto($url, []);
+
+    // What a Redis outage looks like from here: the store is there, writing to it throws.
+    Cache::swap(new class(new ArrayStore) extends Repository
+    {
+        public function put($key, $value, $ttl = null)
+        {
+            throw new RuntimeException('cache unreachable');
+        }
+    });
+
+    $action = app(StoreAuthorPhoto::class);
+
+    expect($action($url))->not->toBeNull()
+        ->and($action->outcome)->toBe('stored');
 });
 
 it('replaces the photo when the image behind the same URL has changed', function () {

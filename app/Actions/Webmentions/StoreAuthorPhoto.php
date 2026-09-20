@@ -3,6 +3,7 @@
 namespace App\Actions\Webmentions;
 
 use App\Support\SafeFetch;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Image;
@@ -29,6 +30,9 @@ class StoreAuthorPhoto
     private const SIZE = 96;
 
     private const QUALITY = 82;
+
+    /** Long enough to survive several missed monthly refreshes, short enough that an orphan ages out. */
+    private const VALIDATOR_TTL_DAYS = 180;
 
     /**
      * What the last call did, for a caller that wants to report it. Written on
@@ -123,33 +127,30 @@ class StoreAuthorPhoto
         return $body;
     }
 
-    /**
-     * Where the ETag for a photo is kept. Beside the image would be simpler,
-     * but public/avatars is served to the web and holds images only.
-     */
-    private function validatorPath(string $url): string
+    /** Where the ETag for a photo is kept. Hashed because the URL is long and arbitrary. */
+    private function validatorKey(string $url): string
     {
-        return storage_path('app/avatar-validators/'.hash('sha256', $url).'.json');
+        return 'avatar-validator:'.hash('sha256', $url);
     }
 
     /** The conditional headers for a photo we already hold, if we kept any. */
     private function storedValidator(string $url): array
     {
-        $stored = rescue(fn () => File::get($this->validatorPath($url)), null, report: false);
-        $decoded = $stored === null ? null : json_decode($stored, true);
+        $stored = rescue(fn () => Cache::get($this->validatorKey($url)), null, report: false);
 
-        if (! is_array($decoded)) {
+        if (! is_array($stored)) {
             return [];
         }
 
         return array_filter([
-            'If-None-Match' => $decoded['etag'] ?? null,
-            'If-Modified-Since' => $decoded['modified'] ?? null,
+            'If-None-Match' => $stored['etag'] ?? null,
+            'If-Modified-Since' => $stored['modified'] ?? null,
         ]);
     }
 
     /**
-     * Keep whatever the server gave us to ask with next time.
+     * Keep whatever the server gave us to ask with next time. A validator we
+     * fail to store costs one extra download later, so it never fails a caller.
      *
      * @param  array<string, string>  $headers
      */
@@ -162,10 +163,11 @@ class StoreAuthorPhoto
             return;
         }
 
-        $path = $this->validatorPath($url);
-
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, json_encode(array_filter(['etag' => $etag, 'modified' => $modified])));
+        rescue(fn () => Cache::put(
+            $this->validatorKey($url),
+            array_filter(['etag' => $etag, 'modified' => $modified]),
+            now()->addDays(self::VALIDATOR_TTL_DAYS),
+        ), report: false);
     }
 
     /**
