@@ -142,7 +142,7 @@ it('shows the mention in the linked entry\'s conversation', function () {
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->where('conversation.responses.0.kind', 'mention-internal')
-            ->where('conversation.responses.0.authorName', config('feed.author_name'))
+            ->where('conversation.responses.0.authorName', config('identity.name'))
             // A path, not a host: the source is a page on this site, so there
             // is no "via somewhere-else" to close the byline with.
             ->where('conversation.responses.0.sourceHost', null)
