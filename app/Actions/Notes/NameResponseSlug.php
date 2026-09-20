@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 /**
  * The slug a response note is stored with when none was written: what it did,
  * then what it answered, e.g. `reply-to-sending-your-first-webmention`, or
- * `like-back-under-the-bar` for one of my own entries.
+ * `liked-back-under-the-bar` for one of my own entries.
  *
  * The editor previews this, so responseSlug() in resources/js/lib/editor/defaults.js
  * has to apply the same rule.
@@ -49,16 +49,14 @@ final class NameResponseSlug
         return self::words(str_replace('-', ' ', Str::afterLast($target->url(), '/')));
     }
 
-    /** The citation's title or author, as far as this kind uses them, else the domain. */
+    /** The citation's title, or a reply's author when the post had none, else the domain. */
     private static function external(ResponseKind $kind, Note $note, string $url): string
     {
         $citation = $note->citation;
 
-        $candidates = match ($kind) {
-            ResponseKind::Reply => [$citation?->title, $citation?->author_name],
-            ResponseKind::Rsvp => [$citation?->title],
-            ResponseKind::Like, ResponseKind::Repost => [],
-        };
+        $candidates = $kind === ResponseKind::Reply
+            ? [$citation?->title, $citation?->author_name]
+            : [$citation?->title];
 
         foreach ($candidates as $candidate) {
             $slug = self::words($candidate);
@@ -71,9 +69,15 @@ final class NameResponseSlug
         return Str::slug(str_replace('.', ' ', Links::host($url) ?? ''));
     }
 
+    /** What the slug says I did, past tense, reading as the sentence a card speaks. */
     private static function prefix(ResponseKind $kind): string
     {
-        return $kind === ResponseKind::Reply ? 'reply-to' : $kind->value;
+        return match ($kind) {
+            ResponseKind::Reply => 'reply-to',
+            ResponseKind::Like => 'liked',
+            ResponseKind::Repost => 'reposted',
+            ResponseKind::Rsvp => 'rsvp',
+        };
     }
 
     /** A name cut to the words a note's own slug uses, slugged. */

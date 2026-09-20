@@ -77,9 +77,10 @@ describe('responseSlug', () => {
         assert.equal(responseSlug({ kind: 'rsvp', url, rsvp: '' }), null);
     });
 
-    it('names a like or repost after the domain, whatever was fetched', () => {
-        assert.equal(responseSlug({ kind: 'like', url, preview: cited('A Title') }), 'like-example-com');
-        assert.equal(responseSlug({ kind: 'repost', url: 'https://aaronparecki.com/a' }), 'repost-aaronparecki-com');
+    it('names a like or repost after the title, then the domain, never the author', () => {
+        assert.equal(responseSlug({ kind: 'like', url, preview: cited('A Title') }), 'liked-a-title');
+        assert.equal(responseSlug({ kind: 'like', url, preview: cited(null, 'Aaron Parecki') }), 'liked-example-com');
+        assert.equal(responseSlug({ kind: 'repost', url: 'https://aaronparecki.com/a' }), 'reposted-aaronparecki-com');
     });
 
     it('names a reply after the title, then the author, then the domain', () => {
@@ -102,8 +103,8 @@ describe('responseSlug', () => {
         const preview = { url: own, internal: true, title: 'My Great Article', cited: null };
 
         assert.equal(responseSlug({ kind: 'reply', url: own, preview }), 'reply-to-back-under-the-bar');
-        assert.equal(responseSlug({ kind: 'like', url: own, preview }), 'like-back-under-the-bar');
-        assert.equal(responseSlug({ kind: 'repost', url: own, preview }), 'repost-back-under-the-bar');
+        assert.equal(responseSlug({ kind: 'like', url: own, preview }), 'liked-back-under-the-bar');
+        assert.equal(responseSlug({ kind: 'repost', url: own, preview }), 'reposted-back-under-the-bar');
         assert.equal(responseSlug({ kind: 'rsvp', url: own, rsvp: 'yes', preview }), 'rsvp-back-under-the-bar');
     });
 
@@ -111,7 +112,7 @@ describe('responseSlug', () => {
         const own = 'https://taylordrayson.test/one-two-three-four-five-six-seven-eight';
         const preview = { url: own, internal: true, title: 'A page', cited: null };
 
-        assert.equal(responseSlug({ kind: 'like', url: own, preview }), 'like-one-two-three-four-five-six');
+        assert.equal(responseSlug({ kind: 'like', url: own, preview }), 'liked-one-two-three-four-five-six');
     });
 
     it('ignores a preview fetched for a different url', () => {
