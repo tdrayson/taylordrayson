@@ -1,6 +1,6 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
 import CountGroup from '../Ui/CountGroup.vue';
@@ -43,6 +43,10 @@ const props = defineProps({
     url: { type: String, default: null },
 });
 
+// The server's answer to a click, handed up so whatever counts the bar sits
+// under can move with it rather than waiting for a reload.
+const emit = defineEmits(['reacted']);
+
 const compact = computed(() => props.variant === 'compact');
 
 /**
@@ -79,6 +83,13 @@ const glyph = (bucket) => GLYPHS[bucket.key] ?? null;
 const discOf = (g) => ({ background: g.colour, color: 'var(--color-reaction-glyph)' });
 
 const buckets = ref([...props.reactions]);
+
+// Follows the prop when the page refreshes its counts, so a bar that has been
+// clicked still ends up on what the server last said.
+watch(() => props.reactions, (value) => {
+    buckets.value = [...value];
+});
+
 const busy = ref(null);
 const failed = ref(false);
 const picking = ref(false);
@@ -195,6 +206,7 @@ async function toggle(bucket) {
         }
 
         buckets.value = (await response.json()).reactions;
+        emit('reacted', buckets.value);
     } catch {
         failed.value = true;
     } finally {

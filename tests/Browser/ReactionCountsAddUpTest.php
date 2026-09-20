@@ -57,3 +57,22 @@ it('adds the summary row up to the number in the heading', function () {
         11,
     );
 });
+
+/**
+ * The heading is computed from the same counts the bar posts, so a click has to
+ * move both. It used to read off the page props, which meant the number only
+ * caught up on the next full load.
+ */
+it('moves the heading with a reaction as it is clicked', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => now()->subHour(),
+        'content' => PortableText::fromPlainText('Nothing has happened here yet.'),
+    ]);
+
+    $page = visit($note->url())->assertPresent('[data-testid="reaction-bar"]');
+
+    $page->assertSee('No interactions yet')
+        ->click('[aria-label="React to this"]')
+        ->assertSee('1 interaction')
+        ->assertNoJavaScriptErrors();
+});

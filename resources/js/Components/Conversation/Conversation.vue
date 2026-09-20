@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
+import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue';
 import ReactionBar from './ReactionBar.vue';
 import ResponseAsides from './ResponseAsides.vue';
 import ResponseItem from './ResponseItem.vue';
@@ -157,9 +157,20 @@ const formFollows = computed(() => {
  */
 const countOf = (...kinds) => props.conversation.responses.filter((item) => kinds.includes(item.kind)).length;
 
+/**
+ * The bar's counts, held here rather than read straight off the prop: a click
+ * answers with the true counts, and the heading has to move with them instead
+ * of waiting for the page to be loaded again.
+ */
+const reactions = ref([...props.conversation.reactions]);
+
+watch(() => props.conversation.reactions, (value) => {
+    reactions.value = [...value];
+});
+
 // On-site clicks plus the gestures that mean the same thing from somebody
 // else's site: a like sent by webmention, and a single-emoji reply.
-const onSite = computed(() => props.conversation.reactions.reduce((sum, bucket) => sum + bucket.count, 0));
+const onSite = computed(() => reactions.value.reduce((sum, bucket) => sum + bucket.count, 0));
 const likeCount = computed(() => countOf('like', 'reacji'));
 const reactionCount = computed(() => onSite.value + likeCount.value);
 
@@ -217,7 +228,7 @@ async function reply(item) {
             <!-- A summary line, not a labelled section: the counts read as part
                  of the entry rather than as a form to fill in. -->
             <ReactionBar
-                :reactions="conversation.reactions"
+                :reactions="reactions"
                 :like-count="likeCount"
                 :reply-count="replyCount"
                 :repost-count="repostCount"
@@ -226,6 +237,7 @@ async function reply(item) {
                 :mention-count="mentionCount"
                 :type="conversation.type"
                 :id="conversation.id"
+                @reacted="reactions = $event"
             />
 
             <div v-if="thread.length">
