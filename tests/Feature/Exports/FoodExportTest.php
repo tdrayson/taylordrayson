@@ -39,7 +39,7 @@ it('publishes a food day as its aggregated totals, not one row', function () {
         ->and($export->field('items_logged')->display)->toBe('2')
         ->and($export->field('owner')->display)->toBe(config('identity.name'))
         ->and($export->field('receipt_date')->display)->toBe('13 Sep 2026')
-        ->and($export->field('receipt_number')->display)->toBe(SerialNumber::for($lunch->occurred_at, $lunch->id));
+        ->and($export->field('receipt_number')->display)->toBe(SerialNumber::forDay($lunch->occurred_at));
 });
 
 it('publishes a MealBreakdown aspect with every item already formatted', function () {

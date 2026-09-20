@@ -21,4 +21,15 @@ final class SerialNumber
             ? $sequence
             : $occurredAt->format('Ymd').'-'.$sequence;
     }
+
+    /**
+     * The serial for something there is exactly one of per day, such as a
+     * food receipt. No sequence: a day's receipt is assembled from every row
+     * logged that day, and keying it to one of their ids would change the
+     * number depending on which row happened to answer the URL.
+     */
+    public static function forDay(?CarbonInterface $occurredAt): string
+    {
+        return $occurredAt === null ? '0000' : $occurredAt->format('Ymd');
+    }
 }

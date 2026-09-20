@@ -16,3 +16,11 @@ it('dates a serial and keeps the sequence unique within that date', function () 
 it('falls back to the bare sequence when an entry has no date', function () {
     expect(SerialNumber::for(null, 42))->toBe('0042');
 });
+
+it('gives a day the same serial whichever of its rows is asked', function () {
+    $when = CarbonImmutable::parse('2026-09-19 23:59:59');
+
+    // Five food rows share a day and a URL, so they are one receipt.
+    expect(SerialNumber::forDay($when))->toBe('20260919')
+        ->and(SerialNumber::forDay($when))->toBe(SerialNumber::forDay($when->addSeconds(0)));
+});
