@@ -1,4 +1,6 @@
 <script setup>
+import { usePage } from '@inertiajs/vue3';
+
 /**
  * The site's author as a microformats reference, hidden from view.
  *
@@ -11,8 +13,9 @@
  * links: parsers read the DOM and ignore CSS, so it needs no place in the
  * visible design.
  */
+const page = usePage();
 </script>
 
 <template>
-    <a class="p-author h-card" href="/" hidden>Taylor Drayson</a>
+    <a class="p-author h-card" href="/" hidden>{{ page.props.identity.name }}</a>
 </template>

@@ -1,21 +1,25 @@
 <script setup>
-import { ref, onBeforeUnmount } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, onBeforeUnmount, computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
 import Heading from '../Ui/Heading.vue';
 import { identityProfiles } from '../../lib/identity.js';
 import { useMounted } from '../../composables/useMounted';
 
 const mounted = useMounted();
+const page = usePage();
 
-defineProps({
-    name: { type: String, default: 'Taylor Drayson' },
-    bio: {
-        type: String,
-        default: 'I build stuff on the internet, track everything, and drink too much coffee.',
-    },
-    avatar: { type: String, default: '/taylor-cutout.png' },
+const props = defineProps({
+    name: { type: String, default: null },
+    bio: { type: String, default: null },
+    avatar: { type: String, default: null },
 });
+
+// Falls back to the site's own identity when a caller doesn't override
+// these, so the card matches the config everything else reads from.
+const name = computed(() => props.name ?? page.props.identity.name);
+const bio = computed(() => props.bio ?? page.props.identity.bio);
+const avatar = computed(() => props.avatar ?? page.props.identity.avatar);
 
 // Tuning for the gravity simulation. All in px and seconds so the maths reads
 // physically; the loop is frame-rate independent (dt-based) so it looks the

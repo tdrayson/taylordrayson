@@ -76,7 +76,7 @@ onUnmounted(() => {
         <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
-                <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
+                <span class="font-display text-lg font-extrabold tracking-tight">{{ page.props.identity.name }}</span>
             </Link>
             <button
                 v-if="! props.minimal"
