@@ -13,16 +13,14 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('trakt:sync --days=1 --skip-ratings')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('trakt:sync --ratings-only')->dailyAt('04:10')->withoutOverlapping();
 
-// Strava fetches the polyline and photos inline, so an activity is complete
-// on arrival apart from its charts (see the enrichment block below). It also
-// compares each summary against the row it already has, so a title rewritten
-// or photos added after Strava auto-published arrive on the next run.
-Schedule::command('strava:sync --days=2')->everyFiveMinutes()->withoutOverlapping();
-
-// A description written on its own leaves the summary identical, so nothing
-// above can see it. This asks Strava outright, which costs one request per
-// activity in the last two days: a handful, and only once an hour.
-Schedule::command('strava:sync --days=2 --refresh')->hourly()->withoutOverlapping();
+// Strava pushes activity creates, edits and deletes to the webhook, so this is
+// no longer how an activity is found: it is the safety net for an event that
+// never arrived, and for the one edit the events do not cover. Strava's
+// `updates` hash documents only title, type and private, so a description
+// written on its own is not reliably pushed; --refresh asks outright, which
+// costs one request per activity in the window. Twice a day caps that lag at
+// twelve hours for about seven reads.
+Schedule::command('strava:sync --days=2 --refresh')->twiceDaily(4, 16)->withoutOverlapping();
 
 // Kudos and comments left on an activity after it published. Only the
 // summary counts are checked each run, so a quiet activity costs nothing.
@@ -51,9 +49,10 @@ Schedule::command('this-week-with:sync')->dailyAt('05:20')->withoutOverlapping()
 // Enrichment: derived work for rows capture has already stored. All skip what is
 // done, so they are cheap when idle and double as a repair pass.
 
-// Activity streams (the heart-rate, elevation and speed charts) are the one
-// part of an activity that strava:sync does not fetch inline.
-Schedule::command('strava:streams')->hourly()->withoutOverlapping();
+// Activity streams are fetched as each activity is stored now, so this is the
+// repair pass for an activity whose streams Strava had not finished processing
+// at the time. It spends nothing at all when none are missing.
+Schedule::command('strava:streams')->dailyAt('04:30')->withoutOverlapping();
 
 // Static timeline maps for newly located entries of each mappable type.
 Schedule::command('maps:generate flight')->hourly()->withoutOverlapping();
