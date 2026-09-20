@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions;
+namespace App\Actions\Strava;
 
 use App\Services\Strava\Client;
 
@@ -30,15 +30,17 @@ class FetchStravaActivitySummaries
                 return null;
             }
 
-            if ($batch === []) {
-                return $summaries;
-            }
-
             foreach ($batch as $summary) {
                 $summaries[(string) $summary['id']] = [
                     'start_date' => $summary['start_date'] ?? null,
                     'total_photo_count' => (int) ($summary['total_photo_count'] ?? 0),
                 ];
+            }
+
+            // A short page is the last page; waiting for an empty one spends a
+            // second read every run.
+            if (count($batch) < self::PER_PAGE) {
+                return $summaries;
             }
 
             $page++;

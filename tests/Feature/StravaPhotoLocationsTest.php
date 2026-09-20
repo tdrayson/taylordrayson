@@ -42,13 +42,11 @@ function fakeStravaLocations(array $summaries, array $streams, array $photos = [
 
     Saloon::fake([
         '/oauth/token*' => MockResponse::make(['access_token' => 'token']),
-        // Two full pages (summaries, then empty to end pagination) per command
-        // invocation. One of the tests below runs the command twice.
+        // One page per command invocation: a short page is the last page. One
+        // of the tests below runs the command twice.
         '/athlete/activities*' => mockSequence([
             MockResponse::make($summaries),
-            MockResponse::make([]),
             MockResponse::make($summaries),
-            MockResponse::make([]),
         ]),
         '/photos*' => MockResponse::make($photos),
         '/streams*' => MockResponse::make($streams),
