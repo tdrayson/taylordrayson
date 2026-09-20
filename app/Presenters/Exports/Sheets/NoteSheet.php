@@ -18,7 +18,22 @@ final class NoteSheet
 
     public function render(ExportData $data): string
     {
-        return Sheet::join([Sheet::box($this->wrappedLines($this->bodyText($data)), self::WIDTH)]);
+        return Sheet::join([
+            Sheet::box($this->wrappedLines($this->bodyText($data)), self::WIDTH),
+            ...$this->when($data),
+        ]);
+    }
+
+    /**
+     * When it was written, set right under the card like a signature.
+     *
+     * @return list<string>
+     */
+    private function when(ExportData $data): array
+    {
+        return $data->occurred === null
+            ? []
+            : ['', Sheet::row('', $data->occurred->display, self::WIDTH)];
     }
 
     private function bodyText(ExportData $data): string

@@ -19,38 +19,30 @@ final class TvEpisodeSheet
 {
     public const WIDTH = 46;
 
-    private const INNER = self::WIDTH - 2;
-
     /** Where a paired row's second label starts, so SEASON/NUMBER and DATE/RATED line up. */
-    private const COLUMN = 22;
-
-    /** Left margin for every content row, so text doesn't sit flush against the tear edge. */
-    private const MARGIN = '  ';
-
     public function render(ExportData $data): string
     {
         return Sheet::join([
             Sheet::ticket([
                 $this->header($data),
                 null,
-                ...array_map(fn (string $line): string => self::MARGIN.$line, $this->details($data)),
+                ...$this->details($data),
                 null,
-                Sheet::centre(Sheet::barcode($this->seed($data)), self::INNER),
-                self::MARGIN.$this->footer($data),
+                ['centre' => Sheet::barcode($this->seed($data))],
+                $this->footer($data),
             ], self::WIDTH),
         ]);
     }
 
     /**
-     * The show name, centred when it fits the stub's default width. A show
-     * name longer than that is left uncentred rather than clipped: the
-     * ticket widens around it instead of cutting a title short.
+     * The show name. A name wider than the stub's default widens the ticket
+     * rather than being clipped.
+     *
+     * @return array<string, string>
      */
-    private function header(ExportData $data): string
+    private function header(ExportData $data): array
     {
-        $show = mb_strtoupper($this->value($data, 'show'));
-
-        return mb_strwidth($show) > self::INNER ? $show : Sheet::centre($show, self::INNER);
+        return ['centre' => mb_strtoupper($this->value($data, 'show'))];
     }
 
     /**
@@ -58,50 +50,39 @@ final class TvEpisodeSheet
      * its date and rating paired on the next. A row drops entirely only when
      * both of its fields are absent; either side alone still prints.
      *
-     * @return list<string>
+     * @return list<array<string, string>>
      */
     private function details(ExportData $data): array
     {
         return array_values(array_filter([
             $this->labelled('EPISODE', $data->field('episode')),
-            $this->pair('SEASON', $data->field('season'), 'NUMBER', $data->field('number')),
-            $this->pair('DATE', $data->field('date'), 'RATED', $data->field('rating')),
+            $this->labelled('SEASON', $data->field('season')),
+            $this->labelled('NUMBER', $data->field('number')),
+            $this->labelled('DATE', $data->field('date')),
+            $this->labelled('RATED', $data->field('rating')),
         ]));
     }
 
-    private function labelled(string $label, ?ExportField $field): ?string
+    /** @return array<string, string>|null */
+    private function labelled(string $label, ?ExportField $field): ?array
     {
-        return $field === null ? null : str_pad($label, 6).': '.$field->display;
+        return $field === null ? null : ['label' => $label, 'value' => $field->display];
     }
 
     /**
-     * Two fields on one row, the second under its own literal label since a
-     * ticket abbreviates it ("Rating" the field, "RATED" the row). Either
-     * side is dropped when its field is absent; the row drops when both are.
+     * The ticket number and the ticket holder, on the stub's last row.
+     *
+     * @return array<string, string>
      */
-    private function pair(string $leftLabel, ?ExportField $left, string $rightLabel, ?ExportField $right): ?string
-    {
-        $leftText = $left === null ? '' : str_pad($leftLabel, 6).': '.$left->display;
-        $rightText = $right === null ? '' : $rightLabel.': '.$right->display;
-
-        return match (true) {
-            $leftText === '' && $rightText === '' => null,
-            $rightText === '' => $leftText,
-            $leftText === '' => $rightText,
-            default => str_pad($leftText, self::COLUMN).$rightText,
-        };
-    }
-
-    /** The ticket number and the ticket holder, paired on the stub's last row. */
-    private function footer(ExportData $data): string
+    private function footer(ExportData $data): array
     {
         $number = $data->field('ticket_number');
         $owner = $data->field('owner');
 
-        $left = $number === null ? '' : 'No. '.$number->display;
-        $right = $owner === null ? '' : str_replace(' ', '', mb_strtoupper($owner->display));
-
-        return $right === '' ? $left : str_pad($left, self::COLUMN).$right;
+        return [
+            'label' => $number === null ? '' : 'No. '.$number->display,
+            'value' => $owner === null ? '' : str_replace(' ', '', mb_strtoupper($owner->display)),
+        ];
     }
 
     /** The ticket number's raw id, the only `->raw` read: it seeds the barcode's bar widths, not its content. */

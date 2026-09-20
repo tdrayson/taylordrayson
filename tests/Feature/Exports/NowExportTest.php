@@ -18,7 +18,7 @@ it('reaches the now export rather than the page export', function () {
     expect($this->get('/now.json')->json('title'))->not->toBe('A page called now');
 });
 
-it('publishes last night, reading, the latest episode and recent photos as fields', function () {
+it('publishes last night and the latest episode as fields', function () {
     Sleep::factory()->create(['occurred_at' => today(), 'duration' => 27300, 'status' => 'published']);
     ThisWeekWith::factory()->create([
         'occurred_at' => now()->subDay(), 'season_number' => 3, 'episode_number' => 12,
@@ -27,11 +27,14 @@ it('publishes last night, reading, the latest episode and recent photos as field
 
     $export = (new NowExport)->present();
 
+    // The episode's topic is deliberately absent: a rundown runs to hundreds
+    // of characters and told a reader nothing the number does not.
     expect($export->type)->toBe('now')
-        ->and($export->field('sleep')->display)->toBe('7h 35m')
-        ->and($export->field('sleep')->raw)->toBe(27300)
-        ->and($export->field('episode')->display)->toBe('S3E12, Side Projects')
-        ->and($export->field('episode')->raw)->toBe(['season' => 3, 'episode' => 12]);
+        ->and($export->field('slept')->display)->toBe('7h 35m')
+        ->and($export->field('slept')->raw)->toBe(27300)
+        ->and($export->field('episode')->display)->toBe('S3E12')
+        ->and($export->field('episode')->raw)->toBe(['season' => 3, 'episode' => 12])
+        ->and($export->field('topic'))->toBeNull();
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 

@@ -3,7 +3,6 @@
 namespace App\Presenters\Exports\Sheets;
 
 use App\Data\ExportData;
-use App\Data\ExportField;
 
 /**
  * A book printed as its library card. Reads the export only: every string
@@ -22,16 +21,16 @@ final class BookSheet
             ...$this->centredBlock($this->value($data, 'author')),
             '',
             Sheet::rule(self::WIDTH, '-'),
-            ...$this->maybeLeader($data, 'Pages', 'pages'),
+            ...$this->maybeRow($data, 'PAGES', 'pages'),
             ...$this->progress($data),
-            ...$this->maybeLeader($data, 'Started', 'started'),
+            ...$this->maybeRow($data, 'STARTED', 'started'),
             Sheet::rule(self::WIDTH, '-'),
         ]);
     }
 
     /**
-     * Progress as a dotted leader row plus a bar, sized from raw against the
-     * 0-100 scale. Dropped entirely when there is no progress reading.
+     * Progress as a label, a bar and its percentage, matching the sleep
+     * stages. Dropped entirely when there is no progress reading.
      *
      * @return list<string>
      */
@@ -43,30 +42,25 @@ final class BookSheet
             return [];
         }
 
-        $labelColumn = str_pad('Progress', 10);
-        $percentColumn = str_pad($field->display, 8, ' ', STR_PAD_LEFT);
-        $barWidth = self::WIDTH - mb_strlen($labelColumn) - mb_strlen($percentColumn) - 2;
+        $labelColumn = str_pad('PROGRESS', 10);
+        $percentColumn = str_pad($field->display, 4, ' ', STR_PAD_LEFT);
+        $barWidth = self::WIDTH - mb_strwidth($labelColumn) - mb_strwidth($percentColumn) - 2;
 
         // Geometry (the bar's width) reads raw for precision; the printed percentage still comes from display.
         return [$labelColumn.' '.Sheet::bar((float) $field->raw / 100, $barWidth).' '.$percentColumn];
     }
 
     /**
-     * A dotted label/value row, dropped entirely rather than printed empty
-     * when the field carries no value.
+     * A label/value row, dropped entirely rather than printed empty when the
+     * field carries no value.
      *
      * @return list<string>
      */
-    private function maybeLeader(ExportData $data, string $label, string $key): array
+    private function maybeRow(ExportData $data, string $label, string $key): array
     {
-        $field = $this->field($data, $key);
+        $field = $data->field($key);
 
-        return $field === null ? [] : [Sheet::leader($label, $field->display, self::WIDTH)];
-    }
-
-    private function field(ExportData $data, string $key): ?ExportField
-    {
-        return $data->field($key);
+        return $field === null ? [] : [Sheet::row($label, $field->display, self::WIDTH)];
     }
 
     /**

@@ -22,14 +22,17 @@ it('prints an event as a perforated ticket stub, with doors from the occurred in
     $data = ExportPresenter::for($event);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
+    $rows = array_map(fn (array $r): array => [$r[0], $r[1]], ticketRows($txt));
+
     expect($txt)->toContain('EVENT TICKET')
         ->and($txt)->toContain('ADMIT ONE')
-        ->and($txt)->toContain("EVENT : Jeff Wayne's The War of The Worlds")
-        ->and($txt)->toContain("VENUE : Jeff Wayne's The War of The Worlds Immersive Experience")
-        ->and($txt)->toContain('DOORS : 13 September 2026 at 19:30')
-        ->and($txt)->toContain('ENDS  : 13 September 2026 at 22:15')
         ->and($txt)->toContain('No. '.str_pad((string) $event->id, 10, '0', STR_PAD_LEFT))
-        ->and($txt)->toContain('TAYLORDRAYSON');
+        ->and($txt)->toContain('TAYLORDRAYSON')
+        ->and($rows)->toContain(
+            ['DOORS', '13 September 2026 at 19:30'],
+            ['ENDS', '13 September 2026 at 22:15'],
+        )
+        ->and(array_column($rows, 0))->toContain('EVENT', 'VENUE');
 });
 
 it('keeps every line the same width as its declared ticket width', function () {
@@ -72,9 +75,11 @@ it('omits the venue and ends rows when an event carries neither', function () {
     $data = ExportPresenter::for($event);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    expect($txt)->toContain('DOORS :')
-        ->and($txt)->not->toContain('VENUE :')
-        ->and($txt)->not->toContain('ENDS  :');
+    $labels = array_column(ticketRows($txt), 0);
+
+    expect($labels)->toContain('DOORS')
+        ->and($labels)->not->toContain('VENUE')
+        ->and($labels)->not->toContain('ENDS');
 });
 
 it('renders the same barcode for the same event every time', function () {

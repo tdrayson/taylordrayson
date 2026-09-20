@@ -18,10 +18,23 @@ final class ArticleSheet
     {
         return Sheet::join([
             ...$this->centredBlock($data->title),
+            ...$this->when($data),
             Sheet::rule(self::WIDTH, '='),
             '',
             ...$this->wrappedBlock($this->bodyText($data)),
         ]);
+    }
+
+    /**
+     * When it was published, centred under the title.
+     *
+     * @return list<string>
+     */
+    private function when(ExportData $data): array
+    {
+        return $data->occurred === null
+            ? []
+            : [Sheet::centre($data->occurred->display, self::WIDTH)];
     }
 
     private function bodyText(ExportData $data): string

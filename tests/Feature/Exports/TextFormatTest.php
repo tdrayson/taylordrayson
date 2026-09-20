@@ -10,7 +10,7 @@ it('falls back to an aligned table for a type with no sheet', function () {
     $data = ExportPresenter::for($book);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
-    expect($txt)->toContain('Pages')
+    expect($txt)->toContain('PAGES')
         ->and($txt)->toContain('476');
 });
 

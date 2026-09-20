@@ -21,15 +21,19 @@ it('prints a TV episode as a perforated ticket stub, headed by the show and pair
     $data = ExportPresenter::for($episode);
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
+    $rows = array_map(fn (array $r): array => [$r[0], $r[1]], ticketRows($txt));
+
     expect($txt)->toContain('CRIME SCENE: THE VANISHING AT THE CECIL HOTEL')
         ->and($txt)->not->toContain('ADMIT ONE')
-        ->and($txt)->toContain('EPISODE: Down the Rabbit Hole')
-        ->and($txt)->toContain('SEASON: 1')
-        ->and($txt)->toContain('NUMBER: 3')
-        ->and($txt)->toContain('DATE  : 13 Sep 2026')
-        ->and($txt)->toContain('RATED: 8 out of 10')
         ->and($txt)->toContain('No. '.str_pad((string) $episode->id, 10, '0', STR_PAD_LEFT))
-        ->and($txt)->toContain('TAYLORDRAYSON');
+        ->and($txt)->toContain('TAYLORDRAYSON')
+        ->and($rows)->toContain(
+            ['EPISODE', 'Down the Rabbit Hole'],
+            ['SEASON', '1'],
+            ['NUMBER', '3'],
+            ['DATE', '13 Sep 2026'],
+            ['RATED', '8 out of 10'],
+        );
 });
 
 it('keeps every line the same width as its declared ticket width', function () {
@@ -68,7 +72,7 @@ it('omits the rating from the paired row, but keeps the date, when a TV episode 
     $txt = Formats::find($data, ExportFormat::Txt)->render($data);
 
     expect($txt)->not->toContain('out of 10')
-        ->and($txt)->toContain('DATE  :');
+        ->and(array_column(ticketRows($txt), 0))->toContain('DATE');
 });
 
 it('renders the same barcode for the same episode every time', function () {

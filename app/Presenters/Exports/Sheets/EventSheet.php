@@ -15,24 +15,16 @@ final class EventSheet
 {
     public const WIDTH = 46;
 
-    private const INNER = self::WIDTH - 2;
-
-    /** Left margin for every content row, so text doesn't sit flush against the tear edge. */
-    private const MARGIN = '  ';
-
-    /** Where the footer row's ticket holder starts. */
-    private const COLUMN = 22;
-
     public function render(ExportData $data): string
     {
         return Sheet::join([
             Sheet::ticket([
-                Sheet::centre('EVENT TICKET * ADMIT ONE *', self::INNER),
+                ['centre' => 'EVENT TICKET * ADMIT ONE *'],
                 null,
-                ...array_map(fn (string $line): string => self::MARGIN.$line, $this->details($data)),
+                ...$this->details($data),
                 null,
-                Sheet::centre(Sheet::barcode($this->seed($data)), self::INNER),
-                self::MARGIN.$this->footer($data),
+                ['centre' => Sheet::barcode($this->seed($data))],
+                $this->footer($data),
             ], self::WIDTH),
         ]);
     }
@@ -41,7 +33,7 @@ final class EventSheet
      * The event, then its venue and when doors opened, then when it ends
      * when that's known. Each row drops entirely when its field is absent.
      *
-     * @return list<string>
+     * @return list<array<string, string>>
      */
     private function details(ExportData $data): array
     {
@@ -56,27 +48,34 @@ final class EventSheet
     /**
      * When doors opened, taken from the entry's occurred instant rather than
      * a field: that is when an event begins.
+     *
+     * @return array<string, string>|null
      */
-    private function doors(ExportData $data): ?string
+    private function doors(ExportData $data): ?array
     {
-        return $data->occurred === null ? null : str_pad('DOORS', 6).': '.$data->occurred->display;
+        return $data->occurred === null ? null : ['label' => 'DOORS', 'value' => $data->occurred->display];
     }
 
-    private function labelled(string $label, ?ExportField $field): ?string
+    /** @return array<string, string>|null */
+    private function labelled(string $label, ?ExportField $field): ?array
     {
-        return $field === null ? null : str_pad($label, 6).': '.$field->display;
+        return $field === null ? null : ['label' => $label, 'value' => $field->display];
     }
 
-    /** The ticket number and the ticket holder, paired on the stub's last row. */
-    private function footer(ExportData $data): string
+    /**
+     * The ticket number and the ticket holder, on the stub's last row.
+     *
+     * @return array<string, string>
+     */
+    private function footer(ExportData $data): array
     {
         $number = $data->field('ticket_number');
         $owner = $data->field('owner');
 
-        $left = $number === null ? '' : 'No. '.$number->display;
-        $right = $owner === null ? '' : str_replace(' ', '', mb_strtoupper($owner->display));
-
-        return $right === '' ? $left : str_pad($left, self::COLUMN).$right;
+        return [
+            'label' => $number === null ? '' : 'No. '.$number->display,
+            'value' => $owner === null ? '' : str_replace(' ', '', mb_strtoupper($owner->display)),
+        ];
     }
 
     /** The ticket number's raw id, the only `->raw` read: it seeds the barcode's bar widths, not its content. */

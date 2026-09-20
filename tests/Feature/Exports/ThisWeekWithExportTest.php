@@ -20,11 +20,12 @@ it('publishes a this week with episode as labelled fields in order', function ()
     $export = ExportPresenter::for($episode);
 
     expect(array_map(fn ($f) => $f->key, $export->fields))
-        ->toBe(['episode', 'topic', 'duration'])
+        ->toBe(['episode', 'season', 'number', 'topic', 'duration'])
         ->and($export->field('episode')->display)->toBe('S2E5')
         ->and($export->field('episode')->raw)->toBe(['season' => 2, 'episode' => 5])
         ->and($export->field('topic')->display)->toBe('Side projects')
-        ->and($export->field('duration')->display)->toBe('1h');
+        // To the second, not humanDuration()'s '1h': a run time is quoted exactly.
+        ->and($export->field('duration')->display)->toBe('1h 00m 00s');
 
     $links = array_map(fn ($l) => $l->key, $export->links);
 

@@ -17,13 +17,28 @@ final class ThisWeekWithSheet
     {
         return Sheet::join([
             Sheet::rule(self::WIDTH, '='),
+            Sheet::centre('THIS WEEK WITH', self::WIDTH),
             Sheet::centre($this->value($data, 'episode'), self::WIDTH),
             Sheet::rule(self::WIDTH, '='),
             '',
-            ...$this->wrappedBlock($this->value($data, 'topic')),
-            '',
+            ...$this->maybeRow($data, 'SEASON', 'season'),
+            ...$this->maybeRow($data, 'EPISODE', 'number'),
             ...$this->maybeRow($data, 'DURATION', 'duration'),
+            ...$this->published($data),
         ]);
+    }
+
+    /**
+     * When the episode went out, from the entry's occurred instant rather
+     * than a field: that is what publishing one means.
+     *
+     * @return list<string>
+     */
+    private function published(ExportData $data): array
+    {
+        return $data->occurred === null
+            ? []
+            : [Sheet::row('PUBLISHED', $data->occurred->display, self::WIDTH)];
     }
 
     /**
@@ -37,17 +52,6 @@ final class ThisWeekWithSheet
         $field = $data->field($key);
 
         return $field === null ? [] : [Sheet::row($label, $field->display, self::WIDTH)];
-    }
-
-    /**
-     * The topic wrapped to the sheet width, so a long rundown reads as a
-     * column rather than one very long line.
-     *
-     * @return list<string>
-     */
-    private function wrappedBlock(string $value): array
-    {
-        return $value === '' ? [] : Sheet::wrap($value, self::WIDTH);
     }
 
     /** A field's display string, or an empty one. Never a raw value. */

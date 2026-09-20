@@ -37,8 +37,10 @@ final class ThisWeekWithExport
             occurred: $model->occurred_at === null ? null : ExportInstant::for($model->occurred_at, $model->timezone()),
             fields: array_values(array_filter([
                 ExportField::make('episode', 'Episode', "S{$model->season_number}E{$model->episode_number}", ['season' => $model->season_number, 'episode' => $model->episode_number]),
+                ExportField::make('season', 'Season', (string) $model->season_number, $model->season_number),
+                ExportField::make('number', 'Number', (string) $model->episode_number, $model->episode_number),
                 ExportField::maybe('topic', 'Topic', $model->topic, $model->topic),
-                ExportField::maybe('duration', 'Duration', $model->duration === null ? null : Units::humanDuration($model->duration), $model->duration),
+                ExportField::maybe('duration', 'Duration', $model->duration === null ? null : Units::preciseDuration($model->duration), $model->duration),
             ])),
             links: [
                 ...array_values(array_filter([

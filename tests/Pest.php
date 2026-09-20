@@ -306,3 +306,35 @@ function mockSequence(array $responses): Closure
         return $responses[$sent++];
     };
 }
+
+/**
+ * A ticket's label/value rows, read back off the rendered stub as
+ * [label, value, label column, value end column].
+ *
+ * The columns are what the tickets are judged on: every row must start and
+ * end in the same one, which the alternating tear edge makes easy to get
+ * wrong by one.
+ *
+ * @return list<array{0: string, 1: string, 2: int, 3: int}>
+ */
+function ticketRows(string $txt): array
+{
+    $rows = [];
+
+    foreach (explode("\n", trim($txt)) as $line) {
+        if (! preg_match('/^(?<lead>[( ]\)? +)(?<label>[A-Z][A-Z0-9. ]*[A-Z0-9.]|[A-Z])(?<gap> {2,})(?<value>\S.*?) *\)?\(*$/u', $line, $m)) {
+            continue;
+        }
+
+        $labelColumn = mb_strwidth($m['lead']);
+
+        $rows[] = [
+            $m['label'],
+            $m['value'],
+            $labelColumn,
+            $labelColumn + mb_strwidth($m['label'].$m['gap'].$m['value']),
+        ];
+    }
+
+    return $rows;
+}

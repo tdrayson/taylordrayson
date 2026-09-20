@@ -68,7 +68,13 @@ final class Sheet
      * widens to its longest line, the same way box() does. A null entry
      * draws a section rule instead of a content line.
      *
-     * @param  list<string|null>  $lines
+     * An entry is a plain string (placed as-is), null (a section rule), or
+     * one of two shapes resolved against the ticket's *final* width, which
+     * a caller cannot know up front because the stub widens to its content:
+     * `['centre' => $text]`, or `['label' => $l, 'value' => $v]` for a row
+     * that starts and ends in the same column whatever its parity.
+     *
+     * @param  list<string|array<string, string>|null>  $lines
      */
     public static function ticket(array $lines, int $width = self::WIDTH): string
     {
@@ -79,7 +85,13 @@ final class Sheet
         // odd-shape line carries two more chrome characters than an even one,
         // so its width converts back to inner two less than an even line's would.
         foreach ($ordered as $index => $line) {
-            if ($line !== null) {
+            if (is_array($line)) {
+                // An aligned row is inset one column inside the narrower shape,
+                // so it needs a gap plus that inset on top of its own text.
+                $inner = isset($line['centre'])
+                    ? max($inner, mb_strwidth($line['centre']))
+                    : max($inner, mb_strwidth($line['label']) + mb_strwidth($line['value']) + 3);
+            } elseif ($line !== null) {
                 $inner = max($inner, mb_strwidth($line) - (($index + 1) % 2 === 1 ? 2 : 0));
             }
         }
@@ -92,9 +104,16 @@ final class Sheet
             $odd = ($index + 1) % 2 === 1;
             $budget = $odd ? $inner + 2 : $inner;
 
-            $body = $line === null
-                ? str_repeat('=', $budget)
-                : self::pad($line, $budget);
+            $body = match (true) {
+                $line === null => str_repeat('=', $budget),
+                // Inset by one inside the narrower shape and by two inside the
+                // wider one, so both land in the same column on the page.
+                isset($line['centre']) => self::centre($line['centre'], $budget),
+                is_array($line) => ($odd ? '  ' : ' ')
+                    .self::fill($line['label'], $line['value'], ' ', $inner - 1)
+                    .($odd ? ' ' : ''),
+                default => self::pad($line, $budget),
+            };
 
             $out[] = $odd ? '('.$body.')' : ' )'.$body.'((';
         }
@@ -102,6 +121,76 @@ final class Sheet
         $out[] = "'".str_repeat('-', $inner + 2)."'";
 
         return implode("\n", $out);
+    }
+
+    /**
+     * A circular stamp, the lines set inside it. The ring is traced by angle
+     * rather than per row, which is what keeps it continuous: stepping row by
+     * row leaves gaps across the flat top and bottom.
+     *
+     * Lines are placed on the middle rows only, where the ring is thin enough
+     * to leave usable width; a line too wide for its row is dropped rather
+     * than run through the border.
+     *
+     * @param  list<string>  $lines
+     */
+    public static function stamp(array $lines, int $width = self::WIDTH, int $height = 13, string $char = '*'): string
+    {
+        $cx = ($width - 1) / 2;
+        $cy = ($height - 1) / 2;
+        $grid = array_fill(0, $height, array_fill(0, $width, ' '));
+
+        $steps = $width * 4;
+
+        for ($i = 0; $i < $steps; $i++) {
+            $angle = 2 * M_PI * $i / $steps;
+            $x = (int) round($cx + $cx * cos($angle));
+            $y = (int) round($cy + $cy * sin($angle));
+
+            if ($x >= 0 && $x < $width && $y >= 0 && $y < $height) {
+                $grid[$y][$x] = $char;
+            }
+        }
+
+        $rows = array_map(fn (array $row): string => implode('', $row), $grid);
+
+        // Only the middle band has room between the arcs for a line of text.
+        $usable = array_values(array_filter(
+            range(0, $height - 1),
+            fn (int $y): bool => abs($y - $cy) <= $cy * 0.72,
+        ));
+
+        foreach (array_values($lines) as $index => $line) {
+            if ($line === '' || ! isset($usable[$index])) {
+                continue;
+            }
+
+            $rows[$usable[$index]] = self::inside($rows[$usable[$index]], $line, $char);
+        }
+
+        return implode("\n", array_map('rtrim', $rows));
+    }
+
+    /**
+     * A line centred in the gap between a stamp row's two arcs, splicing on
+     * column boundaries so a wide character cannot land half inside the ring.
+     */
+    private static function inside(string $row, string $line, string $char): string
+    {
+        $left = mb_strrpos(mb_substr($row, 0, (int) floor(mb_strlen($row) / 2)), $char);
+        $right = mb_strpos($row, $char, (int) ceil(mb_strlen($row) / 2));
+
+        if ($left === false || $right === false) {
+            return $row;
+        }
+
+        $gap = $right - $left - 3;
+
+        if ($gap < 1 || mb_strwidth($line) > $gap) {
+            return $row;
+        }
+
+        return mb_substr($row, 0, $left + 2).self::centre($line, $gap).mb_substr($row, $right - 1);
     }
 
     /** A proportional bar, for a sleep stage or a heart rate against its max. */
