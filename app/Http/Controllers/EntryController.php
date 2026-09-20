@@ -396,9 +396,9 @@ class EntryController extends Controller
 
     /**
      * Every format this export supports, shaped for AppHead's alternate
-     * links and the footer's export menu.
+     * links and the footer's format list.
      *
-     * @return list<array{extension: string, type: string, label: string, purpose: string, url: string}>
+     * @return list<array{extension: string, type: string, label: string, url: string}>
      */
     private function formats(ExportData $export): array
     {
@@ -407,7 +407,6 @@ class EntryController extends Controller
                 'extension' => $format->format()->value,
                 'type' => $format->format()->contentType(),
                 'label' => $format->format()->label(),
-                'purpose' => $format->format()->purpose(),
                 'url' => $export->url.'.'.$format->format()->value,
             ],
             Formats::for($export),

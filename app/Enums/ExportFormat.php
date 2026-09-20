@@ -53,20 +53,6 @@ enum ExportFormat: string
         };
     }
 
-    /** The one line the footer menu shows beside the extension. */
-    public function purpose(): string
-    {
-        return match ($this) {
-            self::Json => 'Structured data',
-            self::Yaml => 'The same, friendlier',
-            self::Txt => 'Printed',
-            self::Md => 'The source',
-            self::Mf2 => 'Microformats',
-            self::Ics => 'Add to calendar',
-            self::GeoJson => 'The route',
-        };
-    }
-
     /** The route constraint, built from cases so a new format cannot be missed. */
     public static function pattern(): string
     {

@@ -44,7 +44,7 @@ const props = defineProps({
     password: { type: String, default: null },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
-    // [{ extension, type, label, purpose, url }] this entry can be exported as.
+    // [{ extension, type, label, url }] this entry can be exported as.
     formats: { type: Array, default: () => [] },
 });
 

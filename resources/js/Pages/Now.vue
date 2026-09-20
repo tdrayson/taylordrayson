@@ -33,7 +33,7 @@ const props = defineProps({
     photos: { type: Array, default: () => [] },
     // The book on the go ({ title, author, cover, percent }), or null when none is matched.
     reading: { type: Object, default: null },
-    // [{ extension, type, label, purpose, url }] /now can be exported as.
+    // [{ extension, type, label, url }] /now can be exported as.
     formats: { type: Array, default: () => [] },
 });
 

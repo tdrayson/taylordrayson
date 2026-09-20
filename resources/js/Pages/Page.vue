@@ -29,7 +29,7 @@ const props = defineProps({
     linkFavicons: { type: Object, default: () => ({}) },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
-    // [{ extension, type, label, purpose, url }] this page can be exported as.
+    // [{ extension, type, label, url }] this page can be exported as.
     formats: { type: Array, default: () => [] },
 });
 

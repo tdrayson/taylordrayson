@@ -11,7 +11,7 @@ import { Head, usePage } from '@inertiajs/vue3';
  */
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
-    // [{ extension, type, label, purpose, url }] for the resource this view
+    // [{ extension, type, label, url }] for the resource this view
     // shows, built server-side from Formats::for() so the head only ever
     // advertises a format the resource can actually be rendered as.
     formats: { type: Array, default: () => [] },
