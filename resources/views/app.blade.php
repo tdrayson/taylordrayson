@@ -4,13 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title inertia>{{ config('app.name', 'Taylor Drayson') }}</title>
+    <title inertia>{{ config('identity.name') }}</title>
 
     @include('partials.theme')
     @include('partials.pwa')
     @include('partials.feeds')
 
-    <link rel="me" href="https://github.com/tdrayson">
+    @foreach (config('identity.profiles') as $profile)
+        <link rel="me" href="{{ $profile['href'] }}">
+    @endforeach
 
     {{-- Webmention discovery. In the Blade layout, not a Vue component: a
          sender fetches the HTML and never runs the JS. --}}
