@@ -52,10 +52,20 @@ final class MarkdownFormat extends Format
             'date' => $data->occurred?->iso,
         ], fn (?string $value): bool => $value !== null);
 
+        // Fields nest rather than flatten, keyed on key rather than label.
+        // Both matter: labels repeat (a flight labels origin and destination
+        // alike "Code"), and a field keyed `date` would otherwise overwrite
+        // the document's own. Either collision loses a value silently.
+        $fields = [];
+
         foreach ($data->fields as $field) {
-            $matter[$field->label] = $field->display;
+            $fields[$field->key] = $field->display;
         }
 
-        return "---\n".Yaml::dump($matter, 2, 2).'---';
+        if ($fields !== []) {
+            $matter['fields'] = $fields;
+        }
+
+        return "---\n".Yaml::dump($matter, 3, 2).'---';
     }
 }
