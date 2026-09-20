@@ -7,6 +7,7 @@ use App\Models\Tag;
 use App\Models\Taggable;
 use App\Models\TimelineEntry;
 use App\Queries\TagUsage;
+use App\Support\FeedInteractions;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -50,6 +51,7 @@ class TagController extends Controller
             'og' => OgMeta::tag($tag->name, $entries->count()),
             'name' => $tag->name,
             'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
         ]);
     }
 

@@ -8,8 +8,10 @@ const EMPTY = computed(() => ({}));
  * Share a page's reaction and response counts with the cards beneath it.
  *
  * Provided rather than passed down, for the reason linkContext is: only the
- * card reads it, and it sits two components below the page that loads it.
- * Deferred, so this is empty on first paint and fills on the second request.
+ * card reads it, and it sits several components below the page that loads it.
+ * AppLayout provides it for every page, so a view that draws feed cards only
+ * has to send the prop. Deferred, so it is empty on first paint and fills on
+ * the second request.
  *
  * @param {import('vue').Ref<Object>} source Keyed `type:id`.
  */

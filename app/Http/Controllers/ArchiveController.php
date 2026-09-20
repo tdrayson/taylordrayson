@@ -9,6 +9,7 @@ use App\Models\Fuel;
 use App\Models\Place;
 use App\Models\TimelineEntry;
 use App\Queries\ArchiveTagBridge;
+use App\Support\FeedInteractions;
 use App\Support\OgMeta;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -68,6 +69,8 @@ class ArchiveController extends Controller
             ->orderByDesc('occurred_at')
             ->paginate(self::PER_PAGE);
 
+        $entries = collect($page->items());
+
         $noun = $definition['noun'];
         $taxonomyLabel = $value !== null ? ($taxonomy['labelFor'])($value) : null;
         $accentToken = TimelineType::from($type)->accent();
@@ -81,7 +84,8 @@ class ArchiveController extends Controller
             'title' => $title,
             'crumb' => $taxonomyLabel ?? $definition['label'],
             'subtitle' => $subtitle,
-            'groups' => $this->feed->groupByDay(collect($page->items())),
+            'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
             'currentPage' => $page->currentPage(),
             'lastPage' => $page->lastPage(),
             'chips' => $this->chips($definition, $value),
