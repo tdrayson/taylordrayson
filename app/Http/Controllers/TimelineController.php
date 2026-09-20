@@ -13,6 +13,7 @@ use App\Queries\ThisWeekWithEpisodeCount;
 use App\Queries\TimelineWindow;
 use App\Queries\TimelineYears;
 use App\Support\DayBudget;
+use App\Support\FeedInteractions;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
 use App\Support\SqlDate;
@@ -47,13 +48,14 @@ class TimelineController extends Controller
             $this->cursor($request->query('after')),
         );
 
-        $groups = $window['to'] === null
-            ? []
-            : $this->groupsForDates($window['to'], $window['from']);
+        $entries = $window['to'] === null
+            ? collect()
+            : $this->entriesForDates($window['to'], $window['from']);
 
         return Inertia::render('Timeline', [
             'og' => OgMeta::timeline(),
-            'groups' => $groups,
+            'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
             'range' => $window['to'] === null ? null : ['from' => $window['from'], 'to' => $window['to']],
             'olderUrl' => $window['olderThan'] === null ? null : '/?before='.$window['olderThan'],
             // The newest page is the bare URL, so the feed has one canonical front.
@@ -74,26 +76,24 @@ class TimelineController extends Controller
     }
 
     /**
-     * Build day-grouped timeline cards for every entry between two dates (inclusive).
+     * Every entry between two dates (inclusive), ready to be shaped into cards.
      *
-     * @return array<int, array{label: string, href: string, items: array<int, array<string, mixed>>}>
+     * @return Collection<int, TimelineEntry>
      */
-    private function groupsForDates(string $newest, string $oldest, bool $ascending = false): array
+    private function entriesForDates(string $newest, string $oldest, bool $ascending = false): Collection
     {
-        $entries = TimelineEntry::query()
+        return TimelineEntry::query()
             ->withCardRelations()
             ->whereDate('occurred_at', '<=', $newest)
             ->whereDate('occurred_at', '>=', $oldest)
             ->orderByInstant($ascending ? 'asc' : 'desc')
             ->get();
-
-        return $this->feed->groupByDay($entries);
     }
 
     /**
      * Day-paginated, chronological timeline tail for a period.
      *
-     * @return array{groups: array<int, mixed>, currentPage: int, lastPage: int}
+     * @return array{groups: array<int, mixed>, interactions: mixed, currentPage: int, lastPage: int}
      */
     private function periodTail(Carbon $start, Carbon $end): array
     {
@@ -114,14 +114,17 @@ class TimelineController extends Controller
         $current = max(1, min((int) request()->query('page', '1'), max(1, $pages->count())));
         $dates = collect($pages->get($current - 1) ?? [])->pluck('day');
 
+        $entries = $dates->isEmpty()
+            ? collect()
+            : $this->entriesForDates($dates->last(), $dates->first(), true);
+
         return [
             // Resolved in the response rather than deferred: the feed carries
             // the page's h-feed, and a deferred prop is excluded from the
             // initial render, so under SSR a parser would be served the loading
             // state instead of the entries.
-            'groups' => $dates->isEmpty()
-                ? []
-                : $this->groupsForDates($dates->last(), $dates->first(), true),
+            'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
             'currentPage' => $current,
             'lastPage' => max(1, $pages->count()),
         ];
@@ -152,6 +155,7 @@ class TimelineController extends Controller
             'entriesCount' => $entries->count(),
             'yearsCount' => $years->count(),
             'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
         ]);
     }
 
@@ -265,6 +269,7 @@ class TimelineController extends Controller
             'day' => $day,
             'og' => OgMeta::day($date),
             'items' => $this->feed->items($entries),
+            'interactions' => FeedInteractions::defer($entries),
             'stats' => ($this->dayStats)($entries, $date),
             // No `rings` or `steps` until the daily figures are real (#67); they
             // were fixed placeholders. Day.vue hides the markup when they are absent.

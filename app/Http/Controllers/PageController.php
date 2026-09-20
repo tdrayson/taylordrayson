@@ -9,6 +9,7 @@ use App\Data\ExportData;
 use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
+use App\Presenters\Conversation;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Format;
 use App\Presenters\Exports\Formats\Formats;
@@ -50,6 +51,10 @@ class PageController extends Controller
             // nothing left to put in one.
             'formats' => $locked ? [] : $this->formats(ExportPresenter::for($page)),
             ...($locked ? [] : [
+                // Same as an entry: server-rendered so it is readable and
+                // parseable without JS. This is also what makes a guestbook page
+                // work, being a page like any other.
+                'conversation' => Conversation::shownFor($page, request()),
                 'fields' => $fields,
                 // Taken from the field list rather than named one by one: a
                 // field the editor offers but has no value for saves back as

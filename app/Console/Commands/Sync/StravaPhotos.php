@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Actions\FetchStravaActivitySummaries;
-use App\Actions\SyncStravaPhotos;
+use App\Actions\Strava\FetchStravaActivitySummaries;
+use App\Actions\Strava\SyncStravaPhotos;
 use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava\Client;

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\VerifyStravaWebhookSecret;
 use App\Models\LeaderboardEntry;
 use App\Models\TimelineEntry;
 use App\Support\OgMeta;
@@ -25,7 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // No proxy sits in front of the app: DNS points at the VPS and nginx
+        // talks to PHP-FPM over a local socket, so REMOTE_ADDR is already the
+        // real client. Trusting `*` meant believing a client-supplied
+        // X-Forwarded-For instead, which nginx never sets here, making every
+        // IP-keyed rate limiter and reaction identity spoofable by a header.
+        $middleware->trustProxies(at: []);
 
         // Display preferences are written by the browser, so they arrive
         // unencrypted and would otherwise be discarded as tampered with.
@@ -35,7 +41,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // goes. A Portable Text body is nested arrays of authored prose, so it
         // was having the space either side of every link, and the indentation
         // of every code block, quietly removed on save.
-        $middleware->trimStrings(except: ['content.*']);
+        // Both are Portable Text. Trimming recurses into arrays, so without this
+        // every span loses its edge spaces and "with <b>bold</b>" runs together.
+        $middleware->trimStrings(except: ['content.*', 'body.*']);
+
+        // The webmention endpoint is posted to by other people's sites, which
+        // by definition hold no token of ours. The spec requires accepting a
+        // form-encoded POST from anywhere, so CSRF cannot apply; the payload is
+        // two URLs, and everything it leads to is verified by fetching the
+        // source and looking for a link back.
+        $middleware->validateCsrfTokens(except: ['webmention']);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
@@ -44,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'api.token' => AuthenticateApiToken::class,
+            'strava.webhook' => VerifyStravaWebhookSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

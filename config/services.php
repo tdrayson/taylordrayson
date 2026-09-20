@@ -57,6 +57,13 @@ return [
         'client_id' => env('STRAVA_CLIENT_ID'),
         'client_secret' => env('STRAVA_CLIENT_SECRET'),
         'refresh_token' => env('STRAVA_REFRESH_TOKEN'),
+        'athlete_id' => env('STRAVA_ATHLETE_ID'),
+
+        // Strava signs nothing, so the unguessable path segment is the only
+        // thing standing between the webhook and anyone who knows the athlete
+        // id, which is public on the profile page.
+        'webhook_secret' => env('STRAVA_WEBHOOK_SECRET'),
+        'webhook_verify_token' => env('STRAVA_WEBHOOK_VERIFY_TOKEN'),
     ],
 
     'rovi' => [

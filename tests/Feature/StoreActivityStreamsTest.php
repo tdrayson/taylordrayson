@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\StoreActivityStreams;
+use App\Actions\Strava\StoreActivityStreams;
 use App\Models\Activity;
 use App\Services\Strava\Client;
 use Saloon\Http\Faking\MockResponse;

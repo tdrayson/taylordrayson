@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import { ogMeta } from '../lib/og.js';
+import { useOgCard } from '../composables/useOgCard.js';
 
 /**
  * Per-view document head: title plus description, canonical, Open Graph, and
@@ -17,33 +19,17 @@ const props = defineProps({
     formats: { type: Array, default: () => [] },
 });
 
-// SEO copy for pages with no page-specific description, not the profile bio:
-// intentionally its own wording, not identity.bio.
-const DEFAULT_DESCRIPTION =
-    'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
-
 const page = usePage();
 
 // The one site-identity name, shared from config/identity.php.
 const SITE_NAME = computed(() => page.props.identity.name);
 
-// The view's metadata, with defaults applied so a partial `og` still renders.
-const meta = computed(() => ({
-    title: null,
-    description: DEFAULT_DESCRIPTION,
-    heading: null,
-    eyebrow: null,
-    accent: null,
-    image: null,
-    variant: null,
-    type: 'website',
-    noindex: false,
-    ...props.og,
-}));
+const meta = computed(() => ogMeta(props.og));
 
-// Absolute base URL, sourced from the server-shared appUrl so og:url/og:image
-// resolve correctly during SSR (where window is undefined), with a browser
-// fallback for safety.
+const imageUrl = useOgCard(() => props.og);
+
+// Absolute base URL, sourced from the server-shared appUrl so og:url resolves
+// correctly during SSR (where window is undefined), with a browser fallback.
 const origin = computed(() => {
     const shared = page.props.appUrl;
 
@@ -54,50 +40,12 @@ const origin = computed(() => {
     return typeof window === 'undefined' ? '' : window.location.origin;
 });
 
-// The card design token, appended to every generated card URL so a template
-// change moves the URL. Cards are served immutable, so the URL moving is the
-// only thing that makes a scraper fetch the new design.
-const ogVersion = computed(() => page.props.ogVersion);
-
 // Feed links narrowed to the current view's timeline type, built server-side by
 // App\Support\FeedDiscovery and empty on any view that isn't type-scoped.
 const contextualFeeds = computed(() => page.props.contextualFeeds ?? []);
 
 const canonical = computed(() => `${origin.value}${page.url}`);
 const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME.value}` : SITE_NAME.value));
-
-// An explicit image wins; otherwise build the generated OG card URL from the
-// card heading (falling back to the title), eyebrow, accent, and variant.
-const imageUrl = computed(() => {
-    if (meta.value.image) {
-        return meta.value.image.startsWith('http') ? meta.value.image : `${origin.value}${meta.value.image}`;
-    }
-
-    const params = new URLSearchParams({ title: meta.value.heading ?? meta.value.title ?? SITE_NAME.value });
-
-    if (meta.value.eyebrow) {
-        params.set('eyebrow', meta.value.eyebrow);
-    }
-
-    if (meta.value.accent) {
-        params.set('accent', meta.value.accent);
-    }
-
-    if (meta.value.variant) {
-        params.set('variant', meta.value.variant);
-
-        // The home card has room for a standfirst, and the page's own
-        // description is what belongs there: a second hardcoded line on the
-        // renderer could drift from the one the page publishes.
-        params.set('description', meta.value.description);
-    }
-
-    if (ogVersion.value) {
-        params.set('v', ogVersion.value);
-    }
-
-    return `${origin.value}/og.png?${params.toString()}`;
-});
 </script>
 
 <template>

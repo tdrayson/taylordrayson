@@ -112,7 +112,7 @@ class AppServiceProvider extends ServiceProvider
         // Guzzle agent is a common thing for a bot filter to challenge.
         Http::globalRequestMiddleware(fn ($request) => $request->withHeader(
             'User-Agent',
-            config('app.name').' (+'.config('app.url').')',
+            config('identity.name').' (+'.config('app.url').')',
         ));
 
         // Shared retry policy for third-party clients. See ApiHttp.

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import Pill from '../Ui/Pill.vue';
+import ReplyContext from './ReplyContext.vue';
 import BlockContent from '../Ui/BlockContent.vue';
 import TableOfContents from '../Ui/TableOfContents.vue';
 
@@ -40,6 +41,10 @@ const headingCount = computed(() => contentNodes.value.filter(
             <Pill label="Draft" variant="accent" />
         </div>
 
+        <!-- Above the words, so the piece reads as an answer to the thing
+             named here rather than the thing being a footnote to it. -->
+        <ReplyContext v-if="entry.response" :response="entry.response" class="mb-6" />
+
         <!-- Above the cover, matching a page: the standfirst introduces the
              piece, so it belongs with the headline rather than under the image
              it is introducing. -->
@@ -54,7 +59,7 @@ const headingCount = computed(() => contentNodes.value.filter(
             <img
                 :src="entry.cover.full"
                 alt=""
-                class="size-full object-cover"
+                class="u-featured size-full object-cover"
             >
         </div>
 

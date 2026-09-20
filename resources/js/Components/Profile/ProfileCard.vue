@@ -21,6 +21,11 @@ const name = computed(() => props.name ?? page.props.identity.name);
 const bio = computed(() => props.bio ?? page.props.identity.bio);
 const avatar = computed(() => props.avatar ?? page.props.identity.avatar);
 
+// The flattened crop, not the transparent one on screen. A parser takes the
+// URL and renders it on somebody else's page, where our accent disc behind it
+// does not follow, so a cutout would land edgeless on their background.
+const photo = computed(() => props.avatar ?? page.props.identity.photo);
+
 // Tuning for the gravity simulation. All in px and seconds so the maths reads
 // physically; the loop is frame-rate independent (dt-based) so it looks the
 // same at 60 or 120Hz.
@@ -191,10 +196,14 @@ onBeforeUnmount(() => {
                 ref="avatarEl"
                 :src="avatar"
                 :alt="name"
-                img-class="u-photo"
                 :class="['group-hover:animate-avatar-boop', { 'opacity-0': flying }]"
             />
         </Link>
+
+        <!-- Carried separately from the visible avatar so each can be the crop
+             it needs: that one sits on our own accent disc, this one travels. -->
+        <data class="u-photo" :value="photo" />
+
         <Heading as="p" size="title" class="mb-2">
             <Link href="/" class="p-name u-url u-uid">{{ name }}</Link>
         </Heading>

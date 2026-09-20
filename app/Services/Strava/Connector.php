@@ -29,9 +29,7 @@ class Connector extends ApiConnector
 
     public function boot(PendingRequest $pendingRequest): void
     {
-        // The token request authenticates itself with the client secret, and
-        // authenticating it here would recurse.
-        if ($pendingRequest->getRequest() instanceof TokenRequest) {
+        if ($pendingRequest->getRequest() instanceof UsesClientCredentials) {
             return;
         }
 
@@ -81,9 +79,10 @@ class Connector extends ApiConnector
      */
     public function handleRetry(FatalRequestException|RequestException $exception, Request $request): bool
     {
-        // Not for the token request itself: refreshing in response to its own
-        // failure would call it again, and again.
-        if ($request instanceof TokenRequest) {
+        // Not for a request that carries the client secret itself: refreshing
+        // in response to the token request's own failure would call it again,
+        // and again, and a subscription call has no token to refresh.
+        if ($request instanceof UsesClientCredentials) {
             return parent::handleRetry($exception, $request);
         }
 

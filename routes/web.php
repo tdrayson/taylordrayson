@@ -3,6 +3,8 @@
 use App\Enums\ExportFormat;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\CaloriesRedirectController;
+use App\Http\Controllers\CitationPreviewController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\EntryExportController;
@@ -11,8 +13,10 @@ use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
+use App\Http\Controllers\ModerationController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
 use App\Http\Controllers\NowExportController;
@@ -20,6 +24,7 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PageExportController;
 use App\Http\Controllers\RandomEntryController;
+use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
@@ -30,7 +35,9 @@ use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TvShowController;
 use App\Http\Controllers\UnlockEntryController;
+use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\UpdateEntryStatusController;
+use App\Http\Controllers\WebmentionController;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -42,6 +49,9 @@ require __DIR__.'/auth.php';
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+    Route::post('/citations/preview', CitationPreviewController::class)
+        ->middleware('throttle:30,1')
+        ->name('citations.preview');
 
     // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
     Route::get('/new', [AuthoringController::class, 'new'])->name('new');
@@ -65,6 +75,13 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/drafts/{dataset}/{id}', [EntryController::class, 'draft'])
         ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('drafts.show');
 
+    // The queue for held comments and mentions. A lowercase word, so it has to
+    // sit above the /{slug} catch-all or a content page could shadow it.
+    Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');
+    Route::post('/moderation/{kind}/{id}/{action}', [ModerationController::class, 'update'])
+        ->where(['kind' => 'comment|mention', 'id' => '[0-9]+', 'action' => 'approve|spam|delete'])
+        ->name('moderation.update');
+
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
 
@@ -79,6 +96,11 @@ Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
 Route::get('/robots.txt', fn () => response()
     ->view('robots')
     ->header('Content-Type', 'text/plain'))->name('robots');
+
+// The PWA manifest, a route rather than a file in public/ so its icon URLs can
+// carry a content hash. public/manifest.webmanifest has to stay deleted: the
+// server serves an existing file before it falls through to the app.
+Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemap/pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
@@ -124,6 +146,29 @@ Route::get('/now.{format}', NowExportController::class)
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
+
+// Reached only from a link in a reply notification, so it is signed rather
+// than guarded: the signature is the proof, and there is no account to log in to.
+Route::get('/unsubscribe/{comment}', UnsubscribeController::class)
+    ->where('comment', '[0-9]+')->middleware('signed')->name('unsubscribe');
+
+// The public webmention endpoint. Discovery points here from every page, so
+// the URL is part of the site's contract and must not move.
+Route::post('/webmention', WebmentionController::class)
+    ->middleware('throttle:60,1')->name('webmention');
+
+// Comments: a token when the form is first touched, then the comment itself.
+Route::post('/comments/token', [CommentController::class, 'token'])
+    ->middleware('throttle:20,1')->name('comments.token');
+Route::post('/comments/{type}/{id}', [CommentController::class, 'store'])
+    ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
+    ->middleware('throttle:5,10')->name('comments.store');
+
+// Reactions. The type/id pair is resolved against an allowlist, so this is not
+// a handle on every model in the app.
+Route::post('/reactions/{type}/{id}', [ReactionController::class, 'store'])
+    ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
+    ->middleware('throttle:30,1')->name('reactions.store');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])

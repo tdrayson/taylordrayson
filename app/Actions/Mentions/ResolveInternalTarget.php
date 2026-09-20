@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Actions\Mentions;
+
+use App\Models\Page;
+use App\Models\Scopes\ListedScope;
+use App\Models\TimelineEntry;
+use App\Support\InteractionTarget;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * The model a site-relative path points at, or null when nothing here answers
+ * to it.
+ *
+ * The link resolvers in app/Links match these same two shapes, but they return
+ * a preview to render. A mention needs the row itself, so the lookups are
+ * repeated here rather than the preview being reverse-engineered back into one.
+ */
+final class ResolveInternalTarget
+{
+    /**
+     * The entry or page at a path, only when it takes mentions.
+     *
+     * @param  string  $path  A site-relative path.
+     */
+    public function __invoke(string $path): ?Model
+    {
+        $model = $this->entry($path) ?? $this->page($path);
+
+        return $model !== null && InteractionTarget::takesMentions($model) ? $model : null;
+    }
+
+    /** An entry permalink, /YYYY/MM/DD/slug. */
+    private function entry(string $path): ?Model
+    {
+        if (preg_match('#^/(\d{4})/(\d{2})/(\d{2})/([a-z0-9-]+)$#', $path, $matches) !== 1) {
+            return null;
+        }
+
+        return TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
+            ->with('entry')
+            ->whereDate('occurred_at', "{$matches[1]}-{$matches[2]}-{$matches[3]}")
+            ->where('url_slug', $matches[4])
+            ->first()?->entry;
+    }
+
+    /** A standalone page, /{slug}. */
+    private function page(string $path): ?Page
+    {
+        if (preg_match('#^/([a-z][a-z0-9-]*)$#', $path, $matches) !== 1) {
+            return null;
+        }
+
+        return Page::query()->where('slug', $matches[1])->first();
+    }
+}

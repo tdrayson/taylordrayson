@@ -42,8 +42,8 @@ uses()->beforeEach(function (): void {
 })->in('Feature', 'Unit', 'Browser');
 
 // The same guard for the plain client, which the jobs use. The queue runs sync
-// under test, so storing an entry draws its map there and then: without this a
-// test spends real Mapbox credit on the live token.
+// under test, so storing an entry draws its map and sends its webmentions there
+// and then: without this a test spends Mapbox credit or posts a real webmention.
 // Unit tests are left out because they run without the framework booted.
 uses()->beforeEach(function (): void {
     Http::preventStrayRequests();

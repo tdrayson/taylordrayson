@@ -1,0 +1,99 @@
+<?php
+
+use App\Enums\CommentStatus;
+use App\Enums\ReactionType;
+use App\Models\Note;
+use App\Support\PortableText;
+
+/**
+ * The heading is a total, so it has to be reachable by adding up the row.
+ *
+ * It used to count rows in the list below, while the reaction pile counted
+ * on-site clicks plus webmention likes. The likes were in both, the on-site
+ * clicks in neither, so no arithmetic a reader tried could work.
+ */
+it('adds the summary row up to the number in the heading', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => now()->subHour(),
+        'content' => PortableText::fromPlainText('Something worth responding to.'),
+    ]);
+
+    foreach ([ReactionType::Love, ReactionType::Haha, ReactionType::Wow] as $i => $type) {
+        $note->reactions()->create(['type' => $type, 'identity_key' => hash('sha256', "sum-{$i}")]);
+    }
+
+    $note->comments()->create([
+        'author_name' => 'Marty Spargo',
+        'body' => PortableText::fromPlainText('Good one.'),
+        'status' => CommentStatus::Approved,
+    ]);
+
+    // One of every kind, so nothing is counted twice and nothing is missed.
+    foreach (['reply', 'like', 'repost', 'bookmark', 'rsvp', 'mention', 'reacji'] as $i => $kind) {
+        $note->webmentions()->create([
+            'source_url' => "https://jan.example/{$kind}",
+            'target_url' => config('app.url').$note->url(),
+            'kind' => $kind,
+            'author_name' => 'Jan',
+            'content' => $kind === 'reacji' ? PortableText::fromPlainText('🎉') : null,
+            'status' => CommentStatus::Approved,
+            'verified_at' => now(),
+            'published_at' => now()->subMinutes($i),
+        ]);
+    }
+
+    // 3 on-site + like + reacji = 5 reactions, 1 comment + 1 reply = 2 replies,
+    // and one each of repost, bookmark, RSVP and mention. Eleven in total.
+    $page = visit($note->url())->assertPresent('[data-testid="reaction-bar"]');
+
+    $page->assertScript("document.querySelector('#responses').textContent.trim()", '11 interactions');
+
+    // The pile's per-disc counts are a breakdown of the reaction total, not
+    // figures of their own, so they are not part of the sum.
+    $page->assertScript(
+        "[...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tabular-nums')]"
+            .".filter((el) => ! el.closest('.reaction-item'))"
+            .'.reduce((sum, el) => sum + Number(el.textContent), 0)',
+        11,
+    );
+});
+
+/**
+ * The heading is computed from the same counts the bar posts, so a click has to
+ * move both. It used to read off the page props, which meant the number only
+ * caught up on the next full load.
+ */
+it('moves the heading with a reaction as it is clicked', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => now()->subHour(),
+        'content' => PortableText::fromPlainText('Nothing has happened here yet.'),
+    ]);
+
+    $page = visit($note->url())->assertPresent('[data-testid="reaction-bar"]');
+
+    $page->assertSee('No interactions yet')
+        ->click('[aria-label="React to this"]')
+        ->assertSee('1 interaction')
+        ->assertNoJavaScriptErrors();
+});
+
+/**
+ * The pile of discs is only drawn for a mix of kinds, so a count that is all
+ * one kind had nothing on the row saying which kind it was: a bare number
+ * beside a thumb that is only the default glyph.
+ */
+it('names the reaction when the count is all one kind', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => now()->subHour(),
+        'content' => PortableText::fromPlainText('One person liked this, and nothing else happened.'),
+    ]);
+
+    foreach (['first', 'second'] as $who) {
+        $note->reactions()->create(['type' => ReactionType::Love, 'identity_key' => hash('sha256', $who)]);
+    }
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"]')
+        ->assertPresent('[aria-label="React to this, 2 hearts"]')
+        ->assertNoJavaScriptErrors();
+});

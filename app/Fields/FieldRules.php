@@ -5,8 +5,10 @@ namespace App\Fields;
 use App\Data\FieldData;
 use App\Enums\FieldType;
 use App\Rules\NotReservedSlug;
+use App\Rules\RequiredUnless;
 use App\Rules\TextOrDocument;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Validation derived from the field definitions.
@@ -22,9 +24,10 @@ final class FieldRules
 
     /**
      * @param  list<FieldData>  $fields
-     * @return array<string, array<int, string>>
+     * @param  Model|null  $stored  The row an update applies to, read for any condition the request leaves out.
+     * @return array<string, array<int, string|ValidationRule>>
      */
-    public static function for(array $fields, bool $creating): array
+    public static function for(array $fields, bool $creating, ?Model $stored = null): array
     {
         $rules = [];
 
@@ -45,19 +48,38 @@ final class FieldRules
             }
 
             $rules[$field->name] = [
-                // Only the genuinely mandatory fields are required, and only on
-                // create: an update may touch one field and leave the rest
-                // alone. A date stamped at save is left empty by a draft.
-                match (true) {
-                    ! $creating || ! $field->required => 'sometimes',
-                    $field->defaultsToNow => 'required_unless:status,draft',
-                    default => 'required',
-                },
+                ...self::presenceRules($field, $creating, $stored),
                 ...self::typeRules($field),
             ];
         }
 
         return $rules;
+    }
+
+    /**
+     * Whether a field must be filled.
+     *
+     * Only the genuinely mandatory fields are required, and only on create: an
+     * update may touch one field and leave the rest alone. A date stamped at
+     * save is left empty by a draft. A conditionally required field is also held
+     * to its condition on update whenever it is sent, so an edit cannot blank it.
+     *
+     * @return list<string|ValidationRule>
+     */
+    private static function presenceRules(FieldData $field, bool $creating, ?Model $stored): array
+    {
+        if (! $field->required) {
+            return ['sometimes'];
+        }
+
+        $unless = $field->requiredUnless === null ? [] : [new RequiredUnless($field->requiredUnless, $stored)];
+
+        return match (true) {
+            ! $creating => ['sometimes', ...$unless],
+            $field->defaultsToNow => ['required_unless:status,draft'],
+            $unless !== [] => $unless,
+            default => ['required'],
+        };
     }
 
     /**
@@ -108,6 +130,7 @@ final class FieldRules
             // `url:` items; the items themselves are checked by itemRules() below.
             FieldType::Image, FieldType::BookCover => ['nullable', 'array', 'max:1'],
             FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
+            FieldType::Citation => ['nullable', 'string', 'max:600'],
         };
     }
 

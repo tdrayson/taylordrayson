@@ -47,6 +47,7 @@ class SearchController extends Controller
             'filter' => $groups,
             'order' => $order,
             'groups' => $results['groups'],
+            'interactions' => $results['interactions'],
             'total' => $results['total'],
             'currentPage' => $results['currentPage'],
             'lastPage' => $results['lastPage'],

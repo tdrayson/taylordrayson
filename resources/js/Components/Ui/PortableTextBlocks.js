@@ -188,16 +188,28 @@ function renderExternalLink(def, label, text, favicons) {
         ? iconWithLabel(mark, label)
         : (def.expanded ? iconWithAddress(mark, text) : iconWithLabel(mark, collapsedUrl(host, def.href)));
 
+    // What the link says out loud: the author's words, or the address a pasted
+    // URL stands for. A collapsed one speaks its host, since the "/…" it shows
+    // is hidden from screen readers already.
+    const spoken = pasted && ! def.expanded ? host : text;
+
+    // No nofollow, deliberately: everything this renderer draws was written by
+    // the site's author, and disavowing your own outbound links is wrong.
+    // Contributed content (comments, mentions) must NOT be routed through here
+    // for that reason, and because this renderer draws images, callouts and
+    // embeds that a stranger's document has no business containing.
+    // "opens in a new tab" is said with aria-label rather than a hidden span,
+    // because this anchor sits inside e-content: a webmention receiver reading
+    // our content back as plain text would print the hidden words as if we had
+    // written them. An attribute is not text and never travels.
     return h('a', {
         href: def.href,
         rel: away ? 'noopener noreferrer' : null,
         target: away ? '_blank' : null,
+        'aria-label': away ? `${spoken}, opens in a new tab` : null,
         class: CHIP,
         'data-external': '',
-    }, [
-        ...children,
-        away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
-    ]);
+    }, children);
 }
 
 /**

@@ -4,6 +4,10 @@ import PortableTextBlocks from './PortableTextBlocks.js';
 import LinkPreviewLayer from './LinkPreviewLayer.vue';
 import { useLinkContext } from '../../lib/linkContext.js';
 
+// Two roots, so the class a caller passes still lands on the content element
+// rather than on a wrapper around it.
+defineOptions({ inheritAttrs: false });
+
 // A note's own words in the feed, links and all.
 const props = defineProps({
     document: { type: [Array, String], default: null },
@@ -39,10 +43,14 @@ const contentEl = ref(null);
         v-if="nodes.length"
         ref="contentEl"
         v-twemoji
+        v-bind="$attrs"
         class="e-content mt-1.5 space-y-3 text-base leading-relaxed text-neutral-900"
     >
         <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" />
-
-        <LinkPreviewLayer :previews="links.previews" :container="contentEl" />
     </div>
+
+    <!-- Outside the content element on purpose: a hover overlay is not part of
+         what the author wrote, and its teleport anchors would otherwise sit in
+         the e-content a microformats consumer reads back. -->
+    <LinkPreviewLayer v-if="nodes.length" :previews="links.previews" :container="contentEl" />
 </template>

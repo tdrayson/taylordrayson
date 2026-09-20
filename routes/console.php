@@ -13,16 +13,18 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('trakt:sync --days=1 --skip-ratings')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('trakt:sync --ratings-only')->dailyAt('04:10')->withoutOverlapping();
 
-// Strava fetches the polyline and photos inline, so an activity is complete
-// on arrival apart from its charts (see the enrichment block below). It also
-// compares each summary against the row it already has, so a title rewritten
-// or photos added after Strava auto-published arrive on the next run.
-Schedule::command('strava:sync --days=2')->everyFiveMinutes()->withoutOverlapping();
+// Strava pushes activity creates, edits and deletes to the webhook, so this is
+// no longer how an activity is found: it is the safety net for an event that
+// never arrived, and for the one edit the events do not cover. Strava's
+// `updates` hash documents only title, type and private, so a description
+// written on its own is not reliably pushed; --refresh asks outright, which
+// costs one request per activity in the window. Twice a day caps that lag at
+// twelve hours for about seven reads.
+Schedule::command('strava:sync --days=2 --refresh')->twiceDaily(4, 16)->withoutOverlapping();
 
-// A description written on its own leaves the summary identical, so nothing
-// above can see it. This asks Strava outright, which costs one request per
-// activity in the last two days: a handful, and only once an hour.
-Schedule::command('strava:sync --days=2 --refresh')->hourly()->withoutOverlapping();
+// Kudos and comments left on an activity after it published. Only the
+// summary counts are checked each run, so a quiet activity costs nothing.
+Schedule::command('strava:responses')->hourly()->withoutOverlapping();
 
 // Keep the recent food diary fresh in near real time, re-checking the last few
 // days so food logged late for an earlier day is picked up.
@@ -36,6 +38,9 @@ Schedule::command('rovi:sync-steps')->everyFifteenMinutes()->withoutOverlapping(
 // Swarm check-ins, asking only for what postdates the newest stored one.
 Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
 
+// Likes and comments left on check-ins after they were synced.
+Schedule::command('swarm:responses')->hourly()->withoutOverlapping();
+
 // Episodes publish weekly, so once a day is ample. It used to run every half
 // hour, and because the sync re-fetches all 43 pages each time (see #85), that
 // read as scraping to the podcast site's WAF and got this server's IP blocked.
@@ -44,9 +49,10 @@ Schedule::command('this-week-with:sync')->dailyAt('05:20')->withoutOverlapping()
 // Enrichment: derived work for rows capture has already stored. All skip what is
 // done, so they are cheap when idle and double as a repair pass.
 
-// Activity streams (the heart-rate, elevation and speed charts) are the one
-// part of an activity that strava:sync does not fetch inline.
-Schedule::command('strava:streams')->hourly()->withoutOverlapping();
+// Activity streams are fetched as each activity is stored now, so this is the
+// repair pass for an activity whose streams Strava had not finished processing
+// at the time. It spends nothing at all when none are missing.
+Schedule::command('strava:streams')->dailyAt('04:30')->withoutOverlapping();
 
 // Static timeline maps for newly located entries of each mappable type.
 Schedule::command('maps:generate flight')->hourly()->withoutOverlapping();
@@ -89,3 +95,11 @@ Schedule::command('backup:monitor')->dailyAt('09:00')->when($mirrorReady);
 
 // Originals only; conversions and responsive images rebuild from them.
 Schedule::command('assets:mirror')->dailyAt('04:40')->when($mirrorReady)->withoutOverlapping();
+
+// Cached faces and favicons, refreshed on a slow cycle. Both are written once
+// when the thing that needs them arrives and never revisited, so a changed
+// avatar or a rebranded site keeps its old image indefinitely, and a directory
+// lost to a deploy stays lost. Monthly is enough for both: they are cosmetic,
+// and each run re-downloads every file, which is not something to do often.
+Schedule::command('webmentions:avatars')->monthlyOn(1, '04:20')->withoutOverlapping();
+Schedule::command('links:favicons --force')->monthlyOn(1, '04:50')->withoutOverlapping();

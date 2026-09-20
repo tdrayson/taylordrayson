@@ -118,6 +118,26 @@
 
         .legend-dot { width: 18px; height: 18px; border-radius: 50%; }
 
+        /* The standfirst under a title: a page's own excerpt, so a shared link
+           carries some context rather than two words on an empty field.
+           Clamped because the copy is written for a meta tag, not for here. */
+        .standfirst {
+            margin-top: 24px;
+            /* Narrower than the column the title gets: a heavy title reads
+               fine crossing the cutout's soft edge, grey body copy does not. */
+            max-width: 500px;
+            /* Small enough that a page's whole excerpt usually lands inside
+               three lines, which is all the room a full-height title leaves. */
+            font-size: 27px;
+            font-weight: 500;
+            line-height: 1.36;
+            color: #6b7280;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+
         /* The home card's standfirst, set beneath the wordmark. */
         .tagline {
             margin-top: 28px;
@@ -175,6 +195,9 @@
                     <div class="eyebrow"><span class="dot"></span>{{ $eyebrow }}</div>
                 @endif
                 <div class="title">{{ $title }}</div>
+                @if ($subtitle)
+                    <div class="standfirst">{{ $subtitle }}</div>
+                @endif
                 @if ($stages)
                     <div class="stages">
                         <div class="stage-bar">

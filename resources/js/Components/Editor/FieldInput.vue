@@ -17,6 +17,7 @@ import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
 import BookCoverField from './BookCoverField.vue';
 import LengthRing from './LengthRing.vue';
+import CitationField from './CitationField.vue';
 import StatusInput from './StatusInput.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
 
@@ -36,6 +37,9 @@ const props = defineProps({
     // way to check them.
     latitude: { type: [Number, String], default: null },
     longitude: { type: [Number, String], default: null },
+    // The response URL and kind, which a citation field previews from.
+    responseUrl: { type: String, default: null },
+    responseKind: { type: String, default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
     // The sibling password a status field edits alongside the status itself.
@@ -46,6 +50,8 @@ const props = defineProps({
     placeholder: { type: String, default: '' },
     // A line under the control, e.g. the URL a slug is going to produce.
     hint: { type: String, default: null },
+    // A required field its condition has excused, e.g. the body of a like.
+    excused: { type: Boolean, default: false },
 });
 
 // How much of a capped field's budget the current value spends. Measured on
@@ -70,8 +76,8 @@ const coordinates = computed(() => {
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
-// what other fields exist.
-defineEmits(['update:modelValue', 'fill']);
+// what other fields exist. `preview` relays the response context a citation loaded.
+defineEmits(['update:modelValue', 'fill', 'preview']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -100,7 +106,9 @@ function textToTags(value) {
 
 <template>
     <div>
-        <div v-if="! hideLabel && field.type !== 'boolean'" class="mb-1 flex items-center justify-between gap-3">
+        <!-- A citation field with nothing but a preview to show (a like, repost
+             or RSVP has no quote of its own) draws no label above it. -->
+        <div v-if="! hideLabel && field.type !== 'boolean' && (field.type !== 'citation' || responseKind === 'reply')" class="mb-1 flex items-center justify-between gap-3">
             <Eyebrow as="label" :for="field.name" class="block text-neutral-500">{{ field.label }}</Eyebrow>
 
             <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
@@ -127,8 +135,8 @@ function textToTags(value) {
                 ref="prose"
                 profile="prose"
                 :model-value="Array.isArray(modelValue) ? modelValue : []"
-                :placeholder="`Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
-                placeholder-short="Write something."
+                :placeholder="excused ? `Add a ${field.label.toLowerCase()}, or leave it blank.` : `Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
+                :placeholder-short="excused ? 'Optional.' : 'Write something.'"
                 @update:model-value="$emit('update:modelValue', $event)"
             />
         </div>
@@ -196,6 +204,7 @@ function textToTags(value) {
             :options="field.options ?? []"
             :placeholder="`Choose ${field.label.toLowerCase()}`"
             :invalid="Boolean(error)"
+            :clearable="! field.required"
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
@@ -251,6 +260,16 @@ function textToTags(value) {
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
+        />
+
+        <CitationField
+            v-else-if="field.type === 'citation'"
+            :id="field.name"
+            :model-value="modelValue ?? ''"
+            :response-url="responseUrl"
+            :response-kind="responseKind"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @preview="$emit('preview', $event)"
         />
 
         <Input
