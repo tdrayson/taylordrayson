@@ -1,17 +1,23 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { loadMaplibre, mapStyleForTheme } from '../../lib/maplibre.js';
 import { useTheme } from '../../useTheme.js';
 
 const props = defineProps({
     name: { type: String, default: 'Taylor' },
     city: { type: String, default: 'London, UK' },
-    avatar: { type: String, default: '/taylor-cutout.png' },
+    avatar: { type: String, default: null },
     // Coarsened, privacy-safe coordinates sent to the page. The real location
     // stays server-side; only this rounded pair and a zoomed-out map are shown.
     latitude: { type: Number, default: 51 },
     longitude: { type: Number, default: 0 },
 });
+
+const page = usePage();
+
+// Falls back to the shared identity so the map pin matches every other avatar.
+const avatar = computed(() => props.avatar ?? page.props.identity.avatar);
 
 const mapContainer = ref(null);
 let map = null;

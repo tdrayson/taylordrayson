@@ -46,6 +46,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            // Name, avatar, bio and rel="me" profiles: the one place every
+            // component reads the owner's identity from.
+            'identity' => config('identity'),
             // The current card design, appended to every generated og:image URL
             // so a template edit changes the URL and scrapers refetch. Cards are
             // served immutable, so without it a redesign is invisible to anyone
