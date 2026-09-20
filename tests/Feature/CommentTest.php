@@ -330,3 +330,24 @@ it('marks a comment as mine by the address, never by the name anyone can type', 
         ->and(ConversationItem::fromComment($mine, null)->authorPhoto)->toBe(config('identity.avatar'))
         ->and(ConversationItem::fromComment($impostor, null)->authorPhoto)->toBeNull();
 });
+
+it('hands an approved comment back whole, and a held one not at all', function () {
+    $note = Note::factory()->create();
+
+    // A name nobody has seen before is held, so there is nothing to show yet.
+    comment($note->id)
+        ->assertSuccessful()
+        ->assertJsonPath('status', 'pending')
+        ->assertJsonPath('response', null);
+
+    Comment::query()->update(['status' => CommentStatus::Approved]);
+
+    // The same name and IP again: approved on arrival, and returned shaped as
+    // the thread's other items so the page can add it without a reload.
+    comment($note->id, ['body' => 'Back again with something else to say.'])
+        ->assertSuccessful()
+        ->assertJsonPath('status', 'approved')
+        ->assertJsonPath('response.kind', 'comment')
+        ->assertJsonPath('response.authorName', 'Jo')
+        ->assertJsonPath('response.mine', false);
+});

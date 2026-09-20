@@ -142,8 +142,10 @@ async function submit() {
 
         // Held and approved read the same to the sender, so a bot learns
         // nothing from the answer.
-        done.value = (await response.json()).status;
-        emit('posted', done.value);
+        const posted = await response.json();
+
+        done.value = posted.status;
+        emit('posted', posted);
     } catch {
         errors.value = { body: ['That did not send. Try again in a moment.'] };
     } finally {
