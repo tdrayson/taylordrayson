@@ -50,10 +50,10 @@ final class FuelSheet
         $brand = $this->value($data, 'brand');
 
         $vendor = [
-            ...$this->centredBlock($this->value($data, 'station')),
-            // The brand belongs with the forecourt's name, not filed as a
-            // detail row beside the fuel grade.
+            // The brand heads the receipt the way a forecourt's sign does,
+            // with the individual station and its locality beneath.
             ...$this->centredBlock($brand === '' ? '' : mb_strtoupper($brand).' GARAGE'),
+            ...$this->centredBlock($this->value($data, 'station')),
             ...$this->centredBlock($this->value($data, 'locality')),
         ];
 
