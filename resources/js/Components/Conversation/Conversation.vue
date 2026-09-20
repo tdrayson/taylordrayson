@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
+import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue';
 import ReactionBar from './ReactionBar.vue';
 import ResponseAsides from './ResponseAsides.vue';
 import ResponseItem from './ResponseItem.vue';
@@ -19,6 +19,31 @@ const replyingTo = ref(null);
 const asides = ref(null);
 
 /**
+ * The thread and the counts as they stand now, not as the page was loaded: a
+ * reaction answers with the true counts and an approved comment comes back
+ * whole, so both land here rather than waiting for the next full load.
+ */
+const responses = ref([...props.conversation.responses]);
+const reactions = ref([...props.conversation.reactions]);
+
+watch(() => props.conversation, (value) => {
+    responses.value = [...value.responses];
+    reactions.value = [...value.reactions];
+});
+
+/**
+ * A comment that is already public, put where the server would have put it.
+ * One held for moderation has nothing to show, and says so in the form.
+ */
+function posted(result) {
+    if (! result.response || responses.value.some((item) => item.id === result.response.id)) {
+        return;
+    }
+
+    responses.value = [result.response, ...responses.value];
+}
+
+/**
  * The thread: newest conversation first, but each reply kept under the response
  * it answers. Sorting the whole list by date alone put a reply above its own
  * parent, which reads as a non-sequitur.
@@ -28,7 +53,7 @@ const asides = ref(null);
  * first, because a conversation reads forwards even when the list does not.
  */
 const thread = computed(() => {
-    const all = props.conversation.responses;
+    const all = responses.value;
 
     const byCommentId = new Map(
         all.filter((item) => item.commentId !== null).map((item) => [item.commentId, item]),
@@ -155,11 +180,11 @@ const formFollows = computed(() => {
  * prose in the speech bubble and also in the mention tally, and left the
  * heading as a total nobody could reach by adding up what was beside it.
  */
-const countOf = (...kinds) => props.conversation.responses.filter((item) => kinds.includes(item.kind)).length;
+const countOf = (...kinds) => responses.value.filter((item) => kinds.includes(item.kind)).length;
 
 // On-site clicks plus the gestures that mean the same thing from somebody
 // else's site: a like sent by webmention, and a single-emoji reply.
-const onSite = computed(() => props.conversation.reactions.reduce((sum, bucket) => sum + bucket.count, 0));
+const onSite = computed(() => reactions.value.reduce((sum, bucket) => sum + bucket.count, 0));
 const likeCount = computed(() => countOf('like', 'reacji'));
 const reactionCount = computed(() => onSite.value + likeCount.value);
 
@@ -217,7 +242,7 @@ async function reply(item) {
             <!-- A summary line, not a labelled section: the counts read as part
                  of the entry rather than as a form to fill in. -->
             <ReactionBar
-                :reactions="conversation.reactions"
+                :reactions="reactions"
                 :like-count="likeCount"
                 :reply-count="replyCount"
                 :repost-count="repostCount"
@@ -226,6 +251,7 @@ async function reply(item) {
                 :mention-count="mentionCount"
                 :type="conversation.type"
                 :id="conversation.id"
+                @reacted="reactions = $event"
             />
 
             <div v-if="thread.length">
@@ -259,6 +285,7 @@ async function reply(item) {
                                 :parent-id="replyParentId"
                                 :replying-to="replyingTo.authorName"
                                 @cancel="replyingTo = null"
+                                @posted="posted"
                             />
                         </li>
                     </template>
@@ -284,7 +311,7 @@ async function reply(item) {
 
             <!-- Only ever a new comment on the entry. Replying to somebody
                  happens inside the thread, against the response it answers. -->
-            <CommentForm :type="conversation.type" :id="conversation.id" />
+            <CommentForm :type="conversation.type" :id="conversation.id" @posted="posted" />
 
             <ResponseAsides ref="asides" :url="conversation.url" :og="og" />
         </div>

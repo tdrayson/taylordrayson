@@ -5,9 +5,11 @@ use App\Models\Article;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Reaction;
+use App\Models\User;
 use App\Queries\InteractionsForFeed;
 use Illuminate\Support\Facades\DB;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Laravel\postJson;
 
 /**
@@ -171,4 +173,14 @@ it('answers for a whole page of entries in a fixed number of queries', function 
     expect($queries)->toBe(5)
         ->and($rows)->toHaveCount(12)
         ->and($rows['note:'.$notes[0]->id]['reactions'][1]['count'])->toBe(1);
+});
+
+it('refuses a reaction from the signed in author', function () {
+    $note = Note::factory()->create();
+
+    actingAs(User::factory()->create());
+
+    react('note', $note->id)->assertForbidden();
+
+    expect(Reaction::count())->toBe(0);
 });

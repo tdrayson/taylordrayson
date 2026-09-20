@@ -39,9 +39,7 @@ final class Conversation
 
     public static function for(Model $target, ?string $identity = null): ConversationData
     {
-        // A page carries no timezone of its own; LocalTime then renders in
-        // home time, same as it already does everywhere else.
-        $timezone = $target instanceof Timelineable ? $target->timezone() : null;
+        $timezone = self::timezoneOf($target);
 
         return new ConversationData(
             type: (string) InteractionTarget::keyFor($target),
@@ -54,6 +52,24 @@ final class Conversation
 
             responses: self::responses($target, $timezone),
         );
+    }
+
+    /**
+     * One comment as the thread's other items are shaped, so a comment just
+     * written can be added to the list without the client building it.
+     */
+    public static function item(Comment $comment, Model $target): ConversationItem
+    {
+        return ConversationItem::fromComment($comment, self::timezoneOf($target));
+    }
+
+    /**
+     * A page carries no timezone of its own; LocalTime then renders in home
+     * time, same as it already does everywhere else.
+     */
+    private static function timezoneOf(Model $target): ?string
+    {
+        return $target instanceof Timelineable ? $target->timezone() : null;
     }
 
     /**

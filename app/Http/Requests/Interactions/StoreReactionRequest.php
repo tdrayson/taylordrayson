@@ -9,9 +9,13 @@ use Illuminate\Validation\Rule;
 
 class StoreReactionRequest extends FormRequest
 {
+    /**
+     * Reactions are for visitors. Signed in means the author, and reacting to
+     * your own entry is not a gesture worth recording.
+     */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() === null;
     }
 
     /**

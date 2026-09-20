@@ -7,6 +7,7 @@ use App\Actions\Comments\StoreComment;
 use App\Enums\CommentStatus;
 use App\Http\Requests\Interactions\StoreCommentRequest;
 use App\Models\Comment;
+use App\Presenters\Conversation;
 use App\Services\Pushover\Client as Pushover;
 use App\Support\FormNonce;
 use App\Support\InteractionTarget;
@@ -45,10 +46,15 @@ class CommentController extends Controller
             app(NotifyOfReply::class)($comment);
         }
 
+        $approved = $comment?->status === CommentStatus::Approved;
+
         // A dropped bot submission answers exactly as a held one does, so
         // nothing on the other end learns which check it failed.
         return response()->json([
             'status' => ($comment?->status ?? CommentStatus::Pending)->value,
+            // The comment itself, so the page can show it without a reload.
+            // Only when it is already public: a held one has nothing to show.
+            'response' => $approved ? Conversation::item($comment, $target) : null,
         ], 201);
     }
 

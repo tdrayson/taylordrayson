@@ -1,6 +1,6 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
 import CountGroup from '../Ui/CountGroup.vue';
@@ -43,7 +43,17 @@ const props = defineProps({
     url: { type: String, default: null },
 });
 
+// The server's answer to a click, handed up so whatever counts the bar sits
+// under can move with it rather than waiting for a reload.
+const emit = defineEmits(['reacted']);
+
 const compact = computed(() => props.variant === 'compact');
+
+/**
+ * Signed in is me, and reacting to my own entry is not a gesture worth
+ * recording. Only the picker goes: the count stays and comments are untouched.
+ */
+const canReact = computed(() => usePage().props.signedIn !== true);
 
 /** One place for every size that differs, rather than a ternary per element. */
 const sizes = computed(() => (compact.value
@@ -73,6 +83,13 @@ const glyph = (bucket) => GLYPHS[bucket.key] ?? null;
 const discOf = (g) => ({ background: g.colour, color: 'var(--color-reaction-glyph)' });
 
 const buckets = ref([...props.reactions]);
+
+// Follows the prop when the page refreshes its counts, so a bar that has been
+// clicked still ends up on what the server last said.
+watch(() => props.reactions, (value) => {
+    buckets.value = [...value];
+});
+
 const busy = ref(null);
 const failed = ref(false);
 const picking = ref(false);
@@ -155,6 +172,15 @@ const summaryLabel = computed(() => {
     return parts.length ? parts.join(', ') : 'No reactions yet';
 });
 
+/** Just the figure: which kinds they were is what the pile beside it says. */
+const reactionsLabel = computed(() => {
+    if (! total.value) {
+        return 'No reactions yet';
+    }
+
+    return `${total.value} ${total.value === 1 ? 'reaction' : 'reactions'}`;
+});
+
 /**
  * Toggle a reaction, replacing the whole bar with the server's answer so a
  * click that raced somebody else's still lands on the true counts.
@@ -180,6 +206,7 @@ async function toggle(bucket) {
         }
 
         buckets.value = (await response.json()).reactions;
+        emit('reacted', buckets.value);
     } catch {
         failed.value = true;
     } finally {
@@ -209,7 +236,7 @@ function press() {
             <!-- One joined grey box for the counts, answered or not, so the row keeps
                  its shape when the first response arrives. -->
             <CountGroup :size="sizes.group">
-            <CountSegment :padded="false">
+            <CountSegment v-if="canReact" :padded="false">
             <!-- The picker opens on hover for a mouse and on focus for a
                  keyboard; the control stays clickable either way. -->
             <div
@@ -287,6 +314,15 @@ function press() {
             </div>
             </CountSegment>
 
+            <!-- Signed in, the same figure reads as a count rather than a
+                 control, alongside the gesture segments it now matches. -->
+            <CountSegment v-else :aria-label="reactionsLabel" :class="sizes.text">
+                <Tooltip :label="reactionsLabel" placement="top" :class="['items-center', sizes.gap]">
+                    <Icon name="ThumbsUpIcon" :class="sizes.icon" />
+                    <span class="tabular-nums">{{ total }}</span>
+                </Tooltip>
+            </CountSegment>
+
             <!-- On the feed this jumps to the entry's responses; on the entry
                  the heading it would jump to already sits above the line. -->
             <CountSegment
@@ -362,4 +398,50 @@ function press() {
     transform-origin: bottom left;
 }
 
+/* Overlapped at rest so a handful of kinds stay one short mark, and spread on
+   hover so each is a target of its own and its count can be read. */
+.reaction-item {
+    margin-left: -0.375rem;
+    transition: margin-left 150ms ease;
+}
+
+.reaction-item:first-child {
+    margin-left: 0;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-item,
+.reaction-pile:not(.is-static):focus-within .reaction-item,
+.reaction-pile:not(.is-static):focus .reaction-item {
+    margin-left: 0.375rem;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus-within .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus .reaction-item:first-child {
+    margin-left: 0;
+}
+
+/* Hidden by width rather than display, so the reveal can be animated and the
+   discs slide apart instead of jumping. */
+.reaction-count {
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 150ms ease, opacity 150ms ease, margin-left 150ms ease;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-count,
+.reaction-pile:not(.is-static):focus-within .reaction-count,
+.reaction-pile:not(.is-static):focus .reaction-count {
+    max-width: 2rem;
+    margin-left: 0.25rem;
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reaction-item,
+    .reaction-count {
+        transition: none;
+    }
+}
 </style>
