@@ -127,7 +127,7 @@ onUnmounted(() => {
 .menu-search,
 #mobile-menu :deep(nav > *),
 #mobile-menu .menu-foot {
-    animation: menu-item-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: menu-item-in 0.38s var(--ease-out-expo) both;
 }
 
 #mobile-menu :deep(nav > *:nth-child(1)) {

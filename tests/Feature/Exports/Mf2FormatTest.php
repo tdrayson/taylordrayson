@@ -52,7 +52,7 @@ it('nests a bare author on the h-entry, with the full card only as a second top-
             'url' => [config('app.url').'/'],
         ])
         ->and($card['type'])->toBe(['h-card'])
-        ->and($card['properties']['photo'][0]['value'])->toContain('taylor-cutout.png')
+        ->and($card['properties']['photo'][0]['value'])->toContain(config('identity.avatar'))
         ->and($card['properties']['name'][0])->toBe('Taylor Drayson')
         ->and($card['properties']['url'])->toBe([config('app.url').'/', 'https://github.com/tdrayson'])
         ->and($card['properties']['uid'][0])->toBe(config('app.url').'/')

@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <Transition name="lift">
+    <Transition name="rise">
         <button
             v-if="visible"
             type="button"
@@ -56,28 +56,3 @@ onBeforeUnmount(() => {
         </button>
     </Transition>
 </template>
-
-<style scoped>
-.lift-enter-active,
-.lift-leave-active {
-    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.lift-enter-from,
-.lift-leave-to {
-    opacity: 0;
-    transform: translateY(0.75rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .lift-enter-active,
-    .lift-leave-active {
-        transition: opacity 0.2s ease;
-    }
-
-    .lift-enter-from,
-    .lift-leave-to {
-        transform: none;
-    }
-}
-</style>

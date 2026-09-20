@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
         <slot />
 
         <Teleport v-if="mounted" to="body">
-            <Transition name="tooltip-fade">
+            <Transition name="fade">
                 <span
                     v-if="visible"
                     role="tooltip"
@@ -109,18 +109,3 @@ onBeforeUnmount(() => {
         </Teleport>
     </span>
 </template>
-
-<style scoped>
-/* Mirrors the previous always-mounted opacity-0/opacity-100 + transition-opacity
-   duration-150 classes, now driven by v-if via Transition since the bubble only
-   exists in the DOM while visible. */
-.tooltip-fade-enter-active,
-.tooltip-fade-leave-active {
-    transition: opacity 150ms;
-}
-
-.tooltip-fade-enter-from,
-.tooltip-fade-leave-to {
-    opacity: 0;
-}
-</style>
