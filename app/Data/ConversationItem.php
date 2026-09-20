@@ -71,7 +71,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             kind: 'comment',
             authorName: $comment->author_name,
             authorUrl: null,
-            authorPhoto: $mine ? (string) config('feed.author_photo') : null,
+            authorPhoto: $mine ? (string) config('identity.avatar') : null,
             title: null,
             body: $comment->body,
             occurredAt: $comment->created_at,
@@ -168,11 +168,11 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         return new self(
             id: 'linked-'.$mention->id,
             kind: 'mention-internal',
-            authorName: (string) config('feed.author_name'),
+            authorName: (string) config('identity.name'),
             // No author URL: linking my own name back to my own site, from a
             // page on it, gives the reader nowhere new to go.
             authorUrl: null,
-            authorPhoto: (string) config('feed.author_photo'),
+            authorPhoto: (string) config('identity.avatar'),
             title: self::titleOf($source),
             body: null,
             occurredAt: $occurredAt ?? $source->created_at,

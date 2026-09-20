@@ -10,12 +10,6 @@ $language = 'en-GB';
 return [
     'author_name' => 'Taylor Drayson',
     'author_email' => 'hello@taylordrayson.com',
-    'author_photo' => '/headshot-taylor.jpg',
-
-    // Sits beside the name because it answers the same question: who wrote this.
-    // Read by the conversation, where one of my own entries linking to another
-    // appears alongside other people's responses and needs a face like theirs.
-    'author_photo' => '/headshot-taylor.jpg',
 
     'feeds' => [
         'atom' => [
