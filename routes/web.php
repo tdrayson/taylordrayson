@@ -11,6 +11,7 @@ use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\ModerationController;
@@ -91,6 +92,11 @@ Route::get('/feeds', [FeedsController::class, 'index'])->name('feeds');
 Route::get('/robots.txt', fn () => response()
     ->view('robots')
     ->header('Content-Type', 'text/plain'))->name('robots');
+
+// The PWA manifest, a route rather than a file in public/ so its icon URLs can
+// carry a content hash. public/manifest.webmanifest has to stay deleted: the
+// server serves an existing file before it falls through to the app.
+Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemap/pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
