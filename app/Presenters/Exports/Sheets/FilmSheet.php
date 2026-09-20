@@ -41,7 +41,8 @@ final class FilmSheet
         return array_values(array_filter([
             $this->labelled('FILM', $data->field('film')),
             $this->labelled('DATE', $data->field('date')),
-            $this->labelled('YEAR', $data->field('year')),
+            // RELEASE, not YEAR: the DATE row above it is when I watched it.
+            $this->labelled('RELEASE', $data->field('year')),
             $this->labelled('RATED', $data->field('rating')),
             $this->labelled('RUNTIME', $data->field('runtime')),
         ]));

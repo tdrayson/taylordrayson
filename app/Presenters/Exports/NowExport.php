@@ -43,7 +43,9 @@ final class NowExport
             url: url('/now'),
             title: 'Now',
             summary: null,
-            // A snapshot is worthless without the moment it was taken.
+            // A snapshot is worthless without the moment it was taken. The
+            // night itself needs no date: LastNightSleep only ever returns
+            // last night, and the board is called Now.
             occurred: $this->observed($ambient),
             fields: array_values(array_filter([
                 ...$this->where($ambient['location'] ?? null),
@@ -51,11 +53,11 @@ final class NowExport
                 ...$this->rings($ambient['rings'] ?? null),
                 ...$this->battery($ambient['battery'] ?? null),
                 $sleep === null ? null : ExportField::make('slept', 'Slept', Units::humanDuration($sleep->duration), $sleep->duration),
-                $sleep === null ? null : ExportField::make('slept_on', 'Night of', $sleep->occurred_at->format('j M Y'), $sleep->occurred_at->toDateString()),
                 $book === null ? null : ExportField::make('reading', 'Book', $book->title, $book->title),
                 $book?->meta->author === null ? null : ExportField::make('reading_author', 'Author', (string) $book->meta->author, (string) $book->meta->author),
-                $episode === null ? null : ExportField::make('episode', 'Episode', "S{$episode->season_number}E{$episode->episode_number}", ['season' => $episode->season_number, 'episode' => $episode->episode_number]),
-                $episode?->duration === null ? null : ExportField::make('episode_duration', 'Running time', Units::preciseDuration($episode->duration), $episode->duration),
+                $episode === null ? null : ExportField::make('season', 'Season', (string) $episode->season_number, $episode->season_number),
+                $episode === null ? null : ExportField::make('episode', 'Episode', (string) $episode->episode_number, $episode->episode_number),
+                $episode?->duration === null ? null : ExportField::make('episode_duration', 'Duration', Units::preciseDuration($episode->duration), $episode->duration),
             ])),
             links: array_values(array_filter([
                 $sleep === null ? null : ExportLink::make('sleep', 'Sleep', 'Sleep', '/sleep'),

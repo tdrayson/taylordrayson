@@ -28,7 +28,7 @@ it('prints a film as a perforated cinema ticket stub, one field per row', functi
         ->toContain(
             ['FILM', 'Fall 2: Deadpoint'],
             ['DATE', '19 Sep 2026'],
-            ['YEAR', '2026'],
+            ['RELEASE', '2026'],
             ['RATED', '8 out of 10'],
             ['RUNTIME', '1h 38m'],
         );

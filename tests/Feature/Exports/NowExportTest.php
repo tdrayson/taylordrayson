@@ -32,8 +32,8 @@ it('publishes last night and the latest episode as fields', function () {
     expect($export->type)->toBe('now')
         ->and($export->field('slept')->display)->toBe('7h 35m')
         ->and($export->field('slept')->raw)->toBe(27300)
-        ->and($export->field('episode')->display)->toBe('S3E12')
-        ->and($export->field('episode')->raw)->toBe(['season' => 3, 'episode' => 12])
+        ->and($export->field('season')->display)->toBe('3')
+        ->and($export->field('episode')->display)->toBe('12')
         ->and($export->field('topic'))->toBeNull();
 
     $links = array_map(fn ($l) => $l->key, $export->links);

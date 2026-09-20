@@ -3,6 +3,7 @@
 namespace App\Presenters\Exports\Sheets;
 
 use App\Data\ExportData;
+use App\Data\ExportField;
 
 /**
  * An activity printed as its stats card. Reads the export only: every string
@@ -47,8 +48,21 @@ final class ActivitySheet
         return [
             '',
             Sheet::row('HEART RATE', $this->value($data, 'average_heart_rate').' of '.$this->value($data, 'max_heart_rate'), self::WIDTH),
-            Sheet::centre(Sheet::bar((float) $effort->raw).' '.$effort->display, self::WIDTH),
+            $this->effortBar($effort),
         ];
+    }
+
+    /**
+     * The effort bar, labelled and laid out like a sleep stage: an unlabelled
+     * "80%" under a heart rate reads as a share of something unstated.
+     */
+    private function effortBar(ExportField $effort): string
+    {
+        $labelColumn = str_pad('EFFORT', 6);
+        $percentColumn = str_pad($effort->display, 4, ' ', STR_PAD_LEFT);
+        $barWidth = self::WIDTH - mb_strwidth($labelColumn) - mb_strwidth($percentColumn) - 2;
+
+        return $labelColumn.' '.Sheet::bar((float) $effort->raw, $barWidth).' '.$percentColumn;
     }
 
     /**

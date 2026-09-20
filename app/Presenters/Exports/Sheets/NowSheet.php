@@ -28,11 +28,19 @@ final class NowSheet
         'WHERE' => ['location', 'country', 'timezone'],
         'WEATHER' => ['conditions', 'temperature', 'humidity', 'wind'],
         'ACTIVITY' => ['move', 'exercise', 'stand', 'steps'],
-        'LAST NIGHT' => ['slept_on', 'slept'],
+        'SLEEP' => ['slept'],
         'READING' => ['reading', 'reading_author'],
-        'LISTENING' => ['episode', 'episode_duration'],
+        'LISTENING' => ['season', 'episode', 'episode_duration'],
         'DEVICE' => ['device', 'battery', 'charging'],
     ];
+
+    /**
+     * Keys whose value is free text rather than a reading, so it wraps under
+     * its label instead of being squeezed onto the same line.
+     *
+     * @var list<string>
+     */
+    private const WRAPPED = ['reading'];
 
     public function render(ExportData $data): string
     {
@@ -67,9 +75,13 @@ final class NowSheet
             foreach ($keys as $key) {
                 $field = $data->field($key);
 
-                if ($field !== null) {
-                    $rows[] = Sheet::row(mb_strtoupper($field->label), $field->display, self::WIDTH);
+                if ($field === null) {
+                    continue;
                 }
+
+                $rows[] = in_array($key, self::WRAPPED, true)
+                    ? Sheet::block(mb_strtoupper($field->label), $field->display, self::WIDTH)
+                    : Sheet::row(mb_strtoupper($field->label), $field->display, self::WIDTH);
             }
 
             if ($rows !== []) {

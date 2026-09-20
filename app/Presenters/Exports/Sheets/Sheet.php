@@ -34,6 +34,16 @@ final class Sheet
         return self::fill($label, $value, ' ', $width);
     }
 
+    /**
+     * The label on its own line, the value wrapped and indented beneath it.
+     * For free text (a book title) where squeezing the value onto the label's
+     * line leaves it crammed against it, however technically it fits.
+     */
+    public static function block(string $label, string $value, int $width = self::WIDTH): string
+    {
+        return self::stacked($label, $value, $width);
+    }
+
     /** The same, with dots between, for a receipt. */
     public static function leader(string $label, string $value, int $width = self::WIDTH): string
     {
