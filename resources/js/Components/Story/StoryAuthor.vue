@@ -6,6 +6,8 @@ import Heading from '../Ui/Heading.vue';
 
 defineProps({
     name: { type: String, default: 'Taylor Drayson' },
+    // Story-specific, longer than the profile card's: intentionally its own
+    // wording, not identity.bio.
     bio: {
         type: String,
         default: 'I build stuff on the internet, track everything, and drink too much coffee. This is one of the data stories I keep about my own life.',

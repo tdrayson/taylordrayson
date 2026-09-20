@@ -112,11 +112,14 @@ img {
 /* Logo */
 
 .logo {
-    height: 75px;
+    /* A round 56px crop: it is a face, and at 75px square it reads as a brand
+       mark. Inlined into a style attribute, so it must be real CSS here. */
+    border-radius: 9999px;
+    height: 56px;
     margin-top: 15px;
     margin-bottom: 10px;
-    max-height: 75px;
-    width: 75px;
+    max-height: 56px;
+    width: 56px;
 }
 
 /* Body */
