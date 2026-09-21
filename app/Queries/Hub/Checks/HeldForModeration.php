@@ -29,7 +29,7 @@ final class HeldForModeration implements Check
     private function comments(): array
     {
         return Comment::query()
-            ->where('status', CommentStatus::Pending)
+            ->pending()
             ->with('commentable')
             ->latest('id')
             ->get()

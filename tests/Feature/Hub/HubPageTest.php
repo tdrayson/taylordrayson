@@ -22,15 +22,9 @@ it('sends real entry counts to the page', function () {
 
     get('/hq')->assertInertia(
         fn ($page) => $page->component('Hub')
-            ->where('entries', fn ($entries) => (function () use ($entries) {
-                $notes = collect($entries)->first(
-                    fn ($entry) => $entry['label'] === 'Notes'
-                );
-
-                return $notes !== null
-                    && $notes['count'] === 1
-                    && $notes['synced'] === false;
-            })())
+            ->where('entries', fn ($entries) => collect($entries)->contains(
+                fn ($entry) => $entry['label'] === 'Notes' && $entry['count'] === 1 && $entry['synced'] === false
+            ))
     );
 });
 

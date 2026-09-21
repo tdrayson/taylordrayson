@@ -24,7 +24,7 @@ defineProps({
                 <span class="block min-w-0 sm:flex-1">
                     <span class="block text-sm text-neutral-700">
                         {{ item.sentence }}
-                        <span class="font-semibold text-neutral-900 transition-colors group-hover:text-accent-500 group-focus-visible:text-accent-500">{{ item.entry.title }}</span><span v-if="item.held" class="text-neutral-500">, waiting on you</span>
+                        <span class="font-semibold text-neutral-900 transition-colors group-hover:text-accent-500 group-focus-visible:text-accent-500">{{ item.entry.title }}</span>
                     </span>
 
                     <span v-if="item.body" class="mt-1 block truncate text-sm text-neutral-500">{{ item.body }}</span>
