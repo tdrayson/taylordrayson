@@ -8,6 +8,8 @@ use Illuminate\Support\Arr;
 
 class CreateFlight
 {
+    public function __construct(private QueueMissingAirlineLogo $queueAirlineLogo) {}
+
     /**
      * Idempotent create: retried submissions of the same flight update in
      * place instead of duplicating, keyed on the flight's natural identity.
@@ -38,6 +40,8 @@ class CreateFlight
         if ($created) {
             GenerateEntryMap::dispatch($flight);
         }
+
+        ($this->queueAirlineLogo)($flight);
 
         return ['flight' => $flight->refresh(), 'created' => $created];
     }
