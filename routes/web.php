@@ -9,6 +9,7 @@ use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\HubController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\ManifestController;
@@ -71,8 +72,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/drafts/{dataset}/{id}', [EntryController::class, 'draft'])
         ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('drafts.show');
 
-    // The queue for held comments and mentions. A lowercase word, so it has to
-    // sit above the /{slug} catch-all or a content page could shadow it.
+    // The back-of-house overview: what needs a decision, who has responded, and
+    // whether the syncs are still arriving. A lowercase word, so it has to sit
+    // above the /{slug} catch-all or a content page could shadow it.
+    Route::get('/hq', HubController::class)->name('hq');
+
+    // The queue for held comments and mentions, for now still its own page.
     Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');
     Route::post('/moderation/{kind}/{id}/{action}', [ModerationController::class, 'update'])
         ->where(['kind' => 'comment|mention', 'id' => '[0-9]+', 'action' => 'approve|spam|delete'])

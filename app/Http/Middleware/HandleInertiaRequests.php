@@ -68,6 +68,10 @@ class HandleInertiaRequests extends Middleware
             // every actual gate is enforced server-side, and sharing the model
             // would put the account's email in the props of every page.
             'signedIn' => $request->user() !== null,
+            // How many things are waiting in HQ, so the sidebar link and the
+            // floating menu can carry a dot on every page.
+            // SCAFFOLDING: a fixed count until App\Queries\Hub\NeedsAttention exists.
+            'hubWaiting' => $request->user() !== null ? 4 : 0,
             // The types the command palette can offer a "New …" command for.
             // Empty when signed out, because every /new route is auth-gated.
             'authorTypes' => $request->user() !== null ? AuthorableTypes::forPicker() : [],
