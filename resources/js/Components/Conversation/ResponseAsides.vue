@@ -58,7 +58,7 @@ async function copy() {
     <!-- Three side doors, all at the same weight, so none of them competes
          with the comment box above or with the entry itself. -->
     <div class="mt-10">
-        <Accordion ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
+        <Accordion id="send-a-link" ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
             <template #default="{ expanded }">
                 <p class="mb-3 text-sm text-neutral-500">
                     Send me the link and your
