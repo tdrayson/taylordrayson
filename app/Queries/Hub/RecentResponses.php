@@ -2,78 +2,234 @@
 
 namespace App\Queries\Hub;
 
+use App\Data\Hub\ResponseItem;
+use App\Enums\WebmentionKind;
+use App\Models\Comment;
+use App\Models\Reaction;
+use App\Models\SyndicatedResponse;
+use App\Models\Webmention;
+use App\Support\InteractionTarget;
+use App\Support\PortableText;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+
 /**
- * Everything a person has said, newest first, across comments, webmentions,
- * reactions and syndicated responses.
+ * The latest things people have said, across the four tables that hold them.
  *
- * SCAFFOLDING: a fixed pool until the four tables behind it are read. The shape
- * it returns is the real one, so only the body of pool() changes.
+ * Four small selects merged here rather than a SQL union: the column names
+ * differ per table, and at six rows four indexed queries cost nothing.
  */
 final class RecentResponses
 {
     /**
-     * @return list<array<string, mixed>>
+     * @param  int  $limit  How many rows to return, after collapsing.
+     * @param  Carbon|null  $seenAt  The previous visit, for marking what is new.
+     * @return list<ResponseItem>
      */
-    public function __invoke(int $limit): array
+    public function __invoke(int $limit, ?Carbon $seenAt = null): array
     {
-        return array_slice(self::pool(), 0, $limit);
+        $rows = [
+            ...$this->comments($limit),
+            ...$this->mentions($limit),
+            ...$this->reactions($limit),
+            ...$this->syndicated($limit),
+        ];
+
+        usort($rows, fn (array $a, array $b): int => $b['at'] <=> $a['at']);
+
+        $collapsed = $this->collapse($rows);
+
+        return array_map(
+            fn (array $row): ResponseItem => $this->item($row, $seenAt),
+            array_slice($collapsed, 0, $limit),
+        );
     }
 
     /**
      * @return list<array<string, mixed>>
      */
-    private static function pool(): array
+    private function comments(int $limit): array
     {
-        $entries = [
-            ['Evening ride', '/activities'],
-            ['Lunchtime walk', '/activities'],
-            ['Friday run', '/activities'],
-            ['Notes on webmentions', '/articles/rebuilding-the-timeline'],
-            ['Rebuilding the timeline', '/articles/rebuilding-the-timeline'],
-            ['Sunday long one', '/activities'],
-        ];
+        return Comment::query()
+            ->approved()
+            ->with('commentable')
+            ->latest('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Comment $comment): array => [
+                'id' => 'comment-'.$comment->id,
+                'kind' => 'comment',
+                'icon' => 'Comment01Icon',
+                'who' => $comment->author_name,
+                'verb' => 'commented on',
+                'target' => $comment->commentable,
+                'body' => PortableText::plainText($comment->body),
+                'at' => $comment->created_at,
+                'collapses' => false,
+            ])
+            ->all();
+    }
 
-        $people = ['Clare A.', 'Justin M.', 'Brian D.', 'Sam P.', 'Priya R.'];
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function mentions(int $limit): array
+    {
+        return Webmention::query()
+            ->approved()
+            ->with('target')
+            ->latest('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(function (Webmention $mention): array {
+                $kind = $mention->kind();
+                $reply = $kind === WebmentionKind::Reply;
 
-        $rows = [
-            self::row('r1', 'like', 'ThumbsUpIcon', 'Clare A. gave kudos on', $entries[0], null, '18 September', true),
-            self::row('r2', 'like', 'ThumbsUpIcon', 'Justin M. gave kudos on', $entries[1], null, '13 September', true),
-            self::row('r3', 'reply', 'MailReply01Icon', 'Clare A. replied on', $entries[2], 'That hill again! Well done you.', '12 September', false),
-            self::row('r4', 'like', 'ThumbsUpIcon', 'Clare A., Justin M. and Brian D. gave kudos on', $entries[2], null, '12 September', false),
-            self::row('r5', 'mention', 'Link04Icon', 'adactio.com linked to', $entries[3], null, '11 September', false),
-            self::row('r6', 'comment', 'Comment01Icon', 'Sam P. commented on', $entries[4], 'This is the writeup I keep sending people. Any plans to open source the timeline bit?', '9 September', false),
-            self::row('r7', 'like', 'HeartIcon', 'Priya R. reacted to', $entries[4], null, '8 September', false),
-            self::row('r8', 'like', 'ThumbsUpIcon', 'Clare A. gave kudos on', $entries[5], null, '7 September', false),
-            self::row('r9', 'reply', 'MailReply01Icon', 'Brian D. replied on', $entries[5], 'Pace looking good in that last mile.', '7 September', false),
-            self::row('r10', 'mention', 'Link04Icon', 'maxbock.de linked to', $entries[3], null, '5 September', false),
-        ];
+                return [
+                    'id' => 'mention-'.$mention->id,
+                    'kind' => $reply ? 'reply' : 'mention',
+                    'icon' => $reply ? 'MailReply01Icon' : 'Link04Icon',
+                    'who' => $mention->author_name ?: $mention->author_host ?: 'Someone',
+                    'verb' => $reply ? 'replied on' : 'linked to',
+                    'target' => $mention->target,
+                    'body' => $reply ? PortableText::plainText($mention->content ?? []) : null,
+                    'at' => $mention->created_at,
+                    // A like or repost sent by webmention is one person, named,
+                    // so it reads as its own row rather than a tally.
+                    'collapses' => in_array($kind, [WebmentionKind::Like, WebmentionKind::Repost], true),
+                ];
+            })
+            ->all();
+    }
 
-        // Older rows, so the cap on the hub is visible.
-        for ($i = 11; $i <= 26; $i++) {
-            $entry = $entries[$i % count($entries)];
-            $who = $people[$i % count($people)];
+    /**
+     * On-site reactions, which carry no name: identity is an IP hash, so these
+     * are always a tally and never "someone said".
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function reactions(int $limit): array
+    {
+        return Reaction::query()
+            ->with('reactable')
+            ->latest('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Reaction $reaction): array => [
+                'id' => 'reaction-'.$reaction->id,
+                'kind' => 'like',
+                'icon' => 'HeartIcon',
+                'who' => null,
+                'verb' => 'reacted to',
+                'target' => $reaction->reactable,
+                'body' => null,
+                'at' => $reaction->created_at,
+                'collapses' => true,
+            ])
+            ->all();
+    }
 
-            $rows[] = self::row("r{$i}", 'like', 'ThumbsUpIcon', "{$who} gave kudos on", $entry, null, (30 - $i).' August', false);
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function syndicated(int $limit): array
+    {
+        return SyndicatedResponse::query()
+            ->approved()
+            ->with('target')
+            ->latest('occurred_at')
+            ->limit($limit)
+            ->get()
+            ->map(function (SyndicatedResponse $response): array {
+                $reply = $response->kind === WebmentionKind::Reply;
+
+                return [
+                    'id' => 'syndicated-'.$response->id,
+                    'kind' => $reply ? 'reply' : 'like',
+                    'icon' => $reply ? 'MailReply01Icon' : 'ThumbsUpIcon',
+                    'who' => $response->author_name,
+                    'verb' => $reply ? 'replied on' : 'gave kudos on',
+                    'target' => $response->target,
+                    'body' => $reply ? PortableText::plainText($response->body ?? []) : null,
+                    'at' => $response->occurred_at,
+                    'collapses' => ! $reply,
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * Fold likes on the same entry on the same day into one row naming up to
+     * three people. Comments, replies and mentions never collapse.
+     *
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array<string, mixed>>
+     */
+    private function collapse(array $rows): array
+    {
+        $out = [];
+
+        foreach ($rows as $row) {
+            if (! $row['collapses'] || $row['target'] === null) {
+                $out[] = $row;
+
+                continue;
+            }
+
+            $key = $row['verb'].':'.$row['target']->getMorphClass().':'.$row['target']->getKey()
+                .':'.$row['at']->toDateString();
+
+            if (! isset($out[$key])) {
+                $out[$key] = [...$row, 'people' => []];
+            }
+
+            $out[$key]['people'][] = $row['who'];
         }
 
-        return $rows;
+        return array_values($out);
     }
 
     /**
-     * @param  array{0: string, 1: string}  $entry
-     * @return array<string, mixed>
+     * @param  array<string, mixed>  $row
      */
-    private static function row(string $id, string $kind, string $icon, string $sentence, array $entry, ?string $body, string $age, bool $isNew): array
+    private function item(array $row, ?Carbon $seenAt): ResponseItem
     {
-        return [
-            'id' => $id,
-            'kind' => $kind,
-            'icon' => $icon,
-            'sentence' => $sentence,
-            'entry' => ['title' => $entry[0], 'href' => $entry[1]],
-            'body' => $body,
-            'age' => $age,
-            'isNew' => $isNew,
-        ];
+        return new ResponseItem(
+            id: $row['id'],
+            kind: $row['kind'],
+            icon: $row['icon'],
+            sentence: $this->sentence($row),
+            entryTitle: InteractionTarget::titleFor($row['target']),
+            entryHref: $row['target']?->url() ?? '/',
+            body: $row['body'],
+            age: $row['at']->diffForHumans(),
+            isNew: $seenAt === null || $row['at']->greaterThan($seenAt),
+        );
+    }
+
+    /**
+     * Said out loud: "Clare A., Justin M. and Brian D. gave kudos on".
+     *
+     * @param  array<string, mixed>  $row
+     */
+    private function sentence(array $row): string
+    {
+        $people = array_values(array_unique(array_filter($row['people'] ?? [$row['who']])));
+
+        if ($people === []) {
+            $count = count($row['people'] ?? []);
+
+            return ($count > 1 ? "{$count} people " : 'Someone ').$row['verb'];
+        }
+
+        $named = array_slice($people, 0, 3);
+        $rest = count($people) - count($named);
+        $who = Arr::join($named, ', ', ' and ');
+
+        if ($rest > 0) {
+            $who .= " and {$rest} others";
+        }
+
+        return $who.' '.$row['verb'];
     }
 }
