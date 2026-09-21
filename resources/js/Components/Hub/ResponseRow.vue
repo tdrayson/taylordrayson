@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-    <li data-response-row>
+    <li>
         <!-- The row is the link, not the title inside it: the whole thing
              already lights up on hover, so anything less is a target the
              highlight lied about. -->

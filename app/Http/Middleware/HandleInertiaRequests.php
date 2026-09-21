@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Fields\AuthorableTypes;
+use App\Queries\Hub\NeedsAttention;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
 use App\Support\FeedDiscovery;
@@ -69,9 +70,9 @@ class HandleInertiaRequests extends Middleware
             // would put the account's email in the props of every page.
             'signedIn' => $request->user() !== null,
             // How many things are waiting in HQ, so the sidebar link and the
-            // floating menu can carry a dot on every page.
-            // SCAFFOLDING: a fixed count until App\Queries\Hub\NeedsAttention exists.
-            'hubWaiting' => $request->user() !== null ? 4 : 0,
+            // floating menu can carry a dot on every page. Deferred: it runs
+            // four checks, and no first render needs it.
+            'hubWaiting' => fn (): int => $request->user() === null ? 0 : app(NeedsAttention::class)->count(),
             // The types the command palette can offer a "New …" command for.
             // Empty when signed out, because every /new route is auth-gated.
             'authorTypes' => $request->user() !== null ? AuthorableTypes::forPicker() : [],

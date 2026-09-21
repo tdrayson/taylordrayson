@@ -22,6 +22,7 @@ use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\ReactionController;
+use App\Http\Controllers\RetryFailedJobsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
@@ -76,6 +77,8 @@ Route::middleware('auth')->group(function (): void {
     // whether the syncs are still arriving. A lowercase word, so it has to sit
     // above the /{slug} catch-all or a content page could shadow it.
     Route::get('/hq', HubController::class)->name('hq');
+    Route::post('/hq/failed-jobs/retry', RetryFailedJobsController::class)
+        ->middleware('throttle:10,1')->name('hq.failed-jobs.retry');
 
     // The queue for held comments and mentions, for now still its own page.
     Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');

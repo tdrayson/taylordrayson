@@ -2,8 +2,9 @@
 
 namespace App\Mcp\Tools;
 
-use App\Datasets\Datasets;
+use App\Data\Hub\TypeCount;
 use App\Models\TimelineEntry;
+use App\Queries\Hub\EntryCounts;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Carbon;
 use Laravel\Mcp\Request;
@@ -17,16 +18,18 @@ class DataFreshness extends Tool
     public function handle(Request $request): Response
     {
         $now = Carbon::now();
-        $spine = self::spine();
-        $newest = self::newest($spine);
+        $counts = collect(app(EntryCounts::class)())->keyBy('type');
+        $newest = self::newest($counts->map(
+            fn (TypeCount $count): ?string => $count->newest?->toDateTimeString()
+        )->filter()->all());
+
         $types = [];
 
-        foreach (Datasets::all() as $type => $dataset) {
-            $entries = (int) ($spine[$type]->total ?? 0);
+        foreach ($counts as $type => $count) {
             $entry = $newest[$type] ?? null;
 
             if ($entry === null) {
-                $types[] = ['type' => $type, 'label' => $dataset->plural(), 'entries' => $entries];
+                $types[] = ['type' => $type, 'label' => $count->label, 'entries' => $count->count];
 
                 continue;
             }
@@ -36,8 +39,8 @@ class DataFreshness extends Tool
 
             $types[] = [
                 'type' => $type,
-                'label' => $dataset->plural(),
-                'entries' => $entries,
+                'label' => $count->label,
+                'entries' => $count->count,
                 'newest' => $occurred->toDateTimeString(),
                 'behind' => $occurred->diffForHumans($now, syntax: Carbon::DIFF_ABSOLUTE),
                 'recorded' => $recorded?->toDateTimeString(),
@@ -53,44 +56,18 @@ class DataFreshness extends Tool
     }
 
     /**
-     * Count and newest date per type, off the timeline spine rather than the
-     * models.
-     *
-     * A food row is an item of food and a food entry is a day of them, so
-     * counting models reported 25,922 food entries where there are 2,554.
-     *
-     * @return array<string, object{total: int, newest: string}>
-     */
-    private static function spine(): array
-    {
-        return TimelineEntry::query()
-            ->toBase()
-            ->selectRaw('dataset, count(*) as total, max(occurred_at) as newest')
-            ->groupBy('dataset')
-            ->get()
-            ->keyBy('dataset')
-            ->all();
-    }
-
-    /**
      * The newest entry of each type, for its `created_at`.
      *
-     * Fetched by the handful of timestamps the aggregate already found, rather
-     * than a correlated subquery per row, which on ten thousand entries does
-     * not finish.
-     *
-     * @param  array<string, object>  $spine
+     * @param  array<string, string>  $dates  Newest occurred_at, keyed by type.
      * @return array<string, TimelineEntry>
      */
-    private static function newest(array $spine): array
+    private static function newest(array $dates): array
     {
-        $dates = array_values(array_unique(array_map(fn (object $row): string => $row->newest, $spine)));
-
         if ($dates === []) {
             return [];
         }
 
-        $rows = TimelineEntry::query()->whereIn('occurred_at', $dates)->get();
+        $rows = TimelineEntry::query()->whereIn('occurred_at', array_values(array_unique($dates)))->get();
         $newest = [];
 
         // A timestamp can be the newest for one type and an ordinary entry of
@@ -98,7 +75,7 @@ class DataFreshness extends Tool
         foreach ($rows as $row) {
             $type = (string) $row->dataset;
 
-            if (isset($spine[$type]) && $row->occurred_at->toDateTimeString() === $spine[$type]->newest) {
+            if (isset($dates[$type]) && $row->occurred_at->toDateTimeString() === $dates[$type]) {
                 $newest[$type] = $row;
             }
         }

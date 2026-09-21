@@ -1,11 +1,20 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import Button from '../Ui/Button.vue';
 import Icon from '../Ui/Icon.vue';
 
 defineProps({
     items: { type: Array, default: () => [] },
 });
+
+/** Approve and reject go to the moderation route; retry has its own. */
+function act(item, action) {
+    const url = action === 'retry'
+        ? '/hq/failed-jobs/retry'
+        : `/moderation/${item.id.split('-')[0]}/${item.id.split('-')[1]}/${action}`;
+
+    router.post(url, {}, { preserveScroll: true });
+}
 
 // Only the colours that carry meaning. A held comment and a failed job are two
 // different feelings; everything else stays neutral so those two stand out.
@@ -68,6 +77,7 @@ const DISCS = {
                             :key="action.action"
                             size="sm"
                             :variant="action.variant"
+                            @click="act(item, action.action)"
                         >
                             {{ action.label }}
                         </Button>
