@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
                     :href="`#${item.id}`"
                     class="-ml-px block w-full border-l-2 py-1.5 text-left text-xs transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
                     :class="[
-                        activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
+                        activeId === item.id ? 'border-neutral-900 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
                         item.level >= 3 ? 'pl-8' : 'pl-4',
                     ]"
                     @click="onItemClick($event, item.id)"
