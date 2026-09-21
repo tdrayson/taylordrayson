@@ -60,11 +60,6 @@ Schedule::command('maps:generate place')->hourly()->withoutOverlapping();
 Schedule::command('maps:generate fuel')->hourly()->withoutOverlapping();
 Schedule::command('maps:generate activity')->hourly()->withoutOverlapping();
 
-// Logos for fuel brands and airlines, which nothing else downloads for an entry
-// created through the editor or API. Existing files are skipped, so no --force.
-Schedule::command('fuel:brand-logos')->dailyAt('05:00')->withoutOverlapping();
-Schedule::command('airlines:logos')->dailyAt('05:05')->withoutOverlapping();
-
 // Housekeeping: storage the app has stopped referencing but never removes on its
 // own. Both only delete, so a missed run costs disk rather than data.
 
