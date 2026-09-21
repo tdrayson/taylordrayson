@@ -1,0 +1,50 @@
+<?php
+
+use App\Data\ExportData;
+use App\Data\ExportField;
+use App\Data\ExportLink;
+use App\Enums\ExportFormat;
+use App\Enums\TimelineType;
+use App\Presenters\ExportPresenter;
+use App\Presenters\Exports\Formats\Formats;
+use Symfony\Component\Yaml\Yaml;
+
+it('offers every format for a flight, which carries both a route and a span', function () {
+    $available = array_keys(Formats::for(ExportPresenter::for(krkToLgw())));
+
+    expect($available)->toContain('json', 'yaml', 'txt', 'md', 'mf2', 'ics', 'geojson')
+        ->and($available)->not->toContain('sql');
+});
+
+it('renders a flight as json carrying both display and raw', function () {
+    $data = ExportPresenter::for(krkToLgw());
+    $json = json_decode(Formats::find($data, ExportFormat::Json)->render($data), true);
+
+    expect($json['type'])->toBe('flight')
+        ->and($json['url'])->toStartWith('http')
+        ->and($json['fields'][0])->toHaveKeys(['key', 'label', 'display', 'raw'])
+        ->and($json)->not->toHaveKey('formats');
+});
+
+it('renders the same object as yaml', function () {
+    $data = ExportPresenter::for(krkToLgw());
+    $yaml = Formats::find($data, ExportFormat::Yaml)->render($data);
+
+    expect($yaml)->toContain('type: flight')
+        ->and(Yaml::parse($yaml)['fields'][0]['key'])->toBe('flight')
+        ->and($yaml)->not->toContain('formats:');
+});
+
+function lockedNoteWithFieldsAndLinks(): ExportData
+{
+    return new ExportData(
+        type: TimelineType::Note,
+        url: 'https://example.test/secret',
+        title: 'A private note',
+        summary: null,
+        occurred: null,
+        fields: [ExportField::make('body_word_count', 'Word count', '42', 42)],
+        links: [ExportLink::make('tag', 'Tag', 'Secret tag', 'https://example.test/tags/secret')],
+        locked: true,
+    );
+}

@@ -7,17 +7,19 @@ const props = defineProps({
     source: { type: Object, default: null },
     // Linkable tags [{ name, slug, url }]; only taggable types (notes, articles, projects, events) carry any.
     tags: { type: Array, default: () => [] },
+    // [{ extension, type, label, url }] this entry can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
 // The whole block collapses when an entry has nothing to put in it, so an
-// untaggable first-party entry renders no empty rule.
-const hasContent = () => props.tags.length > 0 || Boolean(props.source);
+// untaggable first-party entry with no formats renders no empty rule.
+const hasContent = () => props.tags.length > 0 || Boolean(props.source) || props.formats.length > 0;
 </script>
 
 <template>
-    <!-- Tags and source are independent lines, so a type gets whichever it has.
-         No rule: the entry's metadata and the responses under it are one quiet
-         block, separated from the entry by space rather than by a line. -->
+    <!-- Tags, source and formats are independent lines, so a type gets whichever
+         it has. No rule: the entry's metadata and the responses under it are one
+         quiet block, separated from the entry by space rather than by a line. -->
     <div v-if="hasContent()" class="space-y-2">
         <p v-if="tags.length" class="text-xs text-neutral-500">
             Tagged
@@ -25,5 +27,12 @@ const hasContent = () => props.tags.length > 0 || Boolean(props.source);
         </p>
 
         <Source v-if="source" :platform="source.platform" :url="source.url" />
+
+        <!-- Plain anchors, not <Link>: Inertia's router would try to parse a
+             .json response as a page. -->
+        <p v-if="formats.length" class="text-xs text-neutral-500">
+            View as
+            <template v-for="(format, index) in formats" :key="format.extension"><a :href="format.url" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">.{{ format.extension }}</a><span v-if="index < formats.length - 1">, </span></template>
+        </p>
     </div>
 </template>

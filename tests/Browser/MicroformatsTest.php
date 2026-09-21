@@ -16,22 +16,6 @@ use App\Support\PortableText;
  * the SSR note in phpunit.xml.
  */
 
-/**
- * The page's rendered DOM, parsed as microformats.
- *
- * Waits on the root element first: script() reads the DOM immediately, so
- * capturing without waiting races Vue and parses an empty shell.
- */
-function microformatsOf(string $path, string $root = '.h-entry'): array
-{
-    $page = visit($path)->assertPresent($root);
-
-    return parseMicroformats(
-        $page->script('document.documentElement.outerHTML'),
-        config('app.url').$path,
-    );
-}
-
 it('marks an article permalink up as an h-entry', function () {
     $article = Article::factory()->create([
         'status' => 'published',

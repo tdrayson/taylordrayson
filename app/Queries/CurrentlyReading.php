@@ -17,7 +17,27 @@ final class CurrentlyReading
 {
     public function __invoke(): ?ReadingData
     {
-        $book = Book::query()
+        $book = $this->book();
+
+        if ($book === null) {
+            return null;
+        }
+
+        $finished = $book->status !== EntryStatus::Draft;
+
+        return new ReadingData(
+            title: $book->title,
+            author: (string) $book->meta->author,
+            cover: $book->optimisedUrl('cover'),
+            percent: $finished ? null : BookProgress::display((float) $book->progress_percent),
+            finished: $finished,
+        );
+    }
+
+    /** The book itself, for a caller (the /now export) that needs more than the widget's shaped payload. */
+    public function book(): ?Book
+    {
+        $inProgress = Book::query()
             ->where('status', EntryStatus::Draft)
             ->whereNotNull('progressed_at')
             ->with('media')
@@ -25,30 +45,8 @@ final class CurrentlyReading
             ->get()
             ->first(fn (Book $book): bool => BookCompleteness::forBook($book) === []);
 
-        if ($book !== null) {
-            return new ReadingData(
-                title: $book->title,
-                author: (string) $book->meta->author,
-                cover: $book->optimisedUrl('cover'),
-                percent: BookProgress::display((float) $book->progress_percent),
-                finished: false,
-            );
-        }
-
-        // No completeness check here: an older published book may lack a
-        // cover, and the widget already falls back to its own placeholder.
-        $finished = Book::query()->listed()->with('media')->orderByDesc('occurred_at')->first();
-
-        if ($finished === null) {
-            return null;
-        }
-
-        return new ReadingData(
-            title: $finished->title,
-            author: (string) $finished->meta->author,
-            cover: $finished->optimisedUrl('cover'),
-            percent: null,
-            finished: true,
-        );
+        // No completeness check on the fallback: an older published book may
+        // lack a cover, and the widget already falls back to its own placeholder.
+        return $inProgress ?? Book::query()->listed()->with('media')->orderByDesc('occurred_at')->first();
     }
 }

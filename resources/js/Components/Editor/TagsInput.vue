@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { CONTROL, READONLY } from '../../lib/editor/control.js';
 import { tagName } from '../../lib/editor/defaults.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**

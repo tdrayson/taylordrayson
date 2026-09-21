@@ -7,6 +7,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Flight;
 use App\Presenters\Cards\FlightCard;
+use App\Presenters\Exports\FlightExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -57,6 +58,11 @@ final class FlightDataset extends BaseDataset
     public function card(): FlightCard
     {
         return new FlightCard;
+    }
+
+    public function export(): object
+    {
+        return new FlightExport;
     }
 
     /**

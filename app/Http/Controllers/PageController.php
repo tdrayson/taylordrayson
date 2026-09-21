@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
+use App\Data\ExportData;
 use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
 use App\Models\Page;
 use App\Presenters\Conversation;
+use App\Presenters\ExportPresenter;
+use App\Presenters\Exports\Formats\Format;
+use App\Presenters\Exports\Formats\Formats;
 use App\Support\OgMeta;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +47,9 @@ class PageController extends Controller
             'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
+            // A locked page offers no formats: each would 404, and there is
+            // nothing left to put in one.
+            'formats' => $locked ? [] : $this->formats(ExportPresenter::for($page)),
             ...($locked ? [] : [
                 // Same as an entry: server-rendered so it is readable and
                 // parseable without JS. This is also what makes a guestbook page
@@ -73,5 +80,24 @@ class PageController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Every format this export supports, shaped for AppHead's alternate
+     * links and the footer's format list.
+     *
+     * @return list<array{extension: string, type: string, label: string, url: string}>
+     */
+    private function formats(ExportData $export): array
+    {
+        return array_values(array_map(
+            fn (Format $format): array => [
+                'extension' => $format->format()->value,
+                'type' => $format->format()->contentType(),
+                'label' => $format->format()->label(),
+                'url' => $export->url.'.'.$format->format()->value,
+            ],
+            Formats::for($export),
+        ));
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\ProjectStage;
 use App\Enums\TimelineType;
 use App\Models\Project;
 use App\Presenters\Cards\ProjectCard;
+use App\Presenters\Exports\ProjectExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -57,6 +58,11 @@ final class ProjectDataset extends BaseDataset
     public function card(): ProjectCard
     {
         return new ProjectCard;
+    }
+
+    public function export(): object
+    {
+        return new ProjectExport;
     }
 
     /**

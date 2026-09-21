@@ -47,6 +47,8 @@ const props = defineProps({
     password: { type: String, default: null },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
+    // [{ extension, type, label, url }] this entry can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
 const signedIn = computed(() => usePage().props.signedIn === true);
@@ -116,7 +118,7 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead :og="og" :formats="formats" />
 
     <!-- Editing replaces the entry rather than sitting under it: the editor
          draws its own title and body, so showing both repeats them. Same split
@@ -177,6 +179,7 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
         <EntryFooter
             :source="source"
             :tags="tags"
+            :formats="formats"
             class="mt-10"
         />
 

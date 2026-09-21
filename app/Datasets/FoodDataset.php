@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Food;
 use App\Presenters\Cards\FoodCard;
+use App\Presenters\Exports\FoodExport;
 
 /**
  * Daily food logging, from MyFitnessPal.
@@ -63,6 +64,11 @@ final class FoodDataset extends BaseDataset
     public function card(): FoodCard
     {
         return new FoodCard;
+    }
+
+    public function export(): object
+    {
+        return new FoodExport;
     }
 
     /**

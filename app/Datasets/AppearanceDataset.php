@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Appearance;
 use App\Presenters\Cards\AppearanceCard;
+use App\Presenters\Exports\AppearanceExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -56,6 +57,11 @@ final class AppearanceDataset extends BaseDataset
     public function card(): AppearanceCard
     {
         return new AppearanceCard;
+    }
+
+    public function export(): object
+    {
+        return new AppearanceExport;
     }
 
     /**

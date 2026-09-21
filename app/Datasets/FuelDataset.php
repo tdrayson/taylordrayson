@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Fuel;
 use App\Presenters\Cards\FuelCard;
+use App\Presenters\Exports\FuelExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -64,6 +65,11 @@ final class FuelDataset extends BaseDataset
     public function card(): FuelCard
     {
         return new FuelCard;
+    }
+
+    public function export(): object
+    {
+        return new FuelExport;
     }
 
     /**

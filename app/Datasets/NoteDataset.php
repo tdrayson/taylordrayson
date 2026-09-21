@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Note;
 use App\Presenters\Cards\NoteCard;
+use App\Presenters\Exports\NoteExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -56,6 +57,11 @@ final class NoteDataset extends BaseDataset
     public function card(): NoteCard
     {
         return new NoteCard;
+    }
+
+    public function export(): object
+    {
+        return new NoteExport;
     }
 
     /**

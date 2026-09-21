@@ -5,7 +5,7 @@ import Eyebrow from '../Ui/Eyebrow.vue';
 import Input from '../Ui/Input.vue';
 import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { stampWallClock, toWallClockDate, wallClockParts } from '../../lib/editor/wallClock.js';
 
 /**
