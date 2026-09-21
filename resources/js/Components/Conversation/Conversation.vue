@@ -302,11 +302,16 @@ async function reply(item) {
                  panel further down that nobody would think to open. -->
             <p class="mb-3 text-base text-neutral-500">
                 Add a comment, or
-                <button
-                    type="button"
-                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                <!-- A <button> is always inline-block so can't wrap mid-sentence,
+                     and `display: contents` makes it unfocusable. -->
+                <span
+                    role="button"
+                    tabindex="0"
+                    class="cursor-pointer rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                     @click="asides?.openWebmention()"
-                >send me the link to your own post</button>.
+                    @keydown.enter.prevent="asides?.openWebmention()"
+                    @keydown.space.prevent="asides?.openWebmention()"
+                >send me the link to your own post</span>.
             </p>
 
             <!-- Only ever a new comment on the entry. Replying to somebody
