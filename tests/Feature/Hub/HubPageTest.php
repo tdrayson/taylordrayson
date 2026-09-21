@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\EntryStatus;
+use App\Models\Book;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +35,25 @@ it('is not reachable signed out', function () {
 });
 
 it('shares the waiting count with every page', function () {
+    actingAs(User::factory()->create());
+
+    get('/')->assertInertia(fn ($page) => $page->where('hubWaiting', 0));
+});
+
+it('caches the waiting count rather than recomputing it every request', function () {
+    actingAs(User::factory()->create());
+
+    Book::factory()->create(['title' => 'Untitled', 'status' => EntryStatus::Draft, 'meta' => ['author' => null]]);
+
+    get('/')->assertInertia(fn ($page) => $page->where('hubWaiting', 1));
+
+    Book::query()->delete();
+
+    // Still 1: the count came from cache, not a fresh NeedsAttention run.
+    get('/')->assertInertia(fn ($page) => $page->where('hubWaiting', 1));
+});
+
+it('does not carry a cached waiting count over from another test', function () {
     actingAs(User::factory()->create());
 
     get('/')->assertInertia(fn ($page) => $page->where('hubWaiting', 0));

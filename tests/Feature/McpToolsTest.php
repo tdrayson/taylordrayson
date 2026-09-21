@@ -44,6 +44,20 @@ it('reports whether each kind of data is still arriving', function () {
         ->and($sleep)->toHaveKeys(['behind', 'recorded', 'recorded_after']);
 });
 
+it('breaks a tie between same-timestamp entries by the latest created_at', function () {
+    // Inserted in this order (lower id first) so a query with no explicit
+    // order would default to id order and pick the wrong, older-recorded row.
+    $newer = aNight('2026-08-26');
+    $older = aNight('2026-08-26');
+
+    $newer->timelineEntry->forceFill(['created_at' => now()])->save();
+    $older->timelineEntry->forceFill(['created_at' => now()->subDay()])->save();
+
+    $sleep = collect(callTool(DataFreshness::class)['data']['types'])->firstWhere('type', 'sleep');
+
+    expect($sleep['recorded'])->toBe($newer->timelineEntry->created_at->toDateTimeString());
+});
+
 it('counts a day of food as one entry, not one per item', function () {
     Food::factory()->count(6)->create(['occurred_at' => '2026-08-26 12:00:00']);
 

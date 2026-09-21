@@ -12,6 +12,7 @@ use App\Support\Preferences;
 use App\Support\StateStore;
 use App\Support\TodaySteps;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -71,8 +72,11 @@ class HandleInertiaRequests extends Middleware
             'signedIn' => $request->user() !== null,
             // How many things are waiting in HQ, so the sidebar link and the
             // floating menu can carry a dot on every page. Deferred: it runs
-            // four checks, and no first render needs it.
-            'hubWaiting' => fn (): int => $request->user() === null ? 0 : app(NeedsAttention::class)->count(),
+            // four checks, and no first render needs it. Cached for a minute,
+            // a stale dot being cheaper than four checks on every request.
+            'hubWaiting' => fn (): int => $request->user() === null ? 0 : Cache::remember(
+                'hub:waiting', 60, fn (): int => app(NeedsAttention::class)->count()
+            ),
             // The types the command palette can offer a "New …" command for.
             // Empty when signed out, because every /new route is auth-gated.
             'authorTypes' => $request->user() !== null ? AuthorableTypes::forPicker() : [],

@@ -28,6 +28,32 @@ it('collapses a day of kudos on one entry into one row', function () {
         ->and($items[0]->sentence)->toContain('Brian D.');
 });
 
+it('does not let a burst of same-day likes crowd out an older distinct response', function () {
+    $activity = Activity::factory()->create(['occurred_at' => now()->subDays(2)]);
+    $note = Note::factory()->create(['occurred_at' => now()->subDays(3)]);
+
+    foreach (range(1, 7) as $i) {
+        SyndicatedResponse::factory()->create([
+            'target_type' => $activity->getMorphClass(),
+            'target_id' => $activity->id,
+            'kind' => WebmentionKind::Like,
+            'author_name' => "Person {$i}",
+            'occurred_at' => now()->subHours($i),
+        ]);
+    }
+
+    SyndicatedResponse::factory()->create([
+        'target_type' => $note->getMorphClass(),
+        'target_id' => $note->id,
+        'kind' => WebmentionKind::Reply,
+        'author_name' => 'Old Reply',
+        'body' => PortableText::fromPlainText('Ages ago.'),
+        'occurred_at' => now()->subDays(1),
+    ]);
+
+    expect(app(RecentResponses::class)(6))->toHaveCount(2);
+});
+
 it('leaves a held comment out', function () {
     $note = Note::factory()->create(['occurred_at' => now()->subDay()]);
 

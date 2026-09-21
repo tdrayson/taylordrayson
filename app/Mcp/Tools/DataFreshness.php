@@ -67,13 +67,23 @@ class DataFreshness extends Tool
             return [];
         }
 
-        $rows = TimelineEntry::query()->whereIn('occurred_at', array_values(array_unique($dates)))->get();
+        $rows = TimelineEntry::query()
+            ->whereIn('occurred_at', array_values(array_unique($dates)))
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
         $newest = [];
 
         // A timestamp can be the newest for one type and an ordinary entry of
-        // another, so each row has to match its own type's maximum.
+        // another, so each row has to match its own type's maximum. Several
+        // rows can also share that exact occurred_at; the query order above
+        // makes the first match deterministic (latest created_at, then id).
         foreach ($rows as $row) {
             $type = (string) $row->dataset;
+
+            if (isset($newest[$type])) {
+                continue;
+            }
 
             if (isset($dates[$type]) && $row->occurred_at->toDateTimeString() === $dates[$type]) {
                 $newest[$type] = $row;

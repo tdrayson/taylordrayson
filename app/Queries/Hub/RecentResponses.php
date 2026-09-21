@@ -22,6 +22,13 @@ use Illuminate\Support\Carbon;
 final class RecentResponses
 {
     /**
+     * Per-reader fetch window, ahead of collapsing. Wider than any realistic
+     * $limit so a burst of same-day likes on one target cannot crowd an
+     * older, distinct response out of the query before collapse() runs.
+     */
+    private const WINDOW = 50;
+
+    /**
      * @param  int  $limit  How many rows to return, after collapsing.
      * @param  Carbon|null  $seenAt  The previous visit, for marking what is new.
      * @return list<ResponseItem>
@@ -29,10 +36,10 @@ final class RecentResponses
     public function __invoke(int $limit, ?Carbon $seenAt = null): array
     {
         $rows = [
-            ...$this->comments($limit),
-            ...$this->mentions($limit),
-            ...$this->reactions($limit),
-            ...$this->syndicated($limit),
+            ...$this->comments(),
+            ...$this->mentions(),
+            ...$this->reactions(),
+            ...$this->syndicated(),
         ];
 
         usort($rows, fn (array $a, array $b): int => $b['at'] <=> $a['at']);
@@ -48,13 +55,13 @@ final class RecentResponses
     /**
      * @return list<array<string, mixed>>
      */
-    private function comments(int $limit): array
+    private function comments(): array
     {
         return Comment::query()
             ->approved()
             ->with('commentable')
             ->latest('created_at')
-            ->limit($limit)
+            ->limit(self::WINDOW)
             ->get()
             ->map(fn (Comment $comment): array => [
                 'id' => 'comment-'.$comment->id,
@@ -73,13 +80,13 @@ final class RecentResponses
     /**
      * @return list<array<string, mixed>>
      */
-    private function mentions(int $limit): array
+    private function mentions(): array
     {
         return Webmention::query()
             ->approved()
             ->with('target')
             ->latest('created_at')
-            ->limit($limit)
+            ->limit(self::WINDOW)
             ->get()
             ->map(function (Webmention $mention): array {
                 $kind = $mention->kind();
@@ -108,12 +115,12 @@ final class RecentResponses
      *
      * @return list<array<string, mixed>>
      */
-    private function reactions(int $limit): array
+    private function reactions(): array
     {
         return Reaction::query()
             ->with('reactable')
             ->latest('created_at')
-            ->limit($limit)
+            ->limit(self::WINDOW)
             ->get()
             ->map(fn (Reaction $reaction): array => [
                 'id' => 'reaction-'.$reaction->id,
@@ -132,13 +139,13 @@ final class RecentResponses
     /**
      * @return list<array<string, mixed>>
      */
-    private function syndicated(int $limit): array
+    private function syndicated(): array
     {
         return SyndicatedResponse::query()
             ->approved()
             ->with('target')
             ->latest('occurred_at')
-            ->limit($limit)
+            ->limit(self::WINDOW)
             ->get()
             ->map(function (SyndicatedResponse $response): array {
                 $reply = $response->kind === WebmentionKind::Reply;

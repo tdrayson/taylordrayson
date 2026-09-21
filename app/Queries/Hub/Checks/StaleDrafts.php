@@ -31,15 +31,20 @@ final class StaleDrafts implements Check
                 continue;
             }
 
-            $rows = $dataset->model()::query()
+            $query = $dataset->model()::query()
                 ->where('status', EntryStatus::Draft)
-                ->where('updated_at', '>=', $since)
-                ->get();
+                ->where('updated_at', '>=', $since);
 
-            $counted += $rows->count();
-            $latest = $rows->max('updated_at');
+            $count = $query->count();
 
-            if ($latest !== null && ($newest === null || $latest->greaterThan($newest))) {
+            if ($count === 0) {
+                continue;
+            }
+
+            $counted += $count;
+            $latest = Carbon::parse($query->max('updated_at'));
+
+            if ($newest === null || $latest->greaterThan($newest)) {
                 $newest = $latest;
             }
         }
