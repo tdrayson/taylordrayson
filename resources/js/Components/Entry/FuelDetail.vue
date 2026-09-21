@@ -4,7 +4,6 @@ import StatGrid from '../Stats/StatGrid.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import DetailList from '../Ui/DetailList.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
-import Icon from '../Ui/Icon.vue';
 import Heading from '../Ui/Heading.vue';
 import { number, money, pencePerLitre } from '../../lib/format.js';
 import { milesToMetres } from '../../lib/distance.js';
@@ -67,17 +66,11 @@ const location = computed(() => props.entry.location ?? null);
 
 <template>
     <div class="space-y-8">
-        <div v-if="entry.logo_url || entry.brand || entry.vehicle" class="flex flex-wrap items-center gap-3">
+        <div v-if="entry.logo_url || entry.brand"class="flex flex-wrap items-center gap-3">
             <span v-if="entry.logo_url" class="inline-flex size-12 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
                 <img :src="entry.logo_url" :alt="entry.brand ? `${entry.brand} logo` : ''" class="size-full object-contain p-1.5">
             </span>
             <Heading v-if="entry.brand" as="span" size="section">{{ entry.brand }} garage</Heading>
-            <Heading v-if="entry.vehicle" as="span" size="section" class="ms-8 inline-flex items-center gap-3">
-                <span class="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
-                    <Icon name="Car03Icon" class="size-6 text-neutral-500" />
-                </span>
-                {{ entry.vehicle }}
-            </Heading>
         </div>
 
         <div v-if="location" class="space-y-3">
