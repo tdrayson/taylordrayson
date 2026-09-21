@@ -96,4 +96,9 @@ final class FoodDataset extends BaseDataset
     {
         return ['name', 'meal'];
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
 }

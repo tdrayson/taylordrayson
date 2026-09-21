@@ -57,4 +57,9 @@ abstract class BaseDataset implements Dataset
     {
         return false;
     }
+
+    public function synced(): bool
+    {
+        return false;
+    }
 }

@@ -87,4 +87,9 @@ final class TvEpisodeDataset extends BaseDataset
     {
         return ['title'];
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
 }

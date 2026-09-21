@@ -93,4 +93,9 @@ final class ActivityDataset extends BaseDataset
     {
         return true;
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
 }

@@ -72,4 +72,7 @@ interface Dataset
 
     /** Whether an entry of this type can be a draft: hand-written types only. */
     public function draftable(): bool;
+
+    /** Whether entries arrive from a service rather than being written here. */
+    public function synced(): bool;
 }
