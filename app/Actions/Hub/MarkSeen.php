@@ -6,19 +6,21 @@ use App\Models\User;
 use Illuminate\Support\Carbon;
 
 /**
- * Stamps this visit and hands back the previous one.
- *
- * The stamp moves on the way in while the render still shows the marks the old
- * one produced, so a glance is honest and the next visit is clean.
+ * Reads and moves the hub's "last seen" stamp, kept as two steps so the write
+ * can happen after the page is built: a query that throws while the page is
+ * assembling must leave the stamp exactly where it was.
  */
 final class MarkSeen
 {
-    public function __invoke(User $user): ?Carbon
+    /** The stamp from the previous visit, read without disturbing it. */
+    public function previous(User $user): ?Carbon
     {
-        $previous = $user->hub_seen_at;
+        return $user->hub_seen_at;
+    }
 
+    /** Moves the stamp to now, once the page it will be compared against is safely built. */
+    public function __invoke(User $user): void
+    {
         $user->forceFill(['hub_seen_at' => now()])->save();
-
-        return $previous;
     }
 }

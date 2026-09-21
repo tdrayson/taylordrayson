@@ -28,14 +28,20 @@ class HubController extends Controller
 
     public function __invoke(Request $request): Response
     {
-        // Stamped on the way in, so this render still shows the marks the
-        // previous stamp produced and the next visit is clean.
-        $seenAt = ($this->markSeen)($request->user());
+        $user = $request->user();
+        $seenAt = $this->markSeen->previous($user);
 
-        return Inertia::render('Hub', [
+        $props = [
             'attention' => ($this->attention)(),
             'responses' => ($this->responses)(self::RESPONSES, $seenAt),
             'entries' => ($this->entries)(),
-        ]);
+        ];
+
+        // Moved only once the page above built without error, so a failed
+        // query leaves the stamp where it was and the next attempt still
+        // sees the same "new since" line.
+        ($this->markSeen)($user);
+
+        return Inertia::render('Hub', $props);
     }
 }
