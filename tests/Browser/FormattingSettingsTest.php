@@ -259,3 +259,19 @@ it('reformats stats-page metric cards live when distance unit changes', function
             false,
         );
 });
+
+it('refetches server-written times and dates when the formats change', function () {
+    Activity::factory()->cardio()->create(['name' => 'Clock Run', 'occurred_at' => '2026-03-15 15:05:00']);
+
+    $page = freshVisit('/2026/03/15');
+    $cardTime = "document.querySelector('.timeline-feed .dt-published').textContent.trim()";
+
+    $page->assertScript($cardTime, '3:05pm')
+        ->click('[aria-label="Open settings"]')
+        ->click('[aria-label="Time format"] [aria-label="24h"]')
+        ->assertScript(cookieValue('pref_timeFormat'), '24h')
+        ->assertScript($cardTime, '15:05')
+        ->select('[aria-labelledby="date-format-label"]', 'iso')
+        ->assertScript(cookieValue('pref_dateFormat'), 'iso')
+        ->assertScript("document.querySelector('.timeline-feed .dt-published').closest('a')?.getAttribute('aria-label') ?? document.querySelector('.timeline-feed .dt-published').getAttribute('aria-label')", '2026-03-15, 15:05 +00:00');
+});

@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
 
-        $this->app->scoped(DisplayFormat::class, fn ($app): DisplayFormat => DisplayFormat::for($app['request']));
+        $this->app->bind(DisplayFormat::class, fn ($app): DisplayFormat => DisplayFormat::for($app['request']));
 
         $this->registerArchiveRoutes();
     }
