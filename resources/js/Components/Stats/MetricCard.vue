@@ -20,14 +20,14 @@ const props = defineProps({
     accent: { type: String, default: 'currentColor' },
 });
 
-const { distanceParts, statParts } = useFormat();
+const { distanceParts } = useFormat();
 
 // When given raw metres, format through the unit toggle; else use the passed value/unit.
 const display = computed(() => {
     if (props.distanceM !== null) {
         return distanceParts(props.distanceM, props.precision);
     }
-    return statParts(props.value, props.unit);
+    return { value: props.value, unit: props.unit };
 });
 
 // SVG polyline path from the series, normalised into a 100x24 box.
@@ -61,7 +61,7 @@ const up = computed(() => (props.delta ?? 0) >= 0);
                 :class="up ? '' : 'text-neutral-400'"
             >{{ up ? '↑' : '↓' }} {{ Math.abs(delta) }}%</span>
         </div>
-        <Stat as="dd" :title="display.exact" class="text-neutral-900">
+        <Stat as="dd" class="text-neutral-900">
             {{ display.value }}<abbr v-if="display.unit" :title="unitTitle(display.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ display.unit }}</abbr>
         </Stat>
         <svg v-if="sparkPath" class="h-6 w-full" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">

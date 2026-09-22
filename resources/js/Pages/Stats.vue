@@ -32,7 +32,7 @@ const props = defineProps({
     records: { type: Array, default: () => [] },
 });
 
-const { distance, exactDistance } = useFormat();
+const { distance } = useFormat();
 
 const CARD = 'rounded-lg border border-neutral-50 bg-neutral-0 p-5';
 
@@ -156,7 +156,7 @@ setLayoutProps({
                     <dl class="flex flex-col gap-4">
                         <div v-for="item in perWeek" :key="item.label" class="flex items-baseline justify-between gap-3">
                             <dt class="text-sm text-neutral-500">{{ item.label }}</dt>
-                            <Heading as="dd" size="title" :title="exactDistance(item.distanceM, item.precision)" class="text-right tabular-nums text-neutral-900">{{ item.distanceM != null ? distance(item.distanceM, item.precision) : item.display }}</Heading>
+                            <Heading as="dd" size="title" class="tabular-nums text-neutral-900">{{ item.distanceM != null ? distance(item.distanceM, item.precision) : item.display }}</Heading>
                         </div>
                     </dl>
                 </section>
@@ -167,7 +167,7 @@ setLayoutProps({
                     <dl class="flex flex-col gap-4">
                         <div v-for="record in records" :key="record.label" class="flex items-baseline justify-between gap-3">
                             <dt class="text-sm text-neutral-500">{{ record.label }}</dt>
-                            <Heading as="dd" size="title" :title="exactDistance(record.distanceM, record.precision)" class="text-right tabular-nums text-neutral-900">{{ record.distanceM != null ? distance(record.distanceM, record.precision) : record.value }}</Heading>
+                            <Heading as="dd" size="title" class="tabular-nums text-neutral-900">{{ record.distanceM != null ? distance(record.distanceM, record.precision) : record.value }}</Heading>
                         </div>
                     </dl>
                 </section>
