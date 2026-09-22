@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { sillyMeasure } from '../../resources/js/lib/sillyUnits.js';
+import { YARDSTICKS, sillyMeasure } from '../../resources/js/lib/sillyUnits.js';
 
 const count = ({ value }) => Number(value.replace(/,/g, ''));
 
@@ -24,15 +24,36 @@ describe('sillyMeasure', () => {
     });
 
     it('uses the singular for exactly one', () => {
-        assert.deepEqual(sillyMeasure('distance', 0.18), { value: '1', unit: 'banana' });
+        assert.deepEqual(sillyMeasure('weight', 0.12), { value: '1', unit: 'banana' });
     });
 
     it('falls back to the ends of the ladder', () => {
-        assert.deepEqual(sillyMeasure('distance', 0.09), { value: '0.5', unit: 'bananas' });
+        assert.deepEqual(sillyMeasure('weight', 0.06), { value: '0.5', unit: 'bananas' });
         assert.equal(sillyMeasure('distance', 1e12).unit, 'trips to the Moon');
     });
 
     it('drops the decimal from counts of ten or more', () => {
         assert.match(sillyMeasure('weight', 2400).value, /^\d+$|^\d\.\d$/);
+    });
+
+    it('lists every ladder smallest first', () => {
+        for (const [kind, ladder] of Object.entries(YARDSTICKS)) {
+            const sizes = ladder.map((step) => step.size);
+
+            assert.deepEqual(sizes, sizes.toSorted((a, b) => a - b), kind);
+        }
+    });
+
+    it('never uses the same thing for two kinds of quantity', () => {
+        const seen = new Map();
+
+        for (const [kind, ladder] of Object.entries(YARDSTICKS)) {
+            for (const { one } of ladder) {
+                const subject = one.toLowerCase().split(' ').at(-1);
+
+                assert.ok(!seen.has(subject) || seen.get(subject) === kind, `${one} is a ${kind} and a ${seen.get(subject)}`);
+                seen.set(subject, kind);
+            }
+        }
     });
 });
