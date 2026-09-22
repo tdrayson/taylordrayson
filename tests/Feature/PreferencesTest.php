@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Preferences;
+use Illuminate\Http\Request;
 
 it('shares the visitor preferences with every page', function () {
     $this->withUnencryptedCookies([
@@ -41,4 +42,12 @@ it('resolves a system visitor from the scheme the client reported', function () 
     $this->withUnencryptedCookies([Preferences::THEME => 'system', Preferences::SCHEME => 'dark'])
         ->get('/')
         ->assertSee('<html lang="en" class="dark"', false);
+});
+
+it('writes a Celsius reading in the visitor temperature unit', function () {
+    $fahrenheit = Request::create('/', cookies: [Preferences::SETTING_PREFIX.'temperatureUnit' => 'f']);
+
+    expect(Preferences::temperature(Request::create('/'), 18.4))->toBe('18°C')
+        ->and(Preferences::temperature($fahrenheit, 18.4))->toBe('65°F')
+        ->and(Preferences::temperature($fahrenheit, -40))->toBe('-40°F');
 });

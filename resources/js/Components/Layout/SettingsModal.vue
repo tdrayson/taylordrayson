@@ -11,7 +11,7 @@ import { useFormat } from '../../composables/useFormat';
 import { useNumeronym } from '../../composables/useNumeronym';
 
 const { settingsOpen, closeSettings } = useSettings();
-const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit } = useFormat();
+const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit, temperatureUnit, setTemperatureUnit } = useFormat();
 const { numeronymMode } = useNumeronym();
 
 // Segmented options for the formatting toggles.
@@ -22,6 +22,10 @@ const distanceOptions = [
 const weightOptions = [
     { value: 'kg', label: 'kg' },
     { value: 'lbs', label: 'lbs' },
+];
+const temperatureOptions = [
+    { value: 'c', label: '°C' },
+    { value: 'f', label: '°F' },
 ];
 
 // Modal emits update:open(false) on backdrop click/Esc/close button; funnel
@@ -54,6 +58,13 @@ function onOpenChange(open) {
                         label="Weight"
                         aria-label="Weight unit"
                         @update:model-value="setWeightUnit"
+                    />
+                    <SettingToggle
+                        :model-value="temperatureUnit"
+                        :options="temperatureOptions"
+                        label="Temperature"
+                        aria-label="Temperature unit"
+                        @update:model-value="setTemperatureUnit"
                     />
                 </div>
             </section>

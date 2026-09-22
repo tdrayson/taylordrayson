@@ -8,6 +8,7 @@ import { metresToMiles, metresToKm, milesToKm, milesToMetres, kmToMetres, kmToMi
 // out-of-range stored value falls back to the default.
 const distanceUnitDef = defineSetting('distanceUnit', 'mi', ['mi', 'km']);
 const weightUnitDef = defineSetting('weightUnit', 'kg', ['kg', 'lbs']);
+const temperatureUnitDef = defineSetting('temperatureUnit', 'c', ['c', 'f']);
 
 /**
  * Reactive-aware display formatters. Each reads its setting's `.value` INSIDE
@@ -107,6 +108,21 @@ export function useFormat() {
         return `${number(converted, digits)} ${lbs ? 'lbs' : 'kg'}`;
     }
 
+    // Whole degrees in the visitor's unit, from Celsius.
+    function degrees(celsius) {
+        if (celsius === null || celsius === undefined) {
+            return null;
+        }
+        const fahrenheit = temperatureUnitDef.value.value === 'f';
+        return Math.round(fahrenheit ? (celsius * 9) / 5 + 32 : Number(celsius));
+    }
+
+    // Temperature from Celsius with its unit, e.g. "18°C" or "64°F".
+    function temperature(celsius) {
+        const value = degrees(celsius);
+        return value === null ? null : `${value}°${temperatureUnitDef.value.value.toUpperCase()}`;
+    }
+
     return {
         distance,
         distanceParts,
@@ -115,9 +131,13 @@ export function useFormat() {
         toStorage,
         toDisplay,
         weight,
+        degrees,
+        temperature,
         distanceUnit: distanceUnitDef.value,
         setDistanceUnit: distanceUnitDef.set,
         weightUnit: weightUnitDef.value,
         setWeightUnit: weightUnitDef.set,
+        temperatureUnit: temperatureUnitDef.value,
+        setTemperatureUnit: temperatureUnitDef.set,
     };
 }
