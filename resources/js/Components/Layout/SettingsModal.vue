@@ -85,11 +85,13 @@ function onOpenChange(open) {
                     </div>
                 </div>
             </section>
+        </div>
 
-            <div v-if="customised" class="flex justify-end">
+        <div class="reset-row" :class="{ 'is-shown': customised }" :inert="! customised">
+            <div class="-m-1 flex min-h-0 justify-end overflow-hidden p-1">
                 <button
                     type="button"
-                    class="flex items-center gap-1.5 rounded-sm text-sm font-medium text-neutral-500 transition-colors hover:text-accent-500"
+                    class="mt-6 flex items-center gap-1.5 rounded-sm text-sm font-medium text-neutral-500 transition-colors hover:text-accent-500"
                     @click="resetSettings"
                 >
                     <Icon name="ArrowReloadHorizontalIcon" class="size-4" />
@@ -99,3 +101,24 @@ function onOpenChange(open) {
         </div>
     </Modal>
 </template>
+
+<style scoped>
+/* Grid rows animate between 0fr and 1fr, which height:auto cannot. */
+.reset-row {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 200ms ease-out, opacity 200ms ease-out;
+}
+
+.reset-row.is-shown {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reset-row {
+        transition: none;
+    }
+}
+</style>
