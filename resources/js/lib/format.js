@@ -25,6 +25,23 @@ export function duration(seconds) {
 }
 
 /**
+ * Minutes-rounded duration matching the server's Units::humanDuration: "50m", "1h", "3h 20m".
+ * @param {number} seconds
+ * @returns {string}
+ */
+export function humanDuration(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainder = minutes % 60;
+
+    if (hours === 0) {
+        return `${remainder}m`;
+    }
+
+    return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
+}
+
+/**
  * Rough en-route time estimated from great-circle distance: ~500 mph cruise plus
  * 25 minutes for taxi, climb and descent. Used where exact block time is unknown.
  */

@@ -8,7 +8,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * The timeline card payload a presenter returns. `titleLabel`, `subtitleTokens`
+ * The timeline card payload a presenter returns. `titleLabel`, the token lists
  * and `range` are emitted only when the producer set them, and `type` serialises
  * to the enum's backed string value.
  */
@@ -23,6 +23,7 @@ final readonly class CardData implements Arrayable, JsonSerializable
 
     /**
      * @param  ?list<SubtitleToken>  $subtitleTokens
+     * @param  ?list<SubtitleToken>  $titleTokens  The title as tokens, for a title that carries a measurement.
      */
     public function __construct(
         public TimelineType $type,
@@ -33,6 +34,7 @@ final readonly class CardData implements Arrayable, JsonSerializable
         public ?CarbonInterface $occurredAt,
         public ?RangeData $range,
         public CardMeta $meta,
+        public ?array $titleTokens = null,
     ) {
         $this->accent = $type->accent();
     }
@@ -53,6 +55,10 @@ final readonly class CardData implements Arrayable, JsonSerializable
 
         if ($this->titleLabel !== null) {
             $data['titleLabel'] = $this->titleLabel;
+        }
+
+        if ($this->titleTokens !== null) {
+            $data['titleTokens'] = array_map(fn (SubtitleToken $token): array => $token->toArray(), $this->titleTokens);
         }
 
         $data['subtitle'] = $this->subtitle;

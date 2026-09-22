@@ -13,7 +13,7 @@ const props = defineProps({
     stats: { type: Object, required: true },
 });
 
-const { distance } = useFormat();
+const { distance, exactDistance } = useFormat();
 
 /** Earth's equatorial circumference in metres, matching FuelStory's yardstick. */
 const EARTH_CIRCUMFERENCE = 40_075_000;
@@ -55,6 +55,7 @@ const highlights = computed(() => [
         value: props.stats.longestRoute
             ? `${props.stats.longestRoute}, ${distance(props.stats.longestDistance)}`
             : null,
+        title: exactDistance(props.stats.longestDistance),
     },
     {
         label: 'Aircraft',

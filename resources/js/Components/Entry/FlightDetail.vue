@@ -5,7 +5,7 @@ import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
 import Eyebrow from '../Ui/Eyebrow.vue';
 import Heading from '../Ui/Heading.vue';
-import { titleCase, clock, duration, flightDurationLabel } from '../../lib/format.js';
+import { titleCase, clock, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
 import { metresToMiles } from '../../lib/distance.js';
 import { useFormat } from '../../composables/useFormat';
 
@@ -16,7 +16,7 @@ const props = defineProps({
 // Unit-aware distance formatter; the visible label re-runs when the visitor
 // toggles distance units, while distanceMiles (below) stays fixed in miles
 // for the duration estimate.
-const { distance } = useFormat();
+const { distance, exactDistance, duration, exactMeasure } = useFormat();
 
 const meta = computed(() => props.entry.meta || {});
 const airline = computed(() => props.entry.airline || null);
@@ -73,7 +73,9 @@ const stats = computed(() => [
                 :depart-time="clock(departAt)"
                 :arrive-time="clock(arriveAt)"
                 :duration="durationLabel"
+                :duration-title="exactMeasure('duration', entry.duration, clockDuration(entry.duration))"
                 :note="distanceLabel"
+                :note-title="exactDistance(entry.distance)"
             />
         </div>
 

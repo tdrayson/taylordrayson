@@ -7,6 +7,7 @@ import Button from '../Ui/Button.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 import Accordion from '../Ui/Accordion.vue';
+import { useFormat } from '../../composables/useFormat';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 
 const props = defineProps({
@@ -26,7 +27,9 @@ const track = computed(() => ({
 }));
 
 const cover = computed(() => props.entry.cover_image || props.entry.thumbnail);
-const durationLabel = computed(() => {
+const { measure, exactMeasure } = useFormat();
+
+const realDuration = computed(() => {
     const total = props.entry.duration;
 
     if (!total) {
@@ -41,6 +44,8 @@ const durationLabel = computed(() => {
         .filter(Boolean)
         .join(' ');
 });
+const durationLabel = computed(() => measure('duration', props.entry.duration || null, realDuration.value));
+const durationExact = computed(() => exactMeasure('duration', props.entry.duration || null, realDuration.value));
 const audioPlaying = computed(() => isCurrent(track.value, 'audio') && player.playing);
 const playingInline = computed(() => isCurrent(track.value, 'video'));
 const showUrl = computed(
@@ -98,7 +103,7 @@ onBeforeUnmount(() => {
         <img v-else-if="cover" :src="cover" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
         <p v-if="durationLabel" class="text-sm text-neutral-500">
-            Duration: <span class="tabular-nums text-neutral-700">{{ durationLabel }}</span>
+            Duration: <span :title="durationExact" class="tabular-nums text-neutral-700">{{ durationLabel }}</span>
         </p>
 
         <div class="flex flex-wrap items-center gap-4">

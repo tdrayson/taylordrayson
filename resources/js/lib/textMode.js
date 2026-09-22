@@ -1,32 +1,29 @@
-/** Words shorter than this gain nothing: four letters is the first that shrinks (X2Y). */
-const MIN_LENGTH = 4;
-
 const WORD = /\p{L}+(?:['’]\p{L}+)*/gu;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION', 'CODE', 'PRE', 'KBD', 'SAMP']);
 
+/** Unit abbreviations, which read as nonsense once rewritten. */
+const UNITS = new Set(['mi', 'km', 'kg', 'lbs', 'kcal', 'bpm', 'mph', 'mpg']);
+
 /**
- * Shorten one word to its numeronym: accessibility becomes a11y.
+ * Whether a word is part of a measurement: a unit, or letters stuck to a number like 5pm or 25°C.
+ * @param {string} text
  * @param {string} word
- * @returns {string}
+ * @param {number} offset
+ * @returns {boolean}
  */
-export function toNumeronym(word) {
-    const letters = [...word.replace(/[^\p{L}]/gu, '')];
-
-    if (letters.length < MIN_LENGTH) {
-        return word;
-    }
-
-    return `${letters[0]}${letters.length - 2}${letters.at(-1)}`;
+function isMeasure(text, word, offset) {
+    return UNITS.has(word.toLowerCase()) || /[\p{N}°]/u.test(text[offset - 1] ?? '');
 }
 
 /**
- * Shorten every word in a string, leaving spacing and punctuation alone.
+ * Run every word in a string through a transform, leaving spacing, punctuation and measurements alone.
  * @param {string} text
+ * @param {(word: string) => string} transformWord
  * @returns {string}
  */
-export function numeronymise(text) {
-    return text.replace(WORD, toNumeronym);
+export function rewriteWords(text, transformWord) {
+    return text.replace(WORD, (word, offset) => (isMeasure(text, word, offset) ? word : transformWord(word)));
 }
 
 /**
@@ -52,12 +49,13 @@ function isRewritable(node) {
 }
 
 /**
- * Rewrites the page's text nodes as numeronyms and puts them back on stop.
+ * Rewrites the page's words through a transform and puts them back on stop.
  * Vue owns these nodes, so a value it writes over ours becomes the new original.
  * @param {HTMLElement} root
+ * @param {(word: string) => string} transformWord
  * @returns {{start: () => void, stop: () => void}}
  */
-export function createNumeronymMode(root) {
+export function createTextMode(root, transformWord) {
     /** @type {WeakMap<Text, {original: string, converted: string}>} */
     let rewritten = new WeakMap();
     let observer = null;
@@ -69,7 +67,7 @@ export function createNumeronymMode(root) {
             return;
         }
 
-        const converted = numeronymise(node.nodeValue);
+        const converted = rewriteWords(node.nodeValue, transformWord);
 
         if (converted !== node.nodeValue) {
             rewritten.set(node, { original: node.nodeValue, converted });

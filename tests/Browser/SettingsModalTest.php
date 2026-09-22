@@ -30,16 +30,16 @@ it('opens the settings modal from the gear and toggles theme', function () {
         ->assertScript(cookieValue('theme'), 'light');
 });
 
-it('opens the numeronym info on hover and on Enter', function () {
+it('opens the text mode info on hover and on Enter', function () {
     $page = visit('/')->resize(1280, 800)->click('[aria-label="Open settings"]');
-    $expanded = "document.querySelector('[aria-label=\"About numeronym mode\"]').getAttribute('aria-expanded')";
+    $expanded = "document.querySelector('[aria-label=\"About text mode\"]').getAttribute('aria-expanded')";
 
-    $page->hover('[aria-label="About numeronym mode"]')
+    $page->hover('[aria-label="About text mode"]')
         ->assertScript($expanded, 'true')
         ->hover('[aria-label="Close settings"]')
         ->wait(0.3)
         ->assertScript($expanded, 'false')
-        ->keys('[aria-label="About numeronym mode"]', 'Enter')
+        ->keys('[aria-label="About text mode"]', 'Enter')
         ->assertScript($expanded, 'true');
 });
 

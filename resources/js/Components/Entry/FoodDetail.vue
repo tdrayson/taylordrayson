@@ -6,10 +6,13 @@ import Eyebrow from '../Ui/Eyebrow.vue';
 import Heading from '../Ui/Heading.vue';
 import Stat from '../Ui/Stat.vue';
 import { number, titleCase } from '../../lib/format.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
+
+const { measure, exactMeasure } = useFormat();
 
 const totals = computed(() => props.entry.totals ?? {});
 const meals = computed(() => props.entry.meals ?? []);
@@ -91,7 +94,7 @@ function quantity(item) {
                 <div v-for="meal in meals" :key="meal.meal" class="overflow-hidden rounded-lg border border-neutral-50">
                     <div class="flex items-baseline justify-between bg-neutral-25 px-4 py-2.5">
                         <Heading as="span" size="section">{{ titleCase(meal.meal) }}</Heading>
-                        <span class="text-sm font-semibold text-neutral-700 tabular-nums">{{ number(meal.calories) }} kcal</span>
+                        <span :title="exactMeasure('energy', meal.calories, `${number(meal.calories)} kcal`)" class="text-sm font-semibold text-neutral-700 tabular-nums">{{ measure('energy', meal.calories, `${number(meal.calories)} kcal`) }}</span>
                     </div>
                     <div class="divide-y divide-neutral-50">
                         <div v-for="(item, index) in meal.items" :key="index" class="flex items-center justify-between gap-4 px-4 py-2.5">
@@ -99,7 +102,7 @@ function quantity(item) {
                                 <div class="text-sm text-neutral-900">{{ item.name }}</div>
                                 <div class="text-xs text-neutral-500">{{ quantity(item) }}</div>
                             </div>
-                            <div class="shrink-0 text-sm font-semibold text-neutral-900 tabular-nums">{{ number(item.calories) }}</div>
+                            <div :title="exactMeasure('energy', item.calories, number(item.calories))" class="shrink-0 text-sm font-semibold text-neutral-900 tabular-nums">{{ measure('energy', item.calories, number(item.calories)) }}</div>
                         </div>
                     </div>
                 </div>
