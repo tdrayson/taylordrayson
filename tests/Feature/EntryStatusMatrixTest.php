@@ -125,7 +125,7 @@ it('shows each status only where it belongs', function (bool $owner) {
     // asks; only published answers at the bare id; a draft has no spine row at all.
     foreach (['published', 'unlisted', 'private'] as $status) {
         $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('url_slug', "matrix-{$status}")->sole();
-        $path = 'og/'.OgRenderer::generation().'/entry/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png';
+        $path = 'og/'.OgRenderer::generation()."/entry/{$entry->id}-".BuildEntryOgData::entryTimestamp($entry).'.png';
         Storage::disk('local')->put($path, 'fake-png-bytes');
 
         $this->get($this->get("/2026/06/15/matrix-{$status}")->inertiaProps('og.image'))->assertOk();

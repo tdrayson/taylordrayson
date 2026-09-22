@@ -241,7 +241,7 @@ class OgMeta
             'title' => "{$status} Not Found",
             'description' => 'The page you were looking for does not exist.',
             'noindex' => true,
-        ]);
+        ], "error-{$status}");
     }
 
     /**
@@ -473,6 +473,26 @@ class OgMeta
     }
 
     /**
+     * The signed URL of a page's generated card. Signing stops the renderer
+     * taking requests for cards no page publishes.
+     *
+     * @param  OgPayload  $og
+     * @param  string  $owner  The page the card belongs to; it keeps only its latest card.
+     */
+    public static function cardUrl(array $og, string $owner): string
+    {
+        return URL::signedRoute('og', array_filter([
+            'for' => $owner,
+            'title' => $og['heading'] ?? $og['title'] ?? config('identity.name'),
+            'eyebrow' => $og['eyebrow'],
+            'accent' => $og['accent'],
+            'variant' => $og['variant'],
+            'description' => $og['description'],
+            'v' => OgRenderer::generation(),
+        ]));
+    }
+
+    /**
      * The entry's card URL, stamped with the card design and the entry's own
      * last-updated time.
      *
@@ -540,14 +560,15 @@ class OgMeta
     }
 
     /**
-     * Fill a partial payload with the shared defaults.
+     * Fill a partial payload with the shared defaults and the page's card.
      *
      * @param  array{title?: ?string, description?: string, heading?: ?string, eyebrow?: ?string, accent?: ?string, image?: ?string, variant?: ?string, type?: string, noindex?: bool}  $attributes
+     * @param  string|null  $owner  The card's owner, when it is not the requested path.
      * @return OgPayload
      */
-    private static function make(array $attributes): array
+    private static function make(array $attributes, ?string $owner = null): array
     {
-        return array_merge([
+        $og = array_merge([
             'title' => null,
             'description' => config('identity.bio'),
             'heading' => null,
@@ -558,5 +579,9 @@ class OgMeta
             'type' => 'website',
             'noindex' => false,
         ], $attributes);
+
+        $og['image'] ??= self::cardUrl($og, $owner ?? '/'.ltrim(request()->path(), '/'));
+
+        return $og;
     }
 }
