@@ -5,6 +5,7 @@ namespace App\DynamicTags\Site;
 use App\Data\TagOption;
 use App\DynamicTags\DynamicTag;
 use App\Enums\Placement;
+use Illuminate\Support\Str;
 
 /** A profile URL for one network, so a moved account is changed in one place. */
 class SiteSocial extends DynamicTag
@@ -35,7 +36,7 @@ class SiteSocial extends DynamicTag
     }
 
     /**
-     * One choice per network configured in `site.social`; no default, so an
+     * One choice per network listed in `identity.profiles`; no default, so an
      * author must pick one.
      *
      * @return list<TagOption>
@@ -43,7 +44,7 @@ class SiteSocial extends DynamicTag
     public function options(): array
     {
         return [
-            new TagOption('network', 'Network', array_keys(config('site.social'))),
+            new TagOption('network', 'Network', array_keys($this->profiles())),
         ];
     }
 
@@ -55,6 +56,19 @@ class SiteSocial extends DynamicTag
      */
     public function resolve(array $options): ?string
     {
-        return isset($options['network']) ? config('site.social.'.$options['network']) : null;
+        return isset($options['network']) ? ($this->profiles()[$options['network']] ?? null) : null;
+    }
+
+    /**
+     * The owner's rel="me" profiles keyed by a slug of their label, so "GitHub"
+     * is chosen as `network: github`.
+     *
+     * @return array<string, string>
+     */
+    private function profiles(): array
+    {
+        return collect(config('identity.profiles'))
+            ->mapWithKeys(fn (array $profile): array => [Str::slug($profile['label']) => $profile['href']])
+            ->all();
     }
 }

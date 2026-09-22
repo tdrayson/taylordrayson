@@ -42,7 +42,7 @@ class SiteEmail extends DynamicTag
      */
     public function resolve(array $options): ?string
     {
-        $address = config('site.email');
+        $address = config('identity.email');
 
         return $address === null ? null : str_replace('@', '(at)', $address);
     }

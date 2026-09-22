@@ -29,6 +29,6 @@ class SiteHome extends DynamicTag
      */
     public function resolve(array $options): ?string
     {
-        return config('site.home');
+        return config('identity.home');
     }
 }

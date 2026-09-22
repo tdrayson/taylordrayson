@@ -8,10 +8,9 @@ $description = 'Everything, logged — activities, places, films, flights and mo
 $language = 'en-GB';
 
 return [
-    'author_name' => 'Taylor Drayson',
-    // Not config('site.email'): config files load alphabetically, so 'feed'
-    // runs before 'site' exists in the repository. Default matches site.php.
-    'author_email' => env('SITE_EMAIL', 'taylor@drayson.co.uk'),
+    // Set from config/identity.php at boot: this file loads before it.
+    'author_name' => null,
+    'author_email' => null,
 
     'feeds' => [
         'atom' => [

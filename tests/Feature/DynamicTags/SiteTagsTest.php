@@ -9,7 +9,7 @@ it('resolves the email with the @ spelled out, inline only', function () {
     $registry = app(DynamicTagRegistry::class);
 
     expect($registry->value('site.email', [])['text'])
-        ->toBe(str_replace('@', '(at)', config('site.email')))
+        ->toBe('taylor(at)drayson.co.uk')
         ->not->toContain('@')
         ->and($registry->find('site.email')->supports())
         ->toBe([Placement::Inline]);
@@ -32,7 +32,7 @@ it('never puts the real address in a resolved document, so plainText stays harve
 
 it('resolves a social link', function () {
     expect(app(DynamicTagRegistry::class)->value('site.social', ['network' => 'github'])['text'])
-        ->toBe(config('site.social.github'));
+        ->toBe('https://github.com/tdrayson');
 });
 
 it('resolves no social link when the network option is missing, same as an unknown one', function () {
@@ -49,7 +49,7 @@ it('rewrites a dynamicHref markDef into a link', function () {
     $resolved = app(ResolveDynamicTags::class)($document);
 
     expect($resolved[0]['markDefs'][0])
-        ->toMatchArray(['_type' => 'link', '_key' => 'd1', 'href' => config('site.social.github')])
+        ->toMatchArray(['_type' => 'link', '_key' => 'd1', 'href' => 'https://github.com/tdrayson'])
         ->and($resolved[0]['children'][0]['marks'])->toBe(['d1']);
 });
 
@@ -81,7 +81,7 @@ it('resolves a block carrying both an ordinary link and a dynamicHref markDef', 
 
     expect($resolved['markDefs'])->toBe([
         ['_type' => 'link', '_key' => 'l1', 'href' => 'https://example.com'],
-        ['_type' => 'link', '_key' => 'd1', 'href' => config('site.social.github')],
+        ['_type' => 'link', '_key' => 'd1', 'href' => 'https://github.com/tdrayson'],
     ])
         ->and($resolved['children'][0]['marks'])->toBe(['l1'])
         ->and($resolved['children'][2]['marks'])->toBe(['d1']);

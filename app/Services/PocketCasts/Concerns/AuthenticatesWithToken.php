@@ -39,7 +39,7 @@ trait AuthenticatesWithToken
     /** Pocket Casts refuses requests without one. */
     private function userAgent(): string
     {
-        return 'taylordrayson.com (+'.config('site.social.github').')';
+        return 'taylordrayson.com (+'.collect(config('identity.profiles'))->firstWhere('label', 'GitHub')['href'].')';
     }
 
     public function boot(PendingRequest $pendingRequest): void

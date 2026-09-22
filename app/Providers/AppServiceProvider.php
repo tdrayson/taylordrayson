@@ -146,6 +146,13 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ScheduledBackgroundTaskFinished::class, AlertOnScheduledTaskFailure::class);
         Event::listen(JobFailed::class, AlertOnFailedJob::class);
 
+        // The feed's author is the site's identity; config/feed.php loads too early
+        // to read it itself.
+        config([
+            'feed.author_name' => config('identity.name'),
+            'feed.author_email' => config('identity.email'),
+        ]);
+
         // Say who we are on every outbound request: an unidentified default
         // Guzzle agent is a common thing for a bot filter to challenge.
         Http::globalRequestMiddleware(fn ($request) => $request->withHeader(

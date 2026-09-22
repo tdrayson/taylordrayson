@@ -18,7 +18,6 @@ function documentWithDynamicHref(): array
 }
 
 it('queues a favicon fetch for a host only reachable through a dynamic link', function () {
-    config(['site.social' => ['github' => 'https://github.com/tdrayson']]);
     Bus::fake();
 
     Note::factory()->create(['content' => documentWithDynamicHref()]);
@@ -27,7 +26,6 @@ it('queues a favicon fetch for a host only reachable through a dynamic link', fu
 });
 
 it('finds a dynamic link host when sweeping every entry for favicons:favicons', function () {
-    config(['site.social' => ['github' => 'https://github.com/tdrayson']]);
     Bus::fake();
 
     Note::factory()->create(['content' => documentWithDynamicHref()]);

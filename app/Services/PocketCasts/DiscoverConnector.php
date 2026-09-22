@@ -20,6 +20,6 @@ class DiscoverConnector extends ApiConnector
 
     private function userAgent(): string
     {
-        return 'taylordrayson.com (+'.config('site.social.github').')';
+        return 'taylordrayson.com (+'.collect(config('identity.profiles'))->firstWhere('label', 'GitHub')['href'].')';
     }
 }
