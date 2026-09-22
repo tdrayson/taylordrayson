@@ -5,7 +5,7 @@ const MAX_COUNT = 40;
 
 /**
  * Daft yardsticks per kind of quantity, smallest first, sized in the kind's base
- * unit: metres, kilograms, seconds, kilocalories, pounds or beats per minute. Each thing
+ * unit: metres, kilograms, seconds, kilocalories, litres, pounds or beats per minute. Each thing
  * belongs to one kind only, so bananas are always a weight.
  */
 export const YARDSTICKS = {
@@ -111,6 +111,20 @@ export const YARDSTICKS = {
         { size: 1800, one: "Domino's pizza", many: "Domino's pizzas" },
         { size: 6000, one: 'Christmas Day', many: 'Christmas Days' },
     ],
+    volume: [
+        { size: 0.005, one: 'teaspoon', many: 'teaspoons' },
+        { size: 0.33, one: 'can of Coke', many: 'cans of Coke' },
+        { size: 0.35, one: 'mug of tea', many: 'mugs of tea' },
+        { size: 0.75, one: 'bottle of wine', many: 'bottles of wine' },
+        { size: 2, one: 'bottle of pop', many: 'bottles of pop' },
+        { size: 5, one: 'jerry can', many: 'jerry cans' },
+        { size: 10, one: 'bucket', many: 'buckets' },
+        { size: 60, one: 'fish tank', many: 'fish tanks' },
+        { size: 150, one: 'bathtub', many: 'bathtubs' },
+        { size: 240, one: 'wheelie bin', many: 'wheelie bins' },
+        { size: 1500, one: 'hot tub', many: 'hot tubs' },
+        { size: 36000, one: 'tanker lorry', many: 'tanker lorries' },
+    ],
     money: [
         { size: 0.25, one: 'Freddo', many: 'Freddos' },
         { size: 0.35, one: 'Curly Wurly', many: 'Curly Wurlys' },
@@ -183,7 +197,7 @@ function fitting(amount, ladder) {
 /**
  * A quantity in daft units, e.g. 42195 metres could be 1 marathon or 8.4 parkruns.
  * Counts under ten keep one decimal place.
- * @param {'distance'|'weight'|'height'|'duration'|'energy'|'money'|'heartRate'} kind
+ * @param {'distance'|'weight'|'height'|'duration'|'energy'|'volume'|'money'|'heartRate'} kind
  * @param {number} amount In the kind's base unit.
  * @returns {{value: string, unit: string}}
  */
