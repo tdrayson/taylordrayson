@@ -10,13 +10,12 @@ use App\Queries\HeatmapDays;
 use App\Queries\MonthsInYear;
 use App\Queries\PeriodStats;
 use App\Queries\ThisWeekWithEpisodeCount;
-use App\Queries\TimelineWindow;
+use App\Queries\TimelinePage;
 use App\Queries\TimelineYears;
-use App\Support\DayBudget;
 use App\Support\FeedInteractions;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
-use App\Support\SqlDate;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -27,6 +26,8 @@ use Inertia\Response;
 
 class TimelineController extends Controller
 {
+    private const PER_PAGE = 50;
+
     public function __construct(
         private readonly BuildTimelineFeed $feed,
         private readonly BuildMonthCalendar $monthCalendar,
@@ -35,98 +36,79 @@ class TimelineController extends Controller
         private readonly DayStats $dayStats,
         private readonly MonthsInYear $months,
         private readonly ThisWeekWithEpisodeCount $thisWeekWithEpisodes,
-        private readonly TimelineWindow $window,
+        private readonly TimelinePage $page,
         private readonly TimelineYears $years,
     ) {}
 
     public function index(Request $request): Response
     {
-        // Anchored to a date, not an offset: every entry logged today would
-        // otherwise shift what `?page=7` points at, so a shared link rots.
-        $window = ($this->window)(
-            $this->cursor($request->query('before')),
-            $this->cursor($request->query('after')),
+        $page = ($this->page)(
+            $this->cursor($request->query('before'), '00:00:00'),
+            $this->cursor($request->query('after'), '23:59:59'),
         );
 
-        $entries = $window['to'] === null
-            ? collect()
-            : $this->entriesForDates($window['to'], $window['from']);
+        $groups = $this->feed->groupByDay($page->entries);
+        $dates = collect($groups)->pluck('date');
 
         return Inertia::render('Timeline', [
             'og' => OgMeta::timeline(),
-            'groups' => $this->feed->groupByDay($entries),
-            'interactions' => FeedInteractions::defer($entries),
-            'range' => $window['to'] === null ? null : ['from' => $window['from'], 'to' => $window['to']],
-            'olderUrl' => $window['olderThan'] === null ? null : '/?before='.$window['olderThan'],
+            'groups' => $groups,
+            'interactions' => FeedInteractions::defer($page->entries),
+            'range' => $dates->isEmpty() ? null : ['from' => $dates->last(), 'to' => $dates->first()],
+            'olderUrl' => $page->olderThan === null ? null : '/?before='.$page->olderThan,
             // The newest page is the bare URL, so the feed has one canonical front.
-            'newerUrl' => $window['newerThan'] === null ? null : '/?after='.$window['newerThan'],
+            'newerUrl' => $page->newerThan === null ? null : '/?after='.$page->newerThan,
             'years' => ($this->years)(),
             'thisWeekWithEpisodes' => ($this->thisWeekWithEpisodes)(),
         ]);
     }
 
-    /** A Y-m-d cursor from the query string, or null for anything else. */
-    private function cursor(mixed $value): ?string
+    /**
+     * An instant cursor from the query string, or null for anything else.
+     *
+     * @param  string  $time  Filled in for a bare date, which older links carry.
+     */
+    private function cursor(mixed $value, string $time): ?string
     {
-        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?$/', $value) !== 1) {
             return null;
         }
 
-        return Carbon::hasFormat($value, 'Y-m-d') ? $value : null;
+        $value = strlen($value) === 10 ? "{$value}T{$time}" : $value;
+
+        return Carbon::hasFormat($value, 'Y-m-d\TH:i:s') ? str_replace('T', ' ', $value) : null;
     }
 
     /**
-     * Every entry between two dates (inclusive), ready to be shaped into cards.
-     *
-     * @return Collection<int, TimelineEntry>
-     */
-    private function entriesForDates(string $newest, string $oldest, bool $ascending = false): Collection
-    {
-        return TimelineEntry::query()
-            ->withCardRelations()
-            ->whereDate('occurred_at', '<=', $newest)
-            ->whereDate('occurred_at', '>=', $oldest)
-            ->orderByInstant($ascending ? 'asc' : 'desc')
-            ->get();
-    }
-
-    /**
-     * Day-paginated, chronological timeline tail for a period.
+     * Chronological timeline tail for a period, paginated by entry.
      *
      * @return array{groups: array<int, mixed>, interactions: mixed, currentPage: int, lastPage: int}
      */
     private function periodTail(Carbon $start, Carbon $end): array
     {
-        $date = SqlDate::date('occurred_at');
+        return $this->paginatedFeed(
+            TimelineEntry::query()->whereBetween('occurred_at', [$start, $end])->orderByInstant('asc'),
+        );
+    }
 
-        $days = TimelineEntry::query()
-            ->toBase()
-            ->selectRaw("{$date} as day, count(*) as total")
-            ->whereBetween('occurred_at', [$start, $end])
-            ->groupBy('day')
-            ->orderBy('day')
-            ->get()
-            ->map(fn (object $row): array => ['day' => (string) $row->day, 'total' => (int) $row->total]);
-
-        // Sized by what the days hold rather than by a fixed count: a month of
-        // 584 entries was four pages of 146, which is a long scroll for a page.
-        $pages = DayBudget::pages($days);
-        $current = max(1, min((int) request()->query('page', '1'), max(1, $pages->count())));
-        $dates = collect($pages->get($current - 1) ?? [])->pluck('day');
-
-        $entries = $dates->isEmpty()
-            ? collect()
-            : $this->entriesForDates($dates->last(), $dates->first(), true);
+    /**
+     * One page of an ordered feed query, grouped by day.
+     *
+     * @param  Builder<TimelineEntry>  $query
+     * @return array{groups: array<int, mixed>, interactions: mixed, currentPage: int, lastPage: int}
+     */
+    private function paginatedFeed(Builder $query): array
+    {
+        $page = $query->clone()->withCardRelations()->paginate(self::PER_PAGE);
+        $entries = collect($page->items());
 
         return [
             // Resolved in the response rather than deferred: the feed carries
-            // the page's h-feed, and a deferred prop is excluded from the
-            // initial render, so under SSR a parser would be served the loading
-            // state instead of the entries.
+            // the page's h-feed, which SSR has to render for parsers.
             'groups' => $this->feed->groupByDay($entries),
             'interactions' => FeedInteractions::defer($entries),
-            'currentPage' => $current,
-            'lastPage' => max(1, $pages->count()),
+            'currentPage' => $page->currentPage(),
+            'lastPage' => $page->lastPage(),
         ];
     }
 
