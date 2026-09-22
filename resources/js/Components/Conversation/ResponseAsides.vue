@@ -14,9 +14,7 @@ const props = defineProps({
 // Only the handful of readers who open this panel need the form's chunk.
 const WebmentionForm = defineAsyncComponent(() => import('./WebmentionForm.vue'));
 
-// The card a scraper would fetch. Built the same way as the og:image tag
-// rather than read off og.image, which only an entry sets: a page's card is
-// composed from its heading and would otherwise have nothing to show.
+// The card a scraper would fetch, resolved the same way as the og:image tag.
 const cardUrl = useOgCard(() => props.og);
 
 const copied = ref(false);

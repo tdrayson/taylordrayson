@@ -121,19 +121,19 @@ final class OgGalleryUrls
     private function pageCardUrls(): array
     {
         $pages = [
-            ['label' => 'Home (/)', 'og' => OgMeta::timeline()],
-            ['label' => 'Now (/now)', 'og' => OgMeta::now()],
-            ['label' => 'Search (/search)', 'og' => OgMeta::search()],
-            ['label' => 'Feeds (/feeds)', 'og' => OgMeta::feeds()],
-            ['label' => 'Leaderboard (/leaderboard)', 'og' => OgMeta::leaderboard()],
-            ['label' => 'Year (/2026)', 'og' => OgMeta::year(2026)],
-            ['label' => 'Month (/2026/06)', 'og' => OgMeta::month(2026, 6)],
-            ['label' => 'Day (/2026/06/26)', 'og' => OgMeta::day(Carbon::create(2026, 6, 26))],
+            ['label' => 'Home', 'path' => '/', 'og' => OgMeta::timeline()],
+            ['label' => 'Now', 'path' => '/now', 'og' => OgMeta::now()],
+            ['label' => 'Search', 'path' => '/search', 'og' => OgMeta::search()],
+            ['label' => 'Feeds', 'path' => '/feeds', 'og' => OgMeta::feeds()],
+            ['label' => 'Leaderboard', 'path' => '/leaderboard', 'og' => OgMeta::leaderboard()],
+            ['label' => 'Year', 'path' => '/2026', 'og' => OgMeta::year(2026)],
+            ['label' => 'Month', 'path' => '/2026/06', 'og' => OgMeta::month(2026, 6)],
+            ['label' => 'Day', 'path' => '/2026/06/26', 'og' => OgMeta::day(Carbon::create(2026, 6, 26))],
         ];
 
         return array_map(fn (array $page): array => [
-            'label' => $page['label'],
-            'url' => $this->ogUrl($page['og']),
+            'label' => "{$page['label']} ({$page['path']})",
+            'url' => OgMeta::cardUrl($page['og'], $page['path']),
         ], $pages);
     }
 
@@ -151,31 +151,11 @@ final class OgGalleryUrls
 
             $cards[] = [
                 'label' => $label,
-                'url' => $this->ogUrl(OgMeta::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0)),
+                'url' => OgMeta::cardUrl(OgMeta::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0), "gallery-{$type->value}"),
             ];
         }
 
         return $cards;
-    }
-
-    /**
-     * Build the /og.png URL that renders a given OgMeta payload's card.
-     *
-     * Carries the same design token the real pages emit, so opening a gallery
-     * URL after a redesign is not answered from the browser's copy of the card
-     * it replaced.
-     *
-     * @param  array<string, mixed>  $og
-     */
-    private function ogUrl(array $og): string
-    {
-        return route('og').'?'.http_build_query(array_filter([
-            'variant' => $og['variant'] ?? null,
-            'eyebrow' => $og['eyebrow'] ?? null,
-            'title' => $og['heading'] ?? $og['title'] ?? null,
-            'accent' => $og['accent'] ?? null,
-            'v' => OgRenderer::generation(),
-        ]));
     }
 
     /**

@@ -17,9 +17,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OgImageController extends Controller
 {
-    /** The home card's standfirst when the request carries no description. */
-    public const TAGLINE = 'A living archive of everything I make, watch, read, and get up to.';
-
     public function __construct(
         private readonly BuildEntryOgData $entryOgData,
         private readonly OgGalleryUrls $galleryUrls,
@@ -27,49 +24,36 @@ class OgImageController extends Controller
     ) {}
 
     /**
-     * Render (and cache) a 1200x630 Open Graph card for the given title.
-     *
-     * Input is read leniently so a malformed share URL still returns a valid
-     * default card rather than an error. Cards are cached by a hash of their
-     * inputs and regenerated only when missing.
+     * Render (and cache) a page's 1200x630 Open Graph card. Only the signed URL
+     * OgMeta emits is served, and `for` names the page so its old cards go.
      */
     public function show(Request $request): BinaryFileResponse
     {
-        $title = Str::limit(trim((string) $request->query('title')) ?: 'Taylor Drayson', 160, '');
+        abort_unless($request->hasValidSignature(), 404);
+
+        $title = Str::limit(trim((string) $request->query('title')) ?: config('identity.name'), 160, '');
         $eyebrow = Str::limit(trim((string) $request->query('eyebrow')), 60, '') ?: null;
-        $date = Str::limit(trim((string) $request->query('date')), 60, '') ?: null;
         $accent = $this->galleryUrls->accent($request->query('accent'));
         $layout = $request->query('variant') === 'home' ? 'home' : 'text';
+        $subtitle = Str::limit(trim((string) $request->query('description')), 200, '') ?: null;
 
-        // The page's own meta description, so the card and the tag beneath it in
-        // a share preview say the same thing. The home card falls back to the
-        // tagline, having no page of its own to read a description from; every
-        // other card would rather show nothing than something generic.
-        $subtitle = Str::limit(trim((string) $request->query('description')), 200, '')
-            ?: ($layout === 'home' ? self::TAGLINE : null);
-
-        $disk = Storage::disk('local');
-        $directory = 'og/'.OgRenderer::generation();
-        $path = $directory.'/'.md5(implode('|', [$layout, $title, (string) $eyebrow, (string) $date, $accent, (string) $subtitle])).'.png';
-
-        if (! $disk->exists($path)) {
-            $disk->makeDirectory($directory);
-
-            $card = [
+        $path = $this->renderer->card(
+            'page',
+            md5((string) $request->query('for')),
+            md5(implode('|', [$layout, $title, (string) $eyebrow, $accent, (string) $subtitle])),
+            fn (): View => view('og.card', [
                 'layout' => $layout,
                 'accent' => $accent,
                 'eyebrow' => $eyebrow,
                 'title' => $title,
-                'date' => $date,
+                'date' => null,
                 'subtitle' => $subtitle,
                 'image' => null,
                 'cutout' => $this->galleryUrls->dataUri('taylor-cutout.png', 'image/png'),
-            ];
+            ]),
+        );
 
-            $this->renderer->screenshot(view('og.card', $card), $disk->path($path));
-        }
-
-        return $this->renderer->serve($disk->path($path), 'public, max-age=31536000, immutable');
+        return $this->renderer->serve($path, 'public, max-age=31536000, immutable');
     }
 
     /**
@@ -77,9 +61,9 @@ class OgImageController extends Controller
      * from the entry's real data: type accent, eyebrow, title, date, and a
      * contextual image (route map, check-in marker, or cover) where one fits.
      *
-     * Cached by entry id plus the model's last-updated stamp, so the same URL is
-     * reused until the entry changes. An unlisted or private entry is served
-     * only on the signed URL its own page emits, and 404s otherwise.
+     * Cached by entry id plus the model's last-updated stamp, keeping only the
+     * latest. An unlisted or private entry is served only on the signed URL its
+     * own page emits, and 404s otherwise.
      */
     public function entry(Request $request, int $entry): BinaryFileResponse
     {
@@ -91,16 +75,14 @@ class OgImageController extends Controller
 
         abort_if($card === null, 404);
 
-        $disk = Storage::disk('local');
-        $directory = 'og/'.OgRenderer::generation().'/entry';
-        $path = $directory.'/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png';
+        $path = $this->renderer->card(
+            'entry',
+            (string) $entry->id,
+            (string) BuildEntryOgData::entryTimestamp($entry),
+            fn (): View => view('og.card', $card),
+        );
 
-        if (! $disk->exists($path)) {
-            $disk->makeDirectory($directory);
-            $this->renderer->screenshot(view('og.card', $card), $disk->path($path));
-        }
-
-        return $this->renderer->serve($disk->path($path), 'public, max-age=86400');
+        return $this->renderer->serve($path, 'public, max-age=86400');
     }
 
     /**

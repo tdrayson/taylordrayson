@@ -24,7 +24,7 @@ const page = usePage();
 // The one site-identity name, shared from config/identity.php.
 const SITE_NAME = computed(() => page.props.identity.name);
 
-const meta = computed(() => ogMeta(props.og));
+const meta = computed(() => ogMeta(props.og, page.props.identity.bio));
 
 const imageUrl = useOgCard(() => props.og);
 
@@ -77,11 +77,11 @@ const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SI
         <meta head-key="og:title" property="og:title" :content="fullTitle" />
         <meta head-key="og:description" property="og:description" :content="meta.description" />
         <meta head-key="og:url" property="og:url" :content="canonical" />
-        <meta head-key="og:image" property="og:image" :content="imageUrl" />
+        <meta v-if="imageUrl" head-key="og:image" property="og:image" :content="imageUrl" />
 
         <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
         <meta head-key="twitter:title" name="twitter:title" :content="fullTitle" />
         <meta head-key="twitter:description" name="twitter:description" :content="meta.description" />
-        <meta head-key="twitter:image" name="twitter:image" :content="imageUrl" />
+        <meta v-if="imageUrl" head-key="twitter:image" name="twitter:image" :content="imageUrl" />
     </Head>
 </template>

@@ -3,11 +3,10 @@ import { usePage } from '@inertiajs/vue3';
 import { ogCardUrl } from '../lib/og.js';
 
 /**
- * The share card URL for an Open Graph payload, resolved against the shared
- * site identity.
+ * The share card URL for an Open Graph payload, resolved against the app URL.
  *
  * @param {object|Function} og The view's `og` prop, or a getter for it.
- * @returns {import('vue').ComputedRef<string>} An absolute URL.
+ * @returns {import('vue').ComputedRef<?string>} An absolute URL.
  */
 export function useOgCard(og) {
     const page = usePage();
@@ -17,9 +16,5 @@ export function useOgCard(og) {
     const origin = computed(() => page.props.appUrl
         ?? (typeof window === 'undefined' ? '' : window.location.origin));
 
-    return computed(() => ogCardUrl(toValue(og), {
-        origin: origin.value,
-        siteName: page.props.identity.name,
-        version: page.props.ogVersion,
-    }));
+    return computed(() => ogCardUrl(toValue(og), origin.value));
 }
