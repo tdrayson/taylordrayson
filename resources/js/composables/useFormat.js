@@ -17,6 +17,7 @@ const STAT_UNITS = {
     kcal: { kind: 'energy' },
     'kcal/day': { kind: 'energy', suffix: ' a day' },
     bpm: { kind: 'heartRate' },
+    L: { kind: 'volume' },
     m: { kind: 'height' },
     h: { kind: 'duration', scale: 3600 },
 };

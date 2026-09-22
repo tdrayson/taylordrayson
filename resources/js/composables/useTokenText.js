@@ -7,6 +7,7 @@ const REAL = {
     kcal: (token) => `${number(token.kcal)} ${token.u ?? 'kcal'}`,
     gbp: (token) => money(token.gbp),
     ppl: (token) => `${pencePerLitre(token.ppl)}/L`,
+    vol: (token) => `${number(token.l, 2)}L`,
 };
 
 /**
@@ -37,6 +38,7 @@ export function useTokenText() {
         dur: (token) => measure('duration', token.s, REAL.dur(token)),
         kcal: (token) => measure('energy', token.kcal, REAL.kcal(token)),
         gbp: (token) => measure('money', token.gbp, REAL.gbp(token)),
+        vol: (token) => measure('volume', token.l, REAL.vol(token)),
         ppl: (token) => (sillyUnits.value === 'on' ? `${measure('money', token.ppl, '')} a litre` : REAL.ppl(token)),
     };
 

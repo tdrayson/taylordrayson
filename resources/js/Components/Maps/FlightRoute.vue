@@ -27,14 +27,18 @@ defineProps({
         </div>
 
         <div class="flex flex-1 flex-col items-center gap-1">
-            <Eyebrow v-if="duration" :title="durationTitle" class="text-neutral-500 tabular-nums">{{ duration }}</Eyebrow>
+            <Eyebrow v-if="duration" :title="durationTitle" class="flex items-center gap-1 text-neutral-500 tabular-nums">
+                <Icon v-if="durationTitle" name="Clock01Icon" class="size-3" />{{ duration }}
+            </Eyebrow>
             <div class="relative flex w-full items-center justify-center">
                 <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
                 <span class="relative bg-neutral-0 px-2 text-neutral-500">
                     <Icon name="Airplane01Icon" class="size-4" />
                 </span>
             </div>
-            <Eyebrow v-if="note" :title="noteTitle" class="text-neutral-500 tabular-nums">{{ note }}</Eyebrow>
+            <Eyebrow v-if="note" :title="noteTitle" class="flex items-center gap-1 text-neutral-500 tabular-nums">
+                <Icon v-if="noteTitle" name="Route01Icon" class="size-3" />{{ note }}
+            </Eyebrow>
         </div>
 
         <div class="shrink-0 text-right">

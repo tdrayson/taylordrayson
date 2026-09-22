@@ -1,4 +1,5 @@
 <script setup>
+import { useFormat } from '../../composables/useFormat';
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { player, playAudio, togglePlay, isCurrent } from '../../lib/player.js';
@@ -29,6 +30,8 @@ function relativeDate(iso) {
     return relativeDay(iso) ?? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
+const { measure } = useFormat();
+
 function durationLabel(seconds) {
     if (seconds === null || seconds === undefined) {
         return null;
@@ -46,7 +49,7 @@ const metaLine = computed(() => {
     if (!props.episode) {
         return null;
     }
-    return [relativeDate(props.episode.publishedAt), durationLabel(props.episode.duration)].filter(Boolean).join(', ');
+    return [relativeDate(props.episode.publishedAt), measure('duration', props.episode.duration, durationLabel(props.episode.duration))].filter(Boolean).join(', ');
 });
 
 const track = computed(() => props.episode?.media ?? null);
