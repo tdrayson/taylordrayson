@@ -17,9 +17,10 @@ import CardMediaCarousel from './CardMediaCarousel.vue';
 import NoteBody from '../Ui/NoteBody.vue';
 import ResponseContext from '../Entry/ResponseContext.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration, flightDurationLabel } from '../../lib/format.js';
+import { clock, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { useFormat } from '../../composables/useFormat';
+import { useTokenText } from '../../composables/useTokenText';
 import { useTheme } from '../../useTheme';
 
 const props = defineProps({
@@ -33,6 +34,8 @@ const props = defineProps({
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
+    // The title as tokens when it carries a measurement, e.g. a night's sleep.
+    titleTokens: { type: Array, default: null },
     // Accessible name for the title when the visible text lacks context (e.g. "3,145 kcal").
     titleLabel: { type: String, default: null },
     // Full note content as a Portable Text document: title-less types render
@@ -83,7 +86,7 @@ const props = defineProps({
 });
 
 // Unit-aware distance formatter; route.distance is already in miles.
-const { distance, weight, distanceFromMiles } = useFormat();
+const { distanceFromMiles, exactDistanceFromMiles, duration, exactMeasure } = useFormat();
 
 // A note renders its document in place of the display-font title, so the
 // heading below is a v-else on this rather than on `body` being truthy: an
@@ -141,45 +144,18 @@ function listen() {
 // Leaving the page releases the inline dock, popping the video to the corner.
 onBeforeUnmount(() => undockVideo(videoSlot.value));
 
-// Timeline card subtitle. When the server sends structured tokens, compose them
-// through useFormat so distance/weight react to the unit toggle; otherwise fall
-// back to the plain server string (e.g. notes have no unit-bearing subtitle).
-const metaText = computed(() => {
-    if (!props.metaTokens) {
-        return props.meta;
-    }
-    // Each token may carry a `sep` (e.g. ' in ') to join it onto the previous
-    // token with a light connective instead of the default ', ' list comma.
-    // Empty-text tokens are dropped before joining so a missing value never
-    // leaves a dangling separator (e.g. no leading "in" when duration is first).
-    const parts = props.metaTokens
-        .map((token) => {
-            if (token.t === 'dist') {
-                return { text: distance(token.m, token.p), sep: token.sep ?? ', ' };
-            }
-            if (token.t === 'wt') {
-                return { text: weight(token.kg, token.p), sep: token.sep ?? ', ' };
-            }
-            return { text: token.v, sep: token.sep ?? ', ' };
-        })
-        .filter((part) => part.text);
+// Card title and subtitle. Tokens carry raw measurements, composed here so they
+// follow the visitor's unit settings; otherwise the plain server string stands.
+const { tokenText, tokenTitle } = useTokenText();
 
-    return parts.map((part, index) => (index === 0 ? '' : part.sep) + part.text).join('');
-});
+const titleText = computed(() => (props.titleTokens ? tokenText(props.titleTokens) : props.title));
+const titleExact = computed(() => tokenTitle(props.titleTokens));
+const metaText = computed(() => (props.metaTokens ? tokenText(props.metaTokens) : props.meta));
+const metaTitle = computed(() => tokenTitle(props.metaTokens));
 
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
 const typeHref = computed(() => entryType(props.iconKey).href ?? null);
-
-const clockOf = (value) => {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime()) ? null : clock(date);
-};
 
 const routeView = computed(() => {
     if (!props.route) {
@@ -189,10 +165,12 @@ const routeView = computed(() => {
     return {
         origin: props.route.origin,
         destination: props.route.destination,
-        departTime: clockOf(props.route.depart),
-        arriveTime: clockOf(props.route.arrive),
+        departTime: clock(props.route.depart),
+        arriveTime: clock(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
         note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
+        noteTitle: exactDistanceFromMiles(props.route.distance),
+        durationTitle: exactMeasure('duration', props.route.duration, clockDuration(props.route.duration)),
     };
 });
 
@@ -289,9 +267,10 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 v-twemoji
                 :href="url || undefined"
                 :aria-label="titleLabel || undefined"
+                :title="titleExact"
                 class="p-name"
                 :class="url ? 'u-url underline-offset-4 transition-colors hover:text-(--type-color) hover:underline focus-visible:text-(--type-color) focus-visible:underline' : ''"
-            >{{ title }}</component>
+            >{{ titleText }}</component>
         </Heading>
         <p v-if="category" class="mt-1.5 text-xs text-neutral-500">{{ category }}</p>
         <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
@@ -315,9 +294,11 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :arrive-time="routeView.arriveTime"
             :duration="routeView.duration"
             :note="routeView.note"
+            :note-title="routeView.noteTitle"
+            :duration-title="routeView.durationTitle"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <p v-else-if="metaText" v-twemoji :title="metaTitle" class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- Map alone when there is no photo, and it opens the lightbox like a
              photo would. Light/dark PNGs are both rendered and the `dark:` class
              picks the right one, no JS needed. -->

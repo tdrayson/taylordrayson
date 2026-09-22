@@ -7,7 +7,8 @@ import Button from '../Ui/Button.vue';
 import DetailList from '../Ui/DetailList.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
-import { duration, titleCase } from '../../lib/format.js';
+import { duration as clockDuration, titleCase } from '../../lib/format.js';
+import { useFormat } from '../../composables/useFormat';
 import { youtubeId } from '../../lib/youtube.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 
@@ -15,6 +16,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
+const { duration, exactMeasure } = useFormat();
 const slot = ref(null);
 const entryUrl = usePage().url.split('?')[0];
 
@@ -42,7 +44,7 @@ const track = computed(() => ({
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
     { label: 'Show', value: props.entry.show_name },
-    { label: 'Duration', value: duration(props.entry.duration) },
+    { label: 'Duration', value: duration(props.entry.duration), title: exactMeasure('duration', props.entry.duration, clockDuration(props.entry.duration)) },
 ]);
 
 const audioPlaying = computed(() => isCurrent(track.value, 'audio') && player.playing);

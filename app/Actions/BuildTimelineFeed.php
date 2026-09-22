@@ -121,6 +121,7 @@ class BuildTimelineFeed
             'accent' => $card->accent,
             'title' => $card->title,
             'titleLabel' => $card->titleLabel,
+            'titleTokens' => $card->titleTokens,
             'meta' => Text::excerpt($card->subtitle, 240),
             'metaTokens' => $card->subtitleTokens,
             'body' => $card->meta->body,

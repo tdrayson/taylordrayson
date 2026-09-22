@@ -10,6 +10,11 @@ it('serialises a wt token with only t, kg, p', function () {
     expect(SubtitleToken::wt(60.5, 0)->toArray())->toBe(['t' => 'wt', 'kg' => 60.5, 'p' => 0]);
 });
 
+it('serialises dur and kcal tokens with only their own keys', function () {
+    expect(SubtitleToken::dur(1800, ' ')->toArray())->toBe(['t' => 'dur', 's' => 1800, 'sep' => ' '])
+        ->and(SubtitleToken::kcal(350)->toArray())->toBe(['t' => 'kcal', 'kcal' => 350]);
+});
+
 it('serialises a text token with only t, v', function () {
     expect(SubtitleToken::text('1 exercise')->toArray())->toBe(['t' => 'text', 'v' => '1 exercise']);
 });

@@ -13,6 +13,7 @@ import { useListboxNavigation } from '../../composables/useListboxNavigation.js'
 import { pageCommands, archiveCommands, createCommands } from '../../navigation.js';
 import { entryType } from '../../entryTypes.js';
 import { useMounted } from '../../composables/useMounted';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const mounted = useMounted();
 
@@ -76,7 +77,7 @@ const allItems = computed(() => [
     ...jumpCommands.map((item) => ({ ...item, weight: sectionWeight['Jump to'] })),
 ]);
 
-const dayLabel = (date) => date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+const dayLabel = (date) => formatDate(date);
 const monthLabel = (date) => date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
 // Natural-language date parsing (chrono): resolve a query to a Day / Month / Year

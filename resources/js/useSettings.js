@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useTheme } from './useTheme';
 import { readCookie, writeCookie } from './lib/cookies';
 
@@ -52,7 +52,7 @@ export function defineSetting(key, fallback, allowed = null) {
     // A setting defined before the seed arrives would otherwise hold its
     // fallback forever.
     const refresh = () => (value.value = read());
-    registry[key] = { value, set, refresh };
+    registry[key] = { value, set, refresh, fallback };
     return registry[key];
 }
 
@@ -68,9 +68,19 @@ function closeSettings() {
     settingsOpen.value = false;
 }
 
+// Whether anything, theme included, differs from its default.
+const customised = computed(() => useTheme().theme.value !== 'system'
+    || Object.values(registry).some((setting) => setting.value.value !== setting.fallback));
+
+/** Put every setting, theme included, back to its default. */
+function resetSettings() {
+    useTheme().setTheme('system');
+    Object.values(registry).forEach((setting) => setting.set(setting.fallback));
+}
+
 // One settings surface: theme controls (from useTheme) plus the modal state.
 // New enumerated settings are added via defineSetting (see above); theme stays
 // on useTheme because it has extra behaviour (system resolution + pre-paint).
 export function useSettings() {
-    return { ...useTheme(), settingsOpen, openSettings, closeSettings };
+    return { ...useTheme(), settingsOpen, openSettings, closeSettings, customised, resetSettings };
 }

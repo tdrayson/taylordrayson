@@ -5,6 +5,7 @@ namespace App\Links\Resolvers;
 use App\Data\LinkPreviewData;
 use App\Links\LinkResolver;
 use App\Queries\NowState;
+use App\Support\Preferences;
 
 /**
  * The /now page. Its card carries the live figures, current as of the request
@@ -44,7 +45,7 @@ class LiveResolver implements LinkResolver
      */
     private function weather(?array $weather): ?string
     {
-        return isset($weather['temp']) ? round((float) $weather['temp']).'°C' : null;
+        return isset($weather['temp']) ? Preferences::temperature(request(), (float) $weather['temp']) : null;
     }
 
     /**

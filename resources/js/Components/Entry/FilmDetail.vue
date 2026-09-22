@@ -6,12 +6,16 @@ import EntryHero from '../Ui/EntryHero.vue';
 import Pill from '../Ui/Pill.vue';
 import Stat from '../Ui/Stat.vue';
 import { number, titleCase } from '../../lib/format.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     entry: { type: Object, required: true },
 });
 
+const { measure, exactMeasure } = useFormat();
+
 const meta = computed(() => props.entry.meta || {});
+const runtime = computed(() => (meta.value.runtime ? `${number(meta.value.runtime)} min` : null));
 
 // TMDB enrichment stores genres under meta.tmdb.genres; fall back to a
 // top-level meta.genres for any legacy/other source.
@@ -23,7 +27,11 @@ const genres = computed(() => {
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
     { label: 'Year', value: meta.value.year },
-    { label: 'Runtime', value: meta.value.runtime ? `${number(meta.value.runtime)} min` : null },
+    {
+        label: 'Runtime',
+        value: runtime.value && measure('duration', meta.value.runtime * 60, runtime.value),
+        title: runtime.value && exactMeasure('duration', meta.value.runtime * 60, runtime.value),
+    },
 ]);
 </script>
 

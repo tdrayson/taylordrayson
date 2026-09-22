@@ -3,6 +3,7 @@
 namespace App\Presenters;
 
 use App\Models\Concerns\Timelineable;
+use App\Support\DisplayFormat;
 
 /**
  * The four fields a gallery tile needs off an entry: caption, date, accent and
@@ -24,7 +25,7 @@ final class PhotoCaption
 
         return [
             'caption' => $card->title($model),
-            'date' => $model->occurred_at->format('j M Y'),
+            'date' => app(DisplayFormat::class)->date($model->occurred_at, weekday: false),
             'accent' => $card->type()->accent(),
             'url' => $model->url(),
         ];
