@@ -5,7 +5,7 @@ const MAX_COUNT = 40;
 
 /**
  * Daft yardsticks per kind of quantity, smallest first, sized in the kind's base
- * unit: metres, kilograms, seconds, kilocalories or beats per minute. Each thing
+ * unit: metres, kilograms, seconds, kilocalories, pounds or beats per minute. Each thing
  * belongs to one kind only, so bananas are always a weight.
  */
 export const YARDSTICKS = {
@@ -99,7 +99,6 @@ export const YARDSTICKS = {
         { size: 46, one: 'Jaffa Cake', many: 'Jaffa Cakes' },
         { size: 57, one: 'custard cream', many: 'custard creams' },
         { size: 84, one: 'chocolate digestive', many: 'chocolate digestives' },
-        { size: 95, one: 'Freddo', many: 'Freddos' },
         { size: 140, one: 'packet of crisps', many: 'packets of crisps' },
         { size: 177, one: 'Creme Egg', many: 'Creme Eggs' },
         { size: 180, one: 'pint of lager', many: 'pints of lager' },
@@ -111,6 +110,31 @@ export const YARDSTICKS = {
         { size: 1000, one: 'Sunday roast', many: 'Sunday roasts' },
         { size: 1800, one: "Domino's pizza", many: "Domino's pizzas" },
         { size: 6000, one: 'Christmas Day', many: 'Christmas Days' },
+    ],
+    money: [
+        { size: 0.25, one: 'Freddo', many: 'Freddos' },
+        { size: 0.35, one: 'Curly Wurly', many: 'Curly Wurlys' },
+        { size: 1.65, one: 'first-class stamp', many: 'first-class stamps' },
+        { size: 2, one: 'Lotto ticket', many: 'Lotto tickets' },
+        { size: 2.9, one: 'Tube fare', many: 'Tube fares' },
+        { size: 3, one: 'Sunday paper', many: 'Sunday papers' },
+        { size: 3.5, one: 'flat white', many: 'flat whites' },
+        { size: 3.85, one: 'meal deal', many: 'meal deals' },
+        { size: 8, one: 'car wash', many: 'car washes' },
+        { size: 10.99, one: 'month of Netflix', many: 'months of Netflix' },
+        { size: 12, one: 'cinema ticket', many: 'cinema tickets' },
+        { size: 20, one: 'haircut', many: 'haircuts' },
+        { size: 30, one: "cheeky Nando's", many: "cheeky Nando's" },
+        { size: 50, one: 'Ryanair flight to Spain', many: 'Ryanair flights to Spain' },
+        { size: 65, one: 'gig ticket', many: 'gig tickets' },
+        { size: 144, one: 'year of Spotify', many: 'years of Spotify' },
+        { size: 179, one: 'pair of AirPods', many: 'pairs of AirPods' },
+        { size: 373, one: 'Glastonbury ticket', many: 'Glastonbury tickets' },
+        { size: 480, one: 'PlayStation 5', many: 'PlayStation 5s' },
+        { size: 999, one: 'iPhone', many: 'iPhones' },
+        { size: 7000, one: 'Rolex', many: 'Rolexes' },
+        { size: 40000, one: 'Tesla', many: 'Teslas' },
+        { size: 290000, one: 'average UK house', many: 'average UK houses' },
     ],
     heartRate: [
         { size: 72, one: 'Bohemian Rhapsody', many: 'Bohemian Rhapsodies' },
@@ -159,7 +183,7 @@ function fitting(amount, ladder) {
 /**
  * A quantity in daft units, e.g. 42195 metres could be 1 marathon or 8.4 parkruns.
  * Counts under ten keep one decimal place.
- * @param {'distance'|'weight'|'height'|'duration'|'energy'|'heartRate'} kind
+ * @param {'distance'|'weight'|'height'|'duration'|'energy'|'money'|'heartRate'} kind
  * @param {number} amount In the kind's base unit.
  * @returns {{value: string, unit: string}}
  */
