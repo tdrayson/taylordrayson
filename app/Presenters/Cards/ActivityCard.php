@@ -113,6 +113,8 @@ final class ActivityCard
             $text = match ($data['t']) {
                 'dist' => Distance::miles($data['m'], $data['p']).' mi',
                 'wt' => number_format($data['kg'], $data['p']).' kg',
+                'dur' => Units::humanDuration($data['s']),
+                'kcal' => number_format($data['kcal']).' kcal',
                 default => $data['v'],
             };
 
@@ -143,7 +145,7 @@ final class ActivityCard
             return $this->strengthTokens($model->meta['sets']);
         }
 
-        $duration = $model->duration ? Units::humanDuration($model->duration) : null;
+        $duration = $model->duration ? SubtitleToken::dur($model->duration, ' ') : null;
         $tokens = $this->openingTokens($model, $duration);
 
         if ($tokens === []) {
@@ -151,7 +153,8 @@ final class ActivityCard
         }
 
         if ($model->calories) {
-            $tokens[] = SubtitleToken::text('and burned '.number_format($model->calories).' kcal', ' ');
+            $tokens[] = SubtitleToken::text('and burned', ' ');
+            $tokens[] = SubtitleToken::kcal($model->calories, ' ');
         }
 
         // The stop rides on its own token because the clause it follows varies,
@@ -168,7 +171,7 @@ final class ActivityCard
      *
      * @return list<SubtitleToken>
      */
-    private function openingTokens(Activity $model, ?string $duration): array
+    private function openingTokens(Activity $model, ?SubtitleToken $duration): array
     {
         if (in_array($model->type, self::PLAYED, true)) {
             return $this->playedTokens($model, $duration);
@@ -180,7 +183,8 @@ final class ActivityCard
             return array_values(array_filter([
                 SubtitleToken::text($verb ? "I {$verb}" : 'I covered'),
                 SubtitleToken::dist((int) $model->distance, 1, ' '),
-                $duration ? SubtitleToken::text("in {$duration}", ' ') : null,
+                $duration ? SubtitleToken::text('in', ' ') : null,
+                $duration,
             ]));
         }
 
@@ -189,8 +193,8 @@ final class ActivityCard
         }
 
         return $verb !== null
-            ? [SubtitleToken::text("I {$verb} for {$duration}")]
-            : [SubtitleToken::text(sprintf('I did %s of %s', $duration, str_replace('-', ' ', $model->type)))];
+            ? [SubtitleToken::text("I {$verb} for"), $duration]
+            : [SubtitleToken::text('I did'), $duration, SubtitleToken::text('of '.str_replace('-', ' ', $model->type), ' ')];
     }
 
     /**
@@ -199,11 +203,13 @@ final class ActivityCard
      *
      * @return list<SubtitleToken>
      */
-    private function playedTokens(Activity $model, ?string $duration): array
+    private function playedTokens(Activity $model, ?SubtitleToken $duration): array
     {
         $sport = str_replace('-', ' ', $model->type);
 
-        $tokens = [SubtitleToken::text($duration !== null ? "I played {$sport} for {$duration}" : "I played {$sport}")];
+        $tokens = $duration !== null
+            ? [SubtitleToken::text("I played {$sport} for"), $duration]
+            : [SubtitleToken::text("I played {$sport}")];
 
         if ($model->distance) {
             $tokens[] = SubtitleToken::text('covering', ', ');

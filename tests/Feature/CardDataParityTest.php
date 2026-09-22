@@ -39,8 +39,10 @@ it('reproduces the pre-refactor activity card shape', function () {
         'subtitleTokens' => [
             ['t' => 'text', 'v' => 'I ran'],
             ['t' => 'dist', 'm' => 5000, 'p' => 1, 'sep' => ' '],
-            ['t' => 'text', 'v' => 'in 30m', 'sep' => ' '],
-            ['t' => 'text', 'v' => 'and burned 350 kcal', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'in', 'sep' => ' '],
+            ['t' => 'dur', 's' => 1800, 'sep' => ' '],
+            ['t' => 'text', 'v' => 'and burned', 'sep' => ' '],
+            ['t' => 'kcal', 'kcal' => 350, 'sep' => ' '],
             ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $activity->occurred_at,
