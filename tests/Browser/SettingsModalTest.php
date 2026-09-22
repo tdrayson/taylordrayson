@@ -29,3 +29,31 @@ it('opens the settings modal from the gear and toggles theme', function () {
         ->assertScript("document.documentElement.classList.contains('dark')", false)
         ->assertScript(cookieValue('theme'), 'light');
 });
+
+it('opens the numeronym info on hover and on Enter', function () {
+    $page = visit('/')->resize(1280, 800)->click('[aria-label="Open settings"]');
+    $expanded = "document.querySelector('[aria-label=\"About numeronym mode\"]').getAttribute('aria-expanded')";
+
+    $page->hover('[aria-label="About numeronym mode"]')
+        ->assertScript($expanded, 'true')
+        ->hover('[aria-label="Close settings"]')
+        ->wait(0.3)
+        ->assertScript($expanded, 'false')
+        ->keys('[aria-label="About numeronym mode"]', 'Enter')
+        ->assertScript($expanded, 'true');
+});
+
+it('resets every setting to its default', function () {
+    visit('/')->script(clearCookies());
+    $page = visit('/')->resize(1280, 800)->click('[aria-label="Open settings"]');
+    $resetShown = "[...document.querySelectorAll('[role=\"dialog\"] button')].some((b) => b.textContent.includes('Reset to defaults'))";
+
+    $page->assertScript($resetShown, false)
+        ->click('[aria-label="Distance unit"] [aria-label="km"]')
+        ->click('[aria-label="Dark"]')
+        ->assertScript($resetShown, true)
+        ->click('Reset to defaults')
+        ->assertScript(cookieValue('pref_distanceUnit'), 'mi')
+        ->assertScript(cookieValue('theme'), 'system')
+        ->assertScript($resetShown, false);
+});

@@ -6,11 +6,12 @@ import Modal from '../Ui/Modal.vue';
 import Switch from '../Ui/Switch.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 import InfoTip from '../Ui/InfoTip.vue';
+import Icon from '../Ui/Icon.vue';
 import { useSettings } from '../../useSettings';
 import { useFormat } from '../../composables/useFormat';
 import { useNumeronym } from '../../composables/useNumeronym';
 
-const { settingsOpen, closeSettings } = useSettings();
+const { settingsOpen, closeSettings, customised, resetSettings } = useSettings();
 const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit, temperatureUnit, setTemperatureUnit } = useFormat();
 const { numeronymMode } = useNumeronym();
 
@@ -84,6 +85,17 @@ function onOpenChange(open) {
                     </div>
                 </div>
             </section>
+
+            <div v-if="customised" class="flex justify-end">
+                <button
+                    type="button"
+                    class="flex items-center gap-1.5 rounded-sm text-sm font-medium text-neutral-500 transition-colors hover:text-accent-500"
+                    @click="resetSettings"
+                >
+                    <Icon name="ArrowReloadHorizontalIcon" class="size-4" />
+                    Reset to defaults
+                </button>
+            </div>
         </div>
     </Modal>
 </template>
