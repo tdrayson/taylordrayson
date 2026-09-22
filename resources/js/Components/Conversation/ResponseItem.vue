@@ -169,7 +169,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                          interrupting it. A platform names itself; a webmention names
                          the site it was published on. A comment left here has no
                          elsewhere, so it says nothing. -->
-                    <span v-if="via" class="text-neutral-500">via <img v-if="item.sourceFavicon" :src="item.sourceFavicon" alt="" loading="lazy" class="mb-0.5 mr-1 inline size-3.5 rounded-sm align-middle"><a
+                    <span v-if="via" class="text-neutral-500">via <img v-if="item.sourceFavicon" :src="item.sourceFavicon" alt="" loading="lazy" class="mb-0.5 mr-1 inline size-3.5 rounded-sm align-middle"><Icon v-else name="Globe02Icon" class="mb-0.5 mr-1 inline size-3.5 align-middle" /><a
                         v-if="item.sourceUrl"
                         :href="item.sourceUrl"
                         rel="ugc nofollow noopener noreferrer"
