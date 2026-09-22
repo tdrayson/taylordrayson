@@ -8,8 +8,8 @@ use App\Data\PhotoData;
 use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Activity;
+use App\Presenters\SubtitleText;
 use App\Support\Distance;
-use App\Support\Units;
 use Illuminate\Support\Str;
 
 /**
@@ -94,40 +94,7 @@ final class ActivityCard
     {
         $tokens = $this->subtitleTokens($model);
 
-        return $tokens === null ? null : $this->render($tokens);
-    }
-
-    /**
-     * Join tokens the way FeedItem.vue's metaText does: the first takes no
-     * separator, the rest take their own, and empty ones drop out.
-     *
-     * @param  list<SubtitleToken>  $tokens
-     */
-    private function render(array $tokens): string
-    {
-        $parts = [];
-
-        foreach ($tokens as $token) {
-            $data = $token->toArray();
-
-            $text = match ($data['t']) {
-                'dist' => Distance::miles($data['m'], $data['p']).' mi',
-                'wt' => number_format($data['kg'], $data['p']).' kg',
-                'dur' => Units::humanDuration($data['s']),
-                'kcal' => number_format($data['kcal']).' kcal',
-                default => $data['v'],
-            };
-
-            if ((string) $text !== '') {
-                $parts[] = ['text' => $text, 'sep' => $data['sep'] ?? ', '];
-            }
-        }
-
-        return implode('', array_map(
-            fn (array $part, int $index): string => ($index === 0 ? '' : $part['sep']).$part['text'],
-            $parts,
-            array_keys($parts),
-        ));
+        return $tokens === null ? null : SubtitleText::for($tokens);
     }
 
     /**

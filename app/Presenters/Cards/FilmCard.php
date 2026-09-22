@@ -4,8 +4,10 @@ namespace App\Presenters\Cards;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Film;
+use App\Presenters\SubtitleText;
 
 /**
  * Builds the timeline card for a film: rating and year/genre as the subtitle.
@@ -18,21 +20,31 @@ final class FilmCard
             type: $this->type(),
             title: $model->title,
             titleLabel: null,
-            subtitle: $this->sentence($model),
-            subtitleTokens: null,
+            subtitle: SubtitleText::for($this->tokens($model)),
+            subtitleTokens: $this->tokens($model),
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::backdrop($model->optimisedUrl('backdrop')),
         );
     }
 
-    private function sentence(Film $model): ?string
+    /**
+     * What was watched, then how long it ran as its own sentence.
+     *
+     * @return list<SubtitleToken>
+     */
+    private function tokens(Film $model): array
     {
         $rated = $model->rating ? " and rated it {$model->rating}/10" : '';
-        $what = $this->filmClause($model);
-        $runtime = $this->runtimeSentence($model);
+        $tokens = [SubtitleToken::text("I watched {$this->filmClause($model)}{$rated}.")];
 
-        return "I watched {$what}{$rated}.{$runtime}";
+        if ($model->meta->runtime) {
+            $tokens[] = SubtitleToken::text('It was', ' ');
+            $tokens[] = SubtitleToken::dur($model->meta->runtime * 60, ' ', 'minutes');
+            $tokens[] = SubtitleToken::text('long.', ' ');
+        }
+
+        return $tokens;
     }
 
     /**
@@ -46,14 +58,6 @@ final class FilmCard
         $what = $genre === null ? 'film' : mb_strtolower($genre).' film';
 
         return $model->meta->year === null ? "this {$what}" : "this {$model->meta->year} {$what}";
-    }
-
-    /** How long a film ran, as its own sentence. */
-    private function runtimeSentence(Film $model): string
-    {
-        $minutes = $model->meta->runtime;
-
-        return $minutes ? " It was {$minutes} minutes long." : '';
     }
 
     public function title(Film $model): string

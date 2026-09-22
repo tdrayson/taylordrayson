@@ -104,6 +104,7 @@ it('reproduces the pre-refactor film card shape', function () {
         'type' => 'film',
         'title' => 'Interstellar',
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
+        'subtitleTokens' => [['t' => 'text', 'v' => 'I watched this 2014 film and rated it 9/10.']],
         'occurred_at' => $film->occurred_at,
         'meta' => ['backdrop' => null],
     ]);
@@ -157,6 +158,7 @@ it('reproduces the pre-refactor sleep card shape', function () {
         'type' => 'sleep',
         'title' => 'I slept for 8h',
         'titleLabel' => 'Sleep log, I slept for 8 hours',
+        'titleTokens' => [['t' => 'text', 'v' => 'I slept for'], ['t' => 'dur', 's' => 28800, 'sep' => ' ']],
         'subtitle' => 'I went to bed at 11:00pm and woke at 7:00am.',
         'occurred_at' => $sleep->occurred_at,
         'meta' => [

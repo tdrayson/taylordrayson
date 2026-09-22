@@ -107,6 +107,7 @@ class EntryController extends Controller
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
             'title' => $card->type === TimelineType::Note ? null : $card->title,
+            'titleTokens' => $card->titleTokens,
             ...$this->occurredFields($model),
             'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => $dayUrl,

@@ -4,9 +4,10 @@ namespace App\Presenters\Cards;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Fuel;
-use App\Support\Units;
+use App\Presenters\SubtitleText;
 
 /**
  * Builds the timeline card for a Fuel stop: what it cost and where, with the
@@ -22,8 +23,8 @@ final class FuelCard
             type: $this->type(),
             title: $title,
             titleLabel: "Fuel stop, {$title}",
-            subtitle: $this->sentence($model),
-            subtitleTokens: null,
+            subtitle: SubtitleText::for($this->tokens($model)),
+            subtitleTokens: $this->tokens($model),
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::fuel(
@@ -32,6 +33,7 @@ final class FuelCard
                 brand: $model->brand,
                 brandLogo: $model->logo_url,
             ),
+            titleTokens: $this->titleTokens($model),
         );
     }
 
@@ -42,11 +44,18 @@ final class FuelCard
      */
     public function title(Fuel $model): string
     {
-        $cost = '£'.number_format((float) $model->cost, 2);
+        return SubtitleText::for($this->titleTokens($model));
+    }
 
-        return $model->station_name
-            ? "{$cost} at {$model->station_name}"
-            : "{$cost} at the pump";
+    /**
+     * @return list<SubtitleToken>
+     */
+    private function titleTokens(Fuel $model): array
+    {
+        return [
+            SubtitleToken::gbp((float) $model->cost),
+            SubtitleToken::text($model->station_name ? "at {$model->station_name}" : 'at the pump', ' '),
+        ];
     }
 
     /**
@@ -54,7 +63,10 @@ final class FuelCard
      * litre. Two sentences rather than one with a trailing clause, which is how
      * it would be said out loud.
      */
-    private function sentence(Fuel $model): string
+    /**
+     * @return list<SubtitleToken>
+     */
+    private function tokens(Fuel $model): array
     {
         // "filled up with", not "put ... in": the trailing "in" collides with
         // the city clause ("I put 33 litres in, in Grimsby") whenever there is
@@ -63,12 +75,17 @@ final class FuelCard
         $sentence .= $model->city ? " in {$model->city}." : '.';
 
         if (! $model->price_per_litre) {
-            return $sentence;
+            return [SubtitleToken::text($sentence)];
         }
 
         // "Fuel was", not "That was": the "that" pointed at the fill-up, which
         // was not what cost a tenth of a penny.
-        return $sentence.sprintf(' Fuel was %s/L.', Units::pencePerLitre($model->price_per_litre));
+        return [
+            SubtitleToken::text($sentence),
+            SubtitleToken::text('Fuel was', ' '),
+            SubtitleToken::ppl((float) $model->price_per_litre, ' '),
+            SubtitleToken::text('.', ''),
+        ];
     }
 
     public function type(): TimelineType

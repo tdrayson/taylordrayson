@@ -4,8 +4,10 @@ namespace App\Presenters\Cards;
 
 use App\Data\CardData;
 use App\Data\CardMeta;
+use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Food;
+use App\Presenters\SubtitleText;
 use App\Queries\DayFoodTotals;
 use App\Support\Text;
 
@@ -29,6 +31,7 @@ final class FoodCard
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::empty(),
+            titleTokens: $this->titleTokens($totals['calories']),
         );
     }
 
@@ -61,7 +64,15 @@ final class FoodCard
     {
         $totals = app(DayFoodTotals::class)->for($model->occurred_at->toDateString());
 
-        return 'I ate '.number_format($totals['calories']).' calories';
+        return SubtitleText::for($this->titleTokens($totals['calories']));
+    }
+
+    /**
+     * @return list<SubtitleToken>
+     */
+    private function titleTokens(int $calories): array
+    {
+        return [SubtitleToken::text('I ate'), SubtitleToken::kcal($calories, ' ', 'calories')];
     }
 
     public function type(): TimelineType

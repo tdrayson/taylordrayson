@@ -5,8 +5,10 @@ namespace App\Presenters\Cards;
 use App\Data\CardData;
 use App\Data\CardMeta;
 use App\Data\SegmentData;
+use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Sleep;
+use App\Presenters\SubtitleText;
 use App\Support\Units;
 
 /**
@@ -18,8 +20,6 @@ final class SleepCard
 {
     public function present(Sleep $model): CardData
     {
-        $formatted = Units::humanDuration($model->duration);
-
         return new CardData(
             type: $this->type(),
             title: $this->title($model),
@@ -29,6 +29,7 @@ final class SleepCard
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::sleep($this->stageSegments($model)),
+            titleTokens: $this->titleTokens($model),
         );
     }
 
@@ -71,7 +72,15 @@ final class SleepCard
 
     public function title(Sleep $model): string
     {
-        return 'I slept for '.Units::humanDuration($model->duration);
+        return SubtitleText::for($this->titleTokens($model));
+    }
+
+    /**
+     * @return list<SubtitleToken>
+     */
+    private function titleTokens(Sleep $model): array
+    {
+        return [SubtitleToken::text('I slept for'), SubtitleToken::dur((int) $model->duration, ' ')];
     }
 
     public function type(): TimelineType
