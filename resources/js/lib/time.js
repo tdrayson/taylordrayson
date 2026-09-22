@@ -7,6 +7,8 @@
  * and the browser in agreement: neither is reading a local clock.
  */
 
+import { formatHourMinute } from './dateFormat.js';
+
 /** Where the site is, for when the phone has never reported a zone. */
 export const DEFAULT_TIMEZONE = 'Europe/London';
 
@@ -25,17 +27,11 @@ export function clockParts(timezone, at = new Date()) {
     return { hour: value('hour') % 24, minute: value('minute') };
 }
 
-/** The time as the status bar writes it, e.g. `9:05am`. */
+/** The time as the status bar writes it, e.g. `9:05am` or `09:05`. */
 export function formatTime(timezone, at = new Date()) {
-    return new Intl.DateTimeFormat('en-GB', {
-        timeZone: timezone,
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-    })
-        .format(at)
-        .replace(/\s+/g, '')
-        .toLowerCase();
+    const { hour, minute } = clockParts(timezone, at);
+
+    return formatHourMinute(hour, minute);
 }
 
 /** The date as the status bar's tooltip writes it, e.g. `Sunday 24 August 2026`. */

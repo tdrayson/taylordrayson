@@ -12,10 +12,12 @@ import Select from '../Ui/Select.vue';
 import { useSettings } from '../../useSettings';
 import { useFormat } from '../../composables/useFormat';
 import { TEXT_MODES, useTextMode } from '../../composables/useTextMode';
+import { useDateFormat } from '../../composables/useDateFormat';
 
 const { settingsOpen, closeSettings, customised, resetSettings } = useSettings();
 const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit, temperatureUnit, setTemperatureUnit, sillyUnits, setSillyUnits } = useFormat();
 const { textMode, setTextMode } = useTextMode();
+const { timeFormat, setTimeFormat, dateFormat, setDateFormat, dateOptions } = useDateFormat();
 
 const sillyUnitsOn = computed({
     get: () => sillyUnits.value === 'on',
@@ -44,6 +46,10 @@ const weightOptions = [
 const temperatureOptions = [
     { value: 'c', label: '°C' },
     { value: 'f', label: '°F' },
+];
+const timeOptions = [
+    { value: '12h', label: '12h' },
+    { value: '24h', label: '24h' },
 ];
 
 // Modal emits update:open(false) on backdrop click/Esc/close button; funnel
@@ -84,6 +90,23 @@ function onOpenChange(open) {
                         aria-label="Temperature unit"
                         @update:model-value="setTemperatureUnit"
                     />
+                    <SettingToggle
+                        :model-value="timeFormat"
+                        :options="timeOptions"
+                        label="Time"
+                        aria-label="Time format"
+                        @update:model-value="setTimeFormat"
+                    />
+                    <div class="flex items-center justify-between gap-4">
+                        <span id="date-format-label" class="text-base text-neutral-900">Date</span>
+                        <Select
+                            :model-value="dateFormat"
+                            :options="dateOptions"
+                            size="sm"
+                            aria-labelledby="date-format-label"
+                            @update:model-value="setDateFormat"
+                        />
+                    </div>
                 </div>
             </section>
 
@@ -112,11 +135,13 @@ function onOpenChange(open) {
                     </div>
                 </div>
             </section>
+        </div>
 
-            <div v-if="customised" class="flex justify-end">
+        <div class="reset-row" :class="{ 'is-shown': customised }" :inert="! customised">
+            <div class="-m-1 flex min-h-0 justify-end overflow-hidden p-1">
                 <button
                     type="button"
-                    class="flex items-center gap-1.5 rounded-sm text-sm font-medium text-neutral-500 transition-colors hover:text-accent-500"
+                    class="mt-6 flex items-center gap-1.5 rounded-sm text-sm font-medium text-neutral-500 transition-colors hover:text-accent-500"
                     @click="resetSettings"
                 >
                     <Icon name="ArrowReloadHorizontalIcon" class="size-4" />
@@ -126,3 +151,24 @@ function onOpenChange(open) {
         </div>
     </Modal>
 </template>
+
+<style scoped>
+/* Grid rows animate between 0fr and 1fr, which height:auto cannot. */
+.reset-row {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 200ms ease-out, opacity 200ms ease-out;
+}
+
+.reset-row.is-shown {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reset-row {
+        transition: none;
+    }
+}
+</style>

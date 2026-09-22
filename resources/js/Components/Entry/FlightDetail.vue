@@ -5,7 +5,7 @@ import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
 import Eyebrow from '../Ui/Eyebrow.vue';
 import Heading from '../Ui/Heading.vue';
-import { titleCase, time, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
+import { titleCase, clock, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
 import { metresToMiles } from '../../lib/distance.js';
 import { useFormat } from '../../composables/useFormat';
 
@@ -70,8 +70,8 @@ const stats = computed(() => [
             <FlightRoute
                 :origin="{ iata: entry.origin_iata, city: origin.place, name: origin.name }"
                 :destination="{ iata: entry.destination_iata, city: destination.place, name: destination.name }"
-                :depart-time="time(departAt)"
-                :arrive-time="time(arriveAt)"
+                :depart-time="clock(departAt)"
+                :arrive-time="clock(arriveAt)"
                 :duration="durationLabel"
                 :duration-title="exactMeasure('duration', entry.duration, clockDuration(entry.duration))"
                 :note="distanceLabel"

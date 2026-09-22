@@ -1,6 +1,7 @@
 <script setup>
 import Eyebrow from '../Ui/Eyebrow.vue';
 import { relativeDay } from '../../lib/format.js';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     entries: { type: Array, default: () => [] },
@@ -11,7 +12,7 @@ const props = defineProps({
 // Full date once a score is older than the shared relative window, since a
 // leaderboard spans years and "3 May" alone would be ambiguous.
 function scoreDate(iso) {
-    return relativeDay(iso) ?? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return relativeDay(iso) ?? formatDate(new Date(iso), { weekday: false });
 }
 
 // The fingerprint is backend-only: it never renders, it just lets a player spot

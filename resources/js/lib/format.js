@@ -2,6 +2,8 @@
  * Formatting helpers shared across entry detail components.
  */
 
+import { formatClock, formatDate } from './dateFormat.js';
+
 export function duration(seconds) {
     if (seconds === null || seconds === undefined) {
         return null;
@@ -73,19 +75,9 @@ export function dateLong(value) {
     });
 }
 
-/** Compact date for a dense list, e.g. "17 Jul 2025". */
+/** Compact date for a dense list in the visitor's format, e.g. "17 Jul 2025". */
 export function dateShort(value) {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return value ? formatDate(value, { weekday: false }) : null;
 }
 
 /**
@@ -175,13 +167,9 @@ export function relativeDay(value, cutoffDays = 14) {
     return `${days} days ago`;
 }
 
-/** Canonical clock format used everywhere: 6:55am, 9:00pm, 12:30pm. */
-export function clock(date) {
-    const hours = date.getHours();
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const suffix = hours < 12 ? 'am' : 'pm';
-
-    return `${hours % 12 || 12}:${minutes}${suffix}`;
+/** A clock reading in the visitor's format, e.g. 6:55am or 06:55. */
+export function clock(value) {
+    return value ? formatClock(value) : null;
 }
 
 export function number(value, fractionDigits = 0) {
@@ -225,41 +213,6 @@ export function pencePerLitre(value) {
 // display rounding via number(), matching how raw kg is rounded at render.
 export function kgToLbs(kg) {
     return Number(kg) * 2.20462;
-}
-
-export function dateTime(value) {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-
-    const day = date.toLocaleDateString('en-GB', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
-
-    return `${day}, ${clock(date)}`;
-}
-
-export function time(value) {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-
-    return clock(date);
 }
 
 export function titleCase(value) {

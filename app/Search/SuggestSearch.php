@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Models\TvShow;
 use App\Presenters\CardPresenter;
+use App\Support\DisplayFormat;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -83,7 +84,7 @@ final class SuggestSearch
                 'subtitle' => $result['subtitle'],
                 'type' => $result['type'],
                 'url' => $result['url'],
-                'date' => $result['occurred_at']->format('j M Y'),
+                'date' => app(DisplayFormat::class)->date($result['occurred_at'], weekday: false),
                 'statusLabel' => $result['statusLabel'],
             ])
             ->values()

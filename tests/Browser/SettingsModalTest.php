@@ -46,7 +46,7 @@ it('opens the text mode info on hover and on Enter', function () {
 it('resets every setting to its default', function () {
     visit('/')->script(clearCookies());
     $page = visit('/')->resize(1280, 800)->click('[aria-label="Open settings"]');
-    $resetShown = "[...document.querySelectorAll('[role=\"dialog\"] button')].some((b) => b.textContent.includes('Reset to defaults'))";
+    $resetShown = "!document.querySelector('[role=\"dialog\"] .reset-row').inert";
 
     $page->assertScript($resetShown, false)
         ->click('[aria-label="Distance unit"] [aria-label="km"]')
