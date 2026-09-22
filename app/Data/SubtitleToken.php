@@ -9,7 +9,7 @@ use JsonSerializable;
  * A structured subtitle token, composed client-side by FeedItem.vue so distance
  * and weight react to the visitor's unit toggle. Each variant serialises only its
  * own keys: dist {t,m,p}, wt {t,kg,p}, dur {t,s,u?}, kcal {t,kcal,u?}, gbp {t,gbp},
- * ppl {t,ppl}, text {t,v}, plus an optional `sep` connective replacing the default
+ * ppl {t,ppl}, vol {t,l}, text {t,v}, plus an optional `sep` connective replacing the default
  * ', '. `u` names the unit spelled out, e.g. "minutes" rather than "2h 49m".
  */
 final readonly class SubtitleToken implements Arrayable, JsonSerializable
@@ -71,6 +71,14 @@ final readonly class SubtitleToken implements Arrayable, JsonSerializable
     }
 
     /**
+     * A volume token in litres, shown as "42.56L" unless silly units swap it.
+     */
+    public static function vol(float $litres, ?string $sep = null): self
+    {
+        return new self('vol', null, null, null, null, $sep, amount: $litres);
+    }
+
+    /**
      * A fuel price in pounds per litre, shown as "145.9p/L" unless silly units swap it.
      */
     public static function ppl(float $pounds, ?string $sep = null): self
@@ -99,6 +107,7 @@ final readonly class SubtitleToken implements Arrayable, JsonSerializable
             'kcal' => ['t' => $this->t, 'kcal' => $this->kcal, ...($this->u !== null ? ['u' => $this->u] : [])],
             'gbp' => ['t' => $this->t, 'gbp' => $this->amount],
             'ppl' => ['t' => $this->t, 'ppl' => $this->amount],
+            'vol' => ['t' => $this->t, 'l' => $this->amount],
             default => ['t' => $this->t, 'v' => $this->v],
         };
 

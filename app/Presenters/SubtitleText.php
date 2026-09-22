@@ -50,6 +50,7 @@ final class SubtitleText
             'kcal' => number_format($data['kcal']).' '.($data['u'] ?? 'kcal'),
             'gbp' => '£'.number_format($data['gbp'], 2),
             'ppl' => Units::pencePerLitre($data['ppl']).'/L',
+            'vol' => number_format($data['l'], 2).'L',
             default => $data['v'],
         };
     }

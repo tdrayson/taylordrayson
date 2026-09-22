@@ -185,7 +185,13 @@ it('reproduces the pre-refactor appearance card shape', function () {
     expect(CardPresenter::for($appearance)->toArray())->toEqual([
         'type' => 'appearance',
         'title' => 'Building a Lifelog',
-        'subtitle' => 'I spoke at Laracon EU.',
+        'subtitle' => 'I spoke at Laracon EU. It was 30 minutes long.',
+        'subtitleTokens' => [
+            ['t' => 'text', 'v' => 'I spoke at Laracon EU.'],
+            ['t' => 'text', 'v' => 'It was', 'sep' => ' '],
+            ['t' => 'dur', 's' => 1800, 'u' => 'minutes', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'long.', 'sep' => ' '],
+        ],
         'occurred_at' => $appearance->occurred_at,
         'meta' => [
             'media' => [
