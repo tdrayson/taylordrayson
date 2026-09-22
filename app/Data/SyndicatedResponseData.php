@@ -24,6 +24,8 @@ final readonly class SyndicatedResponseData
         public ?string $url = null,
         /** Fetched and stored locally, so no reader requests a third party. */
         public ?string $authorPhotoUrl = null,
+        /** The source says I wrote it. */
+        public bool $mine = false,
     ) {}
 
     /**
@@ -43,6 +45,9 @@ final readonly class SyndicatedResponseData
             'body' => $this->body,
             'url' => $this->url,
             'author_photo_url' => $this->authorPhotoUrl,
+            // Only ever set, never cleared: a reply marked mine by hand has to
+            // survive a sync whose payload cannot tell.
+            ...($this->mine ? ['mine' => true] : []),
         ];
     }
 }

@@ -1,9 +1,10 @@
 <script setup>
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
 import ContributedText from './ContributedText.vue';
 import Icon from '../Ui/Icon.vue';
+import { markableId, setMine } from '../../lib/mineMark.js';
 
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
@@ -93,6 +94,12 @@ const PROPERTIES = {
 
 const property = computed(() => PROPERTIES[props.item.kind] ?? null);
 
+/**
+ * The id to mark this reply as mine with, for the signed-in owner only. Null
+ * for everyone else and for anything that is not a Strava or Swarm reply.
+ */
+const markable = computed(() => (usePage().props.signedIn === true ? markableId(props.item) : null));
+
 </script>
 
 <template>
@@ -119,7 +126,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
              elbow and the branch line are positioned against it, and a nested row
              already carries ml-16, which beats -mx-3 in the cascade, so padding
              the article would walk the avatar right and leave the line behind. -->
-        <div :class="['flex gap-3', item.mine && 'bg-neutral-25 rounded-lg px-3 py-2 -mx-3']">
+        <div :class="['group flex gap-3', item.mine && 'bg-neutral-25 rounded-lg px-3 py-2 -mx-3']">
             <Avatar
                 class="response-avatar"
                 :name="item.authorName"
@@ -185,6 +192,18 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                         class="rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                     >via {{ via }}</a>
                     <span v-else-if="via" class="text-neutral-500">via {{ via }}</span>
+
+                    <!-- Revealed on hover and on focus, and always shown where
+                         there is no hover to reveal it with. -->
+                    <button
+                        v-if="markable"
+                        type="button"
+                        class="rounded-sm text-xs text-neutral-500 opacity-0 transition hover:text-accent-500 focus-visible:text-accent-500 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover:opacity-100 pointer-coarse:opacity-100"
+                        :aria-pressed="item.mine"
+                        @click="setMine(markable, ! item.mine)"
+                    >
+                        {{ item.mine ? 'Not mine' : 'Mark as mine' }}
+                    </button>
                 </p>
 
                 <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-2" />

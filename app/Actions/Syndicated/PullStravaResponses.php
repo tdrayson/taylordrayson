@@ -79,8 +79,17 @@ final class PullStravaResponses
                 sourceId: (string) $comment['id'],
                 body: PortableText::fromPlainText((string) ($comment['text'] ?? '')),
                 url: $url,
+                mine: self::isMine($comment['athlete'] ?? []),
             ), $comments),
         ], $unvouched);
+    }
+
+    /** Whether a comment's athlete is me. False when Strava leaves the id out. */
+    private static function isMine(array $athlete): bool
+    {
+        $mine = config('services.strava.athlete_id');
+
+        return filled($mine) && isset($athlete['id']) && (string) $athlete['id'] === (string) $mine;
     }
 
     /** Strava gives a first name and an initial, and nothing else. */

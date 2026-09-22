@@ -59,6 +59,8 @@ final class RecentResponses
     {
         return Comment::query()
             ->approved()
+            // My own replies are me talking, not somebody responding to me.
+            ->where(fn ($query) => $query->whereNull('author_email')->orWhere('author_email', '!=', config('feed.author_email')))
             ->with('commentable')
             ->latest('created_at')
             ->limit(self::WINDOW)
@@ -143,6 +145,7 @@ final class RecentResponses
     {
         return SyndicatedResponse::query()
             ->approved()
+            ->where('mine', false)
             ->with('target')
             ->latest('occurred_at')
             ->limit(self::WINDOW)

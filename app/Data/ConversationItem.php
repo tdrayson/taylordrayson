@@ -136,9 +136,11 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             kind: $response->kind->value,
             authorName: $response->author_name,
             authorUrl: null,
-            authorPhoto: $response->author_photo_path === null
-                ? null
-                : '/'.ltrim($response->author_photo_path, '/'),
+            authorPhoto: match (true) {
+                $response->mine => (string) config('identity.avatar'),
+                $response->author_photo_path === null => null,
+                default => '/'.ltrim($response->author_photo_path, '/'),
+            },
             title: null,
             body: $response->body,
             occurredAt: $response->occurred_at,
@@ -152,6 +154,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             timezone: $timezone,
             source: $response->source,
             sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
+            mine: $response->mine,
         );
     }
 

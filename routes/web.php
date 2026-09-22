@@ -13,6 +13,7 @@ use App\Http\Controllers\HubController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\ManifestController;
+use App\Http\Controllers\MarkResponseMineController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\ModerationController;
@@ -79,6 +80,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/hq', HubController::class)->name('hq');
     Route::post('/hq/failed-jobs/retry', RetryFailedJobsController::class)
         ->middleware('throttle:10,1')->name('hq.failed-jobs.retry');
+
+    // A Strava or Swarm reply of mine, marked by hand where the source cannot say.
+    Route::patch('/responses/syndicated/{response}/mine', MarkResponseMineController::class)
+        ->whereNumber('response')->name('responses.mine');
 
     // The queue for held comments and mentions, for now still its own page.
     Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');

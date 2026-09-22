@@ -57,6 +57,7 @@ final class PullSwarmResponses
                 sourceId: (string) $comment['id'],
                 body: PortableText::fromPlainText((string) ($comment['text'] ?? '')),
                 authorPhotoUrl: self::photo($comment['user'] ?? []),
+                mine: ($comment['user']['relationship'] ?? null) === 'self',
             ), self::comments($item)),
         ];
 
