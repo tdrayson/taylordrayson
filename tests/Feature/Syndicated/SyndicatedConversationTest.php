@@ -47,10 +47,11 @@ it('counts a kudo toward the like total', function () {
             ->where('conversation.responses.0.source', 'strava'));
 });
 
-it('marks a platform response with the platform favicon, and a webmention with none', function () {
+it('marks a platform response with the platform favicon, and a webmention with its site favicon', function () {
     app()->usePublicPath($public = sys_get_temp_dir().'/favicons-'.Str::random(8));
     File::ensureDirectoryExists("{$public}/favicons");
     File::put("{$public}/favicons/swarmapp.com.png", 'png-bytes');
+    File::put("{$public}/favicons/jan.example.png", 'png-bytes');
 
     $note = Note::factory()->create();
     $note->syndicatedResponses()->create([
@@ -70,7 +71,7 @@ it('marks a platform response with the platform favicon, and a webmention with n
 
     $favicons = collect(Conversation::for($note)->toArray()['responses'])->pluck('sourceFavicon', 'kind');
 
-    expect($favicons->all())->toEqual(['like' => '/favicons/swarmapp.com.png', 'mention' => null]);
+    expect($favicons->all())->toEqual(['like' => '/favicons/swarmapp.com.png', 'mention' => '/favicons/jan.example.png']);
 
     File::deleteDirectory($public);
 });

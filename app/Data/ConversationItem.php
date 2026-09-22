@@ -100,6 +100,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
     {
         $kind = $mention->kind()?->value ?? WebmentionKind::Mention->value;
         $isReacji = $kind === WebmentionKind::Reacji->value;
+        $host = Links::host($mention->source_url);
 
         return new self(
             id: 'mention-'.$mention->id,
@@ -123,6 +124,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             // The offset carried by the source's dt-published, when it had
             // one; otherwise the entry's, same as before.
             timezone: $mention->timezone ?? $timezone,
+            sourceFavicon: $host === null ? null : Links::faviconUrl($host),
         );
     }
 
