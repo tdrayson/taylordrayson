@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import Tooltip from '../Ui/Tooltip.vue';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     fill: { type: Boolean, default: false },
@@ -53,8 +54,7 @@ const averageParts = computed(() => (recorded.value.length === 0
 // Per-night bar: its own date, a link to that day and a tooltip. A night with
 // no record still takes its column, so the row stays a calendar week.
 const nightCells = computed(() => props.nights.map((night, i) => {
-    const day = dayOf(night.date);
-    const label = day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const label = formatDate(night.date, { year: false });
     const parts = night.hours === null ? null : fmtParts(night.hours);
 
     return {

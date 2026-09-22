@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Tooltip from '../Ui/Tooltip.vue';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     // Entries-per-day keyed yyyy-mm-dd.
@@ -58,7 +59,7 @@ const yearCells = computed(() => {
         cells.push({
             key,
             href: `/${props.year}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`,
-            title: `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'short' })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
+            title: `${formatDate(key, { weekday: false, year: false })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
             level: bucket(count),
         });
         date.setDate(date.getDate() + 1);

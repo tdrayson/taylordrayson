@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Enums\ActivityDiscipline;
 use App\Models\Activity;
+use App\Support\DisplayFormat;
 use App\Support\Distance;
 use App\Support\SqlDate;
 use Illuminate\Support\Carbon;
@@ -209,8 +210,8 @@ final class StatsForType
     private function bucketKey(Carbon $date, string $unit, bool $multiYear): array
     {
         return match ($unit) {
-            'Day' => [$date->format('Y-m-d'), $date->format('j M')],
-            'Week' => [$date->format('o-W'), $date->format('j M')],
+            'Day' => [$date->format('Y-m-d'), app(DisplayFormat::class)->date($date, weekday: false, year: false)],
+            'Week' => [$date->format('o-W'), app(DisplayFormat::class)->date($date, weekday: false, year: false)],
             'Year' => [$date->format('Y'), $date->format('Y')],
             default => [$date->format('Y-m'), $date->format($multiYear ? "M 'y" : 'M')],
         };
@@ -409,14 +410,6 @@ final class StatsForType
 
     private function rangeLabel(Carbon $start, Carbon $end): string
     {
-        if ($start->isSameDay($end)) {
-            return $start->format('j M Y');
-        }
-
-        if ($start->year === $end->year) {
-            return $start->format('j M').' - '.$end->format('j M Y');
-        }
-
-        return $start->format('j M Y').' - '.$end->format('j M Y');
+        return app(DisplayFormat::class)->range($start, $end);
     }
 }

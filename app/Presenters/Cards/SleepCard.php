@@ -7,6 +7,7 @@ use App\Data\CardMeta;
 use App\Data\SegmentData;
 use App\Enums\TimelineType;
 use App\Models\Sleep;
+use App\Support\DisplayFormat;
 use App\Support\Units;
 
 /**
@@ -41,8 +42,8 @@ final class SleepCard
     {
         $window = sprintf(
             'I went to bed at %s and woke at %s.',
-            $model->spanStart()->format('g:ia'),
-            $model->spanEnd()->format('g:ia'),
+            app(DisplayFormat::class)->time($model->spanStart()),
+            app(DisplayFormat::class)->time($model->spanEnd()),
         );
 
         return $model->score

@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
+use App\Support\DisplayFormat;
 use App\Support\PortableText;
 use Illuminate\Support\Str;
 
@@ -72,7 +73,7 @@ final class MentionSearch
                 'id' => $article->id,
                 'url' => $article->url(),
                 'label' => $article->title,
-                'detail' => $article->occurred_at?->format('j M Y'),
+                'detail' => $article->occurred_at ? app(DisplayFormat::class)->date($article->occurred_at, weekday: false) : null,
             ])
             ->all();
     }
@@ -138,7 +139,7 @@ final class MentionSearch
                 'id' => $event->id,
                 'url' => $event->url(),
                 'label' => $event->name,
-                'detail' => $event->occurred_at?->format('j M Y'),
+                'detail' => $event->occurred_at ? app(DisplayFormat::class)->date($event->occurred_at, weekday: false) : null,
             ])
             ->all();
     }
@@ -162,7 +163,7 @@ final class MentionSearch
                 'id' => $note->id,
                 'url' => $note->url(),
                 'label' => Str::limit(PortableText::plainText($note->content), 60),
-                'detail' => $note->occurred_at?->format('j M Y'),
+                'detail' => $note->occurred_at ? app(DisplayFormat::class)->date($note->occurred_at, weekday: false) : null,
             ])
             ->all();
     }
