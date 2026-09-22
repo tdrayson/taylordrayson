@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { number } from '../../lib/format.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 
 const props = defineProps({
@@ -106,7 +107,7 @@ onBeforeUnmount(() => {
 watch(() => props.chips, () => measure());
 
 
-const open = ref(false);
+const { isOpen: open, root, toggle, close } = useDismissable();
 const search = ref('');
 const searchInput = ref(null);
 const listRef = ref(null);
@@ -126,44 +127,24 @@ const { activeIndex, onKeydown } = useListboxNavigation(filtered, {
     listEl: listRef,
     onSelect: (chip) => {
         if (chip) {
-            open.value = false;
+            close();
             router.visit(chip.href);
         }
     },
 });
 
-// Focus the search box and close on outside click when the popover opens.
+// Focus the search box when the popover opens.
 watch(open, (isOpen) => {
     if (isOpen) {
         search.value = '';
         activeIndex.value = 0;
         nextTick(() => searchInput.value?.focus());
-        document.addEventListener('click', onDocumentClick);
-    } else {
-        document.removeEventListener('click', onDocumentClick);
     }
 });
-
-function onDocumentClick(event) {
-    if (rowRef.value && ! rowRef.value.parentElement.contains(event.target)) {
-        open.value = false;
-    }
-}
-
-// Escape closes the popover; the wrapping arrow/Enter navigation is shared.
-function onSearchKeydown(event) {
-    if (event.key === 'Escape') {
-        open.value = false;
-
-        return;
-    }
-
-    onKeydown(event);
-}
 </script>
 
 <template>
-    <div v-if="chips.length" class="relative mt-6">
+    <div v-if="chips.length" ref="root" class="relative mt-6">
         <div ref="rowRef" class="flex flex-wrap gap-2" :class="{ invisible: measuring }">
             <Link
                 v-for="chip in shownChips"
@@ -182,9 +163,9 @@ function onSearchKeydown(event) {
             <button
                 v-if="overflowCount > 0"
                 type="button"
-                class="self-center text-xs font-medium text-neutral-500 underline-offset-2 transition-colors hover:text-accent-600 hover:underline focus-visible:text-accent-600 focus-visible:underline focus-visible:outline-none"
+                class="self-center text-xs font-medium text-neutral-500 underline-offset-2 transition-colors hover:text-accent-600 hover:underline focus-visible:text-accent-600 focus-visible:underline"
                 :aria-expanded="open"
-                @click.stop="open = ! open"
+                @click="toggle"
             >
                 +{{ number(overflowCount) }} more
             </button>
@@ -193,7 +174,6 @@ function onSearchKeydown(event) {
         <div
             v-if="open"
             class="absolute left-0 top-full z-20 mt-2 w-72 max-w-viewport-inset rounded-xl border border-neutral-50 bg-neutral-0 p-2 shadow-card"
-            @click.stop
         >
             <input
                 ref="searchInput"
@@ -204,8 +184,8 @@ function onSearchKeydown(event) {
                 aria-controls="taxonomy-options"
                 placeholder="Search categories…"
                 aria-label="Search categories"
-                class="mb-2 w-full rounded-lg border border-neutral-50 bg-neutral-25 px-3 py-1.5 text-xs text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                @keydown="onSearchKeydown"
+                class="mb-2 w-full rounded-lg border border-neutral-50 bg-neutral-25 px-3 py-1.5 text-xs text-neutral-900"
+                @keydown="onKeydown"
             >
             <ul id="taxonomy-options" ref="listRef" role="listbox" class="max-h-72 overflow-y-auto">
                 <li v-for="(chip, index) in filtered" :key="chip.href" role="option" :aria-selected="index === activeIndex" :data-active="index === activeIndex">
