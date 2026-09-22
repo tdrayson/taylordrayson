@@ -8,7 +8,7 @@ import Icon from '../Ui/Icon.vue';
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
     // title, body, occurredAt, parentId, parentItemId, commentId, sourceUrl,
-    // sourceHost, emoji, source, sourceName, mine }.
+    // sourceHost, emoji, source, sourceName, sourceFavicon, mine }.
     item: { type: Object, required: true },
     // Rendered as a reply to somebody, one level deep only. Also how a response
     // read out of another site's thread hangs off the mention that carried it.
@@ -169,6 +169,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                          interrupting it. A platform names itself; a webmention names
                          the site it was published on. A comment left here has no
                          elsewhere, so it says nothing. -->
+                    <img v-if="item.sourceFavicon" :src="item.sourceFavicon" alt="" loading="lazy" class="mb-0.5 mr-1.5 inline size-3.5 rounded-sm align-middle">
                     <a
                         v-if="via && item.sourceUrl"
                         :href="item.sourceUrl"
