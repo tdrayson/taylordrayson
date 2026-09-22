@@ -2,7 +2,6 @@
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Enums\EntryStatus;
-use App\Http\Controllers\OgImageController;
 use App\Models\Activity;
 use App\Models\Note;
 use App\Models\Scopes\ListedScope;
@@ -42,9 +41,9 @@ it('serves a cached og card as a png for each url variant', function (string $ur
         '/og.png?title=A walk&eyebrow=Activity&accent=2e9e6a&date=Mon 9 Jun 2025',
         ['title' => 'A walk', 'eyebrow' => 'Activity', 'accent' => '2e9e6a', 'date' => 'Mon 9 Jun 2025'],
     ],
-    'branded home variant falls back to the tagline' => [
+    'branded home variant falls back to the bio' => [
         '/og.png?variant=home',
-        ['title' => 'Taylor Drayson', 'layout' => 'home', 'subtitle' => OgImageController::TAGLINE],
+        fn () => ['title' => 'Taylor Drayson', 'layout' => 'home', 'subtitle' => config('identity.bio')],
     ],
 ]);
 

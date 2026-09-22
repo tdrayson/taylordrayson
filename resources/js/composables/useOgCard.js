@@ -20,6 +20,7 @@ export function useOgCard(og) {
     return computed(() => ogCardUrl(toValue(og), {
         origin: origin.value,
         siteName: page.props.identity.name,
+        bio: page.props.identity.bio,
         version: page.props.ogVersion,
     }));
 }

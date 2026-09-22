@@ -36,8 +36,6 @@ use Illuminate\Support\Str;
  */
 class OgMeta
 {
-    private const SITE_DESCRIPTION = 'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
-
     /** Where Google truncates a title, measured on the whole assembled string. */
     private const TITLE_LIMIT = 60;
 
@@ -56,7 +54,6 @@ class OgMeta
         return self::make([
             'title' => 'Timeline',
             'heading' => 'Taylor Drayson',
-            'description' => 'Everything I log, in one continuous feed, newest first.',
             'variant' => 'home',
         ]);
     }
@@ -468,7 +465,7 @@ class OgMeta
     {
         return self::make([
             'title' => self::entryTitle($model, $card),
-            'description' => EntryDescription::for($model, $card) ?? self::SITE_DESCRIPTION,
+            'description' => EntryDescription::for($model, $card) ?? config('identity.bio'),
             'image' => $entry !== null ? self::entryCardUrl($entry) : null,
             'type' => $model instanceof Article ? 'article' : 'website',
             'noindex' => $model->status !== EntryStatus::Published,
@@ -552,7 +549,7 @@ class OgMeta
     {
         return array_merge([
             'title' => null,
-            'description' => self::SITE_DESCRIPTION,
+            'description' => config('identity.bio'),
             'heading' => null,
             'eyebrow' => null,
             'accent' => null,

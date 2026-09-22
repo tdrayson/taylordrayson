@@ -17,9 +17,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OgImageController extends Controller
 {
-    /** The home card's standfirst when the request carries no description. */
-    public const TAGLINE = 'A living archive of everything I make, watch, read, and get up to.';
-
     public function __construct(
         private readonly BuildEntryOgData $entryOgData,
         private readonly OgGalleryUrls $galleryUrls,
@@ -43,10 +40,10 @@ class OgImageController extends Controller
 
         // The page's own meta description, so the card and the tag beneath it in
         // a share preview say the same thing. The home card falls back to the
-        // tagline, having no page of its own to read a description from; every
+        // site bio, having no page of its own to read a description from; every
         // other card would rather show nothing than something generic.
         $subtitle = Str::limit(trim((string) $request->query('description')), 200, '')
-            ?: ($layout === 'home' ? self::TAGLINE : null);
+            ?: ($layout === 'home' ? config('identity.bio') : null);
 
         $disk = Storage::disk('local');
         $directory = 'og/'.OgRenderer::generation();

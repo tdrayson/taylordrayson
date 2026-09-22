@@ -6,16 +6,17 @@
  * than two builders that agree until one of them is edited.
  */
 
-// SEO copy for pages with no page-specific description, not the profile bio:
-// intentionally its own wording, not identity.bio.
-export const DEFAULT_DESCRIPTION =
-    'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
-
-/** A view's metadata with defaults applied, so a partial `og` still renders. */
-export function ogMeta(og) {
+/**
+ * A view's metadata with defaults applied, so a partial `og` still renders.
+ *
+ * @param {object} og The view's Open Graph payload.
+ * @param {?string} description The site bio, for a view with no description of its own.
+ * @returns {object}
+ */
+export function ogMeta(og, description = null) {
     return {
         title: null,
-        description: DEFAULT_DESCRIPTION,
+        description,
         heading: null,
         eyebrow: null,
         accent: null,
@@ -35,11 +36,11 @@ export function ogMeta(og) {
  * the title), eyebrow, accent and variant.
  *
  * @param {object} og The view's Open Graph payload.
- * @param {{origin: string, siteName: string, version: ?string}} context Absolute base URL, site name for an untitled view, and the card design token.
+ * @param {{origin: string, siteName: string, bio: ?string, version: ?string}} context Absolute base URL, site name for an untitled view, site bio for an undescribed one, and the card design token.
  * @returns {string} An absolute URL.
  */
-export function ogCardUrl(og, { origin, siteName, version }) {
-    const meta = ogMeta(og);
+export function ogCardUrl(og, { origin, siteName, bio, version }) {
+    const meta = ogMeta(og, bio);
 
     if (meta.image) {
         return meta.image.startsWith('http') ? meta.image : `${origin}${meta.image}`;

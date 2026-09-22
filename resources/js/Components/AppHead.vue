@@ -24,7 +24,7 @@ const page = usePage();
 // The one site-identity name, shared from config/identity.php.
 const SITE_NAME = computed(() => page.props.identity.name);
 
-const meta = computed(() => ogMeta(props.og));
+const meta = computed(() => ogMeta(props.og, page.props.identity.bio));
 
 const imageUrl = useOgCard(() => props.og);
 
