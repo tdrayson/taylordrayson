@@ -14,6 +14,7 @@ import StoryFurtherReading from '../../Components/Story/StoryFurtherReading.vue'
 import TableOfContents from '../../Components/Ui/TableOfContents.vue';
 import DateLink from '../../Components/Ui/DateLink.vue';
 import { PALETTE, baseOptions, tooltip } from '../../lib/chart.js';
+import { formatDate } from '../../lib/dateFormat.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -51,7 +52,7 @@ const cap = (word) => word.charAt(0).toUpperCase() + word.slice(1);
  * @param {string} date An ISO date string.
  * @returns {string}
  */
-const shortDate = (date) => new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+const shortDate = (date) => formatDate(date, { weekday: false, year: false });
 
 const dateline = computed(() => [
     `${s.value.kpis.fromLabel} to ${s.value.kpis.toLabel}`,

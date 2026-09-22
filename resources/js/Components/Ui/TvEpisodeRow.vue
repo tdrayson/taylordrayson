@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { StarIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
-import { time } from '../../lib/format.js';
+import { clock } from '../../lib/format.js';
 
 const props = defineProps({
     season: { type: [Number, String], required: true },
@@ -18,7 +18,7 @@ const props = defineProps({
 
 // SxxExx code, e.g. season 1 episode 3 -> S01E03.
 const code = computed(() => `S${String(props.season).padStart(2, '0')}E${String(props.episode).padStart(2, '0')}`);
-const watchTime = computed(() => time(props.occurredAt));
+const watchTime = computed(() => clock(props.occurredAt));
 </script>
 
 <template>

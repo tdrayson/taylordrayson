@@ -7,7 +7,7 @@ import Eyebrow from '../Ui/Eyebrow.vue';
 import SleepStages from '../Stats/SleepStages.vue';
 import SleepScoreRing from '../Stats/SleepScoreRing.vue';
 import StageBar from '../Stats/StageBar.vue';
-import { time } from '../../lib/format.js';
+import { clock } from '../../lib/format.js';
 
 const props = defineProps({
     entry: { type: Object, required: true },
@@ -16,8 +16,8 @@ const props = defineProps({
 const hasScore = computed(() => props.entry.score != null);
 
 const stats = computed(() => [
-    { label: 'Bedtime', value: time(props.entry.started_at) },
-    { label: 'Woke', value: time(props.entry.occurred_at) },
+    { label: 'Bedtime', value: clock(props.entry.started_at) },
+    { label: 'Woke', value: clock(props.entry.occurred_at) },
 ]);
 
 const fallbackSegments = computed(() =>

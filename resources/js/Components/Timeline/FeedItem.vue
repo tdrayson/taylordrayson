@@ -171,16 +171,6 @@ const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
 const typeHref = computed(() => entryType(props.iconKey).href ?? null);
 
-const clockOf = (value) => {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime()) ? null : clock(date);
-};
-
 const routeView = computed(() => {
     if (!props.route) {
         return null;
@@ -189,8 +179,8 @@ const routeView = computed(() => {
     return {
         origin: props.route.origin,
         destination: props.route.destination,
-        departTime: clockOf(props.route.depart),
-        arriveTime: clockOf(props.route.arrive),
+        departTime: clock(props.route.depart),
+        arriveTime: clock(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
         note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
     };

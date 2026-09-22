@@ -5,6 +5,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import Eyebrow from '../Components/Ui/Eyebrow.vue';
 import Heading from '../Components/Ui/Heading.vue';
 import { relativeDay } from '../lib/format.js';
+import { formatDate } from '../lib/dateFormat.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -18,7 +19,7 @@ function editedLabel(iso) {
     const relative = relativeDay(iso);
 
     return relative === null
-        ? `Edited ${new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+        ? `Edited ${formatDate(new Date(iso), { weekday: false })}`
         : relative;
 }
 
