@@ -1,4 +1,4 @@
-import { h } from 'vue';
+import { h, isVNode } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
@@ -115,23 +115,38 @@ function isExternalHref(href) {
  *
  * @param {object} mark The icon vnode.
  * @param {string|object} label The link text, or a vnode when a mark (bold,
- *   code) already wrapped it, which cannot be split and so rides with the icon.
+ *   code) already wrapped it.
  * @returns {Array} The anchor's children.
  */
 function iconWithLabel(mark, label) {
-    const nowrap = (children) => h('span', { class: 'whitespace-nowrap' }, children);
+    const [head, tail] = splitFirstWord(label);
 
-    if (typeof label !== 'string') {
-        return [nowrap([mark, label])];
+    return [h('span', { class: 'whitespace-nowrap' }, [mark, head]), tail];
+}
+
+/**
+ * Split text at its first space, rebuilding any decorator tags (strong, em)
+ * around both halves so only the first word is held to the icon.
+ *
+ * @param {string|object} node The text, or a decorator vnode wrapping it.
+ * @returns {Array} The first word and the rest, which is null when there is no rest.
+ */
+function splitFirstWord(node) {
+    if (typeof node === 'string') {
+        const space = node.indexOf(' ');
+
+        return space === -1 ? [node, null] : [node.slice(0, space), node.slice(space)];
     }
 
-    const space = label.indexOf(' ');
+    const inner = Array.isArray(node.children) && node.children.length === 1 ? node.children[0] : node.children;
 
-    if (space === -1) {
-        return [nowrap([mark, label])];
+    if (typeof inner !== 'string' && ! isVNode(inner)) {
+        return [node, null];
     }
 
-    return [nowrap([mark, label.slice(0, space)]), label.slice(space)];
+    const [head, tail] = splitFirstWord(inner);
+
+    return [h(node.type, head), tail === null ? null : h(node.type, tail)];
 }
 
 /**
