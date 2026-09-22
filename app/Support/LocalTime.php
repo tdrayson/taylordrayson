@@ -22,8 +22,8 @@ class LocalTime
         $local = CarbonImmutable::parse($occurredAt->format('Y-m-d H:i:s'), $zone);
 
         return [
-            'time' => $local->format('g:ia'),
-            'label' => $local->format('D j M Y, g:ia'),
+            'time' => app(DisplayFormat::class)->time($local),
+            'label' => app(DisplayFormat::class)->dateTime($local),
             'offset' => $local->format('P'),
             'iso' => $local->toIso8601String(),
         ];
@@ -41,8 +41,8 @@ class LocalTime
         $local = CarbonImmutable::instance($instant)->setTimezone($zone);
 
         return [
-            'time' => $local->format('g:ia'),
-            'label' => $local->format('D j M Y, g:ia'),
+            'time' => app(DisplayFormat::class)->time($local),
+            'label' => app(DisplayFormat::class)->dateTime($local),
             'offset' => $local->format('P'),
             'iso' => $local->toIso8601String(),
         ];

@@ -7,6 +7,7 @@ use App\Data\TagLink;
 use App\Models\Tag;
 use App\Models\Trip;
 use App\Queries\TripEntries;
+use App\Support\DisplayFormat;
 use App\Support\FeedInteractions;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
@@ -63,7 +64,7 @@ class TripController extends Controller
             'month' => $zoned->format('M'),
             'year' => $zoned->format('Y'),
             'time' => $local['time'],
-            'label' => $zoned->format('j M Y, g:ia'),
+            'label' => app(DisplayFormat::class)->dateTime($zoned, weekday: false),
             // LocalTime's own weekday-led form, for the timestamp tooltip every
             // timeline card shows on hover.
             'full' => $local['label'],

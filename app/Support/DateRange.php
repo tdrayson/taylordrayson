@@ -22,10 +22,6 @@ class DateRange
         $sameMonth = $start->format('n') === $end->format('n') && $start->format('Y') === $end->format('Y');
         $sameYear = $start->format('Y') === $end->format('Y');
 
-        $label = $sameMonth
-            ? $start->format('j').'-'.$end->format('j M Y')
-            : $start->format('j M').' - '.$end->format('j M Y');
-
         if ($sameMonth) {
             $long = $start->format('jS').' to '.$end->format('jS F Y');
         } elseif ($sameYear) {
@@ -38,7 +34,7 @@ class DateRange
             start: $start->toDateString(),
             end: $end->toDateString(),
             days: (int) $days,
-            label: $label,
+            label: app(DisplayFormat::class)->range($start, $end),
             long: $long,
         );
     }

@@ -9,6 +9,7 @@ use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Queries\DayFoodTotals;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
+use App\Support\DisplayFormat;
 use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
@@ -43,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
         // Held for the request so every food card on a page shares one read of
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
+
+        $this->app->scoped(DisplayFormat::class, fn ($app): DisplayFormat => DisplayFormat::for($app['request']));
 
         $this->registerArchiveRoutes();
     }
