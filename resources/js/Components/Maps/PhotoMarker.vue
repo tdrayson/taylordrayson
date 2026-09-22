@@ -19,7 +19,7 @@ defineEmits(['select']);
              inline transform onto the button, which any transform of ours would
              overwrite, jumping the marker to the map origin. -->
         <span
-            class="block size-full overflow-hidden rounded-full border-2 border-neutral-0 shadow-md ring-2 ring-activity transition-transform group-hover:scale-110 group-focus-visible:scale-110 group-focus-visible:ring-4"
+            class="block size-full overflow-hidden rounded-full border-2 border-neutral-0 shadow-md ring-2 ring-activity transition-transform group-hover:scale-110 group-focus-visible:scale-110"
         >
             <img
                 :src="photo.src"

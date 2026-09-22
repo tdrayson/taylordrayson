@@ -96,12 +96,12 @@ function choose(url) {
                         type="button"
                         :aria-label="`Edition ${index + 1}`"
                         :aria-pressed="isChosen(url)"
-                        class="group relative block w-full rounded-md"
+                        class="group relative block w-full rounded-md focus-visible:outline-offset-4"
                         @click="choose(url)"
                     >
                         <span
-                            class="block aspect-2/3 overflow-hidden rounded-md bg-neutral-25 shadow-card ring-offset-2 ring-offset-neutral-0 transition group-hover:ring-2 group-focus-visible:ring-2"
-                            :class="isChosen(url) ? 'ring-2 ring-accent-500' : 'group-hover:ring-neutral-200 group-focus-visible:ring-accent-500'"
+                            class="block aspect-2/3 overflow-hidden rounded-md bg-neutral-25 shadow-card ring-offset-2 ring-offset-neutral-0 transition group-hover:ring-2"
+                            :class="isChosen(url) ? 'ring-2 ring-accent-500' : 'group-hover:ring-neutral-200'"
                         >
                             <img :src="url" alt="" loading="lazy" class="size-full object-cover">
                         </span>
