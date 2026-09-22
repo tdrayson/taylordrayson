@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
+import { pickOn, reactorToken, rememberPick } from '../../lib/reactor.js';
 import CountGroup from '../Ui/CountGroup.vue';
 import CountSegment from '../Ui/CountSegment.vue';
 import Icon from '../Ui/Icon.vue';
@@ -19,7 +20,7 @@ import Tooltip from '../Ui/Tooltip.vue';
  * to a reader they are all "somebody liked this".
  */
 const props = defineProps({
-    // [{ key, emoji, label, count, mine }] — every offered emoji, plus any that
+    // [{ key, emoji, label, count }] — every offered emoji, plus any that
     // arrived by webmention and matches none of them.
     reactions: { type: Array, default: () => [] },
     // Gestures with no emoji to show: webmention likes, and later kudos.
@@ -103,6 +104,15 @@ watch(() => props.reactions, (value) => {
     buckets.value = [...value];
 });
 
+// Which emoji this browser picked. Only it knows, so it is read after mount
+// rather than rendered on the server.
+const target = computed(() => `${props.type}:${props.id}`);
+const pick = ref(null);
+
+onMounted(() => {
+    pick.value = pickOn(target.value);
+});
+
 const busy = ref(null);
 const failed = ref(false);
 const picking = ref(false);
@@ -149,7 +159,7 @@ const isOurs = (bucket) => /^[a-z]+$/.test(bucket.key);
 
 const chosen = computed(() => buckets.value.filter((bucket) => bucket.count > 0));
 const total = computed(() => chosen.value.reduce((sum, bucket) => sum + bucket.count, 0) + props.likeCount);
-const mine = computed(() => buckets.value.find((bucket) => bucket.mine) ?? null);
+const mine = computed(() => buckets.value.find((bucket) => bucket.key === pick.value) ?? null);
 
 /**
  * Spelled out for the tooltip and the screen reader alike: the heading above
@@ -231,14 +241,18 @@ async function toggle(bucket) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
             credentials: 'same-origin',
-            body: JSON.stringify({ type: bucket.key }),
+            body: JSON.stringify({ type: bucket.key, reactor: reactorToken() }),
         });
 
         if (! response.ok) {
             throw new Error(response.status);
         }
 
-        buckets.value = (await response.json()).reactions;
+        const answer = await response.json();
+
+        buckets.value = answer.reactions;
+        pick.value = answer.on ? bucket.key : null;
+        rememberPick(target.value, pick.value);
         emit('reacted', buckets.value);
     } catch {
         failed.value = true;
@@ -339,7 +353,7 @@ function press(event) {
                                 <button
                                 type="button"
                                 :disabled="busy === bucket.key"
-                                :aria-pressed="bucket.mine"
+                                :aria-pressed="bucket.key === pick"
                                 :aria-label="bucket.label"
                                 class="inline-flex items-center justify-center rounded-full transition-transform hover:scale-125 focus-visible:scale-125"
                                 @click="toggle(bucket)"

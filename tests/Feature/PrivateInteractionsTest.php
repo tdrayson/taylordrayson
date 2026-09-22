@@ -70,7 +70,7 @@ it('refuses a comment and a reaction on a locked private entry', function () {
     $note = privateNote();
 
     $this->postJson("/comments/note/{$note->id}", privateCommentPayload())->assertNotFound();
-    $this->postJson("/reactions/note/{$note->id}", ['type' => 'love'])->assertNotFound();
+    $this->postJson("/reactions/note/{$note->id}", ['type' => 'love', 'reactor' => fake()->uuid()])->assertNotFound();
 
     expect(Comment::count())->toBe(0)
         ->and(Reaction::count())->toBe(0);
@@ -82,7 +82,7 @@ it('accepts a comment and a reaction once the private entry is unlocked', functi
     $this->withSession([$note->unlockKey() => true]);
 
     $this->postJson("/comments/note/{$note->id}", privateCommentPayload())->assertCreated();
-    $this->postJson("/reactions/note/{$note->id}", ['type' => 'love'])->assertSuccessful();
+    $this->postJson("/reactions/note/{$note->id}", ['type' => 'love', 'reactor' => fake()->uuid()])->assertSuccessful();
 
     expect(Comment::count())->toBe(1)
         ->and(Reaction::count())->toBe(1);
@@ -219,7 +219,7 @@ it('treats an unlisted entry exactly like a published one', function () {
     expect($sleep->mentions()->count())->toBe(1);
 
     $this->postJson("/comments/note/{$unlisted->id}", privateCommentPayload())->assertCreated();
-    $this->postJson("/reactions/note/{$unlisted->id}", ['type' => 'love'])->assertSuccessful();
+    $this->postJson("/reactions/note/{$unlisted->id}", ['type' => 'love', 'reactor' => fake()->uuid()])->assertSuccessful();
     $this->post('/webmention', [
         'source' => 'https://jo.example/post',
         'target' => absoluteUrl($unlisted->url()),

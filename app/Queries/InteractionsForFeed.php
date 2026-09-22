@@ -11,7 +11,6 @@ use App\Models\Reaction;
 use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use App\Support\InteractionTarget;
-use App\Support\VisitorIdentity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -21,8 +20,8 @@ use Illuminate\Support\Collection;
  *
  * `ReactionsFor` answers for one target and runs two queries doing it, which is
  * fine under an entry and is a hundred queries down a feed. This answers for
- * every entry on the page in four: reactions, this visitor's own reactions,
- * comments, and mentions by kind.
+ * every entry on the page in four: reactions, comments, mentions by kind and
+ * syndicated responses by kind.
  *
  * Keyed `type:id`, matching what the reaction endpoint is addressed by, so the
  * feed can look a card's row up without knowing anything about models.
@@ -46,15 +45,7 @@ final class InteractionsForFeed
         $classes = $keyed->map(fn (Model $m): string => $m->getMorphClass())->unique()->values()->all();
         $ids = $keyed->map(fn (Model $m): int|string => $m->getKey())->unique()->values()->all();
 
-        // Hashed per target rather than per visitor, so a page needs the whole
-        // set: one hash for each entry on it, matched back by the row's own
-        // type and id rather than by the key.
-        $identities = $request === null
-            ? []
-            : $keyed->map(fn (Model $m): string => VisitorIdentity::onTarget($request, $m))->values()->all();
-
         $counts = $this->reactionCounts($classes, $ids);
-        $mine = $this->myReactions($classes, $ids, $identities);
         $comments = $this->commentCounts($classes, $ids);
         $mentions = $this->mentionCounts($classes, $ids);
         $syndicated = $this->syndicatedCounts($classes, $ids);
@@ -67,7 +58,6 @@ final class InteractionsForFeed
                     fn (ReactionType $type): array => ReactionBucket::fromType(
                         $type,
                         (int) ($counts[$pair][$type->value] ?? 0),
-                        in_array($type->value, $mine[$pair] ?? [], strict: true),
                     )->toArray(),
                     ReactionType::cases(),
                 ),
@@ -110,35 +100,6 @@ final class InteractionsForFeed
 
         foreach ($rows as $row) {
             $out[$row->reactable_type.':'.$row->reactable_id][$row->type] = (int) $row->total;
-        }
-
-        return $out;
-    }
-
-    /**
-     * @param  list<string>  $classes
-     * @param  list<int|string>  $ids
-     * @param  list<string>  $identities
-     * @return array<string, list<string>>
-     */
-    private function myReactions(array $classes, array $ids, array $identities): array
-    {
-        if ($identities === []) {
-            return [];
-        }
-
-        $rows = Reaction::query()
-            ->toBase()
-            ->select('reactable_type', 'reactable_id', 'type')
-            ->whereIn('identity_key', $identities)
-            ->whereIn('reactable_type', $classes)
-            ->whereIn('reactable_id', $ids)
-            ->get();
-
-        $out = [];
-
-        foreach ($rows as $row) {
-            $out[$row->reactable_type.':'.$row->reactable_id][] = (string) $row->type;
         }
 
         return $out;

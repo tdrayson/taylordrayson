@@ -30,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // talks to PHP-FPM over a local socket, so REMOTE_ADDR is already the
         // real client. Trusting `*` meant believing a client-supplied
         // X-Forwarded-For instead, which nginx never sets here, making every
-        // IP-keyed rate limiter and reaction identity spoofable by a header.
+        // IP-keyed rate limiter and commenter reputation spoofable by a header.
         $middleware->trustProxies(at: []);
 
         // Display preferences are written by the browser, so they arrive

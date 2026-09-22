@@ -25,7 +25,13 @@ class StoreReactionRequest extends FormRequest
     {
         return [
             'type' => ['required', Rule::enum(ReactionType::class)],
+            'reactor' => ['required', 'uuid'],
         ];
+    }
+
+    public function reactorToken(): string
+    {
+        return $this->validated('reactor');
     }
 
     public function reactionType(): ReactionType

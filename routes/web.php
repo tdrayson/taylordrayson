@@ -165,10 +165,11 @@ Route::post('/comments/{type}/{id}', [CommentController::class, 'store'])
     ->middleware('throttle:5,10')->name('comments.store');
 
 // Reactions. The type/id pair is resolved against an allowlist, so this is not
-// a handle on every model in the app.
+// a handle on every model in the app. The browser picks its own identity, so
+// the hourly throttle is the only brake on stuffing a count.
 Route::post('/reactions/{type}/{id}', [ReactionController::class, 'store'])
     ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
-    ->middleware('throttle:30,1')->name('reactions.store');
+    ->middleware('throttle:30,60')->name('reactions.store');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
