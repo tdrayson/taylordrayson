@@ -157,6 +157,14 @@ const contentEl = ref(null);
     background-color: var(--color-accent-100);
 }
 
+/* The typography plugin paints bold, inline code and list bullets in fixed greys
+   that don't flip in dark mode, so they follow the theme's tokens instead. */
+.block-content {
+    --tw-prose-bold: var(--color-neutral-900);
+    --tw-prose-code: var(--color-neutral-900);
+    --tw-prose-bullets: var(--color-neutral-200);
+}
+
 /* Inline-code chips only — code inside <pre> belongs to CodeBlock's own styling. */
 .block-content :deep(:not(pre) > code) {
     border-radius: 4px;
