@@ -40,7 +40,7 @@ function update(name, value) {
                     type="checkbox"
                     :checked="Boolean(attributes[field.name])"
                     :aria-label="field.label"
-                    class="size-4 rounded border-neutral-100 text-accent-500 focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="size-4 rounded border-neutral-100 text-accent-500"
                     @change="update(field.name, $event.target.checked)"
                 >
                 {{ field.label }}
@@ -62,7 +62,7 @@ function update(name, value) {
                 :placeholder="field.label"
                 :aria-label="field.label"
                 :class="[
-                    'min-w-0 rounded-md border border-neutral-100 px-2 py-1 text-sm text-neutral-900 placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    'min-w-0 rounded-md border border-neutral-100 px-2 py-1 text-sm text-neutral-900 placeholder:text-neutral-400',
                     field.wide ? 'w-48' : 'w-32',
                 ]"
                 @input="update(field.name, $event.target.value || null)"

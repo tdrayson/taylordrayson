@@ -40,7 +40,7 @@ const revealed = ref(false);
             <template #suffix>
                 <button
                     type="button"
-                    class="-mr-1.5 flex size-8 items-center justify-center rounded-md transition-colors hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="-mr-1.5 flex size-8 items-center justify-center rounded-md transition-colors hover:text-neutral-900"
                     :aria-label="revealed ? 'Hide password' : 'Show password'"
                     :aria-pressed="revealed"
                     @click="revealed = ! revealed"

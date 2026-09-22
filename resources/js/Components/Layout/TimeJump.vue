@@ -22,13 +22,13 @@ const items = [
     <DropdownMenu :items="items" label="Time navigation">
         <template #trigger="{ open, toggle }">
             <div class="inline-flex">
-                <Button href="/now" variant="secondary" size="sm" class="h-9 rounded-r-none border-r-0">
+                <Button href="/now" variant="secondary" size="sm" class="h-9 rounded-r-none border-r-0 focus-visible:-outline-offset-1">
                     Now
                 </Button>
                 <Button
                     variant="secondary"
                     size="sm"
-                    class="h-9 rounded-l-none px-2"
+                    class="h-9 rounded-l-none px-2 focus-visible:-outline-offset-1"
                     :aria-label="open ? 'Close time navigation' : 'Open time navigation'"
                     aria-haspopup="menu"
                     :aria-expanded="open"

@@ -77,12 +77,12 @@ onBeforeUnmount(() => {
         <div
             v-if="entry.video_url"
             ref="slot"
-            class="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
+            class="focus-frame relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="focus-frame-target group absolute inset-0"
                 aria-label="Watch on YouTube"
                 @click="watchVideo"
             >

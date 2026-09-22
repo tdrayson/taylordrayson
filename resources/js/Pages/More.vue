@@ -55,7 +55,7 @@ const site = [
             <li v-for="item in tracked" :key="item.type">
                 <Link
                     :href="item.href"
-                    class="group flex items-center gap-3 rounded-md py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="group flex items-center gap-3 rounded-md py-2.5 transition-colors"
                     :style="{ '--type-color': `var(--color-${entryTypes[item.type]?.accent ?? 'note'})` }"
                 >
                     <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-(--type-color)">
@@ -74,7 +74,7 @@ const site = [
             <li v-for="item in site" :key="item.href">
                 <Link
                     :href="item.href"
-                    class="group flex items-center gap-3 rounded-md py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="group flex items-center gap-3 rounded-md py-2.5 transition-colors"
                 >
                     <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-neutral-500">
                         <Icon :icon="item.icon" class="size-5" />

@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-2xs font-semibold text-neutral-500 tabular-nums">{{ clock(currentTime) }}</span>
                         <div
-                            class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 transition-colors hover:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                            class="relative h-1.5 flex-1 cursor-pointer rounded-full bg-neutral-100 transition-colors hover:bg-neutral-300"
                             role="slider"
                             tabindex="0"
                             aria-label="Seek"
@@ -350,7 +350,7 @@ onBeforeUnmount(() => {
                 <button
                     v-if="isVideo && !player.dockEl"
                     type="button"
-                    class="absolute right-2 top-2 z-10 flex size-7 items-center justify-center rounded-full bg-black/60 text-neutral-0 transition-colors hover:bg-black/80 focus-visible:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-0"
+                    class="absolute right-2 top-2 z-10 flex size-7 items-center justify-center rounded-full bg-black/60 text-neutral-0 transition-colors hover:bg-black/80 focus-visible:bg-black/80 focus-visible:outline-white"
                     aria-label="Close player"
                     @click="closePlayer"
                 >

@@ -96,7 +96,7 @@ function choose(url) {
                         type="button"
                         :aria-label="`Edition ${index + 1}`"
                         :aria-pressed="isChosen(url)"
-                        class="group relative block w-full rounded-md focus-visible:outline-none"
+                        class="group relative block w-full rounded-md"
                         @click="choose(url)"
                     >
                         <span

@@ -45,7 +45,7 @@ const property = computed(() => `u-${props.response.property}`);
             :href="response.url"
             :rel="internal ? null : 'noopener noreferrer'"
             :class="[
-                'h-cite rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                'h-cite rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500',
                 property,
             ]"
         >

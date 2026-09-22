@@ -42,7 +42,7 @@ onBeforeUnmount(() => clearTimeout(timer));
     <Tooltip :label="copied ? 'Copied' : 'Copy link'" placement="top" class="ml-2 align-middle">
         <button
             type="button"
-            class="inline-flex rounded text-neutral-400 opacity-0 transition-opacity hover:text-neutral-700 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/heading:opacity-100"
+            class="inline-flex rounded text-neutral-400 opacity-0 transition-opacity hover:text-neutral-700 focus-visible:opacity-100 group-hover/heading:opacity-100"
             :class="copied ? 'opacity-100 text-accent-500 hover:text-accent-500' : ''"
             :aria-label="copied ? 'Link copied' : `Copy link to section: ${label || targetId}`"
             @click="copy"

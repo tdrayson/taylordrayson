@@ -1,6 +1,6 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
 import CountGroup from '../Ui/CountGroup.vue';
@@ -220,6 +220,9 @@ async function toggle(bucket) {
         return;
     }
 
+    // The pressed button is disabled and then hidden, so focus goes back to the control.
+    const refocus = group.value?.contains(document.activeElement);
+
     busy.value = bucket.key;
     failed.value = false;
 
@@ -242,16 +245,34 @@ async function toggle(bucket) {
     } finally {
         busy.value = null;
         picking.value = false;
+
+        if (refocus) {
+            nextTick(() => control.value?.focus());
+        }
     }
 }
 
 /**
  * Clicking the control repeats your reaction, or gives the first one. Without
- * hover it opens the picker instead, since that is the only way to reach it.
+ * hover, or from Enter or Space, it opens the picker instead.
+ * @param {MouseEvent} event
  */
-function press() {
-    if (! canHover && ! picking.value) {
+function press(event) {
+    // A click the keyboard synthesised carries no click count.
+    const fromKeyboard = event.detail === 0;
+
+    if ((! canHover || fromKeyboard) && ! picking.value) {
         picking.value = true;
+
+        if (fromKeyboard) {
+            nextTick(() => group.value?.querySelector('[data-picker] button')?.focus());
+        }
+
+        return;
+    }
+
+    if (fromKeyboard) {
+        picking.value = false;
 
         return;
     }
@@ -267,14 +288,13 @@ function press() {
                  its shape when the first response arrives. -->
             <CountGroup :size="sizes.group">
             <CountSegment v-if="canReact" :padded="false">
-            <!-- The picker opens on hover for a mouse and on focus for a
-                 keyboard; the control stays clickable either way. -->
+            <!-- The picker opens on hover for a mouse and on Enter or Space
+                 for a keyboard; a click still reacts straight away. -->
             <div
                 ref="group"
                 class="relative flex"
                 @mouseenter="picking = true"
                 @mouseleave="leave"
-                @focusin="picking = true"
                 @focusout="leave"
                 @keydown.escape="dismiss"
             >
@@ -284,14 +304,12 @@ function press() {
                     :disabled="busy !== null"
                     :aria-pressed="mine !== null"
                     :aria-label="controlLabel"
+                    aria-haspopup="true"
+                    :aria-expanded="picking"
                     :class="cn(
                         'inline-flex items-center',
                         sizes.segment,
                         sizes.text,
-                        // Inset, so the ring stays inside the segment rather than
-                        // spilling over its neighbour's edge. The ink comes from
-                        // the segment; the disc is what says you reacted.
-                        'rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500',
                         busy !== null && 'opacity-50',
                     )"
                     @click="press"
@@ -314,7 +332,7 @@ function press() {
                 </button>
 
                 <Transition name="pop">
-                <div v-show="picking" class="picker-origin absolute bottom-full left-0 z-20 pb-1">
+                <div v-show="picking" data-picker class="picker-origin absolute bottom-full left-0 z-20 pb-1">
                     <ul class="flex gap-1 rounded-full border border-neutral-50 bg-neutral-0 px-2 py-1.5 shadow-lg">
                         <li v-for="bucket in buckets.filter(isOurs)" :key="bucket.key">
                             <Tooltip :label="bucket.label" placement="top">
@@ -323,7 +341,7 @@ function press() {
                                 :disabled="busy === bucket.key"
                                 :aria-pressed="bucket.mine"
                                 :aria-label="bucket.label"
-                                class="inline-flex items-center justify-center rounded-full transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                                class="inline-flex items-center justify-center rounded-full transition-transform hover:scale-125 focus-visible:scale-125"
                                 @click="toggle(bucket)"
                             >
                                 <span
@@ -359,7 +377,7 @@ function press() {
                 :as="compact && url ? Link : 'span'"
                 :href="compact && url ? `${url}#responses` : undefined"
                 :aria-label="responsesLabel"
-                :class="[sizes.text, compact && url && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500']"
+                :class="sizes.text"
             >
                 <Tooltip :label="responsesLabel" placement="top" :class="['items-center', sizes.gap]">
                     <Icon name="Comment01Icon" :class="sizes.icon" />
@@ -389,7 +407,7 @@ function press() {
                  the same glyph and the same number said twice. -->
             <ul
                 v-if="chosen.length > 1"
-                :class="['reaction-pile flex items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500', compact && 'is-static']"
+                :class="['reaction-pile flex items-center rounded-full', compact && 'is-static']"
                 :tabindex="compact ? -1 : 0"
                 :aria-label="summaryLabel"
             >

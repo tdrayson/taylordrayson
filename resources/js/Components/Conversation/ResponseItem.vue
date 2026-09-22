@@ -142,7 +142,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                         v-if="item.authorUrl"
                         :href="item.authorUrl"
                         rel="ugc nofollow noopener noreferrer"
-                        class="p-author h-card rounded-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                        class="p-author h-card rounded-sm font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     >{{ item.authorName }}</a>
                     <span v-else class="p-author font-semibold text-neutral-900">{{ item.authorName }}</span>
                     {{ ' ' }}
@@ -158,7 +158,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                             :href="item.sourceUrl"
                             :rel="isInternal ? null : 'ugc nofollow noopener noreferrer'"
                             :class="[
-                                'rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                                'rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500',
                                 ! isInternal && 'p-name u-url',
                             ]"
                         ><cite v-if="item.title" class="not-italic">{{ item.title }}</cite><template v-else>{{ sourceLabel }}</template></component></span>{{ ' ' }}on</span>
@@ -173,7 +173,7 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                         v-if="via && item.sourceUrl"
                         :href="item.sourceUrl"
                         rel="ugc nofollow noopener noreferrer"
-                        class="rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        class="rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     >via {{ via }}</a>
                     <span v-else-if="via" class="text-neutral-500">via {{ via }}</span>
                 </p>
@@ -186,14 +186,14 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                     <a
                         :href="item.sourceUrl"
                         rel="ugc nofollow noopener noreferrer"
-                        class="u-url rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                        class="u-url rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     >Read it on {{ item.sourceHost }}</a>
                 </p>
 
                 <button
                     v-if="item.commentId"
                     type="button"
-                    class="mt-2 rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    class="mt-2 rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     @click="$emit('reply', item)"
                 >
                     Reply

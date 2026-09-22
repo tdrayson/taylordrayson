@@ -239,11 +239,11 @@ watch(() => [props.modelValue, editing.value], fitQuote, { flush: 'post' });
 
         <p v-if="preview || failed" class="flex gap-4 text-xs text-neutral-500">
             <template v-if="responseKind === 'reply'">
-                <button v-if="! editing" type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="editQuote">{{ excerpt || modelValue ? 'Edit quote' : 'Add quote' }}</button>
-                <button v-else type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="doneEditing">Done</button>
-                <button v-if="editing || modelValue" type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="reset">Reset to excerpt</button>
+                <button v-if="! editing" type="button" class="rounded-sm hover:text-accent-700" @click="editQuote">{{ excerpt || modelValue ? 'Edit quote' : 'Add quote' }}</button>
+                <button v-else type="button" class="rounded-sm hover:text-accent-700" @click="doneEditing">Done</button>
+                <button v-if="editing || modelValue" type="button" class="rounded-sm hover:text-accent-700" @click="reset">Reset to excerpt</button>
             </template>
-            <button type="button" class="rounded-sm hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" @click="load(true)">Refresh</button>
+            <button type="button" class="rounded-sm hover:text-accent-700" @click="load(true)">Refresh</button>
         </p>
     </div>
 </template>

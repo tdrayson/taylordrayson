@@ -90,12 +90,12 @@ async function copy() {
                     :value="url"
                     type="text"
                     readonly
-                    class="min-w-0 flex-1 rounded-md border border-neutral-100 bg-neutral-25 px-3 py-2 text-sm text-neutral-700 focus:border-accent-500 focus:outline-none"
+                    class="min-w-0 flex-1 rounded-md border border-neutral-100 bg-neutral-25 px-3 py-2 text-sm text-neutral-700 focus:border-accent-500 focus-visible:-outline-offset-1"
                     @focus="$event.target.select()"
                 >
                 <button
                     type="button"
-                    class="shrink-0 rounded-md border border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="shrink-0 rounded-md border border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-accent-500"
                     @click="copy"
                 >
                     {{ copied ? 'Copied' : 'Copy' }}

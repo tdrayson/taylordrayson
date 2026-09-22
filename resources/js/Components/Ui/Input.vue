@@ -1,7 +1,7 @@
 <script setup>
 import { computed, useSlots } from 'vue';
 import { cn } from '../../lib/cn.js';
-import { CONTROL, READONLY } from '../../lib/editor/control.js';
+import { CONTROL, FOCUS_WITHIN, FOCUS_WITHIN_INVALID, READONLY } from '../../lib/editor/control.js';
 
 const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
@@ -28,12 +28,12 @@ const hasAffix = computed(() => hasPrefix.value || hasSuffix.value);
 
 const border = computed(() => {
     if (props.invalid) {
-        return 'border-red-500 focus-within:border-red-500';
+        return ['border-red-500', FOCUS_WITHIN_INVALID];
     }
 
     return props.readonly
-        ? 'border-neutral-100 focus-within:border-neutral-100'
-        : 'border-neutral-100 focus-within:border-accent-500';
+        ? ['border-neutral-100', FOCUS_WITHIN]
+        : ['border-neutral-100 focus-within:border-accent-500', FOCUS_WITHIN];
 });
 
 const wrapperClasses = computed(() =>
@@ -50,9 +50,9 @@ const wrapperClasses = computed(() =>
 const bareClasses = computed(() =>
     cn(
         CONTROL,
-        'text-neutral-900 placeholder:text-neutral-500 focus:outline-none',
+        'text-neutral-900 placeholder:text-neutral-500',
         props.invalid
-            ? 'border-red-500 focus:border-red-500'
+            ? 'border-red-500 focus:border-red-500 focus-visible:outline-red-500'
             : props.readonly
                 ? 'border-neutral-100 focus:border-neutral-100'
                 : 'border-neutral-100 focus:border-accent-500',

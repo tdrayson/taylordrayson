@@ -58,7 +58,7 @@ const cells = computed(() => props.days.map(({ date, count }) => {
                     <Tooltip v-else :label="cell.title" placement="top" class="aspect-square w-full">
                         <Link
                             :href="cell.href"
-                            class="flex-1 rounded-xs transition-transform duration-120 hover:z-1 focus-visible:z-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:hover:scale-118 @5xs:rounded @xs:rounded-sm"
+                            class="flex-1 rounded-xs transition-transform duration-120 hover:z-1 focus-visible:z-1 motion-safe:hover:scale-118 @5xs:rounded @xs:rounded-sm"
                             :class="cell.color"
                             :aria-label="cell.title"
                         />

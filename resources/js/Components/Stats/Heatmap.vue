@@ -101,7 +101,7 @@ function color(level) {
                         :key="month.href"
                         :href="month.href"
                         :style="{ gridColumnStart: month.column }"
-                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline focus-visible:outline-none"
+                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline"
                     >{{ month.label }}</Link>
                 </div>
 
@@ -163,8 +163,6 @@ function color(level) {
 }
 
 .heatmap-cell:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
     z-index: 1;
 }
 </style>

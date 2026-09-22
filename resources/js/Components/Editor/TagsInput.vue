@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { CONTROL, READONLY } from '../../lib/editor/control.js';
+import { CONTROL, FOCUS_WITHIN, READONLY } from '../../lib/editor/control.js';
 import { tagName } from '../../lib/editor/defaults.js';
 import { useDismissable } from '../../composables/useDismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
@@ -117,7 +117,7 @@ function onBackspace() {
             :class="[
                 CONTROL,
                 'flex flex-wrap items-center gap-1.5',
-                readonly ? [READONLY, 'border-neutral-100'] : 'border-neutral-100 focus-within:border-accent-500',
+                readonly ? [READONLY, 'border-neutral-100'] : ['border-neutral-100 focus-within:border-accent-500', FOCUS_WITHIN],
             ]"
         >
             <span

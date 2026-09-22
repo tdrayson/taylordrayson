@@ -50,7 +50,7 @@ const property = computed(() => `u-${props.response.property}`);
             <Link
                 v-if="response.internal"
                 :href="response.url"
-                class="u-url rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="u-url rounded-sm font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
             >
                 <img v-if="response.favicon" :src="response.favicon" alt="" loading="lazy" class="mb-0.5 mr-1.5 inline size-3.5 rounded-sm align-middle">
                 <cite class="p-name not-italic">{{ response.title }}</cite>

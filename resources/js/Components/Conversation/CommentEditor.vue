@@ -105,7 +105,7 @@ function applyLink() {
 </script>
 
 <template>
-    <div :class="cn('rounded-md border bg-neutral-0 transition-colors', invalid ? 'border-red-500' : 'border-neutral-100 focus-within:border-accent-500')">
+    <div :class="cn('comment-box rounded-md border bg-neutral-0 transition-colors', invalid ? 'is-invalid border-red-500' : 'border-neutral-100 focus-within:border-accent-500')">
         <div class="flex items-center gap-1 border-b border-neutral-50 px-2 py-1.5">
             <button
                 v-for="mark in MARKS"
@@ -115,7 +115,7 @@ function applyLink() {
                 :title="mark.label"
                 :aria-pressed="editor?.isActive(mark.name) ?? false"
                 :class="cn(
-                    'rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    'rounded p-1.5 transition-colors',
                     editor?.isActive(mark.name) ? 'bg-neutral-25 text-accent-700' : 'text-neutral-500 hover:text-neutral-900',
                 )"
                 @click="toggle(mark.name)"
@@ -130,7 +130,7 @@ function applyLink() {
                 :disabled="editor?.state.selection.empty ?? true"
                 :aria-pressed="editor?.isActive('link') ?? false"
                 :class="cn(
-                    'rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    'rounded p-1.5 transition-colors',
                     editor?.isActive('link') ? 'bg-neutral-25 text-accent-700' : 'text-neutral-500 hover:text-neutral-900',
                     (editor?.state.selection.empty ?? true) && 'cursor-not-allowed opacity-40',
                 )"
@@ -148,7 +148,7 @@ function applyLink() {
                 v-model="href"
                 type="url"
                 placeholder="https://example.com"
-                class="min-w-0 flex-1 rounded border border-neutral-100 bg-neutral-0 px-2 py-1 text-xs text-neutral-900 focus:border-accent-500 focus:outline-none"
+                class="min-w-0 flex-1 rounded border border-neutral-100 bg-neutral-0 px-2 py-1 text-xs text-neutral-900 focus:border-accent-500 focus-visible:-outline-offset-1"
                 @keydown.enter.prevent="applyLink"
                 @keydown.escape="linking = false"
             >
@@ -162,6 +162,16 @@ function applyLink() {
 </template>
 
 <style scoped>
+/* The box rings only while the text itself has focus; its toolbar buttons ring on their own. */
+.comment-box:has(.ProseMirror:focus) {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: -1px;
+}
+
+.comment-box.is-invalid:has(.ProseMirror:focus) {
+    outline-color: var(--color-red-500);
+}
+
 /* The editor's own paragraphs, which sit outside the prose plugin's reach. */
 .prose-comment :deep(p) {
     margin: 0;

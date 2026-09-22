@@ -42,7 +42,7 @@ const shortcuts = [
             <template #trigger="{ open, toggle }">
                 <button
                     type="button"
-                    class="flex size-12 items-center justify-center rounded-full border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-card transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:border-accent-500 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                    class="flex size-12 items-center justify-center rounded-full border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-card transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:text-accent-700"
                     :aria-label="open ? 'Close the add menu' : 'Add an entry'"
                     aria-haspopup="menu"
                     :aria-expanded="open"

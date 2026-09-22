@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
                 </div>
                 <Link
                     href="/photos"
-                    class="flex items-center gap-1 rounded-xs text-2xs font-bold whitespace-nowrap text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @md:gap-1.5 @md:text-sm @xl:gap-2 @xl:text-lg"
+                    class="flex items-center gap-1 rounded-xs text-2xs font-bold whitespace-nowrap text-neutral-900 @md:gap-1.5 @md:text-sm @xl:gap-2 @xl:text-lg"
                 >
                     All photos
                     <Icon class="size-3 @sm:size-3.5 @md:size-4 @xl:size-5" name="ArrowRight01Icon" :stroke-width="2.6" />
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
 
         <div
             ref="deckEl"
-            class="relative flex-1 touch-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-500"
+            class="relative flex-1 touch-none focus-visible:-outline-offset-2"
             tabindex="0"
             role="group"
             aria-roledescription="photo carousel"

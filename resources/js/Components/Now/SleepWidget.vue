@@ -116,7 +116,7 @@ const days = computed(() => props.nights.map((night, i) => ({
                         <Link
                             v-if="night.heightPct"
                             :href="night.href"
-                            class="min-h-1/25 w-full rounded-t rounded-b-xs transition duration-120 hover:brightness-92 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @xl:rounded-t-sm"
+                            class="min-h-1/25 w-full rounded-t rounded-b-xs transition duration-120 hover:brightness-92 @xl:rounded-t-sm"
                             :class="night.today ? 'bg-sleep' : 'bg-sleep/25'"
                             :style="{ height: night.heightPct }"
                             :aria-label="night.label"

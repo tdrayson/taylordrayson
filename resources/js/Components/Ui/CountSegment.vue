@@ -55,4 +55,16 @@ a.count-segment:hover,
 .count-segment:has(> * > button:hover) {
     background: var(--color-neutral-25);
 }
+
+/* The segment is what gets the ring, drawn over its own edge: rounded where the
+   group ends, square where it joins a neighbour. */
+a.count-segment:focus-visible,
+.count-segment:has(> * > button:focus-visible) {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: -1.5px;
+}
+
+.count-segment > :deep(* > button:focus-visible) {
+    outline: none;
+}
 </style>

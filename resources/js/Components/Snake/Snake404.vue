@@ -290,7 +290,7 @@ onMounted(() => {
                             v-model="renameName"
                             type="text"
                             maxlength="20"
-                            class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-2 text-base text-neutral-900 outline-none ring-accent-500/40 focus:ring-2 sm:flex-1"
+                            class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-2 text-base text-neutral-900 focus-visible:outline-offset-0 sm:flex-1"
                         />
                         <div class="flex gap-2">
                             <button type="submit" :disabled="!canRename" class="rounded-md bg-accent-500 px-4 py-2 text-base font-semibold text-white not-disabled:hover:bg-accent-700 disabled:opacity-50">Save</button>
@@ -313,7 +313,7 @@ onMounted(() => {
                                 type="text"
                                 maxlength="20"
                                 placeholder="Your name"
-                                class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-3 text-base text-neutral-900 outline-none ring-accent-500/40 focus:ring-2 sm:flex-1"
+                                class="w-full min-w-0 rounded-md bg-neutral-25 px-3 py-3 text-base text-neutral-900 focus-visible:outline-offset-0 sm:flex-1"
                             />
                             <button
                                 type="submit"

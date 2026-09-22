@@ -14,7 +14,7 @@ defineProps({
 <template>
     <Link
         :href="href"
-        class="inline-flex items-center gap-1.5 rounded-md bg-neutral-25 py-0.5 pl-1 pr-2 align-drop-35 font-semibold text-neutral-900 no-underline transition-colors hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-flight"
+        class="inline-flex items-center gap-1.5 rounded-md bg-neutral-25 py-0.5 pl-1 pr-2 align-drop-35 font-semibold text-neutral-900 no-underline transition-colors hover:bg-neutral-50 focus-visible:outline-flight"
     >
         <img v-if="icon" :src="icon" alt="" class="size-5 shrink-0 rounded object-contain" />
         <span>{{ name }}</span>

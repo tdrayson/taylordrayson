@@ -16,7 +16,7 @@ defineProps({
             <li v-for="link in links" :key="link.href">
                 <Link
                     :href="link.href"
-                    class="group inline-flex items-center gap-2 text-base text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none"
+                    class="group inline-flex items-center gap-2 text-base text-neutral-700 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
                 >
                     <Icon name="ArrowRight01Icon" class="size-4 text-neutral-400 transition-transform group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5" />
                     {{ link.label }}
