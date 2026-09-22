@@ -35,4 +35,17 @@ enum Source: string
             self::Manual => 'Manual',
         };
     }
+
+    /**
+     * The site a platform's responses are left on, whose favicon marks them.
+     * Null for a source nobody responds on.
+     */
+    public function host(): ?string
+    {
+        return match ($this) {
+            self::Strava => 'strava.com',
+            self::Swarm => 'swarmapp.com',
+            default => null,
+        };
+    }
 }

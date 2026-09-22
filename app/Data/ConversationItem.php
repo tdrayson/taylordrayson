@@ -11,6 +11,7 @@ use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use App\Support\EntryInstant;
 use App\Support\EntryName;
+use App\Support\Links;
 use App\Support\LocalTime;
 use App\Support\PortableText;
 use Carbon\CarbonInterface;
@@ -56,6 +57,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         public ?string $source = null,
         /** The same service, as it is said out loud ("Strava"); null for everything else. */
         public ?string $sourceName = null,
+        /** The service's stored favicon; null when there is no service or nothing is stored yet. */
+        public ?string $sourceFavicon = null,
         /** Whether I wrote this, which the page marks rather than states. */
         public bool $mine = false,
     ) {}
@@ -97,6 +100,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
     {
         $kind = $mention->kind()?->value ?? WebmentionKind::Mention->value;
         $isReacji = $kind === WebmentionKind::Reacji->value;
+        $host = Links::host($mention->source_url);
 
         return new self(
             id: 'mention-'.$mention->id,
@@ -120,6 +124,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             // The offset carried by the source's dt-published, when it had
             // one; otherwise the entry's, same as before.
             timezone: $mention->timezone ?? $timezone,
+            sourceFavicon: $host === null ? null : Links::faviconUrl($host),
         );
     }
 
@@ -131,6 +136,8 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
      */
     public static function fromSyndicated(SyndicatedResponse $response, ?string $timezone): self
     {
+        $host = Source::tryFrom($response->source)?->host();
+
         return new self(
             id: 'syndicated-'.$response->id,
             kind: $response->kind->value,
@@ -152,6 +159,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             timezone: $timezone,
             source: $response->source,
             sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
+            sourceFavicon: $host === null ? null : Links::faviconUrl($host),
         );
     }
 
@@ -264,6 +272,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             'emoji' => $this->emoji,
             'source' => $this->source,
             'sourceName' => $this->sourceName,
+            'sourceFavicon' => $this->sourceFavicon,
             'mine' => $this->mine,
         ];
     }

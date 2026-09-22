@@ -11,6 +11,7 @@ use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
 use App\Models\Webmention;
 use App\Services\Pushover\Client as Pushover;
+use App\Support\Links;
 use App\Support\SafeFetch;
 use App\Support\WebmentionTarget;
 use DOMDocument;
@@ -113,6 +114,12 @@ class VerifyWebmention implements ShouldQueue
         // thread that grew since the first mention reaches this page: the
         // source is fetched when a mention arrives, never on a timer.
         $storeNested($mention, $entry ?? []);
+
+        $host = Links::host($mention->source_url);
+
+        if ($host !== null && Links::faviconUrl($host) === null) {
+            ResolveLinkFavicons::dispatch([$host]);
+        }
 
         $this->notify($mention);
     }

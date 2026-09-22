@@ -3,6 +3,7 @@
 use App\Actions\Webmentions\DecideMentionStatus;
 use App\Enums\CommentStatus;
 use App\Enums\WebmentionKind;
+use App\Jobs\ResolveLinkFavicons;
 use App\Jobs\VerifyWebmention;
 use App\Models\Note;
 use App\Models\Reaction;
@@ -11,6 +12,7 @@ use App\Presenters\Conversation;
 use App\Services\Pushover\Client as Pushover;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * example.com is used rather than a .example domain because the verifier
@@ -59,6 +61,7 @@ function verify(Note $note, ?string $html, int $status = 200, string $source = S
     $target = rtrim(config('app.url'), '/').$note->url();
 
     Http::fake([$source => Http::response($html ?? mentionSource($target, 'in-reply-to', 'Nice one.'), $status)]);
+    Queue::fake([ResolveLinkFavicons::class]);
 
     $mention = Webmention::query()->create(['source_url' => $source, 'target_url' => $target]);
 
@@ -66,6 +69,12 @@ function verify(Note $note, ?string $html, int $status = 200, string $source = S
 
     return $mention->fresh();
 }
+
+it('queues the source site favicon once a mention is verified', function () {
+    verify(Note::factory()->create(), null);
+
+    Queue::assertPushed(ResolveLinkFavicons::class, fn (ResolveLinkFavicons $job): bool => $job->hosts === ['example.com']);
+});
 
 it('reads the author and the body out of a real reply', function () {
     $note = Note::factory()->create();
