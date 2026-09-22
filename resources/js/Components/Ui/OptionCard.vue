@@ -25,7 +25,7 @@ function onClick() {
 <template>
     <button
         type="button"
-        class="block w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        class="block w-full rounded-lg text-left"
         :class="readonly && 'cursor-default'"
         :aria-readonly="readonly || undefined"
         @click="onClick"

@@ -177,7 +177,7 @@ function setTimePart(value) {
                 'text-left',
                 readonly
                     ? [READONLY, 'border-neutral-100']
-                    : 'border-neutral-100 hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    : 'border-neutral-100 hover:border-accent-500',
                 ! readonly && (parts.date ? 'text-neutral-900' : 'text-neutral-500'),
             ]"
             @click="onToggle"

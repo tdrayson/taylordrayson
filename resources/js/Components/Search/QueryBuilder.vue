@@ -302,7 +302,7 @@ function clearFilter() {
                 <span class="or-line h-0.5 flex-1" />
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-2xs font-semibold uppercase tracking-wider text-accent-500 transition-colors hover:underline focus-visible:underline focus-visible:outline-none"
+                    class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-2xs font-semibold uppercase tracking-wider text-accent-500 transition-colors hover:underline focus-visible:underline"
                     @click="addGroupAt(groupIndex + 1)"
                 >
                     <Icon name="PlusSignIcon" class="size-3.5" /> Or

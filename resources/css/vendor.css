@@ -4,6 +4,13 @@
     --plyr-border-radius: var(--radius-lg);
 }
 
+/* Plyr draws its own focus ring; only the dash differs from ours. */
+.plyr .plyr__control:focus-visible,
+.plyr--full-ui input[type='range']:focus-visible::-webkit-slider-runnable-track,
+.plyr--full-ui input[type='range']:focus-visible::-moz-range-track {
+    outline-style: solid;
+}
+
 .plyr,
 .plyr--video,
 .plyr--video .plyr__video-wrapper {
@@ -37,4 +44,12 @@
 .maplibregl-map .maplibregl-ctrl-bottom-left,
 .maplibregl-map .maplibregl-ctrl-bottom-right {
     z-index: 901;
+}
+
+/* The zoom buttons are one joined stack: our ring, inset so each button keeps
+   the group's corners, in place of MapLibre's blue glow. */
+.maplibregl-map .maplibregl-ctrl-group button:focus:focus-visible,
+.maplibregl-map .maplibregl-ctrl-attrib-button:focus:focus-visible {
+    box-shadow: none;
+    outline-offset: -2px;
 }

@@ -58,7 +58,7 @@ const titleId = useId();
                         <button
                             type="button"
                             :aria-label="closeLabel"
-                            class="rounded-md p-1 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                            class="rounded-md p-1 text-neutral-500 transition-colors hover:text-neutral-900"
                             @click="close"
                         >
                             <Icon name="Cancel01Icon" class="size-5" />

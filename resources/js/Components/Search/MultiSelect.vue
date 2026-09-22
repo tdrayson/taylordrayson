@@ -73,7 +73,7 @@ watch(open, (isOpen) => {
             type="button"
             aria-haspopup="true"
             :aria-expanded="open"
-            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm transition-colors hover:border-accent-500"
             :class="summary ? 'text-neutral-900' : 'text-neutral-500'"
             @click="toggle"
         >
@@ -102,7 +102,7 @@ watch(open, (isOpen) => {
                         role="option"
                         :aria-selected="isSelected(option)"
                         :data-active="index === activeIndex"
-                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none"
+                        class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:-outline-offset-2"
                         :class="[
                             isSelected(option) ? 'text-neutral-900' : 'text-neutral-700',
                             index === activeIndex ? 'bg-neutral-25' : '',

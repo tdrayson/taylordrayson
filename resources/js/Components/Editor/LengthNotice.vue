@@ -58,7 +58,7 @@ const article = computed(() => ('aeiou'.includes(props.convertTo[0]) ? 'an' : 'a
 
             <button
                 type="button"
-                class="text-accent-500 underline underline-offset-2 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                class="text-accent-500 underline underline-offset-2 hover:text-accent-700"
                 :class="over ? 'font-semibold' : ''"
                 @click="$emit('convert')"
             >{{ over ? 'Turn' : 'Maybe turn' }} it into {{ article }} {{ convertTo }}</button>{{ over ? ' to post it.' : '?' }}

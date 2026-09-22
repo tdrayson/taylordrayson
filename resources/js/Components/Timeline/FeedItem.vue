@@ -324,7 +324,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         <button
             v-if="routeImageUrl && !coverPhoto"
             type="button"
-            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50"
             aria-label="View map"
             @click="openLightbox(mapLightboxIndex)"
         >
@@ -364,11 +364,11 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
              ride inside it as decoration, so the whole image is one hit target. -->
         <div
             v-if="coverPhoto && !routeImageUrl"
-            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
+            class="focus-frame group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
         >
             <button
                 type="button"
-                class="block size-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+                class="focus-frame-target block size-full cursor-zoom-in"
                 aria-label="View photos"
                 @click="openLightbox(0)"
             >
@@ -391,7 +391,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             <div class="group/zoom relative min-w-0 max-w-lg flex-1">
                 <button
                     type="button"
-                    class="block w-full cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="block w-full cursor-zoom-in rounded-lg"
                     aria-label="View map"
                     @click="openLightbox(mapLightboxIndex)"
                 >
@@ -405,7 +405,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             <div class="group/zoom relative shrink-0">
                 <button
                     type="button"
-                    class="block cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="block cursor-zoom-in rounded-lg"
                     aria-label="View photos"
                     @click="openLightbox(0)"
                 >
@@ -425,12 +425,12 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         <div
             v-if="media?.thumbnail && media?.videoUrl"
             ref="videoSlot"
-            class="relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
+            class="focus-frame relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0"
+                class="focus-frame-target group absolute inset-0"
                 aria-label="Watch video"
                 @click="playInline"
             >

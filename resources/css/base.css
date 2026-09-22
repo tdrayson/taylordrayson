@@ -82,6 +82,38 @@
         cursor: help;
     }
 
+    /* The one focus ring. An outline follows the element's own border-radius, so
+       every control gets a ring its own shape; components only adjust the offset
+       (inset where a neighbour or overflow would cut it) or the colour. */
+    :focus-visible {
+        outline: 2px solid var(--color-accent-500);
+        outline-offset: 2px;
+    }
+
+    /* A control with square corners of its own (a text link, a bare icon)
+       still gets softened ring corners. Zero specificity, so any rounded-*
+       utility, rounded-none included, keeps its shape. */
+    :where(a, button, summary, [tabindex]):focus-visible {
+        border-radius: var(--radius-xs, 2px);
+    }
+
+    /* A full-bleed control inside a clipped, rounded frame (a photo, a video
+       poster) hands its ring to the frame, which the overflow cannot cut. */
+    .focus-frame:has(.focus-frame-target:focus-visible) {
+        outline: 2px solid var(--color-accent-500);
+        outline-offset: 2px;
+    }
+
+    .focus-frame-target:focus-visible {
+        outline: none;
+    }
+
+    /* Script-focused containers (dialogs, skip-link targets) take focus to move
+       the reading position, not to be pressed. */
+    [tabindex='-1']:focus {
+        outline: none;
+    }
+
     /* Colour changes on interactive elements always ease rather than snap. */
     a,
     button,

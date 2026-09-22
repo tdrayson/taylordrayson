@@ -306,7 +306,7 @@ async function reply(item) {
                      point to the panel it opens. -->
                 <a
                     href="#send-a-link"
-                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     @click="asides?.openWebmention()"
                 >send me the link to your own post</a>.
             </p>

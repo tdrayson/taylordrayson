@@ -60,10 +60,10 @@ const usedCharacters = computed(() => plainTextOf(props.modelValue).length);
 
 const borderClass = computed(() => {
     if (props.error) {
-        return 'border-red-500 focus:border-red-500 focus:outline-none';
+        return 'border-red-500 focus:border-red-500 focus-visible:outline-red-500';
     }
 
-    return props.readonly ? 'border-neutral-100 focus:border-neutral-100 focus:outline-none' : CONTROL_BORDER;
+    return props.readonly ? 'border-neutral-100 focus:border-neutral-100' : CONTROL_BORDER;
 });
 
 /** The picked point, or null while the lookup has not resolved one. */

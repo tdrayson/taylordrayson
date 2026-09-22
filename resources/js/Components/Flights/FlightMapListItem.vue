@@ -45,7 +45,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
     <div>
         <button
             type="button"
-            class="w-full px-4 py-3 text-left transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+            class="w-full px-4 py-3 text-left transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:-outline-offset-2"
             :class="selected ? 'bg-accent-50' : ''"
             :aria-expanded="selected"
             @click="emit('select', entry.id)"
@@ -103,7 +103,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
             </div>
             <Link
                 :href="entry.href"
-                class="inline-block pt-1 font-semibold text-accent-700 underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="inline-block pt-1 font-semibold text-accent-700 underline-offset-2 hover:underline focus-visible:underline"
             >
                 View flight
             </Link>

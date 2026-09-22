@@ -53,7 +53,7 @@ function goTo(index) {
 </script>
 
 <template>
-    <div class="relative mt-3 w-full max-w-lg">
+    <div class="focus-frame relative mt-3 w-full max-w-lg rounded-lg">
         <div
             ref="track"
             class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto rounded-lg"
@@ -66,7 +66,7 @@ function goTo(index) {
             >
                 <button
                     type="button"
-                    class="group/zoom block size-full cursor-zoom-in transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+                    class="focus-frame-target group/zoom block size-full cursor-zoom-in transition-opacity hover:opacity-95"
                     :aria-label="slide.kind === 'map' ? 'View map' : 'View photo'"
                     @click="emit('open', slide.lightboxIndex)"
                 >
@@ -92,7 +92,7 @@ function goTo(index) {
                     :key="index"
                     type="button"
                     :aria-label="`Go to slide ${index + 1}`"
-                    class="size-1.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    class="size-1.5 rounded-full transition-colors focus-visible:outline-white"
                     :class="index === active ? 'bg-white' : 'bg-white/50 hover:bg-white/80'"
                     @click="goTo(index)"
                 />

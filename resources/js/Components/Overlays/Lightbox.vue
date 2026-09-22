@@ -243,7 +243,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     <Link
                         v-if="link && current?.url"
                         :href="current.url"
-                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-sm text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-sm text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
@@ -253,7 +253,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
 
                     <button
                         type="button"
-                        class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                         aria-label="Close"
                         @click="close"
                     >
@@ -285,7 +285,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     <button
                         v-if="hasMultiple"
                         type="button"
-                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                         aria-label="Previous photo"
                         @click="slideTo(-1)"
                     >
@@ -294,7 +294,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     <button
                         v-if="hasMultiple"
                         type="button"
-                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                         aria-label="Next photo"
                         @click="slideTo(1)"
                     >

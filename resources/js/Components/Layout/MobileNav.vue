@@ -99,7 +99,7 @@ onUnmounted(() => {
                     <button
                         type="button"
                         aria-label="Open settings"
-                        class="-ml-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        class="-ml-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25"
                         @click="openSettingsFromMenu"
                     >
                         <Icon name="Settings01Icon" class="size-5 flex-none text-neutral-500" />
