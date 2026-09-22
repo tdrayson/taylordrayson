@@ -1,3 +1,4 @@
+import { watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { defineSetting } from '../useSettings';
 import { formatDate, useDisplayFormats } from '../lib/dateFormat.js';
@@ -8,15 +9,9 @@ const dateFormatDef = defineSetting('dateFormat', 'short', ['short', 'long', 'dm
 
 useDisplayFormats({ time: () => timeFormatDef.value.value, date: () => dateFormatDef.value.value });
 
-/**
- * Save a format and refetch the page, since the server writes many of its strings.
- * @param {{set: (value: string) => void}} setting
- * @param {string} value
- * @returns {void}
- */
-function choose(setting, value) {
-    setting.set(value);
-    router.reload();
+// The server writes many of these strings, so a change, reset included, refetches the page.
+if (typeof window !== 'undefined') {
+    watch([timeFormatDef.value, dateFormatDef.value], () => router.reload());
 }
 
 /**
@@ -31,9 +26,9 @@ export function useDateFormat() {
 
     return {
         timeFormat: timeFormatDef.value,
-        setTimeFormat: (value) => choose(timeFormatDef, value),
+        setTimeFormat: timeFormatDef.set,
         dateFormat: dateFormatDef.value,
-        setDateFormat: (value) => choose(dateFormatDef, value),
+        setDateFormat: dateFormatDef.set,
         dateOptions,
     };
 }

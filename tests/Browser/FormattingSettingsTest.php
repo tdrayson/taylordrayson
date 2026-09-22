@@ -273,5 +273,7 @@ it('refetches server-written times and dates when the formats change', function 
         ->assertScript($cardTime, '15:05')
         ->select('[aria-labelledby="date-format-label"]', 'iso')
         ->assertScript(cookieValue('pref_dateFormat'), 'iso')
-        ->assertScript("document.querySelector('.timeline-feed .dt-published').closest('a')?.getAttribute('aria-label') ?? document.querySelector('.timeline-feed .dt-published').getAttribute('aria-label')", '2026-03-15, 15:05 +00:00');
+        ->assertScript("document.querySelector('.timeline-feed .dt-published').closest('a')?.getAttribute('aria-label') ?? document.querySelector('.timeline-feed .dt-published').getAttribute('aria-label')", '2026-03-15, 15:05 +00:00')
+        ->click('Reset to defaults')
+        ->assertScript($cardTime, '3:05pm');
 });
