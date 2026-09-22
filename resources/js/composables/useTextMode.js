@@ -2,7 +2,7 @@ import { watch } from 'vue';
 import { defineSetting } from '../useSettings';
 import { deleteCookie, readCookie } from '../lib/cookies';
 import { createTextMode } from '../lib/textMode';
-import { WORD_TRANSFORMS } from '../lib/wordTransforms';
+import { WORD_TRANSFORMS } from '../lib/textModes';
 
 /** The modes in the settings dropdown, in order. */
 export const TEXT_MODES = [

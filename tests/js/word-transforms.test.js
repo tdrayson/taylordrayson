@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { rewriteWords } from '../../resources/js/lib/textMode.js';
-import { toEmoji, toNumeronym, toPigLatin, toPirate, toReversed } from '../../resources/js/lib/wordTransforms.js';
+import { toEmoji } from '../../resources/js/lib/textModes/emoji.js';
+import { toNumeronym } from '../../resources/js/lib/textModes/numeronym.js';
+import { toPigLatin } from '../../resources/js/lib/textModes/pigLatin.js';
+import { toPirate } from '../../resources/js/lib/textModes/pirate.js';
+import { toReversed } from '../../resources/js/lib/textModes/reversed.js';
 
 describe('rewriteWords', () => {
     it('transforms each word and keeps spacing, numbers and punctuation', () => {
@@ -50,6 +54,10 @@ describe('toReversed', () => {
 describe('toEmoji', () => {
     it('swaps known words, plurals included, and leaves unknown ones', () => {
         assert.equal(rewriteWords('Coffee before flights and books', toEmoji), '☕ before ✈️ and 📚');
+    });
+
+    it('gives a TV episode two different emoji', () => {
+        assert.notEqual(toEmoji('TV'), toEmoji('episode'));
     });
 });
 
