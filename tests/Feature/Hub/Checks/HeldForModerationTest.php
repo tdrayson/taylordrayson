@@ -4,7 +4,6 @@ use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Note;
 use App\Queries\Hub\Checks\HeldForModeration;
-use App\Support\InteractionTarget;
 use App\Support\PortableText;
 
 function heldComment(string $status = 'pending'): Comment
@@ -42,14 +41,4 @@ it('clears once the comment is approved', function () {
     heldComment(CommentStatus::Approved->value);
 
     expect(app(HeldForModeration::class)->items())->toBeEmpty();
-});
-
-it('names a note target by its card title', function () {
-    $note = Note::factory()->create(['content' => PortableText::fromPlainText('Hello world')]);
-
-    expect(InteractionTarget::titleFor($note))->toBe('Hello world');
-});
-
-it('falls back to a placeholder for a gone target', function () {
-    expect(InteractionTarget::titleFor(null))->toBe('an entry that has since gone');
 });

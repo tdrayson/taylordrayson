@@ -6,7 +6,7 @@ use App\Data\Hub\AttentionItem;
 use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Webmention;
-use App\Support\InteractionTarget;
+use App\Presenters\CardPresenter;
 use App\Support\PortableText;
 
 /**
@@ -37,7 +37,7 @@ final class HeldForModeration implements Check
                 id: 'comment-'.$comment->id,
                 kind: 'comment',
                 icon: 'Comment01Icon',
-                title: $comment->author_name.' commented on '.InteractionTarget::titleFor($comment->commentable),
+                title: $comment->author_name.' commented on '.CardPresenter::title($comment->commentable),
                 detail: 'First time they have written, so it is held until you say so.',
                 body: PortableText::plainText($comment->body),
                 age: $comment->created_at->diffForHumans(),
@@ -65,7 +65,7 @@ final class HeldForModeration implements Check
                 id: 'mention-'.$mention->id,
                 kind: 'comment',
                 icon: 'Link04Icon',
-                title: ($mention->author_name ?: $mention->source_url).' linked to '.InteractionTarget::titleFor($mention->target),
+                title: ($mention->author_name ?: $mention->source_url).' linked to '.CardPresenter::title($mention->target),
                 detail: 'From a site that has not been seen here before.',
                 body: PortableText::plainText($mention->content ?? []),
                 age: $mention->created_at->diffForHumans(),

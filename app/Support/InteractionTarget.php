@@ -5,7 +5,6 @@ namespace App\Support;
 use App\Enums\EntryStatus;
 use App\Models\Concerns\Timelineable;
 use App\Models\Page;
-use App\Presenters\CardPresenter;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -75,16 +74,6 @@ final class InteractionTarget
     {
         return self::isRespondable($model)
             && in_array($model->status ?? null, [EntryStatus::Published, EntryStatus::Unlisted], strict: true);
-    }
-
-    /** The heading a response target is known by, for sentences about it. */
-    public static function titleFor(?Model $target): string
-    {
-        return match (true) {
-            $target instanceof Timelineable => CardPresenter::card($target)->title($target),
-            $target instanceof Page => $target->title,
-            default => 'an entry that has since gone',
-        };
     }
 
     /** The public type key for a model, or null when it accepts no interactions. */

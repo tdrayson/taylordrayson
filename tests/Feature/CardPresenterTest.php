@@ -12,12 +12,14 @@ use App\Models\Flight;
 use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
+use App\Models\Page;
 use App\Models\Place;
 use App\Models\Project;
 use App\Models\Sleep;
 use App\Models\ThisWeekWith;
 use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
+use App\Support\PortableText;
 
 /**
  * Proves CardPresenter::for() is a total resolver: every Timelineable model
@@ -43,3 +45,12 @@ it('resolves a CardData for every Timelineable model', function (Timelineable $m
     'article' => fn () => Article::factory()->create(),
     'note' => fn () => Note::factory()->create(),
 ]);
+
+it('names an entry by its card heading and a page by its own title', function () {
+    $note = Note::factory()->create(['content' => PortableText::fromPlainText('Hello world')]);
+    $page = Page::factory()->create(['title' => 'Uses']);
+
+    expect(CardPresenter::title($note))->toBe('Hello world')
+        ->and(CardPresenter::title($page))->toBe('Uses')
+        ->and(CardPresenter::title(null))->toBe('an entry that has since gone');
+});

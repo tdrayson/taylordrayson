@@ -8,7 +8,7 @@ use App\Models\Comment;
 use App\Models\Reaction;
 use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
-use App\Support\InteractionTarget;
+use App\Presenters\CardPresenter;
 use App\Support\PortableText;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -206,7 +206,7 @@ final class RecentResponses
             kind: $row['kind'],
             icon: $row['icon'],
             sentence: $this->sentence($row),
-            entryTitle: InteractionTarget::titleFor($row['target']),
+            entryTitle: CardPresenter::title($row['target']),
             entryHref: $row['target']?->url() ?? '/',
             body: $row['body'],
             age: $row['at']->diffForHumans(),
