@@ -3,6 +3,7 @@
 use App\DynamicTags\DynamicTagRegistry;
 use App\Models\Flight;
 use App\Models\Food;
+use App\Queries\LoggingStreak;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 
@@ -59,3 +60,27 @@ it('holds the current streak just after local midnight during BST, when app.time
     expect(app(DynamicTagRegistry::class)->value('streak.current', ['type' => 'food'])['value'])
         ->toBe(2);
 });
+
+it('holds the current streak when the sync is several days behind', function () {
+    foreach (['2026-09-03', '2026-09-04', '2026-09-05'] as $day) {
+        Food::factory()->create(['occurred_at' => "{$day} 12:00:00"]);
+    }
+
+    expect(app(DynamicTagRegistry::class)->value('streak.current', ['type' => 'food'])['value'])
+        ->toBe(3);
+});
+
+it('always agrees with the sidebar streak', function (array $days) {
+    foreach ($days as $day) {
+        Food::factory()->create(['occurred_at' => "{$day} 12:00:00"]);
+    }
+
+    expect(app(DynamicTagRegistry::class)->value('streak.current', ['type' => 'food'])['value'])
+        ->toBe(app(LoggingStreak::class)());
+})->with([
+    'unbroken to today' => [['2026-09-06', '2026-09-07', '2026-09-08']],
+    'sync days behind' => [['2026-09-01', '2026-09-02']],
+    'a missed day' => [['2026-09-04', '2026-09-06', '2026-09-07']],
+    'a future-dated row' => [['2026-09-07', '2026-09-08', '2026-09-20']],
+    'nothing logged' => [[]],
+]);

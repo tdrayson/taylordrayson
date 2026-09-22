@@ -49,6 +49,6 @@ abstract class StreakMeasure extends DynamicTag
 
         $cadence = Cadence::tryFrom($options['every'] ?? '') ?? Cadence::Day;
 
-        return app(StreakDays::class)()[$model][$cadence->value][$this->measure()] ?? 0;
+        return app(StreakDays::class)->for($model, $cadence)[$this->measure()];
     }
 }
