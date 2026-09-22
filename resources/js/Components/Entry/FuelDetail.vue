@@ -13,7 +13,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-const { distanceFromMiles, exactDistanceFromMiles } = useFormat();
+const { distanceFromMiles, exactDistanceFromMiles, measure, exactMeasure, sillyUnits } = useFormat();
 
 // Fuel-card saving: what the pump price would have cost minus the fuel-card
 // price. Null unless a lower fuel-card cost is recorded.
@@ -34,8 +34,12 @@ const addressLine = computed(() =>
 // visitor's mi/km distance setting.
 const stats = computed(() => [
     { label: 'Volume', value: number(props.entry.litres, 1), unit: 'L' },
-    { label: 'Cost', value: money(props.entry.cost) },
-    { label: 'Per litre', value: pencePerLitre(props.entry.price_per_litre) },
+    { label: 'Cost', value: measure('money', props.entry.cost, money(props.entry.cost)), exact: exactMeasure('money', props.entry.cost, money(props.entry.cost)) },
+    {
+        label: 'Per litre',
+        value: sillyUnits.value === 'on' && props.entry.price_per_litre ? `${measure('money', props.entry.price_per_litre, '')} a litre` : pencePerLitre(props.entry.price_per_litre),
+        exact: exactMeasure('money', props.entry.price_per_litre, pencePerLitre(props.entry.price_per_litre)),
+    },
     {
         label: 'Odometer',
         distanceM: props.entry.odometer != null ? milesToMetres(props.entry.odometer) : null,
@@ -43,7 +47,7 @@ const stats = computed(() => [
 ]);
 
 const details = computed(() => [
-    { label: 'Fuel card saving', value: money(saving.value) },
+    { label: 'Fuel card saving', value: measure('money', saving.value, money(saving.value)), title: exactMeasure('money', saving.value, money(saving.value)) },
     {
         label: 'Range',
         value: props.entry.miles_this_tank != null

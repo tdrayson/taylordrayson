@@ -10,6 +10,7 @@ import EntryFooter from '../Components/Entry/EntryFooter.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
 import { entryType } from '../entryTypes.js';
+import { useTokenText } from '../composables/useTokenText';
 
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
@@ -22,6 +23,8 @@ const props = defineProps({
     accent: { type: String, required: true },
     // Null for title-less types (notes): the header shows only the type label and date.
     title: { type: String, default: null },
+    // The title as tokens when it carries a measurement, e.g. a night's sleep.
+    titleTokens: { type: Array, default: null },
     occurredAt: { type: String, default: null },
     dayUrl: { type: String, default: null },
     // { title, url } when this entry falls inside a trip window, else null.
@@ -50,6 +53,10 @@ const props = defineProps({
     // [{ extension, type, label, url }] this entry can be exported as.
     formats: { type: Array, default: () => [] },
 });
+
+const { tokenText, tokenTitle } = useTokenText();
+const titleText = computed(() => (props.titleTokens ? tokenText(props.titleTokens) : props.title));
+const titleExact = computed(() => tokenTitle(props.titleTokens));
 
 const signedIn = computed(() => usePage().props.signedIn === true);
 
@@ -144,7 +151,7 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
                     <Link :href="meta.href" class="text-2xs font-semibold uppercase tracking-wider underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji class="mt-1 max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">{{ title }}</h1>
+                <h1 v-if="title" v-twemoji :title="titleExact" class="mt-1 max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">{{ titleText }}</h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->

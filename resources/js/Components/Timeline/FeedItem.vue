@@ -17,9 +17,10 @@ import CardMediaCarousel from './CardMediaCarousel.vue';
 import NoteBody from '../Ui/NoteBody.vue';
 import ResponseContext from '../Entry/ResponseContext.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration as clockDuration, flightDurationLabel, humanDuration, number } from '../../lib/format.js';
+import { clock, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { useFormat } from '../../composables/useFormat';
+import { useTokenText } from '../../composables/useTokenText';
 import { useTheme } from '../../useTheme';
 
 const props = defineProps({
@@ -33,6 +34,8 @@ const props = defineProps({
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
+    // The title as tokens when it carries a measurement, e.g. a night's sleep.
+    titleTokens: { type: Array, default: null },
     // Accessible name for the title when the visible text lacks context (e.g. "3,145 kcal").
     titleLabel: { type: String, default: null },
     // Full note content as a Portable Text document: title-less types render
@@ -83,7 +86,7 @@ const props = defineProps({
 });
 
 // Unit-aware distance formatter; route.distance is already in miles.
-const { distance, weight, distanceFromMiles, exactDistance, exactWeight, exactDistanceFromMiles, duration, measure, exactMeasure, sillyUnits } = useFormat();
+const { distanceFromMiles, exactDistanceFromMiles, duration, exactMeasure } = useFormat();
 
 // A note renders its document in place of the display-font title, so the
 // heading below is a v-else on this rather than on `body` being truthy: an
@@ -141,47 +144,14 @@ function listen() {
 // Leaving the page releases the inline dock, popping the video to the corner.
 onBeforeUnmount(() => undockVideo(videoSlot.value));
 
-// Timeline card subtitle. When the server sends structured tokens, compose them
-// through useFormat so distance/weight react to the unit toggle; otherwise fall
-// back to the plain server string (e.g. notes have no unit-bearing subtitle).
-const realEnergy = (kcal) => `${number(kcal)} kcal`;
+// Card title and subtitle. Tokens carry raw measurements, composed here so they
+// follow the visitor's unit settings; otherwise the plain server string stands.
+const { tokenText, tokenTitle } = useTokenText();
 
-const metaText = computed(() => composeMeta({
-    dist: (token) => distance(token.m, token.p),
-    wt: (token) => weight(token.kg, token.p),
-    dur: (token) => measure('duration', token.s, humanDuration(token.s)),
-    kcal: (token) => measure('energy', token.kcal, realEnergy(token.kcal)),
-}) ?? props.meta);
-
-// The same subtitle in real units, for a title while silly units hide them.
-const metaTitle = computed(() => (sillyUnits.value === 'on' && props.metaTokens?.some((token) => token.t !== 'text')
-    ? composeMeta({
-        dist: (token) => exactDistance(token.m, token.p),
-        wt: (token) => exactWeight(token.kg, token.p),
-        dur: (token) => humanDuration(token.s),
-        kcal: (token) => realEnergy(token.kcal),
-    })
-    : null));
-
-/**
- * Join the subtitle tokens into one line.
- * @param {Record<string, (token: object) => string>} formatters Keyed by token type; text tokens pass through.
- * @returns {string|null}
- */
-function composeMeta(formatters) {
-    if (!props.metaTokens) {
-        return null;
-    }
-    // Each token may carry a `sep` (e.g. ' in ') to join it onto the previous
-    // token with a light connective instead of the default ', ' list comma.
-    // Empty-text tokens are dropped before joining so a missing value never
-    // leaves a dangling separator (e.g. no leading "in" when duration is first).
-    const parts = props.metaTokens
-        .map((token) => ({ text: formatters[token.t] ? formatters[token.t](token) : token.v, sep: token.sep ?? ', ' }))
-        .filter((part) => part.text);
-
-    return parts.map((part, index) => (index === 0 ? '' : part.sep) + part.text).join('');
-}
+const titleText = computed(() => (props.titleTokens ? tokenText(props.titleTokens) : props.title));
+const titleExact = computed(() => tokenTitle(props.titleTokens));
+const metaText = computed(() => (props.metaTokens ? tokenText(props.metaTokens) : props.meta));
+const metaTitle = computed(() => tokenTitle(props.metaTokens));
 
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
@@ -307,9 +277,10 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 v-twemoji
                 :href="url || undefined"
                 :aria-label="titleLabel || undefined"
+                :title="titleExact"
                 class="p-name"
                 :class="url ? 'u-url underline-offset-4 transition-colors hover:text-(--type-color) hover:underline focus-visible:text-(--type-color) focus-visible:underline' : ''"
-            >{{ title }}</component>
+            >{{ titleText }}</component>
         </Heading>
         <p v-if="category" class="mt-1.5 text-xs text-neutral-500">{{ category }}</p>
         <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">

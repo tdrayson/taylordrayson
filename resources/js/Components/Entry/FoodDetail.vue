@@ -102,7 +102,7 @@ function quantity(item) {
                                 <div class="text-sm text-neutral-900">{{ item.name }}</div>
                                 <div class="text-xs text-neutral-500">{{ quantity(item) }}</div>
                             </div>
-                            <div class="shrink-0 text-sm font-semibold text-neutral-900 tabular-nums">{{ number(item.calories) }}</div>
+                            <div :title="exactMeasure('energy', item.calories, number(item.calories))" class="shrink-0 text-sm font-semibold text-neutral-900 tabular-nums">{{ measure('energy', item.calories, number(item.calories)) }}</div>
                         </div>
                     </div>
                 </div>

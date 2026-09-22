@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { formatTime } from '../../lib/time.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     stages: { type: Array, required: true },
@@ -16,6 +17,8 @@ const STAGE_META = {
 };
 
 const LANE_COUNT = 4;
+
+const { measure, exactMeasure } = useFormat();
 
 function formatDuration(seconds) {
     const minutes = Math.round(seconds / 60);
@@ -89,7 +92,12 @@ const totals = computed(() => {
 
     return [...byLane.values()]
         .sort((a, b) => a.lane - b.lane)
-        .map((entry) => ({ label: entry.label, color: entry.color, duration: formatDuration(entry.seconds) }));
+        .map((entry) => ({
+            label: entry.label,
+            color: entry.color,
+            duration: measure('duration', entry.seconds, formatDuration(entry.seconds)),
+            exact: exactMeasure('duration', entry.seconds, formatDuration(entry.seconds)),
+        }));
 });
 
 const track = ref(null);
@@ -186,7 +194,7 @@ const cursor = computed(() => {
         <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
             <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-sm text-neutral-700">
                 <span class="size-2.5 rounded-full" :style="{ background: total.color }" />
-                {{ total.label }} <span class="text-neutral-500 tabular-nums">{{ total.duration }}</span>
+                {{ total.label }} <span :title="total.exact" class="text-neutral-500 tabular-nums">{{ total.duration }}</span>
             </div>
         </div>
     </div>
