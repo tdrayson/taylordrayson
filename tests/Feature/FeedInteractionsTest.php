@@ -31,7 +31,7 @@ function deferredInteractions(string $url, string $component): array
 it('sends reaction counts to every page of feed cards', function (callable $url, string $component) {
     $note = Note::factory()->create(['occurred_at' => now()]);
 
-    postJson("/reactions/note/{$note->id}", ['type' => 'love'])->assertSuccessful();
+    postJson("/reactions/note/{$note->id}", ['type' => 'love', 'reactor' => fake()->uuid()])->assertSuccessful();
 
     $tag = Tag::create(['name' => 'Squash', 'slug' => 'squash']);
     $note->tags()->attach($tag);
