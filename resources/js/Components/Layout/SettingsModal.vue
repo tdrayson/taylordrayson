@@ -10,10 +10,13 @@ import Icon from '../Ui/Icon.vue';
 import { useSettings } from '../../useSettings';
 import { useFormat } from '../../composables/useFormat';
 import { useNumeronym } from '../../composables/useNumeronym';
+import { useDateFormat } from '../../composables/useDateFormat';
+import Select from '../Ui/Select.vue';
 
 const { settingsOpen, closeSettings, customised, resetSettings } = useSettings();
 const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit, temperatureUnit, setTemperatureUnit } = useFormat();
 const { numeronymMode } = useNumeronym();
+const { timeFormat, setTimeFormat, dateFormat, setDateFormat, dateOptions } = useDateFormat();
 
 // Segmented options for the formatting toggles.
 const distanceOptions = [
@@ -27,6 +30,10 @@ const weightOptions = [
 const temperatureOptions = [
     { value: 'c', label: '°C' },
     { value: 'f', label: '°F' },
+];
+const timeOptions = [
+    { value: '12h', label: '12h' },
+    { value: '24h', label: '24h' },
 ];
 
 // Modal emits update:open(false) on backdrop click/Esc/close button; funnel
@@ -67,6 +74,23 @@ function onOpenChange(open) {
                         aria-label="Temperature unit"
                         @update:model-value="setTemperatureUnit"
                     />
+                    <SettingToggle
+                        :model-value="timeFormat"
+                        :options="timeOptions"
+                        label="Time"
+                        aria-label="Time format"
+                        @update:model-value="setTimeFormat"
+                    />
+                    <div class="flex items-center justify-between gap-4">
+                        <span id="date-format-label" class="text-base text-neutral-900">Date</span>
+                        <Select
+                            :model-value="dateFormat"
+                            :options="dateOptions"
+                            size="sm"
+                            aria-labelledby="date-format-label"
+                            @update:model-value="setDateFormat"
+                        />
+                    </div>
                 </div>
             </section>
 

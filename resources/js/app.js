@@ -5,6 +5,7 @@ import { createInertiaApp, usePage } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { applyTheme } from './useTheme';
 import { seedPreferences } from './useSettings';
+import './composables/useDateFormat';
 import { watchNumeronymMode } from './composables/useNumeronym';
 import { twemojiDirective } from './directives/twemoji';
 
