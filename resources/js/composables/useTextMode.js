@@ -1,29 +1,57 @@
-import { computed, watch } from 'vue';
+import { watch } from 'vue';
 import { defineSetting } from '../useSettings';
-import { createNumeronymMode } from '../lib/numeronym';
+import { deleteCookie, readCookie } from '../lib/cookies';
+import { createTextMode } from '../lib/textMode';
+import { WORD_TRANSFORMS } from '../lib/wordTransforms';
 
-const numeronymDef = defineSetting('numeronym', 'off', ['off', 'on']);
+/** The modes in the settings dropdown, in order. */
+export const TEXT_MODES = [
+    { value: 'off', label: 'Off' },
+    { value: 'numeronym', label: 'Numeronym' },
+    { value: 'pirate', label: 'Pirate' },
+    { value: 'reversed', label: 'Reversed' },
+    { value: 'emoji', label: 'Emoji' },
+    { value: 'pig-latin', label: 'Pig Latin' },
+];
+
+const textModeDef = defineSetting('textMode', 'off', TEXT_MODES.map((mode) => mode.value));
+
+/** Numeronym mode used to be its own on/off switch; carry that choice over once. */
+function migrateNumeronymCookie() {
+    const legacy = readCookie('pref_numeronym');
+
+    if (legacy === null) {
+        return;
+    }
+
+    if (legacy === 'on' && readCookie('pref_textMode') === null) {
+        textModeDef.set('numeronym');
+    }
+
+    deleteCookie('pref_numeronym');
+}
 
 /**
  * Keep the page in step with the setting. Client only, called once after mount.
  * @param {HTMLElement} root
  * @returns {void}
  */
-export function watchNumeronymMode(root) {
-    const mode = createNumeronymMode(root);
+export function watchTextMode(root) {
+    migrateNumeronymCookie();
 
-    watch(numeronymDef.value, (value) => (value === 'on' ? mode.start() : mode.stop()), { immediate: true });
+    let active = null;
+
+    watch(textModeDef.value, (value) => {
+        active?.stop();
+        active = WORD_TRANSFORMS[value] ? createTextMode(root, WORD_TRANSFORMS[value]) : null;
+        active?.start();
+    }, { immediate: true });
 }
 
 /**
- * The numeronym mode switch as a boolean, for the settings panel.
- * @returns {{numeronymMode: import('vue').WritableComputedRef<boolean>}}
+ * The text mode setting, for the settings panel.
+ * @returns {{textMode: import('vue').Ref<string>, setTextMode: (value: string) => void}}
  */
-export function useNumeronym() {
-    const numeronymMode = computed({
-        get: () => numeronymDef.value.value === 'on',
-        set: (on) => numeronymDef.set(on ? 'on' : 'off'),
-    });
-
-    return { numeronymMode };
+export function useTextMode() {
+    return { textMode: textModeDef.value, setTextMode: textModeDef.set };
 }

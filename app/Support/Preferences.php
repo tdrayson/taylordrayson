@@ -41,7 +41,7 @@ final class Preferences
      *
      * @var list<string>
      */
-    public const SETTINGS = ['distanceUnit', 'weightUnit', 'numeronym', 'temperatureUnit'];
+    public const SETTINGS = ['distanceUnit', 'weightUnit', 'temperatureUnit', 'sillyUnits', 'textMode'];
 
     /**
      * Every cookie the browser writes, which must not be encrypted.

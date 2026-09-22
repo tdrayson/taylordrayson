@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import ThemeCards from './ThemeCards.vue';
 import SettingToggle from './SettingToggle.vue';
 import Eyebrow from '../Ui/Eyebrow.vue';
@@ -7,13 +8,29 @@ import Switch from '../Ui/Switch.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
 import InfoTip from '../Ui/InfoTip.vue';
 import Icon from '../Ui/Icon.vue';
+import Select from '../Ui/Select.vue';
 import { useSettings } from '../../useSettings';
 import { useFormat } from '../../composables/useFormat';
-import { useNumeronym } from '../../composables/useNumeronym';
+import { TEXT_MODES, useTextMode } from '../../composables/useTextMode';
 
 const { settingsOpen, closeSettings, customised, resetSettings } = useSettings();
-const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit, temperatureUnit, setTemperatureUnit } = useFormat();
-const { numeronymMode } = useNumeronym();
+const { distanceUnit, setDistanceUnit, weightUnit, setWeightUnit, temperatureUnit, setTemperatureUnit, sillyUnits, setSillyUnits } = useFormat();
+const { textMode, setTextMode } = useTextMode();
+
+const sillyUnitsOn = computed({
+    get: () => sillyUnits.value === 'on',
+    set: (on) => setSillyUnits(on ? 'on' : 'off'),
+});
+
+// What the selected text mode does, for its InfoTip.
+const TEXT_MODE_ABOUT = {
+    off: 'Rewrites every word on the site for a laugh. Pick a mode to try one.',
+    numeronym: 'Shortens every word to its first and last letters with a count between, so accessibility reads a11y.',
+    pirate: 'Talks like a pirate. Hello becomes ahoy, and you becomes ye.',
+    reversed: 'Writes every word backwards. Good luck reading it.',
+    emoji: 'Swaps the words it knows for emoji, so coffee becomes ☕.',
+    'pig-latin': 'Moves the start of each word to the end and adds ay, so pig becomes igpay.',
+};
 
 // Segmented options for the formatting toggles.
 const distanceOptions = [
@@ -72,16 +89,26 @@ function onOpenChange(open) {
 
             <section class="space-y-2">
                 <Eyebrow as="h3" class="tracking-wide text-neutral-500">Just for fun</Eyebrow>
-                <div class="rounded-lg border border-neutral-50 px-4 py-2.5">
+                <div class="divide-y divide-neutral-50 rounded-lg border border-neutral-50 px-4 *:py-2.5">
                     <div class="flex items-center justify-between gap-4">
                         <span class="flex items-center gap-1.5">
-                            <span id="numeronym-mode-label" class="text-base text-neutral-900">Numeronym mode</span>
-                            <InfoTip label="About numeronym mode">
-                                <p>Shortens every word to its first and last letters with a count between, so accessibility reads a11y.</p>
-                                <ExternalLink href="https://en.wikipedia.org/wiki/Numeronym" label="What's a numeronym?" />
+                            <label for="text-mode" class="text-base text-neutral-900">Text mode</label>
+                            <InfoTip label="About text mode">
+                                <p>{{ TEXT_MODE_ABOUT[textMode] }}</p>
+                                <ExternalLink v-if="textMode === 'numeronym'" href="https://en.wikipedia.org/wiki/Numeronym" label="What's a numeronym?" />
+                                <ExternalLink v-else-if="textMode === 'pig-latin'" href="https://en.wikipedia.org/wiki/Pig_Latin" label="What's Pig Latin?" />
                             </InfoTip>
                         </span>
-                        <Switch v-model="numeronymMode" aria-labelledby="numeronym-mode-label" />
+                        <Select id="text-mode" size="sm" :model-value="textMode" :options="TEXT_MODES" @update:model-value="setTextMode" />
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="flex items-center gap-1.5">
+                            <span id="silly-units-label" class="text-base text-neutral-900">Silly units</span>
+                            <InfoTip label="About silly units">
+                                <p>Measures distances in buses and marathons, and weights in bananas and corgis. Hover one for the real number.</p>
+                            </InfoTip>
+                        </span>
+                        <Switch v-model="sillyUnitsOn" aria-labelledby="silly-units-label" />
                     </div>
                 </div>
             </section>

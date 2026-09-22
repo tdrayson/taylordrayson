@@ -5,7 +5,7 @@ import { createInertiaApp, usePage } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { applyTheme } from './useTheme';
 import { seedPreferences } from './useSettings';
-import { watchNumeronymMode } from './composables/useNumeronym';
+import { watchTextMode } from './composables/useTextMode';
 import { twemojiDirective } from './directives/twemoji';
 
 createInertiaApp({
@@ -43,7 +43,7 @@ createInertiaApp({
             .directive('twemoji', twemojiDirective)
             .mount(el);
 
-        watchNumeronymMode(document.body);
+        watchTextMode(document.body);
     },
     progress: {
         color: '#3858E9',
