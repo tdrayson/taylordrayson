@@ -7,6 +7,10 @@ describe('rewriteWords', () => {
     it('transforms each word and keeps spacing, numbers and punctuation', () => {
         assert.equal(rewriteWords('Ran 5 miles, then coffee!', (word) => word.toUpperCase()), 'RAN 5 MILES, THEN COFFEE!');
     });
+
+    it('leaves units and letters stuck to numbers alone', () => {
+        assert.equal(rewriteWords('Ran 6.3 mi at 2:49pm, 25°C and 528 kcal', (word) => word.toUpperCase()), 'RAN 6.3 mi AT 2:49pm, 25°C AND 528 kcal');
+    });
 });
 
 describe('toNumeronym', () => {

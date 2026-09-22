@@ -2,14 +2,28 @@ const WORD = /\p{L}+(?:['’]\p{L}+)*/gu;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION', 'CODE', 'PRE', 'KBD', 'SAMP']);
 
+/** Unit abbreviations, which read as nonsense once rewritten. */
+const UNITS = new Set(['mi', 'km', 'kg', 'lbs', 'kcal', 'bpm', 'mph', 'mpg']);
+
 /**
- * Run every word in a string through a transform, leaving spacing and punctuation alone.
+ * Whether a word is part of a measurement: a unit, or letters stuck to a number like 5pm or 25°C.
+ * @param {string} text
+ * @param {string} word
+ * @param {number} offset
+ * @returns {boolean}
+ */
+function isMeasure(text, word, offset) {
+    return UNITS.has(word.toLowerCase()) || /[\p{N}°]/u.test(text[offset - 1] ?? '');
+}
+
+/**
+ * Run every word in a string through a transform, leaving spacing, punctuation and measurements alone.
  * @param {string} text
  * @param {(word: string) => string} transformWord
  * @returns {string}
  */
 export function rewriteWords(text, transformWord) {
-    return text.replace(WORD, (word) => transformWord(word));
+    return text.replace(WORD, (word, offset) => (isMeasure(text, word, offset) ? word : transformWord(word)));
 }
 
 /**
