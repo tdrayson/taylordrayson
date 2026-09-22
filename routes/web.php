@@ -45,6 +45,12 @@ use Illuminate\Support\Facades\Route;
 // content page shadow the login form.
 require __DIR__.'/auth.php';
 
+// Body media is stored root-relative, so locally a file nginx cannot find
+// falls through to wherever MEDIA_URL points.
+if (app()->isLocal() && str_starts_with(config('filesystems.disks.public.url'), 'http')) {
+    Route::redirect('/storage/{path}', config('filesystems.disks.public.url').'/{path}')->where('path', '.*');
+}
+
 // Authoring, session-guarded: the only caller is the editor in a signed-in
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
