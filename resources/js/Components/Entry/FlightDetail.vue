@@ -16,7 +16,7 @@ const props = defineProps({
 // Unit-aware distance formatter; the visible label re-runs when the visitor
 // toggles distance units, while distanceMiles (below) stays fixed in miles
 // for the duration estimate.
-const { distance } = useFormat();
+const { distance, exactDistance } = useFormat();
 
 const meta = computed(() => props.entry.meta || {});
 const airline = computed(() => props.entry.airline || null);
@@ -74,6 +74,7 @@ const stats = computed(() => [
                 :arrive-time="time(arriveAt)"
                 :duration="durationLabel"
                 :note="distanceLabel"
+                :note-title="exactDistance(entry.distance)"
             />
         </div>
 

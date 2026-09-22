@@ -83,7 +83,7 @@ const props = defineProps({
 });
 
 // Unit-aware distance formatter; route.distance is already in miles.
-const { distance, weight, distanceFromMiles } = useFormat();
+const { distance, weight, distanceFromMiles, exactDistance, exactWeight, exactDistanceFromMiles, sillyUnits } = useFormat();
 
 // A note renders its document in place of the display-font title, so the
 // heading below is a v-else on this rather than on `body` being truthy: an
@@ -144,9 +144,16 @@ onBeforeUnmount(() => undockVideo(videoSlot.value));
 // Timeline card subtitle. When the server sends structured tokens, compose them
 // through useFormat so distance/weight react to the unit toggle; otherwise fall
 // back to the plain server string (e.g. notes have no unit-bearing subtitle).
-const metaText = computed(() => {
+const metaText = computed(() => composeMeta(distance, weight) ?? props.meta);
+
+// The same subtitle in real units, for a title while silly units hide them.
+const metaTitle = computed(() => (sillyUnits.value === 'on' && props.metaTokens?.some((token) => token.t !== 'text')
+    ? composeMeta(exactDistance, exactWeight)
+    : null));
+
+function composeMeta(formatDistance, formatWeight) {
     if (!props.metaTokens) {
-        return props.meta;
+        return null;
     }
     // Each token may carry a `sep` (e.g. ' in ') to join it onto the previous
     // token with a light connective instead of the default ', ' list comma.
@@ -155,17 +162,17 @@ const metaText = computed(() => {
     const parts = props.metaTokens
         .map((token) => {
             if (token.t === 'dist') {
-                return { text: distance(token.m, token.p), sep: token.sep ?? ', ' };
+                return { text: formatDistance(token.m, token.p), sep: token.sep ?? ', ' };
             }
             if (token.t === 'wt') {
-                return { text: weight(token.kg, token.p), sep: token.sep ?? ', ' };
+                return { text: formatWeight(token.kg, token.p), sep: token.sep ?? ', ' };
             }
             return { text: token.v, sep: token.sep ?? ', ' };
         })
         .filter((part) => part.text);
 
     return parts.map((part, index) => (index === 0 ? '' : part.sep) + part.text).join('');
-});
+}
 
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
@@ -193,6 +200,7 @@ const routeView = computed(() => {
         arriveTime: clockOf(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
         note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
+        noteTitle: exactDistanceFromMiles(props.route.distance),
     };
 });
 
@@ -315,9 +323,10 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :arrive-time="routeView.arriveTime"
             :duration="routeView.duration"
             :note="routeView.note"
+            :note-title="routeView.noteTitle"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <p v-else-if="metaText" v-twemoji :title="metaTitle" class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- Map alone when there is no photo, and it opens the lightbox like a
              photo would. Light/dark PNGs are both rendered and the `dark:` class
              picks the right one, no JS needed. -->

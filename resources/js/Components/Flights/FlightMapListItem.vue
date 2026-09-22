@@ -21,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'hover']);
 
-const { distance } = useFormat();
+const { distance, exactDistance } = useFormat();
 
 const airline = computed(() => props.entry.airline);
 
@@ -62,7 +62,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
                     <Icon name="ArrowRight01Icon" class="size-3.5 text-neutral-400" />
                     <span>{{ entry.destination.iata }}</span>
                 </div>
-                <span v-if="distanceLabel" class="shrink-0 text-2xs font-semibold text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
+                <span v-if="distanceLabel" :title="exactDistance(entry.distance)" class="shrink-0 text-2xs font-semibold text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
             </div>
 
             <!-- Place names get the full width and truncate. Sitting them beside

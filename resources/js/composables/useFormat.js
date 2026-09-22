@@ -2,6 +2,7 @@ import { defineSetting } from '../useSettings';
 import { number } from '../lib/format';
 import { kgToLbs } from '../lib/format';
 import { metresToMiles, metresToKm, milesToKm, milesToMetres, kmToMetres, kmToMiles } from '../lib/distance';
+import { sillyDistance, sillyWeight } from '../lib/sillyUnits';
 
 // Two reactive, localStorage-backed settings (Project A's factory). Module-level
 // so every useFormat() consumer shares one source. Values are whitelisted; an
@@ -9,6 +10,7 @@ import { metresToMiles, metresToKm, milesToKm, milesToMetres, kmToMetres, kmToMi
 const distanceUnitDef = defineSetting('distanceUnit', 'mi', ['mi', 'km']);
 const weightUnitDef = defineSetting('weightUnit', 'kg', ['kg', 'lbs']);
 const temperatureUnitDef = defineSetting('temperatureUnit', 'c', ['c', 'f']);
+const sillyUnitsDef = defineSetting('sillyUnits', 'off', ['off', 'on']);
 
 /**
  * Reactive-aware display formatters. Each reads its setting's `.value` INSIDE
@@ -16,24 +18,32 @@ const temperatureUnitDef = defineSetting('temperatureUnit', 'c', ['c', 'f']);
  * as a render dependency and the view updates live when the visitor toggles.
  */
 export function useFormat() {
-    // Distance from metres (activity distance, elevation-free routes, etc.).
-    function distance(metres, precision = 0) {
-        if (metres === null || metres === undefined) {
-            return null;
-        }
+    const silly = () => sillyUnitsDef.value.value === 'on';
+
+    // Distance from metres in the visitor's real unit, whatever silly units says.
+    function realDistance(metres, precision = 0) {
         const km = distanceUnitDef.value.value === 'km';
         const converted = km ? metresToKm(metres, precision) : metresToMiles(metres, precision);
-        return `${number(converted, precision)} ${km ? 'km' : 'mi'}`;
+        return { value: number(converted, precision), unit: km ? 'km' : 'mi' };
+    }
+
+    // Distance from metres (activity distance, elevation-free routes, etc.).
+    function distance(metres, precision = 0) {
+        const parts = distanceParts(metres, precision);
+        return parts && `${parts.value} ${parts.unit}`;
     }
 
     // Same, but split so a caller can render the unit inside an <abbr> (StatGrid).
+    // Under silly units `exact` carries the real distance for a title.
     function distanceParts(metres, precision = 0) {
         if (metres === null || metres === undefined) {
             return null;
         }
-        const km = distanceUnitDef.value.value === 'km';
-        const converted = km ? metresToKm(metres, precision) : metresToMiles(metres, precision);
-        return { value: number(converted, precision), unit: km ? 'km' : 'mi' };
+        if (silly()) {
+            const real = realDistance(metres, precision);
+            return { ...sillyDistance(metres), exact: `${real.value} ${real.unit}` };
+        }
+        return realDistance(metres, precision);
     }
 
     // Distance from a value already in MILES (e.g. flight route.distance).
@@ -41,9 +51,17 @@ export function useFormat() {
         if (miles === null || miles === undefined) {
             return null;
         }
-        const km = distanceUnitDef.value.value === 'km';
-        const converted = km ? milesToKm(miles, precision) : miles;
-        return `${number(converted, precision)} ${km ? 'km' : 'mi'}`;
+        return distance(milesToMetres(miles), precision);
+    }
+
+    // The real distance for a title attribute, only while silly units hide it.
+    function exactDistance(metres, precision = 0) {
+        return distanceParts(metres, precision)?.exact ?? null;
+    }
+
+    // exactDistance for a value already in miles.
+    function exactDistanceFromMiles(miles, precision = 0) {
+        return miles === null || miles === undefined ? null : exactDistance(milesToMetres(miles), precision);
     }
 
     // The visitor's current distance unit as a plain string ('mi' or 'km'), for
@@ -96,16 +114,30 @@ export function useFormat() {
         return stored;
     }
 
-    // Weight from kilograms. 'auto' precision shows 1dp only when fractional,
-    // matching the current weightLabel behaviour.
-    function weight(kg, precision = 'auto') {
-        if (kg === null || kg === undefined) {
-            return null;
-        }
+    // Weight from kilograms in the visitor's real unit. 'auto' precision shows
+    // 1dp only when fractional, matching the current weightLabel behaviour.
+    function realWeight(kg, precision = 'auto') {
         const lbs = weightUnitDef.value.value === 'lbs';
         const converted = lbs ? kgToLbs(kg) : Number(kg);
         const digits = precision === 'auto' ? (converted % 1 ? 1 : 0) : precision;
         return `${number(converted, digits)} ${lbs ? 'lbs' : 'kg'}`;
+    }
+
+    // Weight from kilograms, in daft units when silly units is on.
+    function weight(kg, precision = 'auto') {
+        if (kg === null || kg === undefined) {
+            return null;
+        }
+        if (silly()) {
+            const parts = sillyWeight(kg);
+            return `${parts.value} ${parts.unit}`;
+        }
+        return realWeight(kg, precision);
+    }
+
+    // The real weight for a title attribute, only while silly units hide it.
+    function exactWeight(kg, precision = 'auto') {
+        return kg === null || kg === undefined || !silly() ? null : realWeight(kg, precision);
     }
 
     // Whole degrees in the visitor's unit, from Celsius.
@@ -128,6 +160,9 @@ export function useFormat() {
         distanceParts,
         distanceFromMiles,
         distanceUnitLabel,
+        exactDistance,
+        exactDistanceFromMiles,
+        exactWeight,
         toStorage,
         toDisplay,
         weight,
@@ -139,5 +174,7 @@ export function useFormat() {
         setWeightUnit: weightUnitDef.set,
         temperatureUnit: temperatureUnitDef.value,
         setTemperatureUnit: temperatureUnitDef.set,
+        sillyUnits: sillyUnitsDef.value,
+        setSillyUnits: sillyUnitsDef.set,
     };
 }

@@ -22,7 +22,7 @@ const { distanceParts } = useFormat();
 const formatted = computed(() => props.stats.map((stat) => {
     if (stat.distanceM !== null && stat.distanceM !== undefined) {
         const parts = distanceParts(stat.distanceM, stat.precision ?? 0);
-        return { ...stat, value: parts.value, unit: parts.unit, isDistance: true };
+        return { ...stat, value: parts.value, unit: parts.unit, exact: parts.exact, isDistance: true };
     }
     return stat;
 }));
@@ -65,7 +65,7 @@ const scale = computed(() => SIZES[props.size] ?? SIZES.md);
                 {{ stat.label }}
                 <span v-if="stat.sub" class="mt-1 block normal-case tracking-normal text-neutral-400">{{ stat.sub }}</span>
             </Eyebrow>
-            <dd class="font-display font-extrabold leading-none tracking-tight tabular-nums" :class="scale.value">
+            <dd :title="stat.exact" class="font-display font-extrabold leading-none tracking-tight tabular-nums" :class="scale.value">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />
                 <template v-else>
                     {{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 font-semibold text-neutral-500 no-underline" :class="scale.unit">{{ stat.unit }}</abbr>

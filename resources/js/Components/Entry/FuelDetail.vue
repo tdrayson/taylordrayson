@@ -13,7 +13,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-const { distanceFromMiles } = useFormat();
+const { distanceFromMiles, exactDistanceFromMiles } = useFormat();
 
 // Fuel-card saving: what the pump price would have cost minus the fuel-card
 // price. Null unless a lower fuel-card cost is recorded.
@@ -49,6 +49,7 @@ const details = computed(() => [
         value: props.entry.miles_this_tank != null
             ? distanceFromMiles(props.entry.miles_this_tank)
             : null,
+        title: exactDistanceFromMiles(props.entry.miles_this_tank),
     },
     {
         label: 'Fuel economy',

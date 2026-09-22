@@ -9,6 +9,7 @@ defineProps({
     arriveTime: { type: String, default: null },
     duration: { type: String, default: null },
     note: { type: String, default: null },
+    noteTitle: { type: String, default: null },
     compact: { type: Boolean, default: false },
 });
 </script>
@@ -32,7 +33,7 @@ defineProps({
                     <Icon name="Airplane01Icon" class="size-4" />
                 </span>
             </div>
-            <Eyebrow v-if="note" class="text-neutral-500 tabular-nums">{{ note }}</Eyebrow>
+            <Eyebrow v-if="note" :title="noteTitle" class="text-neutral-500 tabular-nums">{{ note }}</Eyebrow>
         </div>
 
         <div class="shrink-0 text-right">

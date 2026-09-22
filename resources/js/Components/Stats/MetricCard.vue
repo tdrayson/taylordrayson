@@ -61,7 +61,7 @@ const up = computed(() => (props.delta ?? 0) >= 0);
                 :class="up ? '' : 'text-neutral-400'"
             >{{ up ? '↑' : '↓' }} {{ Math.abs(delta) }}%</span>
         </div>
-        <Stat as="dd" class="text-neutral-900">
+        <Stat as="dd" :title="display.exact" class="text-neutral-900">
             {{ display.value }}<abbr v-if="display.unit" :title="unitTitle(display.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ display.unit }}</abbr>
         </Stat>
         <svg v-if="sparkPath" class="h-6 w-full" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
