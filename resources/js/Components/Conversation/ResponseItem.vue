@@ -169,14 +169,13 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
                          interrupting it. A platform names itself; a webmention names
                          the site it was published on. A comment left here has no
                          elsewhere, so it says nothing. -->
-                    <img v-if="item.sourceFavicon" :src="item.sourceFavicon" alt="" loading="lazy" class="mb-0.5 mr-1.5 inline size-3.5 rounded-sm align-middle">
                     <a
                         v-if="via && item.sourceUrl"
                         :href="item.sourceUrl"
                         rel="ugc nofollow noopener noreferrer"
                         class="rounded-sm text-neutral-500 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
-                    >via {{ via }}</a>
-                    <span v-else-if="via" class="text-neutral-500">via {{ via }}</span>
+                    >via <img v-if="item.sourceFavicon" :src="item.sourceFavicon" alt="" loading="lazy" class="mb-0.5 mr-1 inline size-3.5 rounded-sm align-middle">{{ via }}</a>
+                    <span v-else-if="via" class="text-neutral-500">via <img v-if="item.sourceFavicon" :src="item.sourceFavicon" alt="" loading="lazy" class="mb-0.5 mr-1 inline size-3.5 rounded-sm align-middle">{{ via }}</span>
                 </p>
 
                 <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-2" />
