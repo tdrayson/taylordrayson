@@ -20,14 +20,14 @@ const props = defineProps({
     accent: { type: String, default: 'currentColor' },
 });
 
-const { distanceParts } = useFormat();
+const { distanceParts, statParts } = useFormat();
 
 // When given raw metres, format through the unit toggle; else use the passed value/unit.
 const display = computed(() => {
     if (props.distanceM !== null) {
         return distanceParts(props.distanceM, props.precision);
     }
-    return { value: props.value, unit: props.unit };
+    return statParts(props.value, props.unit);
 });
 
 // SVG polyline path from the series, normalised into a 100x24 box.

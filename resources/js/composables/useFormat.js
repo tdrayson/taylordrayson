@@ -1,8 +1,8 @@
 import { defineSetting } from '../useSettings';
-import { number } from '../lib/format';
+import { duration as clockDuration, number } from '../lib/format';
 import { kgToLbs } from '../lib/format';
 import { metresToMiles, metresToKm, milesToKm, milesToMetres, kmToMetres, kmToMiles } from '../lib/distance';
-import { sillyDistance, sillyWeight } from '../lib/sillyUnits';
+import { sillyMeasure } from '../lib/sillyUnits';
 
 // Two reactive, localStorage-backed settings (Project A's factory). Module-level
 // so every useFormat() consumer shares one source. Values are whitelisted; an
@@ -11,6 +11,15 @@ const distanceUnitDef = defineSetting('distanceUnit', 'mi', ['mi', 'km']);
 const weightUnitDef = defineSetting('weightUnit', 'kg', ['kg', 'lbs']);
 const temperatureUnitDef = defineSetting('temperatureUnit', 'c', ['c', 'f']);
 const sillyUnitsDef = defineSetting('sillyUnits', 'off', ['off', 'on']);
+
+// Stat units silly units can convert, as the kind of quantity and the factor to its base unit.
+const STAT_UNITS = {
+    kcal: { kind: 'energy' },
+    'kcal/day': { kind: 'energy', suffix: ' a day' },
+    bpm: { kind: 'heartRate' },
+    m: { kind: 'height' },
+    h: { kind: 'duration', scale: 3600 },
+};
 
 /**
  * Reactive-aware display formatters. Each reads its setting's `.value` INSIDE
@@ -41,7 +50,7 @@ export function useFormat() {
         }
         if (silly()) {
             const real = realDistance(metres, precision);
-            return { ...sillyDistance(metres), exact: `${real.value} ${real.unit}` };
+            return { ...sillyMeasure('distance', metres), exact: `${real.value} ${real.unit}` };
         }
         return realDistance(metres, precision);
     }
@@ -129,7 +138,7 @@ export function useFormat() {
             return null;
         }
         if (silly()) {
-            const parts = sillyWeight(kg);
+            const parts = sillyMeasure('weight', kg);
             return `${parts.value} ${parts.unit}`;
         }
         return realWeight(kg, precision);
@@ -138,6 +147,52 @@ export function useFormat() {
     // The real weight for a title attribute, only while silly units hide it.
     function exactWeight(kg, precision = 'auto') {
         return kg === null || kg === undefined || !silly() ? null : realWeight(kg, precision);
+    }
+
+    // A quantity with no unit setting of its own (height, duration, energy,
+    // heart rate): daft units when silly units is on, otherwise `real`, the
+    // caller's usual display of it.
+    function measure(kind, amount, real) {
+        if (amount === null || amount === undefined) {
+            return null;
+        }
+        if (!silly()) {
+            return real;
+        }
+        const parts = sillyMeasure(kind, amount);
+        return `${parts.value} ${parts.unit}`;
+    }
+
+    // `real` for a title attribute, only while silly units hide it.
+    function exactMeasure(kind, amount, real) {
+        return amount === null || amount === undefined || !silly() ? null : real;
+    }
+
+    // A duration, in daft units or as "1h 05m".
+    function duration(seconds) {
+        return measure('duration', seconds, clockDuration(seconds));
+    }
+
+    // A stat's value and unit, swapped for daft units when silly units is on and
+    // the unit is one we can convert. `exact` carries the original for a title.
+    function statParts(value, unit) {
+        const known = STAT_UNITS[unit];
+        const amount = Number(String(value ?? '').replace(/,/g, ''));
+
+        if (!silly() || !known || value === null || value === '' || Number.isNaN(amount)) {
+            return { value, unit };
+        }
+
+        const parts = sillyMeasure(known.kind, amount * (known.scale ?? 1));
+        return { value: parts.value, unit: parts.unit + (known.suffix ?? ''), exact: `${value} ${unit}` };
+    }
+
+    // A stat held as raw seconds, as statParts' parts while silly units is on, else null.
+    function durationParts(seconds) {
+        if (seconds === null || seconds === undefined || !silly()) {
+            return null;
+        }
+        return { ...sillyMeasure('duration', seconds), exact: clockDuration(seconds) };
     }
 
     // Whole degrees in the visitor's unit, from Celsius.
@@ -166,6 +221,11 @@ export function useFormat() {
         toStorage,
         toDisplay,
         weight,
+        measure,
+        exactMeasure,
+        duration,
+        statParts,
+        durationParts,
         degrees,
         temperature,
         distanceUnit: distanceUnitDef.value,

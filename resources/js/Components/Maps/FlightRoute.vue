@@ -8,6 +8,7 @@ defineProps({
     departTime: { type: String, default: null },
     arriveTime: { type: String, default: null },
     duration: { type: String, default: null },
+    durationTitle: { type: String, default: null },
     note: { type: String, default: null },
     noteTitle: { type: String, default: null },
     compact: { type: Boolean, default: false },
@@ -26,7 +27,7 @@ defineProps({
         </div>
 
         <div class="flex flex-1 flex-col items-center gap-1">
-            <Eyebrow v-if="duration" class="text-neutral-500 tabular-nums">{{ duration }}</Eyebrow>
+            <Eyebrow v-if="duration" :title="durationTitle" class="text-neutral-500 tabular-nums">{{ duration }}</Eyebrow>
             <div class="relative flex w-full items-center justify-center">
                 <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-neutral-100" />
                 <span class="relative bg-neutral-0 px-2 text-neutral-500">

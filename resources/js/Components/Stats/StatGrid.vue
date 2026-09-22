@@ -12,7 +12,7 @@ const props = defineProps({
     class: { type: [String, Array, Object], default: '' },
 });
 
-const { distanceParts } = useFormat();
+const { distanceParts, statParts, durationParts } = useFormat();
 
 // Format BEFORE filtering: a stat carrying raw `distanceM` resolves its
 // value/unit through the active unit setting here, others pass through with
@@ -24,7 +24,11 @@ const formatted = computed(() => props.stats.map((stat) => {
         const parts = distanceParts(stat.distanceM, stat.precision ?? 0);
         return { ...stat, value: parts.value, unit: parts.unit, exact: parts.exact, isDistance: true };
     }
-    return stat;
+    if (stat.seconds !== null && stat.seconds !== undefined) {
+        const parts = durationParts(stat.seconds);
+        return parts ? { ...stat, ...parts, seconds: null } : stat;
+    }
+    return { ...stat, ...statParts(stat.value, stat.unit) };
 }));
 
 // Drop blank stats so callers can pass a sparse list without gaps, and drop

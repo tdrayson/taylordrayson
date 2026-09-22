@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import { useFormat } from '../../composables/useFormat';
-import { duration, dateShort, titleCase } from '../../lib/format.js';
+import { duration as clockDuration, dateShort, titleCase } from '../../lib/format.js';
 
 /**
  * One row in the flight globe map's list: a keyboard-reachable button so the
@@ -21,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'hover']);
 
-const { distance, exactDistance } = useFormat();
+const { distance, exactDistance, duration, exactMeasure } = useFormat();
 
 const airline = computed(() => props.entry.airline);
 
@@ -91,7 +91,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
         <div v-if="selected" class="space-y-1.5 border-t border-neutral-50 bg-accent-50 px-4 py-3 text-2xs font-semibold text-neutral-500">
             <div v-if="durationLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Duration</span>
-                <span class="text-neutral-700 tabular-nums">{{ durationLabel }}</span>
+                <span :title="exactMeasure('duration', entry.duration, clockDuration(entry.duration))" class="text-neutral-700 tabular-nums">{{ durationLabel }}</span>
             </div>
             <div v-if="aircraftLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Aircraft</span>

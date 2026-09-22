@@ -17,7 +17,7 @@ import CardMediaCarousel from './CardMediaCarousel.vue';
 import NoteBody from '../Ui/NoteBody.vue';
 import ResponseContext from '../Entry/ResponseContext.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration, flightDurationLabel } from '../../lib/format.js';
+import { clock, duration as clockDuration, flightDurationLabel, humanDuration, number } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { useFormat } from '../../composables/useFormat';
 import { useTheme } from '../../useTheme';
@@ -83,7 +83,7 @@ const props = defineProps({
 });
 
 // Unit-aware distance formatter; route.distance is already in miles.
-const { distance, weight, distanceFromMiles, exactDistance, exactWeight, exactDistanceFromMiles, sillyUnits } = useFormat();
+const { distance, weight, distanceFromMiles, exactDistance, exactWeight, exactDistanceFromMiles, duration, measure, exactMeasure, sillyUnits } = useFormat();
 
 // A note renders its document in place of the display-font title, so the
 // heading below is a v-else on this rather than on `body` being truthy: an
@@ -144,14 +144,31 @@ onBeforeUnmount(() => undockVideo(videoSlot.value));
 // Timeline card subtitle. When the server sends structured tokens, compose them
 // through useFormat so distance/weight react to the unit toggle; otherwise fall
 // back to the plain server string (e.g. notes have no unit-bearing subtitle).
-const metaText = computed(() => composeMeta(distance, weight) ?? props.meta);
+const realEnergy = (kcal) => `${number(kcal)} kcal`;
+
+const metaText = computed(() => composeMeta({
+    dist: (token) => distance(token.m, token.p),
+    wt: (token) => weight(token.kg, token.p),
+    dur: (token) => measure('duration', token.s, humanDuration(token.s)),
+    kcal: (token) => measure('energy', token.kcal, realEnergy(token.kcal)),
+}) ?? props.meta);
 
 // The same subtitle in real units, for a title while silly units hide them.
 const metaTitle = computed(() => (sillyUnits.value === 'on' && props.metaTokens?.some((token) => token.t !== 'text')
-    ? composeMeta(exactDistance, exactWeight)
+    ? composeMeta({
+        dist: (token) => exactDistance(token.m, token.p),
+        wt: (token) => exactWeight(token.kg, token.p),
+        dur: (token) => humanDuration(token.s),
+        kcal: (token) => realEnergy(token.kcal),
+    })
     : null));
 
-function composeMeta(formatDistance, formatWeight) {
+/**
+ * Join the subtitle tokens into one line.
+ * @param {Record<string, (token: object) => string>} formatters Keyed by token type; text tokens pass through.
+ * @returns {string|null}
+ */
+function composeMeta(formatters) {
     if (!props.metaTokens) {
         return null;
     }
@@ -160,15 +177,7 @@ function composeMeta(formatDistance, formatWeight) {
     // Empty-text tokens are dropped before joining so a missing value never
     // leaves a dangling separator (e.g. no leading "in" when duration is first).
     const parts = props.metaTokens
-        .map((token) => {
-            if (token.t === 'dist') {
-                return { text: formatDistance(token.m, token.p), sep: token.sep ?? ', ' };
-            }
-            if (token.t === 'wt') {
-                return { text: formatWeight(token.kg, token.p), sep: token.sep ?? ', ' };
-            }
-            return { text: token.v, sep: token.sep ?? ', ' };
-        })
+        .map((token) => ({ text: formatters[token.t] ? formatters[token.t](token) : token.v, sep: token.sep ?? ', ' }))
         .filter((part) => part.text);
 
     return parts.map((part, index) => (index === 0 ? '' : part.sep) + part.text).join('');
@@ -201,6 +210,7 @@ const routeView = computed(() => {
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
         note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
         noteTitle: exactDistanceFromMiles(props.route.distance),
+        durationTitle: exactMeasure('duration', props.route.duration, clockDuration(props.route.duration)),
     };
 });
 
@@ -324,6 +334,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :duration="routeView.duration"
             :note="routeView.note"
             :note-title="routeView.noteTitle"
+            :duration-title="routeView.durationTitle"
             class="mt-3 max-w-sm"
         />
         <p v-else-if="metaText" v-twemoji :title="metaTitle" class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
