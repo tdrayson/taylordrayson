@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { formatTime } from '../../lib/time.js';
 
 const props = defineProps({
     stages: { type: Array, required: true },
@@ -22,8 +23,14 @@ function formatDuration(seconds) {
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
+// Stage times are local wall-clock strings, so they're read and written as UTC
+// to keep the browser's own zone and DST out of it.
+function wallClock(value) {
+    return Date.parse(`${value.replace(' ', 'T')}Z`);
+}
+
 function formatClock(milliseconds) {
-    return new Date(milliseconds).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return formatTime('UTC', new Date(milliseconds));
 }
 
 /** Shared timeline bounds so segments and the cursor map the same x-axis. */
@@ -31,8 +38,8 @@ const bounds = computed(() => {
     const parsed = props.stages
         .map((segment) => ({
             meta: STAGE_META[segment.stage] ?? { lane: 2, label: segment.stage, color: 'var(--color-neutral-500)' },
-            start: new Date(segment.start).getTime(),
-            end: new Date(segment.end).getTime(),
+            start: wallClock(segment.start),
+            end: wallClock(segment.end),
         }))
         .filter((segment) => !Number.isNaN(segment.start) && segment.end > segment.start);
 
@@ -69,7 +76,7 @@ const totals = computed(() => {
 
     props.stages.forEach((segment) => {
         const meta = STAGE_META[segment.stage];
-        const seconds = (new Date(segment.end).getTime() - new Date(segment.start).getTime()) / 1000;
+        const seconds = (wallClock(segment.end) - wallClock(segment.start)) / 1000;
 
         if (!meta || Number.isNaN(seconds) || seconds <= 0) {
             return;
