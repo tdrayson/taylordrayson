@@ -1,19 +1,18 @@
 import { router } from '@inertiajs/vue3';
 
 /**
- * The stored id of a Strava or Swarm reply that can be marked as mine, or null.
+ * The stored id of a Strava or Swarm response that can be marked as mine.
  *
- * Only syndicated replies qualify: likes and kudos are rebuilt on every sync,
- * so a mark on one would not last, and a comment left here already knows
- * whether it was mine from the address it was written with.
+ * Syndicated responses only: a comment left here already knows whether it was
+ * mine from the address it was written with.
  *
- * @param {{ id: string, kind: string }} item a response row, conversation or hub
- * @returns {string|null}
+ * @param {{ id: string }} item a response row, conversation or hub
+ * @returns {string|null} the stored id, or null when it cannot be marked
  */
 export function markableId(item) {
     const match = /^syndicated-(\d+)$/.exec(item.id ?? '');
 
-    return match && item.kind === 'reply' ? match[1] : null;
+    return match ? match[1] : null;
 }
 
 /**

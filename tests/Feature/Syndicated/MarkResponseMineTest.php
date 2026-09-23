@@ -38,13 +38,14 @@ it('marks a reply as mine and unmarks it again', function () {
     expect($reply->fresh()->mine)->toBeFalse();
 });
 
-it('refuses a kudo, which every sync rebuilds', function () {
+it('marks a kudo of mine too, which I can leave on my own activity', function () {
     $kudo = syndicatedReply(['kind' => WebmentionKind::Like, 'source_id' => null, 'body' => null]);
 
     actingAs(User::factory()->create());
 
-    patch("/responses/syndicated/{$kudo->id}/mine", ['mine' => true])->assertForbidden();
-    expect($kudo->fresh()->mine)->toBeFalse();
+    patch("/responses/syndicated/{$kudo->id}/mine", ['mine' => true]);
+
+    expect($kudo->fresh()->mine)->toBeTrue();
 });
 
 it('is not open to a visitor', function () {

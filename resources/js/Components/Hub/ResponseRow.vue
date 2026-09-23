@@ -11,12 +11,15 @@ const props = defineProps({
 /**
  * The id to mark this reply as mine with. Once marked it leaves the list on
  * reload, since my own reply is not somebody responding to me.
+ *
+ * Replies only here: a row of likes is collapsed across everyone who left one
+ * that day, so there is no single response for the mark to land on.
  */
-const markable = computed(() => markableId(props.item));
+const markable = computed(() => (props.item.kind === 'reply' ? markableId(props.item) : null));
 </script>
 
 <template>
-    <li class="group/row relative">
+    <li data-response-row class="group/row relative">
         <!-- The row is the link, not the title inside it: the whole thing
              already lights up on hover, so anything less is a target the
              highlight lied about. On a touch screen it also keeps clear of
@@ -24,7 +27,6 @@ const markable = computed(() => markableId(props.item));
         <Link
             :href="item.entry.href"
             class="group flex gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            :class="markable && 'pointer-coarse:pr-28'"
         >
             <Icon :icon="item.icon" class="mt-0.5 size-4 flex-none text-neutral-400" />
 
@@ -40,23 +42,22 @@ const markable = computed(() => markableId(props.item));
                     <span v-if="item.body" class="mt-1 block truncate text-sm text-neutral-500">{{ item.body }}</span>
                 </span>
 
-                <!-- Gives way to the mark button on hover, which takes its place. -->
-                <span
-                    class="mt-0.5 block text-xs text-neutral-400 transition-opacity sm:mt-0 sm:shrink-0 sm:whitespace-nowrap"
-                    :class="markable && 'sm:group-hover/row:opacity-0'"
-                >{{ item.age }}</span>
+                <span class="mt-0.5 block text-xs text-neutral-400 sm:mt-0 sm:shrink-0 sm:whitespace-nowrap">{{ item.age }}</span>
             </span>
         </Link>
 
-        <!-- A sibling of the link rather than inside it: a button nested in a
-             link is invalid, and a click on it would also follow the link. -->
+        <!-- Sits over the row's own glyph, which is where the entry page puts
+             it over the avatar. A sibling of the link rather than inside it: a
+             button nested in a link is invalid, and a click on it would also
+             follow the link. -->
         <button
             v-if="markable"
             type="button"
-            class="absolute right-3 top-2.5 rounded-sm bg-neutral-25 px-1 text-xs text-neutral-500 opacity-0 transition hover:text-accent-500 focus-visible:text-accent-500 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/row:opacity-100 pointer-coarse:bg-transparent pointer-coarse:opacity-100"
+            class="absolute left-2 top-2 flex size-6 items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/row:opacity-100 pointer-coarse:opacity-100"
+            aria-label="Mark as mine"
             @click="setMine(markable, true)"
         >
-            Mark as mine
+            <Icon name="UserIcon" class="size-3.5" />
         </button>
     </li>
 </template>

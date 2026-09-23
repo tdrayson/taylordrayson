@@ -216,3 +216,21 @@ it('keeps a mark made by hand when the payload cannot confirm it', function () {
 
     expect($activity->syndicatedResponses()->sole()->mine)->toBeTrue();
 });
+
+// A kudo has no id of its own, so every sync deletes and rewrites it. A mark
+// made by hand has to be carried across that by who left it.
+it('keeps a kudo marked as mine across the rewrite', function () {
+    $activity = stravaActivity();
+    $kudos = [['firstname' => 'Taylor', 'lastname' => 'D.'], ['firstname' => 'Clare', 'lastname' => 'A.']];
+
+    fakeStravaResponses($kudos, []);
+    app(PullStravaResponses::class)($activity);
+
+    $activity->syndicatedResponses()->where('author_name', 'Taylor D.')->sole()->update(['mine' => true]);
+
+    fakeStravaResponses($kudos, []);
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->where('author_name', 'Taylor D.')->sole()->mine)->toBeTrue()
+        ->and($activity->syndicatedResponses()->where('author_name', 'Clare A.')->sole()->mine)->toBeFalse();
+});
