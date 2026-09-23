@@ -96,7 +96,7 @@ class Client
     }
 
     /**
-     * Each book's description, tags and edition covers, keyed by Hardcover book id.
+     * Each book's description, tags and editions (cover, ISBN, year), keyed by Hardcover book id.
      *
      * @param  list<int>  $ids
      * @return array<int, array<string, mixed>>
@@ -118,7 +118,7 @@ class Client
                   where: {image_id: {_is_null: false}, _or: [{language_id: {_is_null: true}}, {language: {code2: {_eq: "en"}}}]}
                   order_by: {users_count: desc}
                   limit: 40
-                ) { image { url } }
+                ) { isbn_13 isbn_10 release_year release_date image { url } }
               }
             }
             GRAPHQL, ['ids' => $ids]);
