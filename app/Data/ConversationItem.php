@@ -134,7 +134,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         return new self(
             id: 'syndicated-'.$response->id,
             kind: $response->kind->value,
-            authorName: $response->author_name,
+            authorName: $response->mine ? (string) config('identity.name') : $response->author_name,
             authorUrl: null,
             authorPhoto: match (true) {
                 $response->mine => (string) config('identity.avatar'),

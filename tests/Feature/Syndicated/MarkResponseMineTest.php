@@ -1,5 +1,6 @@
 <?php
 
+use App\Data\ConversationItem;
 use App\Enums\WebmentionKind;
 use App\Models\Activity;
 use App\Models\SyndicatedResponse;
@@ -59,4 +60,11 @@ it('leaves a reply of mine out of the hub', function () {
     syndicatedReply(['mine' => true]);
 
     expect(app(RecentResponses::class)(6))->toBeEmpty();
+});
+
+it('shows a response marked mine under my own name and photo', function () {
+    $item = ConversationItem::fromSyndicated(syndicatedReply(['mine' => true]), null);
+
+    expect($item->authorName)->toBe(config('identity.name'))
+        ->and($item->authorPhoto)->toBe(config('identity.avatar'));
 });
