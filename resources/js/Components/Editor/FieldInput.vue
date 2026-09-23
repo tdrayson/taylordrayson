@@ -158,6 +158,7 @@ function textToTags(value) {
             :invalid="Boolean(error)"
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
+            @fill="(values, options) => $emit('fill', values, options)"
         />
 
         <ImageField

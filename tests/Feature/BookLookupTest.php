@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Queries\Lookups\BookCoverLookup;
+use App\Queries\Lookups\BookEditionOverview;
 use App\Queries\Lookups\BookLookup;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -73,13 +74,16 @@ it('lists unique edition covers for the best match, capped at twenty, with the b
 
     $covers = app(BookCoverLookup::class)('How to Win Friends Dale Carnegie');
 
+    $urls = array_column(array_map(fn ($edition) => $edition->toArray(), $covers), 'cover');
+
     expect($covers)->toHaveCount(20)
-        ->and($covers[0])->toBe('https://assets.hardcover.app/edition-1.jpeg')
-        ->and(array_unique($covers))->toBe($covers);
+        ->and($urls[0])->toBe('https://assets.hardcover.app/edition-1.jpeg')
+        ->and(array_unique($urls))->toBe($urls);
 
     Saloon::fake([hardcoverSearch(), hardcoverBooks([])]);
 
-    expect(app(BookCoverLookup::class)('How to Win Friends'))->toBe(['https://assets.hardcover.app/book.jpeg']);
+    expect(app(BookCoverLookup::class)('How to Win Friends')[0]->toArray())
+        ->toBe(['cover' => 'https://assets.hardcover.app/book.jpeg', 'isbn' => null, 'year' => null, 'pages' => null]);
 });
 
 it('returns no covers for a blank query or a failed search', function () {
@@ -96,5 +100,35 @@ it('serves covers from the lookup endpoint', function () {
     $this->actingAs(User::factory()->create())
         ->getJson('/lookup/book-covers?q=How+to+Win+Friends')
         ->assertOk()
-        ->assertJsonPath('data.0', 'https://assets.hardcover.app/edition-1.jpeg');
+        ->assertJsonPath('data.0.cover', 'https://assets.hardcover.app/edition-1.jpeg');
+});
+
+it('gives each edition its own ISBN, year and page count, preferring the ISBN-13', function () {
+    Saloon::fake([hardcoverSearch(), hardcoverBooks([
+        ['isbn_13' => '9780141301143', 'isbn_10' => '0141301147', 'release_year' => null, 'release_date' => '1959-01-01', 'pages' => 222, 'image' => ['url' => 'https://assets.hardcover.app/puffin.jpeg']],
+        ['isbn_13' => null, 'isbn_10' => '0553152890', 'release_year' => 1975, 'release_date' => null, 'pages' => 196, 'image' => ['url' => 'https://assets.hardcover.app/bantam.jpeg']],
+        ['isbn_13' => '', 'isbn_10' => null, 'release_year' => null, 'release_date' => null, 'pages' => null, 'image' => ['url' => 'https://assets.hardcover.app/unknown.jpeg']],
+    ])]);
+
+    $editions = array_map(fn ($edition) => $edition->toArray(), app(BookCoverLookup::class)('Danny the Champion of the World'));
+
+    expect(array_slice($editions, 0, 3))->toBe([
+        ['cover' => 'https://assets.hardcover.app/puffin.jpeg', 'isbn' => '9780141301143', 'year' => 1959, 'pages' => 222],
+        ['cover' => 'https://assets.hardcover.app/bantam.jpeg', 'isbn' => '0553152890', 'year' => 1975, 'pages' => 196],
+        ['cover' => 'https://assets.hardcover.app/unknown.jpeg', 'isbn' => null, 'year' => null, 'pages' => null],
+    ]);
+});
+
+it('takes the picked edition\'s overview from Open Library, falling back to its work', function () {
+    Saloon::fake([
+        '/isbn/9780375814259.json' => MockResponse::make(['description' => 'A young English boy and his father.', 'works' => [['key' => '/works/OL45865W']]]),
+        '/isbn/9780141301143.json' => MockResponse::make(['works' => [['key' => '/works/OL45865W']]]),
+        '/works/OL45865W.json' => MockResponse::make(['description' => ['type' => '/type/text', 'value' => 'The work blurb.']]),
+        '/isbn/9780000000000.json' => MockResponse::make(['error' => 'notfound'], 404),
+    ]);
+
+    expect(app(BookEditionOverview::class)('978-0-375-81425-9'))->toBe(['overview' => 'A young English boy and his father.'])
+        ->and(app(BookEditionOverview::class)('9780141301143'))->toBe(['overview' => 'The work blurb.'])
+        ->and(app(BookEditionOverview::class)('9780000000000'))->toBe(['overview' => null])
+        ->and(app(BookEditionOverview::class)(' '))->toBe(['overview' => null]);
 });

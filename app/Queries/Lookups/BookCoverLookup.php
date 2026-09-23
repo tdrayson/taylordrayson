@@ -2,18 +2,19 @@
 
 namespace App\Queries\Lookups;
 
+use App\Data\BookEdition;
 use App\Exceptions\HardcoverException;
 use App\Services\Hardcover\Client;
 
 /**
- * Edition covers for the book that best matches a title and author, for the cover dialog.
+ * The editions of the book that best matches a title and author, for the cover dialog.
  */
 final class BookCoverLookup
 {
     public function __construct(private Client $hardcover) {}
 
     /**
-     * @return list<string>
+     * @return list<BookEdition>
      */
     public function __invoke(string $query): array
     {

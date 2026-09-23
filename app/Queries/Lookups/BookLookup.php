@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 /**
  * Books from Hardcover, filled with book-level details and the most-read cover.
- * Edition ISBNs and pages describe someone else's printing, so they are never filled.
+ * Edition ISBNs, years and page counts describe someone else's printing, so they wait for one to be picked from the covers.
  */
 final class BookLookup
 {
@@ -18,7 +18,7 @@ final class BookLookup
     private const MIN_GENRE_VOTES = 2;
 
     /** Matches the Textarea field's validation limit. */
-    private const MAX_OVERVIEW = 5000;
+    public const MAX_OVERVIEW = 5000;
 
     public function __construct(private Client $hardcover) {}
 
@@ -70,7 +70,7 @@ final class BookLookup
                 'title' => data_get($document, 'title'),
                 'meta.author' => $author,
                 'overview' => $overview,
-                'cover' => $covers === [] ? null : [['id' => 'url:'.$covers[0], 'name' => 'Cover', 'url' => $covers[0]]],
+                'cover' => $covers === [] ? null : [['id' => 'url:'.$covers[0]->cover, 'name' => 'Cover', 'url' => $covers[0]->cover]],
                 'tags' => $this->genres($details),
             ], fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []),
         ];

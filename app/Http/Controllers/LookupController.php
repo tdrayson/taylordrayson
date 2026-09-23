@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Queries\Lookups\AirlineLookup;
 use App\Queries\Lookups\AirportLookup;
 use App\Queries\Lookups\BookCoverLookup;
+use App\Queries\Lookups\BookEditionOverview;
 use App\Queries\Lookups\BookLookup;
 use App\Queries\Lookups\FuelBrandLookup;
 use App\Queries\Lookups\PlaceLookup;
@@ -17,9 +18,9 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Autocomplete for airports, airlines, books and places, plus a book's edition
- * covers: one endpoint with a source segment. A result may carry `fill`, which
- * populates other fields on the form too.
+ * Autocomplete for airports, airlines, books and places, plus a book's editions
+ * and the overview of the one picked: one endpoint with a source segment. A
+ * result may carry `fill`, which populates other fields on the form too.
  */
 class LookupController extends Controller
 {
@@ -32,6 +33,7 @@ class LookupController extends Controller
             'airline' => app(AirlineLookup::class)($query),
             'book' => app(BookLookup::class)($query),
             'book-covers' => app(BookCoverLookup::class)($query),
+            'book-edition' => app(BookEditionOverview::class)($query),
             'tag' => app(TagLookup::class)($query),
             'timezone' => app(TimezoneLookup::class)($query),
             'station' => app(StationLookup::class)($query, $request->float('lat') ?: null, $request->float('lng') ?: null),
