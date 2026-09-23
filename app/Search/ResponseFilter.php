@@ -216,7 +216,8 @@ final class ResponseFilter
     private function whereText(QueryBuilder $sub, array $columns, array $documents, string $value): bool
     {
         $pattern = "%{$value}%";
-        $spans = $this->spansLike($sub);
+        // Only the text spans, so a search for "span" or "block" misses the document's own keys.
+        $spans = "exists (select 1 from json_tree(%s) where json_tree.key = 'text' and json_tree.value like ?)";
 
         $sub->where(function (QueryBuilder $any) use ($columns, $documents, $pattern, $spans): void {
             foreach ($columns as $column) {
@@ -243,11 +244,11 @@ final class ResponseFilter
             return false;
         }
 
-        $pattern = match ($operator) {
-            'equals' => $value,
-            'starts_with' => "{$value}%",
-            'ends_with' => "%{$value}",
-            default => "%{$value}%",
+        [$comparison, $pattern] = match ($operator) {
+            'equals' => ['=', $value],
+            'starts_with' => ['like', "{$value}%"],
+            'ends_with' => ['like', "%{$value}"],
+            default => ['like', "%{$value}%"],
         };
 
         if ($operator === 'not_contains') {
@@ -258,25 +259,13 @@ final class ResponseFilter
             return true;
         }
 
-        $sub->where(function (QueryBuilder $any) use ($columns, $pattern): void {
+        $sub->where(function (QueryBuilder $any) use ($columns, $comparison, $pattern): void {
             foreach ($columns as $column) {
-                $any->orWhere($column, 'like', $pattern);
+                $any->orWhere($column, $comparison, $pattern);
             }
         });
 
         return true;
-    }
-
-    /**
-     * SQL matching a LIKE pattern against a Portable Text column's text spans,
-     * with `%s` for the column and one binding for the pattern. Reading the
-     * spans keeps a search for "span" or "block" off the document's own keys.
-     */
-    private function spansLike(QueryBuilder $sub): string
-    {
-        return in_array($sub->getConnection()->getDriverName(), ['mysql', 'mariadb'], true)
-            ? "json_search(%s, 'one', ?, null, '$**.text') is not null"
-            : "exists (select 1 from json_tree(%s) where json_tree.key = 'text' and json_tree.value like ?)";
     }
 
     /**

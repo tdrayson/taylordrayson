@@ -38,14 +38,14 @@ function commentOn(Note $note, string $body, CommentStatus $status = CommentStat
     $note->comments()->create(['author_name' => 'Sam', 'body' => PortableText::fromPlainText($body), 'status' => $status]);
 }
 
-function syndicatedOn(Note $note, WebmentionKind $kind, string $author, Source $source = Source::Strava): void
+function syndicatedOn(Note $note, WebmentionKind $kind, string $author, Source $source = Source::Strava, CommentStatus $status = CommentStatus::Approved): void
 {
     SyndicatedResponse::factory()->for($note, 'target')->create([
         'source' => $source->value,
         'source_id' => fake()->uuid(),
         'kind' => $kind,
         'author_name' => $author,
-        'status' => CommentStatus::Approved,
+        'status' => $status,
     ]);
 }
 
@@ -70,6 +70,7 @@ it('holds every per-response condition to the same response', function () {
     syndicatedOn($mixed, WebmentionKind::Like, 'Bob');
     syndicatedOn(noteSaying('Bob replied'), WebmentionKind::Reply, 'Bob');
     syndicatedOn(noteSaying('Swarm'), WebmentionKind::Reply, 'Bob', Source::Swarm);
+    syndicatedOn(noteSaying('Spam'), WebmentionKind::Reply, 'Bob', status: CommentStatus::Spam);
 
     expect(notesMatching([
         ['field' => 'response_source', 'operator' => 'is', 'value' => ['strava']],
