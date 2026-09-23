@@ -22,9 +22,9 @@ it('marks a syndicated reply as mine from the entry page', function () {
     ]);
 
     visit($activity->url())
-        ->assertPresent('[aria-label="Mark as mine"]')
-        ->click('[aria-label="Mark as mine"]')
-        ->assertPresent('[aria-label="Not mine"]')
+        ->assertPresent('.response-avatar [aria-label="Mark as mine"]')
+        ->click('.response-avatar [aria-label="Mark as mine"]')
+        ->assertPresent('.response-avatar [aria-label="Not mine"]')
         ->screenshot(true, 'mine-marked');
 
     expect($reply->fresh()->mine)->toBeTrue();
@@ -64,8 +64,8 @@ it('marks a kudo as mine from the entry page', function () {
     ]);
 
     visit($activity->url())
-        ->click('[aria-label="Mark as mine"]')
-        ->assertPresent('[aria-label="Not mine"]');
+        ->click('.response-avatar [aria-label="Mark as mine"]')
+        ->assertPresent('.response-avatar [aria-label="Not mine"]');
 
     expect($kudo->fresh()->mine)->toBeTrue();
 });
