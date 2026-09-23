@@ -24,6 +24,11 @@ use Illuminate\Support\Facades\Auth;
 class SearchCompiler
 {
     /**
+     * @param  ResponseFilter  $responses  Applies the shared response and reaction fields.
+     */
+    public function __construct(private readonly ResponseFilter $responses) {}
+
+    /**
      * Constrain the given TimelineEntry query with the filter. Groups are OR-ed
      * together; the conditions inside each group are AND-ed.
      *
@@ -112,6 +117,7 @@ class SearchCompiler
     private function applyConditions(Builder $query, array $group, array $type): void
     {
         $items = [];
+        $responses = [];
 
         foreach ($group['conditions'] as $condition) {
             $field = $type['fields'][$condition['field']] ?? null;
@@ -122,9 +128,14 @@ class SearchCompiler
 
             match ($field['scope'] ?? null) {
                 'item' => $items[] = [$field, $condition['operator'], $condition['value']],
+                'response', 'reaction' => $responses[] = [$field, $condition['operator'], $condition['value']],
                 'day' => $this->dayTotalClause($query, $field, $condition['operator'], $condition['value']),
                 default => $this->applyCondition($query, $field, $condition['operator'], $condition['value']),
             };
+        }
+
+        if ($responses !== []) {
+            $this->responses->apply($query, $responses);
         }
 
         if ($items === []) {
@@ -207,10 +218,18 @@ class SearchCompiler
      */
     private function applyAnyGroup(Builder $query, array $group, array $type): void
     {
+        $responses = [];
+
         foreach ($group['conditions'] as $condition) {
             $field = $type['fields'][$condition['field']] ?? null;
 
             if ($field === null) {
+                continue;
+            }
+
+            if (in_array($field['scope'] ?? null, ['response', 'reaction'], true)) {
+                $responses[] = [$field, $condition['operator'], $condition['value']];
+
                 continue;
             }
 
@@ -229,6 +248,26 @@ class SearchCompiler
             // The remaining "any" fields are date presets that constrain the entry directly.
             $this->clause($query, $field['column'], $field['dataType'], $condition['operator'], $condition['value']);
         }
+
+        if ($responses !== []) {
+            $this->anyResponses($query, $responses);
+        }
+    }
+
+    /**
+     * Apply response and reaction conditions across every timeline type for the Anything group.
+     *
+     * @param  Builder  $query  The TimelineEntry query to constrain.
+     * @param  list<array{0: array<string, mixed>, 1: string, 2: mixed}>  $conditions  [field, operator, value] triples.
+     */
+    private function anyResponses(Builder $query, array $conditions): void
+    {
+        $models = collect(TypeRegistry::all())->pluck('model')->all();
+
+        $query->whereHasMorph('entry', $models, function (Builder $morph) use ($conditions): void {
+            $this->guardStatus($morph);
+            $this->responses->apply($morph, $conditions);
+        });
     }
 
     /**
