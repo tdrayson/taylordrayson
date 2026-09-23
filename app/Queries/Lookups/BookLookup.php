@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 /**
  * Books from Hardcover, filled with book-level details and the most-read cover.
- * Edition ISBNs and years describe someone else's printing, so they wait for one to be picked from the covers.
+ * Edition ISBNs, years and page counts describe someone else's printing, so they wait for one to be picked from the covers.
  */
 final class BookLookup
 {

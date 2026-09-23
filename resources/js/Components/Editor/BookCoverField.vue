@@ -8,7 +8,7 @@ import ImageField from './ImageField.vue';
 /**
  * A book's cover: the standard image field, plus a dialog of the editions the book
  * has been printed in, searched by the title and author in the form right now.
- * Picking one also fills its year, ISBN and overview.
+ * Picking one also fills its year, ISBN, page count and overview.
  */
 defineOptions({ inheritAttrs: false });
 
@@ -77,7 +77,7 @@ async function choose(edition) {
     emit('update:modelValue', [{ id: `url:${edition.cover}`, name: 'Cover', url: edition.cover }]);
     open.value = false;
 
-    const details = Object.fromEntries(Object.entries({ 'meta.year': edition.year, 'meta.isbn': edition.isbn })
+    const details = Object.fromEntries(Object.entries({ 'meta.year': edition.year, 'meta.isbn': edition.isbn, pages: edition.pages })
         .filter(([, value]) => value !== null && value !== undefined));
     emit('fill', details);
 

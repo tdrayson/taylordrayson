@@ -46,11 +46,13 @@ final class BookCovers
         $isbn = collect([$edition['isbn_13'] ?? null, $edition['isbn_10'] ?? null])
             ->first(fn (mixed $isbn): bool => is_string($isbn) && trim($isbn) !== '');
         $year = $edition['release_year'] ?? substr((string) ($edition['release_date'] ?? ''), 0, 4);
+        $pages = $edition['pages'] ?? null;
 
         return new BookEdition(
             cover: $cover,
             isbn: $isbn === null ? null : trim($isbn),
             year: is_numeric($year) && (int) $year > 0 ? (int) $year : null,
+            pages: is_numeric($pages) && (int) $pages > 0 ? (int) $pages : null,
         );
     }
 }

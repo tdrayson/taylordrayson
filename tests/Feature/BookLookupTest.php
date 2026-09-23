@@ -83,7 +83,7 @@ it('lists unique edition covers for the best match, capped at twenty, with the b
     Saloon::fake([hardcoverSearch(), hardcoverBooks([])]);
 
     expect(app(BookCoverLookup::class)('How to Win Friends')[0]->toArray())
-        ->toBe(['cover' => 'https://assets.hardcover.app/book.jpeg', 'isbn' => null, 'year' => null]);
+        ->toBe(['cover' => 'https://assets.hardcover.app/book.jpeg', 'isbn' => null, 'year' => null, 'pages' => null]);
 });
 
 it('returns no covers for a blank query or a failed search', function () {
@@ -103,19 +103,19 @@ it('serves covers from the lookup endpoint', function () {
         ->assertJsonPath('data.0.cover', 'https://assets.hardcover.app/edition-1.jpeg');
 });
 
-it('gives each edition its own ISBN and year, preferring the ISBN-13', function () {
+it('gives each edition its own ISBN, year and page count, preferring the ISBN-13', function () {
     Saloon::fake([hardcoverSearch(), hardcoverBooks([
-        ['isbn_13' => '9780141301143', 'isbn_10' => '0141301147', 'release_year' => null, 'release_date' => '1959-01-01', 'image' => ['url' => 'https://assets.hardcover.app/puffin.jpeg']],
-        ['isbn_13' => null, 'isbn_10' => '0553152890', 'release_year' => 1975, 'release_date' => null, 'image' => ['url' => 'https://assets.hardcover.app/bantam.jpeg']],
-        ['isbn_13' => '', 'isbn_10' => null, 'release_year' => null, 'release_date' => null, 'image' => ['url' => 'https://assets.hardcover.app/unknown.jpeg']],
+        ['isbn_13' => '9780141301143', 'isbn_10' => '0141301147', 'release_year' => null, 'release_date' => '1959-01-01', 'pages' => 222, 'image' => ['url' => 'https://assets.hardcover.app/puffin.jpeg']],
+        ['isbn_13' => null, 'isbn_10' => '0553152890', 'release_year' => 1975, 'release_date' => null, 'pages' => 196, 'image' => ['url' => 'https://assets.hardcover.app/bantam.jpeg']],
+        ['isbn_13' => '', 'isbn_10' => null, 'release_year' => null, 'release_date' => null, 'pages' => null, 'image' => ['url' => 'https://assets.hardcover.app/unknown.jpeg']],
     ])]);
 
     $editions = array_map(fn ($edition) => $edition->toArray(), app(BookCoverLookup::class)('Danny the Champion of the World'));
 
     expect(array_slice($editions, 0, 3))->toBe([
-        ['cover' => 'https://assets.hardcover.app/puffin.jpeg', 'isbn' => '9780141301143', 'year' => 1959],
-        ['cover' => 'https://assets.hardcover.app/bantam.jpeg', 'isbn' => '0553152890', 'year' => 1975],
-        ['cover' => 'https://assets.hardcover.app/unknown.jpeg', 'isbn' => null, 'year' => null],
+        ['cover' => 'https://assets.hardcover.app/puffin.jpeg', 'isbn' => '9780141301143', 'year' => 1959, 'pages' => 222],
+        ['cover' => 'https://assets.hardcover.app/bantam.jpeg', 'isbn' => '0553152890', 'year' => 1975, 'pages' => 196],
+        ['cover' => 'https://assets.hardcover.app/unknown.jpeg', 'isbn' => null, 'year' => null, 'pages' => null],
     ]);
 });
 
