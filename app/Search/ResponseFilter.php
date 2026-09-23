@@ -64,7 +64,7 @@ final class ResponseFilter
         $filters = array_values(array_filter($filters, fn (array $filter): bool => $filter[0]['key'] !== 'response_source'));
 
         $tables = [
-            in_array(ResponseSource::Comment->value, $sources, true)
+            in_array(ResponseSource::LocalComment->value, $sources, true)
                 ? $this->count($entry, new Comment, 'commentable', $filters, kind: null, platform: null, text: [], documents: ['body'], site: [])
                 : null,
             in_array(ResponseSource::Webmention->value, $sources, true)

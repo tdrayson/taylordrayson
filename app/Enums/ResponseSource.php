@@ -8,14 +8,14 @@ namespace App\Enums;
  */
 enum ResponseSource: string
 {
-    case Comment = 'comment';
+    case LocalComment = 'local-comment';
     case Webmention = 'webmention';
     case Syndicated = 'syndicated';
 
     public function label(): string
     {
         return match ($this) {
-            self::Comment => 'Local comment',
+            self::LocalComment => 'Local comment',
             self::Webmention => 'Webmention',
             self::Syndicated => 'Platform',
         };

@@ -95,8 +95,8 @@ it('tells a local comment apart from a webmention and finds a webmention by its 
         'status' => CommentStatus::Approved,
     ]);
 
-    expect(notesMatching([['field' => 'response_source', 'operator' => 'is', 'value' => ['comment']]]))->toBe(['Commented'])
-        ->and(notesMatching([['field' => 'response_source', 'operator' => 'is_not', 'value' => ['comment']]]))->toBe(['Mentioned'])
+    expect(notesMatching([['field' => 'response_source', 'operator' => 'is', 'value' => ['local-comment']]]))->toBe(['Commented'])
+        ->and(notesMatching([['field' => 'response_source', 'operator' => 'is_not', 'value' => ['local-comment']]]))->toBe(['Mentioned'])
         ->and(notesMatching([['field' => 'response_site', 'operator' => 'contains', 'value' => 'aaronparecki.com']]))->toBe(['Mentioned'])
         ->and(notesMatching([['field' => 'response_platform', 'operator' => 'is_not', 'value' => ['strava']]]))->toBe([]);
 });
