@@ -130,17 +130,18 @@ const markable = computed(() => (usePage().props.signedIn === true ? markableId(
             <!-- The mark sits on the avatar, since whose response this is what
                  the avatar already says. Where there is no hover to reveal it,
                  it moves to the end of the byline instead. -->
-            <span class="response-avatar shrink-0 self-start">
+            <span class="response-avatar grid shrink-0 self-start">
                 <Avatar
                     :name="item.authorName"
                     :photo="item.authorPhoto"
                     :mine="item.mine"
+                    class="col-start-1 row-start-1"
                 />
 
                 <button
                     v-if="markable"
                     type="button"
-                    class="absolute inset-0 flex items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:hidden"
+                    class="col-start-1 row-start-1 flex items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:hidden"
                     :aria-pressed="item.mine"
                     :aria-label="item.mine ? 'Not mine' : 'Mark as mine'"
                     @click="setMine(markable, ! item.mine)"
