@@ -257,11 +257,26 @@ const previewDay = computed(() => {
     }).format(new Date());
 });
 
-/** Apply the sibling values a lookup resolved: a book's author, a place's coordinates. */
-function applyFill(values) {
+// What each fill last wrote, so a later fill can tell a value typed since from its own.
+const filled = {};
+
+/**
+ * Apply the sibling values a lookup resolved: a book's author, a place's coordinates.
+ * A key in `keepEdits` is only replaced while blank or still holding what a fill put there.
+ */
+function applyFill(values, { keepEdits = [] } = {}) {
     Object.entries(values).forEach(([key, value]) => {
-        if (key in form) {
+        if (! (key in form)) {
+            return;
+        }
+
+        const edited = keepEdits.includes(key)
+            && String(form[key] ?? '').trim() !== ''
+            && form[key] !== filled[key];
+
+        if (! edited) {
             form[key] = value;
+            filled[key] = value;
         }
     });
 }
