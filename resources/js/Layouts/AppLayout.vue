@@ -45,7 +45,7 @@ provideInteractions(computed(() => page.props.interactions ?? {}));
                 <AppTopbar :breadcrumb="breadcrumb" :minimal="minimal" />
             </header>
             <main id="main-content" class="flex min-w-0 flex-1 flex-col">
-                <div :key="page.url" class="content-grid w-full animate-fade-in pb-28 pt-8">
+                <div :key="page.url" class="content-grid w-full animate-fade-in pb-40 pt-8">
                     <slot />
                 </div>
             </main>
