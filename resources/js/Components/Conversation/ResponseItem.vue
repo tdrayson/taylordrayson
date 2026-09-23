@@ -128,21 +128,20 @@ const markable = computed(() => (usePage().props.signedIn === true ? markableId(
              the article would walk the avatar right and leave the line behind. -->
         <div :class="['group flex gap-3', item.mine && 'bg-neutral-25 rounded-lg px-3 py-2 -mx-3']">
             <!-- The mark sits on the avatar, since whose response this is what
-                 the avatar already says. On hover it covers the avatar outright
-                 rather than perching on it, so the row says plainly that this
-                 is about who left it. Where there is no hover to reveal it, it
-                 shrinks to a corner badge instead of hiding every face. -->
-            <span class="response-avatar shrink-0 self-start">
+                 the avatar already says. Where there is no hover to reveal it,
+                 it moves to the end of the byline instead. -->
+            <span class="response-avatar grid shrink-0 self-start">
                 <Avatar
                     :name="item.authorName"
                     :photo="item.authorPhoto"
                     :mine="item.mine"
+                    class="col-start-1 row-start-1"
                 />
 
                 <button
                     v-if="markable"
                     type="button"
-                    class="absolute inset-0 flex items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:inset-auto pointer-coarse:bottom-0 pointer-coarse:right-0 pointer-coarse:size-6 pointer-coarse:bg-neutral-0 pointer-coarse:text-neutral-500 pointer-coarse:opacity-100 pointer-coarse:shadow-card"
+                    class="col-start-1 row-start-1 flex items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:hidden"
                     :aria-pressed="item.mine"
                     :aria-label="item.mine ? 'Not mine' : 'Mark as mine'"
                     @click="setMine(markable, ! item.mine)"
@@ -199,6 +198,16 @@ const markable = computed(() => (usePage().props.signedIn === true ? markableId(
                         rel="ugc nofollow noopener noreferrer"
                         class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     >{{ via }}</a><template v-else>{{ via }}</template></span>
+                    <button
+                        v-if="markable"
+                        type="button"
+                        class="ml-1 hidden size-6 items-center justify-center rounded-full align-middle text-neutral-400 transition-colors hover:text-accent-500 focus-visible:text-accent-500 pointer-coarse:inline-flex"
+                        :aria-pressed="item.mine"
+                        :aria-label="item.mine ? 'Not mine' : 'Mark as mine'"
+                        @click="setMine(markable, ! item.mine)"
+                    >
+                        <Icon :name="item.mine ? 'UserRemove01Icon' : 'UserAdd01Icon'" class="size-4" />
+                    </button>
                 </p>
 
                 <ContributedText v-if="item.body?.length" :blocks="item.body" class="mt-2" />

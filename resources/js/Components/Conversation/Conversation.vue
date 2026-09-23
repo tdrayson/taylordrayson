@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ReactionBar from './ReactionBar.vue';
 import ResponseAsides from './ResponseAsides.vue';
 import ResponseItem from './ResponseItem.vue';
@@ -218,6 +218,37 @@ const heading = computed(() => {
  * lost just because the thread is only ever drawn one step in.
  */
 const replyParentId = computed(() => replyingTo.value?.commentId ?? null);
+
+/** Input that means the reader has taken over the scroll. */
+const RELEASE_EVENTS = ['wheel', 'touchstart', 'keydown'];
+
+let release = () => {};
+
+/**
+ * Arrived from a feed card's replies link. Images and maps above load after the
+ * jump and push the heading back down, so hold it at the top until the page
+ * settles or the reader scrolls.
+ */
+onMounted(() => {
+    const heading = document.getElementById('responses');
+
+    if (window.location.hash !== '#responses' || ! heading) {
+        return;
+    }
+
+    const observer = new ResizeObserver(() => heading.scrollIntoView());
+
+    release = () => {
+        observer.disconnect();
+        RELEASE_EVENTS.forEach((name) => window.removeEventListener(name, release));
+    };
+
+    observer.observe(document.body);
+    RELEASE_EVENTS.forEach((name) => window.addEventListener(name, release, { passive: true }));
+    setTimeout(release, 3000);
+});
+
+onBeforeUnmount(() => release());
 
 /** Open the reply form inside the thread, and take the reader to it. */
 async function reply(item) {

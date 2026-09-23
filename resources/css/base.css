@@ -1,7 +1,7 @@
 @layer base {
+    /* No smooth scroll-behavior: it animates Inertia's reset to the top, and
+       Safari abandons that animation when the new page's content loads in. */
     html {
-        scroll-behavior: smooth;
-
         /* Hold the scrollbar's column whether or not the page scrolls, so a
            short day view and a long one place their content identically. No
            effect where the OS draws overlay scrollbars. */
