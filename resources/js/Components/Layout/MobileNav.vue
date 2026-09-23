@@ -123,7 +123,17 @@ onUnmounted(() => {
     transform: translateY(-8px);
 }
 
-/* Stagger each nav group, then the search pill below them, then the footer. */
+/* Stagger each nav row, then the search pill below them, then the footer.
+   Signed in, the owner rows add three children (rule, HQ, Drafts), so the
+   search and footer wait for those too rather than landing before them. */
+#mobile-menu {
+    --menu-rows: 6;
+}
+
+#mobile-menu:has(:deep(nav > :nth-child(7))) {
+    --menu-rows: 9;
+}
+
 .menu-search,
 #mobile-menu :deep(nav > *),
 #mobile-menu .menu-foot {
@@ -154,12 +164,24 @@ onUnmounted(() => {
     animation-delay: 0.24s;
 }
 
-.menu-search {
+#mobile-menu :deep(nav > *:nth-child(7)) {
     animation-delay: 0.28s;
 }
 
-#mobile-menu .menu-foot {
+#mobile-menu :deep(nav > *:nth-child(8)) {
     animation-delay: 0.32s;
+}
+
+#mobile-menu :deep(nav > *:nth-child(9)) {
+    animation-delay: 0.36s;
+}
+
+.menu-search {
+    animation-delay: calc((var(--menu-rows) + 1) * 0.04s);
+}
+
+#mobile-menu .menu-foot {
+    animation-delay: calc((var(--menu-rows) + 2) * 0.04s);
 }
 
 @keyframes menu-item-in {
@@ -183,7 +205,8 @@ onUnmounted(() => {
         transform: none;
     }
 
-    #mobile-menu :deep(nav > a),
+    .menu-search,
+    #mobile-menu :deep(nav > *),
     #mobile-menu .menu-foot {
         animation: none;
     }
