@@ -6,6 +6,7 @@ use App\Actions\AttachedMediaValues;
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
 use App\Actions\BuildResponseContext;
+use App\Data\ExportData;
 use App\Data\TagLink;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
@@ -24,7 +25,6 @@ use App\Models\Food;
 use App\Models\Fuel;
 use App\Models\Note;
 use App\Models\Place;
-use App\Models\Scopes\ListedScope;
 use App\Models\Tag;
 use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
@@ -32,7 +32,12 @@ use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\Conversation;
 use App\Presenters\Entries\FuelEntry;
+use App\Presenters\ExportPresenter;
+use App\Presenters\Exports\Formats\Format;
+use App\Presenters\Exports\Formats\Formats;
+use App\Queries\DayFood;
 use App\Queries\EntryArtwork;
+use App\Queries\EntryAtUrl;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
 use App\Support\LocalTime;
@@ -49,31 +54,21 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EntryController extends Controller
 {
-    public function __construct(private readonly TripForEntry $tripForEntry) {}
+    public function __construct(
+        private readonly TripForEntry $tripForEntry,
+        private readonly EntryAtUrl $entryAtUrl,
+        private readonly DayFood $dayFood,
+    ) {}
 
     public function show(int $year, int $month, int $day, string $slug): SymfonyResponse
     {
-        $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
-
-        $entry = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
-            ->with('entry')
-            ->whereDate('occurred_at', $date)
-            ->where('url_slug', $slug)
-            ->first();
-
-        $model = $entry?->entry;
-        $model?->setRelation('timelineEntry', $entry);
-
-        // Drafts have no spine row, so the owner reaches a dated one directly.
-        if ($model === null && Auth::check()) {
-            $model = $this->draftAt($date, $slug);
-        }
+        $model = ($this->entryAtUrl)($year, $month, $day, $slug);
 
         if ($model === null) {
             throw new NotFoundHttpException;
         }
 
-        return $this->render($model, $entry, sprintf('/%04d/%02d/%02d', $year, $month, $day));
+        return $this->render($model, $model->relationLoaded('timelineEntry') ? $model->timelineEntry : null, sprintf('/%04d/%02d/%02d', $year, $month, $day));
     }
 
     /** An owner's draft at its own address, dated or not. */
@@ -112,6 +107,7 @@ class EntryController extends Controller
             // Notes are title-less by definition; their card title is just
             // truncated content, which the detail body already shows in full.
             'title' => $card->type === TimelineType::Note ? null : $card->title,
+            'titleTokens' => $card->titleTokens,
             ...$this->occurredFields($model),
             'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => $dayUrl,
@@ -122,6 +118,9 @@ class EntryController extends Controller
             'unlockUrl' => $locked
                 ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
                 : null,
+            // A locked entry offers no formats: each would 404, and there is
+            // nothing left to put in one.
+            'formats' => $locked ? [] : $this->formats(ExportPresenter::for($model)),
         ];
 
         $response = Inertia::render('Entry', [
@@ -153,7 +152,7 @@ class EntryController extends Controller
 
         return [
             'entry' => $model instanceof Food
-                ? $this->foodDay($model)
+                ? ($this->dayFood)($model)
                 : $this->entryPayload($model),
             // Server-rendered, not fetched: the replies and mentions carry
             // h-cite markup that other IndieWeb sites parse, and a reader with
@@ -198,28 +197,6 @@ class EntryController extends Controller
                 ])
                 : null,
         ];
-    }
-
-    /** The owner's draft at a dated address; drafts have no spine row, so each draftable type is checked by date and slug. */
-    private function draftAt(string $date, string $slug): ?Model
-    {
-        foreach (Datasets::all() as $dataset) {
-            if (! $dataset->draftable()) {
-                continue;
-            }
-
-            $draft = $dataset->model()::query()
-                ->where('status', EntryStatus::Draft)
-                ->whereDate('occurred_at', $date)
-                ->get()
-                ->first(fn (Model $model): bool => $model->slug() === $slug);
-
-            if ($draft !== null) {
-                return $draft;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -390,53 +367,6 @@ class EntryController extends Controller
     }
 
     /**
-     * A food entry represents a whole day's eating, so aggregate every calorie
-     * row for the date into day totals plus a per-meal breakdown.
-     *
-     * @return array{totals: array<string, float|int>, meals: array<int, array<string, mixed>>}
-     */
-    private function foodDay(Food $model): array
-    {
-        $items = Food::query()
-            ->whereDate('occurred_at', $model->occurred_at->toDateString())
-            ->orderBy('occurred_at')
-            ->get();
-
-        $mealOrder = ['breakfast' => 0, 'lunch' => 1, 'dinner' => 2, 'snacks' => 3];
-
-        return [
-            'status' => $model->status->value,
-            // True while the day is still today, so the page can flag that more
-            // food may yet be logged. Computed server-side to avoid client tz math.
-            'inProgress' => $model->occurred_at->isToday(),
-            'totals' => [
-                'calories' => (int) $items->sum('calories'),
-                'protein' => round((float) $items->sum('protein'), 1),
-                'carbs' => round((float) $items->sum('carbs'), 1),
-                'fat' => round((float) $items->sum('fat'), 1),
-                'saturated_fat' => round((float) $items->sum('saturated_fat'), 1),
-                'sugars' => round((float) $items->sum('sugars'), 1),
-                'fibre' => round((float) $items->sum('fibre'), 1),
-                'sodium' => (int) round((float) $items->sum('sodium')),
-            ],
-            'meals' => $items->groupBy('meal')
-                ->map(fn ($group, string $meal): array => [
-                    'meal' => $meal,
-                    'calories' => (int) $group->sum('calories'),
-                    'items' => $group->map(fn (Food $item): array => [
-                        'name' => $item->name,
-                        'calories' => (int) $item->calories,
-                        'quantity' => (float) $item->quantity,
-                        'units' => $item->units,
-                    ])->values()->all(),
-                ])
-                ->sortBy(fn (array $meal): int => $mealOrder[$meal['meal']] ?? 99)
-                ->values()
-                ->all(),
-        ];
-    }
-
-    /**
      * Where this entry's data came from, with a link back to the original when available.
      *
      * @return array{platform: string, url: ?string}|null
@@ -453,5 +383,24 @@ class EntryController extends Controller
             'platform' => $platform,
             'url' => $model->platform_url,
         ];
+    }
+
+    /**
+     * Every format this export supports, shaped for AppHead's alternate
+     * links and the footer's format list.
+     *
+     * @return list<array{extension: string, type: string, label: string, url: string}>
+     */
+    private function formats(ExportData $export): array
+    {
+        return array_values(array_map(
+            fn (Format $format): array => [
+                'extension' => $format->format()->value,
+                'type' => $format->format()->contentType(),
+                'label' => $format->format()->label(),
+                'url' => $export->url.'.'.$format->format()->value,
+            ],
+            Formats::for($export),
+        ));
     }
 }

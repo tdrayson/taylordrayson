@@ -1,9 +1,10 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 /**
- * One popup open at a time, closing on outside click and on Escape. Shared by
- * every field that opens something, which would otherwise stack panels with no
- * way to tell which one the keyboard is talking to.
+ * One popup open at a time, closing on outside click, on focus moving outside
+ * it, and on Escape. Shared by
+ * every trigger that opens a panel, which would otherwise stack with no way to
+ * tell which one the keyboard is talking to.
  */
 let openId = ref(null);
 let nextId = 0;
@@ -43,6 +44,13 @@ export function useDismissable() {
         }
     }
 
+    // Tabbing away is leaving too, or a keyboard leaves panels open behind it.
+    function onFocusIn(event) {
+        if (isOpen.value && root.value && ! root.value.contains(event.target)) {
+            close();
+        }
+    }
+
     function onKeydown(event) {
         if (event.key === 'Escape' && isOpen.value) {
             // Claimed, so one Escape does not also cancel the form behind it.
@@ -54,11 +62,13 @@ export function useDismissable() {
     onMounted(() => {
         document.addEventListener('pointerdown', onPointerDown, true);
         document.addEventListener('keydown', onKeydown, true);
+        document.addEventListener('focusin', onFocusIn, true);
     });
 
     onBeforeUnmount(() => {
         document.removeEventListener('pointerdown', onPointerDown, true);
         document.removeEventListener('keydown', onKeydown, true);
+        document.removeEventListener('focusin', onFocusIn, true);
     });
 
     return { isOpen, root, open, close, toggle };

@@ -5,7 +5,8 @@ import Eyebrow from '../Ui/Eyebrow.vue';
 import Input from '../Ui/Input.vue';
 import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { formatDate } from '../../lib/dateFormat.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { stampWallClock, toWallClockDate, wallClockParts } from '../../lib/editor/wallClock.js';
 
 /**
@@ -79,15 +80,14 @@ const shown = computed(() => (parts.value.date
     : { date: openedAt.value.slice(0, 10), time: openedAt.value.slice(11, 16) }));
 
 /**
- * The site's timestamp shape, matching LocalTime's "D j M Y, g:ia", with the
+ * The site's timestamp shape, matching LocalTime's label, with the
  * year dropped when it is this one. The zone is its own field, so it is not
  * repeated here.
  */
 function readable({ date, time }) {
-    const day = new Date(`${date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    const year = date.slice(0, 4) === String(tick.value.getFullYear()) ? '' : ` ${date.slice(0, 4)}`;
+    const year = date.slice(0, 4) !== String(tick.value.getFullYear());
 
-    return `${day}${year}, ${clock(new Date(`${date}T${time}`))}`;
+    return `${formatDate(date, { year })}, ${clock(`${date}T${time}`)}`;
 }
 
 // Unset reads as the stamp it would be given, in the same shape as a set one:
@@ -177,7 +177,7 @@ function setTimePart(value) {
                 'text-left',
                 readonly
                     ? [READONLY, 'border-neutral-100']
-                    : 'border-neutral-100 hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    : 'border-neutral-100 hover:border-accent-500',
                 ! readonly && (parts.date ? 'text-neutral-900' : 'text-neutral-500'),
             ]"
             @click="onToggle"
@@ -205,8 +205,7 @@ function setTimePart(value) {
                     >
                         <span>{{ option.label }}</span>
                         <span class="text-xs text-neutral-500">
-                            {{ option.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
-                            {{ String(option.date.getHours()).padStart(2, '0') }}:{{ String(option.date.getMinutes()).padStart(2, '0') }}
+                            {{ formatDate(option.date, { weekday: false, year: false }) }} {{ clock(option.date) }}
                         </span>
                     </button>
                 </li>
@@ -221,7 +220,7 @@ function setTimePart(value) {
                     >
                         <span>{{ shortcut.label }}</span>
                         <span class="text-xs text-neutral-500">
-                            {{ shortcut.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }}
+                            {{ formatDate(shortcut.date, { year: false }) }}
                         </span>
                     </button>
                 </li>

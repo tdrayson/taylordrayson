@@ -33,6 +33,8 @@ const props = defineProps({
     photos: { type: Array, default: () => [] },
     // The book on the go ({ title, author, cover, percent }), or null when none is matched.
     reading: { type: Object, default: null },
+    // [{ extension, type, label, url }] /now can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
 setLayoutProps({
@@ -224,7 +226,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead :og="og" :formats="formats" />
 
     <div class="breakout mx-auto w-full max-w-5xl">
         <header class="flex items-start justify-between gap-4">

@@ -65,7 +65,7 @@ function dayUrl(day) {
             <Link
                 v-if="cell"
                 :href="dayUrl(cell)"
-                class="flex min-h-14 flex-col items-center rounded-md border-2 border-transparent bg-neutral-25 p-1 transition-colors hover:border-accent-500 focus-visible:border-accent-500 focus-visible:outline-none sm:aspect-square sm:min-h-24 sm:items-stretch sm:p-2"
+                class="flex min-h-14 flex-col items-center rounded-md border-2 border-transparent bg-neutral-25 p-1 transition-colors hover:border-accent-500 sm:aspect-square sm:min-h-24 sm:items-stretch sm:p-2"
                 :class="isCurrentMonth && cell === today.getDate() ? 'outline outline-2 outline-accent-500' : ''"
             >
                 <span class="text-sm font-semibold" :class="isCurrentMonth && cell === today.getDate() ? 'text-accent-500' : 'text-neutral-900'">{{ cell }}</span>

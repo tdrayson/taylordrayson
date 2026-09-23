@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Place;
 use App\Presenters\Cards\PlaceCard;
+use App\Presenters\Exports\PlaceExport;
 use App\Timeline\Taxonomies;
 use Illuminate\Support\Str;
 
@@ -71,6 +72,11 @@ final class PlaceDataset extends BaseDataset
     public function card(): PlaceCard
     {
         return new PlaceCard;
+    }
+
+    public function export(): object
+    {
+        return new PlaceExport;
     }
 
     /**

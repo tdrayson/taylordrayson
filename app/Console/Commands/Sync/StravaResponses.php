@@ -66,9 +66,11 @@ class StravaResponses extends Command
 
         $spent = 0;
         $pulled = 0;
+        $failed = 0;
         $stoppedAt = null;
+        $incomplete = false;
 
-        foreach ($this->summaries($strava, $after, $spent) as $summary) {
+        foreach ($this->summaries($strava, $after, $spent, $incomplete) as $summary) {
             $sourceId = (string) $summary['id'];
 
             // Summaries come back newest first, so everything above the cursor
@@ -109,28 +111,46 @@ class StravaResponses extends Command
                 break;
             }
 
-            $pull($activity, $withComments);
+            $pull($activity, $withComments) ? $pulled++ : $failed++;
             $spent += $cost;
-            $pulled++;
         }
 
         // The stream ended without ever meeting the id we were told to resume
         // at: it's gone, or the walk changed shape. Holding onto it would
         // stall every future backfill, so it is dropped rather than kept.
-        if ($resumeAt !== null && $resuming) {
+        if ($resumeAt !== null && $resuming && ! $incomplete) {
             $stoppedAt = null;
             $this->warn('The stored cursor never turned up; found nothing to resume from. Starting from the top next run.');
         }
 
-        $this->rememberCursor($all, $stoppedAt);
+        // A failed page tells us nothing about what lies beyond it, so the
+        // cursor is left exactly as it was: clearing it would record a walk
+        // that never reached the end, and setting one would invent a resume
+        // point from an activity list that never arrived.
+        if (! $incomplete) {
+            $this->rememberCursor($all, $stoppedAt);
+        }
 
         if ($stoppedAt !== null) {
             $this->warn('Stopped at the request ceiling. Run again to continue.');
         }
 
+        if ($failed > 0) {
+            $this->warn("Strava did not answer for {$failed} activities; their responses are unchanged.");
+        }
+
+        // Reporting a walk that never happened as a clean run is how a rate
+        // limit passed for "nothing to do": the count below is honest either
+        // way, and still reads as zero when no page was ever fetched.
+        if ($incomplete) {
+            $this->error("Could not read the full activity list from Strava, so this run is incomplete. Pulled responses for {$pulled} activities before giving up; run again once the rate limit window has passed.");
+
+            return self::FAILURE;
+        }
+
         $this->info("Done. Pulled responses for {$pulled} activities.");
 
-        return self::SUCCESS;
+        return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
 
     /**
@@ -262,9 +282,10 @@ class StravaResponses extends Command
      * same budget as a pull, so a long walk stops paging rather than overrun it.
      *
      * @param  int  $spent  Passed by reference: incremented per page fetched.
+     * @param  bool  $incomplete  Passed by reference: set when a page could not be read.
      * @return iterable<array<string, mixed>>
      */
-    private function summaries(Client $strava, ?int $after, int &$spent): iterable
+    private function summaries(Client $strava, ?int $after, int &$spent, bool &$incomplete): iterable
     {
         for ($page = 1; ; $page++) {
             if ($spent + 1 > self::MAX_REQUESTS) {
@@ -274,7 +295,16 @@ class StravaResponses extends Command
             $summaries = $strava->activitiesPage($page, self::PER_PAGE, $after);
             $spent++;
 
-            if (blank($summaries)) {
+            // Null is a request that failed, most often the read rate limit.
+            // Ending the walk on it the way an empty page ends it is what let
+            // a run that never reached Strava report that it had nothing to do.
+            if ($summaries === null) {
+                $incomplete = true;
+
+                return;
+            }
+
+            if ($summaries === []) {
                 return;
             }
 

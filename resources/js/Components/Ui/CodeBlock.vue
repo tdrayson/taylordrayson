@@ -72,7 +72,7 @@ onBeforeUnmount(() => clearTimeout(timer));
             <span v-if="filename" class="min-w-0 truncate px-4 font-mono text-neutral-700">{{ filename }}</span>
             <button
                 type="button"
-                class="ml-auto flex items-center gap-1.5 px-4 py-2.5 font-medium text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="ml-auto flex items-center gap-1.5 px-4 py-2.5 font-medium text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900"
                 :aria-label="copied ? 'Copied' : 'Copy code'"
                 @click="copy"
             >
@@ -85,7 +85,7 @@ onBeforeUnmount(() => clearTimeout(timer));
             <button
                 v-if="!hasHeader"
                 type="button"
-                class="absolute right-2 top-2 flex items-center gap-1.5 rounded-md bg-neutral-0/80 px-2 py-1 text-xs font-medium text-neutral-500 opacity-0 backdrop-blur transition-opacity hover:text-neutral-900 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/code:opacity-100"
+                class="absolute right-2 top-2 flex items-center gap-1.5 rounded-md bg-neutral-0/80 px-2 py-1 text-xs font-medium text-neutral-500 opacity-0 backdrop-blur transition-opacity hover:text-neutral-900 focus-visible:opacity-100 group-hover/code:opacity-100"
                 :aria-label="copied ? 'Copied' : 'Copy code'"
                 @click="copy"
             >

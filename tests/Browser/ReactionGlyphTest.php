@@ -4,8 +4,6 @@ use App\Enums\CommentStatus;
 use App\Enums\ReactionType;
 use App\Models\Note;
 use App\Support\PortableText;
-use App\Support\VisitorIdentity;
-use Illuminate\Http\Request;
 
 /**
  * The reaction discs, as they actually paint.
@@ -127,23 +125,18 @@ it('keeps the reaction count the colour of its kind, whichever reaction you chos
     $reacted = noteWithEveryReaction();
     $untouched = noteWithEveryReaction();
 
-    // Seeded rather than clicked: clicking leaves the control hovered, which is a
-    // colour of its own.
-    foreach (['127.0.0.1', '::1'] as $ip) {
-        $reacted->reactions()->create([
-            'type' => ReactionType::Love,
-            'identity_key' => VisitorIdentity::onTarget(
-                Request::create('/', 'GET', server: ['REMOTE_ADDR' => $ip]),
-                $reacted,
-            ),
-        ]);
-    }
+    $reacted->reactions()->create(['type' => ReactionType::Love, 'identity_key' => hash('sha256', 'mine')]);
 
     $colour = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tabular-nums')).color";
 
     $theirs = visit($untouched->url())->assertPresent('[data-testid="reaction-bar"] .tabular-nums')->script($colour);
 
-    visit($reacted->url())
+    // Seeded rather than clicked: clicking leaves the control hovered, which is a
+    // colour of its own. Which reaction is yours lives in the browser.
+    $page = visit($reacted->url())->assertPresent('[data-testid="reaction-bar"]');
+    $page->script("localStorage.setItem('reactor', JSON.stringify({ token: 'x', picks: { 'note:{$reacted->id}': 'love' } }))");
+
+    $page->refresh()
         ->assertScript("document.querySelector('[data-testid=\"reaction-bar\"] button').getAttribute('aria-pressed')", 'true')
         ->assertScript($colour, $theirs);
 });
@@ -158,6 +151,6 @@ it('bolds the total when you are one of the people in it', function () {
     $page->assertScript($weight, '500');
 
     // Reacting is the only thing that changes: the count keeps its colour and size.
-    $page->click('[aria-label="React to this"]')
+    $page->click('[aria-label^="React to this"]')
         ->assertScript($weight, '700');
 });

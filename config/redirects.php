@@ -20,4 +20,11 @@ return [
     'media/films' => 'films',
     'media/books' => 'books',
     'media/tv' => 'tv-shows',
+    'about-me' => 'about',
+    'working-on' => 'projects',
+    'fitness' => 'tags/fitness',
+    'health' => 'tags/health',
+    'technology' => 'tags/technology',
+    'photography' => 'tags/photography',
+    'living-alone' => 'tags/living-alone',
 ];

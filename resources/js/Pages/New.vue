@@ -47,7 +47,7 @@ const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
                 v-for="entryType in types"
                 :key="entryType.type"
                 :href="`/new/${entryType.type}`"
-                class="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-neutral-100 px-4 py-5 text-center text-sm font-medium text-neutral-900 transition-colors hover:border-accent-500 hover:bg-accent-50 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-neutral-100 px-4 py-5 text-center text-sm font-medium text-neutral-900 transition-colors hover:border-accent-500 hover:bg-accent-50 hover:text-accent-700"
             >
                 <Icon :icon="entryType.icon" class="size-6 text-neutral-500 transition-colors group-hover:text-accent-500" />
                 {{ entryType.label }}

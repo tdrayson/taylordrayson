@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import Input from '../Ui/Input.vue';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**

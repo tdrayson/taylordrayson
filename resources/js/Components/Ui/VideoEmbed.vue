@@ -57,7 +57,7 @@ const label = computed(() => (props.caption ? `Play video: ${props.caption}` : '
         <button
             v-else-if="provider"
             type="button"
-            class="group/play relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            class="group/play relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
             :aria-label="label"
             @click="playing = true"
         >

@@ -32,13 +32,13 @@ const options = computed(() => [
     <div
         role="group"
         aria-label="Filter flights by year"
-        class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4"
+        class="no-scrollbar -mx-4 -my-1 flex gap-2 overflow-x-auto px-4 py-1"
     >
         <button
             v-for="option in options"
             :key="option.value ?? 'all'"
             type="button"
-            class="group shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="group shrink-0 rounded-full"
             :aria-pressed="modelValue === option.value"
             @click="emit('update:modelValue', option.value)"
         >

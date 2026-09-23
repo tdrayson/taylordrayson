@@ -28,3 +28,12 @@ export function writeCookie(name, value) {
 
     document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${MAX_AGE};samesite=lax`;
 }
+
+/** Remove a cookie written by writeCookie. */
+export function deleteCookie(name) {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    document.cookie = `${name}=;path=/;max-age=0;samesite=lax`;
+}

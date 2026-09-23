@@ -12,7 +12,7 @@ const props = defineProps({
     class: { type: [String, Array, Object], default: '' },
 });
 
-const { distanceParts } = useFormat();
+const { distanceParts, statParts, durationParts } = useFormat();
 
 // Format BEFORE filtering: a stat carrying raw `distanceM` resolves its
 // value/unit through the active unit setting here, others pass through with
@@ -22,9 +22,13 @@ const { distanceParts } = useFormat();
 const formatted = computed(() => props.stats.map((stat) => {
     if (stat.distanceM !== null && stat.distanceM !== undefined) {
         const parts = distanceParts(stat.distanceM, stat.precision ?? 0);
-        return { ...stat, value: parts.value, unit: parts.unit, isDistance: true };
+        return { ...stat, value: parts.value, unit: parts.unit, exact: parts.exact, isDistance: true };
     }
-    return stat;
+    if (stat.seconds !== null && stat.seconds !== undefined) {
+        const parts = durationParts(stat.seconds);
+        return parts ? { ...stat, ...parts, seconds: null } : stat;
+    }
+    return { ...stat, ...statParts(stat.value, stat.unit) };
 }));
 
 // Drop blank stats so callers can pass a sparse list without gaps, and drop
@@ -65,7 +69,7 @@ const scale = computed(() => SIZES[props.size] ?? SIZES.md);
                 {{ stat.label }}
                 <span v-if="stat.sub" class="mt-1 block normal-case tracking-normal text-neutral-400">{{ stat.sub }}</span>
             </Eyebrow>
-            <dd class="font-display font-extrabold leading-none tracking-tight tabular-nums" :class="scale.value">
+            <dd :title="stat.exact" class="font-display font-extrabold leading-none tracking-tight tabular-nums" :class="scale.value">
                 <Duration v-if="stat.seconds != null" :seconds="stat.seconds" />
                 <template v-else>
                     {{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 font-semibold text-neutral-500 no-underline" :class="scale.unit">{{ stat.unit }}</abbr>

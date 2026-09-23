@@ -40,17 +40,17 @@ function posted(result) {
         return;
     }
 
-    responses.value = [result.response, ...responses.value];
+    responses.value = [...responses.value, result.response];
 }
 
 /**
- * The thread: newest conversation first, but each reply kept under the response
+ * The thread: oldest conversation first, but each reply kept under the response
  * it answers. Sorting the whole list by date alone put a reply above its own
  * parent, which reads as a non-sequitur.
  *
  * Flattened to one level, so a reply to a reply sits beside its siblings rather
- * than stepping further right forever. Within a thread the replies run oldest
- * first, because a conversation reads forwards even when the list does not.
+ * than stepping further right forever. Replies run oldest first within a thread
+ * too, so the whole list reads forwards.
  */
 const thread = computed(() => {
     const all = responses.value;
@@ -114,9 +114,9 @@ const thread = computed(() => {
     const byOldest = (a, b) => at(a) - at(b);
 
     // A thread is ordered by its latest activity, not by when it started: a
-    // reply today to a comment from last month makes that conversation the
-    // newest thing here, and sorting on the parent alone would bury it where
-    // nobody looks. The dates on screen explain the order without a label.
+    // reply today to a comment from last month belongs at the bottom with the
+    // rest of today's responses, not back where that conversation began. The
+    // dates on screen explain the order without a label.
     const lastActivity = (root) => Math.max(
         at(root),
         ...(children.get(root.id) ?? []).map(at),
@@ -124,7 +124,7 @@ const thread = computed(() => {
 
     return all
         .filter((item) => rootOf(item).id === item.id)
-        .sort((a, b) => lastActivity(b) - lastActivity(a))
+        .sort((a, b) => lastActivity(a) - lastActivity(b))
         .flatMap((root) => {
             const replies = (children.get(root.id) ?? []).sort(byOldest);
 
@@ -302,11 +302,13 @@ async function reply(item) {
                  panel further down that nobody would think to open. -->
             <p class="mb-3 text-base text-neutral-500">
                 Add a comment, or
-                <button
-                    type="button"
-                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                <!-- Not prevented: following the hash moves the Tab starting
+                     point to the panel it opens. -->
+                <a
+                    href="#send-a-link"
+                    class="rounded-sm underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                     @click="asides?.openWebmention()"
-                >send me the link to your own post</button>.
+                >send me the link to your own post</a>.
             </p>
 
             <!-- Only ever a new comment on the entry. Replying to somebody

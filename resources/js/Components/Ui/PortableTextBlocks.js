@@ -1,4 +1,4 @@
-import { h } from 'vue';
+import { h, isVNode } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
@@ -115,23 +115,38 @@ function isExternalHref(href) {
  *
  * @param {object} mark The icon vnode.
  * @param {string|object} label The link text, or a vnode when a mark (bold,
- *   code) already wrapped it, which cannot be split and so rides with the icon.
+ *   code) already wrapped it.
  * @returns {Array} The anchor's children.
  */
 function iconWithLabel(mark, label) {
-    const nowrap = (children) => h('span', { class: 'whitespace-nowrap' }, children);
+    const [head, tail] = splitFirstWord(label);
 
-    if (typeof label !== 'string') {
-        return [nowrap([mark, label])];
+    return [h('span', { class: 'whitespace-nowrap' }, [mark, head]), tail];
+}
+
+/**
+ * Split text at its first space, rebuilding any decorator tags (strong, em)
+ * around both halves so only the first word is held to the icon.
+ *
+ * @param {string|object} node The text, or a decorator vnode wrapping it.
+ * @returns {Array} The first word and the rest, which is null when there is no rest.
+ */
+function splitFirstWord(node) {
+    if (typeof node === 'string') {
+        const space = node.indexOf(' ');
+
+        return space === -1 ? [node, null] : [node.slice(0, space), node.slice(space)];
     }
 
-    const space = label.indexOf(' ');
+    const inner = Array.isArray(node.children) && node.children.length === 1 ? node.children[0] : node.children;
 
-    if (space === -1) {
-        return [nowrap([mark, label])];
+    if (typeof inner !== 'string' && ! isVNode(inner)) {
+        return [node, null];
     }
 
-    return [nowrap([mark, label.slice(0, space)]), label.slice(space)];
+    const [head, tail] = splitFirstWord(inner);
+
+    return [h(node.type, head), tail === null ? null : h(node.type, tail)];
 }
 
 /**
@@ -188,21 +203,28 @@ function renderExternalLink(def, label, text, favicons) {
         ? iconWithLabel(mark, label)
         : (def.expanded ? iconWithAddress(mark, text) : iconWithLabel(mark, collapsedUrl(host, def.href)));
 
+    // What the link says out loud: the author's words, or the address a pasted
+    // URL stands for. A collapsed one speaks its host, since the "/…" it shows
+    // is hidden from screen readers already.
+    const spoken = pasted && ! def.expanded ? host : text;
+
     // No nofollow, deliberately: everything this renderer draws was written by
     // the site's author, and disavowing your own outbound links is wrong.
     // Contributed content (comments, mentions) must NOT be routed through here
     // for that reason, and because this renderer draws images, callouts and
     // embeds that a stranger's document has no business containing.
+    // "opens in a new tab" is said with aria-label rather than a hidden span,
+    // because this anchor sits inside e-content: a webmention receiver reading
+    // our content back as plain text would print the hidden words as if we had
+    // written them. An attribute is not text and never travels.
     return h('a', {
         href: def.href,
         rel: away ? 'noopener noreferrer' : null,
         target: away ? '_blank' : null,
+        'aria-label': away ? `${spoken}, opens in a new tab` : null,
         class: CHIP,
         'data-external': '',
-    }, [
-        ...children,
-        away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
-    ]);
+    }, children);
 }
 
 /**
@@ -391,7 +413,7 @@ function renderImage(node, onImageClick) {
             // img margins must not apply inside the zoom button wrapper. For
             // portraits the button shrink-wraps so the zoom overlay anchors to
             // the image corner, not the column edge.
-            class: `group/zoom not-prose relative block cursor-zoom-in rounded-lg transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
+            class: `group/zoom not-prose relative block cursor-zoom-in rounded-lg transition-opacity hover:opacity-95 ${portrait ? '' : 'w-full'}`,
             onClick: () => onImageClick(node.url),
         }, [
             h('img', {

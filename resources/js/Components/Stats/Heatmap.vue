@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Tooltip from '../Ui/Tooltip.vue';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     // Entries-per-day keyed yyyy-mm-dd.
@@ -58,7 +59,7 @@ const yearCells = computed(() => {
         cells.push({
             key,
             href: `/${props.year}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`,
-            title: `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'short' })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
+            title: `${formatDate(key, { weekday: false, year: false })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
             level: bucket(count),
         });
         date.setDate(date.getDate() + 1);
@@ -101,7 +102,7 @@ function color(level) {
                         :key="month.href"
                         :href="month.href"
                         :style="{ gridColumnStart: month.column }"
-                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline focus-visible:outline-none"
+                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline"
                     >{{ month.label }}</Link>
                 </div>
 
@@ -163,8 +164,6 @@ function color(level) {
 }
 
 .heatmap-cell:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
     z-index: 1;
 }
 </style>

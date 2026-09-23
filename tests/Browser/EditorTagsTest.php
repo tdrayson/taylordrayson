@@ -20,3 +20,18 @@ it('opens an entry with its tags as named chips', function () {
         'TAGS Living Alone × Fitness ×',
     );
 });
+
+it('closes the tag suggestions when focus moves to another field', function () {
+    Article::factory()->create(['status' => 'published', 'occurred_at' => now()->subDays(2)])
+        ->syncTagNames(['Fitness']);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => now()->subDay()]);
+
+    $tags = 'input[placeholder="Add a tag"]';
+    $expanded = "document.querySelector('{$tags}').getAttribute('aria-expanded')";
+
+    $page = visit($article->url().'?edit')->assertPresent($tags);
+
+    $page->click($tags)->assertScript($expanded, 'true');
+
+    $page->keys($tags, 'Shift+Tab')->assertScript($expanded, 'false');
+});

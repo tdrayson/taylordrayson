@@ -49,6 +49,9 @@ interface Dataset
     /** The card presenter, exposing present() and title() for this type's model. */
     public function card(): object;
 
+    /** The export presenter, exposing present() for this type's model. */
+    public function export(): object;
+
     /**
      * @return array<string, array<string, mixed>> Advanced-search field specs, keyed by field.
      */

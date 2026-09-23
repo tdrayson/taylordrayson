@@ -7,7 +7,6 @@ use App\Queries\Hub\NeedsAttention;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
 use App\Support\FeedDiscovery;
-use App\Support\OgRenderer;
 use App\Support\Preferences;
 use App\Support\StateStore;
 use App\Support\TodaySteps;
@@ -51,11 +50,6 @@ class HandleInertiaRequests extends Middleware
             // Name, avatar, bio and rel="me" profiles: the one place every
             // component reads the owner's identity from.
             'identity' => config('identity'),
-            // The current card design, appended to every generated og:image URL
-            // so a template edit changes the URL and scrapers refetch. Cards are
-            // served immutable, so without it a redesign is invisible to anyone
-            // holding the old one.
-            'ogVersion' => OgRenderer::generation(),
             // Type-narrowed feed links for the current route, rendered by
             // AppHead rather than the Blade root: the root is only rendered on a
             // cold load, so after a client-side visit its links would still

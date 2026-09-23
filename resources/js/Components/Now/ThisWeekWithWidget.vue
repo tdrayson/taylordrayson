@@ -1,8 +1,10 @@
 <script setup>
+import { useFormat } from '../../composables/useFormat';
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { player, playAudio, togglePlay, isCurrent } from '../../lib/player.js';
 import { relativeDay } from '../../lib/format.js';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     // Latest episode from the backend: { season, episode, publishedAt, duration, url }.
@@ -26,8 +28,10 @@ const seasonEpisode = computed(() => {
 
 // Compact absolute fallback ("3 May") once the shared relative window lapses.
 function relativeDate(iso) {
-    return relativeDay(iso) ?? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return relativeDay(iso) ?? formatDate(iso, { weekday: false, year: false });
 }
+
+const { measure } = useFormat();
 
 function durationLabel(seconds) {
     if (seconds === null || seconds === undefined) {
@@ -46,7 +50,7 @@ const metaLine = computed(() => {
     if (!props.episode) {
         return null;
     }
-    return [relativeDate(props.episode.publishedAt), durationLabel(props.episode.duration)].filter(Boolean).join(', ');
+    return [relativeDate(props.episode.publishedAt), measure('duration', props.episode.duration, durationLabel(props.episode.duration))].filter(Boolean).join(', ');
 });
 
 const track = computed(() => props.episode?.media ?? null);
@@ -75,14 +79,14 @@ const onImageError = (event) => {
             <Link
                 v-if="seasonEpisode"
                 :href="episode.url"
-                class="inline-block text-2xl leading-none font-extrabold tracking-tight text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:text-3xl @4xs:text-4xl @xs:text-5xl"
+                class="inline-block text-2xl leading-none font-extrabold tracking-tight text-neutral-900 @5xs:text-3xl @4xs:text-4xl @xs:text-5xl"
             >
                 {{ seasonEpisode }}
             </Link>
             <span v-else class="inline-block text-sm leading-none font-extrabold tracking-tight text-neutral-500 @5xs:text-base @4xs:text-lg @xs:text-2xl">No episodes yet</span>
             <Link
                 :href="archiveHref"
-                class="mt-1.5 line-clamp-2 text-2xs leading-tight font-bold text-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @5xs:mt-2 @5xs:text-xs @4xs:mt-2.5 @4xs:text-sm @xs:mt-3 @xs:text-xl"
+                class="mt-1.5 line-clamp-2 text-2xs leading-tight font-bold text-neutral-800 @5xs:mt-2 @5xs:text-xs @4xs:mt-2.5 @4xs:text-sm @xs:mt-3 @xs:text-xl"
             >
                 {{ show }}
             </Link>
@@ -108,7 +112,7 @@ const onImageError = (event) => {
         <button
             v-if="hasAudio"
             type="button"
-            class="absolute right-1/14 bottom-1/14 z-4 flex size-17/100 cursor-pointer appearance-none items-center justify-center rounded-full bg-this-week-with p-0 text-white shadow-lg shadow-this-week-with/40 transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:hover:scale-108"
+            class="absolute right-1/14 bottom-1/14 z-4 flex size-17/100 cursor-pointer appearance-none items-center justify-center rounded-full bg-this-week-with p-0 text-white shadow-lg shadow-this-week-with/40 transition-transform duration-150 motion-safe:hover:scale-108"
             :aria-label="isPlaying ? 'Pause latest episode' : 'Play latest episode'"
             @click="listen"
         >

@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import Tooltip from '../Ui/Tooltip.vue';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     fill: { type: Boolean, default: false },
@@ -53,8 +54,7 @@ const averageParts = computed(() => (recorded.value.length === 0
 // Per-night bar: its own date, a link to that day and a tooltip. A night with
 // no record still takes its column, so the row stays a calendar week.
 const nightCells = computed(() => props.nights.map((night, i) => {
-    const day = dayOf(night.date);
-    const label = day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const label = formatDate(night.date, { year: false });
     const parts = night.hours === null ? null : fmtParts(night.hours);
 
     return {
@@ -116,7 +116,7 @@ const days = computed(() => props.nights.map((night, i) => ({
                         <Link
                             v-if="night.heightPct"
                             :href="night.href"
-                            class="min-h-1/25 w-full rounded-t rounded-b-xs transition duration-120 hover:brightness-92 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 @xl:rounded-t-sm"
+                            class="min-h-1/25 w-full rounded-t rounded-b-xs transition duration-120 hover:brightness-92 @xl:rounded-t-sm"
                             :class="night.today ? 'bg-sleep' : 'bg-sleep/25'"
                             :style="{ height: night.heightPct }"
                             :aria-label="night.label"

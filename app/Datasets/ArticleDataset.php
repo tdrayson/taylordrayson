@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Article;
 use App\Presenters\Cards\ArticleCard;
+use App\Presenters\Exports\ArticleExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -56,6 +57,11 @@ final class ArticleDataset extends BaseDataset
     public function card(): ArticleCard
     {
         return new ArticleCard;
+    }
+
+    public function export(): object
+    {
+        return new ArticleExport;
     }
 
     /**

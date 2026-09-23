@@ -227,7 +227,7 @@ function cancelLink() {
 
             <button
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="blank ? 'bg-accent-50 text-accent-700' : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
                 :aria-label="blank ? 'Opens in a new tab' : 'Opens in the same tab'"
                 :aria-pressed="blank"
@@ -237,7 +237,7 @@ function cancelLink() {
             <button
                 v-if="pastedUrl"
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="expanded ? 'bg-accent-50 text-accent-700' : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
                 :aria-label="expanded ? 'Shows the full address' : 'Shows the domain only'"
                 :aria-pressed="expanded"
@@ -246,7 +246,7 @@ function cancelLink() {
 
             <button
                 type="button"
-                class="rounded p-1.5 text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
                 aria-label="Apply link"
                 @click="applyLink"
             ><Icon name="Tick02Icon" class="size-4" /></button>
@@ -257,7 +257,7 @@ function cancelLink() {
                 v-for="button in BUTTONS"
                 :key="button.mark"
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="editor.isActive(button.mark)
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
@@ -270,7 +270,7 @@ function cancelLink() {
 
             <button
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="onLink(editor)
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"

@@ -42,7 +42,7 @@ defineEmits(['update:year', 'select', 'hover']);
             <div class="flex items-center gap-2">
                 <Link
                     href="/flights"
-                    class="-ml-1 flex size-7 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="-ml-1 flex size-7 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900"
                     aria-label="Back to flights"
                 >
                     <Icon name="ArrowLeft01Icon" class="size-4" />

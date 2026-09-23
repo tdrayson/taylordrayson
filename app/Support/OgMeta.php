@@ -36,8 +36,6 @@ use Illuminate\Support\Str;
  */
 class OgMeta
 {
-    private const SITE_DESCRIPTION = 'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
-
     /** Where Google truncates a title, measured on the whole assembled string. */
     private const TITLE_LIMIT = 60;
 
@@ -56,7 +54,6 @@ class OgMeta
         return self::make([
             'title' => 'Timeline',
             'heading' => 'Taylor Drayson',
-            'description' => 'Everything I log, in one continuous feed, newest first.',
             'variant' => 'home',
         ]);
     }
@@ -244,7 +241,7 @@ class OgMeta
             'title' => "{$status} Not Found",
             'description' => 'The page you were looking for does not exist.',
             'noindex' => true,
-        ]);
+        ], "error-{$status}");
     }
 
     /**
@@ -468,11 +465,31 @@ class OgMeta
     {
         return self::make([
             'title' => self::entryTitle($model, $card),
-            'description' => EntryDescription::for($model, $card) ?? self::SITE_DESCRIPTION,
+            'description' => EntryDescription::for($model, $card) ?? config('identity.bio'),
             'image' => $entry !== null ? self::entryCardUrl($entry) : null,
             'type' => $model instanceof Article ? 'article' : 'website',
             'noindex' => $model->status !== EntryStatus::Published,
         ]);
+    }
+
+    /**
+     * The signed URL of a page's generated card. Signing stops the renderer
+     * taking requests for cards no page publishes.
+     *
+     * @param  OgPayload  $og
+     * @param  string  $owner  The page the card belongs to; it keeps only its latest card.
+     */
+    public static function cardUrl(array $og, string $owner): string
+    {
+        return URL::signedRoute('og', array_filter([
+            'for' => $owner,
+            'title' => $og['heading'] ?? $og['title'] ?? config('identity.name'),
+            'eyebrow' => $og['eyebrow'],
+            'accent' => $og['accent'],
+            'variant' => $og['variant'],
+            'description' => $og['description'],
+            'v' => OgRenderer::generation(),
+        ]));
     }
 
     /**
@@ -543,16 +560,17 @@ class OgMeta
     }
 
     /**
-     * Fill a partial payload with the shared defaults.
+     * Fill a partial payload with the shared defaults and the page's card.
      *
      * @param  array{title?: ?string, description?: string, heading?: ?string, eyebrow?: ?string, accent?: ?string, image?: ?string, variant?: ?string, type?: string, noindex?: bool}  $attributes
+     * @param  string|null  $owner  The card's owner, when it is not the requested path.
      * @return OgPayload
      */
-    private static function make(array $attributes): array
+    private static function make(array $attributes, ?string $owner = null): array
     {
-        return array_merge([
+        $og = array_merge([
             'title' => null,
-            'description' => self::SITE_DESCRIPTION,
+            'description' => config('identity.bio'),
             'heading' => null,
             'eyebrow' => null,
             'accent' => null,
@@ -561,5 +579,9 @@ class OgMeta
             'type' => 'website',
             'noindex' => false,
         ], $attributes);
+
+        $og['image'] ??= self::cardUrl($og, $owner ?? '/'.ltrim(request()->path(), '/'));
+
+        return $og;
     }
 }

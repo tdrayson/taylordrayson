@@ -51,7 +51,7 @@ const DISCS = {
                     <div class="flex flex-col-reverse gap-x-4 sm:flex-row sm:items-start sm:justify-between">
                         <Link
                             :href="item.href"
-                            class="min-w-0 text-base font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none"
+                            class="min-w-0 text-base font-semibold text-neutral-900 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                         >
                             {{ item.title }}
                         </Link>

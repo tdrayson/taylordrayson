@@ -66,7 +66,7 @@ const summary = computed(
                         <button
                             v-if="type.syncable"
                             type="button"
-                            class="flex size-6 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-25 hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:text-green-600 disabled:hover:bg-transparent"
+                            class="flex size-6 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-25 hover:text-accent-500 focus-visible:text-accent-500 disabled:text-green-600 disabled:hover:bg-transparent"
                             :disabled="queued === type.type"
                             :aria-label="queued === type.type ? `${type.label} sync queued` : `Sync ${type.label} now`"
                             :title="queued === type.type ? 'Queued' : 'Sync now'"

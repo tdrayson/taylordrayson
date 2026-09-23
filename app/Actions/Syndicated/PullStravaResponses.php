@@ -27,11 +27,13 @@ final class PullStravaResponses
     /**
      * @param  bool  $withComments  False to leave the comments endpoint alone, when the caller already knows from
      *                              the summary that there are none. Replies are then reconciled as unvouched.
+     * @return bool Whether Strava answered and the responses were reconciled. False is a request that failed,
+     *              which a caller counting its work must not record as a pull.
      */
-    public function __invoke(Activity $activity, bool $withComments = true): void
+    public function __invoke(Activity $activity, bool $withComments = true): bool
     {
         if ($activity->source !== Source::Strava->value || blank($activity->source_id)) {
-            return;
+            return false;
         }
 
         $kudos = $this->strava->kudos($activity->source_id);
@@ -40,7 +42,7 @@ final class PullStravaResponses
         // Null is a failed request, not an empty list. Treating it as empty
         // would wipe the responses we already hold.
         if ($kudos === null || $comments === null) {
-            return;
+            return false;
         }
 
         $url = $activity->platform_url;
@@ -82,6 +84,8 @@ final class PullStravaResponses
                 mine: self::isMine($comment['athlete'] ?? []),
             ), $comments),
         ], $unvouched);
+
+        return true;
     }
 
     /** Whether a comment's athlete is me. False when Strava leaves the id out. */

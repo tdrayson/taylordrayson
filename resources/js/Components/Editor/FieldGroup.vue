@@ -41,7 +41,7 @@ const open = computed({
 
             <button
                 type="button"
-                class="min-h-11 shrink-0 px-2 text-sm text-accent-500 underline underline-offset-2 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="min-h-11 shrink-0 px-2 text-sm text-accent-500 underline underline-offset-2 hover:text-accent-700"
                 :aria-expanded="open"
                 @click="open = ! open"
             >

@@ -38,7 +38,7 @@ function onClick() {
         :aria-checked="modelValue"
         :aria-readonly="readonly || undefined"
         :disabled="disabled"
-        class="flex size-5 shrink-0 items-center justify-center rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-1 disabled:opacity-50"
+        class="flex size-5 shrink-0 items-center justify-center rounded border transition-colors disabled:opacity-50"
         :class="stateClasses"
         @click="onClick"
     >

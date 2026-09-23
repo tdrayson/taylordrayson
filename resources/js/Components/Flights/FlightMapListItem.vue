@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import { useFormat } from '../../composables/useFormat';
-import { duration, dateShort, titleCase } from '../../lib/format.js';
+import { duration as clockDuration, dateShort, titleCase } from '../../lib/format.js';
 
 /**
  * One row in the flight globe map's list: a keyboard-reachable button so the
@@ -21,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'hover']);
 
-const { distance } = useFormat();
+const { distance, exactDistance, duration, exactMeasure } = useFormat();
 
 const airline = computed(() => props.entry.airline);
 
@@ -45,7 +45,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
     <div>
         <button
             type="button"
-            class="w-full px-4 py-3 text-left transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+            class="w-full px-4 py-3 text-left transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:-outline-offset-2"
             :class="selected ? 'bg-accent-50' : ''"
             :aria-expanded="selected"
             @click="emit('select', entry.id)"
@@ -62,7 +62,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
                     <Icon name="ArrowRight01Icon" class="size-3.5 text-neutral-400" />
                     <span>{{ entry.destination.iata }}</span>
                 </div>
-                <span v-if="distanceLabel" class="shrink-0 text-2xs font-semibold text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
+                <span v-if="distanceLabel" :title="exactDistance(entry.distance)" class="shrink-0 text-2xs font-semibold text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
             </div>
 
             <!-- Place names get the full width and truncate. Sitting them beside
@@ -91,7 +91,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
         <div v-if="selected" class="space-y-1.5 border-t border-neutral-50 bg-accent-50 px-4 py-3 text-2xs font-semibold text-neutral-500">
             <div v-if="durationLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Duration</span>
-                <span class="text-neutral-700 tabular-nums">{{ durationLabel }}</span>
+                <span :title="exactMeasure('duration', entry.duration, clockDuration(entry.duration))" class="text-neutral-700 tabular-nums">{{ durationLabel }}</span>
             </div>
             <div v-if="aircraftLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Aircraft</span>
@@ -103,7 +103,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
             </div>
             <Link
                 :href="entry.href"
-                class="inline-block pt-1 font-semibold text-accent-700 underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="inline-block pt-1 font-semibold text-accent-700 underline-offset-2 hover:underline focus-visible:underline"
             >
                 View flight
             </Link>

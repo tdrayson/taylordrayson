@@ -32,6 +32,22 @@ class Units
     }
 
     /**
+     * A duration to the second: "16m 48s", "1h 16m 48s". For a podcast or
+     * episode, where humanDuration()'s rounding to "16m" loses the run time
+     * people actually quote.
+     */
+    public static function preciseDuration(int $seconds): string
+    {
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $remainder = $seconds % 60;
+
+        return $hours > 0
+            ? sprintf('%dh %02dm %02ds', $hours, $minutes, $remainder)
+            : sprintf('%dm %02ds', $minutes, $remainder);
+    }
+
+    /**
      * The same duration in words: "9 hours 21 minutes". For an accessible name,
      * where "9h 21m" is read out a letter at a time.
      */

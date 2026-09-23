@@ -21,12 +21,12 @@ class ReactionController extends Controller
 
         abort_if($target === null, 404);
 
-        $identity = VisitorIdentity::onTarget($request, $target);
+        $identity = VisitorIdentity::onTarget($request->reactorToken(), $target);
 
         $on = app(ToggleReaction::class)($target, $request->reactionType(), $identity);
 
         return response()->json([
-            'reactions' => app(ReactionsFor::class)($target, $identity),
+            'reactions' => app(ReactionsFor::class)($target),
             'on' => $on,
         ]);
     }

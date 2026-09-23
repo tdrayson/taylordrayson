@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
-import { useDismissable } from '../../lib/editor/dismissable';
+import { useDismissable } from '../../composables/useDismissable.js';
 
 /**
  * A callout while the editor is open. Draws the panel the reader will see, and
@@ -36,7 +36,7 @@ function choose(value) {
                 type="button"
                 contenteditable="false"
                 :class="[
-                    'absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card transition-transform hover:rotate-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+                    'absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card transition-transform hover:rotate-0',
                     variant.chip,
                 ]"
                 aria-label="Change callout kind"

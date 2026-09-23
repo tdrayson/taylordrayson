@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\ExportData;
 use App\Models\Sleep;
-use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
+use App\Presenters\Exports\Formats\Format;
+use App\Presenters\Exports\Formats\Formats;
+use App\Presenters\Exports\NowExport;
 use App\Queries\CurrentlyReading;
+use App\Queries\LastNightSleep;
+use App\Queries\LatestEpisode;
 use App\Queries\PhotoStream;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
@@ -28,6 +33,7 @@ class NowController extends Controller
             'entryDays' => fn (): array => $this->entryDays(),
             'photos' => fn (): array => $this->recentPhotos(),
             'reading' => fn (): ?array => app(CurrentlyReading::class)()?->toArray(),
+            'formats' => fn (): array => $this->formats((new NowExport)->present()),
         ]);
     }
 
@@ -38,7 +44,7 @@ class NowController extends Controller
      */
     private function latestEpisode(): ?array
     {
-        $episode = ThisWeekWith::query()->listed()->latest('occurred_at')->first();
+        $episode = app(LatestEpisode::class)();
 
         if ($episode === null) {
             return null;
@@ -101,10 +107,9 @@ class NowController extends Controller
             })
             ->all();
 
-        // The night just gone, or the one before it. Beyond that there is
-        // nothing recent enough to call last night, and the widget says so.
-        $headline = $byDate->get($today->toDateString())
-            ?? $byDate->get($today->copy()->subDay()->toDateString());
+        // The same headline the export publishes: both read LastNightSleep
+        // rather than each picking their own row when a date has more than one.
+        $headline = app(LastNightSleep::class)();
 
         return [
             'nights' => $nights,
@@ -167,5 +172,23 @@ class NowController extends Controller
                 'caption' => $photo['caption'] ?? null,
             ])
             ->all();
+    }
+
+    /**
+     * Every format the /now export supports, shaped for AppHead's alternate links.
+     *
+     * @return list<array{extension: string, type: string, label: string, url: string}>
+     */
+    private function formats(ExportData $export): array
+    {
+        return array_values(array_map(
+            fn (Format $format): array => [
+                'extension' => $format->format()->value,
+                'type' => $format->format()->contentType(),
+                'label' => $format->format()->label(),
+                'url' => $export->url.'.'.$format->format()->value,
+            ],
+            Formats::for($export),
+        ));
     }
 }

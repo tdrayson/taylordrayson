@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useClock } from '../../composables/useClock';
+import { useFormat } from '../../composables/useFormat';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import { weatherFor } from '../../lib/weather.js';
 import Tooltip from '../Ui/Tooltip.vue';
@@ -27,6 +28,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { temperature } = useFormat();
 
 // Ambient readings shared from the server; each falls back to the prop (and so
 // to this component's own default) until the phone has sent that value.
@@ -41,7 +43,7 @@ function ringPercent(value, goal, fallback) {
     return value === undefined || !goal ? fallback : Math.min(100, Math.round((value / goal) * 100));
 }
 
-const temp = computed(() => (weather.value.temp === undefined ? props.temp : `${Math.round(weather.value.temp)}°C`));
+const temp = computed(() => (weather.value.temp === undefined ? props.temp : temperature(weather.value.temp)));
 const condition = computed(() => weather.value.condition ?? props.condition);
 const place = computed(() => location.value.city ?? props.location);
 const zone = computed(() => location.value.tzAbbr ?? props.timezone);

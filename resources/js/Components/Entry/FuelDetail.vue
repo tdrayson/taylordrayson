@@ -4,7 +4,6 @@ import StatGrid from '../Stats/StatGrid.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import DetailList from '../Ui/DetailList.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
-import Icon from '../Ui/Icon.vue';
 import Heading from '../Ui/Heading.vue';
 import { number, money, pencePerLitre } from '../../lib/format.js';
 import { milesToMetres } from '../../lib/distance.js';
@@ -14,7 +13,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
-const { distanceFromMiles } = useFormat();
+const { distanceFromMiles, exactDistanceFromMiles, measure, exactMeasure, sillyUnits } = useFormat();
 
 // Fuel-card saving: what the pump price would have cost minus the fuel-card
 // price. Null unless a lower fuel-card cost is recorded.
@@ -35,8 +34,12 @@ const addressLine = computed(() =>
 // visitor's mi/km distance setting.
 const stats = computed(() => [
     { label: 'Volume', value: number(props.entry.litres, 1), unit: 'L' },
-    { label: 'Cost', value: money(props.entry.cost) },
-    { label: 'Per litre', value: pencePerLitre(props.entry.price_per_litre) },
+    { label: 'Cost', value: measure('money', props.entry.cost, money(props.entry.cost)), exact: exactMeasure('money', props.entry.cost, money(props.entry.cost)) },
+    {
+        label: 'Per litre',
+        value: sillyUnits.value === 'on' && props.entry.price_per_litre ? `${measure('money', props.entry.price_per_litre, '')} a litre` : pencePerLitre(props.entry.price_per_litre),
+        exact: exactMeasure('money', props.entry.price_per_litre, pencePerLitre(props.entry.price_per_litre)),
+    },
     {
         label: 'Odometer',
         distanceM: props.entry.odometer != null ? milesToMetres(props.entry.odometer) : null,
@@ -44,12 +47,13 @@ const stats = computed(() => [
 ]);
 
 const details = computed(() => [
-    { label: 'Fuel card saving', value: money(saving.value) },
+    { label: 'Fuel card saving', value: measure('money', saving.value, money(saving.value)), title: exactMeasure('money', saving.value, money(saving.value)) },
     {
         label: 'Range',
         value: props.entry.miles_this_tank != null
             ? distanceFromMiles(props.entry.miles_this_tank)
             : null,
+        title: exactDistanceFromMiles(props.entry.miles_this_tank),
     },
     {
         label: 'Fuel economy',
@@ -67,17 +71,11 @@ const location = computed(() => props.entry.location ?? null);
 
 <template>
     <div class="space-y-8">
-        <div v-if="entry.logo_url || entry.brand || entry.vehicle" class="flex flex-wrap items-center gap-3">
+        <div v-if="entry.logo_url || entry.brand"class="flex flex-wrap items-center gap-3">
             <span v-if="entry.logo_url" class="inline-flex size-12 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
                 <img :src="entry.logo_url" :alt="entry.brand ? `${entry.brand} logo` : ''" class="size-full object-contain p-1.5">
             </span>
             <Heading v-if="entry.brand" as="span" size="section">{{ entry.brand }} garage</Heading>
-            <Heading v-if="entry.vehicle" as="span" size="section" class="ms-8 inline-flex items-center gap-3">
-                <span class="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-neutral-100">
-                    <Icon name="Car03Icon" class="size-6 text-neutral-500" />
-                </span>
-                {{ entry.vehicle }}
-            </Heading>
         </div>
 
         <div v-if="location" class="space-y-3">

@@ -39,7 +39,20 @@ it('shows a guest the prompt with no body in props or HTML, and no caching', fun
             ->where('entry', null)
             ->missing('fields')
             ->missing('media')
+            // No format is offered while locked: each one 404s, so advertising
+            // them would only point at dead links.
+            ->where('formats', [])
             ->has('og.title'));
+});
+
+it('offers the formats again once the entry is unlocked', function () {
+    privateArticle();
+
+    $this->actingAs(User::factory()->create())
+        ->get('/2026/06/15/kept-close')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('locked', false)
+            ->has('formats.0.extension'));
 });
 
 it('refuses a wrong password and unlocks on the right one for the rest of the session', function () {

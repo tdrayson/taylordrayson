@@ -8,6 +8,7 @@ use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Sleep;
 use App\Presenters\Cards\SleepCard;
+use App\Presenters\Exports\SleepExport;
 
 /**
  * Nightly sleep sessions, from Oura or Apple Watch.
@@ -65,6 +66,11 @@ final class SleepDataset extends BaseDataset
     public function card(): SleepCard
     {
         return new SleepCard;
+    }
+
+    public function export(): object
+    {
+        return new SleepExport;
     }
 
     /**

@@ -32,7 +32,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Data stories' }] });
             <Link
                 :href="`/stories/${story.slug}`"
                 :style="{ '--accent': `#${story.accent}` }"
-                class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-neutral-50 p-6 transition-colors hover:border-(--accent) hover:bg-(--accent)/5 focus-visible:border-(--accent) focus-visible:bg-(--accent)/5 focus-visible:outline-none"
+                class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-neutral-50 p-6 transition-colors hover:border-(--accent) hover:bg-(--accent)/5 focus-visible:bg-(--accent)/5"
             >
                 <!-- Soft accent blob glowing from the bottom-right corner, like the OG card. -->
                 <span class="pointer-events-none absolute -bottom-12 -right-12 size-44 rounded-full opacity-25 blur-2xl" :style="{ backgroundColor: `#${story.accent}` }" />

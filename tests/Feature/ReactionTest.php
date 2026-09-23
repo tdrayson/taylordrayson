@@ -12,13 +12,15 @@ use Illuminate\Support\Facades\DB;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\postJson;
 
+const REACTOR = '9b2f6c1e-4d3a-4f8b-9c7e-1a2b3c4d5e6f';
+
 /**
- * Post a reaction as a given visitor. The identity is derived from the request
- * IP, so a different IP is a different person.
+ * Post a reaction as a given browser. The identity is the token the browser
+ * holds, so a different token is a different person.
  */
-function react(string $type, int $id, string $emoji = 'love', string $ip = '203.0.113.1')
+function react(string $type, int $id, string $emoji = 'love', string $reactor = REACTOR, string $ip = '203.0.113.1')
 {
-    return postJson("/reactions/{$type}/{$id}", ['type' => $emoji], ['REMOTE_ADDR' => $ip]);
+    return postJson("/reactions/{$type}/{$id}", ['type' => $emoji, 'reactor' => $reactor], ['REMOTE_ADDR' => $ip]);
 }
 
 it('adds a reaction and toggles it off on a second click', function () {
@@ -28,29 +30,28 @@ it('adds a reaction and toggles it off on a second click', function () {
         ->assertSuccessful()
         ->assertJsonPath('on', true)
         ->assertJsonPath('reactions.1.key', 'love')
-        ->assertJsonPath('reactions.1.count', 1)
-        ->assertJsonPath('reactions.1.mine', true);
+        ->assertJsonPath('reactions.1.count', 1);
 
     react('note', $note->id)
         ->assertSuccessful()
         ->assertJsonPath('on', false)
-        ->assertJsonPath('reactions.1.count', 0)
-        ->assertJsonPath('reactions.1.mine', false);
+        ->assertJsonPath('reactions.1.count', 0);
 
     expect(Reaction::count())->toBe(0);
 });
 
-it('counts two visitors separately but one visitor once', function () {
+it('counts browsers separately, even behind one IP, but one browser once', function () {
     $note = Note::factory()->create();
+    [$first, $second, $third] = [fake()->uuid(), fake()->uuid(), fake()->uuid()];
 
-    react('note', $note->id, ip: '203.0.113.1');
-    react('note', $note->id, ip: '203.0.113.2');
+    react('note', $note->id, reactor: $first);
+    react('note', $note->id, reactor: $second);
 
     // A visitor holds one reaction, so picking another moves theirs rather
     // than adding a second: their love comes back off as the haha goes on.
-    react('note', $note->id, 'haha', ip: '203.0.113.1');
+    react('note', $note->id, 'haha', reactor: $first);
 
-    $counts = react('note', $note->id, 'wow', ip: '203.0.113.3')
+    $counts = react('note', $note->id, 'wow', reactor: $third)
         ->assertSuccessful()
         ->json('reactions');
 
@@ -92,19 +93,30 @@ it('takes the reaction back when the same emoji is pressed again', function () {
     expect(Reaction::count())->toBe(0);
 });
 
-it('ignores a forged X-Forwarded-For, so one machine cannot stuff the count', function () {
+it('throttles an IP however many tokens it mints', function () {
     $note = Note::factory()->create();
 
-    foreach (['1.2.3.4', '5.6.7.8', '9.10.11.12'] as $claimed) {
-        postJson("/reactions/note/{$note->id}", ['type' => 'love'], [
-            'REMOTE_ADDR' => '203.0.113.1',
-            'HTTP_X_FORWARDED_FOR' => $claimed,
-        ])->assertSuccessful();
+    foreach (range(1, 30) as $ignored) {
+        react('note', $note->id, reactor: fake()->uuid())->assertSuccessful();
     }
 
-    // Three requests, one real connection: the first added a reaction and the
-    // other two toggled it off and back on.
-    expect(Reaction::count())->toBe(1);
+    react('note', $note->id, reactor: fake()->uuid())->assertTooManyRequests();
+
+    // A forged X-Forwarded-For is not a new IP.
+    postJson("/reactions/note/{$note->id}", ['type' => 'love', 'reactor' => fake()->uuid()], [
+        'REMOTE_ADDR' => '203.0.113.1',
+        'HTTP_X_FORWARDED_FOR' => '1.2.3.4',
+    ])->assertTooManyRequests();
+
+    expect(Reaction::count())->toBe(30);
+});
+
+it('rejects a reaction without a token', function () {
+    $note = Note::factory()->create();
+
+    postJson("/reactions/note/{$note->id}", ['type' => 'love'])->assertStatus(422);
+
+    expect(Reaction::count())->toBe(0);
 });
 
 it('returns every bucket even when nothing has been reacted to', function () {
@@ -167,10 +179,9 @@ it('answers for a whole page of entries in a fixed number of queries', function 
     $queries = count(DB::getQueryLog());
     DB::disableQueryLog();
 
-    // Reactions, this visitor's own, comments, mentions and syndicated
-    // responses. Five whatever the page holds; the per-entry query would have
-    // been two dozen by now.
-    expect($queries)->toBe(5)
+    // Reactions, comments, mentions and syndicated responses. Four whatever
+    // the page holds; the per-entry query would have been two dozen by now.
+    expect($queries)->toBe(4)
         ->and($rows)->toHaveCount(12)
         ->and($rows['note:'.$notes[0]->id]['reactions'][1]['count'])->toBe(1);
 });

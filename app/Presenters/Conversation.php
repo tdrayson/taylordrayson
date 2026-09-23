@@ -11,7 +11,6 @@ use App\Models\SyndicatedResponse;
 use App\Models\Webmention;
 use App\Queries\ReactionsFor;
 use App\Support\InteractionTarget;
-use App\Support\VisitorIdentity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
@@ -28,16 +27,16 @@ final class Conversation
      * respond to. Carried whether or not anybody has responded yet.
      *
      * @param  Model  $target  The entry or page the conversation belongs to.
-     * @param  Request  $request  The visitor, whose unlock and reactions shape it.
+     * @param  Request  $request  The visitor, whose unlock shapes it.
      */
     public static function shownFor(Model $target, Request $request): ?ConversationData
     {
         return InteractionTarget::takesCommentsAndReactionsFrom($target, $request)
-            ? self::for($target, VisitorIdentity::onTarget($request, $target))
+            ? self::for($target)
             : null;
     }
 
-    public static function for(Model $target, ?string $identity = null): ConversationData
+    public static function for(Model $target): ConversationData
     {
         $timezone = self::timezoneOf($target);
 
@@ -48,7 +47,7 @@ final class Conversation
 
             // On-site clicks only. A like sent by webmention is a person in the
             // thread below, not an anonymous +1 here, so nobody is counted twice.
-            reactions: app(ReactionsFor::class)($target, $identity),
+            reactions: app(ReactionsFor::class)($target),
 
             responses: self::responses($target, $timezone),
         );
@@ -73,7 +72,7 @@ final class Conversation
     }
 
     /**
-     * Every response in one list, newest first, whatever kind it is and
+     * Every response in one list, oldest first, whatever kind it is and
      * whichever table it came from. Rendered in the entry's own timezone, so a
      * response can never sort or display ahead of what it responded to.
      *
@@ -101,7 +100,7 @@ final class Conversation
             ...$target->syndicatedResponses()->approved()->get()->map(fn (SyndicatedResponse $response): ConversationItem => ConversationItem::fromSyndicated($response, $timezone))->all(),
         ];
 
-        usort($items, fn (ConversationItem $a, ConversationItem $b): int => $b->occurredAt <=> $a->occurredAt);
+        usort($items, fn (ConversationItem $a, ConversationItem $b): int => $a->occurredAt <=> $b->occurredAt);
 
         return $items;
     }

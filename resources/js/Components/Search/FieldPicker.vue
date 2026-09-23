@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, watch } from 'vue';
 import Icon from '../Ui/Icon.vue';
-import { useListNavigation } from '../../lib/editor/listNavigation.js';
+import { useDismissable } from '../../composables/useDismissable.js';
+import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 
 const props = defineProps({
     fields: { type: Array, required: true },
@@ -10,8 +11,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-const open = ref(false);
-const root = ref(null);
+const { isOpen: open, root, close, toggle } = useDismissable();
+const listEl = ref(null);
 
 // Group fields into [{ label, fields }] in first-seen order for the cascading menu.
 const categories = computed(() => {
@@ -37,43 +38,57 @@ const activeFields = computed(
     () => categories.value.find((category) => category.label === activeCategory.value)?.fields ?? []
 );
 
-function toggle() {
-    open.value = !open.value;
-
-    if (open.value) {
+// Opening always starts on the category the current value lives in.
+watch(open, (isOpen) => {
+    if (isOpen) {
         activeCategory.value = current.value?.category ?? categories.value[0]?.label;
     }
-}
+});
 
 function pick(field) {
     emit('update:modelValue', field.key);
-    open.value = false;
+    close();
 }
 
 // Arrows move through the fields of the open category, Enter picks. Without
 // this the picker could be opened from the keyboard and then not used.
-const { active, onKeydown } = useListNavigation(activeFields, {
+const { activeIndex, onKeydown } = useListboxNavigation(activeFields, {
+    listEl,
     onSelect: (field) => field && pick(field),
-    onDismiss: () => (open.value = false),
 });
 
-function onDocumentClick(event) {
-    if (root.value && !root.value.contains(event.target)) {
-        open.value = false;
+// Roving tabindex: DOM focus follows the highlighted row, so @keydown (bound
+// on listEl) has something focused inside it to bubble from.
+watch([open, activeIndex], ([isOpen, index]) => {
+    if (!isOpen) {
+        return;
     }
-}
 
-onMounted(() => document.addEventListener('click', onDocumentClick));
-onUnmounted(() => document.removeEventListener('click', onDocumentClick));
+    nextTick(() => {
+        listEl.value?.querySelectorAll('[role="option"]')[index]?.focus();
+    });
+});
+
+// Closing must not strand focus on a removed row; return it to the trigger,
+// identified by the aria-expanded every trigger carries.
+watch(open, (isOpen) => {
+    if (isOpen) {
+        return;
+    }
+
+    nextTick(() => {
+        root.value?.querySelector('[aria-expanded]')?.focus();
+    });
+});
 </script>
 
 <template>
-    <div ref="root" class="relative" @keydown="open && onKeydown($event)" @keydown.esc="open = false">
+    <div ref="root" class="relative">
         <button
             type="button"
             aria-haspopup="true"
             :aria-expanded="open"
-            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm text-neutral-900 transition-colors hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex w-full items-center gap-2 min-h-11 rounded-md border border-neutral-100 bg-neutral-0 px-3 py-2.5 text-left text-sm text-neutral-900 transition-colors hover:border-accent-500"
             @click="toggle"
         >
             <span class="flex-1 truncate">
@@ -87,7 +102,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                 <li v-for="category in categories" :key="category.label">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-between px-4 py-2 text-left text-sm transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
+                        class="flex w-full items-center justify-between px-4 py-2 text-left text-sm transition-colors focus-visible:bg-neutral-25 focus-visible:-outline-offset-2"
                         :class="category.label === activeCategory ? 'bg-neutral-25 text-accent-500' : 'text-neutral-700 hover:bg-neutral-25'"
                         @mouseenter="activeCategory = category.label"
                         @click="activeCategory = category.label"
@@ -97,16 +112,18 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
                     </button>
                 </li>
             </ul>
-            <ul class="max-h-72 w-1/2 overflow-y-auto py-1" role="listbox">
+            <ul ref="listEl" class="max-h-72 w-1/2 overflow-y-auto py-1" role="listbox" @keydown="onKeydown">
                 <li v-for="(field, index) in activeFields" :key="field.key">
                     <button
                         type="button"
                         role="option"
                         :aria-selected="field.key === modelValue"
-                        class="block w-full px-4 py-2 text-left text-sm transition-colors focus-visible:bg-neutral-25 focus-visible:outline-none"
+                        :data-active="index === activeIndex"
+                        :tabindex="index === activeIndex ? 0 : -1"
+                        class="block w-full px-4 py-2 text-left text-sm transition-colors focus-visible:bg-neutral-25 focus-visible:-outline-offset-2"
                         :class="[
                             field.key === modelValue ? 'text-accent-500' : 'text-neutral-700 hover:bg-neutral-25',
-                            index === active ? 'bg-neutral-25' : '',
+                            index === activeIndex ? 'bg-neutral-25' : '',
                         ]"
                         @click="pick(field)"
                     >

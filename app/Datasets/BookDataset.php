@@ -7,6 +7,7 @@ use App\Enums\SpanAnchor;
 use App\Enums\TimelineType;
 use App\Models\Book;
 use App\Presenters\Cards\BookCard;
+use App\Presenters\Exports\BookExport;
 
 /**
  * Books logged as read, entered by hand.
@@ -56,6 +57,11 @@ final class BookDataset extends BaseDataset
     public function card(): BookCard
     {
         return new BookCard;
+    }
+
+    public function export(): object
+    {
+        return new BookExport;
     }
 
     /**

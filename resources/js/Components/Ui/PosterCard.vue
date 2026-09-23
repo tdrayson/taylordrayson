@@ -26,7 +26,7 @@ const label = computed(() => (props.year ? `${props.title}, ${props.year}` : pro
         :href="href"
         data-testid="poster-card"
         :aria-label="label"
-        class="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+        class="group block rounded-lg"
     >
         <div class="relative aspect-2/3 overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-shadow group-hover:shadow-card">
             <img

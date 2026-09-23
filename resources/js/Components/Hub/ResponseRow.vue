@@ -26,7 +26,7 @@ const markable = computed(() => (props.item.markable ? markableId(props.item) : 
              the always-visible mark button beside it. -->
         <Link
             :href="item.entry.href"
-            class="group flex gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="group flex gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25"
         >
             <Icon :icon="item.icon" class="mt-0.5 size-4 flex-none text-neutral-400" />
 
@@ -53,7 +53,7 @@ const markable = computed(() => (props.item.markable ? markableId(props.item) : 
         <button
             v-if="markable"
             type="button"
-            class="absolute left-2 top-2 flex size-6 items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 group-hover/row:opacity-100 pointer-coarse:opacity-100"
+            class="absolute left-2 top-2 flex size-6 items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 group-hover/row:opacity-100 pointer-coarse:opacity-100"
             aria-label="Mark as mine"
             @click="setMine(markable, true)"
         >

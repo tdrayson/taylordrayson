@@ -1,17 +1,21 @@
 <script setup>
 import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
 import { copyText } from '../../lib/clipboard.js';
+import { useOgCard } from '../../composables/useOgCard.js';
 import Accordion from '../Ui/Accordion.vue';
 
 const props = defineProps({
     // The canonical, absolute URL of the thing being responded to.
     url: { type: String, required: true },
-    // The page's Open Graph payload: { title, description, image }.
+    // The page's Open Graph payload, the same one AppHead publishes.
     og: { type: Object, default: () => ({}) },
 });
 
 // Only the handful of readers who open this panel need the form's chunk.
 const WebmentionForm = defineAsyncComponent(() => import('./WebmentionForm.vue'));
+
+// The card a scraper would fetch, resolved the same way as the og:image tag.
+const cardUrl = useOgCard(() => props.og);
 
 const copied = ref(false);
 const sendingLink = ref(false);
@@ -52,7 +56,7 @@ async function copy() {
     <!-- Three side doors, all at the same weight, so none of them competes
          with the comment box above or with the entry itself. -->
     <div class="mt-10">
-        <Accordion ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
+        <Accordion id="send-a-link" ref="webmention" variant="quiet" title="Written about this on your own site?" :open="sendingLink">
             <template #default="{ expanded }">
                 <p class="mb-3 text-sm text-neutral-500">
                     Send me the link and your
@@ -84,12 +88,12 @@ async function copy() {
                     :value="url"
                     type="text"
                     readonly
-                    class="min-w-0 flex-1 rounded-md border border-neutral-100 bg-neutral-25 px-3 py-2 text-sm text-neutral-700 focus:border-accent-500 focus:outline-none"
+                    class="min-w-0 flex-1 rounded-md border border-neutral-100 bg-neutral-25 px-3 py-2 text-sm text-neutral-700 focus:border-accent-500 focus-visible:-outline-offset-1"
                     @focus="$event.target.select()"
                 >
                 <button
                     type="button"
-                    class="shrink-0 rounded-md border border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="shrink-0 rounded-md border border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:text-accent-500"
                     @click="copy"
                 >
                     {{ copied ? 'Copied' : 'Copy' }}
@@ -97,7 +101,7 @@ async function copy() {
             </div>
         </Accordion>
 
-        <Accordion v-if="og.image" variant="quiet" title="Sharing this?">
+        <Accordion variant="quiet" title="Sharing this?">
             <p class="mb-3 text-sm text-neutral-500">
                 This is what shows up when you post the link somewhere.
             </p>
@@ -109,7 +113,7 @@ async function copy() {
                 <!-- The box is reserved at the card's own ratio so opening
                      this panel does not jump when the image arrives. -->
                 <img
-                    :src="og.image"
+                    :src="cardUrl"
                     alt=""
                     loading="lazy"
                     class="block aspect-og w-full border-b border-neutral-50 bg-neutral-50 object-cover"
@@ -124,7 +128,7 @@ async function copy() {
             <p class="mt-3 text-sm text-neutral-500">
                 Want to see how it is made?
                 <a
-                    :href="og.image"
+                    :href="cardUrl"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="the card on its own, opens in a new tab"

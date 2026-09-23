@@ -2,51 +2,79 @@
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Enums\EntryStatus;
-use App\Http\Controllers\OgImageController;
 use App\Models\Activity;
 use App\Models\Note;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\OgRenderer;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 /**
- * Mirrors OgImageController: cards live under og/<generation>/, named md5 of
- * "layout|title|eyebrow|date|accent|subtitle". Seeding the cached file
- * lets us exercise routing, input handling, and serving without invoking
- * Browsershot (which needs Chromium), so it has to stay in step with the
- * controller: a stale key here does not fail, it quietly renders for real.
+ * Mirrors OgImageController: a page's card lives at og/<generation>/page/,
+ * named md5 of its owner then md5 of "layout|title|eyebrow|accent|subtitle".
+ * Seeding it serves the request without Browsershot, so a key out of step with
+ * the controller does not fail here, it quietly renders for real.
  */
-function seedCard(string $title, string $eyebrow = '', string $accent = '3858e9', string $layout = 'text', string $date = '', string $subtitle = ''): void
+function seedPageCard(string $owner, string $title, string $eyebrow = '', string $accent = '3858e9', string $layout = 'text', string $subtitle = ''): void
 {
     Storage::fake('local');
-    $hash = md5(implode('|', [$layout, $title, $eyebrow, $date, $accent, $subtitle]));
-    Storage::disk('local')->put('og/'.OgRenderer::generation()."/{$hash}.png", 'fake-png-bytes');
+    $version = md5(implode('|', [$layout, $title, $eyebrow, $accent, $subtitle]));
+    Storage::disk('local')->put('og/'.OgRenderer::generation().'/page/'.md5($owner)."-{$version}.png", 'fake-png-bytes');
 }
 
-it('serves a cached og card as a png for each url variant', function (string $url, array $seed) {
-    seedCard(...$seed);
+it('serves a page card only on its signed url', function (array $query, array $seed) {
+    seedPageCard('/now', ...$seed);
 
-    $this->get($url)
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
+    $url = URL::signedRoute('og', ['for' => '/now', ...$query]);
+
+    $this->get($url)->assertOk()->assertHeader('content-type', 'image/png');
+    $this->get(str_replace('signature=', 'signature=0', $url))->assertNotFound();
 })->with([
-    'explicit title' => ['/og.png?title=Hello world', ['title' => 'Hello world']],
-    'default title fallback' => ['/og.png', ['title' => 'Taylor Drayson']],
-    'invalid accent falls back to brand default' => ['/og.png?title=Hi&accent=not-a-hex', ['title' => 'Hi']],
-    'eyebrow and accent in cache key' => [
-        '/og.png?title=Morning Run&eyebrow=Activity&accent=2e9e6a',
-        ['title' => 'Morning Run', 'eyebrow' => 'Activity', 'accent' => '2e9e6a'],
+    'title' => [['title' => 'Hello world'], ['title' => 'Hello world']],
+    'default title' => [[], ['title' => 'Taylor Drayson']],
+    'invalid accent falls back to the default' => [['title' => 'Hi', 'accent' => 'not-a-hex'], ['title' => 'Hi']],
+    'eyebrow, accent and description' => [
+        ['title' => 'Run', 'eyebrow' => 'Activity', 'accent' => '2e9e6a', 'description' => 'Fast.'],
+        ['title' => 'Run', 'eyebrow' => 'Activity', 'accent' => '2e9e6a', 'subtitle' => 'Fast.'],
     ],
-    'date in cache key' => [
-        '/og.png?title=A walk&eyebrow=Activity&accent=2e9e6a&date=Mon 9 Jun 2025',
-        ['title' => 'A walk', 'eyebrow' => 'Activity', 'accent' => '2e9e6a', 'date' => 'Mon 9 Jun 2025'],
-    ],
-    'branded home variant falls back to the tagline' => [
-        '/og.png?variant=home',
-        ['title' => 'Taylor Drayson', 'layout' => 'home', 'subtitle' => OgImageController::TAGLINE],
-    ],
+    'the design token is not part of the key' => [['title' => 'Hi', 'v' => 'whatever'], ['title' => 'Hi']],
 ]);
+
+it('404s a card url no page signed', function () {
+    seedPageCard('/now', 'Hello world');
+
+    $this->get('/og.png?for=/now&title=Hello+world')->assertNotFound();
+});
+
+it('points the home page at its signed card, with the bio beneath', function () {
+    $image = $this->get('/')->inertiaProps('og.image');
+
+    parse_str((string) parse_url($image, PHP_URL_QUERY), $query);
+
+    expect($query)->toMatchArray([
+        'for' => '/',
+        'variant' => 'home',
+        'description' => config('identity.bio'),
+        'v' => OgRenderer::generation(),
+    ])->toHaveKey('signature');
+});
+
+it('keeps only an owner\'s latest card', function () {
+    Storage::fake('local');
+    $directory = 'og/'.OgRenderer::generation().'/entry';
+    Storage::disk('local')->put("{$directory}/12-1.png", 'old');
+    Storage::disk('local')->put("{$directory}/123-1.png", 'another owner');
+
+    $path = app(OgRenderer::class)->card('entry', '12', '2', fn () => view('og.card', [
+        'layout' => 'text', 'accent' => '3858e9', 'eyebrow' => null, 'title' => 'Hi', 'date' => null, 'cutout' => '',
+    ]));
+
+    expect($path)->toBe(Storage::disk('local')->path("{$directory}/12-2.png"));
+    Storage::disk('local')->assertExists("{$directory}/12-2.png");
+    Storage::disk('local')->assertMissing("{$directory}/12-1.png");
+    Storage::disk('local')->assertExists("{$directory}/123-1.png");
+});
 
 it('404s the per-entry card for an unknown entry', function () {
     $this->get('/og/entry/999999.png')->assertNotFound();
@@ -62,7 +90,7 @@ it('serves a hidden entry\'s card only through the signed url its page emits', f
         'password' => $status === EntryStatus::Private ? 'hunter2' : null,
     ]);
     $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('entry_id', $note->id)->sole();
-    Storage::disk('local')->put('og/'.OgRenderer::generation().'/entry/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png', 'fake-png-bytes');
+    Storage::disk('local')->put('og/'.OgRenderer::generation()."/entry/{$entry->id}-".BuildEntryOgData::entryTimestamp($entry).'.png', 'fake-png-bytes');
 
     $this->get("/og/entry/{$entry->id}.png")->assertNotFound();
 
@@ -80,7 +108,7 @@ it('serves a published entry\'s card at its plain url', function () {
 
     $note = Note::factory()->create(['slug' => 'open-card', 'occurred_at' => '2026-06-15 09:00:00']);
     $entry = TimelineEntry::query()->where('entry_id', $note->id)->sole();
-    Storage::disk('local')->put('og/'.OgRenderer::generation().'/entry/'.md5($entry->id.'|'.BuildEntryOgData::entryTimestamp($entry)).'.png', 'fake-png-bytes');
+    Storage::disk('local')->put('og/'.OgRenderer::generation()."/entry/{$entry->id}-".BuildEntryOgData::entryTimestamp($entry).'.png', 'fake-png-bytes');
 
     $image = $this->get('/2026/06/15/open-card')->inertiaProps('og.image');
 
@@ -99,15 +127,6 @@ it('serves the preview card for a hyphenated dataset key', function () {
 
 it('404s the preview card for a retired dataset key', function () {
     $this->get('/og/preview/podcast.png')->assertNotFound();
-});
-
-it('regenerates cards when the og version changes', function () {
-    seedCard('Hello world');
-
-    // The seeded file is keyed to the current version, so bumping the version
-    // points the route at a different (missing) path.
-    config(['og.version' => '1']);
-    $this->get('/og.png?title=Hello world')->assertOk();
 });
 
 it('renders the sleep stage bar with each stage segment', function () {
@@ -154,24 +173,6 @@ it('clears cached og cards with og:clear', function () {
 
     expect(Storage::disk('local')->exists('og/card.png'))->toBeFalse()
         ->and(Storage::disk('local')->exists('og/entry/entry.png'))->toBeFalse();
-});
-
-it('keys the home card on the description it was given', function () {
-    seedCard('Taylor Drayson', layout: 'home', subtitle: 'Everything I log, newest first.');
-
-    $this->get('/og.png?variant=home&title=Taylor+Drayson&description=Everything+I+log%2C+newest+first.')
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
-});
-
-it('ignores the cache-busting param when keying a card', function () {
-    seedCard('Hello world');
-
-    // The param exists to move the URL, not the card: folding it into the key
-    // would re-render every card on every bust for identical bytes.
-    $this->get('/og.png?title=Hello world&v=whatever')
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
 });
 
 it('stamps an entry card url with the design and the entry it describes', function () {

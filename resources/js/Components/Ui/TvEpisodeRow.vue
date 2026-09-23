@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { StarIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from './Icon.vue';
-import { time } from '../../lib/format.js';
+import { clock } from '../../lib/format.js';
 
 const props = defineProps({
     season: { type: [Number, String], required: true },
@@ -18,14 +18,14 @@ const props = defineProps({
 
 // SxxExx code, e.g. season 1 episode 3 -> S01E03.
 const code = computed(() => `S${String(props.season).padStart(2, '0')}E${String(props.episode).padStart(2, '0')}`);
-const watchTime = computed(() => time(props.occurredAt));
+const watchTime = computed(() => clock(props.occurredAt));
 </script>
 
 <template>
     <Link
         :href="url"
         data-testid="episode-row"
-        class="group relative flex items-center justify-between gap-4 rounded-md px-3 py-2.5 transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-neutral-100 last:after:hidden hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        class="group relative flex items-center justify-between gap-4 rounded-md px-3 py-2.5 transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-neutral-100 last:after:hidden hover:bg-neutral-25 focus-visible:bg-neutral-25"
     >
         <span class="flex min-w-0 items-baseline gap-3">
             <span class="shrink-0 text-xs font-semibold text-neutral-500 tabular-nums">{{ code }}</span>

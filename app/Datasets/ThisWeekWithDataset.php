@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\ThisWeekWith;
 use App\Presenters\Cards\ThisWeekWithCard;
+use App\Presenters\Exports\ThisWeekWithExport;
 use App\Timeline\Taxonomies;
 
 /**
@@ -61,6 +62,11 @@ final class ThisWeekWithDataset extends BaseDataset
     public function card(): ThisWeekWithCard
     {
         return new ThisWeekWithCard;
+    }
+
+    public function export(): object
+    {
+        return new ThisWeekWithExport;
     }
 
     /**

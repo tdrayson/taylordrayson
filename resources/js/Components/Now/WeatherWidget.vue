@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { weatherFor } from '../../lib/weather.js';
+import { useFormat } from '../../composables/useFormat';
 import Icon from '../Ui/Icon.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 
@@ -17,7 +18,8 @@ const props = defineProps({
 // Icon, copy and gradient all come from the shared condition table, so the
 // tile and the top bar can never disagree about the same sky.
 const data = computed(() => weatherFor(props.condition));
-const temp = computed(() => props.temp ?? data.value.t);
+const { degrees } = useFormat();
+const temp = computed(() => degrees(props.temp ?? data.value.t));
 
 const pillClass = 'rounded bg-neutral-0/55 px-1.5 py-0.5 text-2xs font-semibold text-neutral-500 backdrop-blur-xs @5xs:rounded-sm @5xs:px-2 @5xs:text-xs @4xs:px-2.5 @4xs:text-base @xs:rounded-md @xs:px-3 @xs:py-1 @xs:text-xl @xs:backdrop-blur-sm';
 </script>

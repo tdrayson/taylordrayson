@@ -26,7 +26,7 @@ onMounted(() => {
     <button
         type="button"
         aria-label="Open search"
-        class="-ml-3 flex w-bleed-3 items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 md:py-2 md:text-sm"
+        class="-ml-3 flex w-bleed-3 items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 md:py-2 md:text-sm"
         @click="open"
     >
         <Icon name="Search01Icon" class="size-5 flex-none text-neutral-500" />

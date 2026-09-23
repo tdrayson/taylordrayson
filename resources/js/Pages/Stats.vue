@@ -182,7 +182,7 @@ setLayoutProps({
                             v-for="bucket in trendBuckets"
                             :key="bucket.label"
                             type="button"
-                            class="rounded-md px-3 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                            class="rounded-md px-3 py-1 font-medium transition-colors"
                             :class="bucket.label === activeBucket ? 'bg-neutral-25 text-neutral-900' : 'text-neutral-500 hover:text-neutral-900'"
                             @click="activeBucket = bucket.label"
                         >{{ bucket.label }}</button>

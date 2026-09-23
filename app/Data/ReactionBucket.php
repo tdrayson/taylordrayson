@@ -7,8 +7,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * One emoji in the reaction bar: what it is, how many, and whether this
- * visitor is one of them.
+ * One emoji in the reaction bar: what it is and how many.
  *
  * `key` is a ReactionType value for the five buckets the site offers, and the
  * emoji itself for one that arrived by webmention and matches none of them.
@@ -21,16 +20,15 @@ final readonly class ReactionBucket implements Arrayable, JsonSerializable
         public string $emoji,
         public string $label,
         public int $count,
-        public bool $mine,
     ) {}
 
-    public static function fromType(ReactionType $type, int $count, bool $mine): self
+    public static function fromType(ReactionType $type, int $count): self
     {
-        return new self($type->value, $type->emoji(), $type->label(), $count, $mine);
+        return new self($type->value, $type->emoji(), $type->label(), $count);
     }
 
     /**
-     * @return array{key: string, emoji: string, label: string, count: int, mine: bool}
+     * @return array{key: string, emoji: string, label: string, count: int}
      */
     public function toArray(): array
     {
@@ -39,12 +37,11 @@ final readonly class ReactionBucket implements Arrayable, JsonSerializable
             'emoji' => $this->emoji,
             'label' => $this->label,
             'count' => $this->count,
-            'mine' => $this->mine,
         ];
     }
 
     /**
-     * @return array{key: string, emoji: string, label: string, count: int, mine: bool}
+     * @return array{key: string, emoji: string, label: string, count: int}
      */
     public function jsonSerialize(): array
     {

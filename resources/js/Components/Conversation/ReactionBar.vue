@@ -1,8 +1,9 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { csrf } from '../../lib/csrf.js';
+import { pickOn, reactorToken, rememberPick } from '../../lib/reactor.js';
 import CountGroup from '../Ui/CountGroup.vue';
 import CountSegment from '../Ui/CountSegment.vue';
 import Icon from '../Ui/Icon.vue';
@@ -19,7 +20,7 @@ import Tooltip from '../Ui/Tooltip.vue';
  * to a reader they are all "somebody liked this".
  */
 const props = defineProps({
-    // [{ key, emoji, label, count, mine }] — every offered emoji, plus any that
+    // [{ key, emoji, label, count }] — every offered emoji, plus any that
     // arrived by webmention and matches none of them.
     reactions: { type: Array, default: () => [] },
     // Gestures with no emoji to show: webmention likes, and later kudos.
@@ -65,19 +66,32 @@ const sizes = computed(() => (compact.value
  * by whatever font the reader's platform ships, so it cannot be coloured, sized
  * or trusted to look the same twice.
  *
+ * `one` and `many` are the noun a count takes: the label from the server is the
+ * verb you press ("Love"), which does not survive being counted.
+ *
  * Keyed by our own reaction types. A key that is itself an emoji arrived by
  * webmention from somebody else's vocabulary, so that glyph is shown as sent.
  */
 const GLYPHS = {
-    like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)' },
-    love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)' },
-    celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)' },
-    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)' },
-    haha: { icon: 'HappyIcon', colour: 'var(--color-reaction-haha)' },
-    sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)' },
+    like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)', one: 'like', many: 'likes' },
+    love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)', one: 'heart', many: 'hearts' },
+    celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)', one: 'celebration', many: 'celebrations' },
+    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)', one: 'wow', many: 'wows' },
+    haha: { icon: 'HappyIcon', colour: 'var(--color-reaction-haha)', one: 'laugh', many: 'laughs' },
+    sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)', one: 'sad face', many: 'sad faces' },
 };
 
 const glyph = (bucket) => GLYPHS[bucket.key] ?? null;
+
+/**
+ * One bucket said out loud: "2 hearts". An emoji from somebody else's
+ * vocabulary has no name here but the one it was sent under.
+ */
+const tallyOf = (bucket) => {
+    const named = glyph(bucket);
+
+    return `${bucket.count} ${named ? (bucket.count === 1 ? named.one : named.many) : bucket.label}`;
+};
 
 /** A disc's fill. Every one is dark enough to carry the one glyph colour. */
 const discOf = (g) => ({ background: g.colour, color: 'var(--color-reaction-glyph)' });
@@ -88,6 +102,15 @@ const buckets = ref([...props.reactions]);
 // clicked still ends up on what the server last said.
 watch(() => props.reactions, (value) => {
     buckets.value = [...value];
+});
+
+// Which emoji this browser picked. Only it knows, so it is read after mount
+// rather than rendered on the server.
+const target = computed(() => `${props.type}:${props.id}`);
+const pick = ref(null);
+
+onMounted(() => {
+    pick.value = pickOn(target.value);
 });
 
 const busy = ref(null);
@@ -136,7 +159,7 @@ const isOurs = (bucket) => /^[a-z]+$/.test(bucket.key);
 
 const chosen = computed(() => buckets.value.filter((bucket) => bucket.count > 0));
 const total = computed(() => chosen.value.reduce((sum, bucket) => sum + bucket.count, 0) + props.likeCount);
-const mine = computed(() => buckets.value.find((bucket) => bucket.mine) ?? null);
+const mine = computed(() => buckets.value.find((bucket) => bucket.key === pick.value) ?? null);
 
 /**
  * Spelled out for the tooltip and the screen reader alike: the heading above
@@ -163,7 +186,7 @@ const gestureLabel = (gesture) => `${gesture.count} ${gesture.count === 1 ? gest
 
 /** What the summary reads out, since a row of emoji says nothing on its own. */
 const summaryLabel = computed(() => {
-    const parts = chosen.value.map((bucket) => `${bucket.count} ${bucket.label}`);
+    const parts = chosen.value.map(tallyOf);
 
     if (props.likeCount) {
         parts.push(`${props.likeCount} liked from elsewhere`);
@@ -172,13 +195,30 @@ const summaryLabel = computed(() => {
     return parts.length ? parts.join(', ') : 'No reactions yet';
 });
 
-/** Just the figure: which kinds they were is what the pile beside it says. */
+/**
+ * The figure, named when nothing else names it: the pile beside it is only
+ * drawn for a mix, so a count that is all one kind would otherwise be a number
+ * with nothing to say which kind it was.
+ */
 const reactionsLabel = computed(() => {
     if (! total.value) {
         return 'No reactions yet';
     }
 
+    // Likes from elsewhere are folded into the figure but not into the pile, so
+    // one bucket plus those is a mix the bar cannot name.
+    if (chosen.value.length === 1 && ! props.likeCount) {
+        return tallyOf(chosen.value[0]);
+    }
+
     return `${total.value} ${total.value === 1 ? 'reaction' : 'reactions'}`;
+});
+
+/** The control's name: what pressing it does, and what the figure on it counts. */
+const controlLabel = computed(() => {
+    const action = mine.value ? `You reacted ${mine.value.label}` : 'React to this';
+
+    return total.value ? `${action}, ${reactionsLabel.value}` : action;
 });
 
 /**
@@ -190,6 +230,9 @@ async function toggle(bucket) {
         return;
     }
 
+    // The pressed button is disabled and then hidden, so focus goes back to the control.
+    const refocus = group.value?.contains(document.activeElement);
+
     busy.value = bucket.key;
     failed.value = false;
 
@@ -198,30 +241,52 @@ async function toggle(bucket) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
             credentials: 'same-origin',
-            body: JSON.stringify({ type: bucket.key }),
+            body: JSON.stringify({ type: bucket.key, reactor: reactorToken() }),
         });
 
         if (! response.ok) {
             throw new Error(response.status);
         }
 
-        buckets.value = (await response.json()).reactions;
+        const answer = await response.json();
+
+        buckets.value = answer.reactions;
+        pick.value = answer.on ? bucket.key : null;
+        rememberPick(target.value, pick.value);
         emit('reacted', buckets.value);
     } catch {
         failed.value = true;
     } finally {
         busy.value = null;
         picking.value = false;
+
+        if (refocus) {
+            nextTick(() => control.value?.focus());
+        }
     }
 }
 
 /**
  * Clicking the control repeats your reaction, or gives the first one. Without
- * hover it opens the picker instead, since that is the only way to reach it.
+ * hover, or from Enter or Space, it opens the picker instead.
+ * @param {MouseEvent} event
  */
-function press() {
-    if (! canHover && ! picking.value) {
+function press(event) {
+    // A click the keyboard synthesised carries no click count.
+    const fromKeyboard = event.detail === 0;
+
+    if ((! canHover || fromKeyboard) && ! picking.value) {
         picking.value = true;
+
+        if (fromKeyboard) {
+            nextTick(() => group.value?.querySelector('[data-picker] button')?.focus());
+        }
+
+        return;
+    }
+
+    if (fromKeyboard) {
+        picking.value = false;
 
         return;
     }
@@ -237,14 +302,13 @@ function press() {
                  its shape when the first response arrives. -->
             <CountGroup :size="sizes.group">
             <CountSegment v-if="canReact" :padded="false">
-            <!-- The picker opens on hover for a mouse and on focus for a
-                 keyboard; the control stays clickable either way. -->
+            <!-- The picker opens on hover for a mouse and on Enter or Space
+                 for a keyboard; a click still reacts straight away. -->
             <div
                 ref="group"
                 class="relative flex"
                 @mouseenter="picking = true"
                 @mouseleave="leave"
-                @focusin="picking = true"
                 @focusout="leave"
                 @keydown.escape="dismiss"
             >
@@ -253,15 +317,13 @@ function press() {
                     type="button"
                     :disabled="busy !== null"
                     :aria-pressed="mine !== null"
-                    :aria-label="mine ? `You reacted ${mine.label}` : 'React to this'"
+                    :aria-label="controlLabel"
+                    aria-haspopup="true"
+                    :aria-expanded="picking"
                     :class="cn(
                         'inline-flex items-center',
                         sizes.segment,
                         sizes.text,
-                        // Inset, so the ring stays inside the segment rather than
-                        // spilling over its neighbour's edge. The ink comes from
-                        // the segment; the disc is what says you reacted.
-                        'rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500',
                         busy !== null && 'opacity-50',
                     )"
                     @click="press"
@@ -284,16 +346,16 @@ function press() {
                 </button>
 
                 <Transition name="pop">
-                <div v-show="picking" class="picker-origin absolute bottom-full left-0 z-20 pb-1">
+                <div v-show="picking" data-picker class="picker-origin absolute bottom-full left-0 z-20 pb-1">
                     <ul class="flex gap-1 rounded-full border border-neutral-50 bg-neutral-0 px-2 py-1.5 shadow-lg">
                         <li v-for="bucket in buckets.filter(isOurs)" :key="bucket.key">
                             <Tooltip :label="bucket.label" placement="top">
                                 <button
                                 type="button"
                                 :disabled="busy === bucket.key"
-                                :aria-pressed="bucket.mine"
+                                :aria-pressed="bucket.key === pick"
                                 :aria-label="bucket.label"
-                                class="inline-flex items-center justify-center rounded-full transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                                class="inline-flex items-center justify-center rounded-full transition-transform hover:scale-125 focus-visible:scale-125"
                                 @click="toggle(bucket)"
                             >
                                 <span
@@ -329,7 +391,7 @@ function press() {
                 :as="compact && url ? Link : 'span'"
                 :href="compact && url ? `${url}#responses` : undefined"
                 :aria-label="responsesLabel"
-                :class="[sizes.text, compact && url && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500']"
+                :class="sizes.text"
             >
                 <Tooltip :label="responsesLabel" placement="top" :class="['items-center', sizes.gap]">
                     <Icon name="Comment01Icon" :class="sizes.icon" />
@@ -359,7 +421,7 @@ function press() {
                  the same glyph and the same number said twice. -->
             <ul
                 v-if="chosen.length > 1"
-                :class="['reaction-pile flex items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500', compact && 'is-static']"
+                :class="['reaction-pile flex items-center rounded-full', compact && 'is-static']"
                 :tabindex="compact ? -1 : 0"
                 :aria-label="summaryLabel"
             >
@@ -368,7 +430,7 @@ function press() {
                     :key="bucket.key"
                     class="reaction-item flex items-center"
                 >
-                    <Tooltip :label="`${bucket.count} ${bucket.label}`" placement="top">
+                    <Tooltip :label="tallyOf(bucket)" placement="top">
                     <span
                         :class="['reaction-pip flex items-center justify-center rounded-full ring-2 ring-neutral-0', sizes.pip]"
                         :style="glyph(bucket) ? discOf(glyph(bucket)) : { background: 'var(--color-neutral-25)' }"

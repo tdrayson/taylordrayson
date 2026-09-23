@@ -5,6 +5,7 @@ import createServer from '@inertiajs/vue3/server';
 import { createSSRApp, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { seedPreferences } from './useSettings';
+import './composables/useDateFormat';
 import { twemojiDirective } from './directives/twemoji';
 
 /**

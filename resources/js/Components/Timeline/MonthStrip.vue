@@ -28,7 +28,7 @@ defineProps({
                 v-if="entry.total > 0"
                 :href="entry.href"
                 :title="`${entry.total.toLocaleString()} entries`"
-                class="text-sm underline-offset-4 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline focus-visible:outline-none"
+                class="text-sm underline-offset-4 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline"
                 :class="entry.month === current ? 'font-semibold text-neutral-900' : 'text-neutral-500'"
                 :aria-current="entry.month === current ? 'true' : undefined"
             >{{ entry.label }}</Link>

@@ -41,7 +41,7 @@ const groupName = `setting-${props.ariaLabel.toLowerCase().replace(/\s+/g, '-')}
                     @change="emit('update:modelValue', option.value)"
                 >
                 <span
-                    class="block rounded-md px-3 py-1 text-xs font-semibold text-neutral-500 transition-colors duration-150 peer-hover:text-neutral-900 peer-checked:bg-accent-500 peer-checked:text-neutral-0 peer-focus-visible:ring-2 peer-focus-visible:ring-accent-500"
+                    class="block rounded-md px-3 py-1 text-xs font-semibold text-neutral-500 transition-colors duration-150 peer-hover:text-neutral-900 peer-checked:bg-accent-500 peer-checked:text-neutral-0 peer-checked:peer-hover:text-neutral-0 peer-focus-visible:outline-2 peer-focus-visible:outline-accent-500"
                 >{{ option.label }}</span>
             </label>
         </div>

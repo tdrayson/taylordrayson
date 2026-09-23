@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\ExportFormat;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\CitationPreviewController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntryExportController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
@@ -19,8 +21,10 @@ use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\ModerationController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
+use App\Http\Controllers\NowExportController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PageExportController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\RetryFailedJobsController;
@@ -44,6 +48,12 @@ use Illuminate\Support\Facades\Route;
 // any lowercase word, 'login' included, so registering it later would let a
 // content page shadow the login form.
 require __DIR__.'/auth.php';
+
+// Body media is stored root-relative, so locally a file nginx cannot find
+// falls through to wherever MEDIA_URL points.
+if (app()->isLocal() && str_starts_with(config('filesystems.disks.public.url'), 'http')) {
+    Route::redirect('/storage/{path}', config('filesystems.disks.public.url').'/{path}')->where('path', '.*');
+}
 
 // Authoring, session-guarded: the only caller is the editor in a signed-in
 // browser. Above the /{slug} catch-all for the same reason as /login.
@@ -150,6 +160,11 @@ Route::get('/stories/{story}', [StoryController::class, 'show'])->name('stories.
 // Now
 Route::get('/now', [NowController::class, 'index'])->name('now');
 
+// /now's export, registered directly above it and above the page catch-all:
+// a content page slugged "now" would otherwise shadow this route.
+Route::get('/now.{format}', NowExportController::class)
+    ->where('format', ExportFormat::pattern())->name('now.export');
+
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
@@ -172,10 +187,11 @@ Route::post('/comments/{type}/{id}', [CommentController::class, 'store'])
     ->middleware('throttle:5,10')->name('comments.store');
 
 // Reactions. The type/id pair is resolved against an allowlist, so this is not
-// a handle on every model in the app.
+// a handle on every model in the app. The browser picks its own identity, so
+// the hourly throttle is the only brake on stuffing a count.
 Route::post('/reactions/{type}/{id}', [ReactionController::class, 'store'])
     ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
-    ->middleware('throttle:30,1')->name('reactions.store');
+    ->middleware('throttle:30,60')->name('reactions.store');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
@@ -222,6 +238,14 @@ Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
 // never shadows another dated entry.
 Route::get('/{year}/{month}/{day}/calories', CaloriesRedirectController::class)
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('calories.redirect');
+
+// Entry exports. Above the entry route, whose unconstrained {slug} would
+// otherwise swallow "krk-lgw.json" whole and 404 on it.
+Route::get('/{year}/{month}/{day}/{slug}.{format}', EntryExportController::class)
+    ->where([
+        'year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}',
+        'format' => ExportFormat::pattern(),
+    ])->name('entry.export');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 
@@ -240,6 +264,11 @@ Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show')
 foreach (config('redirects') as $from => $to) {
     Route::redirect("/{$from}", "/{$to}", 301);
 }
+
+// Page exports, above the page catch-all for the same reason the entry export
+// sits above the entry route.
+Route::get('/{slug}.{format}', PageExportController::class)
+    ->where(['slug' => '[a-z][a-z0-9-]*', 'format' => ExportFormat::pattern()])->name('page.export');
 
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.

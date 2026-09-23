@@ -370,16 +370,19 @@ function submit() {
         <Heading v-if="heading && ! titleField && ! bodyField" v-twemoji as="h1" size="display" class="max-w-2xl">{{ heading }}</Heading>
         <h1 v-else class="sr-only">{{ (titleField ? form[titleField.name] : '') || heading || 'Untitled' }}</h1>
 
-        <!-- The heading: an input that reads as the title it will become, not a
-             form field with a label above it. -->
-        <input
+        <!-- The heading: a textarea that reads as the title it will become, not a
+             form field with a label above it. A textarea so long titles wrap; Enter
+             stays blocked because a title is one line. -->
+        <textarea
             v-if="titleField"
             :id="titleField.name"
             v-model="form[titleField.name]"
             :placeholder="titleField.label"
+            rows="1"
             data-text-size
-            class="w-full border-none bg-transparent p-0 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
-        >
+            class="field-sizing-content w-full resize-none overflow-hidden border-none bg-transparent p-0 pb-1.5 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
+            @keydown.enter.prevent
+        />
 
         <p v-if="titleField && form.errors[titleField.name]" class="mt-1 text-xs text-red-600">{{ form.errors[titleField.name] }}</p>
 

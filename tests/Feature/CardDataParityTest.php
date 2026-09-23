@@ -39,8 +39,10 @@ it('reproduces the pre-refactor activity card shape', function () {
         'subtitleTokens' => [
             ['t' => 'text', 'v' => 'I ran'],
             ['t' => 'dist', 'm' => 5000, 'p' => 1, 'sep' => ' '],
-            ['t' => 'text', 'v' => 'in 30m', 'sep' => ' '],
-            ['t' => 'text', 'v' => 'and burned 350 kcal', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'in', 'sep' => ' '],
+            ['t' => 'dur', 's' => 1800, 'sep' => ' '],
+            ['t' => 'text', 'v' => 'and burned', 'sep' => ' '],
+            ['t' => 'kcal', 'kcal' => 350, 'sep' => ' '],
             ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $activity->occurred_at,
@@ -102,6 +104,7 @@ it('reproduces the pre-refactor film card shape', function () {
         'type' => 'film',
         'title' => 'Interstellar',
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
+        'subtitleTokens' => [['t' => 'text', 'v' => 'I watched this 2014 film and rated it 9/10.']],
         'occurred_at' => $film->occurred_at,
         'meta' => ['backdrop' => null],
     ]);
@@ -155,6 +158,7 @@ it('reproduces the pre-refactor sleep card shape', function () {
         'type' => 'sleep',
         'title' => 'I slept for 8h',
         'titleLabel' => 'Sleep log, I slept for 8 hours',
+        'titleTokens' => [['t' => 'text', 'v' => 'I slept for'], ['t' => 'dur', 's' => 28800, 'sep' => ' ']],
         'subtitle' => 'I went to bed at 11:00pm and woke at 7:00am.',
         'occurred_at' => $sleep->occurred_at,
         'meta' => [
@@ -181,7 +185,13 @@ it('reproduces the pre-refactor appearance card shape', function () {
     expect(CardPresenter::for($appearance)->toArray())->toEqual([
         'type' => 'appearance',
         'title' => 'Building a Lifelog',
-        'subtitle' => 'I spoke at Laracon EU.',
+        'subtitle' => 'I spoke at Laracon EU. It was 30 minutes long.',
+        'subtitleTokens' => [
+            ['t' => 'text', 'v' => 'I spoke at Laracon EU.'],
+            ['t' => 'text', 'v' => 'It was', 'sep' => ' '],
+            ['t' => 'dur', 's' => 1800, 'u' => 'minutes', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'long.', 'sep' => ' '],
+        ],
         'occurred_at' => $appearance->occurred_at,
         'meta' => [
             'media' => [

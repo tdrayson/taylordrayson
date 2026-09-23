@@ -8,29 +8,25 @@ use Illuminate\Http\Request;
 /**
  * Stable, anonymous keys for "the same visitor", in the two shapes the
  * interaction tables need.
- *
- * Both are derived from the request IP alone, deliberately: anything the
- * client sends (a generated token, the user agent) can be varied at will, so
- * folding it in would let one machine mint unlimited identities. An IP is the
- * cheapest thing a visitor cannot trivially rotate. The trade is that a shared
- * connection reads as one person, which on a personal site is the right way
- * round. This only holds because no proxy is trusted (see bootstrap/app.php).
  */
 final class VisitorIdentity
 {
     /**
-     * For counting one vote per visitor per thing. Scoped to the target as
-     * well, so the stored hashes cannot be lined up across entries to
-     * reconstruct one person's browsing.
+     * For one reaction per browser per thing, from the random token the
+     * browser holds. Scoped to the target so rows cannot be joined across entries.
+     *
+     * @param  string  $token  The browser's reactor token.
+     * @param  Model  $target  The entry or page reacted to.
      */
-    public static function onTarget(Request $request, Model $target): string
+    public static function onTarget(string $token, Model $target): string
     {
-        return self::hash([$request->ip(), $target::class, $target->getKey()]);
+        return self::hash([$token, $target::class, $target->getKey()]);
     }
 
     /**
      * For recognising a commenter who has been approved before, which has to
-     * work across entries and so is not scoped to one.
+     * work across entries and so is keyed on the IP and not scoped to one.
+     * This only holds because no proxy is trusted (see bootstrap/app.php).
      */
     public static function reputation(Request $request): string
     {

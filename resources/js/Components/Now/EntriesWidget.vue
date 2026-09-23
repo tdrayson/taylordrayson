@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Tooltip from '../Ui/Tooltip.vue';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     label: { type: String, default: 'entries' },
@@ -24,15 +25,13 @@ function fmtCount(c) {
     return c === 1 ? '1 entry' : `${c} entries`;
 }
 
-// The server sends plain dates, so format them in UTC to avoid any local timezone shift.
 const cells = computed(() => props.days.map(({ date, count }) => {
     if (count === null) {
         return { key: date, future: true };
     }
 
     const [year, month, day] = date.split('-');
-    const label = new Date(Date.UTC(year, month - 1, day))
-        .toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
+    const label = formatDate(date, { year: false });
 
     return {
         key: date,
@@ -58,7 +57,7 @@ const cells = computed(() => props.days.map(({ date, count }) => {
                     <Tooltip v-else :label="cell.title" placement="top" class="aspect-square w-full">
                         <Link
                             :href="cell.href"
-                            class="flex-1 rounded-xs transition-transform duration-120 hover:z-1 focus-visible:z-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:hover:scale-118 @5xs:rounded @xs:rounded-sm"
+                            class="flex-1 rounded-xs transition-transform duration-120 hover:z-1 focus-visible:z-1 motion-safe:hover:scale-118 @5xs:rounded @xs:rounded-sm"
                             :class="cell.color"
                             :aria-label="cell.title"
                         />

@@ -76,3 +76,24 @@ it('moves the heading with a reaction as it is clicked', function () {
         ->assertSee('1 interaction')
         ->assertNoJavaScriptErrors();
 });
+
+/**
+ * The pile of discs is only drawn for a mix of kinds, so a count that is all
+ * one kind had nothing on the row saying which kind it was: a bare number
+ * beside a thumb that is only the default glyph.
+ */
+it('names the reaction when the count is all one kind', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => now()->subHour(),
+        'content' => PortableText::fromPlainText('One person liked this, and nothing else happened.'),
+    ]);
+
+    foreach (['first', 'second'] as $who) {
+        $note->reactions()->create(['type' => ReactionType::Love, 'identity_key' => hash('sha256', $who)]);
+    }
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"]')
+        ->assertPresent('[aria-label="React to this, 2 hearts"]')
+        ->assertNoJavaScriptErrors();
+});

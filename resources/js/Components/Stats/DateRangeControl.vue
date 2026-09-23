@@ -23,11 +23,11 @@ function select(preset) {
 <template>
     <div class="flex flex-wrap items-center gap-3">
         <div class="inline-flex items-center gap-1 rounded-lg border border-neutral-50 px-1 py-1">
-            <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Previous range" @click="emit('step', -1)">
+            <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-offset-0" aria-label="Previous range" @click="emit('step', -1)">
                 <Icon name="ArrowLeft01Icon" class="size-4" />
             </button>
             <span class="min-w-40 px-2 text-center text-sm font-medium text-neutral-900">{{ label }}</span>
-            <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="Next range" @click="emit('step', 1)">
+            <button type="button" class="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900 focus-visible:outline-offset-0" aria-label="Next range" @click="emit('step', 1)">
                 <Icon name="ArrowRight01Icon" class="size-4" />
             </button>
         </div>
@@ -37,7 +37,7 @@ function select(preset) {
                 v-for="preset in presets"
                 :key="preset"
                 type="button"
-                class="rounded-md px-3 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="relative rounded-md px-3 py-1 font-medium transition-colors focus-visible:z-10 focus-visible:outline-offset-0"
                 :class="preset === active ? 'bg-neutral-25 text-neutral-900' : 'text-neutral-500 hover:text-neutral-900'"
                 @click="select(preset)"
             >

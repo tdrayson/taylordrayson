@@ -99,40 +99,24 @@ it('excludes other years from the aggregates', function () {
         ->where('heatmap', []));
 });
 
-it('serves the year timeline tail ascending, day-paginated and deferred', function () {
-    // Six a day over twelve days: 72 entries, so the 50-entry budget splits
-    // them after the eighth day rather than at a fixed number of days.
+it('serves the year timeline tail ascending, 50 entries a page', function () {
+    // Six a day over twelve days: 72 entries, so page one ends two entries into the ninth day.
     foreach (range(1, 12) as $day) {
         Note::factory()->count(6)->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
     }
 
-    // The feed carries the page's h-feed, so it resolves in the response
-    // itself rather than a follow-up reload. Tail is oldest-first.
     get('/2025')->assertInertia(fn ($page) => $page
         ->where('currentPage', 1)
         ->where('lastPage', 2)
-        ->has('groups', 8)
+        ->has('groups', 9)
         ->where('groups.0.date', '2025-05-01')
-        ->where('groups.7.date', '2025-05-08'));
+        ->has('groups.8.items', 2));
 
     get('/2025?page=2')->assertInertia(fn ($page) => $page
         ->where('currentPage', 2)
         ->has('groups', 4)
-        ->where('groups.0.date', '2025-05-09'));
-});
-
-/**
- * The point of a flexing page size: a dense month used to be four pages of
- * roughly 150 entries, which is a long scroll for one page.
- */
-it('takes fewer days per page when the days are dense', function () {
-    foreach (range(1, 4) as $day) {
-        Note::factory()->count(20)->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
-    }
-
-    get('/2025')->assertInertia(fn ($page) => $page
-        ->where('lastPage', 2)
-        ->has('groups', 2));
+        ->where('groups.0.date', '2025-05-09')
+        ->has('groups.0.items', 4));
 });
 
 it('offers every month of the year, marking the empty ones', function () {

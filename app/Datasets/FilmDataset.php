@@ -6,6 +6,7 @@ use App\Enums\DatasetKind;
 use App\Enums\TimelineType;
 use App\Models\Film;
 use App\Presenters\Cards\FilmCard;
+use App\Presenters\Exports\FilmExport;
 
 /**
  * Films logged as watched, synced from Trakt.
@@ -55,6 +56,11 @@ final class FilmDataset extends BaseDataset
     public function card(): FilmCard
     {
         return new FilmCard;
+    }
+
+    public function export(): object
+    {
+        return new FilmExport;
     }
 
     /**
