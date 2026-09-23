@@ -92,4 +92,10 @@ final class TvEpisodeDataset extends BaseDataset
     {
         return true;
     }
+
+    /** The same command as films: one Trakt sync pulls both. */
+    public function syncCommand(): ?string
+    {
+        return 'trakt:sync --days=1 --skip-ratings';
+    }
 }

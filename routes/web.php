@@ -29,6 +29,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\SyncDatasetController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
@@ -80,6 +81,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/hq', HubController::class)->name('hq');
     Route::post('/hq/failed-jobs/retry', RetryFailedJobsController::class)
         ->middleware('throttle:10,1')->name('hq.failed-jobs.retry');
+    Route::post('/hq/sync/{dataset}', SyncDatasetController::class)
+        ->where('dataset', '[a-z-]+')->middleware('throttle:10,1')->name('hq.sync');
 
     // A Strava or Swarm reply of mine, marked by hand where the source cannot say.
     Route::patch('/responses/syndicated/{response}/mine', MarkResponseMineController::class)

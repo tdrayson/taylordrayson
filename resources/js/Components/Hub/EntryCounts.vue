@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import Eyebrow from '../Ui/Eyebrow.vue';
 import Icon from '../Ui/Icon.vue';
 import { number } from '../../lib/format.js';
@@ -19,6 +20,16 @@ const synced = computed(() => props.types.filter((type) => type.synced));
 const byHand = computed(() => props.types.filter((type) => ! type.synced));
 
 const total = (rows) => rows.reduce((sum, type) => sum + type.count, 0);
+
+const page = usePage();
+
+/** The type just queued, flashed back by the server for this one visit. */
+const queued = computed(() => page.flash?.syncQueued ?? null);
+
+/** Pull this type now rather than wait for its slot on the schedule. */
+function sync(type) {
+    router.post(`/hq/sync/${type.type}`, {}, { preserveScroll: true });
+}
 
 const summary = computed(
     () => `${number(total(synced.value))} synced, ${number(total(byHand.value))} added by hand`,
@@ -42,13 +53,26 @@ const summary = computed(
             <ul class="mt-1">
                 <li
                     v-for="type in group.rows"
-                    :key="type.label"
+                    :key="type.type"
                     class="flex items-baseline gap-3 border-b border-neutral-50 py-2 text-sm last:border-0"
                 >
                     <Icon :icon="type.icon" class="size-4 flex-none translate-y-0.5 text-neutral-400" />
                     <span class="min-w-0 flex-1 truncate text-neutral-700">{{ type.label }}</span>
                     <span class="w-16 shrink-0 text-right text-xs tabular-nums text-neutral-700">{{ number(type.count) }}</span>
                     <span class="w-28 shrink-0 text-right text-xs text-neutral-500">{{ type.lag }}</span>
+
+                    <!-- Held open on every row, so both groups' columns line up. -->
+                    <span class="w-16 shrink-0 text-right">
+                        <button
+                            v-if="type.syncable"
+                            type="button"
+                            class="rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:text-neutral-400 disabled:hover:text-neutral-400"
+                            :disabled="queued === type.type"
+                            @click="sync(type)"
+                        >
+                            {{ queued === type.type ? 'Queued' : 'Sync now' }}<span class="sr-only">, {{ type.label }}</span>
+                        </button>
+                    </span>
                 </li>
             </ul>
         </div>

@@ -62,4 +62,9 @@ abstract class BaseDataset implements Dataset
     {
         return false;
     }
+
+    public function syncCommand(): ?string
+    {
+        return null;
+    }
 }

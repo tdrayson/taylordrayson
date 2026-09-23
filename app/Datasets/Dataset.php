@@ -75,4 +75,7 @@ interface Dataset
 
     /** Whether entries arrive from a service rather than being written here. */
     public function synced(): bool;
+
+    /** The Artisan command that pulls this type on demand, or null when it only arrives by push. */
+    public function syncCommand(): ?string;
 }

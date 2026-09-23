@@ -19,6 +19,7 @@ final readonly class TypeCount implements Arrayable, JsonSerializable
         public int $count,
         public ?Carbon $newest,
         public bool $synced,
+        public bool $syncable = false,
     ) {}
 
     /**
@@ -27,11 +28,13 @@ final readonly class TypeCount implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
+            'type' => $this->type,
             'label' => $this->label,
             'icon' => $this->icon,
             'count' => $this->count,
             'lag' => $this->lag(),
             'synced' => $this->synced,
+            'syncable' => $this->syncable,
         ];
     }
 

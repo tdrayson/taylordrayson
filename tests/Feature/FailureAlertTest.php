@@ -3,6 +3,7 @@
 use App\Listeners\AlertOnFailedJob;
 use App\Services\Pushover\Client as PushoverClient;
 use App\Support\FailureAlert;
+use Illuminate\Console\Events\ScheduledBackgroundTaskFinished;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
@@ -36,6 +37,18 @@ it('pushes an alert when a scheduled command fails', function () {
             && str_contains($body['message'], 'this-week-with:sync')
             && str_contains($body['message'], 'exit code 1');
     });
+});
+
+it('alerts on a background run only when it exits non-zero', function () {
+    $task = scheduledTask('foursquare:sync');
+
+    $task->exitCode = 0;
+    event(new ScheduledBackgroundTaskFinished($task));
+    Saloon::assertNothingSent();
+
+    $task->exitCode = 1;
+    event(new ScheduledBackgroundTaskFinished($task));
+    Saloon::assertSent(fn ($request) => str_contains($request->body()->all()['message'], 'foursquare:sync exited non-zero: exit code 1'));
 });
 
 it('pushes an alert when a queued job fails', function () {

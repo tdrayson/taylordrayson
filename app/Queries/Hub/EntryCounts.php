@@ -40,6 +40,7 @@ final class EntryCounts
                 count: (int) ($row->total ?? 0),
                 newest: $row?->newest === null ? null : Carbon::parse($row->newest),
                 synced: $dataset->synced(),
+                syncable: $dataset->syncCommand() !== null,
             );
         }
 

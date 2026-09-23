@@ -105,4 +105,9 @@ final class PlaceDataset extends BaseDataset
     {
         return true;
     }
+
+    public function syncCommand(): ?string
+    {
+        return 'foursquare:sync';
+    }
 }

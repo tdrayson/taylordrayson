@@ -95,4 +95,9 @@ final class ThisWeekWithDataset extends BaseDataset
     {
         return true;
     }
+
+    public function syncCommand(): ?string
+    {
+        return 'this-week-with:sync';
+    }
 }

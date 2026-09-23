@@ -12,6 +12,7 @@ use App\Support\ApiHttp;
 use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
+use Illuminate\Console\Events\ScheduledBackgroundTaskFinished;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
@@ -106,6 +107,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Failures that otherwise only ever reached the log.
         Event::listen(ScheduledTaskFailed::class, AlertOnScheduledTaskFailure::class);
+        Event::listen(ScheduledBackgroundTaskFinished::class, AlertOnScheduledTaskFailure::class);
         Event::listen(JobFailed::class, AlertOnFailedJob::class);
 
         // Say who we are on every outbound request: an unidentified default

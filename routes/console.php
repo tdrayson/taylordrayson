@@ -1,16 +1,19 @@
 <?php
 
+use App\Datasets\Datasets;
+use App\Enums\TimelineType;
 use Illuminate\Support\Facades\Schedule;
 
 // Capture: everything that pulls from a third party. Each is incremental and
 // widens its window to cover a missed run, which is what makes them safe to run
 // often. `withoutOverlapping()` throughout, so a slow run never stacks.
 // Push-based capture (Health Auto Export, Setgraph) is set on the phone instead.
+// A dataset's command lives on the dataset, so HQ's Sync now runs the same one.
 
 // Watch history is the most time-sensitive capture here, but it arrives in
 // evening bursts: every minute spent 2,880 requests a day to shave minutes off
 // an entry appearing. Ratings page the whole library, so they stay daily.
-Schedule::command('trakt:sync --days=1 --skip-ratings')->everyTenMinutes()->withoutOverlapping();
+Schedule::command(Datasets::for(TimelineType::Film)->syncCommand())->everyTenMinutes()->withoutOverlapping();
 Schedule::command('trakt:sync --ratings-only')->dailyAt('04:10')->withoutOverlapping();
 
 // Strava pushes activity creates, edits and deletes to the webhook, so this is
@@ -20,7 +23,7 @@ Schedule::command('trakt:sync --ratings-only')->dailyAt('04:10')->withoutOverlap
 // written on its own is not reliably pushed; --refresh asks outright, which
 // costs one request per activity in the window. Twice a day caps that lag at
 // twelve hours for about seven reads.
-Schedule::command('strava:sync --days=2 --refresh')->twiceDaily(4, 16)->withoutOverlapping();
+Schedule::command(Datasets::for(TimelineType::Activity)->syncCommand())->twiceDaily(4, 16)->withoutOverlapping();
 
 // Kudos and comments left on an activity after it published. Only the
 // summary counts are checked each run, so a quiet activity costs nothing.
@@ -28,7 +31,7 @@ Schedule::command('strava:responses')->hourly()->withoutOverlapping();
 
 // Keep the recent food diary fresh in near real time, re-checking the last few
 // days so food logged late for an earlier day is picked up.
-Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command(Datasets::for(TimelineType::Food)->syncCommand())->everyFifteenMinutes()->withoutOverlapping();
 
 // Today's step count for the status bar. The odd one out above: it stores no
 // history, so there is no gap to heal and it asks only for today, whose total
@@ -36,7 +39,7 @@ Schedule::command('rovi:sync-food')->everyFifteenMinutes()->withoutOverlapping()
 Schedule::command('rovi:sync-steps')->everyFifteenMinutes()->withoutOverlapping();
 
 // Swarm check-ins, asking only for what postdates the newest stored one.
-Schedule::command('foursquare:sync')->everyTenMinutes()->withoutOverlapping();
+Schedule::command(Datasets::for(TimelineType::Place)->syncCommand())->everyTenMinutes()->withoutOverlapping();
 
 // Likes and comments left on check-ins after they were synced.
 Schedule::command('swarm:responses')->hourly()->withoutOverlapping();
@@ -44,7 +47,7 @@ Schedule::command('swarm:responses')->hourly()->withoutOverlapping();
 // Episodes publish weekly, so once a day is ample. It used to run every half
 // hour, and because the sync re-fetches all 43 pages each time (see #85), that
 // read as scraping to the podcast site's WAF and got this server's IP blocked.
-Schedule::command('this-week-with:sync')->dailyAt('05:20')->withoutOverlapping();
+Schedule::command(Datasets::for(TimelineType::ThisWeekWith)->syncCommand())->dailyAt('05:20')->withoutOverlapping();
 
 // Enrichment: derived work for rows capture has already stored. All skip what is
 // done, so they are cheap when idle and double as a repair pass.

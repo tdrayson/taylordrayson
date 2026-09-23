@@ -101,4 +101,9 @@ final class FoodDataset extends BaseDataset
     {
         return true;
     }
+
+    public function syncCommand(): ?string
+    {
+        return 'rovi:sync-food';
+    }
 }
