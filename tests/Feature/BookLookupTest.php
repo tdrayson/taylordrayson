@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Queries\Lookups\BookCoverLookup;
+use App\Queries\Lookups\BookEditionOverview;
 use App\Queries\Lookups\BookLookup;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
@@ -116,4 +117,18 @@ it('gives each edition its own ISBN and year, preferring the ISBN-13', function 
         ['cover' => 'https://assets.hardcover.app/bantam.jpeg', 'isbn' => '0553152890', 'year' => 1975],
         ['cover' => 'https://assets.hardcover.app/unknown.jpeg', 'isbn' => null, 'year' => null],
     ]);
+});
+
+it('takes the picked edition\'s overview from Open Library, falling back to its work', function () {
+    Saloon::fake([
+        '/isbn/9780375814259.json' => MockResponse::make(['description' => 'A young English boy and his father.', 'works' => [['key' => '/works/OL45865W']]]),
+        '/isbn/9780141301143.json' => MockResponse::make(['works' => [['key' => '/works/OL45865W']]]),
+        '/works/OL45865W.json' => MockResponse::make(['description' => ['type' => '/type/text', 'value' => 'The work blurb.']]),
+        '/isbn/9780000000000.json' => MockResponse::make(['error' => 'notfound'], 404),
+    ]);
+
+    expect(app(BookEditionOverview::class)('978-0-375-81425-9'))->toBe(['overview' => 'A young English boy and his father.'])
+        ->and(app(BookEditionOverview::class)('9780141301143'))->toBe(['overview' => 'The work blurb.'])
+        ->and(app(BookEditionOverview::class)('9780000000000'))->toBe(['overview' => null])
+        ->and(app(BookEditionOverview::class)(' '))->toBe(['overview' => null]);
 });
