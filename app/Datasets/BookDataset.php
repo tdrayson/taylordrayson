@@ -92,4 +92,9 @@ final class BookDataset extends BaseDataset
     {
         return SpanAnchor::End;
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
 }

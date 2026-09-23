@@ -2,7 +2,9 @@
 
 namespace App\Mcp\Tools;
 
-use App\Timeline\TypeRegistry;
+use App\Data\Hub\TypeCount;
+use App\Models\TimelineEntry;
+use App\Queries\Hub\EntryCounts;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Carbon;
 use Laravel\Mcp\Request;
@@ -16,27 +18,29 @@ class DataFreshness extends Tool
     public function handle(Request $request): Response
     {
         $now = Carbon::now();
+        $counts = collect(app(EntryCounts::class)())->keyBy('type');
+        $newest = self::newest($counts->map(
+            fn (TypeCount $count): ?string => $count->newest?->toDateTimeString()
+        )->filter()->all());
+
         $types = [];
 
-        foreach (TypeRegistry::all() as $type => $definition) {
-            $model = $definition['model'];
+        foreach ($counts as $type => $count) {
+            $entry = $newest[$type] ?? null;
 
-            /** @var object|null $newest */
-            $newest = $model::query()->orderByDesc('occurred_at')->first();
-
-            if ($newest === null) {
-                $types[] = ['type' => $type, 'label' => $definition['label'], 'entries' => 0];
+            if ($entry === null) {
+                $types[] = ['type' => $type, 'label' => $count->label, 'entries' => $count->count];
 
                 continue;
             }
 
-            $occurred = Carbon::parse($newest->occurred_at);
-            $recorded = $newest->created_at ? Carbon::parse($newest->created_at) : null;
+            $occurred = Carbon::parse($entry->occurred_at);
+            $recorded = $entry->created_at ? Carbon::parse($entry->created_at) : null;
 
             $types[] = [
                 'type' => $type,
-                'label' => $definition['label'],
-                'entries' => $model::query()->count(),
+                'label' => $count->label,
+                'entries' => $count->count,
                 'newest' => $occurred->toDateTimeString(),
                 'behind' => $occurred->diffForHumans($now, syntax: Carbon::DIFF_ABSOLUTE),
                 'recorded' => $recorded?->toDateTimeString(),
@@ -49,6 +53,44 @@ class DataFreshness extends Tool
         usort($types, fn (array $a, array $b): int => ($a['newest'] ?? '') <=> ($b['newest'] ?? ''));
 
         return Response::json(['as_of' => $now->toDateTimeString(), 'types' => $types]);
+    }
+
+    /**
+     * The newest entry of each type, for its `created_at`.
+     *
+     * @param  array<string, string>  $dates  Newest occurred_at, keyed by type.
+     * @return array<string, TimelineEntry>
+     */
+    private static function newest(array $dates): array
+    {
+        if ($dates === []) {
+            return [];
+        }
+
+        $rows = TimelineEntry::query()
+            ->whereIn('occurred_at', array_values(array_unique($dates)))
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+        $newest = [];
+
+        // A timestamp can be the newest for one type and an ordinary entry of
+        // another, so each row has to match its own type's maximum. Several
+        // rows can also share that exact occurred_at; the query order above
+        // makes the first match deterministic (latest created_at, then id).
+        foreach ($rows as $row) {
+            $type = (string) $row->dataset;
+
+            if (isset($newest[$type])) {
+                continue;
+            }
+
+            if (isset($dates[$type]) && $row->occurred_at->toDateTimeString() === $dates[$type]) {
+                $newest[$type] = $row;
+            }
+        }
+
+        return $newest;
     }
 
     /**

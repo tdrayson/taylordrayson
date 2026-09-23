@@ -58,5 +58,7 @@ export function createCommands(types) {
         })),
         { label: 'New entry', href: '/new', icon: 'PlusSignIcon', keywords: 'write add create compose quick capture anything', quick: true },
         { label: 'Drafts', href: '/drafts', icon: 'File02Icon', keywords: 'unpublished unfinished work in progress', quick: true },
+        { label: 'HQ', href: '/hq', icon: 'DashboardSquare01Icon', keywords: 'hub dashboard overview activity notifications responses admin', quick: true },
+        { label: 'Moderation', href: '/moderation', icon: 'Comment01Icon', keywords: 'comments held queue approve spam webmentions' },
     ];
 }

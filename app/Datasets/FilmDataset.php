@@ -81,4 +81,14 @@ final class FilmDataset extends BaseDataset
     {
         return ['title'];
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
+
+    public function syncCommand(): ?string
+    {
+        return 'trakt:sync --days=1 --skip-ratings';
+    }
 }

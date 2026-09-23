@@ -1,9 +1,10 @@
 <script setup>
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
 import ContributedText from './ContributedText.vue';
 import Icon from '../Ui/Icon.vue';
+import { markableId, setMine } from '../../lib/mineMark.js';
 
 const props = defineProps({
     // One ConversationItem: { id, kind, authorName, authorUrl, authorPhoto,
@@ -93,6 +94,12 @@ const PROPERTIES = {
 
 const property = computed(() => PROPERTIES[props.item.kind] ?? null);
 
+/**
+ * The id to mark this reply as mine with, for the signed-in owner only. Null
+ * for everyone else and for anything that is not a Strava or Swarm reply.
+ */
+const markable = computed(() => (usePage().props.signedIn === true ? markableId(props.item) : null));
+
 </script>
 
 <template>
@@ -119,13 +126,30 @@ const property = computed(() => PROPERTIES[props.item.kind] ?? null);
              elbow and the branch line are positioned against it, and a nested row
              already carries ml-16, which beats -mx-3 in the cascade, so padding
              the article would walk the avatar right and leave the line behind. -->
-        <div :class="['flex gap-3', item.mine && 'bg-neutral-25 rounded-lg px-3 py-2 -mx-3']">
-            <Avatar
-                class="response-avatar"
-                :name="item.authorName"
-                :photo="item.authorPhoto"
-                :mine="item.mine"
-            />
+        <div :class="['group flex gap-3', item.mine && 'bg-neutral-25 rounded-lg px-3 py-2 -mx-3']">
+            <!-- The mark sits on the avatar, since whose response this is what
+                 the avatar already says. On hover it covers the avatar outright
+                 rather than perching on it, so the row says plainly that this
+                 is about who left it. Where there is no hover to reveal it, it
+                 shrinks to a corner badge instead of hiding every face. -->
+            <span class="response-avatar shrink-0 self-start">
+                <Avatar
+                    :name="item.authorName"
+                    :photo="item.authorPhoto"
+                    :mine="item.mine"
+                />
+
+                <button
+                    v-if="markable"
+                    type="button"
+                    class="absolute inset-0 flex items-center justify-center rounded-full bg-accent-50 text-accent-700 opacity-0 transition hover:bg-accent-100 focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:inset-auto pointer-coarse:bottom-0 pointer-coarse:right-0 pointer-coarse:size-6 pointer-coarse:bg-neutral-0 pointer-coarse:text-neutral-500 pointer-coarse:opacity-100 pointer-coarse:shadow-card"
+                    :aria-pressed="item.mine"
+                    :aria-label="item.mine ? 'Not mine' : 'Mark as mine'"
+                    @click="setMine(markable, ! item.mine)"
+                >
+                    <Icon name="UserIcon" class="size-4" />
+                </button>
+            </span>
 
             <div class="min-w-0 flex-1">
                 <!-- Inline flow, not flex: the byline is one sentence, so a long

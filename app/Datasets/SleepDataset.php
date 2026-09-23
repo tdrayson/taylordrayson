@@ -92,4 +92,9 @@ final class SleepDataset extends BaseDataset
     {
         return SpanAnchor::End;
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
 }

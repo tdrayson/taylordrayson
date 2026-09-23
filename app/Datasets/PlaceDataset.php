@@ -106,4 +106,14 @@ final class PlaceDataset extends BaseDataset
     {
         return Taxonomies::column('type', 'Category', fn (string $label): string => Str::plural($label));
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
+
+    public function syncCommand(): ?string
+    {
+        return 'foursquare:sync';
+    }
 }

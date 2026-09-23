@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Fields\AuthorableTypes;
+use App\Queries\Hub\NeedsAttention;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
 use App\Support\FeedDiscovery;
@@ -10,6 +11,7 @@ use App\Support\Preferences;
 use App\Support\StateStore;
 use App\Support\TodaySteps;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -62,6 +64,13 @@ class HandleInertiaRequests extends Middleware
             // every actual gate is enforced server-side, and sharing the model
             // would put the account's email in the props of every page.
             'signedIn' => $request->user() !== null,
+            // How many things are waiting in HQ, so the sidebar link and the
+            // floating menu can carry a dot on every page. Deferred: it runs
+            // four checks, and no first render needs it. Cached for a minute,
+            // a stale dot being cheaper than four checks on every request.
+            'hubWaiting' => fn (): int => $request->user() === null ? 0 : Cache::remember(
+                'hub:waiting', 60, fn (): int => app(NeedsAttention::class)->count()
+            ),
             // The types the command palette can offer a "New …" command for.
             // Empty when signed out, because every /new route is auth-gated.
             'authorTypes' => $request->user() !== null ? AuthorableTypes::forPicker() : [],

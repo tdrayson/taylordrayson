@@ -7,6 +7,7 @@ use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
 use App\Models\Concerns\Timelineable;
 use App\Models\Note;
+use App\Models\Page;
 use LogicException;
 
 /**
@@ -20,6 +21,20 @@ final class CardPresenter
     public static function for(Timelineable $model): CardData
     {
         return self::card($model)->present($model);
+    }
+
+    /**
+     * What an entry or page is called: its card heading, or a page's own title.
+     *
+     * @param  Timelineable|Page|null  $model  Null when the thing has been deleted.
+     */
+    public static function title(Timelineable|Page|null $model): string
+    {
+        return match (true) {
+            $model instanceof Page => $model->title,
+            $model instanceof Timelineable => self::card($model)->title($model),
+            default => 'an entry that has since gone',
+        };
     }
 
     /** The card title, or the type label for a private note, whose title is written from the body its password holds back. */

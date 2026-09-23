@@ -96,4 +96,14 @@ final class ThisWeekWithDataset extends BaseDataset
     {
         return Taxonomies::thisWeekWithSeason();
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
+
+    public function syncCommand(): ?string
+    {
+        return 'this-week-with:sync';
+    }
 }

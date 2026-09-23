@@ -11,9 +11,11 @@ use App\Http\Controllers\EntryExportController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\HubController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\ManifestController;
+use App\Http\Controllers\MarkResponseMineController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
 use App\Http\Controllers\ModerationController;
@@ -25,11 +27,13 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PageExportController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\ReactionController;
+use App\Http\Controllers\RetryFailedJobsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\SyncDatasetController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
@@ -81,8 +85,20 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/drafts/{dataset}/{id}', [EntryController::class, 'draft'])
         ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('drafts.show');
 
-    // The queue for held comments and mentions. A lowercase word, so it has to
-    // sit above the /{slug} catch-all or a content page could shadow it.
+    // The back-of-house overview: what needs a decision, who has responded, and
+    // whether the syncs are still arriving. A lowercase word, so it has to sit
+    // above the /{slug} catch-all or a content page could shadow it.
+    Route::get('/hq', HubController::class)->name('hq');
+    Route::post('/hq/failed-jobs/retry', RetryFailedJobsController::class)
+        ->middleware('throttle:10,1')->name('hq.failed-jobs.retry');
+    Route::post('/hq/sync/{dataset}', SyncDatasetController::class)
+        ->where('dataset', '[a-z-]+')->middleware('throttle:10,1')->name('hq.sync');
+
+    // A Strava or Swarm reply of mine, marked by hand where the source cannot say.
+    Route::patch('/responses/syndicated/{response}/mine', MarkResponseMineController::class)
+        ->whereNumber('response')->name('responses.mine');
+
+    // The queue for held comments and mentions, for now still its own page.
     Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');
     Route::post('/moderation/{kind}/{id}/{action}', [ModerationController::class, 'update'])
         ->where(['kind' => 'comment|mention', 'id' => '[0-9]+', 'action' => 'approve|spam|delete'])

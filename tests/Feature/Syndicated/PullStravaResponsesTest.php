@@ -178,3 +178,59 @@ it('keeps stored replies when asked not to fetch comments', function () {
     Saloon::assertNotSent(fn ($request): bool => str_contains($request->resolveEndpoint(), '/comments'));
     expect($activity->syndicatedResponses()->where('kind', WebmentionKind::Reply)->count())->toBe(1);
 });
+
+it('knows my own comment by my athlete id', function () {
+    config()->set('services.strava.athlete_id', '4321');
+
+    $activity = stravaActivity();
+    fakeStravaResponses([], [[
+        'id' => 7,
+        'text' => 'Replying to myself',
+        'created_at' => '2025-08-27T09:44:33Z',
+        'athlete' => ['id' => 4321, 'firstname' => 'Taylor', 'lastname' => 'D.'],
+    ]]);
+
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->sole()->mine)->toBeTrue();
+});
+
+// Strava does not always name the athlete behind a comment, so a reply marked
+// by hand has to survive the next sync finding no id to confirm it with.
+it('keeps a mark made by hand when the payload cannot confirm it', function () {
+    $activity = stravaActivity();
+    $comment = [
+        'id' => 8,
+        'text' => 'Mine, actually',
+        'created_at' => '2025-08-27T09:44:33Z',
+        'athlete' => ['firstname' => 'Taylor', 'lastname' => 'D.'],
+    ];
+
+    fakeStravaResponses([], [$comment]);
+    app(PullStravaResponses::class)($activity);
+
+    $activity->syndicatedResponses()->sole()->update(['mine' => true]);
+
+    fakeStravaResponses([], [$comment]);
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->sole()->mine)->toBeTrue();
+});
+
+// A kudo has no id of its own, so every sync deletes and rewrites it. A mark
+// made by hand has to be carried across that by who left it.
+it('keeps a kudo marked as mine across the rewrite', function () {
+    $activity = stravaActivity();
+    $kudos = [['firstname' => 'Taylor', 'lastname' => 'D.'], ['firstname' => 'Clare', 'lastname' => 'A.']];
+
+    fakeStravaResponses($kudos, []);
+    app(PullStravaResponses::class)($activity);
+
+    $activity->syndicatedResponses()->where('author_name', 'Taylor D.')->sole()->update(['mine' => true]);
+
+    fakeStravaResponses($kudos, []);
+    app(PullStravaResponses::class)($activity);
+
+    expect($activity->syndicatedResponses()->where('author_name', 'Taylor D.')->sole()->mine)->toBeTrue()
+        ->and($activity->syndicatedResponses()->where('author_name', 'Clare A.')->sole()->mine)->toBeFalse();
+});

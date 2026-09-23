@@ -99,4 +99,14 @@ final class ActivityDataset extends BaseDataset
     {
         return true;
     }
+
+    public function synced(): bool
+    {
+        return true;
+    }
+
+    public function syncCommand(): ?string
+    {
+        return 'strava:sync --days=2 --refresh';
+    }
 }

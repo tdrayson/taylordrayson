@@ -9,6 +9,7 @@ use App\Mcp\Tools\SearchFields;
 use App\Mcp\Tools\Stats;
 use App\Mcp\Tools\Timeline;
 use App\Models\Activity;
+use App\Models\Food;
 use App\Models\Place;
 use App\Models\Sleep;
 
@@ -41,6 +42,30 @@ it('reports whether each kind of data is still arriving', function () {
     expect($sleep['entries'])->toBe(1)
         ->and($sleep['newest'])->toBe('2026-08-26 07:00:00')
         ->and($sleep)->toHaveKeys(['behind', 'recorded', 'recorded_after']);
+});
+
+it('breaks a tie between same-timestamp entries by the latest created_at', function () {
+    // Inserted in this order (lower id first) so a query with no explicit
+    // order would default to id order and pick the wrong, older-recorded row.
+    $newer = aNight('2026-08-26');
+    $older = aNight('2026-08-26');
+
+    $newer->timelineEntry->forceFill(['created_at' => now()])->save();
+    $older->timelineEntry->forceFill(['created_at' => now()->subDay()])->save();
+
+    $sleep = collect(callTool(DataFreshness::class)['data']['types'])->firstWhere('type', 'sleep');
+
+    expect($sleep['recorded'])->toBe($newer->timelineEntry->created_at->toDateTimeString());
+});
+
+it('counts a day of food as one entry, not one per item', function () {
+    Food::factory()->count(6)->create(['occurred_at' => '2026-08-26 12:00:00']);
+
+    $food = collect(callTool(DataFreshness::class)['data']['types'])->firstWhere('type', 'food');
+
+    // Counting the model reported one entry per mouthful, which inflated food
+    // tenfold and every total built on it.
+    expect($food['entries'])->toBe(1);
 });
 
 it('returns a range of entries as cards', function () {

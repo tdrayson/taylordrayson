@@ -24,7 +24,7 @@ final class PhotoCaption
         $card = CardPresenter::card($model);
 
         return [
-            'caption' => $card->title($model),
+            'caption' => CardPresenter::title($model),
             'date' => app(DisplayFormat::class)->date($model->occurred_at, weekday: false),
             'accent' => $card->type()->accent(),
             'url' => $model->url(),

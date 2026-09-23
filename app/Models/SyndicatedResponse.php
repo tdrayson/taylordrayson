@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'url',
     'occurred_at',
     'status',
+    'mine',
 ])]
 class SyndicatedResponse extends Model
 {
@@ -47,6 +48,7 @@ class SyndicatedResponse extends Model
             'status' => CommentStatus::class,
             'body' => 'array',
             'occurred_at' => 'datetime',
+            'mine' => 'boolean',
         ];
     }
 

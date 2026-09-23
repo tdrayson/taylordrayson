@@ -71,7 +71,7 @@ it('signs out from the palette', function () {
         ->click('[aria-label="Open search"]')
         ->type('[role="dialog"] input', 'sign out')
         ->keys('[role="dialog"] input', 'Enter')
-        // The signed-in quick-add button is gone, so the session really ended.
-        ->assertScript("document.querySelector('[aria-label=\"Add an entry\"]') === null", true)
+        // The signed-in owner menu is gone, so the session really ended.
+        ->assertScript("document.querySelector('[aria-haspopup=\"menu\"][aria-label^=\"Menu\"]') === null", true)
         ->assertNoJavascriptErrors();
 });

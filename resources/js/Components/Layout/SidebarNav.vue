@@ -7,6 +7,8 @@ import {
     BookOpen01Icon,
     UserIcon,
     GridViewIcon,
+    DashboardSquare01Icon,
+    File02Icon,
 } from '@hugeicons-pro/core-stroke-rounded';
 import { entryTypes } from '../../entryTypes.js';
 import SidebarNavItem from './SidebarNavItem.vue';
@@ -23,7 +25,19 @@ const links = [
     { label: 'More', href: '/more', icon: GridViewIcon },
 ];
 
+// Back-of-house, drawn only for a signed-in browser. HQ is the way in to
+// everything that needs a decision; Drafts is a working list rather than a
+// queue, so it keeps its own row.
+const ownerLinks = [
+    { label: 'HQ', href: '/hq', icon: DashboardSquare01Icon },
+    { label: 'Drafts', href: '/drafts', icon: File02Icon },
+];
+
 const page = usePage();
+
+const signedIn = computed(() => page.props.signedIn === true);
+
+const waiting = computed(() => page.props.hubWaiting ?? 0);
 
 // Current path with any query string dropped, so /articles?page=2 still matches.
 const currentPath = computed(() => page.url.split('?')[0]);
@@ -54,5 +68,19 @@ function isActive(href) {
             :icon="item.icon"
             :active="isActive(item.href)"
         />
+
+        <template v-if="signedIn">
+            <hr class="my-2 border-neutral-50">
+
+            <SidebarNavItem
+                v-for="item in ownerLinks"
+                :key="item.href"
+                :href="item.href"
+                :label="item.label"
+                :icon="item.icon"
+                :active="isActive(item.href)"
+                :dot="item.href === '/hq' && waiting > 0"
+            />
+        </template>
     </nav>
 </template>

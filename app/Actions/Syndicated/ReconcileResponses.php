@@ -48,6 +48,7 @@ final class ReconcileResponses
     private function replaceGestures(Model $target, Source $source, Collection $incoming, array $unvouchedKinds): void
     {
         $gestures = $incoming->reject(fn (SyndicatedResponseData $data): bool => $this->isProse($data));
+        $mine = $this->markedMine($target, $source);
 
         // Kinds absent from the payload are cleared too: a repost withdrawn
         // leaves no row to compare against, only a missing one.
@@ -64,8 +65,26 @@ final class ReconcileResponses
                 continue;
             }
 
-            $this->write($target, $source, $data);
+            // A gesture has no id of its own, so a mark made by hand can only
+            // be carried across the rewrite by who left it.
+            $carried = in_array([$data->kind->value, $data->authorName], $mine, true);
+
+            $this->write($target, $source, $data->mine || $carried ? $data->asMine() : $data);
         }
+    }
+
+    /**
+     * The kind and author of every gesture on this target already marked mine.
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    private function markedMine(Model $target, Source $source): array
+    {
+        return $this->rowsFor($target, $source)
+            ->where('mine', true)
+            ->get(['kind', 'author_name'])
+            ->map(fn (SyndicatedResponse $row): array => [$row->kind->value, $row->author_name])
+            ->all();
     }
 
     /**

@@ -75,4 +75,10 @@ interface Dataset
 
     /** Whether an entry of this type can be a draft: hand-written types only. */
     public function draftable(): bool;
+
+    /** Whether entries arrive from a service rather than being written here. */
+    public function synced(): bool;
+
+    /** The Artisan command that pulls this type on demand, or null when it only arrives by push. */
+    public function syncCommand(): ?string;
 }

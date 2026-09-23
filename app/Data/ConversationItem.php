@@ -141,11 +141,13 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
         return new self(
             id: 'syndicated-'.$response->id,
             kind: $response->kind->value,
-            authorName: $response->author_name,
+            authorName: $response->mine ? (string) config('identity.name') : $response->author_name,
             authorUrl: null,
-            authorPhoto: $response->author_photo_path === null
-                ? null
-                : '/'.ltrim($response->author_photo_path, '/'),
+            authorPhoto: match (true) {
+                $response->mine => (string) config('identity.avatar'),
+                $response->author_photo_path === null => null,
+                default => '/'.ltrim($response->author_photo_path, '/'),
+            },
             title: null,
             body: $response->body,
             occurredAt: $response->occurred_at,
@@ -160,6 +162,7 @@ final readonly class ConversationItem implements Arrayable, JsonSerializable
             source: $response->source,
             sourceName: Source::tryFrom($response->source)?->label() ?? $response->source,
             sourceFavicon: $host === null ? null : Links::faviconUrl($host),
+            mine: $response->mine,
         );
     }
 
