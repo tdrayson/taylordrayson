@@ -4,6 +4,7 @@ use App\Enums\ExportFormat;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\CitationPreviewController;
+use App\Http\Controllers\ClearFailedJobsController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
@@ -91,6 +92,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/hq', HubController::class)->name('hq');
     Route::post('/hq/failed-jobs/retry', RetryFailedJobsController::class)
         ->middleware('throttle:10,1')->name('hq.failed-jobs.retry');
+    Route::post('/hq/failed-jobs/clear', ClearFailedJobsController::class)
+        ->middleware('throttle:10,1')->name('hq.failed-jobs.clear');
     Route::post('/hq/sync/{dataset}', SyncDatasetController::class)
         ->where('dataset', '[a-z-]+')->middleware('throttle:10,1')->name('hq.sync');
 

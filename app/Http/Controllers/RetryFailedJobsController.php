@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Hub\RetryFailedJobs;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Artisan;
-use RuntimeException;
 
 /**
  * Pushes every failed job back onto the queue. All or nothing: the decision is
@@ -12,13 +11,9 @@ use RuntimeException;
  */
 class RetryFailedJobsController extends Controller
 {
-    public function __invoke(): RedirectResponse
+    public function __invoke(RetryFailedJobs $retry): RedirectResponse
     {
-        $exitCode = Artisan::call('queue:retry', ['id' => ['all']]);
-
-        if ($exitCode !== 0) {
-            throw new RuntimeException(trim(Artisan::output()));
-        }
+        $retry();
 
         return back();
     }

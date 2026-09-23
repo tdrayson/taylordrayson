@@ -7,10 +7,10 @@ defineProps({
     items: { type: Array, default: () => [] },
 });
 
-/** Approve and reject go to the moderation route; retry has its own. */
+/** Approve and reject go to the moderation route; retry and clear have their own. */
 function act(item, action) {
-    const url = action === 'retry'
-        ? '/hq/failed-jobs/retry'
+    const url = ['retry', 'clear'].includes(action)
+        ? `/hq/failed-jobs/${action}`
         : `/moderation/${item.id.split('-')[0]}/${item.id.split('-')[1]}/${action}`;
 
     router.post(url, {}, { preserveScroll: true });

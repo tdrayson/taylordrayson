@@ -2,12 +2,14 @@
 
 use App\Enums\CommentStatus;
 use App\Enums\EntryStatus;
+use App\Jobs\GenerateEntryMap;
 use App\Models\Book;
 use App\Models\Note;
 use App\Models\User;
 use App\Support\PortableText;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -106,12 +108,65 @@ it('retries the failed jobs and clears the row', function () {
     expect(DB::table('failed_jobs')->count())->toBe(0);
 });
 
-it('surfaces a non-zero exit from retrying failed jobs instead of looking successful', function () {
-    $this->withoutExceptionHandling();
+it('forgets a failed job whose model was deleted instead of 404ing the retry', function () {
+    $note = Note::factory()->create();
+    $command = serialize(new GenerateEntryMap($note));
+    $note->delete();
+
+    DB::table('failed_jobs')->insert([
+        'uuid' => (string) Str::uuid(),
+        'connection' => 'database',
+        'queue' => 'default',
+        'payload' => json_encode([
+            'displayName' => GenerateEntryMap::class,
+            'data' => ['commandName' => GenerateEntryMap::class, 'command' => $command],
+        ]),
+        'exception' => 'RuntimeException: boom',
+        'failed_at' => now(),
+    ]);
 
     actingAs(User::factory()->create());
 
-    Artisan::shouldReceive('call')->once()->with('queue:retry', ['id' => ['all']])->andReturn(1);
+    post('/hq/failed-jobs/retry')->assertRedirect();
+
+    expect(DB::table('failed_jobs')->count())->toBe(0);
+});
+
+it('clears the failed jobs without running them', function () {
+    Queue::fake();
+
+    DB::table('failed_jobs')->insert([
+        'uuid' => (string) Str::uuid(),
+        'connection' => 'database',
+        'queue' => 'default',
+        'payload' => json_encode(['displayName' => 'App\\Jobs\\GenerateEntryMap']),
+        'exception' => 'RuntimeException: boom',
+        'failed_at' => now(),
+    ]);
+
+    actingAs(User::factory()->create());
+
+    post('/hq/failed-jobs/clear')->assertRedirect();
+
+    expect(DB::table('failed_jobs')->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
+it('surfaces a non-zero exit from retrying failed jobs instead of looking successful', function () {
+    $this->withoutExceptionHandling();
+
+    DB::table('failed_jobs')->insert([
+        'uuid' => (string) Str::uuid(),
+        'connection' => 'database',
+        'queue' => 'default',
+        'payload' => json_encode(['displayName' => 'App\\Jobs\\GenerateEntryMap']),
+        'exception' => 'RuntimeException: boom',
+        'failed_at' => now(),
+    ]);
+
+    actingAs(User::factory()->create());
+
+    Artisan::shouldReceive('call')->once()->andReturn(1);
     Artisan::shouldReceive('output')->andReturn('Some queue driver error.');
 
     post('/hq/failed-jobs/retry');

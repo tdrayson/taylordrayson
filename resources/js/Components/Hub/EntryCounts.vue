@@ -49,8 +49,14 @@ const summary = computed(
 </script>
 
 <template>
-    <div>
-        <p class="text-sm text-neutral-500">{{ summary }}</p>
+    <!-- Collapsed to the totals: every row on every visit is noise most days. -->
+    <details class="group">
+        <summary
+            class="flex cursor-pointer list-none items-center gap-2 rounded-md py-1 text-sm text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+        >
+            <Icon name="ArrowRight01Icon" class="size-4 flex-none transition-transform group-open:rotate-90" />
+            {{ summary }}
+        </summary>
 
         <div
             v-for="group in [
@@ -90,5 +96,5 @@ const summary = computed(
                 </li>
             </ul>
         </div>
-    </div>
+    </details>
 </template>

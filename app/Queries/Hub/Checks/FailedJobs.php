@@ -38,7 +38,10 @@ final class FailedJobs implements Check
             body: null,
             age: $newest->diffForHumans(),
             href: '/hq',
-            actions: [['label' => 'Retry', 'action' => 'retry', 'variant' => 'secondary']],
+            actions: [
+                ['label' => 'Retry', 'action' => 'retry', 'variant' => 'secondary'],
+                ['label' => 'Clear', 'action' => 'clear', 'variant' => 'ghost'],
+            ],
         )];
     }
 }
